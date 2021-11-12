@@ -1,0 +1,13 @@
+filters:
+  ".*":
+    reviewers:
+      - xiaofan-luan
+      - groot
+      - matrixji
+      - ArkaprabhaChakraborty
+    approvers:
+      - xiaofan-luan
+      - groot
+      - matrixji
+      - ArkaprabhaChakraborty
+
