@@ -94,7 +94,7 @@ MilvusConnection::GetCollectionStats(const proto::milvus::GetCollectionStatistic
 Status
 MilvusConnection::ShowCollections(const proto::milvus::ShowCollectionsRequest& request,
                                   proto::milvus::ShowCollectionsResponse& response) {
-    return Status::OK();
+    return grpcCall("ShowCollections", &Stub::ShowCollections, request, response);
 }
 
 Status

@@ -144,7 +144,28 @@ MilvusClientImpl::GetCollectionStatistics(const std::string& collection_name, co
 
 Status
 MilvusClientImpl::ShowCollections(const std::vector<std::string>& collection_names, CollectionsInfo& collections_info) {
-    return Status::OK();
+    if (connection_ == nullptr) {
+        return Status(StatusCode::NOT_CONNECTED, "Connection is not ready!");
+    }
+    proto::milvus::ShowCollectionsRequest rpc_request;
+    if (collection_names.empty()) {
+        rpc_request.set_type(proto::milvus::ShowType::All);
+    } else {
+        rpc_request.set_type(proto::milvus::ShowType::InMemory);
+        for (auto& collection_name : collection_names) {
+            rpc_request.add_collection_names(collection_name);
+        }
+    }
+    proto::milvus::ShowCollectionsResponse response;
+    Status ret = connection_->ShowCollections(rpc_request, response);
+    if (ret.IsOk()) {
+        for (size_t i = 0; i < response.collection_ids_size(); i++) {
+            collections_info.push_back(CollectionInfo(response.collection_names(i), response.collection_ids(i),
+                                                      response.created_utc_timestamps(i),
+                                                      response.inmemory_percentages(i)));
+        }
+    }
+    return ret;
 }
 
 Status
@@ -241,6 +262,48 @@ MilvusClientImpl::ShowPartitions(const std::string& collection_name, const std::
     }
 
     return ret;
+}
+
+Status
+MilvusClientImpl::CreateAlias(const std::string& collection_name, const std::string& alias) {
+    return Status::OK();
+}
+
+Status
+MilvusClientImpl::DropAlias(const std::string& alias) {
+    return Status::OK();
+}
+
+Status
+MilvusClientImpl::AlterAlias(const std::string& collection_name, const std::string& alias) {
+    return Status::OK();
+}
+
+Status
+MilvusClientImpl::CreateIndex(const std::string& collection_name, const IndexDesc& index_desc) {
+    return Status::OK();
+}
+
+Status
+MilvusClientImpl::DescribeIndex(const std::string& collection_name, const std::string& field_name,
+                                IndexDesc& index_desc) {
+    return Status::OK();
+}
+
+Status
+MilvusClientImpl::GetIndexState(const std::string& collection_name, const std::string& field_name, IndexState& state) {
+    return Status::OK();
+}
+
+Status
+MilvusClientImpl::GetIndexBuildProgress(const std::string& collection_name, const std::string& field_name,
+                                        IndexProgress& progress) {
+    return Status::OK();
+}
+
+Status
+MilvusClientImpl::DropIndex(const std::string& collection_name, const std::string& field_name) {
+    return Status::OK();
 }
 
 }  // namespace milvus
