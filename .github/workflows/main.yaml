@@ -1,0 +1,41 @@
+name: Build and test
+on:
+  push:
+    # file paths to consider in the event. Optional; defaults to all.
+    paths:
+      - 'cmake/**'
+      - 'examples/**'
+      - 'src/**'
+      - 'test/**'
+      - 'thirdparty/**'
+      - '.github/workflows/main.yaml'
+      - '!**.md'
+  pull_request:
+    # file paths to consider in the event. Optional; defaults to all.
+    paths:
+      - 'cmake/**'
+      - 'examples/**'
+      - 'src/**'
+      - 'test/**'
+      - 'thirdparty/**'
+      - '.github/workflows/main.yaml'
+      - '!**.md'
+
+jobs:
+  ubuntu:
+    name: Build and test AMD64 Ubuntu ${{ matrix.ubuntu }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    strategy:
+      fail-fast: false
+      matrix:
+        ubuntu: [18.04]
+    env:
+      UBUNTU: ${{ matrix.ubuntu }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Build
+        run: |
+          mkdir -p build && cd build && cmake build ..
+
