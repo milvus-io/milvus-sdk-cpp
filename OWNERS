@@ -2,12 +2,16 @@ filters:
   ".*":
     reviewers:
       - xiaofan-luan
-      - groot
+      - yhmo
+      - scsven
+      - fishpenguin
       - matrixji
       - ArkaprabhaChakraborty
     approvers:
       - xiaofan-luan
-      - groot
+      - yhmo
+      - scsven
+      - fishpenguin
       - matrixji
       - ArkaprabhaChakraborty
 
