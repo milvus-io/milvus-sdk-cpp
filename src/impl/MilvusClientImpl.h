@@ -14,10 +14,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-
 #include "MilvusClient.h"
 
-/** 
+/**
  *  @brief namespace milvus
  */
 namespace milvus {
@@ -27,8 +26,8 @@ namespace milvus {
  */
 class MilvusClientImpl : public MilvusClient {
  public:
-    virtual void Dummy() override;
-
+    void
+    Dummy() final;
 };
 
 }  // namespace milvus

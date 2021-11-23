@@ -14,13 +14,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-
 #include "MilvusClientImpl.h"
 
 namespace milvus {
-    
-void MilvusClientImpl::Dummy() {
 
+void
+MilvusClientImpl::Dummy() {
 }
 
-}
+}  // namespace milvus

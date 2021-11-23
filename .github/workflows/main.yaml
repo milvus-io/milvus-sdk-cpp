@@ -35,7 +35,19 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2
+      - name: Prepare
+        run: |
+          sh scripts/install_deps.sh
       - name: Build
         run: |
-          mkdir -p build && cd build && cmake build ..
+          mkdir -p build
+          cd build
+          cmake build ..
+          make -j
+      - name: Lint
+        run: |
+          cd build
+          make lint
+          make check-clang-format
+          make check-clang-tidy
 
