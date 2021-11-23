@@ -3,7 +3,7 @@ include_directories(include)
 include_directories(proto-gen)
 
 aux_source_directory(${CMAKE_CURRENT_SOURCE_DIR}/impl impl_files)
-aux_source_directory(${CMAKE_CURRENT_SOURCE_DIR}/proto-gen grpc_files)
+include(proto-gen/proto-gen.cmake) # milvus_sdk_proto_files
 
 set(grpc_lib
         grpcpp_channelz
@@ -19,7 +19,7 @@ set(third_party_libs
 
 add_library(milvus_sdk SHARED
         ${impl_files}
-        ${grpc_files}
+        ${milvus_sdk_proto_files}
         )
 
 target_link_libraries(milvus_sdk
