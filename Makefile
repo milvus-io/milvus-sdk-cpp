@@ -14,25 +14,24 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-cmake_minimum_required(VERSION 3.12)
-project(milvus_sdk LANGUAGES CXX C)
+PWD 	:= $(shell pwd)
 
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
+all-debug: build-sdk-debug
+all-release: build-sdk-release
+all: all-debug
 
-include(ExternalProject)
-include(DefineOptions)
-include(BuildUtils)
-include(ThirdPartyPackages)
+# Code lint
+lint:
+	@(env bash ${PWD}/scripts/build.sh -l)
 
-set(CMAKE_CXX_STANDARD 11)
-set(CMAKE_CXX_STANDARD_REQUIRED on)
+# Build sdk
+build-sdk-debug:
+	@echo "Building Milvus SDK debug version ..."
+	@(env bash $(PWD)/scripts/build.sh -t Debug)
 
-add_subdirectory(src)
+build-sdk-release:
+	@echo "Building Milvus SDK release version ..."
+	@(env bash $(PWD)/scripts/build.sh -t Release)
 
-if (BUILD_UNIT_TEST STREQUAL "ON")
-    if (BUILD_COVERAGE STREQUAL "ON")
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fprofile-arcs -ftest-coverage")
-    endif ()
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DELPP_DISABLE_LOGS")
-    add_subdirectory(test)
-endif ()
+
+
