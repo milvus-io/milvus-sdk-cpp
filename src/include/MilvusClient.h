@@ -14,10 +14,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-
 #pragma once
 
-/** 
+/**
  *  @brief namespace milvus
  */
 namespace milvus {
@@ -27,8 +26,8 @@ namespace milvus {
  */
 class MilvusClient {
  public:
-    virtual void Dummy() = 0;
-
+    virtual void
+    Dummy() = 0;
 };
 
 }  // namespace milvus

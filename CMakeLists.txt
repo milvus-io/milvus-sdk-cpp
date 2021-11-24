@@ -20,12 +20,19 @@ project(milvus_sdk LANGUAGES CXX C)
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
 include(ExternalProject)
+include(FindPython2)
+
 include(DefineOptions)
 include(BuildUtils)
+include(FindClangTools)
 include(ThirdPartyPackages)
 
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED on)
+set(BUILD_SCRIPTS_DIR ${CMAKE_SOURCE_DIR}/scripts)
+
+unset(CMAKE_EXPORT_COMPILE_COMMANDS CACHE)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 add_subdirectory(src)
 
@@ -35,4 +42,94 @@ if (BUILD_UNIT_TEST STREQUAL "ON")
     endif ()
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DELPP_DISABLE_LOGS")
     add_subdirectory(test)
+endif ()
+
+# lint verbose options
+if (NOT MILVUS_VERBOSE_LINT)
+    set(MILVUS_LINT_QUIET "--quiet")
+endif ()
+
+#
+# make lint
+#
+find_package(Python2)
+
+if (NOT LINT_EXCLUSIONS_FILE)
+    set(LINT_EXCLUSIONS_FILE ${BUILD_SCRIPTS_DIR}/lint_exclusions.txt)
+endif ()
+
+add_custom_target(lint
+        ${Python2_EXECUTABLE}
+        ${BUILD_SCRIPTS_DIR}/run_cpplint.py
+        --cpplint_binary
+        ${BUILD_SCRIPTS_DIR}/cpplint.py
+        --exclude_globs
+        ${LINT_EXCLUSIONS_FILE}
+        --source_dir
+        ${CMAKE_CURRENT_SOURCE_DIR}
+        ${MILVUS_LINT_QUIET})
+
+
+#
+# clang-format targets
+#
+if (${CLANG_FORMAT_FOUND})
+    # runs clang format and updates files in place.
+    add_custom_target(clang-format
+            ${Python2_EXECUTABLE}
+            ${BUILD_SCRIPTS_DIR}/run_clang_format.py
+            --clang_format_binary
+            ${CLANG_FORMAT_BIN}
+            --exclude_globs
+            ${LINT_EXCLUSIONS_FILE}
+            --source_dir
+            ${CMAKE_CURRENT_SOURCE_DIR}/src
+            --fix
+            ${MILVUS_LINT_QUIET})
+
+    # runs clang format and exits with a non-zero exit code if any files need to be reformatted
+    add_custom_target(check-clang-format
+            ${Python2_EXECUTABLE}
+            ${BUILD_SCRIPTS_DIR}/run_clang_format.py
+            --clang_format_binary
+            ${CLANG_FORMAT_BIN}
+            --exclude_globs
+            ${LINT_EXCLUSIONS_FILE}
+            --source_dir
+            ${CMAKE_CURRENT_SOURCE_DIR}/src
+            ${MILVUS_LINT_QUIET})
+endif ()
+
+#
+# clang-tidy targets
+#
+if (${CLANG_TIDY_FOUND})
+    # runs clang-tidy and attempts to fix any warning automatically
+    add_custom_target(clang-tidy
+            ${Python2_EXECUTABLE}
+            ${BUILD_SCRIPTS_DIR}/run_clang_tidy.py
+            --clang_tidy_binary
+            ${CLANG_TIDY_BIN}
+            --exclude_globs
+            ${LINT_EXCLUSIONS_FILE}
+            --compile_commands
+            ${CMAKE_BINARY_DIR}/compile_commands.json
+            --source_dir
+            ${CMAKE_CURRENT_SOURCE_DIR}/src
+            --fix
+            ${MILVUS_LINT_QUIET})
+
+    # runs clang-tidy and exits with a non-zero exit code if any errors are found.
+    add_custom_target(check-clang-tidy
+            ${Python2_EXECUTABLE}
+            ${BUILD_SCRIPTS_DIR}/run_clang_tidy.py
+            --clang_tidy_binary
+            ${CLANG_TIDY_BIN}
+            --exclude_globs
+            ${LINT_EXCLUSIONS_FILE}
+            --compile_commands
+            ${CMAKE_BINARY_DIR}/compile_commands.json
+            --source_dir
+            ${CMAKE_CURRENT_SOURCE_DIR}/src
+            ${MILVUS_LINT_QUIET})
 endif ()
