@@ -18,6 +18,7 @@
 
 BUILD_OUTPUT_DIR="cmake_build"
 BUILD_TYPE="Debug"
+BUILD_UNIT_TEST="OFF"
 MAKE_CLEAN="OFF"
 RUN_CPPLINT="OFF"
 
@@ -35,12 +36,16 @@ while getopts "p:d:t:f:ulrcgjhxzme" arg; do
       MAKE_CLEAN="ON"
     fi
     ;;
+  u)
+    BUILD_UNIT_TEST="ON"
+    ;;
   h) # help
     echo "
 
 parameter:
 -t: build type(default: Debug)
 -l: run cpplint, clang-format and clang-tidy(default: OFF)
+-u: build with unit testing(default: OFF)
 -h: help
 
 usage:
@@ -67,6 +72,7 @@ make rebuild_cache >/dev/null 2>&1
 
 CMAKE_CMD="cmake \
 -DCMAKE_BUILD_TYPE=${BUILD_TYPE} \
+-DBUILD_UNIT_TEST=${BUILD_UNIT_TEST}
 ../"
 echo ${CMAKE_CMD}
 ${CMAKE_CMD}
@@ -94,4 +100,9 @@ if [[ ${RUN_CPPLINT} == "ON" ]]; then
 else
   # compile and build
   make -j 4  || exit 1
+fi
+
+if [[ "${BUILD_UNIT_TEST}" == "ON" ]]; then
+  make -j 4  || exit 1
+  make test || exit 1
 fi

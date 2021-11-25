@@ -34,4 +34,8 @@ build-sdk-release:
 	@(env bash $(PWD)/scripts/build.sh -t Release)
 
 
+test:
+	@echo "Testing with Milvus SDK"
+	@(env bash $(PWD)/scripts/build.sh -u)
 
+.PHONY: test
