@@ -42,7 +42,7 @@ jobs:
         run: |
           mkdir -p build
           cd build
-          cmake build ..
+          cmake build .. -DBUILD_UNIT_TEST=ON
           make -j
       - name: Lint
         run: |
@@ -50,4 +50,7 @@ jobs:
           make lint
           make check-clang-format
           make check-clang-tidy
-
+      - name: Uint Testing
+        run: |
+          cd build
+          make test

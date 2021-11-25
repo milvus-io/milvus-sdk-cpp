@@ -14,6 +14,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+include(GNUInstallDirs)
+
 set(MILVUS_THIRDPARTY_DEPENDENCIES
 
         GRPC
@@ -199,6 +201,12 @@ else ()
     set(ZLIB_SOURCE_URL "https://github.com/madler/zlib/archive/v1.2.11.tar.gz")
 endif ()
 
+if (DEFINED ENV{MILVUS_GTEST_URL})
+    set(GTEST_SOURCE_URL "$ENV{MILVUS_GTEST_URL}")
+else ()
+    set(GTEST_SOURCE_URL "https://github.com/google/googletest/archive/release-1.11.0.tar.gz")
+endif ()
+
 # ----------------------------------------------------------------------
 # GRPC
 
@@ -324,3 +332,47 @@ if (MILVUS_WITH_ZLIB)
 endif ()
 
 # ----------------------------------------------------------------------
+
+# google test
+macro(build_gtest)
+    message(STATUS "Building gtest from source")
+    if ("${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
+        set(GTEST_DEBUG_SUFFIX "d")
+    else()
+        set(GTEST_DEBUG_SUFFIX "")
+    endif()
+    set(GTEST_PREFIX "${CMAKE_CURRENT_BINARY_DIR}/gtest_ep-prefix/src/gtest_ep")
+    set(GTEST_STATIC_LIB_NAME libgtest${GTEST_DEBUG_SUFFIX}.a)
+    set(GTEST_STATIC_LIB "${GTEST_PREFIX}/${CMAKE_INSTALL_LIBDIR}/${GTEST_STATIC_LIB_NAME}")
+    set(GTEST_MAIN_STATIC_LIB_NAME libgtest_main${GTEST_DEBUG_SUFFIX}.a)
+    set(GTEST_MAIN_STATIC_LIB "${GTEST_PREFIX}/${CMAKE_INSTALL_LIBDIR}/${GTEST_MAIN_STATIC_LIB_NAME}")
+    set(GTEST_INCLUDE_DIR "${GTEST_PREFIX}/include")
+    set(GTEST_CMAKE_ARGS ${EP_COMMON_CMAKE_ARGS} "-DCMAKE_INSTALL_PREFIX=${GTEST_PREFIX}"
+            -DBUILD_SHARED_LIBS=OFF)
+
+    ExternalProject_Add(gtest_ep
+        URL
+        ${GTEST_SOURCE_URL}
+        ${EP_LOG_OPTIONS}
+        BUILD_COMMAND
+        ${MAKE}
+        ${MAKE_BUILD_ARGS}
+        BUILD_BYPRODUCTS
+        "${GTEST_STATIC_LIB}"
+        "${GTEST_MAIN_STATIC_LIB}"
+        CMAKE_ARGS
+        ${GTEST_CMAKE_ARGS})
+
+    file(MAKE_DIRECTORY "${GTEST_INCLUDE_DIR}")
+    add_library(gtest STATIC IMPORTED)
+    set_target_properties(gtest
+        PROPERTIES IMPORTED_LOCATION "${GTEST_STATIC_LIB}"
+        INTERFACE_INCLUDE_DIRECTORIES "${GTEST_INCLUDE_DIR}")
+
+    add_library(gtest_main STATIC IMPORTED)
+    set_target_properties(gtest_main
+        PROPERTIES IMPORTED_LOCATION "${GTEST_MAIN_STATIC_LIB}"
+        INTERFACE_INCLUDE_DIRECTORIES "${GTEST_INCLUDE_DIR}")
+
+    add_dependencies(gtest gtest_ep)
+endmacro()
