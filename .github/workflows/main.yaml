@@ -5,21 +5,27 @@ on:
     paths:
       - 'cmake/**'
       - 'examples/**'
+      - 'scripts/**'
       - 'src/**'
       - 'test/**'
       - 'thirdparty/**'
       - '.github/workflows/main.yaml'
       - '!**.md'
+      - '.clang-format'
+      - '.clang-tidy'
   pull_request:
     # file paths to consider in the event. Optional; defaults to all.
     paths:
       - 'cmake/**'
       - 'examples/**'
+      - 'scripts/**'
       - 'src/**'
       - 'test/**'
       - 'thirdparty/**'
       - '.github/workflows/main.yaml'
       - '!**.md'
+      - '.clang-format'
+      - '.clang-tidy'
 
 jobs:
   ubuntu:
