@@ -37,6 +37,7 @@ unset(CMAKE_EXPORT_COMPILE_COMMANDS CACHE)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 add_subdirectory(src)
+add_subdirectory(examples)
 
 if (BUILD_UNIT_TEST STREQUAL "ON")
     if (BUILD_COVERAGE STREQUAL "ON")

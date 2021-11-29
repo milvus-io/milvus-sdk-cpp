@@ -16,6 +16,11 @@
 
 #pragma once
 
+#include <memory>
+
+#include "Status.h"
+#include "types/CollectionSchema.h"
+
 /**
  *  @brief namespace milvus
  */
@@ -26,8 +31,11 @@ namespace milvus {
  */
 class MilvusClient {
  public:
-    virtual void
-    Dummy() = 0;
+    static std::shared_ptr<MilvusClient>
+    Create();
+
+    virtual Status
+    CreateCollection(const CollectionSchema& schema) = 0;
 };
 
 }  // namespace milvus

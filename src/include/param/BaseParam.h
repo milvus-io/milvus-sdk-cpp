@@ -14,20 +14,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "MilvusClient.h"
+#pragma once
 
-/**
- *  @brief namespace milvus
- */
+#include "Status.h"
+
 namespace milvus {
 
-/**
- * @brief milvus client implementation
- */
-class MilvusClientImpl : public MilvusClient {
+class BaseParam {
  public:
-    Status
-    CreateCollection(const CollectionSchema& schema) final;
+    virtual Status
+    Verify() = 0;
 };
 
 }  // namespace milvus
