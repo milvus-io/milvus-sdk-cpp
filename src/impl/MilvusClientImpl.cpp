@@ -25,7 +25,7 @@ MilvusClient::Create() {
 
 Status
 MilvusClientImpl::CreateCollection(const CollectionSchema& schema) {
-    return Status();
+    return Status{};
 }
 
 }  // namespace milvus
