@@ -286,6 +286,7 @@ if (MILVUS_WITH_GRPC)
     include_directories(SYSTEM ${GRPC_INCLUDE_DIR})
     link_directories(SYSTEM ${GRPC_PREFIX}/lib)
 
+    set(GRPC_BINARY_DIR ${CMAKE_CURRENT_BINARY_DIR}/grpc_ep-prefix/src/grpc_ep/bins/opt)
     set(GRPC_THIRD_PARTY_DIR ${CMAKE_CURRENT_BINARY_DIR}/grpc_ep-prefix/src/grpc_ep/third_party)
     include_directories(SYSTEM ${GRPC_THIRD_PARTY_DIR}/protobuf/src)
     link_directories(SYSTEM ${GRPC_PROTOBUF_LIB_DIR})

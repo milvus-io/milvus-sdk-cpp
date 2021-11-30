@@ -17,37 +17,15 @@
 #pragma once
 
 #include <string>
-#include <vector>
-
-#include "FieldSchema.h"
 
 namespace milvus {
-
-/**
- * @brief Collection schema for CreateCollection().
- */
-class CollectionSchema {
+class ConnectParam {
  public:
- private:
-    /**
-     * @brief Name of this collection, cannot be empty
-     */
-    std::string name_;
+    ConnectParam(const std::string& host, uint16_t port) : host_(host), port_(port) {
+    }
 
-    /**
-     * @brief Description of this collection, can be empty
-     */
-    std::string description_;
-
-    /**
-     * @brief Set shards number, the number must be larger than zero, default value is 2.
-     */
-    int32_t shard_num_ = 2;
-
-    /**
-     * @brief Schema for each field.
-     */
-    std::vector<FieldSchema> fields_;
+    std::string host_;
+    uint16_t port_ = 0;
 };
 
 }  // namespace milvus

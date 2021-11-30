@@ -19,35 +19,35 @@
 #include <string>
 #include <vector>
 
-#include "FieldSchema.h"
+#include "CollectionSchema.h"
 
 namespace milvus {
 
 /**
- * @brief Collection schema for CreateCollection().
+ * @brief Collection schema and runtime information returned by DescribeCollection().
  */
-class CollectionSchema {
+class CollectionDesc {
  public:
  private:
     /**
-     * @brief Name of this collection, cannot be empty
+     * @brief Collection schema defined by CreateCollection().
      */
-    std::string name_;
+    CollectionSchema schema_;
 
     /**
-     * @brief Description of this collection, can be empty
+     * @brief Internal id of this collection.
      */
-    std::string description_;
+    int64_t collection_id_;
 
     /**
-     * @brief Set shards number, the number must be larger than zero, default value is 2.
+     * @brief Alias of this collection.
      */
-    int32_t shard_num_ = 2;
+    std::vector<std::string> alias_;
 
     /**
-     * @brief Schema for each field.
+     * @brief The utc timestamp calculated by created_timestamp.
      */
-    std::vector<FieldSchema> fields_;
+    uint64_t created_utc_timestamp_ = 0;
 };
 
 }  // namespace milvus
