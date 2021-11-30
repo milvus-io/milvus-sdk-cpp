@@ -14,20 +14,32 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "MilvusClient.h"
+#pragma once
 
-/**
- *  @brief namespace milvus
- */
+#include <string>
+#include <vector>
+
+#include "FieldSchema.h"
+
 namespace milvus {
 
-/**
- * @brief milvus client implementation
- */
-class MilvusClientImpl : public MilvusClient {
+class CollectionSchema {
  public:
-    Status
-    CreateCollection(const CollectionSchema& schema) final;
+ private:
+    /**
+     * @brief Name of this collection, cannot be empty
+     */
+    std::string name;
+
+    /**
+     * @brief Description of this collection, can be empty
+     */
+    std::string description;
+
+    /**
+     * @brief Set shards number, the number must be larger than zero, default value is 2.
+     */
+    int32_t shard_num = 2;
 };
 
 }  // namespace milvus

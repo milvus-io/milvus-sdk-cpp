@@ -14,20 +14,26 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "MilvusClient.h"
+#pragma once
 
-/**
- *  @brief namespace milvus
- */
 namespace milvus {
 
-/**
- * @brief milvus client implementation
- */
-class MilvusClientImpl : public MilvusClient {
- public:
-    Status
-    CreateCollection(const CollectionSchema& schema) final;
+enum class DataType {
+    UNKNOWN = 0,
+
+    BOOL = 1,
+    INT8 = 2,
+    INT16 = 3,
+    INT32 = 4,
+    INT64 = 5,
+
+    FLOAT = 10,
+    DOUBLE = 11,
+
+    STRING = 20,
+
+    BINARY_VECTOR = 100,
+    FLOAT_VECTOR = 101,
 };
 
 }  // namespace milvus

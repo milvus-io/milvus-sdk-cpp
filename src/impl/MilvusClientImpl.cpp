@@ -18,8 +18,14 @@
 
 namespace milvus {
 
-void
-MilvusClientImpl::Dummy() {
+std::shared_ptr<MilvusClient>
+MilvusClient::Create() {
+    return std::make_shared<MilvusClientImpl>();
+}
+
+Status
+MilvusClientImpl::CreateCollection(const CollectionSchema& schema) {
+    return Status();
 }
 
 }  // namespace milvus

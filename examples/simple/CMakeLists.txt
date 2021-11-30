@@ -14,7 +14,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-message(STATUS "  CMAKE_SOURCE_DIR: ${CMAKE_SOURCE_DIR}")
-include_directories(${CMAKE_SOURCE_DIR}/src/include)
 
-add_subdirectory(simple)
+add_executable(sdk_simple
+        main.cpp
+        )
+
+target_link_libraries(sdk_simple
+        milvus_sdk
+        pthread
+        )
