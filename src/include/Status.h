@@ -46,46 +46,29 @@ enum class StatusCode {
 class Status {
  public:
     Status(StatusCode code, const std::string& msg);
-    Status();
-    ~Status();
-
-    Status(const Status& s);
-
-    Status&
-    operator=(const Status& s);
-
-    Status(Status&& s) noexcept;
-
-    Status&
-    operator=(Status&& s) noexcept;
+    Status() = default;
 
     static Status
     OK() {
-        return Status();
+        return Status{};
     }
 
     bool
     ok() const {
-        return state_ == nullptr || code() == StatusCode::OK;
+        return code_ == StatusCode::OK;
     }
 
     StatusCode
     code() const {
-        return (state_ == nullptr) ? StatusCode::OK : *reinterpret_cast<StatusCode*>(state_);
+        return code_;
     }
 
     std::string
     message() const;
 
  private:
-    inline void
-    CopyFrom(const Status& s) noexcept;
-
-    inline void
-    MoveFrom(Status& s);
-
- private:
-    char* state_ = nullptr;
+    StatusCode code_{StatusCode::OK};
+    std::string msg_{"OK"};
 };  // Status
 
 }  // namespace milvus
