@@ -18,7 +18,7 @@
 
 namespace milvus {
 
-enum class DataType {
+enum DataType {
     UNKNOWN = 0,
 
     BOOL = 1,

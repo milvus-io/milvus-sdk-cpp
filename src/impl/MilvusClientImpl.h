@@ -31,6 +31,9 @@ namespace milvus {
  */
 class MilvusClientImpl : public MilvusClient {
  public:
+    MilvusClientImpl() = default;
+    virtual ~MilvusClientImpl();
+
     Status
     Connect(const ConnectParam& connect_param) final;
 

@@ -24,6 +24,55 @@
 namespace milvus {
 class FieldSchema {
  public:
+    FieldSchema(const std::string& name, DataType data_type, const std::string& description = "",
+                bool is_primary_key = false, bool auto_id = false)
+        : name_(name),
+          description_(description),
+          data_type_(data_type),
+          is_primary_key_(is_primary_key),
+          auto_id_(auto_id) {
+    }
+
+    const std::string&
+    name() const {
+        return name_;
+    }
+
+    const std::string&
+    description() const {
+        return description_;
+    }
+
+    DataType
+    data_type() const {
+        return data_type_;
+    }
+
+    bool
+    is_primary_key() const {
+        return is_primary_key_;
+    }
+
+    bool
+    auto_id() const {
+        return auto_id_;
+    }
+
+    const std::map<std::string, std::string>&
+    type_params() const {
+        return type_params_;
+    }
+
+    bool
+    SetDimension(uint32_t dimension) {
+        if (dimension == 0) {
+            return false;
+        }
+
+        type_params_.insert(std::make_pair("dim", std::to_string(dimension)));
+        return true;
+    }
+
  private:
     /**
      * @brief Name of this field, cannot be empty

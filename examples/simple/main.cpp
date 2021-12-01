@@ -9,14 +9,12 @@
 // is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
 // or implied. See the License for the specific language governing permissions and limitations under the License.
 
-#include <getopt.h>
-#include <libgen.h>
-#include <cstring>
+
 #include <string>
+#include <iostream>
 
 #include "MilvusClient.h"
 #include "types/CollectionSchema.h"
-
 
 int
 main(int argc, char* argv[]) {
@@ -24,11 +22,28 @@ main(int argc, char* argv[]) {
 
     auto client = milvus::MilvusClient::Create();
 
-    milvus::ConnectParam param{"localhost", 19530};
-    auto status = client->Connect(param);
+    milvus::ConnectParam connect_param{"localhost", 19530};
+    auto status = client->Connect(connect_param);
+    if (!status.ok()) {
+        std::cout << "Failed to connect milvus server: " << status.message() << std::endl;
+        return 0;
+    }
 
-    milvus::CollectionSchema schema;
-    status = client->CreateCollection(schema);
+    std::cout << "Connect to milvus server." << std::endl;
+
+    milvus::CollectionSchema collection_schema("TEST");
+
+    milvus::FieldSchema field_schema_1("identity", milvus::DataType::INT64, "user id", true, true);
+    milvus::FieldSchema field_schema_2("age", milvus::DataType::INT8, "user age");
+    collection_schema.AddField(field_schema_1);
+    collection_schema.AddField(field_schema_2);
+
+    status = client->CreateCollection(collection_schema);
+    if (!status.ok()) {
+        std::cout << "Failed to create collection: " << status.message() << std::endl;
+    }
+
+    std::cout << "Successfully create collection." << std::endl;
 
     printf("Example stop...\n");
     return 0;

@@ -28,6 +28,32 @@ namespace milvus {
  */
 class CollectionSchema {
  public:
+    explicit CollectionSchema(const std::string& name, const std::string& desc = "", int32_t shard_num = 2)
+        : name_(name), description_(desc), shard_num_(shard_num) {
+    }
+
+    const std::string&
+    name() const {
+        return name_;
+    }
+
+    const std::string&
+    description() const {
+        return description_;
+    }
+
+    const std::vector<FieldSchema>&
+    fields() const {
+        return fields_;
+    }
+
+    bool
+    AddField(FieldSchema& field_schema) {
+        // TODO: check duplicate field name
+        fields_.emplace_back(field_schema);
+        return true;
+    }
+
  private:
     /**
      * @brief Name of this collection, cannot be empty

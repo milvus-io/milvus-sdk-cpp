@@ -16,11 +16,20 @@
 
 #include "MilvusClientImpl.h"
 
+#include "common.pb.h"
+#include "milvus.grpc.pb.h"
+#include "milvus.pb.h"
+#include "schema.pb.h"
+
 namespace milvus {
 
 std::shared_ptr<MilvusClient>
 MilvusClient::Create() {
     return std::make_shared<MilvusClientImpl>();
+}
+
+MilvusClientImpl::~MilvusClientImpl() {
+    Disconnect();
 }
 
 Status
@@ -48,9 +57,38 @@ MilvusClientImpl::Disconnect() {
 
 Status
 MilvusClientImpl::CreateCollection(const CollectionSchema& schema) {
-    // TODO: construct proto::milvus::CreateCollectionRequest and call connection_->CreateCollection()
+    if (connection_ == nullptr) {
+        return Status(StatusCode::NotConnected, "Connection is not ready!");
+    }
 
-    return Status::OK();
+    proto::milvus::CreateCollectionRequest rpc_request;
+    rpc_request.set_collection_name(schema.name());
+
+    proto::schema::CollectionSchema rpc_collection;
+    rpc_collection.set_name(schema.name());
+    rpc_collection.set_description(schema.description());
+
+    for (auto& field : schema.fields()) {
+        proto::schema::FieldSchema* rpc_field = rpc_collection.add_fields();
+        rpc_field->set_name(field.name());
+        rpc_field->set_description(field.description());
+        rpc_field->set_data_type(static_cast<proto::schema::DataType>(field.data_type()));
+        rpc_field->set_is_primary_key(field.is_primary_key());
+        rpc_field->set_autoid(field.auto_id());
+
+        proto::common::KeyValuePair* kv = rpc_field->add_type_params();
+        for (auto& pair : field.type_params()) {
+            kv->set_key(pair.first);
+            kv->set_value(pair.second);
+        }
+    }
+
+    std::string binary;
+    rpc_collection.SerializeToString(&binary);
+    rpc_request.set_schema(binary);
+
+    proto::common::Status response;
+    return connection_->CreateCollection(rpc_request, response);
 }
 
 Status

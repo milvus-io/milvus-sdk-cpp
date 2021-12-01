@@ -16,16 +16,6 @@
 
 #include "MilvusConnection.h"
 
-#include <grpc/grpc.h>
-#include <grpcpp/channel.h>
-#include <grpcpp/client_context.h>
-#include <grpcpp/create_channel.h>
-#include <grpcpp/security/credentials.h>
-
-#include <memory>
-#include <string>
-#include <vector>
-
 using grpc::Channel;
 using grpc::ClientContext;
 using grpc::ClientReader;
@@ -40,11 +30,23 @@ MilvusConnection::~MilvusConnection() {
 
 Status
 MilvusConnection::Connect(const std::string& uri) {
-    return Status::OK();
+    ::grpc::ChannelArguments args;
+    args.SetMaxSendMessageSize(-1);     // max send message size: 2GB
+    args.SetMaxReceiveMessageSize(-1);  // max receive message size: 2GB
+    channel_ = ::grpc::CreateCustomChannel(uri, ::grpc::InsecureChannelCredentials(), args);
+    if (channel_ != nullptr) {
+        stub_ = proto::milvus::MilvusService::NewStub(channel_);
+        return Status::OK();
+    }
+
+    std::string reason = "Failed to connect uri: " + uri;
+    return Status(StatusCode::NotConnected, reason);
 }
 
 Status
 MilvusConnection::Disconnect() {
+    stub_.release();
+    channel_.reset();
     return Status::OK();
 }
 
@@ -52,15 +54,15 @@ Status
 MilvusConnection::CreateCollection(const proto::milvus::CreateCollectionRequest& request,
                                    proto::common::Status& response) {
     if (stub_ == nullptr) {
-        return Status::OK();
+        return Status(StatusCode::NotConnected, "Connection is not ready!");
     }
 
     ClientContext context;
     ::grpc::Status grpc_status = stub_->CreateCollection(&context, request, &response);
 
     if (!grpc_status.ok()) {
-        std::cerr << "CreateCollection gRPC failed!" << std::endl;
-        return Status::OK();
+        std::cerr << "CreateCollection failed!" << std::endl;
+        return Status(StatusCode::ServerFailed, grpc_status.error_message());
     }
 
     return Status::OK();
