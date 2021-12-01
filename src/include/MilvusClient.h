@@ -19,7 +19,12 @@
 #include <memory>
 
 #include "Status.h"
+#include "types/CollectionDesc.h"
+#include "types/CollectionInfo.h"
 #include "types/CollectionSchema.h"
+#include "types/CollectionStat.h"
+#include "types/ConnectParam.h"
+#include "types/TimeoutSetting.h"
 
 /**
  *  @brief namespace milvus
@@ -35,7 +40,34 @@ class MilvusClient {
     Create();
 
     virtual Status
+    Connect(const ConnectParam& connect_param) = 0;
+
+    virtual Status
+    Disconnect() = 0;
+
+    virtual Status
     CreateCollection(const CollectionSchema& schema) = 0;
+
+    virtual Status
+    HasCollection(const std::string& collection_name, bool& has) = 0;
+
+    virtual Status
+    DropCollection(const std::string& collection_name) = 0;
+
+    virtual Status
+    LoadCollection(const std::string& collection_name, const TimeoutSetting* timeout) = 0;
+
+    virtual Status
+    ReleaseCollection(const std::string& collection_name) = 0;
+
+    virtual Status
+    DescribeCollection(const std::string& collection_name, CollectionDesc& collection_desc) = 0;
+
+    virtual Status
+    GetCollectionStatistics(const std::string& collection_name, bool do_flush, CollectionStat& collection_stat) = 0;
+
+    virtual Status
+    ShowCollections(const std::vector<std::string>& collection_names, CollectionsInfo& collection_desc) = 0;
 };
 
 }  // namespace milvus

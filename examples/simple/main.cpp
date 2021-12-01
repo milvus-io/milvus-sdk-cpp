@@ -22,10 +22,13 @@ int
 main(int argc, char* argv[]) {
     printf("Example start...\n");
 
-    milvus::CollectionSchema schema;
-
     auto client = milvus::MilvusClient::Create();
-    auto status = client->CreateCollection(schema);
+
+    milvus::ConnectParam param{"localhost", 19530};
+    auto status = client->Connect(param);
+
+    milvus::CollectionSchema schema;
+    status = client->CreateCollection(schema);
 
     printf("Example stop...\n");
     return 0;

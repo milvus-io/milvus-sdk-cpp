@@ -16,38 +16,44 @@
 
 #pragma once
 
-#include <string>
-#include <vector>
-
-#include "FieldSchema.h"
+#include <cstdint>
 
 namespace milvus {
-
-/**
- * @brief Collection schema for CreateCollection().
- */
-class CollectionSchema {
+class TimeoutSetting {
  public:
+    explicit TimeoutSetting(uint32_t waiting_timeout) : waiting_timeout_(waiting_timeout) {
+    }
+
+    TimeoutSetting() = default;
+
+    uint32_t
+    waiting_timeout() const {
+        return waiting_timeout_;
+    }
+
+    uint32_t
+    waiting_interval() const {
+        return waiting_interval_;
+    }
+
+    void
+    SetInterval(uint32_t waiting_interval) {
+        waiting_interval_ = waiting_interval;
+    }
+
  private:
     /**
-     * @brief Name of this collection, cannot be empty
+     * @brief Waiting duration
+     *
+     * This value control the waiting interval. Unit: millisecond. Default value: 500 milliseconds.
      */
-    std::string name_;
+    uint32_t waiting_interval_ = 500;
 
     /**
-     * @brief Description of this collection, can be empty
+     * @brief Sync load waiting duration
+     *
+     * This value control the waiting timeout. Unit: second. Default value: 60 seconds.
      */
-    std::string description_;
-
-    /**
-     * @brief Set shards number, the number must be larger than zero, default value is 2.
-     */
-    int32_t shard_num_ = 2;
-
-    /**
-     * @brief Schema for each field.
-     */
-    std::vector<FieldSchema> fields_;
+    uint32_t waiting_timeout_ = 60;
 };
-
 }  // namespace milvus

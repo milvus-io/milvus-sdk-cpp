@@ -28,17 +28,17 @@ class FieldSchema {
     /**
      * @brief Name of this field, cannot be empty
      */
-    std::string name;
+    std::string name_;
 
     /**
      * @brief Description of this field, can be empty
      */
-    std::string description;
+    std::string description_;
 
     /**
      * @brief Field data tpye
      */
-    DataType data_type;
+    DataType data_type_;
 
     /**
      * @brief Specify the field to be primary key
@@ -46,7 +46,7 @@ class FieldSchema {
      * Each collection only has one primary key.
      * Currently only int64 type field can be primary key .
      */
-    bool is_primary_key = false;
+    bool is_primary_key_ = false;
 
     /**
      * @brief Let server automatically generate id for this field
@@ -54,13 +54,13 @@ class FieldSchema {
      * If ths flag is true, server will generate id when data is inserted.
      * Else the client must provide id for each entity when insert data.
      */
-    bool auto_id = false;
+    bool auto_id_ = false;
 
     /**
      * @brief Extra key-value pair setting for this field
      *
      * Currently vector field need to input "dim":"x" to specify dimension.
      */
-    std::map<std::string, std::string> type_params;
+    std::map<std::string, std::string> type_params_;
 };
 }  // namespace milvus
