@@ -40,7 +40,7 @@ MilvusConnection::Connect(const std::string& uri) {
     }
 
     std::string reason = "Failed to connect uri: " + uri;
-    return Status(StatusCode::NotConnected, reason);
+    return Status(StatusCode::NOT_CONNECTED, reason);
 }
 
 Status
@@ -54,7 +54,7 @@ Status
 MilvusConnection::CreateCollection(const proto::milvus::CreateCollectionRequest& request,
                                    proto::common::Status& response) {
     if (stub_ == nullptr) {
-        return Status(StatusCode::NotConnected, "Connection is not ready!");
+        return Status(StatusCode::NOT_CONNECTED, "Connection is not ready!");
     }
 
     ClientContext context;
@@ -62,7 +62,7 @@ MilvusConnection::CreateCollection(const proto::milvus::CreateCollectionRequest&
 
     if (!grpc_status.ok()) {
         std::cerr << "CreateCollection failed!" << std::endl;
-        return Status(StatusCode::ServerFailed, grpc_status.error_message());
+        return Status(StatusCode::SERVER_FAILED, grpc_status.error_message());
     }
 
     return Status::OK();

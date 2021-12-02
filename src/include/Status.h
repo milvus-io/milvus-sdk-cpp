@@ -30,14 +30,14 @@ enum class StatusCode {
     OK = 0,
 
     // system error section
-    UnknownError = 1,
-    NotSupported,
-    NotConnected,
+    UNKNOWN_ERROR = 1,
+    NOT_SUPPORTED,
+    NOT_CONNECTED,
 
     // function error section
-    InvalidAgument = 1000,
-    RPCFailed,
-    ServerFailed,
+    INVALID_AGUMENT = 1000,
+    RPC_FAILED,
+    SERVER_FAILED,
 };
 
 /**
