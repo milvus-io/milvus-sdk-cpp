@@ -17,38 +17,45 @@
 #pragma once
 
 #include <string>
-#include <vector>
+#include <unordered_map>
+
+#include "Constants.h"
 
 namespace milvus {
 
 /**
- * @brief Collection runtime information including create timestamp and loading percentage, returned by
- * ShowCollections().
+ * @brief Partition statistics returned by GetPartitionStatistics().
  */
-class CollectionInfo {
+class PartitionStat {
  public:
+    /**
+     * @brief Return row count of this partition.
+     *
+     * @return uint64_t row count of this partition
+     */
+    uint64_t
+    GetRowCount() const {
+        const auto iter = statistics_.find(KEY_ROW_COUNT);
+        if (iter == statistics_.end()) {
+            // TODO: throw exception or log
+            return 0;
+        }
+
+        std::string str = iter->second;
+
+        return atol(str.c_str());
+    }
+
  private:
     /**
-     * @brief Name of this collection.
+     * @brief Name of this partition.
      */
     std::string name_;
 
     /**
-     * @brief Internal id of this collection.
+     * @brief Partition statistics in key-value format.
      */
-    int64_t collection_id_;
-
-    /**
-     * @brief The utc timestamp calculated by created_timestamp.
-     */
-    uint64_t created_utc_timestamp_ = 0;
-
-    /**
-     * @brief Collection loading percentage.
-     */
-    uint64_t in_memory_percentage_ = 0;
+    std::unordered_map<std::string, std::string> statistics_;
 };
-
-using CollectionsInfo = std::vector<CollectionInfo>;
 
 }  // namespace milvus
