@@ -58,7 +58,7 @@ MilvusClientImpl::Disconnect() {
 Status
 MilvusClientImpl::CreateCollection(const CollectionSchema& schema) {
     if (connection_ == nullptr) {
-        return Status(StatusCode::NotConnected, "Connection is not ready!");
+        return Status(StatusCode::NOT_CONNECTED, "Connection is not ready!");
     }
 
     proto::milvus::CreateCollectionRequest rpc_request;
