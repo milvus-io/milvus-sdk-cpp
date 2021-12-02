@@ -18,6 +18,7 @@
 
 BUILD_OUTPUT_DIR="cmake_build"
 BUILD_TYPE="Debug"
+UNIT_TEST="OFF"
 BUILD_UNIT_TEST="OFF"
 MAKE_CLEAN="OFF"
 RUN_CPPLINT="OFF"
@@ -29,6 +30,7 @@ while getopts "p:d:t:f:ulrcgjhxzme" arg; do
     ;;
   l)
     RUN_CPPLINT="ON"
+    BUILD_UNIT_TEST="ON"  # lint requires build with ut
     ;;
   r)
     if [[ -d ${BUILD_OUTPUT_DIR} ]]; then
@@ -37,6 +39,7 @@ while getopts "p:d:t:f:ulrcgjhxzme" arg; do
     fi
     ;;
   u)
+    UNIT_TEST="ON"
     BUILD_UNIT_TEST="ON"
     ;;
   h) # help
@@ -97,12 +100,21 @@ if [[ ${RUN_CPPLINT} == "ON" ]]; then
     exit 1
   fi
   echo "clang-format check passed!"
+
+  # clang-tidy check
+  make -j 4 || exit 1
+  make check-clang-tidy
+  if [ $? -ne 0 ]; then
+    echo "ERROR! clang-tidy check failed"
+    exit 1
+  fi
+  echo "clang-tidy check passed!"
 else
   # compile and build
   make -j 4  || exit 1
 fi
 
-if [[ "${BUILD_UNIT_TEST}" == "ON" ]]; then
+if [[ "${UNIT_TEST}" == "ON" ]]; then
   make -j 4  || exit 1
   make test || exit 1
 fi

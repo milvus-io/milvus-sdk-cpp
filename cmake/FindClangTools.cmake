@@ -35,6 +35,7 @@
 
 find_program(CLANG_TIDY_BIN
   NAMES
+  clang-tidy-10
   clang-tidy-7.0
   clang-tidy-6.0
   clang-tidy-5.0
@@ -88,6 +89,7 @@ if (CLANG_FORMAT_VERSION)
 else()
     find_program(CLANG_FORMAT_BIN
       NAMES
+      clang-format-10
       clang-format-7.0
       clang-format-6.0
       clang-format-5.0

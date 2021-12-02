@@ -29,7 +29,7 @@ set(grpc_lib
         grpc_protoc
         )
 
-set(third_party_libs
+set(zlib_libs
         zlib
         )
 
@@ -40,9 +40,8 @@ add_library(milvus_sdk SHARED
 
 target_link_libraries(milvus_sdk
         ${grpc_lib}
-        zlib
+        ${zlib_libs}
         dl
-        z
         )
 
 install(TARGETS milvus_sdk DESTINATION lib)
