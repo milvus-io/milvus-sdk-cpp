@@ -62,22 +62,22 @@ MilvusClientImpl::CreateCollection(const CollectionSchema& schema) {
     }
 
     proto::milvus::CreateCollectionRequest rpc_request;
-    rpc_request.set_collection_name(schema.name());
+    rpc_request.set_collection_name(schema.Name());
 
     proto::schema::CollectionSchema rpc_collection;
-    rpc_collection.set_name(schema.name());
-    rpc_collection.set_description(schema.description());
+    rpc_collection.set_name(schema.Name());
+    rpc_collection.set_description(schema.Description());
 
-    for (auto& field : schema.fields()) {
+    for (auto& field : schema.Fields()) {
         proto::schema::FieldSchema* rpc_field = rpc_collection.add_fields();
-        rpc_field->set_name(field.name());
-        rpc_field->set_description(field.description());
-        rpc_field->set_data_type(static_cast<proto::schema::DataType>(field.data_type()));
-        rpc_field->set_is_primary_key(field.is_primary_key());
-        rpc_field->set_autoid(field.auto_id());
+        rpc_field->set_name(field.Name());
+        rpc_field->set_description(field.Description());
+        rpc_field->set_data_type(static_cast<proto::schema::DataType>(field.FieldDataType()));
+        rpc_field->set_is_primary_key(field.IsPrimaryKey());
+        rpc_field->set_autoid(field.AutoID());
 
         proto::common::KeyValuePair* kv = rpc_field->add_type_params();
-        for (auto& pair : field.type_params()) {
+        for (auto& pair : field.TypeParams()) {
             kv->set_key(pair.first);
             kv->set_value(pair.second);
         }

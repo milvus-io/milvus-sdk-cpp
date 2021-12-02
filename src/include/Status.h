@@ -54,17 +54,17 @@ class Status {
     }
 
     bool
-    ok() const {
+    IsOk() const {
         return code_ == StatusCode::OK;
     }
 
     StatusCode
-    code() const {
+    Code() const {
         return code_;
     }
 
-    std::string
-    message() const;
+    const std::string&
+    Message() const;
 
  private:
     StatusCode code_{StatusCode::OK};

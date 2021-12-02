@@ -34,32 +34,32 @@ class FieldSchema {
     }
 
     const std::string&
-    name() const {
+    Name() const {
         return name_;
     }
 
     const std::string&
-    description() const {
+    Description() const {
         return description_;
     }
 
     DataType
-    data_type() const {
+    FieldDataType() const {
         return data_type_;
     }
 
     bool
-    is_primary_key() const {
+    IsPrimaryKey() const {
         return is_primary_key_;
     }
 
     bool
-    auto_id() const {
+    AutoID() const {
         return auto_id_;
     }
 
     const std::map<std::string, std::string>&
-    type_params() const {
+    TypeParams() const {
         return type_params_;
     }
 
