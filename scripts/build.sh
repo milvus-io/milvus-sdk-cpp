@@ -116,5 +116,5 @@ fi
 
 if [[ "${UNIT_TEST}" == "ON" ]]; then
   make -j 4  || exit 1
-  make test || exit 1
+  make CTEST_OUTPUT_ON_FAILURE=1 test || exit 1
 fi

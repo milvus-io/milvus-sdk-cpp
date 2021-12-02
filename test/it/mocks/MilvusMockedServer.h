@@ -15,13 +15,35 @@
 // limitations under the License.
 
 #pragma once
+
+#include <grpc++/server.h>
+#include <gtest/gtest.h>
+
+#include <cstdint>
+#include <memory>
 #include <string>
+
+#include "MilvusMockedService.h"
 
 namespace milvus {
 
-inline const std::string
-KeyRowCount() {
-    return "row_count";
-}
+class MilvusMockedServer {
+ public:
+    explicit MilvusMockedServer(MilvusMockedService& service);
+
+    void
+    Start();
+
+    void
+    Stop();
+
+    uint16_t
+    ListenPort() const;
+
+ private:
+    milvus::MilvusMockedService& service_;
+    int32_t listen_port_{0};
+    std::unique_ptr<::grpc::Server> server_{nullptr};
+};
 
 }  // namespace milvus

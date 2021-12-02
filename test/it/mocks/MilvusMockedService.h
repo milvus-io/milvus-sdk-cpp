@@ -13,15 +13,17 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-
 #pragma once
-#include <string>
+#include <gmock/gmock.h>
+
+#include "milvus.grpc.pb.h"
 
 namespace milvus {
-
-inline const std::string
-KeyRowCount() {
-    return "row_count";
-}
+class MilvusMockedService : public milvus::proto::milvus::MilvusService::Service::Service {
+ public:
+    MOCK_METHOD3(CreateCollection, ::grpc::Status(::grpc::ServerContext* context,
+                                                  const ::milvus::proto::milvus::CreateCollectionRequest* request,
+                                                  ::milvus::proto::common::Status* response));
+};
 
 }  // namespace milvus

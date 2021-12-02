@@ -1,6 +1,7 @@
 find_package(GTest)
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../src/include)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../src/proto-gen)
 
 if (${GTest_FOUND})
     message(STATUS "Using gtest from system")
@@ -9,6 +10,7 @@ else ()
     message(STATUS "Using gtest from extranal project")
     build_gtest()
     set(GTEST_LIBRARIES gtest)
+    set(GMOCK_LIBRARIES gmock)
     set(GTEST_MAIN_LIBRARIES gtest_main)
 endif ()
 
@@ -16,3 +18,9 @@ aux_source_directory(${CMAKE_CURRENT_SOURCE_DIR}/ut ut_files)
 add_executable(testing-ut ${ut_files})
 target_link_libraries(testing-ut PRIVATE milvus_sdk ${GTEST_LIBRARIES} ${GTEST_MAIN_LIBRARIES} pthread)
 gtest_discover_tests(testing-ut)
+
+aux_source_directory(${CMAKE_CURRENT_SOURCE_DIR}/it it_files)
+aux_source_directory(${CMAKE_CURRENT_SOURCE_DIR}/it/mocks it_mocks_files)
+add_executable(testing-it ${it_files} ${it_mocks_files})
+target_link_libraries(testing-it PRIVATE milvus_sdk ${GTEST_LIBRARIES} ${GMOCK_LIBRARIES} ${GTEST_MAIN_LIBRARIES} pthread)
+gtest_discover_tests(testing-it)
