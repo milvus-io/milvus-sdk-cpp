@@ -27,12 +27,12 @@ class TimeoutSetting {
     TimeoutSetting() = default;
 
     uint32_t
-    waiting_timeout() const {
+    WaitingTimeout() const {
         return waiting_timeout_;
     }
 
     uint32_t
-    waiting_interval() const {
+    WaitingInterval() const {
         return waiting_interval_;
     }
 

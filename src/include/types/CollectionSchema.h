@@ -33,17 +33,17 @@ class CollectionSchema {
     }
 
     const std::string&
-    name() const {
+    Name() const {
         return name_;
     }
 
     const std::string&
-    description() const {
+    Description() const {
         return description_;
     }
 
     const std::vector<FieldSchema>&
-    fields() const {
+    Fields() const {
         return fields_;
     }
 

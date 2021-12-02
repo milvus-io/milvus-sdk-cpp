@@ -23,8 +23,8 @@ main(int argc, char* argv[]) {
 
     milvus::ConnectParam connect_param{"localhost", 19530};
     auto status = client->Connect(connect_param);
-    if (!status.ok()) {
-        std::cout << "Failed to connect milvus server: " << status.message() << std::endl;
+    if (!status.IsOk()) {
+        std::cout << "Failed to connect milvus server: " << status.Message() << std::endl;
         return 0;
     }
 
@@ -38,8 +38,8 @@ main(int argc, char* argv[]) {
     collection_schema.AddField(field_schema_2);
 
     status = client->CreateCollection(collection_schema);
-    if (!status.ok()) {
-        std::cout << "Failed to create collection: " << status.message() << std::endl;
+    if (!status.IsOk()) {
+        std::cout << "Failed to create collection: " << status.Message() << std::endl;
     }
 
     std::cout << "Successfully create collection." << std::endl;

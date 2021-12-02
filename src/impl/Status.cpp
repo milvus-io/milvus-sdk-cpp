@@ -18,8 +18,8 @@ namespace milvus {
 Status::Status(StatusCode code, const std::string& msg) : code_(code), msg_(msg) {
 }
 
-std::string
-Status::message() const {
+const std::string&
+Status::Message() const {
     return msg_;
 }
 
