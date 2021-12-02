@@ -87,7 +87,7 @@ if (${CLANG_FORMAT_FOUND})
             --exclude_globs
             ${LINT_EXCLUSIONS_FILE}
             --source_dir
-            ${CMAKE_CURRENT_SOURCE_DIR}/src
+            ${CMAKE_CURRENT_SOURCE_DIR}
             --fix
             ${MILVUS_LINT_QUIET})
 
@@ -100,7 +100,7 @@ if (${CLANG_FORMAT_FOUND})
             --exclude_globs
             ${LINT_EXCLUSIONS_FILE}
             --source_dir
-            ${CMAKE_CURRENT_SOURCE_DIR}/src
+            ${CMAKE_CURRENT_SOURCE_DIR}
             ${MILVUS_LINT_QUIET})
 endif ()
 
@@ -119,7 +119,7 @@ if (${CLANG_TIDY_FOUND})
             --compile_commands
             ${CMAKE_BINARY_DIR}/compile_commands.json
             --source_dir
-            ${CMAKE_CURRENT_SOURCE_DIR}/src
+            ${CMAKE_CURRENT_SOURCE_DIR}
             --fix
             ${MILVUS_LINT_QUIET})
 
@@ -134,6 +134,6 @@ if (${CLANG_TIDY_FOUND})
             --compile_commands
             ${CMAKE_BINARY_DIR}/compile_commands.json
             --source_dir
-            ${CMAKE_CURRENT_SOURCE_DIR}/src
+            ${CMAKE_CURRENT_SOURCE_DIR}
             ${MILVUS_LINT_QUIET})
 endif ()

@@ -30,7 +30,7 @@ on:
 jobs:
   ubuntu:
     name: Build and test AMD64 Ubuntu ${{ matrix.ubuntu }}
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-${{ matrix.ubuntu }}
     timeout-minutes: 90
     strategy:
       fail-fast: false
@@ -46,17 +46,10 @@ jobs:
           sh scripts/install_deps.sh
       - name: Build
         run: |
-          mkdir -p build
-          cd build
-          cmake build .. -DBUILD_UNIT_TEST=ON
-          make -j
+          make
       - name: Lint
         run: |
-          cd build
           make lint
-          make check-clang-format
-          make check-clang-tidy
       - name: Uint Testing
         run: |
-          cd build
           make test

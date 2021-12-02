@@ -1,9 +1,8 @@
 #include <gtest/gtest.h>
+
 #include "Status.h"
 
-class StatusTest: public ::testing::Test {
-
-};
+class StatusTest : public ::testing::Test {};
 
 TEST_F(StatusTest, DefaultStatus) {
     milvus::Status status;
@@ -40,6 +39,4 @@ TEST_F(StatusTest, MoveConstructor) {
     EXPECT_FALSE(status.ok());
     EXPECT_EQ(status.message(), "server failed");
     EXPECT_EQ(status.code(), milvus::StatusCode::ServerFailed);
-
-    EXPECT_EQ(statusFoo.message(), "");
 }
