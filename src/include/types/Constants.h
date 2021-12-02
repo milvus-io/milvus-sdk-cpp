@@ -16,39 +16,8 @@
 
 #pragma once
 
-#include <string>
-#include <vector>
-
 namespace milvus {
 
-/**
- * @brief Collection runtime information including create timestamp and loading percentage, returned by
- * ShowCollections().
- */
-class CollectionInfo {
- public:
- private:
-    /**
-     * @brief Name of this collection.
-     */
-    std::string name_;
-
-    /**
-     * @brief Internal id of this collection.
-     */
-    int64_t collection_id_;
-
-    /**
-     * @brief The utc timestamp calculated by created_timestamp.
-     */
-    uint64_t created_utc_timestamp_ = 0;
-
-    /**
-     * @brief Collection loading percentage.
-     */
-    uint64_t in_memory_percentage_ = 0;
-};
-
-using CollectionsInfo = std::vector<CollectionInfo>;
+const char* KEY_ROW_COUNT = "row_count";
 
 }  // namespace milvus

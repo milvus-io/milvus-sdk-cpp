@@ -19,12 +19,12 @@
 #include <string>
 #include <unordered_map>
 
+#include "Constants.h"
+
 namespace milvus {
 
-const char* KEY_ROW_COUNT = "row_count";
-
 /**
- * @brief Collection schema and runtime information returned by DescribeCollection().
+ * @brief Collection statistics returned by GetCollectionStatistics().
  */
 class CollectionStat {
  public:

@@ -117,13 +117,52 @@ MilvusClientImpl::DescribeCollection(const std::string& collection_name, Collect
 }
 
 Status
-MilvusClientImpl::GetCollectionStatistics(const std::string& collection_name, bool do_flush,
+MilvusClientImpl::GetCollectionStatistics(const std::string& collection_name, const TimeoutSetting* timeout,
                                           CollectionStat& collection_stat) {
     return Status::OK();
 }
 
 Status
-MilvusClientImpl::ShowCollections(const std::vector<std::string>& collection_names, CollectionsInfo& collection_desc) {
+MilvusClientImpl::ShowCollections(const std::vector<std::string>& collection_names, CollectionsInfo& collections_info) {
+    return Status::OK();
+}
+
+Status
+MilvusClientImpl::CreatePartition(const std::string& collection_name, const std::string& partition_name) {
+    return Status::OK();
+}
+
+Status
+MilvusClientImpl::DropPartition(const std::string& collection_name, const std::string& partition_name) {
+    return Status::OK();
+}
+
+Status
+MilvusClientImpl::HasPartition(const std::string& collection_name, const std::string& partition_name, bool& has) {
+    return Status::OK();
+}
+
+Status
+MilvusClientImpl::LoadPartitions(const std::string& collection_name, const std::vector<std::string>& partition_names,
+                                 const TimeoutSetting* timeout) {
+    return Status::OK();
+}
+
+Status
+MilvusClientImpl::ReleasePartitions(const std::string& collection_name,
+                                    const std::vector<std::string>& partition_names) {
+    return Status::OK();
+}
+
+Status
+MilvusClientImpl::GetPartitionStatistics(const std::string& collection_name, const std::string& partition_name,
+                                         const TimeoutSetting* timeout, PartitionStat& partition_stat) {
+    return Status::OK();
+}
+
+Status
+MilvusClientImpl::ShowPartitions(const std::string& collection_name, const std::vector<std::string>& partition_names,
+                                 PartitionsInfo& partitions_info) {
     return Status::OK();
 }
 

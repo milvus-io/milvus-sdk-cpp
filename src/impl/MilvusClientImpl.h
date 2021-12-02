@@ -59,10 +59,35 @@ class MilvusClientImpl : public MilvusClient {
     DescribeCollection(const std::string& collection_name, CollectionDesc& collection_desc) final;
 
     Status
-    GetCollectionStatistics(const std::string& collection_name, bool do_flush, CollectionStat& collection_stat) final;
+    GetCollectionStatistics(const std::string& collection_name, const TimeoutSetting* timeout,
+                            CollectionStat& collection_stat) final;
 
     Status
-    ShowCollections(const std::vector<std::string>& collection_names, CollectionsInfo& collection_desc) final;
+    ShowCollections(const std::vector<std::string>& collection_names, CollectionsInfo& collections_info) final;
+
+    Status
+    CreatePartition(const std::string& collection_name, const std::string& partition_name) final;
+
+    Status
+    DropPartition(const std::string& collection_name, const std::string& partition_name) final;
+
+    Status
+    HasPartition(const std::string& collection_name, const std::string& partition_name, bool& has) final;
+
+    Status
+    LoadPartitions(const std::string& collection_name, const std::vector<std::string>& partition_names,
+                   const TimeoutSetting* timeout) final;
+
+    Status
+    ReleasePartitions(const std::string& collection_name, const std::vector<std::string>& partition_names) final;
+
+    Status
+    GetPartitionStatistics(const std::string& collection_name, const std::string& partition_name,
+                           const TimeoutSetting* timeout, PartitionStat& partition_stat) final;
+
+    Status
+    ShowPartitions(const std::string& collection_name, const std::vector<std::string>& partition_names,
+                   PartitionsInfo& partitions_info) final;
 
  private:
     std::shared_ptr<MilvusConnection> connection_;

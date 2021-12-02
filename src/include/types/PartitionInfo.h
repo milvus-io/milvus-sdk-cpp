@@ -22,21 +22,20 @@
 namespace milvus {
 
 /**
- * @brief Collection runtime information including create timestamp and loading percentage, returned by
- * ShowCollections().
+ * @brief Partition runtime information including create timestamp and loading percentage, returned by ShowPartitions().
  */
-class CollectionInfo {
+class PartitionInfo {
  public:
  private:
     /**
-     * @brief Name of this collection.
+     * @brief Name of this partition.
      */
     std::string name_;
 
     /**
-     * @brief Internal id of this collection.
+     * @brief Internal id of this partition.
      */
-    int64_t collection_id_;
+    int64_t id_;
 
     /**
      * @brief The utc timestamp calculated by created_timestamp.
@@ -44,11 +43,11 @@ class CollectionInfo {
     uint64_t created_utc_timestamp_ = 0;
 
     /**
-     * @brief Collection loading percentage.
+     * @brief Partition loading percentage.
      */
     uint64_t in_memory_percentage_ = 0;
 };
 
-using CollectionsInfo = std::vector<CollectionInfo>;
+using PartitionsInfo = std::vector<PartitionInfo>;
 
 }  // namespace milvus
