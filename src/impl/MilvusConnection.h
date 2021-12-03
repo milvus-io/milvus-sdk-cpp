@@ -74,6 +74,26 @@ class MilvusConnection {
  private:
     std::unique_ptr<proto::milvus::MilvusService::Stub> stub_;
     std::shared_ptr<grpc::Channel> channel_;
+
+    template <typename Request, typename Response>
+    Status
+    grpcCall(const char* name,
+             grpc::Status (proto::milvus::MilvusService::Stub::*func)(grpc::ClientContext*, const Request&, Response*),
+             const Request& request, Response& response) {
+        if (stub_ == nullptr) {
+            return Status(StatusCode::NOT_CONNECTED, "Connection is not ready!");
+        }
+
+        ::grpc::ClientContext context;
+        ::grpc::Status grpc_status = (stub_.get()->*func)(&context, request, &response);
+
+        if (!grpc_status.ok()) {
+            std::cerr << name << " failed!" << std::endl;
+            return Status(StatusCode::SERVER_FAILED, grpc_status.error_message());
+        }
+
+        return Status::OK();
+    }
 };
 
 }  // namespace milvus

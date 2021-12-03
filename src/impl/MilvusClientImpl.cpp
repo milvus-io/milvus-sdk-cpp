@@ -93,7 +93,18 @@ MilvusClientImpl::CreateCollection(const CollectionSchema& schema) {
 
 Status
 MilvusClientImpl::HasCollection(const std::string& collection_name, bool& has) {
-    return Status::OK();
+    if (connection_ == nullptr) {
+        return Status(StatusCode::NOT_CONNECTED, "Connection is not ready!");
+    }
+
+    proto::milvus::HasCollectionRequest rpc_request;
+    rpc_request.set_collection_name(collection_name);
+    rpc_request.set_time_stamp(0);
+
+    proto::milvus::BoolResponse response;
+    auto ret = connection_->HasCollection(rpc_request, response);
+    has = response.value();
+    return ret;
 }
 
 Status
