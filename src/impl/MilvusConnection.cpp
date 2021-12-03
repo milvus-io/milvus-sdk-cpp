@@ -22,6 +22,7 @@ using grpc::ClientReader;
 using grpc::ClientReaderWriter;
 using grpc::ClientWriter;
 using grpc::Status;
+using Stub = milvus::proto::milvus::MilvusService::Stub;
 
 namespace milvus {
 MilvusConnection::~MilvusConnection() {
@@ -53,19 +54,7 @@ MilvusConnection::Disconnect() {
 Status
 MilvusConnection::CreateCollection(const proto::milvus::CreateCollectionRequest& request,
                                    proto::common::Status& response) {
-    if (stub_ == nullptr) {
-        return Status(StatusCode::NOT_CONNECTED, "Connection is not ready!");
-    }
-
-    ClientContext context;
-    ::grpc::Status grpc_status = stub_->CreateCollection(&context, request, &response);
-
-    if (!grpc_status.ok()) {
-        std::cerr << "CreateCollection failed!" << std::endl;
-        return Status(StatusCode::SERVER_FAILED, grpc_status.error_message());
-    }
-
-    return Status::OK();
+    return grpcCall("CreateCollection", &Stub::CreateCollection, request, response);
 }
 
 Status
@@ -76,7 +65,7 @@ MilvusConnection::DropCollection(const proto::milvus::DropCollectionRequest& req
 Status
 MilvusConnection::HasCollection(const proto::milvus::HasCollectionRequest& request,
                                 proto::milvus::BoolResponse& response) {
-    return Status::OK();
+    return grpcCall("HasCollection", &Stub::HasCollection, request, response);
 }
 
 Status
