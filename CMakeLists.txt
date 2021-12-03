@@ -62,6 +62,10 @@ if (NOT LINT_EXCLUSIONS_FILE)
     set(LINT_EXCLUSIONS_FILE ${BUILD_SCRIPTS_DIR}/lint_exclusions.txt)
 endif ()
 
+if (NOT FORMAT_EXCLUSIONS_FILE)
+    set(FORMAT_EXCLUSIONS_FILE ${BUILD_SCRIPTS_DIR}/format_exclusions.txt)
+endif ()
+
 add_custom_target(lint
         ${Python2_EXECUTABLE}
         ${BUILD_SCRIPTS_DIR}/run_cpplint.py
@@ -85,7 +89,7 @@ if (${CLANG_FORMAT_FOUND})
             --clang_format_binary
             ${CLANG_FORMAT_BIN}
             --exclude_globs
-            ${LINT_EXCLUSIONS_FILE}
+            ${FORMAT_EXCLUSIONS_FILE}
             --source_dir
             ${CMAKE_CURRENT_SOURCE_DIR}
             --fix
@@ -98,7 +102,7 @@ if (${CLANG_FORMAT_FOUND})
             --clang_format_binary
             ${CLANG_FORMAT_BIN}
             --exclude_globs
-            ${LINT_EXCLUSIONS_FILE}
+            ${FORMAT_EXCLUSIONS_FILE}
             --source_dir
             ${CMAKE_CURRENT_SOURCE_DIR}
             ${MILVUS_LINT_QUIET})

@@ -13,15 +13,27 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-
 #pragma once
-#include <string>
+
+#include <gtest/gtest.h>
+
+#include "MilvusClient.h"
+#include "MilvusMockedServer.h"
+#include "MilvusMockedService.h"
 
 namespace milvus {
+class MilvusMockedTest : public ::testing::Test {
+ protected:
+    testing::StrictMock<::milvus::MilvusMockedService> service_{};
+    ::milvus::MilvusMockedServer server_{service_};
+    std::shared_ptr<::milvus::MilvusClient> client_;
 
-inline const std::string
-KeyRowCount() {
-    return "row_count";
-}
+    void
+    SetUp() override;
 
+    void
+    TearDown() override;
+};
 }  // namespace milvus
+
+using milvus::MilvusMockedTest;
