@@ -97,4 +97,21 @@ MilvusConnection::ShowCollections(const proto::milvus::ShowCollectionsRequest& r
     return Status::OK();
 }
 
+Status
+MilvusConnection::CreatePartition(const proto::milvus::CreatePartitionRequest& request,
+                                  proto::common::Status& response) {
+    return grpcCall("CreatePartition", &Stub::CreatePartition, request, response);
+}
+
+Status
+MilvusConnection::DropPartition(const proto::milvus::DropPartitionRequest& request, proto::common::Status& response) {
+    return grpcCall("DropPartition", &Stub::DropPartition, request, response);
+}
+
+Status
+MilvusConnection::HasPartition(const proto::milvus::HasPartitionRequest& request,
+                               proto::milvus::BoolResponse& response) {
+    return grpcCall("HasParition", &Stub::HasPartition, request, response);
+}
+
 }  // namespace milvus
