@@ -243,4 +243,46 @@ MilvusClientImpl::ShowPartitions(const std::string& collection_name, const std::
     return ret;
 }
 
+Status
+MilvusClientImpl::CreateAlias(const std::string& collection_name, const std::string& alias) {
+    return Status::OK();
+}
+
+Status
+MilvusClientImpl::DropAlias(const std::string& alias) {
+    return Status::OK();
+}
+
+Status
+MilvusClientImpl::AlterAlias(const std::string& collection_name, const std::string& alias) {
+    return Status::OK();
+}
+
+Status
+MilvusClientImpl::CreateIndex(const std::string& collection_name, const IndexDesc& index_desc) {
+    return Status::OK();
+}
+
+Status
+MilvusClientImpl::DescribeIndex(const std::string& collection_name, const std::string& field_name,
+                                IndexDesc& index_desc) {
+    return Status::OK();
+}
+
+Status
+MilvusClientImpl::GetIndexState(const std::string& collection_name, const std::string& field_name, IndexState& state) {
+    return Status::OK();
+}
+
+Status
+MilvusClientImpl::GetIndexBuildProgress(const std::string& collection_name, const std::string& field_name,
+                                        IndexProgress& progress) {
+    return Status::OK();
+}
+
+Status
+MilvusClientImpl::DropIndex(const std::string& collection_name, const std::string& field_name) {
+    return Status::OK();
+}
+
 }  // namespace milvus

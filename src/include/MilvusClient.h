@@ -24,6 +24,8 @@
 #include "types/CollectionSchema.h"
 #include "types/CollectionStat.h"
 #include "types/ConnectParam.h"
+#include "types/IndexDesc.h"
+#include "types/IndexState.h"
 #include "types/PartitionInfo.h"
 #include "types/PartitionStat.h"
 #include "types/TimeoutSetting.h"
@@ -227,6 +229,89 @@ class MilvusClient {
     virtual Status
     ShowPartitions(const std::string& collection_name, const std::vector<std::string>& partition_names,
                    PartitionsInfo& partitions_info) = 0;
+
+    /**
+     * Create an alias for a collection. Alias can be used in search or query to replace the collection name.
+     * For more information: https://wiki.lfaidata.foundation/display/MIL/MEP+10+--+Support+Collection+Alias
+     *
+     * @param [in] collection_name name of the collection
+     * @param [in] alias alias of the partitions
+     * @return Status operation successfully or not
+     */
+    virtual Status
+    CreateAlias(const std::string& collection_name, const std::string& alias) = 0;
+
+    /**
+     * Drop an alias.
+     *
+     * @param [in] alias alias of the partitions
+     * @return Status operation successfully or not
+     */
+    virtual Status
+    DropAlias(const std::string& alias) = 0;
+
+    /**
+     * Change an alias from a collection to another.
+     *
+     * @param [in] collection_name name of the collection
+     * @param [in] alias alias of the partitions
+     * @return Status operation successfully or not
+     */
+    virtual Status
+    AlterAlias(const std::string& collection_name, const std::string& alias) = 0;
+
+    /**
+     * Create an index on a field. Currently only support index on vector field.
+     *
+     * @param [in] index_desc the index descriptions and parameters
+     * @return Status operation successfully or not
+     */
+    virtual Status
+    CreateIndex(const std::string& collection_name, const IndexDesc& index_desc) = 0;
+
+    /**
+     * Get index descriptions and parameters.
+     *
+     * @param [in] collection_name name of the collection
+     * @param [in] field_name name of the field
+     * @param [out] index_desc index descriptions and parameters
+     * @return Status operation successfully or not
+     */
+    virtual Status
+    DescribeIndex(const std::string& collection_name, const std::string& field_name, IndexDesc& index_desc) = 0;
+
+    /**
+     * Get state of an index. From the state client can know whether the index has finished or in-progress.
+     *
+     * @param [in] collection_name name of the collection
+     * @param [in] field_name name of the field
+     * @param [out] state index state of field
+     * @return Status operation successfully or not
+     */
+    virtual Status
+    GetIndexState(const std::string& collection_name, const std::string& field_name, IndexState& state) = 0;
+
+    /**
+     * Get progress of an index. From the progress client can how many rows have been indexed.
+     *
+     * @param [in] collection_name name of the collection
+     * @param [in] field_name name of the field
+     * @param [out] progress progress array of field, currently only return one index progress
+     * @return Status operation successfully or not
+     */
+    virtual Status
+    GetIndexBuildProgress(const std::string& collection_name, const std::string& field_name,
+                          IndexProgress& progress) = 0;
+
+    /**
+     * Drop index of a field.
+     *
+     * @param [in] collection_name name of the collection
+     * @param [in] field_name name of the field
+     * @return Status operation successfully or not
+     */
+    virtual Status
+    DropIndex(const std::string& collection_name, const std::string& field_name) = 0;
 };
 
 }  // namespace milvus

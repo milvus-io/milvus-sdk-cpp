@@ -84,6 +84,31 @@ class MilvusConnection {
     ShowPartitions(const proto::milvus::ShowPartitionsRequest& request,
                    proto::milvus::ShowPartitionsResponse& response);
 
+    Status
+    CreateAlias(const proto::milvus::CreateAliasRequest& request, proto::common::Status& response);
+
+    Status
+    DropAlias(const proto::milvus::DropAliasRequest& request, proto::common::Status& response);
+
+    Status
+    AlterAlias(const proto::milvus::AlterAliasRequest& request, proto::common::Status& response);
+
+    Status
+    CreateIndex(const proto::milvus::CreateIndexRequest& request, proto::common::Status& response);
+
+    Status
+    DescribeIndex(const proto::milvus::DescribeIndexRequest& request, proto::milvus::DescribeIndexResponse& response);
+
+    Status
+    GetIndexState(const proto::milvus::GetIndexStateRequest& request, proto::milvus::GetIndexStateResponse& response);
+
+    Status
+    GetIndexBuildProgress(const proto::milvus::GetIndexBuildProgressRequest& request,
+                          proto::milvus::GetIndexBuildProgressResponse& response);
+
+    Status
+    DropIndex(const proto::milvus::DropIndexRequest& request, proto::common::Status& response);
+
  private:
     std::unique_ptr<proto::milvus::MilvusService::Stub> stub_;
     std::shared_ptr<grpc::Channel> channel_;
