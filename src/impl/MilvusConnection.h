@@ -71,6 +71,15 @@ class MilvusConnection {
     ShowCollections(const proto::milvus::ShowCollectionsRequest& request,
                     proto::milvus::ShowCollectionsResponse& response);
 
+    Status
+    CreatePartition(const proto::milvus::CreatePartitionRequest& request, proto::common::Status& response);
+
+    Status
+    DropPartition(const proto::milvus::DropPartitionRequest& request, proto::common::Status& response);
+
+    Status
+    HasPartition(const proto::milvus::HasPartitionRequest& request, proto::milvus::BoolResponse& response);
+
  private:
     std::unique_ptr<proto::milvus::MilvusService::Stub> stub_;
     std::shared_ptr<grpc::Channel> channel_;

@@ -140,17 +140,46 @@ MilvusClientImpl::ShowCollections(const std::vector<std::string>& collection_nam
 
 Status
 MilvusClientImpl::CreatePartition(const std::string& collection_name, const std::string& partition_name) {
-    return Status::OK();
+    if (connection_ == nullptr) {
+        return Status(StatusCode::NOT_CONNECTED, "Connection is not ready!");
+    }
+
+    proto::milvus::CreatePartitionRequest rpc_request;
+    rpc_request.set_collection_name(collection_name);
+    rpc_request.set_partition_name(partition_name);
+
+    proto::common::Status response;
+    return connection_->CreatePartition(rpc_request, response);
 }
 
 Status
 MilvusClientImpl::DropPartition(const std::string& collection_name, const std::string& partition_name) {
-    return Status::OK();
+    if (connection_ == nullptr) {
+        return Status(StatusCode::NOT_CONNECTED, "Connection is not ready!");
+    }
+
+    proto::milvus::DropPartitionRequest rpc_request;
+    rpc_request.set_collection_name(collection_name);
+    rpc_request.set_partition_name(partition_name);
+
+    proto::common::Status response;
+    return connection_->DropPartition(rpc_request, response);
 }
 
 Status
 MilvusClientImpl::HasPartition(const std::string& collection_name, const std::string& partition_name, bool& has) {
-    return Status::OK();
+    if (connection_ == nullptr) {
+        return Status(StatusCode::NOT_CONNECTED, "Connection is not ready!");
+    }
+
+    proto::milvus::HasPartitionRequest rpc_request;
+    rpc_request.set_collection_name(collection_name);
+    rpc_request.set_partition_name(partition_name);
+
+    proto::milvus::BoolResponse response;
+    auto ret = connection_->HasPartition(rpc_request, response);
+    has = response.value();
+    return ret;
 }
 
 Status
