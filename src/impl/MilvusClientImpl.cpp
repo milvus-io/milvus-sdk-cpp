@@ -212,7 +212,35 @@ MilvusClientImpl::GetPartitionStatistics(const std::string& collection_name, con
 Status
 MilvusClientImpl::ShowPartitions(const std::string& collection_name, const std::vector<std::string>& partition_names,
                                  PartitionsInfo& partitions_info) {
-    return Status::OK();
+    if (connection_ == nullptr) {
+        return Status(StatusCode::NOT_CONNECTED, "Connection is not ready!");
+    }
+
+    proto::milvus::ShowPartitionsRequest rpc_request;
+    rpc_request.set_collection_name(collection_name);
+    if (partition_names.empty()) {
+        rpc_request.set_type(milvus::proto::milvus::ShowType::All);
+    } else {
+        rpc_request.set_type(milvus::proto::milvus::ShowType::InMemory);
+    }
+
+    for (const auto& partition_name : partition_names) {
+        rpc_request.add_partition_names(partition_name);
+    }
+
+    proto::milvus::ShowPartitionsResponse response;
+    auto ret = connection_->ShowPartitions(rpc_request, response);
+
+    auto count = response.partition_names_size();
+    if (count > 0) {
+        partitions_info.reserve(count);
+    }
+    for (size_t i = 0; i < count; ++i) {
+        partitions_info.emplace_back(response.partition_names(i), response.partitionids(i),
+                                     response.created_timestamps(i), response.inmemory_percentages(i));
+    }
+
+    return ret;
 }
 
 }  // namespace milvus
