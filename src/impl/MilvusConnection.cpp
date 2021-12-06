@@ -120,4 +120,47 @@ MilvusConnection::ShowPartitions(const proto::milvus::ShowPartitionsRequest& req
     return grpcCall("ShowPartitions", &Stub::ShowPartitions, request, response);
 }
 
+Status
+MilvusConnection::CreateAlias(const proto::milvus::CreateAliasRequest& request, proto::common::Status& response) {
+    return grpcCall("HasParition", &Stub::CreateAlias, request, response);
+}
+
+Status
+MilvusConnection::DropAlias(const proto::milvus::DropAliasRequest& request, proto::common::Status& response) {
+    return grpcCall("HasParition", &Stub::DropAlias, request, response);
+}
+
+Status
+MilvusConnection::AlterAlias(const proto::milvus::AlterAliasRequest& request, proto::common::Status& response) {
+    return grpcCall("HasParition", &Stub::AlterAlias, request, response);
+}
+
+Status
+MilvusConnection::CreateIndex(const proto::milvus::CreateIndexRequest& request, proto::common::Status& response) {
+    return grpcCall("HasParition", &Stub::CreateIndex, request, response);
+}
+
+Status
+MilvusConnection::DescribeIndex(const proto::milvus::DescribeIndexRequest& request,
+                                proto::milvus::DescribeIndexResponse& response) {
+    return grpcCall("HasParition", &Stub::DescribeIndex, request, response);
+}
+
+Status
+MilvusConnection::GetIndexState(const proto::milvus::GetIndexStateRequest& request,
+                                proto::milvus::GetIndexStateResponse& response) {
+    return grpcCall("HasParition", &Stub::GetIndexState, request, response);
+}
+
+Status
+MilvusConnection::GetIndexBuildProgress(const proto::milvus::GetIndexBuildProgressRequest& request,
+                                        proto::milvus::GetIndexBuildProgressResponse& response) {
+    return grpcCall("HasParition", &Stub::GetIndexBuildProgress, request, response);
+}
+
+Status
+MilvusConnection::DropIndex(const proto::milvus::DropIndexRequest& request, proto::common::Status& response) {
+    return grpcCall("HasParition", &Stub::DropIndex, request, response);
+}
+
 }  // namespace milvus

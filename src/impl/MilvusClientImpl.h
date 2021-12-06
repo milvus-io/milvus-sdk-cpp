@@ -89,6 +89,31 @@ class MilvusClientImpl : public MilvusClient {
     ShowPartitions(const std::string& collection_name, const std::vector<std::string>& partition_names,
                    PartitionsInfo& partitions_info) final;
 
+    Status
+    CreateAlias(const std::string& collection_name, const std::string& alias) final;
+
+    Status
+    DropAlias(const std::string& alias) final;
+
+    Status
+    AlterAlias(const std::string& collection_name, const std::string& alias) final;
+
+    Status
+    CreateIndex(const std::string& collection_name, const IndexDesc& index_desc) final;
+
+    Status
+    DescribeIndex(const std::string& collection_name, const std::string& field_name, IndexDesc& index_desc) final;
+
+    Status
+    GetIndexState(const std::string& collection_name, const std::string& field_name, IndexState& state) final;
+
+    Status
+    GetIndexBuildProgress(const std::string& collection_name, const std::string& field_name,
+                          IndexProgress& progress) final;
+
+    Status
+    DropIndex(const std::string& collection_name, const std::string& field_name) final;
+
  private:
     std::shared_ptr<MilvusConnection> connection_;
 };
