@@ -3,7 +3,7 @@
 #include <grpc++/server.h>
 #include <grpc++/server_builder.h>
 
-milvus::MilvusMockedServer::MilvusMockedServer(milvus::MilvusMockedService& service) : service_{service} {
+milvus::MilvusMockedServer::MilvusMockedServer(milvus::MilvusMockedService& service) : service_(service) {
 }
 
 uint16_t

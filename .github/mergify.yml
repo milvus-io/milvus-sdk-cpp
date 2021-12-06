@@ -3,6 +3,7 @@ pull_request_rules:
     conditions:
       - base=master
       - "status-success=Build and test AMD64 Ubuntu 18.04"
+      - "status-success=Build and test AMD64 CentOS 7"
     actions:
       label:
         add:
