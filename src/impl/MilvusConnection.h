@@ -80,9 +80,28 @@ class MilvusConnection {
     Status
     HasPartition(const proto::milvus::HasPartitionRequest& request, proto::milvus::BoolResponse& response);
 
+    Status
+    ShowPartitions(const proto::milvus::ShowPartitionsRequest& request,
+                   proto::milvus::ShowPartitionsResponse& response);
+
  private:
     std::unique_ptr<proto::milvus::MilvusService::Stub> stub_;
     std::shared_ptr<grpc::Channel> channel_;
+
+    Status
+    statusByProroResponse(const proto::common::Status& status) {
+        if (status.error_code() != proto::common::ErrorCode::Success) {
+            return Status{StatusCode::SERVER_FAILED, status.reason()};
+        }
+        return Status::OK();
+    }
+
+    template <typename Response>
+    Status
+    statusByProroResponse(const Response& response) {
+        const auto& status = response.status();
+        return statusByProroResponse(status);
+    }
 
     template <typename Request, typename Response>
     Status
@@ -101,7 +120,7 @@ class MilvusConnection {
             return Status(StatusCode::SERVER_FAILED, grpc_status.error_message());
         }
 
-        return Status::OK();
+        return statusByProroResponse(response);
     }
 };
 

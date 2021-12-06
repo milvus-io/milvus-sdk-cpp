@@ -114,4 +114,10 @@ MilvusConnection::HasPartition(const proto::milvus::HasPartitionRequest& request
     return grpcCall("HasParition", &Stub::HasPartition, request, response);
 }
 
+Status
+MilvusConnection::ShowPartitions(const proto::milvus::ShowPartitionsRequest& request,
+                                 proto::milvus::ShowPartitionsResponse& response) {
+    return grpcCall("ShowPartitions", &Stub::ShowPartitions, request, response);
+}
+
 }  // namespace milvus

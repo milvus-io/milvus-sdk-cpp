@@ -26,6 +26,33 @@ namespace milvus {
  */
 class PartitionInfo {
  public:
+    std::string
+    Name() const {
+        return name_;
+    }
+
+    int64_t
+    Id() const {
+        return id_;
+    }
+
+    uint64_t
+    CreatedUtcTimestamp() const {
+        return created_utc_timestamp_;
+    }
+
+    int64_t
+    InMemoryPercentage() const {
+        return in_memory_percentage_;
+    }
+
+    PartitionInfo(std::string name, int64_t id, uint64_t created_utc_timestamp = 0, int64_t in_memory_percentage = 0)
+        : name_(std::move(name)),
+          id_(id),
+          created_utc_timestamp_(created_utc_timestamp),
+          in_memory_percentage_(in_memory_percentage) {
+    }
+
  private:
     /**
      * @brief Name of this partition.
@@ -45,8 +72,14 @@ class PartitionInfo {
     /**
      * @brief Partition loading percentage.
      */
-    uint64_t in_memory_percentage_ = 0;
+    int64_t in_memory_percentage_ = 0;
 };
+
+inline bool
+operator==(const PartitionInfo& a, const PartitionInfo& b) {
+    return a.Name() == b.Name() && a.Id() && b.Id() && a.CreatedUtcTimestamp() == b.CreatedUtcTimestamp() &&
+           a.InMemoryPercentage() == b.InMemoryPercentage();
+}
 
 using PartitionsInfo = std::vector<PartitionInfo>;
 
