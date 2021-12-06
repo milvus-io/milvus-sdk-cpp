@@ -88,7 +88,16 @@ MilvusClientImpl::CreateCollection(const CollectionSchema& schema) {
     rpc_request.set_schema(binary);
 
     proto::common::Status response;
-    return connection_->CreateCollection(rpc_request, response);
+    auto rpc_status = connection_->CreateCollection(rpc_request, response);
+    if (!rpc_status.IsOk()) {
+        return rpc_status;
+    }
+
+    if (response.error_code() != proto::common::ErrorCode::Success) {
+        return Status{StatusCode::SERVER_FAILED, response.reason()};
+    }
+
+    return rpc_status;
 }
 
 Status
