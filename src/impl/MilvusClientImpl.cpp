@@ -144,7 +144,28 @@ MilvusClientImpl::GetCollectionStatistics(const std::string& collection_name, co
 
 Status
 MilvusClientImpl::ShowCollections(const std::vector<std::string>& collection_names, CollectionsInfo& collections_info) {
-    return Status::OK();
+    if (connection_ == nullptr) {
+        return Status(StatusCode::NOT_CONNECTED, "Connection is not ready!");
+    }
+    proto::milvus::ShowCollectionsRequest rpc_request;
+    if (collection_names.empty()) {
+        rpc_request.set_type(proto::milvus::ShowType::All);
+    } else {
+        rpc_request.set_type(proto::milvus::ShowType::InMemory);
+        for (auto& collection_name : collection_names) {
+            rpc_request.add_collection_names(collection_name);
+        }
+    }
+    proto::milvus::ShowCollectionsResponse response;
+    Status ret = connection_->ShowCollections(rpc_request, response);
+    if (ret.IsOk()) {
+        for (size_t i = 0; i < response.collection_ids_size(); i++) {
+            collections_info.push_back(CollectionInfo(response.collection_names(i), response.collection_ids(i),
+                                                      response.created_utc_timestamps(i),
+                                                      response.inmemory_percentages(i)));
+        }
+    }
+    return ret;
 }
 
 Status

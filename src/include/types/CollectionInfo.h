@@ -27,6 +27,15 @@ namespace milvus {
  */
 class CollectionInfo {
  public:
+    CollectionInfo() = default;
+    CollectionInfo(const std::string& collection_name, int64_t collection_id, uint64_t create_time,
+                   uint64_t load_percentage)
+        : name_{collection_name},
+          collection_id_{collection_id},
+          created_utc_timestamp_{create_time},
+          in_memory_percentage_{load_percentage} {
+    }
+
  private:
     /**
      * @brief Name of this collection.

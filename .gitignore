@@ -2,7 +2,9 @@ cmake_build/
 build/
 .vscode/
 
-
+logs/
 *.pyc
+logs/
+build/
 
 
