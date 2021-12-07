@@ -114,7 +114,7 @@ class MilvusConnection {
     std::shared_ptr<grpc::Channel> channel_;
 
     Status
-    statusByProroResponse(const proto::common::Status& status) {
+    statusByProtoResponse(const proto::common::Status& status) {
         if (status.error_code() != proto::common::ErrorCode::Success) {
             return Status{StatusCode::SERVER_FAILED, status.reason()};
         }
@@ -123,9 +123,9 @@ class MilvusConnection {
 
     template <typename Response>
     Status
-    statusByProroResponse(const Response& response) {
+    statusByProtoResponse(const Response& response) {
         const auto& status = response.status();
-        return statusByProroResponse(status);
+        return statusByProtoResponse(status);
     }
 
     template <typename Request, typename Response>
@@ -145,7 +145,7 @@ class MilvusConnection {
             return Status(StatusCode::SERVER_FAILED, grpc_status.error_message());
         }
 
-        return statusByProroResponse(response);
+        return statusByProtoResponse(response);
     }
 };
 
