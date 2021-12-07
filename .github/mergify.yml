@@ -8,3 +8,31 @@ pull_request_rules:
       label:
         add:
           - ci-passed
+
+  - name: Remove ci-passed when build failed
+    conditions:
+      - base=master
+      - or:
+        - "check-failure=Build and test AMD64 Ubuntu 18.04"
+        - "check-failure=Build and test AMD64 CentOS 7"
+    actions:
+      label:
+        remove:
+          - ci-passed
+
+  - name: Add ci-passed when no code changes
+    conditions:
+      - base=master
+      - or:
+        # all path not in source pattern
+        # try keep same as in .github/workflows/main.yaml
+        - and:
+          - -files~=^(cmake|examples|scripts|src|test|thirdparty)\/.*$
+          - -files~=^\.github\/workflows\/main.yaml$
+          - -files~=^\.clang-(tidy|format)$
+        # only .md files changed
+        - -files~=^.*(?<!\.md)$
+    actions:
+      label:
+        add:
+          - ci-passed
