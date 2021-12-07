@@ -30,7 +30,8 @@ on:
 jobs:
   ubuntu:
     name: Build and test AMD64 Ubuntu ${{ matrix.ubuntu }}
-    runs-on: ubuntu-${{ matrix.ubuntu }}
+    runs-on: ubuntu-latest
+    container: ubuntu:${{ matrix.ubuntu }}
     timeout-minutes: 90
     strategy:
       fail-fast: false
@@ -50,6 +51,27 @@ jobs:
       - name: Lint
         run: |
           make lint
+      - name: Uint Testing
+        run: |
+          make test
+  centos:
+    name: Build and test AMD64 CentOS ${{ matrix.centos }}
+    runs-on: ubuntu-latest
+    container: centos:${{ matrix.centos }}
+    timeout-minutes: 90
+    strategy:
+      fail-fast: false
+      matrix:
+        centos: [7]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Prepare
+        run: |
+          sh scripts/install_deps.sh
+      - name: Build
+        run: |
+          make
       - name: Uint Testing
         run: |
           make test
