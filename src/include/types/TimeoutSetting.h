@@ -17,6 +17,7 @@
 #pragma once
 
 #include <cstdint>
+#include <limits>
 
 namespace milvus {
 class TimeoutSetting {
@@ -41,19 +42,29 @@ class TimeoutSetting {
         waiting_interval_ = waiting_interval;
     }
 
+    static TimeoutSetting
+    Instantly() {
+        return TimeoutSetting{0};
+    }
+
+    static TimeoutSetting
+    Infinity() {
+        return TimeoutSetting{std::numeric_limits<uint32_t>::max()};
+    }
+
  private:
     /**
      * @brief Waiting duration
      *
      * This value control the waiting interval. Unit: millisecond. Default value: 500 milliseconds.
      */
-    uint32_t waiting_interval_ = 500;
+    uint32_t waiting_interval_{500};
 
     /**
      * @brief Sync load waiting duration
      *
      * This value control the waiting timeout. Unit: second. Default value: 60 seconds.
      */
-    uint32_t waiting_timeout_ = 60;
+    uint32_t waiting_timeout_{60};
 };
 }  // namespace milvus

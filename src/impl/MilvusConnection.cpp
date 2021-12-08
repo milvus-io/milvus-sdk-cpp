@@ -121,6 +121,11 @@ MilvusConnection::ShowPartitions(const proto::milvus::ShowPartitionsRequest& req
 }
 
 Status
+MilvusConnection::LoadPartitions(const proto::milvus::LoadPartitionsRequest& request, proto::common::Status& response) {
+    return grpcCall("LoadPartitions", &Stub::LoadPartitions, request, response);
+}
+
+Status
 MilvusConnection::CreateAlias(const proto::milvus::CreateAliasRequest& request, proto::common::Status& response) {
     return grpcCall("HasParition", &Stub::CreateAlias, request, response);
 }

@@ -46,6 +46,11 @@ class PartitionInfo {
         return in_memory_percentage_;
     }
 
+    bool
+    Loaded() const {
+        return in_memory_percentage_ >= 100;
+    }
+
     PartitionInfo(std::string name, int64_t id, uint64_t created_utc_timestamp = 0, int64_t in_memory_percentage = 0)
         : name_(std::move(name)),
           id_(id),
