@@ -186,12 +186,13 @@ class MilvusClient {
      *
      * @param [in] collection_name name of the collection
      * @param [in] partition_names name array of the partitions
-     * @param [in] timeout timeout setting for loading, set to nullptr to return instantly
+     * @param [in] timeout timeout setting for loading, set to TimeoutSetting::Instantly() to return instantly,
+     *                     set TimeoutSetting::Infinity() for wait forever until returned.
      * @return Status operation successfully or not
      */
     virtual Status
     LoadPartitions(const std::string& collection_name, const std::vector<std::string>& partition_names,
-                   const TimeoutSetting* timeout) = 0;
+                   const TimeoutSetting& timeout) = 0;
 
     /**
      * Release specific partitions data of one collection into query nodes.

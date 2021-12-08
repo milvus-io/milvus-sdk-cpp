@@ -16,6 +16,9 @@
 
 #include "MilvusClientImpl.h"
 
+#include <chrono>
+#include <thread>
+
 #include "common.pb.h"
 #include "milvus.grpc.pb.h"
 #include "milvus.pb.h"
@@ -214,8 +217,42 @@ MilvusClientImpl::HasPartition(const std::string& collection_name, const std::st
 
 Status
 MilvusClientImpl::LoadPartitions(const std::string& collection_name, const std::vector<std::string>& partition_names,
-                                 const TimeoutSetting* timeout) {
-    return Status::OK();
+                                 const TimeoutSetting& timeout) {
+    if (connection_ == nullptr) {
+        return Status(StatusCode::NOT_CONNECTED, "Connection is not ready!");
+    }
+
+    auto wait_seconds = timeout.WaitingTimeout();
+    std::chrono::time_point<std::chrono::steady_clock> started{};
+    if (wait_seconds > 0) {
+        started = std::chrono::steady_clock::now();
+    }
+
+    proto::milvus::LoadPartitionsRequest rpc_request;
+    rpc_request.set_collection_name(collection_name);
+    for (const auto& partition_name : partition_names) {
+        rpc_request.add_partition_names(partition_name);
+    }
+
+    proto::common::Status response;
+    auto ret = connection_->LoadPartitions(rpc_request, response);
+    if (not ret.IsOk() or wait_seconds == 0) {
+        return ret;
+    }
+
+    waitForStatus(
+        [&collection_name, &partition_names, this]() -> Status {
+            PartitionsInfo partitions_info;
+            auto status = ShowPartitions(collection_name, partition_names, partitions_info);
+            if (status.IsOk() and
+                std::any_of(partitions_info.begin(), partitions_info.end(),
+                            [](const PartitionInfo& partition_info) { return not partition_info.Loaded(); })) {
+                return Status{StatusCode::TIMEOUT, "Timeout once"};
+            }
+            return status;
+        },
+        started, timeout, ret);
+    return ret;
 }
 
 Status
@@ -304,6 +341,33 @@ MilvusClientImpl::GetIndexBuildProgress(const std::string& collection_name, cons
 Status
 MilvusClientImpl::DropIndex(const std::string& collection_name, const std::string& field_name) {
     return Status::OK();
+}
+
+void
+MilvusClientImpl::waitForStatus(std::function<Status()> query_function,
+                                const std::chrono::time_point<std::chrono::steady_clock> started,
+                                const TimeoutSetting& timeout, Status& status) {
+    auto calculated_next_wait = started;
+    auto wait_milliseconds = timeout.WaitingTimeout() * 1000;
+    auto wait_interval = timeout.WaitingInterval();
+    auto final_timeout = started + std::chrono::milliseconds{wait_milliseconds};
+    while (wait_milliseconds > 0) {
+        calculated_next_wait += std::chrono::milliseconds{wait_interval};
+        auto next_wait = std::min(calculated_next_wait, final_timeout);
+        std::this_thread::sleep_until(next_wait);
+
+        status = query_function();
+
+        if (status.Code() != StatusCode::TIMEOUT) {
+            break;
+        }
+
+        if (next_wait == final_timeout) {
+            wait_milliseconds = 0;
+        } else {
+            wait_milliseconds -= wait_interval;
+        }
+    }
 }
 
 }  // namespace milvus

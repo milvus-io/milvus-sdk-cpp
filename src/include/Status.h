@@ -38,6 +38,7 @@ enum class StatusCode {
     INVALID_AGUMENT = 1000,
     RPC_FAILED,
     SERVER_FAILED,
+    TIMEOUT,
 };
 
 /**

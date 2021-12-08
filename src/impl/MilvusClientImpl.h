@@ -76,7 +76,7 @@ class MilvusClientImpl : public MilvusClient {
 
     Status
     LoadPartitions(const std::string& collection_name, const std::vector<std::string>& partition_names,
-                   const TimeoutSetting* timeout) final;
+                   const TimeoutSetting& timeout) final;
 
     Status
     ReleasePartitions(const std::string& collection_name, const std::vector<std::string>& partition_names) final;
@@ -116,6 +116,19 @@ class MilvusClientImpl : public MilvusClient {
 
  private:
     std::shared_ptr<MilvusConnection> connection_;
+
+    /**
+     * Internal wait for status query done.
+     *
+     * @param [in] query_function one time query for return Status, return TIMEOUT status if not done
+     * @param [in] started starting time
+     * @param [in] timeout timeout setting
+     * @param [inout] status the final returned status
+     */
+    void
+    waitForStatus(std::function<Status()> query_function,
+                  const std::chrono::time_point<std::chrono::steady_clock> started, const TimeoutSetting& timeout,
+                  Status& status);
 };
 
 }  // namespace milvus
