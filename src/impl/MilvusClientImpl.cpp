@@ -26,6 +26,19 @@
 
 namespace milvus {
 
+// This macro is to check two kinds of status:
+//  1. Status returned by lower methods
+//  2. Proto status returned by server side
+#define ON_ERROR_RETURN(status, resp_status)                                 \
+    {                                                                        \
+        if (!status.IsOk()) {                                                \
+            return status;                                                   \
+        }                                                                    \
+        if (resp_status.error_code() != proto::common::ErrorCode::Success) { \
+            return Status{StatusCode::SERVER_FAILED, resp_status.reason()};  \
+        }                                                                    \
+    }
+
 std::shared_ptr<MilvusClient>
 MilvusClient::Create() {
     return std::make_shared<MilvusClientImpl>();
@@ -91,16 +104,10 @@ MilvusClientImpl::CreateCollection(const CollectionSchema& schema) {
     rpc_request.set_schema(binary);
 
     proto::common::Status response;
-    auto rpc_status = connection_->CreateCollection(rpc_request, response);
-    if (!rpc_status.IsOk()) {
-        return rpc_status;
-    }
+    auto ret = connection_->CreateCollection(rpc_request, response);
+    ON_ERROR_RETURN(ret, response);
 
-    if (response.error_code() != proto::common::ErrorCode::Success) {
-        return Status{StatusCode::SERVER_FAILED, response.reason()};
-    }
-
-    return rpc_status;
+    return ret;
 }
 
 Status
@@ -115,7 +122,9 @@ MilvusClientImpl::HasCollection(const std::string& collection_name, bool& has) {
 
     proto::milvus::BoolResponse response;
     auto ret = connection_->HasCollection(rpc_request, response);
+    ON_ERROR_RETURN(ret, response.status());
     has = response.value();
+
     return ret;
 }
 
@@ -161,6 +170,8 @@ MilvusClientImpl::ShowCollections(const std::vector<std::string>& collection_nam
     }
     proto::milvus::ShowCollectionsResponse response;
     Status ret = connection_->ShowCollections(rpc_request, response);
+    ON_ERROR_RETURN(ret, response.status());
+
     if (ret.IsOk()) {
         for (size_t i = 0; i < response.collection_ids_size(); i++) {
             collections_info.push_back(CollectionInfo(response.collection_names(i), response.collection_ids(i),
@@ -182,7 +193,10 @@ MilvusClientImpl::CreatePartition(const std::string& collection_name, const std:
     rpc_request.set_partition_name(partition_name);
 
     proto::common::Status response;
-    return connection_->CreatePartition(rpc_request, response);
+    auto ret = connection_->CreatePartition(rpc_request, response);
+    ON_ERROR_RETURN(ret, response);
+
+    return ret;
 }
 
 Status
@@ -196,7 +210,10 @@ MilvusClientImpl::DropPartition(const std::string& collection_name, const std::s
     rpc_request.set_partition_name(partition_name);
 
     proto::common::Status response;
-    return connection_->DropPartition(rpc_request, response);
+    auto ret = connection_->DropPartition(rpc_request, response);
+    ON_ERROR_RETURN(ret, response);
+
+    return ret;
 }
 
 Status
@@ -211,7 +228,9 @@ MilvusClientImpl::HasPartition(const std::string& collection_name, const std::st
 
     proto::milvus::BoolResponse response;
     auto ret = connection_->HasPartition(rpc_request, response);
+    ON_ERROR_RETURN(ret, response.status());
     has = response.value();
+
     return ret;
 }
 
@@ -236,7 +255,9 @@ MilvusClientImpl::LoadPartitions(const std::string& collection_name, const std::
 
     proto::common::Status response;
     auto ret = connection_->LoadPartitions(rpc_request, response);
-    if (not ret.IsOk() or wait_seconds == 0) {
+    ON_ERROR_RETURN(ret, response);
+
+    if (wait_seconds == 0) {
         return ret;
     }
 
@@ -288,6 +309,7 @@ MilvusClientImpl::ShowPartitions(const std::string& collection_name, const std::
 
     proto::milvus::ShowPartitionsResponse response;
     auto ret = connection_->ShowPartitions(rpc_request, response);
+    ON_ERROR_RETURN(ret, response.status());
 
     auto count = response.partition_names_size();
     if (count > 0) {
@@ -341,6 +363,40 @@ MilvusClientImpl::GetIndexBuildProgress(const std::string& collection_name, cons
 
 Status
 MilvusClientImpl::DropIndex(const std::string& collection_name, const std::string& field_name) {
+    return Status::OK();
+}
+
+Status
+MilvusClientImpl::flush(const std::vector<std::string>& collection_names, const ProgressMonitor& progress_monitor) {
+    if (connection_ == nullptr) {
+        return Status(StatusCode::NOT_CONNECTED, "Connection is not ready!");
+    }
+
+    proto::milvus::FlushRequest rpc_request;
+    for (const auto& collection_name : collection_names) {
+        rpc_request.add_collection_names(collection_name);
+    }
+
+    auto wait_seconds = progress_monitor.CheckTimeout();
+    std::chrono::time_point<std::chrono::steady_clock> started{};
+    if (wait_seconds > 0) {
+        started = std::chrono::steady_clock::now();
+    }
+
+    proto::milvus::FlushResponse response;
+    auto ret = connection_->Flush(rpc_request, response);
+    ON_ERROR_RETURN(ret, response.status());
+
+    waitForStatus(
+        [&](Progress&) -> Status {
+            Status status;
+
+            // TODO: call GetPersistentSegmentInfo() to check segment state
+
+            return status;
+        },
+        started, progress_monitor, ret);
+
     return Status::OK();
 }
 

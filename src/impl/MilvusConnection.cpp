@@ -168,4 +168,9 @@ MilvusConnection::DropIndex(const proto::milvus::DropIndexRequest& request, prot
     return grpcCall("HasParition", &Stub::DropIndex, request, response);
 }
 
+Status
+MilvusConnection::Flush(const proto::milvus::FlushRequest& request, proto::milvus::FlushResponse& response) {
+    return grpcCall("Flush", &Stub::Flush, request, response);
+}
+
 }  // namespace milvus
