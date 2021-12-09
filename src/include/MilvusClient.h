@@ -28,7 +28,7 @@
 #include "types/IndexState.h"
 #include "types/PartitionInfo.h"
 #include "types/PartitionStat.h"
-#include "types/TimeoutSetting.h"
+#include "types/ProgressMonitor.h"
 
 /**
  *  @brief namespace milvus
@@ -99,11 +99,12 @@ class MilvusClient {
      * waiting until the collection completely loaded into query node.
      *
      * @param [in] collection_name name of the collection
-     * @param [in] timeout timeout setting for loading, set to nullptr to return instantly
+     * @param [in] progress_monitor set timeout to wait loading progress complete, set to ProgressMonitor::NoWait() to
+     * return instantly
      * @return Status operation successfully or not
      */
     virtual Status
-    LoadCollection(const std::string& collection_name, const TimeoutSetting* timeout) = 0;
+    LoadCollection(const std::string& collection_name, const ProgressMonitor& progress_monitor) = 0;
 
     /**
      * Release collection data from query node.
@@ -129,12 +130,13 @@ class MilvusClient {
      * If the timeout is specified, this api will call Flush() and wait all segmetns persisted into storage.
      *
      * @param [in] collection_name name of the collection
-     * @param [in] timeout specify time out for sync-flush mode, set to nullptr to return instantly
+     * @param [in] progress_monitor set timeout to wait flush progress complete, set to ProgressMonitor::NoWait() to
+     * return instantly
      * @param [out] collection_stat statistics of the collection
      * @return Status operation successfully or not
      */
     virtual Status
-    GetCollectionStatistics(const std::string& collection_name, const TimeoutSetting* timeout,
+    GetCollectionStatistics(const std::string& collection_name, const ProgressMonitor& progress_monitor,
                             CollectionStat& collection_stat) = 0;
 
     /**
@@ -186,13 +188,13 @@ class MilvusClient {
      *
      * @param [in] collection_name name of the collection
      * @param [in] partition_names name array of the partitions
-     * @param [in] timeout timeout setting for loading, set to TimeoutSetting::Instantly() to return instantly,
-     *                     set TimeoutSetting::Infinity() for wait forever until returned.
+     * @param [in] progress_monitor set timeout to wait loading progress complete, set to
+     * ProgressMonitor::NoWait() to return instantly
      * @return Status operation successfully or not
      */
     virtual Status
     LoadPartitions(const std::string& collection_name, const std::vector<std::string>& partition_names,
-                   const TimeoutSetting& timeout) = 0;
+                   const ProgressMonitor& progress_monitor) = 0;
 
     /**
      * Release specific partitions data of one collection into query nodes.
@@ -210,13 +212,14 @@ class MilvusClient {
      *
      * @param [in] collection_name name of the collection
      * @param [in] partition_name name of the partition
-     * @param [in] timeout specify time out for sync-flush mode, set to nullptr to return instantly
+     * @param [in] progress_monitor set timeout to wait flush progress complete, set to ProgressMonitor::NoWait() to
+     * return instantly
      * @param [out] partition_stat statistics of the partition
      * @return Status operation successfully or not
      */
     virtual Status
     GetPartitionStatistics(const std::string& collection_name, const std::string& partition_name,
-                           const TimeoutSetting* timeout, PartitionStat& partition_stat) = 0;
+                           const ProgressMonitor& progress_monitor, PartitionStat& partition_stat) = 0;
 
     /**
      * If the partition_names is empty, list all partitions brief informations.
@@ -264,11 +267,15 @@ class MilvusClient {
     /**
      * Create an index on a field. Currently only support index on vector field.
      *
+     * @param [in] collection_name name of the collection
      * @param [in] index_desc the index descriptions and parameters
+     * @param [in] progress_monitor set timeout to wait index progress complete, set to ProgressMonitor::NoWait() to
+     * return instantly
      * @return Status operation successfully or not
      */
     virtual Status
-    CreateIndex(const std::string& collection_name, const IndexDesc& index_desc) = 0;
+    CreateIndex(const std::string& collection_name, const IndexDesc& index_desc,
+                const ProgressMonitor& progress_monitor) = 0;
 
     /**
      * Get index descriptions and parameters.
