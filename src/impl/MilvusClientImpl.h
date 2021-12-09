@@ -50,7 +50,7 @@ class MilvusClientImpl : public MilvusClient {
     DropCollection(const std::string& collection_name) final;
 
     Status
-    LoadCollection(const std::string& collection_name, const TimeoutSetting* timeout) final;
+    LoadCollection(const std::string& collection_name, const ProgressMonitor& progress_monitor) final;
 
     Status
     ReleaseCollection(const std::string& collection_name) final;
@@ -59,7 +59,7 @@ class MilvusClientImpl : public MilvusClient {
     DescribeCollection(const std::string& collection_name, CollectionDesc& collection_desc) final;
 
     Status
-    GetCollectionStatistics(const std::string& collection_name, const TimeoutSetting* timeout,
+    GetCollectionStatistics(const std::string& collection_name, const ProgressMonitor& progress_monitor,
                             CollectionStat& collection_stat) final;
 
     Status
@@ -76,14 +76,14 @@ class MilvusClientImpl : public MilvusClient {
 
     Status
     LoadPartitions(const std::string& collection_name, const std::vector<std::string>& partition_names,
-                   const TimeoutSetting& timeout) final;
+                   const ProgressMonitor& progress_monitor) final;
 
     Status
     ReleasePartitions(const std::string& collection_name, const std::vector<std::string>& partition_names) final;
 
     Status
     GetPartitionStatistics(const std::string& collection_name, const std::string& partition_name,
-                           const TimeoutSetting* timeout, PartitionStat& partition_stat) final;
+                           const ProgressMonitor& progress_monitor, PartitionStat& partition_stat) final;
 
     Status
     ShowPartitions(const std::string& collection_name, const std::vector<std::string>& partition_names,
@@ -99,7 +99,8 @@ class MilvusClientImpl : public MilvusClient {
     AlterAlias(const std::string& collection_name, const std::string& alias) final;
 
     Status
-    CreateIndex(const std::string& collection_name, const IndexDesc& index_desc) final;
+    CreateIndex(const std::string& collection_name, const IndexDesc& index_desc,
+                const ProgressMonitor& progress_monitor) final;
 
     Status
     DescribeIndex(const std::string& collection_name, const std::string& field_name, IndexDesc& index_desc) final;
@@ -115,20 +116,21 @@ class MilvusClientImpl : public MilvusClient {
     DropIndex(const std::string& collection_name, const std::string& field_name) final;
 
  private:
-    std::shared_ptr<MilvusConnection> connection_;
-
     /**
      * Internal wait for status query done.
      *
      * @param [in] query_function one time query for return Status, return TIMEOUT status if not done
      * @param [in] started starting time
-     * @param [in] timeout timeout setting
+     * @param [in] progress_monitor timeout setting for waiting progress
      * @param [inout] status the final returned status
      */
     void
-    waitForStatus(std::function<Status()> query_function,
-                  const std::chrono::time_point<std::chrono::steady_clock> started, const TimeoutSetting& timeout,
-                  Status& status);
+    waitForStatus(std::function<Status(Progress&)> query_function,
+                  const std::chrono::time_point<std::chrono::steady_clock> started,
+                  const ProgressMonitor& progress_monitor, Status& status);
+
+ private:
+    std::shared_ptr<MilvusConnection> connection_;
 };
 
 }  // namespace milvus

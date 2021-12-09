@@ -19,7 +19,7 @@ TEST_F(MilvusMockedTest, LoadPartitionsInstantly) {
 
     const std::string collection{"Foo"};
     const std::vector<std::string> partitions{"part1", "part2"};
-    const auto timeout = ::milvus::TimeoutSetting::Instantly();
+    const auto timeout = ::milvus::ProgressMonitor::NoWait();
 
     EXPECT_CALL(service_,
                 LoadPartitions(_,
@@ -42,7 +42,7 @@ TEST_F(MilvusMockedTest, LoadPartitionsFailure) {
 
     const std::string collection{"Foo"};
     const std::vector<std::string> partitions{"part1", "part2"};
-    const ::milvus::TimeoutSetting timeout{5};
+    const ::milvus::ProgressMonitor timeout{5};
 
     EXPECT_CALL(service_,
                 LoadPartitions(_,
@@ -67,8 +67,8 @@ TEST_F(MilvusMockedTest, LoadPartitionsWithQueryStatusSuccess) {
 
     const std::string collection{"Foo"};
     const std::vector<std::string> partitions{"part1", "part2"};
-    ::milvus::TimeoutSetting timeout{10};
-    timeout.SetInterval(1);
+    ::milvus::ProgressMonitor timeout{10};
+    timeout.SetCheckInterval(1);
 
     EXPECT_CALL(service_,
                 LoadPartitions(_,
@@ -111,8 +111,8 @@ TEST_F(MilvusMockedTest, LoadPartitionsWithQueryStatusOomFailure) {
 
     const std::string collection{"Foo"};
     const std::vector<std::string> partitions{"part1", "part2"};
-    ::milvus::TimeoutSetting timeout{10};
-    timeout.SetInterval(1);
+    ::milvus::ProgressMonitor timeout{10};
+    timeout.SetCheckInterval(1);
 
     EXPECT_CALL(service_,
                 LoadPartitions(_,
@@ -155,8 +155,8 @@ TEST_F(MilvusMockedTest, LoadPartitionsWithQueryStatusTimeout) {
 
     const std::string collection{"Foo"};
     const std::vector<std::string> partitions{"part1", "part2"};
-    ::milvus::TimeoutSetting timeout{1};
-    timeout.SetInterval(110);
+    ::milvus::ProgressMonitor timeout{1};
+    timeout.SetCheckInterval(110);
 
     EXPECT_CALL(service_,
                 LoadPartitions(_,

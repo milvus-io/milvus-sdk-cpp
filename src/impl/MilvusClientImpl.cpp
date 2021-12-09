@@ -125,7 +125,7 @@ MilvusClientImpl::DropCollection(const std::string& collection_name) {
 }
 
 Status
-MilvusClientImpl::LoadCollection(const std::string& collection_name, const TimeoutSetting* timeout) {
+MilvusClientImpl::LoadCollection(const std::string& collection_name, const ProgressMonitor& progress_monitor) {
     return Status::OK();
 }
 
@@ -140,7 +140,7 @@ MilvusClientImpl::DescribeCollection(const std::string& collection_name, Collect
 }
 
 Status
-MilvusClientImpl::GetCollectionStatistics(const std::string& collection_name, const TimeoutSetting* timeout,
+MilvusClientImpl::GetCollectionStatistics(const std::string& collection_name, const ProgressMonitor& progress_monitor,
                                           CollectionStat& collection_stat) {
     return Status::OK();
 }
@@ -217,12 +217,12 @@ MilvusClientImpl::HasPartition(const std::string& collection_name, const std::st
 
 Status
 MilvusClientImpl::LoadPartitions(const std::string& collection_name, const std::vector<std::string>& partition_names,
-                                 const TimeoutSetting& timeout) {
+                                 const ProgressMonitor& progress_monitor) {
     if (connection_ == nullptr) {
         return Status(StatusCode::NOT_CONNECTED, "Connection is not ready!");
     }
 
-    auto wait_seconds = timeout.WaitingTimeout();
+    auto wait_seconds = progress_monitor.CheckTimeout();
     std::chrono::time_point<std::chrono::steady_clock> started{};
     if (wait_seconds > 0) {
         started = std::chrono::steady_clock::now();
@@ -241,7 +241,7 @@ MilvusClientImpl::LoadPartitions(const std::string& collection_name, const std::
     }
 
     waitForStatus(
-        [&collection_name, &partition_names, this]() -> Status {
+        [&collection_name, &partition_names, this](Progress&) -> Status {
             PartitionsInfo partitions_info;
             auto status = ShowPartitions(collection_name, partition_names, partitions_info);
             if (status.IsOk() and
@@ -251,7 +251,7 @@ MilvusClientImpl::LoadPartitions(const std::string& collection_name, const std::
             }
             return status;
         },
-        started, timeout, ret);
+        started, progress_monitor, ret);
     return ret;
 }
 
@@ -263,7 +263,7 @@ MilvusClientImpl::ReleasePartitions(const std::string& collection_name,
 
 Status
 MilvusClientImpl::GetPartitionStatistics(const std::string& collection_name, const std::string& partition_name,
-                                         const TimeoutSetting* timeout, PartitionStat& partition_stat) {
+                                         const ProgressMonitor& progress_monitor, PartitionStat& partition_stat) {
     return Status::OK();
 }
 
@@ -317,7 +317,8 @@ MilvusClientImpl::AlterAlias(const std::string& collection_name, const std::stri
 }
 
 Status
-MilvusClientImpl::CreateIndex(const std::string& collection_name, const IndexDesc& index_desc) {
+MilvusClientImpl::CreateIndex(const std::string& collection_name, const IndexDesc& index_desc,
+                              const ProgressMonitor& progress_monitor) {
     return Status::OK();
 }
 
@@ -344,23 +345,25 @@ MilvusClientImpl::DropIndex(const std::string& collection_name, const std::strin
 }
 
 void
-MilvusClientImpl::waitForStatus(std::function<Status()> query_function,
+MilvusClientImpl::waitForStatus(std::function<Status(Progress&)> query_function,
                                 const std::chrono::time_point<std::chrono::steady_clock> started,
-                                const TimeoutSetting& timeout, Status& status) {
+                                const ProgressMonitor& progress_monitor, Status& status) {
     auto calculated_next_wait = started;
-    auto wait_milliseconds = timeout.WaitingTimeout() * 1000;
-    auto wait_interval = timeout.WaitingInterval();
+    auto wait_milliseconds = progress_monitor.CheckTimeout() * 1000;
+    auto wait_interval = progress_monitor.CheckInterval();
     auto final_timeout = started + std::chrono::milliseconds{wait_milliseconds};
     while (wait_milliseconds > 0) {
         calculated_next_wait += std::chrono::milliseconds{wait_interval};
         auto next_wait = std::min(calculated_next_wait, final_timeout);
         std::this_thread::sleep_until(next_wait);
 
-        status = query_function();
-
+        Progress current_progress;
+        status = query_function(current_progress);
         if (status.Code() != StatusCode::TIMEOUT) {
             break;
         }
+
+        progress_monitor.DoProgress(current_progress);
 
         if (next_wait == final_timeout) {
             wait_milliseconds = 0;
