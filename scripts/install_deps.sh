@@ -20,7 +20,7 @@ install_deps_for_ubuntu_1804() {
     check_sudo
     ${SUDO} apt-get update
     ${SUDO} apt-get -y install python2.7 gpg wget gcc g++ ccache make clang-format-10 clang-tidy-10 \
-                       libssl-dev iwyu
+                       libssl-dev iwyu lcov
 
     # for cmake >= 3.12
     current_cmake_version=$(get_cmake_version)
@@ -38,7 +38,7 @@ install_deps_for_centos_7() {
     check_sudo
     ${SUDO} yum -y update
     ${SUDO} yum -y install epel-release
-    yum -y install gcc gcc-c++ python gpg wget ccache make openssl-devel which
+    yum -y install gcc gcc-c++ python gpg wget ccache make openssl-devel which lcov
     
     # for cmake >= 3.12, using cmake3 from epel
     current_cmake_version=$(get_cmake_version)

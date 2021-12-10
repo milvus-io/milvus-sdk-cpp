@@ -6,5 +6,6 @@ logs/
 *.pyc
 logs/
 build/
+code_coverage/
 
 

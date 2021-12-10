@@ -36,17 +36,20 @@ set(BUILD_SCRIPTS_DIR ${CMAKE_SOURCE_DIR}/scripts)
 unset(CMAKE_EXPORT_COMPILE_COMMANDS CACHE)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-add_subdirectory(src)
-add_subdirectory(examples)
-
 if (BUILD_UNIT_TEST STREQUAL "ON")
-    if (BUILD_COVERAGE STREQUAL "ON")
+    if ( CMAKE_BUILD_TYPE STREQUAL "Debug" )
+        # Set compile flag for code coverage.
+        # Note: Only do this in Debug/unittest mode. Must do this before add_subdirectory(src).
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fprofile-arcs -ftest-coverage")
     endif ()
+
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DELPP_DISABLE_LOGS")
     enable_testing()
     add_subdirectory(test)
 endif ()
+
+add_subdirectory(src)
+add_subdirectory(examples)
 
 # lint verbose options
 if (NOT MILVUS_VERBOSE_LINT)

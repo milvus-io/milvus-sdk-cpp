@@ -53,7 +53,12 @@ jobs:
           make lint
       - name: Uint Testing
         run: |
-          make test
+          make coverage
+      - name: Upload coverage
+        uses: codecov/codecov-action@v2
+        with:
+          files: ./code_coverage/lcov_output.info
+          name: ubuntu-${{ matrix.ubuntu }}-coverage
   centos:
     name: Build and test AMD64 CentOS ${{ matrix.centos }}
     runs-on: ubuntu-latest
