@@ -262,13 +262,18 @@ MilvusClientImpl::LoadPartitions(const std::string& collection_name, const std::
     }
 
     waitForStatus(
-        [&collection_name, &partition_names, this](Progress&) -> Status {
+        [&collection_name, &partition_names, this](Progress& progress) -> Status {
             PartitionsInfo partitions_info;
             auto status = ShowPartitions(collection_name, partition_names, partitions_info);
-            if (status.IsOk() and
-                std::any_of(partitions_info.begin(), partitions_info.end(),
-                            [](const PartitionInfo& partition_info) { return not partition_info.Loaded(); })) {
-                return Status{StatusCode::TIMEOUT, "Timeout once"};
+            if (not status.IsOk()) {
+                return status;
+            }
+            progress.total_ = partition_names.size();
+            progress.finished_ =
+                std::count_if(partitions_info.begin(), partitions_info.end(),
+                              [](const PartitionInfo& partition_info) { return partition_info.Loaded(); });
+            if (progress.total_ != progress.finished_) {
+                return Status{StatusCode::TIMEOUT, "not all partitions finished"};
             }
             return status;
         },
