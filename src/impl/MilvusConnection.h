@@ -112,6 +112,9 @@ class MilvusConnection {
     Status
     DropIndex(const proto::milvus::DropIndexRequest& request, proto::common::Status& response);
 
+    Status
+    Flush(const proto::milvus::FlushRequest& request, proto::milvus::FlushResponse& response);
+
  private:
     std::unique_ptr<proto::milvus::MilvusService::Stub> stub_;
     std::shared_ptr<grpc::Channel> channel_;
