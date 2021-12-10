@@ -6,10 +6,10 @@ This document will help to set up your development environment and run tests for
 ## Setup development environment
 Currently we tested below platform and compilers for developing Milvus C++ SDK.
 
-| Platform | Version       | Compiler Tested | Support                       |
-|----------|---------------|-----------------|-------------------------------|
-| Linux    | Ubuntu 18.04  | GCC 7.0.0       | Full (Compile, Lint, Testing) |
-| Linux    | CentOS        | GCC 4.8.5       | Compile, Testing              |
+| Platform | Version      | Compiler Tested | Support                       |
+| -------- | ------------ | --------------- | ----------------------------- |
+| Linux    | Ubuntu 18.04 | GCC 7.0.0       | Full (Compile, Lint, Testing) |
+| Linux    | CentOS       | GCC 4.8.5       | Compile, Testing              |
 
 ### Clone the code
 
@@ -63,3 +63,12 @@ We have below test scopes:
   generally we called integration testing.
 - Test code under `test/st` the code need to be run with a real Milvus server,
   generally we called that acceptance testing.
+
+
+## Run code coverage
+Milvus C++ SDK using **lcov** tool to generate code coverage report. You could run `make coverage`, this command will:
+- run all unittest cases
+- generage code coverage report by lcov tool
+
+After the command finished, a folder named "code_coverage" is created under the project.
+To review code coverage report, you could open the **code_coverage/index.html** by web browser.
