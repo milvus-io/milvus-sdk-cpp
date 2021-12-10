@@ -32,6 +32,11 @@ struct Progress {
     uint32_t total_ = 0;
 };
 
+inline bool
+operator==(const Progress& a, const Progress& b) {
+    return a.finished_ == b.finished_ && a.total_ == b.total_;
+}
+
 class ProgressMonitor {
  public:
     using CallbackFunc = std::function<void(Progress&)>;
