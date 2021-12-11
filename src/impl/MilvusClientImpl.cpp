@@ -284,7 +284,21 @@ MilvusClientImpl::LoadPartitions(const std::string& collection_name, const std::
 Status
 MilvusClientImpl::ReleasePartitions(const std::string& collection_name,
                                     const std::vector<std::string>& partition_names) {
-    return Status::OK();
+    if (connection_ == nullptr) {
+        return Status(StatusCode::NOT_CONNECTED, "Connection is not ready!");
+    }
+
+    proto::milvus::ReleasePartitionsRequest rpc_request;
+    rpc_request.set_collection_name(collection_name);
+    for (const auto& partition_name : partition_names) {
+        rpc_request.add_partition_names(partition_name);
+    }
+
+    proto::common::Status response;
+    auto ret = connection_->ReleasePartitions(rpc_request, response);
+    ON_ERROR_RETURN(ret, response);
+
+    return ret;
 }
 
 Status
