@@ -72,3 +72,16 @@ Milvus C++ SDK using **lcov** tool to generate code coverage report. You could r
 
 After the command finished, a folder named "code_coverage" is created under the project.
 To review code coverage report, you could open the **code_coverage/index.html** by web browser.
+
+# Build C++ SDK with your macOS
+
+## Setup development environment
+
+The setup setps and development environment for macOS are similay with Linux.
+Your should using `install_deps.sh` to install dependencies and using the same `make` commands for build, lint, test and coverage.
+
+### Prerequests
+Before you run `install_deps.sh` to install dependencies, you should make sure:
+- Alread installed (Homebrew)[https://brew.sh/]
+- Install Command line tools for Xcode, this could be done by command: `xcode-select --instal`
+
