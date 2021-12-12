@@ -26,6 +26,28 @@ namespace milvus {
  */
 class IndexDesc {
  public:
+    IndexDesc() = default;
+    IndexDesc(const std::string& field_name, const std::string& index_name, int64_t index_id,
+              std::unordered_map<std::string, std::string> params)
+        : field_name_{field_name}, index_name_{index_name}, index_id_{index_id}, params_{params} {
+    }
+    std::string
+    GetFieldName() const {
+        return field_name_;
+    }
+    std::string
+    GetIndexName() const {
+        return index_name_;
+    }
+    int64_t
+    GetIndexId() const {
+        return index_id_;
+    }
+    std::unordered_map<std::string, std::string>
+    GetParams() const {
+        return params_;
+    }
+
  private:
     /**
      * @brief Name of the field.

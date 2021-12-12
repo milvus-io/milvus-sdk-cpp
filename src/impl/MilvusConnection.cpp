@@ -142,13 +142,13 @@ MilvusConnection::AlterAlias(const proto::milvus::AlterAliasRequest& request, pr
 
 Status
 MilvusConnection::CreateIndex(const proto::milvus::CreateIndexRequest& request, proto::common::Status& response) {
-    return grpcCall("HasParition", &Stub::CreateIndex, request, response);
+    return grpcCall("CreateIndex", &Stub::CreateIndex, request, response);
 }
 
 Status
 MilvusConnection::DescribeIndex(const proto::milvus::DescribeIndexRequest& request,
                                 proto::milvus::DescribeIndexResponse& response) {
-    return grpcCall("HasParition", &Stub::DescribeIndex, request, response);
+    return Status::OK();
 }
 
 Status
