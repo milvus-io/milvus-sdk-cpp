@@ -49,15 +49,27 @@ install_deps_for_centos_7() {
     fi
 }
 
+install_deps_for_macos() {
+    if [ -x "$(command -v brew)" ] ; then
+        brew install wget lcov llvm openssl@3 cmake ccache
+    else
+        echo 'Detect using macos but brew seems not installed.'
+        exit 1
+    fi
+}
 
-if [ -x "$(command -v apt)" ]; then
-    # for ubuntu
-    if grep -q 'Ubuntu 18.04' /etc/issue ; then
-        install_deps_for_ubuntu_1804
+if uname | grep -wq Linux ; then
+    if [ -x "$(command -v apt)" ]; then
+        # for ubuntu
+        if grep -q 'Ubuntu 18.04' /etc/issue ; then
+            install_deps_for_ubuntu_1804
+        fi
+    elif [ -x "$(command -v yum)" ] ; then
+        # for os support yum
+        if grep -q 'CentOS Linux release 7' /etc/redhat-release ; then
+            install_deps_for_centos_7
+        fi
     fi
-elif [ -x "$(command -v yum)" ] ; then
-    # for os support yum
-    if grep -q 'CentOS Linux release 7' /etc/redhat-release ; then
-        install_deps_for_centos_7
-    fi
+elif uname | grep -wq Darwin ; then
+    install_deps_for_macos
 fi

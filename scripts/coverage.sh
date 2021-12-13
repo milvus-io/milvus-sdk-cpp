@@ -63,6 +63,7 @@ ${LCOV_CMD} -r "${FILE_INFO_COMBINE}" -o "${FILE_INFO_OUTPUT}" \
     "*/third_party/*" \
     "*/src/proto-gen/*" \
     "*/test/*" \
+    "*/_deps/*" \
     "*/examples/*"
 
 # generate html report

@@ -39,9 +39,27 @@ jobs:
         ubuntu: [18.04]
     env:
       UBUNTU: ${{ matrix.ubuntu }}
+      CCACHE_COMPILERCHECK: content
+      CCACHE_COMPRESS: 1
+      CCACHE_COMPRESSLEVEL: 5
+      CCACHE_MAXSIZE: 2G
     steps:
       - name: Checkout
         uses: actions/checkout@v2
+      - name: Cache ccache
+        uses: actions/cache@v2
+        with:
+          path: |
+            ~/.ccache
+          key: ubuntu-${{ matrix.ubuntu }}-ccache-${{ github.sha }}
+          restore-keys: ubuntu-${{ matrix.ubuntu }}-ccache-
+      - name: Cache apk
+        uses: actions/cache@v2
+        with:
+          path: |
+            /var/cache/apt/archives
+          key: ubuntu-${{ matrix.ubuntu }}-apt-${{ github.sha }}
+          restore-keys: ubuntu-${{ matrix.ubuntu }}-apt-
       - name: Prepare
         run: |
           sh scripts/install_deps.sh
@@ -68,9 +86,62 @@ jobs:
       fail-fast: false
       matrix:
         centos: [7]
+    env:
+      CCACHE_COMPILERCHECK: content
+      CCACHE_COMPRESS: 1
+      CCACHE_COMPRESSLEVEL: 5
+      CCACHE_MAXSIZE: 2G
     steps:
       - name: Checkout
         uses: actions/checkout@v2
+      - name: Cache ccache
+        uses: actions/cache@v2
+        with:
+          path: |
+            ~/.ccache
+          key: centos-${{ matrix.centos }}-ccache-${{ github.sha }}
+          restore-keys: centos-${{ matrix.centos }}-ccache-
+      - name: Cache rpm
+        uses: actions/cache@v2
+        with:
+          path: |
+            /var/cache/yum
+          key: centos-${{ matrix.centos }}-rpm-${{ github.sha }}
+          restore-keys: centos-${{ matrix.centos }}-rpm-
+      - name: Prepare
+        run: |
+          sh scripts/install_deps.sh
+      - name: Build
+        run: |
+          make
+      - name: Uint Testing
+        run: |
+          make test
+  macos:
+    name: Build and test macOS ${{ matrix.macos }}
+    runs-on: macos-${{ matrix.macos }}
+    timeout-minutes: 90
+    strategy:
+      fail-fast: false
+      matrix:
+        macos: [11]
+    env:
+      CCACHE_DIR: ${{ github.workspace }}/.ccache
+      CCACHE_COMPILERCHECK: content
+      CCACHE_COMPRESS: 1
+      CCACHE_CPP2: true
+      CCACHE_COMPRESSLEVEL: 5
+      CCACHE_MAXSIZE: 2G
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Cache ccache
+        uses: actions/cache@v2
+        with:
+          path: |
+            ${{ github.workspace }}/.ccache
+          key: macos-${{ matrix.macos }}-ccache-${{ github.sha }}
+          restore-keys: macos-${{ matrix.macos }}-ccache-
       - name: Prepare
         run: |
           sh scripts/install_deps.sh
