@@ -40,7 +40,7 @@ FILE_INFO_COMBINE="${DIR_LCOV_OUTPUT}/lcov_combine.info"
 FILE_INFO_OUTPUT="${DIR_LCOV_OUTPUT}/lcov_output.info"
 
 # delete old code coverage output files
-rm -f ${DIR_LCOV_OUTPUT}
+rm -rf ${DIR_LCOV_OUTPUT}
 mkdir ${COVERAGE_OUTPUT_DIR}
 
 # generate baseline
