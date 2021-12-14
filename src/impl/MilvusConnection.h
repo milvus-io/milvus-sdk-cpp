@@ -88,6 +88,9 @@ class MilvusConnection {
     LoadPartitions(const proto::milvus::LoadPartitionsRequest& request, proto::common::Status& response);
 
     Status
+    ReleasePartitions(const proto::milvus::ReleasePartitionsRequest& request, proto::common::Status& response);
+
+    Status
     CreateAlias(const proto::milvus::CreateAliasRequest& request, proto::common::Status& response);
 
     Status
