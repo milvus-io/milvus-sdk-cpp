@@ -386,6 +386,12 @@ MilvusClientImpl::DropIndex(const std::string& collection_name, const std::strin
 }
 
 Status
+MilvusClientImpl::Insert(const std::string& collection_name, const std::string& partition_name,
+                         const std::vector<FieldDataPtr>& fields, IDArray& id_array) {
+    return Status::OK();
+}
+
+Status
 MilvusClientImpl::flush(const std::vector<std::string>& collection_names, const ProgressMonitor& progress_monitor) {
     if (connection_ == nullptr) {
         return Status(StatusCode::NOT_CONNECTED, "Connection is not ready!");

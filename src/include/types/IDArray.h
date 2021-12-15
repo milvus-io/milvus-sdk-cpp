@@ -17,63 +17,41 @@
 #pragma once
 
 #include <string>
+#include <vector>
 
-/**
- * @brief Milvus SDK namespace
- */
 namespace milvus {
 
 /**
- * @brief Status Code for SDK interface return
+ * @brief ID array, each ID could be int64 type or string type.
+ * Note: v2.0 only support int64 type id.
  */
-enum class StatusCode {
-    OK = 0,
-
-    // system error section
-    UNKNOWN_ERROR = 1,
-    NOT_SUPPORTED,
-    NOT_CONNECTED,
-
-    // function error section
-    INVALID_AGUMENT = 1000,
-    RPC_FAILED,
-    SERVER_FAILED,
-    TIMEOUT,
-
-    // validation error
-    DIMENSION_NOT_EQUAL = 2000,
-    VECTOR_IS_EMPTY,
-};
-
-/**
- * @brief Status for SDK interface return
- */
-class Status {
+class IDArray {
  public:
-    Status(StatusCode code, const std::string& msg);
-    Status() = default;
+    explicit IDArray(std::vector<int64_t> id_array) : int_id_array_(std::move(id_array)) {
+    }
 
-    static Status
-    OK() {
-        return Status{};
+    explicit IDArray(std::vector<std::string> id_array) : str_id_array_(std::move(id_array)), is_int_array_{false} {
     }
 
     bool
-    IsOk() const {
-        return code_ == StatusCode::OK;
+    IsIntegerID() const {
+        return is_int_array_;
     }
 
-    StatusCode
-    Code() const {
-        return code_;
+    const std::vector<int64_t>&
+    IntIDArray() const {
+        return int_id_array_;
     }
 
-    const std::string&
-    Message() const;
+    const std::vector<std::string>&
+    StrIDArray() const {
+        return str_id_array_;
+    }
 
  private:
-    StatusCode code_{StatusCode::OK};
-    std::string msg_{"OK"};
-};  // Status
+    bool is_int_array_ = true;
+    std::vector<int64_t> int_id_array_;
+    std::vector<std::string> str_id_array_;
+};
 
 }  // namespace milvus
