@@ -19,10 +19,12 @@ include_directories(include)
 include_directories(proto-gen)
 
 aux_source_directory(${CMAKE_CURRENT_SOURCE_DIR}/impl impl_files)
+aux_source_directory(${CMAKE_CURRENT_SOURCE_DIR}/impl/param param_files)
 include(proto-gen/proto-gen.cmake) # milvus_sdk_proto_files
 
 add_library(milvus_sdk SHARED
         ${impl_files}
+        ${param_files}
         ${milvus_sdk_proto_files}
         )
 
