@@ -41,7 +41,7 @@ MilvusConnection::Connect(const std::string& uri) {
     }
 
     std::string reason = "Failed to connect uri: " + uri;
-    return Status(StatusCode::NOT_CONNECTED, reason);
+    return {StatusCode::NOT_CONNECTED, reason};
 }
 
 Status
