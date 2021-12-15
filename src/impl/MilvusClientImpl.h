@@ -115,6 +115,10 @@ class MilvusClientImpl : public MilvusClient {
     Status
     DropIndex(const std::string& collection_name, const std::string& field_name) final;
 
+    Status
+    Insert(const std::string& collection_name, const std::string& partition_name,
+           const std::vector<FieldDataPtr>& fields, IDArray& id_array) final;
+
  private:
     /**
      * Flush insert buffer into storage. To makesure the buffer persisted successfully, it calls
