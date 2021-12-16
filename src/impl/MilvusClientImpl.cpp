@@ -360,7 +360,36 @@ MilvusClientImpl::AlterAlias(const std::string& collection_name, const std::stri
 Status
 MilvusClientImpl::CreateIndex(const std::string& collection_name, const IndexDesc& index_desc,
                               const ProgressMonitor& progress_monitor) {
-    return Status::OK();
+    if (connection_ == nullptr) {
+        return Status(StatusCode::NOT_CONNECTED, "Connection is not ready!");
+    }
+    proto::milvus::CreateIndexRequest rpc_request;
+    rpc_request.set_collection_name(collection_name);
+    rpc_request.set_field_name(index_desc.GetFieldName());
+
+    proto::common::Status response;
+    auto ret = connection_->CreateIndex(rpc_request, response);
+    ON_ERROR_RETURN(ret, response);
+
+    if (progress_monitor.CheckTimeout() == 0) {
+        return ret;
+    }
+    waitForStatus(
+        [&collection_name, &index_desc, ret, this](Progress& progress) -> Status {
+            IndexDesc index_info;
+            auto status = DescribeIndex(collection_name, index_desc.GetFieldName(), index_info);
+            if (not status.IsOk()) {
+                return status;
+            }
+            progress.total_ = 1;
+            progress.finished_ = ret.IsOk() ? 1 : 0;
+            if (progress.total_ != progress.finished_) {
+                return Status{StatusCode::TIMEOUT, "not all indexes finished"};
+            }
+            return status;
+        },
+        std::chrono::steady_clock::now(), progress_monitor, ret);
+    return ret;
 }
 
 Status
