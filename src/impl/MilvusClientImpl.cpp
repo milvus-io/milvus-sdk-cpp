@@ -361,7 +361,7 @@ Status
 MilvusClientImpl::CreateIndex(const std::string& collection_name, const IndexDesc& index_desc,
                               const ProgressMonitor& progress_monitor) {
     if (connection_ == nullptr) {
-        return Status(StatusCode::NOT_CONNECTED, "Connection is not ready!");
+        return {StatusCode::NOT_CONNECTED, "Connection is not ready!"};
     }
     proto::milvus::CreateIndexRequest rpc_request;
     rpc_request.set_collection_name(collection_name);
