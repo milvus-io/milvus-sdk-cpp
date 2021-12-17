@@ -19,7 +19,7 @@ get_cmake_version() {
 install_deps_for_ubuntu_1804() {
     check_sudo
     ${SUDO} apt-get update
-    ${SUDO} apt-get -y install python2.7 gpg wget gcc g++ ccache make clang-format-10 clang-tidy-10 \
+    ${SUDO} apt-get -y install python2.7 gpg wget gcc g++ ccache make \
                        libssl-dev iwyu lcov
 
     # for cmake >= 3.12
@@ -32,6 +32,13 @@ install_deps_for_ubuntu_1804() {
         ${SUDO} apt-get -y install kitware-archive-keyring
         ${SUDO} apt-get -y install cmake
     fi
+
+    # install new clang-tidy clang-format
+    wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key | ${SUDO} apt-key add -
+    ${SUDO} apt-get -y install software-properties-common
+    ${SUDO} add-apt-repository "deb http://apt.llvm.org/bionic/   llvm-toolchain-bionic-13  main"
+    ${SUDO} apt-get update
+    ${SUDO} apt-get install -y clang-format-13 clang-tidy-13
 }
 
 install_deps_for_centos_7() {

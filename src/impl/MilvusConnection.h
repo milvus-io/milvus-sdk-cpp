@@ -143,7 +143,7 @@ class MilvusConnection {
              grpc::Status (proto::milvus::MilvusService::Stub::*func)(grpc::ClientContext*, const Request&, Response*),
              const Request& request, Response& response) {
         if (stub_ == nullptr) {
-            return Status(StatusCode::NOT_CONNECTED, "Connection is not ready!");
+            return {StatusCode::NOT_CONNECTED, "Connection is not ready!"};
         }
 
         ::grpc::ClientContext context;
@@ -151,7 +151,7 @@ class MilvusConnection {
 
         if (!grpc_status.ok()) {
             std::cerr << name << " failed!" << std::endl;
-            return Status(StatusCode::SERVER_FAILED, grpc_status.error_message());
+            return {StatusCode::SERVER_FAILED, grpc_status.error_message()};
         }
 
         return statusByProtoResponse(response);
