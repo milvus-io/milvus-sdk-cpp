@@ -107,6 +107,9 @@ class FieldData : public Field {
  public:
     using ElementT = T;
 
+    FieldData() : Field("", Dt) {
+    }
+
     explicit FieldData(const std::string& name) : Field(name, Dt) {
     }
 
@@ -159,5 +162,16 @@ using DoubleFieldData = FieldData<double, DataType::DOUBLE>;
 using StringFieldData = FieldData<std::string, DataType::STRING>;
 using BinaryVecFieldData = FieldData<std::vector<uint8_t>, DataType::BINARY_VECTOR>;
 using FloatVecFieldData = FieldData<std::vector<float>, DataType::FLOAT_VECTOR>;
+
+using BoolFieldDataPtr = std::shared_ptr<BoolFieldData>;
+using Int8FieldDataPtr = std::shared_ptr<Int8FieldData>;
+using Int16FieldDataPtr = std::shared_ptr<Int16FieldData>;
+using Int32FieldDataPtr = std::shared_ptr<Int32FieldData>;
+using Int64FieldDataPtr = std::shared_ptr<Int64FieldData>;
+using FloatFieldDataPtr = std::shared_ptr<FloatFieldData>;
+using DoubleFieldDataPtr = std::shared_ptr<DoubleFieldData>;
+using StringFieldDataPtr = std::shared_ptr<StringFieldData>;
+using BinaryVecFieldDataPtr = std::shared_ptr<BinaryVecFieldData>;
+using FloatVecFieldDataPtr = std::shared_ptr<FloatVecFieldData>;
 
 }  // namespace milvus
