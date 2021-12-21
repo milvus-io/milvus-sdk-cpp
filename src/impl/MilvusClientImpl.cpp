@@ -451,6 +451,22 @@ MilvusClientImpl::Insert(const std::string& collection_name, const std::string& 
 }
 
 Status
+MilvusClientImpl::Delete(const std::string& collection_name, const std::string& partition_name,
+                         const std::string& expression) {
+    return Status::OK();
+}
+
+Status
+MilvusClientImpl::Search(const SearchArguments& arguments, const SearchResults& results) {
+    return Status::OK();
+}
+
+Status
+MilvusClientImpl::Query(const QueryArguments& arguments, const QueryResults& results) {
+    return Status::OK();
+}
+
+Status
 MilvusClientImpl::flush(const std::vector<std::string>& collection_names, const ProgressMonitor& progress_monitor) {
     if (connection_ == nullptr) {
         return {StatusCode::NOT_CONNECTED, "Connection is not ready!"};

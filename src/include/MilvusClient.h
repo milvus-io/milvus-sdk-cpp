@@ -31,6 +31,10 @@
 #include "types/PartitionInfo.h"
 #include "types/PartitionStat.h"
 #include "types/ProgressMonitor.h"
+#include "types/QueryArguments.h"
+#include "types/QueryResults.h"
+#include "types/SearchArguments.h"
+#include "types/SearchResults.h"
 
 /**
  *  @brief namespace milvus
@@ -335,6 +339,38 @@ class MilvusClient {
     virtual Status
     Insert(const std::string& collection_name, const std::string& partition_name,
            const std::vector<FieldDataPtr>& fields, IDArray& id_array) = 0;
+
+    /**
+     * Delete entities by filtering condition.
+     *
+     * @param [in] collection_name name of the collection
+     * @param [in] partition_name name of the partition, optional(pass an empty string to skip)
+     * @param [in] expression the expression to filter out entities, currently only support primary key as filtering
+     * condition. For example: "id in [1, 2, 3]"
+     * @return Status operation successfully or not
+     */
+    virtual Status
+    Delete(const std::string& collection_name, const std::string& partition_name, const std::string& expression) = 0;
+
+    /**
+     * Searche a collection based on the given parameters and return results.
+     *
+     * @param [in] arguments search arguments
+     * @param [out] results search results
+     * @return Status operation successfully or not
+     */
+    virtual Status
+    Search(const SearchArguments& arguments, const SearchResults& results) = 0;
+
+    /**
+     * Query with a set of criteria, and results in a list of records that match the query exactly.
+     *
+     * @param [in] arguments query arguments
+     * @param [out] results query results
+     * @return Status operation successfully or not
+     */
+    virtual Status
+    Query(const QueryArguments& arguments, const QueryResults& results) = 0;
 };
 
 }  // namespace milvus

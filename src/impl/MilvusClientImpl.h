@@ -119,6 +119,15 @@ class MilvusClientImpl : public MilvusClient {
     Insert(const std::string& collection_name, const std::string& partition_name,
            const std::vector<FieldDataPtr>& fields, IDArray& id_array) final;
 
+    Status
+    Delete(const std::string& collection_name, const std::string& partition_name, const std::string& expression) final;
+
+    Status
+    Search(const SearchArguments& arguments, const SearchResults& results) final;
+
+    Status
+    Query(const QueryArguments& arguments, const QueryResults& results) final;
+
  private:
     /**
      * Flush insert buffer into storage. To makesure the buffer persisted successfully, it calls
