@@ -14,18 +14,44 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "Status.h"
+#pragma once
 
-#include <cstring>
+#include <cstdint>
+#include <vector>
 
 namespace milvus {
 
-Status::Status(StatusCode code, const std::string& msg) : code_(code), msg_(msg) {
-}
+/**
+ * @brief Compaction plan information. Used by GetCompactionPlans().
+ */
+class CompactionPlan {
+ public:
+    CompactionPlan(std::vector<int64_t>& src_segments, int64_t dst_segment) : dst_segment_(dst_segment) {
+        src_segments_.swap(src_segments);
+    }
 
-const std::string&
-Status::Message() const {
-    return msg_;
-}
+    /**
+     * @brief Segment id array to be merged.
+     */
+    const std::vector<int64_t>&
+    SourceSegments() const {
+        return src_segments_;
+    }
+
+    /**
+     * @brief New generated segment id after merging.
+     */
+    int64_t
+    DestinySegemnt() const {
+        return dst_segment_;
+    }
+
+ private:
+    std::vector<int64_t> src_segments_;
+
+    int64_t dst_segment_ = 0;
+};
+
+using CompactionPlans = std::vector<CompactionPlan>;
 
 }  // namespace milvus

@@ -16,13 +16,15 @@
 
 #include <gtest/gtest.h>
 
-#include "types/SearchResults.h"
+#include "types/CompactionPlan.h"
 
-class SearchResultsTest : public ::testing::Test {};
+class CompactionPlanTest : public ::testing::Test {};
 
-TEST_F(SearchResultsTest, GeneralTesting) {
-    std::vector<milvus::SingleResult> result_array = {milvus::SingleResult()};
+TEST_F(CompactionPlanTest, GeneralTesting) {
+    std::vector<int64_t> src_segments = {1, 2, 3};
+    int64_t dst_segment = 4;
 
-    milvus::SearchResults results(result_array);
-    EXPECT_EQ(1, results.Results().size());
+    milvus::CompactionPlan plan(src_segments, dst_segment);
+    EXPECT_EQ(3, plan.SourceSegments().size());
+    EXPECT_EQ(dst_segment, plan.DestinySegemnt());
 }

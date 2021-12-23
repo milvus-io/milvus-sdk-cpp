@@ -16,13 +16,19 @@
 
 #include <gtest/gtest.h>
 
-#include "types/SearchResults.h"
+#include "types/CollectionInfo.h"
 
-class SearchResultsTest : public ::testing::Test {};
+class CollectionInfoTest : public ::testing::Test {};
 
-TEST_F(SearchResultsTest, GeneralTesting) {
-    std::vector<milvus::SingleResult> result_array = {milvus::SingleResult()};
+TEST_F(CollectionInfoTest, GeneralTesting) {
+    std::string name = "test";
+    int64_t id = 1;
+    uint64_t created_ts = 100;
+    uint64_t in_memory_percent = 50;
 
-    milvus::SearchResults results(result_array);
-    EXPECT_EQ(1, results.Results().size());
+    milvus::CollectionInfo info(name, id, created_ts, in_memory_percent);
+    EXPECT_EQ(name, info.Name());
+    EXPECT_EQ(id, info.ID());
+    EXPECT_EQ(created_ts, info.CreatedTime());
+    EXPECT_EQ(in_memory_percent, info.MemoryPercentage());
 }

@@ -36,6 +36,38 @@ class CollectionInfo {
           in_memory_percentage_{load_percentage} {
     }
 
+    /**
+     * @brief Name of the collection.
+     */
+    const std::string&
+    Name() const {
+        return name_;
+    }
+
+    /**
+     * @brief ID of the collection.
+     */
+    int64_t
+    ID() const {
+        return collection_id_;
+    }
+
+    /**
+     * @brief Created utc time.
+     */
+    uint64_t
+    CreatedTime() const {
+        return created_utc_timestamp_;
+    }
+
+    /**
+     * @brief Loading percentage of the collection.
+     */
+    uint64_t
+    MemoryPercentage() const {
+        return in_memory_percentage_;
+    }
+
  private:
     /**
      * @brief Name of this collection.

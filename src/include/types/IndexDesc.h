@@ -31,20 +31,36 @@ class IndexDesc {
               std::unordered_map<std::string, std::string> params)
         : field_name_{field_name}, index_name_{index_name}, index_id_{index_id}, params_{params} {
     }
-    std::string
-    GetFieldName() const {
+
+    /**
+     * @brief Filed name which the index belong to.
+     */
+    const std::string&
+    FieldName() const {
         return field_name_;
     }
-    std::string
-    GetIndexName() const {
+
+    /**
+     * @brief Index name.
+     */
+    const std::string&
+    IndexName() const {
         return index_name_;
     }
+
+    /**
+     * @brief Index ID.
+     */
     int64_t
-    GetIndexId() const {
+    IndexId() const {
         return index_id_;
     }
-    std::unordered_map<std::string, std::string>
-    GetParams() const {
+
+    /**
+     * @brief Parameters of the index.
+     */
+    const std::unordered_map<std::string, std::string>&
+    Params() const {
         return params_;
     }
 

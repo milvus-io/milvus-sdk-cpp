@@ -23,6 +23,8 @@
 #include "types/CollectionInfo.h"
 #include "types/CollectionSchema.h"
 #include "types/CollectionStat.h"
+#include "types/CompactionPlan.h"
+#include "types/CompactionState.h"
 #include "types/ConnectParam.h"
 #include "types/FieldData.h"
 #include "types/IDArray.h"
@@ -35,6 +37,7 @@
 #include "types/QueryResults.h"
 #include "types/SearchArguments.h"
 #include "types/SearchResults.h"
+#include "types/SegmentInfo.h"
 
 /**
  *  @brief namespace milvus
@@ -371,6 +374,79 @@ class MilvusClient {
      */
     virtual Status
     Query(const QueryArguments& arguments, const QueryResults& results) = 0;
+
+    /**
+     * Retrieve information of persistent segments from data nodes.
+     *
+     * @param [in] collection_name name of the collection
+     * @param [out] segments_info information array for persistent segments
+     * @return Status operation successfully or not
+     */
+    virtual Status
+    GetPersistentSegmentInfo(const std::string& collection_name, SegmentsInfo& segments_info) = 0;
+
+    /**
+     * Retrieve information of segments from query nodes.
+     *
+     * @param [in] collection_name name of the collection
+     * @param [out] segments_info information array for segments
+     * @return Status operation successfully or not
+     */
+    virtual Status
+    GetQuerySegmentInfo(const std::string& collection_name, QuerySegmentsInfo& segments_info) = 0;
+
+    /**
+     * Get server runtime statistics.
+     *
+     * @param [in] request request in json format
+     * @param [out] response response in json format
+     * @param [out] component_name metrics from which component
+     * @return Status operation successfully or not
+     */
+    virtual Status
+    GetMetrics(const std::string& request, std::string& response, std::string& component_name) = 0;
+
+    /**
+     * Rebalance sealed segments from one query node to others.
+     *
+     * @param [in] src_node the source query node id
+     * @param [in] dst_nodes the destiny query nodes id array
+     * @param [in] segments the segments id array to be balanced
+     * @return Status operation successfully or not
+     */
+    virtual Status
+    LoadBalance(int64_t src_node, const std::vector<int64_t>& dst_nodes, const std::vector<int64_t>& segments) = 0;
+
+    /**
+     * Get compaction action state.
+     *
+     * @param [in] compaction_id the compaction action id
+     * @param [out] compaction_state state of the compaction action
+     * @return Status operation successfully or not
+     */
+    virtual Status
+    GetCompactionState(int64_t compaction_id, CompactionState& compaction_state) = 0;
+
+    /**
+     * Manually trigger a compaction action.
+     *
+     * @param [in] collection_name name of the collection
+     * @param [in] travel_timestamp specify a timestamp to compact on a data view at a specified point in time.
+     * @param [out] compaction_id id of the compaction action
+     * @return Status operation successfully or not
+     */
+    virtual Status
+    ManualCompaction(const std::string& collection_name, uint64_t travel_timestamp, int64_t& compaction_id) = 0;
+
+    /**
+     * Get plans of a compaction action.
+     *
+     * @param [in] compaction_id the compaction action id
+     * @param [out] plans compaction plan array
+     * @return Status operation successfully or not
+     */
+    virtual Status
+    GetCompactionPlans(int64_t compaction_id, CompactionPlans& plans) = 0;
 };
 
 }  // namespace milvus
