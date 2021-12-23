@@ -128,6 +128,27 @@ class MilvusClientImpl : public MilvusClient {
     Status
     Query(const QueryArguments& arguments, const QueryResults& results) final;
 
+    Status
+    GetPersistentSegmentInfo(const std::string& collection_name, SegmentsInfo& segments_info) final;
+
+    Status
+    GetQuerySegmentInfo(const std::string& collection_name, QuerySegmentsInfo& segments_info) final;
+
+    Status
+    GetMetrics(const std::string& request, std::string& response, std::string& component_name) final;
+
+    Status
+    LoadBalance(int64_t src_node, const std::vector<int64_t>& dst_nodes, const std::vector<int64_t>& segments) final;
+
+    Status
+    GetCompactionState(int64_t compaction_id, CompactionState& compaction_state) final;
+
+    Status
+    ManualCompaction(const std::string& collection_name, uint64_t travel_timestamp, int64_t& compaction_id) final;
+
+    Status
+    GetCompactionPlans(int64_t compaction_id, CompactionPlans& plans) final;
+
  private:
     /**
      * Flush insert buffer into storage. To makesure the buffer persisted successfully, it calls

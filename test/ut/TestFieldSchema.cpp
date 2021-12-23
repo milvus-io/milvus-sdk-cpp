@@ -16,13 +16,21 @@
 
 #include <gtest/gtest.h>
 
-#include "types/SearchResults.h"
+#include "types/FieldSchema.h"
 
-class SearchResultsTest : public ::testing::Test {};
+class FieldSchemaTest : public ::testing::Test {};
 
-TEST_F(SearchResultsTest, GeneralTesting) {
-    std::vector<milvus::SingleResult> result_array = {milvus::SingleResult()};
+TEST_F(FieldSchemaTest, GeneralTesting) {
+    std::string name = "f0";
+    std::string desc = "desc";
+    milvus::DataType dt = milvus::DataType::DOUBLE;
+    bool is_primary_key = true;
+    bool auto_id = false;
 
-    milvus::SearchResults results(result_array);
-    EXPECT_EQ(1, results.Results().size());
+    milvus::FieldSchema schema(name, dt, desc, is_primary_key, auto_id);
+    EXPECT_EQ(name, schema.Name());
+    EXPECT_EQ(desc, schema.Description());
+    EXPECT_EQ(dt, schema.FieldDataType());
+    EXPECT_EQ(is_primary_key, schema.IsPrimaryKey());
+    EXPECT_EQ(auto_id, schema.AutoID());
 }

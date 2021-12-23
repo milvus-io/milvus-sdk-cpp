@@ -365,7 +365,7 @@ MilvusClientImpl::CreateIndex(const std::string& collection_name, const IndexDes
     }
     proto::milvus::CreateIndexRequest rpc_request;
     rpc_request.set_collection_name(collection_name);
-    rpc_request.set_field_name(index_desc.GetFieldName());
+    rpc_request.set_field_name(index_desc.FieldName());
 
     proto::common::Status response;
     auto ret = connection_->CreateIndex(rpc_request, response);
@@ -377,7 +377,7 @@ MilvusClientImpl::CreateIndex(const std::string& collection_name, const IndexDes
     waitForStatus(
         [&collection_name, &index_desc, ret, this](Progress& progress) -> Status {
             IndexDesc index_info;
-            auto status = DescribeIndex(collection_name, index_desc.GetFieldName(), index_info);
+            auto status = DescribeIndex(collection_name, index_desc.FieldName(), index_info);
             if (not status.IsOk()) {
                 return status;
             }
@@ -463,6 +463,43 @@ MilvusClientImpl::Search(const SearchArguments& arguments, const SearchResults& 
 
 Status
 MilvusClientImpl::Query(const QueryArguments& arguments, const QueryResults& results) {
+    return Status::OK();
+}
+
+Status
+MilvusClientImpl::GetPersistentSegmentInfo(const std::string& collection_name, SegmentsInfo& segments_info) {
+    return Status::OK();
+}
+
+Status
+MilvusClientImpl::GetQuerySegmentInfo(const std::string& collection_name, QuerySegmentsInfo& segments_info) {
+    return Status::OK();
+}
+
+Status
+MilvusClientImpl::GetMetrics(const std::string& request, std::string& response, std::string& component_name) {
+    return Status::OK();
+}
+
+Status
+MilvusClientImpl::LoadBalance(int64_t src_node, const std::vector<int64_t>& dst_nodes,
+                              const std::vector<int64_t>& segments) {
+    return Status::OK();
+}
+
+Status
+MilvusClientImpl::GetCompactionState(int64_t compaction_id, CompactionState& compaction_state) {
+    return Status::OK();
+}
+
+Status
+MilvusClientImpl::ManualCompaction(const std::string& collection_name, uint64_t travel_timestamp,
+                                   int64_t& compaction_id) {
+    return Status::OK();
+}
+
+Status
+MilvusClientImpl::GetCompactionPlans(int64_t compaction_id, CompactionPlans& plans) {
     return Status::OK();
 }
 

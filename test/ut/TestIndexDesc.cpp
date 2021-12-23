@@ -16,13 +16,20 @@
 
 #include <gtest/gtest.h>
 
-#include "types/SearchResults.h"
+#include "types/IndexDesc.h"
 
-class SearchResultsTest : public ::testing::Test {};
+class IndexDescTest : public ::testing::Test {};
 
-TEST_F(SearchResultsTest, GeneralTesting) {
-    std::vector<milvus::SingleResult> result_array = {milvus::SingleResult()};
+TEST_F(IndexDescTest, GeneralTesting) {
+    // std::string field_name = "f0";
+    // std::string index_name = "IVF";
+    // int64_t index_id = 99;
+    // std::unordered_map<std::string, std::string> params;
+    // params["nlist"] = "10";
 
-    milvus::SearchResults results(result_array);
-    EXPECT_EQ(1, results.Results().size());
+    // milvus::IndexDesc desc(field_name, index_name, index_id, params);
+    // EXPECT_EQ(field_name, desc.FieldName());
+    // EXPECT_EQ(index_name, desc.IndexId());
+    // EXPECT_EQ(index_id, desc.IndexId());
+    // EXPECT_EQ("10", desc.Params().["nlist"]);
 }

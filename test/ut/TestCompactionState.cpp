@@ -16,13 +16,20 @@
 
 #include <gtest/gtest.h>
 
-#include "types/SearchResults.h"
+#include "types/CompactionState.h"
 
-class SearchResultsTest : public ::testing::Test {};
+class CompactionStateTest : public ::testing::Test {};
 
-TEST_F(SearchResultsTest, GeneralTesting) {
-    std::vector<milvus::SingleResult> result_array = {milvus::SingleResult()};
+TEST_F(CompactionStateTest, GeneralTesting) {
+    int64_t executing = 1;
+    int64_t timeout = 2;
+    int64_t completed = 3;
 
-    milvus::SearchResults results(result_array);
-    EXPECT_EQ(1, results.Results().size());
+    milvus::CompactionStateCode state_code = milvus::CompactionStateCode::EXECUTING;
+
+    milvus::CompactionState state(state_code, executing, timeout, completed);
+    EXPECT_EQ(state_code, state.State());
+    EXPECT_EQ(executing, state.ExecutingPlan());
+    EXPECT_EQ(timeout, state.TimeoutPlan());
+    EXPECT_EQ(completed, state.CompletedPlan());
 }
