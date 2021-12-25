@@ -121,6 +121,9 @@ class MilvusConnection {
     Status
     Insert(const proto::milvus::InsertRequest& request, proto::milvus::MutationResult& response);
 
+    Status
+    Query(const proto::milvus::QueryRequest& request, proto::milvus::QueryResults& response);
+
  private:
     std::unique_ptr<proto::milvus::MilvusService::Stub> stub_;
     std::shared_ptr<grpc::Channel> channel_;

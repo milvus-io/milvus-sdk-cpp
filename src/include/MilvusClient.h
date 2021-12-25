@@ -373,7 +373,7 @@ class MilvusClient {
      * @return Status operation successfully or not
      */
     virtual Status
-    Query(const QueryArguments& arguments, const QueryResults& results) = 0;
+    Query(const QueryArguments& arguments, QueryResults& results) = 0;
 
     /**
      * Retrieve information of persistent segments from data nodes.
