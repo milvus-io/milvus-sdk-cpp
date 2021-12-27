@@ -184,4 +184,9 @@ MilvusConnection::Insert(const proto::milvus::InsertRequest& request, proto::mil
     return grpcCall("Insert", &Stub::Insert, request, response);
 }
 
+Status
+MilvusConnection::Query(const proto::milvus::QueryRequest& request, proto::milvus::QueryResults& response) {
+    return grpcCall("Query", &Stub::Query, request, response);
+}
+
 }  // namespace milvus

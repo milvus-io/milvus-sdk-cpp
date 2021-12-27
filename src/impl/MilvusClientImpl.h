@@ -126,7 +126,7 @@ class MilvusClientImpl : public MilvusClient {
     Search(const SearchArguments& arguments, const SearchResults& results) final;
 
     Status
-    Query(const QueryArguments& arguments, const QueryResults& results) final;
+    Query(const QueryArguments& arguments, QueryResults& results) final;
 
     Status
     GetPersistentSegmentInfo(const std::string& collection_name, SegmentsInfo& segments_info) final;
@@ -173,15 +173,6 @@ class MilvusClientImpl : public MilvusClient {
     waitForStatus(std::function<Status(Progress&)> query_function,
                   const std::chrono::time_point<std::chrono::steady_clock> started,
                   const ProgressMonitor& progress_monitor, Status& status);
-
-    /**
-     * Create the field for proto message by milvus::Field
-     *
-     * @param [in] field input field data
-     * @return FieldData used in proto
-     */
-    milvus::proto::schema::FieldData
-    fieldCast(const Field& field);
 
  private:
     std::shared_ptr<MilvusConnection> connection_;

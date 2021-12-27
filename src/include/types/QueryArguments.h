@@ -135,7 +135,7 @@ class QueryArguments {
      */
     uint64_t
     GuaranteeTimestamp() const {
-        return travel_timestamp_;
+        return guarantee_timestamp_;
     }
 
     /**

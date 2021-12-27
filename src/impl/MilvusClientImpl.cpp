@@ -19,6 +19,7 @@
 #include <chrono>
 #include <thread>
 
+#include "TypeUtils.h"
 #include "common.pb.h"
 #include "milvus.grpc.pb.h"
 #include "milvus.pb.h"
@@ -428,9 +429,9 @@ MilvusClientImpl::Insert(const std::string& collection_name, const std::string& 
     auto* mutable_fields = rpc_request.mutable_fields_data();
     rpc_request.set_collection_name(collection_name);
     rpc_request.set_partition_name(partition_name);
-    rpc_request.set_num_rows((**fields.begin()).Count());
+    rpc_request.set_num_rows((*fields.front()).Count());
     for (const auto& field : fields) {
-        mutable_fields->Add(std::move(fieldCast(*field)));
+        mutable_fields->Add(std::move(CreateDataField(*field)));
     }
 
     milvus::proto::milvus::MutationResult response;
@@ -462,7 +463,35 @@ MilvusClientImpl::Search(const SearchArguments& arguments, const SearchResults& 
 }
 
 Status
-MilvusClientImpl::Query(const QueryArguments& arguments, const QueryResults& results) {
+MilvusClientImpl::Query(const QueryArguments& arguments, QueryResults& results) {
+    if (connection_ == nullptr) {
+        return {StatusCode::NOT_CONNECTED, "Connection is not ready!"};
+    }
+    proto::milvus::QueryRequest rpc_request;
+    rpc_request.set_collection_name(arguments.CollectionName());
+    for (const auto& partition_name : arguments.PartitionNames()) {
+        rpc_request.add_partition_names(partition_name);
+    }
+
+    rpc_request.set_expr(arguments.Expression());
+    for (const auto& field : arguments.OutputFields()) {
+        rpc_request.add_output_fields(field);
+    }
+
+    rpc_request.set_travel_timestamp(arguments.TravelTimestamp());
+    rpc_request.set_guarantee_timestamp(arguments.GuaranteeTimestamp());
+
+    proto::milvus::QueryResults response;
+    auto ret = connection_->Query(rpc_request, response);
+    ON_ERROR_RETURN(ret, response.status());
+
+    std::vector<milvus::FieldDataPtr> return_fields{};
+    return_fields.reserve(response.fields_data_size());
+    for (const auto& field_data : response.fields_data()) {
+        return_fields.emplace_back(std::move(CreateFieldData(field_data)));
+    }
+
+    results = std::move(QueryResults(std::move(return_fields)));
     return Status::OK();
 }
 
@@ -564,216 +593,6 @@ MilvusClientImpl::waitForStatus(std::function<Status(Progress&)> query_function,
             wait_milliseconds -= wait_interval;
         }
     }
-}
-
-milvus::proto::schema::DataType
-dataTypeCast(DataType type) {
-    switch (type) {
-        case DataType::BOOL:
-            return milvus::proto::schema::DataType::Bool;
-            break;
-        case DataType::INT8:
-            return milvus::proto::schema::DataType::Int8;
-            break;
-        case DataType::INT16:
-            return milvus::proto::schema::DataType::Int16;
-            break;
-        case DataType::INT32:
-            return milvus::proto::schema::DataType::Int32;
-            break;
-        case DataType::INT64:
-            return milvus::proto::schema::DataType::Int64;
-            break;
-        case DataType::FLOAT:
-            return milvus::proto::schema::DataType::Float;
-            break;
-        case DataType::DOUBLE:
-            return milvus::proto::schema::DataType::Double;
-            break;
-        case DataType::STRING:
-            return milvus::proto::schema::DataType::String;
-            break;
-        case DataType::BINARY_VECTOR:
-            return milvus::proto::schema::DataType::BinaryVector;
-            break;
-        case DataType::FLOAT_VECTOR:
-            return milvus::proto::schema::DataType::FloatVector;
-            break;
-        default:
-            return milvus::proto::schema::DataType::None;
-    }
-}
-
-void
-fillScalarsData(const BoolFieldData& field, milvus::proto::schema::ScalarField& scalars) {
-    auto& data = field.Data();
-    auto& scalars_data = *(scalars.mutable_bool_data()->mutable_data());
-    scalars_data.Add(data.begin(), data.end());
-}
-
-void
-fillScalarsData(const Int8FieldData& field, milvus::proto::schema::ScalarField& scalars) {
-    auto& data = field.Data();
-    auto& scalars_data = *(scalars.mutable_int_data()->mutable_data());
-    scalars_data.Add(data.begin(), data.end());
-}
-
-void
-fillScalarsData(const Int16FieldData& field, milvus::proto::schema::ScalarField& scalars) {
-    auto& data = field.Data();
-    auto& scalars_data = *(scalars.mutable_int_data()->mutable_data());
-    scalars_data.Add(data.begin(), data.end());
-}
-
-void
-fillScalarsData(const Int32FieldData& field, milvus::proto::schema::ScalarField& scalars) {
-    auto& data = field.Data();
-    auto& scalars_data = *(scalars.mutable_int_data()->mutable_data());
-    scalars_data.Add(data.begin(), data.end());
-}
-
-void
-fillScalarsData(const Int64FieldData& field, milvus::proto::schema::ScalarField& scalars) {
-    auto& data = field.Data();
-    auto& scalars_data = *(scalars.mutable_long_data()->mutable_data());
-    scalars_data.Add(data.begin(), data.end());
-}
-
-void
-fillScalarsData(const FloatFieldData& field, milvus::proto::schema::ScalarField& scalars) {
-    auto& data = field.Data();
-    auto& scalars_data = *(scalars.mutable_float_data()->mutable_data());
-    scalars_data.Add(data.begin(), data.end());
-}
-void
-fillScalarsData(const DoubleFieldData& field, milvus::proto::schema::ScalarField& scalars) {
-    auto& data = field.Data();
-    auto& scalars_data = *(scalars.mutable_double_data()->mutable_data());
-    scalars_data.Add(data.begin(), data.end());
-}
-
-void
-fillScalarsData(const StringFieldData& field, milvus::proto::schema::ScalarField& scalars) {
-    auto& data = field.Data();
-    auto& scalars_data = *(scalars.mutable_string_data()->mutable_data());
-    scalars_data.Reserve(data.size());
-    for (auto item : data) {
-        scalars_data.Add(std::move(item));
-    }
-}
-
-void
-fillVectorsData(const BinaryVecFieldData& field, milvus::proto::schema::VectorField& vectors) {
-    auto& vectors_data = *(vectors.mutable_binary_vector());
-    auto& data = field.Data();
-    size_t dim = data.begin()->size();
-    vectors_data.reserve(data.size() * dim);
-    for (const auto& item : data) {
-        std::copy(item.begin(), item.end(), std::back_inserter(vectors_data));
-    }
-    vectors.set_dim(dim);
-}
-
-void
-fillVectorsData(const FloatVecFieldData& field, milvus::proto::schema::VectorField& vectors) {
-    auto& vectors_data = *(vectors.mutable_float_vector()->mutable_data());
-    auto& data = field.Data();
-    size_t dim = data.begin()->size();
-    vectors_data.Reserve(data.size() * dim);
-    size_t copy_index = 0;
-    for (const auto& item : data) {
-        vectors_data.Add(item.begin(), item.end());
-    }
-    vectors.set_dim(dim);
-}
-
-milvus::proto::schema::FieldData
-MilvusClientImpl::fieldCast(const Field& field) {
-    milvus::proto::schema::FieldData field_data;
-    auto field_type = field.Type();
-    field_data.set_field_name(field.Name());
-    field_data.set_type(dataTypeCast(field_type));
-
-    switch (field_type) {
-        case DataType::BINARY_VECTOR: {
-            auto& vectors = *field_data.mutable_vectors();
-            const auto* original_field = dynamic_cast<const BinaryVecFieldData*>(&field);
-            if (original_field) {
-                fillVectorsData(*original_field, vectors);
-            }
-        } break;
-
-        case DataType::FLOAT_VECTOR: {
-            auto& vectors = *field_data.mutable_vectors();
-            const auto* original_field = dynamic_cast<const FloatVecFieldData*>(&field);
-            if (original_field) {
-                fillVectorsData(*original_field, vectors);
-            }
-        } break;
-
-        case DataType::BOOL: {
-            auto& scalars = *field_data.mutable_scalars();
-            const auto* original_field = dynamic_cast<const BoolFieldData*>(&field);
-            if (original_field) {
-                fillScalarsData(*original_field, scalars);
-            }
-        } break;
-
-        case DataType::INT8: {
-            auto& scalars = *field_data.mutable_scalars();
-            const auto* original_field = dynamic_cast<const Int8FieldData*>(&field);
-            if (original_field) {
-                fillScalarsData(*original_field, scalars);
-            }
-        } break;
-        case DataType::INT16: {
-            auto& scalars = *field_data.mutable_scalars();
-            const auto* original_field = dynamic_cast<const Int16FieldData*>(&field);
-            if (original_field) {
-                fillScalarsData(*original_field, scalars);
-            }
-        } break;
-        case DataType::INT32: {
-            auto& scalars = *field_data.mutable_scalars();
-            const auto* original_field = dynamic_cast<const Int32FieldData*>(&field);
-            if (original_field) {
-                fillScalarsData(*original_field, scalars);
-            }
-        } break;
-        case DataType::INT64: {
-            auto& scalars = *field_data.mutable_scalars();
-            const auto* original_field = dynamic_cast<const Int64FieldData*>(&field);
-            if (original_field) {
-                fillScalarsData(*original_field, scalars);
-            }
-        } break;
-        case DataType::FLOAT: {
-            auto& scalars = *field_data.mutable_scalars();
-            const auto* original_field = dynamic_cast<const FloatFieldData*>(&field);
-            if (original_field) {
-                fillScalarsData(*original_field, scalars);
-            }
-        } break;
-        case DataType::DOUBLE: {
-            auto& scalars = *field_data.mutable_scalars();
-            const auto* original_field = dynamic_cast<const DoubleFieldData*>(&field);
-            if (original_field) {
-                fillScalarsData(*original_field, scalars);
-            }
-        } break;
-        case DataType::STRING: {
-            auto& scalars = *field_data.mutable_scalars();
-            const auto* original_field = dynamic_cast<const StringFieldData*>(&field);
-            if (original_field) {
-                fillScalarsData(*original_field, scalars);
-            }
-        } break;
-
-        default:
-            break;
-    }
-
-    return field_data;
 }
 
 }  // namespace milvus

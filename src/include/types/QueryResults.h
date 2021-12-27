@@ -28,8 +28,14 @@ namespace milvus {
  */
 class QueryResults {
  public:
-    explicit QueryResults(std::vector<FieldDataPtr>& output_fields) {
-        output_fields_.swap(output_fields);
+    QueryResults() = default;
+
+    explicit QueryResults(const std::vector<FieldDataPtr>& output_fields) {
+        output_fields_ = output_fields;
+    }
+
+    explicit QueryResults(std::vector<FieldDataPtr>&& output_fields) {
+        output_fields_ = std::move(output_fields);
     }
 
     FieldDataPtr
