@@ -158,6 +158,12 @@ operator==(const FieldData<T, Dt>& lhs, const FieldData<T, Dt>& rhs) {
     return lhs.Name() == rhs.Name() && lhs.Count() == rhs.Count() && lhs.Data() == rhs.Data();
 }
 
+template <typename T, DataType Dt>
+bool
+operator==(const FieldData<T, Dt>& lhs, const Field& rhs) {
+    return lhs == dynamic_cast<const FieldData<T, Dt>&>(rhs);
+}
+
 using BoolFieldData = FieldData<bool, DataType::BOOL>;
 using Int8FieldData = FieldData<int8_t, DataType::INT8>;
 using Int16FieldData = FieldData<int16_t, DataType::INT16>;

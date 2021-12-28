@@ -18,6 +18,7 @@
 
 #include "milvus.pb.h"
 #include "types/FieldData.h"
+#include "types/IDArray.h"
 
 namespace milvus {
 
@@ -54,41 +55,44 @@ operator==(const proto::schema::FieldData& lhs, const FloatVecFieldData& rhs);
 bool
 operator==(const proto::schema::FieldData& lhs, const proto::schema::FieldData& rhs);
 
+bool
+operator==(const proto::schema::FieldData& lhs, const Field& rhs);
+
 proto::schema::DataType
 DataTypeCast(DataType type);
 
 proto::schema::VectorField*
-CreateDataField(const BinaryVecFieldData& field);
+CreateProtoFieldData(const BinaryVecFieldData& field);
 
 proto::schema::VectorField*
-CreateDataField(const FloatVecFieldData& field);
+CreateProtoFieldData(const FloatVecFieldData& field);
 
 proto::schema::ScalarField*
-CreateDataField(const BoolFieldData& field);
+CreateProtoFieldData(const BoolFieldData& field);
 
 proto::schema::ScalarField*
-CreateDataField(const Int8FieldData& field);
+CreateProtoFieldData(const Int8FieldData& field);
 
 proto::schema::ScalarField*
-CreateDataField(const Int16FieldData& field);
+CreateProtoFieldData(const Int16FieldData& field);
 
 proto::schema::ScalarField*
-CreateDataField(const Int32FieldData& field);
+CreateProtoFieldData(const Int32FieldData& field);
 
 proto::schema::ScalarField*
-CreateDataField(const Int64FieldData& field);
+CreateProtoFieldData(const Int64FieldData& field);
 
 proto::schema::ScalarField*
-CreateDataField(const FloatFieldData& field);
+CreateProtoFieldData(const FloatFieldData& field);
 
 proto::schema::ScalarField*
-CreateDataField(const DoubleFieldData& field);
+CreateProtoFieldData(const DoubleFieldData& field);
 
 proto::schema::ScalarField*
-CreateDataField(const StringFieldData& field);
+CreateProtoFieldData(const StringFieldData& field);
 
 proto::schema::FieldData
-CreateDataField(const Field& field);
+CreateProtoFieldData(const Field& field);
 
 template <typename T, typename VectorData>
 std::vector<std::vector<T>>
@@ -117,6 +121,9 @@ BuildFieldDataScalars(const ScalarData& scalar_data) {
 }
 
 FieldDataPtr
-CreateFieldData(const proto::schema::FieldData& field_data);
+CreateMilvusFieldData(const proto::schema::FieldData& field_data);
+
+IDArray
+CreateIDArray(const proto::schema::IDs& ids);
 
 }  // namespace milvus
