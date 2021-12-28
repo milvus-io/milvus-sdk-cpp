@@ -485,6 +485,11 @@ MilvusClientImpl::Query(const QueryArguments& arguments, QueryResults& results) 
 }
 
 Status
+MilvusClientImpl::GetFlushState(const std::vector<int64_t>& segments, bool& flushed) {
+    return Status::OK();
+}
+
+Status
 MilvusClientImpl::GetPersistentSegmentInfo(const std::string& collection_name, SegmentsInfo& segments_info) {
     return Status::OK();
 }
@@ -544,7 +549,7 @@ MilvusClientImpl::flush(const std::vector<std::string>& collection_names, const 
         [&](Progress&) -> Status {
             Status status;
 
-            // TODO: call GetPersistentSegmentInfo() to check segment state
+            // TODO: call GetFlushState() to check segment state
 
             return status;
         },

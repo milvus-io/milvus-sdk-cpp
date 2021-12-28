@@ -378,6 +378,16 @@ class MilvusClient {
     Query(const QueryArguments& arguments, QueryResults& results) = 0;
 
     /**
+     * Get flush state of specified segments.
+     *
+     * @param [in] segments id array of segments
+     * @param [out] flushed true: all the segments has been flushed, false: still in flush progress
+     * @return Status operation successfully or not
+     */
+    virtual Status
+    GetFlushState(const std::vector<int64_t>& segments, bool& flushed) = 0;
+
+    /**
      * Retrieve information of persistent segments from data nodes.
      *
      * @param [in] collection_name name of the collection
