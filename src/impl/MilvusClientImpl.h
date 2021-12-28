@@ -130,6 +130,9 @@ class MilvusClientImpl : public MilvusClient {
     Query(const QueryArguments& arguments, QueryResults& results) final;
 
     Status
+    GetFlushState(const std::vector<int64_t>& segments, bool& flushed) final;
+
+    Status
     GetPersistentSegmentInfo(const std::string& collection_name, SegmentsInfo& segments_info) final;
 
     Status
