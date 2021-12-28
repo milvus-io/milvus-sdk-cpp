@@ -40,6 +40,14 @@ namespace milvus {
         }                                                                    \
     }
 
+// Macro for check if connection is available
+#define ON_ERROR_IF_NO_CONNECTION(conn)                                     \
+    do {                                                                    \
+        if (conn == nullptr) {                                              \
+            return {StatusCode::NOT_CONNECTED, "Connection is not ready!"}; \
+        }                                                                   \
+    } while (0)
+
 std::shared_ptr<MilvusClient>
 MilvusClient::Create() {
     return std::make_shared<MilvusClientImpl>();
@@ -74,9 +82,7 @@ MilvusClientImpl::Disconnect() {
 
 Status
 MilvusClientImpl::CreateCollection(const CollectionSchema& schema) {
-    if (connection_ == nullptr) {
-        return {StatusCode::NOT_CONNECTED, "Connection is not ready!"};
-    }
+    ON_ERROR_IF_NO_CONNECTION(connection_);
 
     proto::milvus::CreateCollectionRequest rpc_request;
     rpc_request.set_collection_name(schema.Name());
@@ -113,9 +119,7 @@ MilvusClientImpl::CreateCollection(const CollectionSchema& schema) {
 
 Status
 MilvusClientImpl::HasCollection(const std::string& collection_name, bool& has) {
-    if (connection_ == nullptr) {
-        return {StatusCode::NOT_CONNECTED, "Connection is not ready!"};
-    }
+    ON_ERROR_IF_NO_CONNECTION(connection_);
 
     proto::milvus::HasCollectionRequest rpc_request;
     rpc_request.set_collection_name(collection_name);
@@ -157,9 +161,7 @@ MilvusClientImpl::GetCollectionStatistics(const std::string& collection_name, co
 
 Status
 MilvusClientImpl::ShowCollections(const std::vector<std::string>& collection_names, CollectionsInfo& collections_info) {
-    if (connection_ == nullptr) {
-        return {StatusCode::NOT_CONNECTED, "Connection is not ready!"};
-    }
+    ON_ERROR_IF_NO_CONNECTION(connection_);
     proto::milvus::ShowCollectionsRequest rpc_request;
     if (collection_names.empty()) {
         rpc_request.set_type(proto::milvus::ShowType::All);
@@ -185,9 +187,7 @@ MilvusClientImpl::ShowCollections(const std::vector<std::string>& collection_nam
 
 Status
 MilvusClientImpl::CreatePartition(const std::string& collection_name, const std::string& partition_name) {
-    if (connection_ == nullptr) {
-        return {StatusCode::NOT_CONNECTED, "Connection is not ready!"};
-    }
+    ON_ERROR_IF_NO_CONNECTION(connection_);
 
     proto::milvus::CreatePartitionRequest rpc_request;
     rpc_request.set_collection_name(collection_name);
@@ -202,9 +202,7 @@ MilvusClientImpl::CreatePartition(const std::string& collection_name, const std:
 
 Status
 MilvusClientImpl::DropPartition(const std::string& collection_name, const std::string& partition_name) {
-    if (connection_ == nullptr) {
-        return {StatusCode::NOT_CONNECTED, "Connection is not ready!"};
-    }
+    ON_ERROR_IF_NO_CONNECTION(connection_);
 
     proto::milvus::DropPartitionRequest rpc_request;
     rpc_request.set_collection_name(collection_name);
@@ -219,9 +217,7 @@ MilvusClientImpl::DropPartition(const std::string& collection_name, const std::s
 
 Status
 MilvusClientImpl::HasPartition(const std::string& collection_name, const std::string& partition_name, bool& has) {
-    if (connection_ == nullptr) {
-        return {StatusCode::NOT_CONNECTED, "Connection is not ready!"};
-    }
+    ON_ERROR_IF_NO_CONNECTION(connection_);
 
     proto::milvus::HasPartitionRequest rpc_request;
     rpc_request.set_collection_name(collection_name);
@@ -238,9 +234,7 @@ MilvusClientImpl::HasPartition(const std::string& collection_name, const std::st
 Status
 MilvusClientImpl::LoadPartitions(const std::string& collection_name, const std::vector<std::string>& partition_names,
                                  const ProgressMonitor& progress_monitor) {
-    if (connection_ == nullptr) {
-        return {StatusCode::NOT_CONNECTED, "Connection is not ready!"};
-    }
+    ON_ERROR_IF_NO_CONNECTION(connection_);
 
     auto wait_seconds = progress_monitor.CheckTimeout();
     std::chrono::time_point<std::chrono::steady_clock> started{};
@@ -285,9 +279,7 @@ MilvusClientImpl::LoadPartitions(const std::string& collection_name, const std::
 Status
 MilvusClientImpl::ReleasePartitions(const std::string& collection_name,
                                     const std::vector<std::string>& partition_names) {
-    if (connection_ == nullptr) {
-        return {StatusCode::NOT_CONNECTED, "Connection is not ready!"};
-    }
+    ON_ERROR_IF_NO_CONNECTION(connection_);
 
     proto::milvus::ReleasePartitionsRequest rpc_request;
     rpc_request.set_collection_name(collection_name);
@@ -311,9 +303,7 @@ MilvusClientImpl::GetPartitionStatistics(const std::string& collection_name, con
 Status
 MilvusClientImpl::ShowPartitions(const std::string& collection_name, const std::vector<std::string>& partition_names,
                                  PartitionsInfo& partitions_info) {
-    if (connection_ == nullptr) {
-        return {StatusCode::NOT_CONNECTED, "Connection is not ready!"};
-    }
+    ON_ERROR_IF_NO_CONNECTION(connection_);
 
     proto::milvus::ShowPartitionsRequest rpc_request;
     rpc_request.set_collection_name(collection_name);
@@ -361,9 +351,7 @@ MilvusClientImpl::AlterAlias(const std::string& collection_name, const std::stri
 Status
 MilvusClientImpl::CreateIndex(const std::string& collection_name, const IndexDesc& index_desc,
                               const ProgressMonitor& progress_monitor) {
-    if (connection_ == nullptr) {
-        return {StatusCode::NOT_CONNECTED, "Connection is not ready!"};
-    }
+    ON_ERROR_IF_NO_CONNECTION(connection_);
     proto::milvus::CreateIndexRequest rpc_request;
     rpc_request.set_collection_name(collection_name);
     rpc_request.set_field_name(index_desc.FieldName());
@@ -418,9 +406,7 @@ MilvusClientImpl::DropIndex(const std::string& collection_name, const std::strin
 Status
 MilvusClientImpl::Insert(const std::string& collection_name, const std::string& partition_name,
                          const std::vector<FieldDataPtr>& fields, IDArray& id_array) {
-    if (connection_ == nullptr) {
-        return {StatusCode::NOT_CONNECTED, "Connection is not ready!"};
-    }
+    ON_ERROR_IF_NO_CONNECTION(connection_);
 
     proto::milvus::InsertRequest rpc_request;
     // TODO(matrixji): add common validations check for fields
@@ -431,30 +417,35 @@ MilvusClientImpl::Insert(const std::string& collection_name, const std::string& 
     rpc_request.set_partition_name(partition_name);
     rpc_request.set_num_rows((*fields.front()).Count());
     for (const auto& field : fields) {
-        mutable_fields->Add(std::move(CreateDataField(*field)));
+        mutable_fields->Add(std::move(CreateProtoFieldData(*field)));
     }
 
     milvus::proto::milvus::MutationResult response;
     auto ret = connection_->Insert(rpc_request, response);
     ON_ERROR_RETURN(ret, response.status());
 
-    const auto& ids = response.ids();
-    // milvus 2.0: only int ids so far
-    if (ids.has_int_id()) {
-        std::vector<int64_t> int_array;
-        auto& int_ids = ids.int_id();
-        int_array.reserve(int_ids.data_size());
-        std::copy(int_ids.data().begin(), int_ids.data().end(), std::back_inserter(int_array));
-        id_array = IDArray(int_array);
-    }
+    id_array = CreateIDArray(response.ids());
 
     return ret;
 }
 
 Status
 MilvusClientImpl::Delete(const std::string& collection_name, const std::string& partition_name,
-                         const std::string& expression) {
-    return Status::OK();
+                         const std::string& expression, IDArray& id_array) {
+    ON_ERROR_IF_NO_CONNECTION(connection_);
+
+    proto::milvus::DeleteRequest rpc_request;
+    rpc_request.set_collection_name(collection_name);
+    rpc_request.set_partition_name(partition_name);
+    rpc_request.set_expr(expression);
+
+    proto::milvus::MutationResult response;
+    auto ret = connection_->Delete(rpc_request, response);
+    ON_ERROR_RETURN(ret, response.status());
+
+    id_array = CreateIDArray(response.ids());
+
+    return ret;
 }
 
 Status
@@ -464,9 +455,7 @@ MilvusClientImpl::Search(const SearchArguments& arguments, const SearchResults& 
 
 Status
 MilvusClientImpl::Query(const QueryArguments& arguments, QueryResults& results) {
-    if (connection_ == nullptr) {
-        return {StatusCode::NOT_CONNECTED, "Connection is not ready!"};
-    }
+    ON_ERROR_IF_NO_CONNECTION(connection_);
     proto::milvus::QueryRequest rpc_request;
     rpc_request.set_collection_name(arguments.CollectionName());
     for (const auto& partition_name : arguments.PartitionNames()) {
@@ -488,7 +477,7 @@ MilvusClientImpl::Query(const QueryArguments& arguments, QueryResults& results) 
     std::vector<milvus::FieldDataPtr> return_fields{};
     return_fields.reserve(response.fields_data_size());
     for (const auto& field_data : response.fields_data()) {
-        return_fields.emplace_back(std::move(CreateFieldData(field_data)));
+        return_fields.emplace_back(std::move(CreateMilvusFieldData(field_data)));
     }
 
     results = std::move(QueryResults(std::move(return_fields)));
@@ -534,9 +523,7 @@ MilvusClientImpl::GetCompactionPlans(int64_t compaction_id, CompactionPlans& pla
 
 Status
 MilvusClientImpl::flush(const std::vector<std::string>& collection_names, const ProgressMonitor& progress_monitor) {
-    if (connection_ == nullptr) {
-        return {StatusCode::NOT_CONNECTED, "Connection is not ready!"};
-    }
+    ON_ERROR_IF_NO_CONNECTION(connection_);
 
     proto::milvus::FlushRequest rpc_request;
     for (const auto& collection_name : collection_names) {

@@ -37,7 +37,7 @@ endif ()
 
 aux_source_directory(${CMAKE_CURRENT_SOURCE_DIR}/ut ut_files)
 add_executable(testing-ut ${ut_files})
-target_link_libraries(testing-ut PRIVATE milvus_sdk_static ${GTEST_LIBRARIES} ${GTEST_MAIN_LIBRARIES} pthread)
+target_link_libraries(testing-ut PRIVATE milvus_sdk_static ${GTEST_LIBRARIES} ${GMOCK_LIBRARIES} ${GTEST_MAIN_LIBRARIES} pthread)
 gtest_discover_tests(testing-ut)
 
 aux_source_directory(${CMAKE_CURRENT_SOURCE_DIR}/it it_files)

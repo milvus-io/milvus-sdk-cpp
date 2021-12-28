@@ -122,6 +122,9 @@ class MilvusConnection {
     Insert(const proto::milvus::InsertRequest& request, proto::milvus::MutationResult& response);
 
     Status
+    Delete(const proto::milvus::DeleteRequest& request, proto::milvus::MutationResult& response);
+
+    Status
     Query(const proto::milvus::QueryRequest& request, proto::milvus::QueryResults& response);
 
  private:

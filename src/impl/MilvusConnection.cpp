@@ -185,6 +185,11 @@ MilvusConnection::Insert(const proto::milvus::InsertRequest& request, proto::mil
 }
 
 Status
+MilvusConnection::Delete(const proto::milvus::DeleteRequest& request, proto::milvus::MutationResult& response) {
+    return grpcCall("Delete", &Stub::Delete, request, response);
+}
+
+Status
 MilvusConnection::Query(const proto::milvus::QueryRequest& request, proto::milvus::QueryResults& response) {
     return grpcCall("Query", &Stub::Query, request, response);
 }

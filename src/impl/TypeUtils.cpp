@@ -234,46 +234,65 @@ operator==(const proto::schema::FieldData& lhs, const FloatVecFieldData& rhs) {
     return true;
 }
 
+bool
+operator==(const proto::schema::FieldData& lhs, const Field& rhs) {
+    auto data_type = rhs.Type();
+    switch (data_type) {
+        case DataType::BOOL:
+            return lhs == dynamic_cast<const BoolFieldData&>(rhs);
+        case DataType::INT8:
+            return lhs == dynamic_cast<const Int8FieldData&>(rhs);
+        case DataType::INT16:
+            return lhs == dynamic_cast<const Int16FieldData&>(rhs);
+        case DataType::INT32:
+            return lhs == dynamic_cast<const Int32FieldData&>(rhs);
+        case DataType::INT64:
+            return lhs == dynamic_cast<const Int64FieldData&>(rhs);
+        case DataType::FLOAT:
+            return lhs == dynamic_cast<const FloatFieldData&>(rhs);
+        case DataType::DOUBLE:
+            return lhs == dynamic_cast<const DoubleFieldData&>(rhs);
+        case DataType::STRING:
+            return lhs == dynamic_cast<const StringFieldData&>(rhs);
+        case DataType::BINARY_VECTOR:
+            return lhs == dynamic_cast<const BinaryVecFieldData&>(rhs);
+        case DataType::FLOAT_VECTOR:
+            return lhs == dynamic_cast<const FloatVecFieldData&>(rhs);
+        default:
+            return false;
+    }
+}
+
 proto::schema::DataType
 DataTypeCast(DataType type) {
     switch (type) {
         case DataType::BOOL:
             return proto::schema::DataType::Bool;
-            break;
         case DataType::INT8:
             return proto::schema::DataType::Int8;
-            break;
         case DataType::INT16:
             return proto::schema::DataType::Int16;
-            break;
         case DataType::INT32:
             return proto::schema::DataType::Int32;
-            break;
         case DataType::INT64:
             return proto::schema::DataType::Int64;
-            break;
         case DataType::FLOAT:
             return proto::schema::DataType::Float;
-            break;
         case DataType::DOUBLE:
             return proto::schema::DataType::Double;
-            break;
         case DataType::STRING:
             return proto::schema::DataType::String;
-            break;
         case DataType::BINARY_VECTOR:
             return proto::schema::DataType::BinaryVector;
-            break;
         case DataType::FLOAT_VECTOR:
             return proto::schema::DataType::FloatVector;
-            break;
         default:
             return proto::schema::DataType::None;
     }
 }
 
 proto::schema::VectorField*
-CreateDataField(const BinaryVecFieldData& field) {
+CreateProtoFieldData(const BinaryVecFieldData& field) {
     auto ret = new proto::schema::VectorField{};
     auto& data = field.Data();
     auto dim = data.front().size();
@@ -287,7 +306,7 @@ CreateDataField(const BinaryVecFieldData& field) {
 }
 
 proto::schema::VectorField*
-CreateDataField(const FloatVecFieldData& field) {
+CreateProtoFieldData(const FloatVecFieldData& field) {
     auto ret = new proto::schema::VectorField{};
     auto& data = field.Data();
     auto dim = data.front().size();
@@ -301,7 +320,7 @@ CreateDataField(const FloatVecFieldData& field) {
 }
 
 proto::schema::ScalarField*
-CreateDataField(const BoolFieldData& field) {
+CreateProtoFieldData(const BoolFieldData& field) {
     auto ret = new proto::schema::ScalarField{};
     auto& data = field.Data();
     auto& scalars_data = *(ret->mutable_bool_data()->mutable_data());
@@ -310,7 +329,7 @@ CreateDataField(const BoolFieldData& field) {
 }
 
 proto::schema::ScalarField*
-CreateDataField(const Int8FieldData& field) {
+CreateProtoFieldData(const Int8FieldData& field) {
     auto ret = new proto::schema::ScalarField{};
     auto& data = field.Data();
     auto& scalars_data = *(ret->mutable_int_data()->mutable_data());
@@ -319,7 +338,7 @@ CreateDataField(const Int8FieldData& field) {
 }
 
 proto::schema::ScalarField*
-CreateDataField(const Int16FieldData& field) {
+CreateProtoFieldData(const Int16FieldData& field) {
     auto ret = new proto::schema::ScalarField{};
     auto& data = field.Data();
     auto& scalars_data = *(ret->mutable_int_data()->mutable_data());
@@ -328,7 +347,7 @@ CreateDataField(const Int16FieldData& field) {
 }
 
 proto::schema::ScalarField*
-CreateDataField(const Int32FieldData& field) {
+CreateProtoFieldData(const Int32FieldData& field) {
     auto ret = new proto::schema::ScalarField{};
     auto& data = field.Data();
     auto& scalars_data = *(ret->mutable_int_data()->mutable_data());
@@ -337,7 +356,7 @@ CreateDataField(const Int32FieldData& field) {
 }
 
 proto::schema::ScalarField*
-CreateDataField(const Int64FieldData& field) {
+CreateProtoFieldData(const Int64FieldData& field) {
     auto ret = new proto::schema::ScalarField{};
     auto& data = field.Data();
     auto& scalars_data = *(ret->mutable_long_data()->mutable_data());
@@ -346,7 +365,7 @@ CreateDataField(const Int64FieldData& field) {
 }
 
 proto::schema::ScalarField*
-CreateDataField(const FloatFieldData& field) {
+CreateProtoFieldData(const FloatFieldData& field) {
     auto ret = new proto::schema::ScalarField{};
     auto& data = field.Data();
     auto& scalars_data = *(ret->mutable_float_data()->mutable_data());
@@ -355,7 +374,7 @@ CreateDataField(const FloatFieldData& field) {
 }
 
 proto::schema::ScalarField*
-CreateDataField(const DoubleFieldData& field) {
+CreateProtoFieldData(const DoubleFieldData& field) {
     auto ret = new proto::schema::ScalarField{};
     auto& data = field.Data();
     auto& scalars_data = *(ret->mutable_double_data()->mutable_data());
@@ -364,7 +383,7 @@ CreateDataField(const DoubleFieldData& field) {
 }
 
 proto::schema::ScalarField*
-CreateDataField(const StringFieldData& field) {
+CreateProtoFieldData(const StringFieldData& field) {
     auto ret = new proto::schema::ScalarField{};
     auto& data = field.Data();
     auto& scalars_data = *(ret->mutable_string_data());
@@ -375,7 +394,7 @@ CreateDataField(const StringFieldData& field) {
 }
 
 proto::schema::FieldData
-CreateDataField(const Field& field) {
+CreateProtoFieldData(const Field& field) {
     proto::schema::FieldData field_data;
     const auto field_type = field.Type();
     field_data.set_field_name(field.Name());
@@ -385,64 +404,64 @@ CreateDataField(const Field& field) {
         case DataType::BINARY_VECTOR: {
             const auto* original_field = dynamic_cast<const BinaryVecFieldData*>(&field);
             if (original_field) {
-                field_data.set_allocated_vectors(CreateDataField(*original_field));
+                field_data.set_allocated_vectors(CreateProtoFieldData(*original_field));
             }
         } break;
 
         case DataType::FLOAT_VECTOR: {
             const auto* original_field = dynamic_cast<const FloatVecFieldData*>(&field);
             if (original_field) {
-                field_data.set_allocated_vectors(CreateDataField(*original_field));
+                field_data.set_allocated_vectors(CreateProtoFieldData(*original_field));
             }
         } break;
 
         case DataType::BOOL: {
             const auto* original_field = dynamic_cast<const BoolFieldData*>(&field);
             if (original_field) {
-                field_data.set_allocated_scalars(CreateDataField(*original_field));
+                field_data.set_allocated_scalars(CreateProtoFieldData(*original_field));
             }
         } break;
 
         case DataType::INT8: {
             const auto* original_field = dynamic_cast<const Int8FieldData*>(&field);
             if (original_field) {
-                field_data.set_allocated_scalars(CreateDataField(*original_field));
+                field_data.set_allocated_scalars(CreateProtoFieldData(*original_field));
             }
         } break;
         case DataType::INT16: {
             const auto* original_field = dynamic_cast<const Int16FieldData*>(&field);
             if (original_field) {
-                field_data.set_allocated_scalars(CreateDataField(*original_field));
+                field_data.set_allocated_scalars(CreateProtoFieldData(*original_field));
             }
         } break;
         case DataType::INT32: {
             const auto* original_field = dynamic_cast<const Int32FieldData*>(&field);
             if (original_field) {
-                field_data.set_allocated_scalars(CreateDataField(*original_field));
+                field_data.set_allocated_scalars(CreateProtoFieldData(*original_field));
             }
         } break;
         case DataType::INT64: {
             const auto* original_field = dynamic_cast<const Int64FieldData*>(&field);
             if (original_field) {
-                field_data.set_allocated_scalars(CreateDataField(*original_field));
+                field_data.set_allocated_scalars(CreateProtoFieldData(*original_field));
             }
         } break;
         case DataType::FLOAT: {
             const auto* original_field = dynamic_cast<const FloatFieldData*>(&field);
             if (original_field) {
-                field_data.set_allocated_scalars(CreateDataField(*original_field));
+                field_data.set_allocated_scalars(CreateProtoFieldData(*original_field));
             }
         } break;
         case DataType::DOUBLE: {
             const auto* original_field = dynamic_cast<const DoubleFieldData*>(&field);
             if (original_field) {
-                field_data.set_allocated_scalars(CreateDataField(*original_field));
+                field_data.set_allocated_scalars(CreateProtoFieldData(*original_field));
             }
         } break;
         case DataType::STRING: {
             const auto* original_field = dynamic_cast<const StringFieldData*>(&field);
             if (original_field) {
-                field_data.set_allocated_scalars(CreateDataField(*original_field));
+                field_data.set_allocated_scalars(CreateProtoFieldData(*original_field));
             }
         } break;
 
@@ -454,7 +473,7 @@ CreateDataField(const Field& field) {
 }
 
 FieldDataPtr
-CreateFieldData(const milvus::proto::schema::FieldData& field_data) {
+CreateMilvusFieldData(const milvus::proto::schema::FieldData& field_data) {
     auto field_type = field_data.type();
     const auto& name = field_data.field_name();
 
@@ -504,6 +523,23 @@ CreateFieldData(const milvus::proto::schema::FieldData& field_data) {
     }
 
     return nullptr;
+}
+
+IDArray
+CreateIDArray(const proto::schema::IDs& ids) {
+    if (ids.has_int_id()) {
+        std::vector<int64_t> int_array;
+        auto& int_ids = ids.int_id();
+        int_array.reserve(int_ids.data_size());
+        std::copy(int_ids.data().begin(), int_ids.data().end(), std::back_inserter(int_array));
+        return IDArray(int_array);
+    } else {
+        std::vector<std::string> str_array;
+        auto& str_ids = ids.str_id();
+        str_array.reserve(str_ids.data_size());
+        std::copy(str_ids.data().begin(), str_ids.data().end(), std::back_inserter(str_array));
+        return IDArray(str_array);
+    }
 }
 
 }  // namespace milvus

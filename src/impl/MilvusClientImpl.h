@@ -120,7 +120,8 @@ class MilvusClientImpl : public MilvusClient {
            const std::vector<FieldDataPtr>& fields, IDArray& id_array) final;
 
     Status
-    Delete(const std::string& collection_name, const std::string& partition_name, const std::string& expression) final;
+    Delete(const std::string& collection_name, const std::string& partition_name, const std::string& expression,
+           IDArray& id_array) final;
 
     Status
     Search(const SearchArguments& arguments, const SearchResults& results) final;
