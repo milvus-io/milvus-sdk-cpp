@@ -194,4 +194,51 @@ MilvusConnection::Query(const proto::milvus::QueryRequest& request, proto::milvu
     return grpcCall("Query", &Stub::Query, request, response);
 }
 
+Status
+MilvusConnection::GetFlushState(const proto::milvus::GetFlushStateRequest& request,
+                                proto::milvus::GetFlushStateResponse& response) {
+    return grpcCall("GetFlushState", &Stub::GetFlushState, request, response);
+}
+
+Status
+MilvusConnection::GetPersistentSegmentInfo(const proto::milvus::GetPersistentSegmentInfoRequest& request,
+                                           proto::milvus::GetPersistentSegmentInfoResponse& response) {
+    return grpcCall("GetPersistentSegmentInfo", &Stub::GetPersistentSegmentInfo, request, response);
+}
+
+Status
+MilvusConnection::GetQuerySegmentInfo(const proto::milvus::GetQuerySegmentInfoRequest& request,
+                                      proto::milvus::GetQuerySegmentInfoResponse& response) {
+    return grpcCall("GetQuerySegmentInfo", &Stub::GetQuerySegmentInfo, request, response);
+}
+
+Status
+MilvusConnection::GetMetrics(const proto::milvus::GetMetricsRequest& request,
+                             proto::milvus::GetMetricsResponse& response) {
+    return grpcCall("GetMetrics", &Stub::GetMetrics, request, response);
+}
+
+Status
+MilvusConnection::LoadBalance(const proto::milvus::LoadBalanceRequest& request, proto::common::Status& response) {
+    return grpcCall("LoadBalance", &Stub::LoadBalance, request, response);
+}
+
+Status
+MilvusConnection::GetCompactionState(const proto::milvus::GetCompactionStateRequest& request,
+                                     proto::milvus::GetCompactionStateResponse& response) {
+    return grpcCall("GetCompactionState", &Stub::GetCompactionState, request, response);
+}
+
+Status
+MilvusConnection::ManualCompaction(const proto::milvus::ManualCompactionRequest& request,
+                                   proto::milvus::ManualCompactionResponse& response) {
+    return grpcCall("ManualCompaction", &Stub::ManualCompaction, request, response);
+}
+
+Status
+MilvusConnection::GetCompactionPlans(const proto::milvus::GetCompactionPlansRequest& request,
+                                     proto::milvus::GetCompactionPlansResponse& response) {
+    return grpcCall("GetCompactionPlans", &Stub::GetCompactionStateWithPlans, request, response);
+}
+
 }  // namespace milvus

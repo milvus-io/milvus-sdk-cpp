@@ -127,6 +127,35 @@ class MilvusConnection {
     Status
     Query(const proto::milvus::QueryRequest& request, proto::milvus::QueryResults& response);
 
+    Status
+    GetFlushState(const proto::milvus::GetFlushStateRequest& request, proto::milvus::GetFlushStateResponse& response);
+
+    Status
+    GetPersistentSegmentInfo(const proto::milvus::GetPersistentSegmentInfoRequest& request,
+                             proto::milvus::GetPersistentSegmentInfoResponse& response);
+
+    Status
+    GetQuerySegmentInfo(const proto::milvus::GetQuerySegmentInfoRequest& request,
+                        proto::milvus::GetQuerySegmentInfoResponse& response);
+
+    Status
+    GetMetrics(const proto::milvus::GetMetricsRequest& request, proto::milvus::GetMetricsResponse& response);
+
+    Status
+    LoadBalance(const proto::milvus::LoadBalanceRequest& request, proto::common::Status& response);
+
+    Status
+    GetCompactionState(const proto::milvus::GetCompactionStateRequest& request,
+                       proto::milvus::GetCompactionStateResponse& response);
+
+    Status
+    ManualCompaction(const proto::milvus::ManualCompactionRequest& request,
+                     proto::milvus::ManualCompactionResponse& response);
+
+    Status
+    GetCompactionPlans(const proto::milvus::GetCompactionPlansRequest& request,
+                       proto::milvus::GetCompactionPlansResponse& response);
+
  private:
     std::unique_ptr<proto::milvus::MilvusService::Stub> stub_;
     std::shared_ptr<grpc::Channel> channel_;

@@ -236,12 +236,6 @@ MilvusClientImpl::LoadPartitions(const std::string& collection_name, const std::
                                  const ProgressMonitor& progress_monitor) {
     ON_ERROR_IF_NO_CONNECTION(connection_);
 
-    auto wait_seconds = progress_monitor.CheckTimeout();
-    std::chrono::time_point<std::chrono::steady_clock> started{};
-    if (wait_seconds > 0) {
-        started = std::chrono::steady_clock::now();
-    }
-
     proto::milvus::LoadPartitionsRequest rpc_request;
     rpc_request.set_collection_name(collection_name);
     for (const auto& partition_name : partition_names) {
@@ -251,10 +245,6 @@ MilvusClientImpl::LoadPartitions(const std::string& collection_name, const std::
     proto::common::Status response;
     auto ret = connection_->LoadPartitions(rpc_request, response);
     ON_ERROR_RETURN(ret, response);
-
-    if (wait_seconds == 0) {
-        return ret;
-    }
 
     waitForStatus(
         [&collection_name, &partition_names, this](Progress& progress) -> Status {
@@ -267,12 +257,10 @@ MilvusClientImpl::LoadPartitions(const std::string& collection_name, const std::
             progress.finished_ =
                 std::count_if(partitions_info.begin(), partitions_info.end(),
                               [](const PartitionInfo& partition_info) { return partition_info.Loaded(); });
-            if (progress.total_ != progress.finished_) {
-                return Status{StatusCode::TIMEOUT, "not all partitions finished"};
-            }
+
             return status;
         },
-        started, progress_monitor, ret);
+        progress_monitor, ret);
     return ret;
 }
 
@@ -360,24 +348,28 @@ MilvusClientImpl::CreateIndex(const std::string& collection_name, const IndexDes
     auto ret = connection_->CreateIndex(rpc_request, response);
     ON_ERROR_RETURN(ret, response);
 
-    if (progress_monitor.CheckTimeout() == 0) {
-        return ret;
-    }
     waitForStatus(
         [&collection_name, &index_desc, ret, this](Progress& progress) -> Status {
-            IndexDesc index_info;
-            auto status = DescribeIndex(collection_name, index_desc.FieldName(), index_info);
+            IndexState index_state;
+            auto status = GetIndexState(collection_name, index_desc.FieldName(), index_state);
             if (not status.IsOk()) {
                 return status;
             }
-            progress.total_ = 1;
-            progress.finished_ = ret.IsOk() ? 1 : 0;
-            if (progress.total_ != progress.finished_) {
-                return Status{StatusCode::TIMEOUT, "not all indexes finished"};
+
+            progress.total_ = 100;
+
+            // if index finished, progress set to 100%
+            // else if index failed, return error status
+            // else if index is in progressing, continue to check
+            if (index_state.StateCode() == IndexStateCode::FINISHED) {
+                progress.finished_ = 100;
+            } else if (index_state.StateCode() == IndexStateCode::FAILED) {
+                return Status{StatusCode::SERVER_FAILED, "index failed:" + index_state.FailedReason()};
             }
+
             return status;
         },
-        std::chrono::steady_clock::now(), progress_monitor, ret);
+        progress_monitor, ret);
     return ret;
 }
 
@@ -485,8 +477,80 @@ MilvusClientImpl::Query(const QueryArguments& arguments, QueryResults& results) 
 }
 
 Status
+MilvusClientImpl::Flush(const std::vector<std::string>& collection_names, const ProgressMonitor& progress_monitor) {
+    ON_ERROR_IF_NO_CONNECTION(connection_);
+
+    proto::milvus::FlushRequest rpc_request;
+    for (const auto& collection_name : collection_names) {
+        rpc_request.add_collection_names(collection_name);
+    }
+
+    proto::milvus::FlushResponse response;
+    auto ret = connection_->Flush(rpc_request, response);
+    ON_ERROR_RETURN(ret, response.status());
+
+    std::map<std::string, std::vector<int64_t>> flush_segments;
+    for (const auto& iter : response.coll_segids()) {
+        const auto& ids = iter.second.data();
+        std::vector<int64_t> seg_ids;
+        seg_ids.insert(seg_ids.end(), ids.begin(), ids.end());
+        flush_segments.insert(std::make_pair(iter.first, seg_ids));
+    }
+
+    // the segment_count is how many segments need to be flushed
+    // the finished_count is how many segments have been flushed
+    uint32_t segment_count = 0, finished_count = 0;
+    for (auto& pair : flush_segments) {
+        segment_count += pair.second.size();
+    }
+    if (segment_count == 0) {
+        return Status::OK();
+    }
+
+    waitForStatus(
+        [&](Progress& p) -> Status {
+            p.total_ = segment_count;
+
+            // call GetFlushState() to check segment state
+            for (auto iter = flush_segments.begin(); iter != flush_segments.end();) {
+                bool flushed = false;
+                Status status = GetFlushState(iter->second, flushed);
+                if (not status.IsOk()) {
+                    return status;
+                }
+
+                if (flushed) {
+                    finished_count += iter->second.size();
+                    flush_segments.erase(iter++);
+                } else {
+                    iter++;
+                }
+            }
+            p.finished_ = finished_count;
+
+            return Status::OK();
+        },
+        progress_monitor, ret);
+
+    return ret;
+}
+
+Status
 MilvusClientImpl::GetFlushState(const std::vector<int64_t>& segments, bool& flushed) {
-    return Status::OK();
+    ON_ERROR_IF_NO_CONNECTION(connection_);
+
+    proto::milvus::GetFlushStateRequest rpc_request;
+    for (auto id : segments) {
+        rpc_request.add_segmentids(id);
+    }
+
+    proto::milvus::GetFlushStateResponse response;
+    auto ret = connection_->GetFlushState(rpc_request, response);
+    ON_ERROR_RETURN(ret, response.status());
+
+    flushed = response.flushed();
+
+    return ret;
 }
 
 Status
@@ -526,63 +590,45 @@ MilvusClientImpl::GetCompactionPlans(int64_t compaction_id, CompactionPlans& pla
     return Status::OK();
 }
 
-Status
-MilvusClientImpl::flush(const std::vector<std::string>& collection_names, const ProgressMonitor& progress_monitor) {
-    ON_ERROR_IF_NO_CONNECTION(connection_);
-
-    proto::milvus::FlushRequest rpc_request;
-    for (const auto& collection_name : collection_names) {
-        rpc_request.add_collection_names(collection_name);
-    }
-
-    auto wait_seconds = progress_monitor.CheckTimeout();
-    std::chrono::time_point<std::chrono::steady_clock> started{};
-    if (wait_seconds > 0) {
-        started = std::chrono::steady_clock::now();
-    }
-
-    proto::milvus::FlushResponse response;
-    auto ret = connection_->Flush(rpc_request, response);
-    ON_ERROR_RETURN(ret, response.status());
-
-    waitForStatus(
-        [&](Progress&) -> Status {
-            Status status;
-
-            // TODO: call GetFlushState() to check segment state
-
-            return status;
-        },
-        started, progress_monitor, ret);
-
-    return Status::OK();
-}
-
 void
 MilvusClientImpl::waitForStatus(std::function<Status(Progress&)> query_function,
-                                const std::chrono::time_point<std::chrono::steady_clock> started,
                                 const ProgressMonitor& progress_monitor, Status& status) {
+    // no need to check
+    if (progress_monitor.CheckTimeout() == 0) {
+        return;
+    }
+
+    std::chrono::time_point<std::chrono::steady_clock> started = std::chrono::steady_clock::now();
+
     auto calculated_next_wait = started;
     auto wait_milliseconds = progress_monitor.CheckTimeout() * 1000;
     auto wait_interval = progress_monitor.CheckInterval();
     auto final_timeout = started + std::chrono::milliseconds{wait_milliseconds};
-    while (wait_milliseconds > 0) {
+    while (true) {
         calculated_next_wait += std::chrono::milliseconds{wait_interval};
         auto next_wait = std::min(calculated_next_wait, final_timeout);
         std::this_thread::sleep_until(next_wait);
 
         Progress current_progress;
         status = query_function(current_progress);
-        if (status.Code() != StatusCode::TIMEOUT) {
+
+        // if the internal check function failed, return error
+        if (not status.IsOk()) {
             break;
         }
 
+        // notify progress
         progress_monitor.DoProgress(current_progress);
 
-        if (next_wait == final_timeout) {
-            wait_milliseconds = 0;
-        } else {
-            wait_milliseconds -= wait_interval;
+        // if progress all done, break the circle
+        if (current_progress.Done()) {
+            break;
+        }
+
+        // if time to deadline, return timeout error
+        if (next_wait >= final_timeout) {
+            status = Status{StatusCode::TIMEOUT, "time out"};
+            break;
         }
     }
 }
