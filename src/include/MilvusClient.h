@@ -378,6 +378,17 @@ class MilvusClient {
     Query(const QueryArguments& arguments, QueryResults& results) = 0;
 
     /**
+     * Flush insert buffer into storage. To makesure the buffer persisted successfully, it calls
+     * GetFlushState() to check related segments state. Set ProgressMonitor::NoWait() to return instantly.
+     *
+     * @param [in] collection_names specify target collection names, if this array is empty, will flush all collections
+     * @param [in] progress_monitor timeout setting for waiting progress
+     * @return Status operation successfully or not
+     */
+    virtual Status
+    Flush(const std::vector<std::string>& collection_names, const ProgressMonitor& progress_monitor) = 0;
+
+    /**
      * Get flush state of specified segments.
      *
      * @param [in] segments id array of segments

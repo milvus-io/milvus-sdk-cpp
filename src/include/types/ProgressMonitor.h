@@ -28,6 +28,11 @@ struct Progress {
     Progress(uint32_t finished, uint32_t total) : finished_(finished), total_(total) {
     }
 
+    bool
+    Done() const {
+        return finished_ >= total_;
+    }
+
     uint32_t finished_ = 0;
     uint32_t total_ = 0;
 };
@@ -42,6 +47,12 @@ class ProgressMonitor {
     using CallbackFunc = std::function<void(Progress&)>;
 
  public:
+    /**
+     * @brief Set time duration to wait the progress complete.
+     *
+     * @param [in] check_timeout set the value to controls the time duration to wait the progress. Unit: second. Default
+     * value: 60 seconds.
+     */
     explicit ProgressMonitor(uint32_t check_timeout) : check_timeout_(check_timeout) {
     }
 
@@ -57,6 +68,12 @@ class ProgressMonitor {
         return check_interval_;
     }
 
+    /**
+     * @brief Set time interval to check the progress state.
+     *
+     * @param [in] check_interval set value to controls the time interval to
+     * check progress state. Unit: millisecond. Default value: 500 milliseconds.
+     */
     void
     SetCheckInterval(uint32_t check_interval) {
         check_interval_ = check_interval;
@@ -69,6 +86,11 @@ class ProgressMonitor {
         }
     }
 
+    /**
+     * @brief Set call back function to receive progress notification.
+     *
+     * @param [in] func call back function to recieve progress notification.
+     */
     void
     SetCallbackFunc(const CallbackFunc& func) {
         callback_func_ = func;
@@ -85,26 +107,9 @@ class ProgressMonitor {
     }
 
  private:
-    /**
-     * @brief Time interval to check the progress state
-     *
-     * This value controls the time interval to check progress state. Unit: millisecond. Default value: 500
-     * milliseconds.
-     */
     uint32_t check_interval_{500};
-
-    /**
-     * @brief Time duration to wait the progress complete
-     *
-     * This value controls the time duration to wait the progress. Unit: second. Default value: 60 seconds.
-     */
     uint32_t check_timeout_{60};
 
-    /**
-     * @brief Time duration to wait the progress complete
-     *
-     * This value controls the time duration to wait the progress. Unit: second. Default value: 60 seconds.
-     */
     std::function<void(Progress&)> callback_func_;
 };
 }  // namespace milvus

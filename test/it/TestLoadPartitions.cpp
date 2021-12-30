@@ -115,6 +115,17 @@ TEST_F(MilvusMockedTest, LoadPartitionsWithQueryStatusSuccess) {
                 response->add_partition_names(partition);
                 response->add_partitionids(0);
                 response->add_created_timestamps(0);
+
+                // time 0: 10%, 20%, 30%, 40%, 50%      -->{0, 5}
+                // time 1: 20%, 40%, 60%, 80%, 100%     -->{1, 5}
+                // time 2: 30%, 60%, 90%, 100%, 100%    -->{2, 5}
+                // time 3: 40%, 80%, 100%, 100%, 100%   -->{3, 5}
+                // time 4: 50%, 100%, 100%, 100%, 100%  -->{4, 5}
+                // time 5: 60%, 100%, 100%, 100%, 100%  -->{4, 5}
+                // time 6: 70%, 100%, 100%, 100%, 100%  -->{4, 5}
+                // time 7: 80%, 100%, 100%, 100%, 100%  -->{4, 5}
+                // time 8: 90%, 100%, 100%, 100%, 100%  -->{4, 5}
+                // time 9: 100%, 100%, 100%, 100%, 100% -->{5, 5}
                 response->add_inmemory_percentages(std::min(index * 10 * show_partitions_called, 100));
             }
             return ::grpc::Status{};
@@ -123,7 +134,7 @@ TEST_F(MilvusMockedTest, LoadPartitionsWithQueryStatusSuccess) {
     auto status = client_->LoadPartitions(collection, partitions, progress_monitor);
 
     std::vector<milvus::Progress> progresses_expected{{0, 5}, {1, 5}, {2, 5}, {3, 5}, {4, 5},
-                                                      {4, 5}, {4, 5}, {4, 5}, {4, 5}};
+                                                      {4, 5}, {4, 5}, {4, 5}, {4, 5}, {5, 5}};
 
     EXPECT_THAT(progresses, ElementsAreArray(progresses_expected));
     EXPECT_TRUE(status.IsOk());

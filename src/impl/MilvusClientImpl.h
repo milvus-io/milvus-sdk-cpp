@@ -130,6 +130,9 @@ class MilvusClientImpl : public MilvusClient {
     Query(const QueryArguments& arguments, QueryResults& results) final;
 
     Status
+    Flush(const std::vector<std::string>& collection_names, const ProgressMonitor& progress_monitor) final;
+
+    Status
     GetFlushState(const std::vector<int64_t>& segments, bool& flushed) final;
 
     Status
@@ -155,28 +158,15 @@ class MilvusClientImpl : public MilvusClient {
 
  private:
     /**
-     * Flush insert buffer into storage. To makesure the buffer persisted successfully, it calls
-     * GetPersistentSegmentInfo() to check related segments state. Set ProgressMonitor::NoWait() to return instantly.
-     *
-     * @param [in] collection_names specify target collection names, if this array is empty, will flush all collections
-     * @param [in] progress_monitor timeout setting for waiting progress
-     * @param [inout] status the final returned status
-     */
-    Status
-    flush(const std::vector<std::string>& collection_names, const ProgressMonitor& progress_monitor);
-
-    /**
      * Internal wait for status query done.
      *
      * @param [in] query_function one time query for return Status, return TIMEOUT status if not done
-     * @param [in] started starting time
      * @param [in] progress_monitor timeout setting for waiting progress
      * @param [inout] status the final returned status
      */
     void
-    waitForStatus(std::function<Status(Progress&)> query_function,
-                  const std::chrono::time_point<std::chrono::steady_clock> started,
-                  const ProgressMonitor& progress_monitor, Status& status);
+    waitForStatus(std::function<Status(Progress&)> query_function, const ProgressMonitor& progress_monitor,
+                  Status& status);
 
  private:
     std::shared_ptr<MilvusConnection> connection_;
