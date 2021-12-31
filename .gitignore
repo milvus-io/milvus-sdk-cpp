@@ -1,7 +1,7 @@
 cmake_build/
 build/
 .vscode/
-
+.idea/
 logs/
 *.pyc
 logs/
