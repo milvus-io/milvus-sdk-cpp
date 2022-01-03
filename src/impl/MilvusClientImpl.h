@@ -168,6 +168,86 @@ class MilvusClientImpl : public MilvusClient {
     waitForStatus(std::function<Status(Progress&)> query_function, const ProgressMonitor& progress_monitor,
                   Status& status);
 
+    /**
+     * @brief template for public api call
+     *        validate -> pre -> rpc -> wait_for_status -> post
+     */
+    template <typename Request, typename Response>
+    Status
+    apiHandler(std::function<Status(void)> validate, std::function<Request(void)> pre,
+               Status (MilvusConnection::*rpc)(const Request&, Response&),
+               std::function<Status(const Response&)> wait_for_status, std::function<void(const Response&)> post) {
+        if (connection_ == nullptr) {
+            return {StatusCode::NOT_CONNECTED, "Connection is not ready!"};
+        }
+
+        if (validate) {
+            auto status = validate();
+            if (!status.IsOk()) {
+                return status;
+            }
+        }
+
+        Request rpc_request = pre();
+        Response rpc_response;
+        auto status =
+            std::bind(rpc, connection_.get(), std::placeholders::_1, std::placeholders::_2)(rpc_request, rpc_response);
+        if (!status.IsOk()) {
+            // resp's status already checked in connection class
+            return status;
+        }
+
+        if (wait_for_status) {
+            status = wait_for_status(rpc_response);
+        }
+
+        if (status.IsOk() && post) {
+            post(rpc_response);
+        }
+        return status;
+    }
+
+    /**
+     * @brief template for public api call
+     */
+    template <typename Request, typename Response>
+    Status
+    apiHandler(std::function<Status(void)> validate, std::function<Request(void)> pre,
+               Status (MilvusConnection::*rpc)(const Request&, Response&), std::function<void(const Response&)> post) {
+        return apiHandler(validate, pre, rpc, std::function<Status(const Response&)>{}, post);
+    }
+
+    /**
+     * @brief template for public api call
+     */
+    template <typename Request, typename Response>
+    Status
+    apiHandler(std::function<Status(void)> validate, std::function<Request(void)> pre,
+               Status (MilvusConnection::*rpc)(const Request&, Response&)) {
+        return apiHandler(validate, pre, rpc, std::function<Status(const Response&)>{},
+                          std::function<void(const Response&)>{});
+    }
+
+    /**
+     * @brief template for public api call
+     */
+    template <typename Request, typename Response>
+    Status
+    apiHandler(std::function<Request(void)> pre, Status (MilvusConnection::*rpc)(const Request&, Response&),
+               std::function<void(const Response&)> post) {
+        return apiHandler(std::function<Status(void)>{}, pre, rpc, std::function<Status(const Response&)>{}, post);
+    }
+
+    /**
+     * @brief template for public api call
+     */
+    template <typename Request, typename Response>
+    Status
+    apiHandler(std::function<Request(void)> pre, Status (MilvusConnection::*rpc)(const Request&, Response&)) {
+        return apiHandler(std::function<Status(void)>{}, pre, rpc, std::function<Status(const Response&)>{},
+                          std::function<void(const Response&)>{});
+    }
+
  private:
     std::shared_ptr<MilvusConnection> connection_;
 };
