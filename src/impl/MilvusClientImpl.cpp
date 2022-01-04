@@ -299,17 +299,37 @@ MilvusClientImpl::ShowPartitions(const std::string& collection_name, const std::
 
 Status
 MilvusClientImpl::CreateAlias(const std::string& collection_name, const std::string& alias) {
-    return Status::OK();
+    auto pre = [&collection_name, &alias]() {
+        proto::milvus::CreateAliasRequest rpc_request;
+        rpc_request.set_collection_name(collection_name);
+        rpc_request.set_alias(alias);
+        return rpc_request;
+    };
+
+    return apiHandler<proto::milvus::CreateAliasRequest, proto::common::Status>(pre, &MilvusConnection::CreateAlias);
 }
 
 Status
 MilvusClientImpl::DropAlias(const std::string& alias) {
-    return Status::OK();
+    auto pre = [&alias]() {
+        proto::milvus::DropAliasRequest rpc_request;
+        rpc_request.set_alias(alias);
+        return rpc_request;
+    };
+
+    return apiHandler<proto::milvus::DropAliasRequest, proto::common::Status>(pre, &MilvusConnection::DropAlias);
 }
 
 Status
 MilvusClientImpl::AlterAlias(const std::string& collection_name, const std::string& alias) {
-    return Status::OK();
+    auto pre = [&collection_name, &alias]() {
+        proto::milvus::AlterAliasRequest rpc_request;
+        rpc_request.set_collection_name(collection_name);
+        rpc_request.set_alias(alias);
+        return rpc_request;
+    };
+
+    return apiHandler<proto::milvus::AlterAliasRequest, proto::common::Status>(pre, &MilvusConnection::AlterAlias);
 }
 
 Status
