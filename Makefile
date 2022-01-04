@@ -38,6 +38,10 @@ test:
 	@echo "Testing with Milvus SDK"
 	@(env bash $(PWD)/scripts/build.sh -u)
 
+st:
+	@echo "System Testing with Milvus SDK"
+	@(env bash $(PWD)/scripts/build.sh -s)
+
 coverage: test
 	@echo "Run code coverage ..."
 	@(env bash $(PWD)/scripts/coverage.sh)

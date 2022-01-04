@@ -45,3 +45,14 @@ aux_source_directory(${CMAKE_CURRENT_SOURCE_DIR}/it/mocks it_mocks_files)
 add_executable(testing-it ${it_files} ${it_mocks_files})
 target_link_libraries(testing-it PRIVATE milvus_sdk_static ${GTEST_LIBRARIES} ${GMOCK_LIBRARIES} ${GTEST_MAIN_LIBRARIES} pthread)
 gtest_discover_tests(testing-it)
+
+# st only available under linux
+if (CMAKE_SYSTEM_NAME MATCHES "Linux")
+aux_source_directory(${CMAKE_CURRENT_SOURCE_DIR}/st st_files)
+add_executable(testing-st ${st_files})
+target_link_libraries(testing-st PRIVATE milvus_sdk_static ${GTEST_LIBRARIES} ${GMOCK_LIBRARIES} ${GTEST_MAIN_LIBRARIES} pthread)
+add_custom_target(system-test
+    COMMAND $<TARGET_FILE:testing-st>
+    DEPENDS testing-st
+)
+endif(CMAKE_SYSTEM_NAME MATCHES "Linux")
