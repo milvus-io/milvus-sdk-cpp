@@ -16,7 +16,9 @@ get_cmake_version() {
     fi
 }
 
-install_deps_for_ubuntu_1804() {
+install_deps_for_ubuntu_common() {
+    dist=$1
+
     check_sudo
     ${SUDO} apt-get update
     ${SUDO} apt-get -y install python2.7 gpg wget gcc g++ ccache make \
@@ -27,7 +29,7 @@ install_deps_for_ubuntu_1804() {
     if [ $current_cmake_version -lt 312 ] ; then
         ${SUDO} rm -f /usr/share/keyrings/kitware-archive-keyring.gpg /etc/apt/sources.list.d/kitware.list
         wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/null | gpg --dearmor - | ${SUDO} tee /usr/share/keyrings/kitware-archive-keyring.gpg >/dev/null
-        echo 'deb [signed-by=/usr/share/keyrings/kitware-archive-keyring.gpg] https://apt.kitware.com/ubuntu/ bionic main' | ${SUDO} tee /etc/apt/sources.list.d/kitware.list >/dev/null
+        echo "deb [signed-by=/usr/share/keyrings/kitware-archive-keyring.gpg] https://apt.kitware.com/ubuntu/ ${dist} main" | ${SUDO} tee /etc/apt/sources.list.d/kitware.list >/dev/null
         ${SUDO} apt-get update
         ${SUDO} apt-get -y install kitware-archive-keyring
         ${SUDO} apt-get -y install cmake
@@ -36,9 +38,17 @@ install_deps_for_ubuntu_1804() {
     # install new clang-tidy clang-format
     wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key | ${SUDO} apt-key add -
     ${SUDO} apt-get -y install software-properties-common
-    ${SUDO} add-apt-repository "deb http://apt.llvm.org/bionic/   llvm-toolchain-bionic-13  main"
+    ${SUDO} add-apt-repository "deb http://apt.llvm.org/${dist}/   llvm-toolchain-${dist}-13  main"
     ${SUDO} apt-get update
     ${SUDO} apt-get install -y clang-format-13 clang-tidy-13
+}
+
+install_deps_for_ubuntu_1804() {
+    install_deps_for_ubuntu_common bionic
+}
+
+install_deps_for_ubuntu_2004() {
+    install_deps_for_ubuntu_common focal
 }
 
 install_deps_for_centos_7() {
@@ -70,6 +80,8 @@ if uname | grep -wq Linux ; then
         # for ubuntu
         if grep -q 'Ubuntu 18.04' /etc/issue ; then
             install_deps_for_ubuntu_1804
+        elif grep -q 'Ubuntu 20.04' /etc/issue ; then
+            install_deps_for_ubuntu_2004
         fi
     elif [ -x "$(command -v yum)" ] ; then
         # for os support yum
