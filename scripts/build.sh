@@ -19,18 +19,19 @@
 BUILD_OUTPUT_DIR="cmake_build"
 BUILD_TYPE="Debug"
 UNIT_TEST="OFF"
-BUILD_UNIT_TEST="OFF"
+SYS_TEST="OFF"
+BUILD_TEST="OFF"
 MAKE_CLEAN="OFF"
 RUN_CPPLINT="OFF"
 
-while getopts "p:d:t:f:ulrcgjhxzme" arg; do
+while getopts "t:ulrsh" arg; do
   case $arg in
   t)
     BUILD_TYPE=$OPTARG # BUILD_TYPE
     ;;
   l)
     RUN_CPPLINT="ON"
-    BUILD_UNIT_TEST="ON"  # lint requires build with ut
+    BUILD_TEST="ON"  # lint requires build with ut
     ;;
   r)
     if [[ -d ${BUILD_OUTPUT_DIR} ]]; then
@@ -40,7 +41,11 @@ while getopts "p:d:t:f:ulrcgjhxzme" arg; do
     ;;
   u)
     UNIT_TEST="ON"
-    BUILD_UNIT_TEST="ON"
+    BUILD_TEST="ON"
+    ;;
+  s)
+    SYS_TEST="ON"
+    BUILD_TEST="ON"
     ;;
   h) # help
     echo "
@@ -75,7 +80,7 @@ make rebuild_cache >/dev/null 2>&1
 
 CMAKE_CMD="cmake \
 -DCMAKE_BUILD_TYPE=${BUILD_TYPE} \
--DBUILD_UNIT_TEST=${BUILD_UNIT_TEST}
+-DBUILD_TEST=${BUILD_TEST}
 ../"
 echo ${CMAKE_CMD}
 ${CMAKE_CMD}
@@ -118,3 +123,9 @@ if [[ "${UNIT_TEST}" == "ON" ]]; then
   make -j 4  || exit 1
   make CTEST_OUTPUT_ON_FAILURE=1 test || exit 1
 fi
+
+if [[ "${SYS_TEST}" == "ON" ]]; then
+  make -j 4  || exit 1
+  make CTEST_OUTPUT_ON_FAILURE=1 system-test || exit 1
+fi
+

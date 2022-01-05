@@ -41,7 +41,7 @@ set(BUILD_SCRIPTS_DIR ${CMAKE_SOURCE_DIR}/scripts)
 unset(CMAKE_EXPORT_COMPILE_COMMANDS CACHE)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-if (BUILD_UNIT_TEST STREQUAL "ON")
+if (BUILD_TEST STREQUAL "ON")
     if ( CMAKE_BUILD_TYPE STREQUAL "Debug" )
         # Set compile flag for code coverage.
         # Note: Only do this in Debug/unittest mode. Must do this before add_subdirectory(src).

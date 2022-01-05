@@ -58,7 +58,7 @@ endmacro()
 #----------------------------------------------------------------------
 set_option_category("Milvus Build Option")
 
-define_option(BUILD_UNIT_TEST "Build with unit testing" OFF)
+define_option(BUILD_TEST "Build with testing" OFF)
 define_option(BUILD_COVERAGE "Build with coverage" OFF)
 
 #----------------------------------------------------------------------

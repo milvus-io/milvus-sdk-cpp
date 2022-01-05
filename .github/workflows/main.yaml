@@ -151,3 +151,40 @@ jobs:
       - name: Uint Testing
         run: |
           make test
+  ubuntu-st:
+    name: Acceptance Test Ubuntu ${{ matrix.ubuntu }}
+    runs-on: ubuntu-${{ matrix.ubuntu }}
+    timeout-minutes: 90
+    strategy:
+      fail-fast: false
+      matrix:
+        ubuntu: [18.04]
+    env:
+      UBUNTU: ${{ matrix.ubuntu }}
+      CCACHE_COMPILERCHECK: content
+      CCACHE_COMPRESS: 1
+      CCACHE_COMPRESSLEVEL: 5
+      CCACHE_MAXSIZE: 2G
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Cache ccache
+        uses: actions/cache@v2
+        with:
+          path: |
+            ~/.ccache
+          key: ubuntu-${{ matrix.ubuntu }}-ccache-${{ github.sha }}
+          restore-keys: ubuntu-${{ matrix.ubuntu }}-ccache-
+      - name: Cache apk
+        uses: actions/cache@v2
+        with:
+          path: |
+            /var/cache/apt/archives/*.deb
+          key: ubuntu-${{ matrix.ubuntu }}-apt-${{ github.sha }}
+          restore-keys: ubuntu-${{ matrix.ubuntu }}-apt-
+      - name: Prepare
+        run: |
+          sh scripts/install_deps.sh
+      - name: System Test
+        run: |
+          make st
