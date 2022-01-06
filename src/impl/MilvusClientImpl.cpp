@@ -442,8 +442,101 @@ MilvusClientImpl::Delete(const std::string& collection_name, const std::string& 
 }
 
 Status
-MilvusClientImpl::Search(const SearchArguments& arguments, const SearchResults& results) {
-    return Status::OK();
+MilvusClientImpl::Search(const SearchArguments& arguments, SearchResults& results) {
+    auto pre = [&arguments]() {
+        proto::milvus::SearchRequest rpc_request;
+        rpc_request.set_collection_name(arguments.CollectionName());
+        rpc_request.set_dsl_type(proto::common::DslType::BoolExprV1);
+        if (!arguments.Expression().empty()) {
+            rpc_request.set_dsl(arguments.Expression());
+        }
+        for (const auto& partition_name : arguments.PartitionNames()) {
+            rpc_request.add_partition_names(partition_name);
+        }
+        for (const auto& output_field : arguments.OutputFields()) {
+            rpc_request.add_output_fields(output_field);
+        }
+
+        // placeholders
+        proto::milvus::PlaceholderGroup placeholder_group;
+        auto& placeholder_value = *placeholder_group.add_placeholders();
+        placeholder_value.set_tag("$0");
+        auto target = arguments.TargetVectors();
+        if (target->Type() == DataType::BINARY_VECTOR) {
+            // bins
+            placeholder_value.set_type(proto::milvus::PlaceholderType::BinaryVector);
+            auto& bins_vec = dynamic_cast<BinaryVecFieldData&>(*target);
+            for (const auto& bins : bins_vec.Data()) {
+                std::string placeholder_data(reinterpret_cast<const char*>(bins.data()), bins.size());
+                placeholder_value.add_values(std::move(placeholder_data));
+            }
+        } else {
+            // floats
+            placeholder_value.set_type(proto::milvus::PlaceholderType::FloatVector);
+            auto& floats_vec = dynamic_cast<FloatVecFieldData&>(*target);
+            for (const auto& floats : floats_vec.Data()) {
+                std::string placeholder_data(reinterpret_cast<const char*>(floats.data()),
+                                             floats.size() * sizeof(float));
+                placeholder_value.add_values(std::move(placeholder_data));
+            }
+        }
+        rpc_request.set_placeholder_group(std::move(placeholder_group.SerializeAsString()));
+
+        auto kv_pair = rpc_request.add_search_params();
+        kv_pair->set_key("anns_field");
+        // TODO(jibin): get anns field after DescribeCollection ready
+        kv_pair->set_value("dummy");
+
+        kv_pair = rpc_request.add_search_params();
+        kv_pair->set_key("topk");
+        kv_pair->set_value(std::to_string(arguments.TopK()));
+
+        kv_pair = rpc_request.add_search_params();
+        kv_pair->set_key("metric_type");
+        // TODO(jibin): get metric type after DescribeCollection ready
+        kv_pair->set_value("dummy");
+
+        kv_pair = rpc_request.add_search_params();
+        kv_pair->set_key("round_decimal");
+        kv_pair->set_value(std::to_string(arguments.RoundDecimal()));
+
+        rpc_request.set_travel_timestamp(arguments.TravelTimestamp());
+        rpc_request.set_guarantee_timestamp(arguments.GuaranteeTimestamp());
+        return rpc_request;
+    };
+
+    auto post = [&results](const proto::milvus::SearchResults& response) {
+        auto& result_data = response.results();
+        const auto& ids = result_data.ids();
+        const auto& scores = result_data.scores();
+        const auto& field_data = result_data.fields_data();
+        auto num_of_queries = result_data.num_queries();
+        std::vector<int64_t> topks(num_of_queries, result_data.top_k());
+        for (int i = 0; i < result_data.topks_size(); ++i) {
+            topks[i] = result_data.topks(i);
+        }
+        std::vector<SingleResult> single_results;
+        single_results.reserve(num_of_queries);
+        size_t offset{0};
+        for (int64_t i = 0; i < num_of_queries; ++i) {
+            std::vector<float> item_scores;
+            std::vector<FieldDataPtr> item_field_data;
+            auto item_topk = topks[i];
+            item_scores.reserve(item_topk);
+            item_field_data.reserve(item_topk);
+            for (int64_t j = 0; j < item_topk; ++j) {
+                item_scores.emplace_back(scores.at(offset + j));
+                item_field_data.emplace_back(std::move(CreateMilvusFieldData(field_data.at(offset + j))));
+            }
+            single_results.emplace_back(std::move(CreateIDArray(ids, offset, item_topk)), std::move(item_scores),
+                                        std::move(item_field_data));
+            offset += item_topk;
+        }
+
+        results = std::move(SearchResults(std::move(single_results)));
+    };
+
+    return apiHandler<proto::milvus::SearchRequest, proto::milvus::SearchResults>(pre, &MilvusConnection::Search, post);
 }
 
 Status

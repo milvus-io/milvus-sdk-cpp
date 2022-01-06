@@ -126,4 +126,7 @@ CreateMilvusFieldData(const proto::schema::FieldData& field_data);
 IDArray
 CreateIDArray(const proto::schema::IDs& ids);
 
+IDArray
+CreateIDArray(const proto::schema::IDs& ids, size_t offset, size_t size);
+
 }  // namespace milvus

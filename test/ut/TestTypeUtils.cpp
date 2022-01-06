@@ -139,3 +139,24 @@ TEST_F(TypeUtilsTest, IDArray) {
     EXPECT_FALSE(id_array.IsIntegerID());
     EXPECT_THAT(id_array.StrIDArray(), ElementsAre("10000", "10001"));
 }
+
+TEST_F(TypeUtilsTest, IDArrayWithRange) {
+    ::milvus::proto::schema::IDs ids;
+    ids.mutable_int_id()->add_data(10000);
+    ids.mutable_int_id()->add_data(10001);
+    ids.mutable_int_id()->add_data(10002);
+    ids.mutable_int_id()->add_data(10003);
+    auto id_array = CreateIDArray(ids, 1, 2);
+
+    EXPECT_TRUE(id_array.IsIntegerID());
+    EXPECT_THAT(id_array.IntIDArray(), ElementsAre(10001, 10002));
+
+    ids.mutable_str_id()->add_data("10000");
+    ids.mutable_str_id()->add_data("10001");
+    ids.mutable_str_id()->add_data("10002");
+    ids.mutable_str_id()->add_data("10003");
+    id_array = CreateIDArray(ids, 1, 2);
+
+    EXPECT_FALSE(id_array.IsIntegerID());
+    EXPECT_THAT(id_array.StrIDArray(), ElementsAre("10001", "10002"));
+}

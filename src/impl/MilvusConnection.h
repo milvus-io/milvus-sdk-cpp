@@ -125,6 +125,9 @@ class MilvusConnection {
     Delete(const proto::milvus::DeleteRequest& request, proto::milvus::MutationResult& response);
 
     Status
+    Search(const proto::milvus::SearchRequest& request, proto::milvus::SearchResults& response);
+
+    Status
     Query(const proto::milvus::QueryRequest& request, proto::milvus::QueryResults& response);
 
     Status

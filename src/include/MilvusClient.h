@@ -365,7 +365,7 @@ class MilvusClient {
      * @return Status operation successfully or not
      */
     virtual Status
-    Search(const SearchArguments& arguments, const SearchResults& results) = 0;
+    Search(const SearchArguments& arguments, SearchResults& results) = 0;
 
     /**
      * Query with a set of criteria, and results in a list of records that match the query exactly.

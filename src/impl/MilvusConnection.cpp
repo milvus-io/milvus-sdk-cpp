@@ -190,6 +190,11 @@ MilvusConnection::Delete(const proto::milvus::DeleteRequest& request, proto::mil
 }
 
 Status
+MilvusConnection::Search(const proto::milvus::SearchRequest& request, proto::milvus::SearchResults& response) {
+    return grpcCall("Search", &Stub::Search, request, response);
+}
+
+Status
 MilvusConnection::Query(const proto::milvus::QueryRequest& request, proto::milvus::QueryResults& response) {
     return grpcCall("Query", &Stub::Query, request, response);
 }

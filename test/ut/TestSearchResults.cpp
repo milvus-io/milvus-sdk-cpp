@@ -21,8 +21,13 @@
 class SearchResultsTest : public ::testing::Test {};
 
 TEST_F(SearchResultsTest, GeneralTesting) {
-    std::vector<milvus::SingleResult> result_array = {milvus::SingleResult()};
+    milvus::IDArray ids{std::vector<int64_t>{}};
+    std::vector<float> scores{};
+    std::vector<milvus::FieldDataPtr> fields{};
 
-    milvus::SearchResults results(result_array);
+    std::vector<milvus::SingleResult> result_array = {
+        milvus::SingleResult(std::move(ids), std::move(scores), std::move(fields))};
+
+    milvus::SearchResults results(std::move(result_array));
     EXPECT_EQ(1, results.Results().size());
 }
