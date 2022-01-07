@@ -27,7 +27,11 @@ TEST_F(CompactionStateTest, GeneralTesting) {
 
     milvus::CompactionStateCode state_code = milvus::CompactionStateCode::EXECUTING;
 
-    milvus::CompactionState state(state_code, executing, timeout, completed);
+    milvus::CompactionState state;
+    state.SetState(state_code);
+    state.SetExecutingPlan(executing);
+    state.SetTimeoutPlan(timeout);
+    state.SetCompletedPlan(completed);
     EXPECT_EQ(state_code, state.State());
     EXPECT_EQ(executing, state.ExecutingPlan());
     EXPECT_EQ(timeout, state.TimeoutPlan());

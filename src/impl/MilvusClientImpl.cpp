@@ -64,6 +64,7 @@ MilvusClientImpl::CreateCollection(const CollectionSchema& schema) {
     auto pre = [&schema]() {
         proto::milvus::CreateCollectionRequest rpc_request;
         rpc_request.set_collection_name(schema.Name());
+        rpc_request.set_shards_num(schema.ShardsNum());
         proto::schema::CollectionSchema rpc_collection;
         rpc_collection.set_name(schema.Name());
         rpc_collection.set_description(schema.Description());
@@ -124,7 +125,28 @@ MilvusClientImpl::ReleaseCollection(const std::string& collection_name) {
 
 Status
 MilvusClientImpl::DescribeCollection(const std::string& collection_name, CollectionDesc& collection_desc) {
-    return Status::OK();
+    auto pre = [&collection_name]() {
+        proto::milvus::DescribeCollectionRequest rpc_request;
+        rpc_request.set_collection_name(collection_name);
+        return rpc_request;
+    };
+
+    auto post = [&collection_desc](const proto::milvus::DescribeCollectionResponse& response) {
+        CollectionSchema schema;
+        ConvertCollectionSchema(response.schema(), schema);
+        schema.SetShardsNum(response.shards_num());
+        collection_desc.SetSchema(std::move(schema));
+        collection_desc.SetID(response.collectionid());
+
+        std::vector<std::string> aliases;
+        aliases.insert(aliases.end(), response.aliases().begin(), response.aliases().end());
+
+        collection_desc.SetAlias(std::move(aliases));
+        collection_desc.SetCreatedTime(response.created_timestamp());
+    };
+
+    return apiHandler<proto::milvus::DescribeCollectionRequest, proto::milvus::DescribeCollectionResponse>(
+        pre, &MilvusConnection::DescribeCollection, post);
 }
 
 Status
@@ -670,18 +692,76 @@ MilvusClientImpl::LoadBalance(int64_t src_node, const std::vector<int64_t>& dst_
 
 Status
 MilvusClientImpl::GetCompactionState(int64_t compaction_id, CompactionState& compaction_state) {
-    return Status::OK();
+    auto pre = [&compaction_id]() {
+        proto::milvus::GetCompactionStateRequest rpc_request;
+        rpc_request.set_compactionid(compaction_id);
+        return rpc_request;
+    };
+
+    auto post = [&compaction_state](const proto::milvus::GetCompactionStateResponse& response) {
+        compaction_state.SetExecutingPlan(response.executingplanno());
+        compaction_state.SetTimeoutPlan(response.timeoutplanno());
+        compaction_state.SetCompletedPlan(response.completedplanno());
+        switch (response.state()) {
+            case proto::common::CompactionState::Completed:
+                compaction_state.SetState(CompactionStateCode::COMPLETED);
+                break;
+            case proto::common::CompactionState::Executing:
+                compaction_state.SetState(CompactionStateCode::EXECUTING);
+                break;
+            default:
+                break;
+        }
+    };
+
+    return apiHandler<proto::milvus::GetCompactionStateRequest, proto::milvus::GetCompactionStateResponse>(
+        pre, &MilvusConnection::GetCompactionState, post);
 }
 
 Status
 MilvusClientImpl::ManualCompaction(const std::string& collection_name, uint64_t travel_timestamp,
                                    int64_t& compaction_id) {
-    return Status::OK();
+    CollectionDesc collection_desc;
+    auto status = DescribeCollection(collection_name, collection_desc);
+    if (!status.IsOk()) {
+        return status;
+    }
+
+    auto pre = [&collection_name, &travel_timestamp, &collection_desc]() {
+        proto::milvus::ManualCompactionRequest rpc_request;
+        rpc_request.set_collectionid(collection_desc.ID());
+        rpc_request.set_timetravel(travel_timestamp);
+        return rpc_request;
+    };
+
+    auto post = [&compaction_id](const proto::milvus::ManualCompactionResponse& response) {
+        compaction_id = response.compactionid();
+    };
+
+    return apiHandler<proto::milvus::ManualCompactionRequest, proto::milvus::ManualCompactionResponse>(
+        pre, &MilvusConnection::ManualCompaction, post);
 }
 
 Status
 MilvusClientImpl::GetCompactionPlans(int64_t compaction_id, CompactionPlans& plans) {
-    return Status::OK();
+    auto pre = [&compaction_id]() {
+        proto::milvus::GetCompactionPlansRequest rpc_request;
+        rpc_request.set_compactionid(compaction_id);
+        return rpc_request;
+    };
+
+    auto post = [&plans](const proto::milvus::GetCompactionPlansResponse& response) {
+        for (int i = 0; i < response.mergeinfos_size(); ++i) {
+            auto& info = response.mergeinfos(i);
+            std::vector<int64_t> source_ids;
+            source_ids.insert(source_ids.end(), info.sources().begin(), info.sources().end());
+
+            plans.emplace_back(CompactionPlan{std::move(source_ids), info.target()});
+        }
+    };
+
+    return apiHandler<proto::milvus::GetCompactionPlansRequest, proto::milvus::GetCompactionPlansResponse>(
+        pre, &MilvusConnection::GetCompactionPlans, post);
 }
 
 void

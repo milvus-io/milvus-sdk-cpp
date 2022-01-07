@@ -28,25 +28,77 @@ namespace milvus {
  */
 class CollectionDesc {
  public:
- private:
+    CollectionDesc() = default;
+
     /**
-     * @brief Collection schema defined by CreateCollection().
+     * @brief Collection schema.
      */
+    CollectionSchema
+    Schema() const {
+        return schema_;
+    }
+
+    /**
+     * @brief Set collection schema.
+     */
+    void
+    SetSchema(CollectionSchema&& schema) {
+        schema_ = std::move(schema);
+    }
+
+    /**
+     * @brief Collection id.
+     */
+    int64_t
+    ID() const {
+        return collection_id_;
+    }
+
+    /**
+     * @brief Set collection id.
+     */
+    void
+    SetID(const int64_t id) {
+        collection_id_ = id;
+    }
+
+    /**
+     * @brief Collection id.
+     */
+    const std::vector<std::string>&
+    Alias() const {
+        return alias_;
+    }
+
+    /**
+     * @brief Set collection id.
+     */
+    void
+    SetAlias(std::vector<std::string>&& alias) {
+        alias_ = std::move(alias);
+    }
+
+    /**
+     * @brief Timestamp when the collection created.
+     */
+    uint64_t
+    CreatedTime() const {
+        return created_utc_timestamp_;
+    }
+
+    /**
+     * @brief Set timestamp when the collection created.
+     */
+    void
+    SetCreatedTime(const uint64_t ts) {
+        created_utc_timestamp_ = ts;
+    }
+
+ private:
     CollectionSchema schema_;
 
-    /**
-     * @brief Internal id of this collection.
-     */
     int64_t collection_id_;
-
-    /**
-     * @brief Alias of this collection.
-     */
     std::vector<std::string> alias_;
-
-    /**
-     * @brief The utc timestamp calculated by created_timestamp.
-     */
     uint64_t created_utc_timestamp_ = 0;
 };
 

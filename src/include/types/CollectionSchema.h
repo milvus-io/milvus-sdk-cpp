@@ -28,51 +28,82 @@ namespace milvus {
  */
 class CollectionSchema {
  public:
+    CollectionSchema() = default;
+
     explicit CollectionSchema(const std::string& name, const std::string& desc = "", int32_t shard_num = 2)
         : name_(name), description_(desc), shard_num_(shard_num) {
     }
 
+    /**
+     * @brief Collection name, cannot be empty.
+     */
     const std::string&
     Name() const {
         return name_;
     }
 
+    /**
+     * @brief Set collection name, cannot be empty.
+     */
+    void
+    SetName(const std::string& name) {
+        name_ = name;
+    }
+
+    /**
+     * @brief Collection description, can be empty.
+     */
     const std::string&
     Description() const {
         return description_;
     }
 
+    /**
+     * @brief Set collection description, can be empty.
+     */
+    void
+    SetDescription(const std::string& description) {
+        description_ = description;
+    }
+
+    /**
+     * @brief Collection shards number, the number must be larger than zero, default value is 2.
+     */
+    int32_t
+    ShardsNum() const {
+        return shard_num_;
+    }
+
+    /**
+     * @brief Set shards number, the number must be larger than zero, default value is 2.
+     */
+    void
+    SetShardsNum(int32_t num) {
+        shard_num_ = num;
+    }
+
+    /**
+     * @brief Fields schema array.
+     */
     const std::vector<FieldSchema>&
     Fields() const {
         return fields_;
     }
 
+    /**
+     * @brief Add a field schema.
+     */
     bool
-    AddField(FieldSchema& field_schema) {
+    AddField(FieldSchema&& field_schema) {
         // TODO: check duplicate field name
         fields_.emplace_back(field_schema);
         return true;
     }
 
  private:
-    /**
-     * @brief Name of this collection, cannot be empty
-     */
     std::string name_;
-
-    /**
-     * @brief Description of this collection, can be empty
-     */
     std::string description_;
-
-    /**
-     * @brief Set shards number, the number must be larger than zero, default value is 2.
-     */
     int32_t shard_num_ = 2;
-
-    /**
-     * @brief Schema for each field.
-     */
     std::vector<FieldSchema> fields_;
 };
 

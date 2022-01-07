@@ -24,4 +24,9 @@ KeyRowCount() {
     return "row_count";
 }
 
+inline const std::string
+FieldDim() {
+    return "dim";
+}
+
 }  // namespace milvus

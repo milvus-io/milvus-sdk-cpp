@@ -37,10 +37,8 @@ main(int argc, char* argv[]) {
 
     milvus::CollectionSchema collection_schema("TEST");
 
-    milvus::FieldSchema field_schema_1("identity", milvus::DataType::INT64, "user id", true, true);
-    milvus::FieldSchema field_schema_2("age", milvus::DataType::INT8, "user age");
-    collection_schema.AddField(field_schema_1);
-    collection_schema.AddField(field_schema_2);
+    collection_schema.AddField({"identity", milvus::DataType::INT64, "user id", true, true});
+    collection_schema.AddField({"age", milvus::DataType::INT8, "user age"});
 
     status = client->CreateCollection(collection_schema);
     if (!status.IsOk()) {

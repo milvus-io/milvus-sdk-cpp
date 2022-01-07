@@ -17,6 +17,7 @@
 #pragma once
 
 #include "milvus.pb.h"
+#include "types/CollectionSchema.h"
 #include "types/FieldData.h"
 #include "types/IDArray.h"
 
@@ -60,6 +61,9 @@ operator==(const proto::schema::FieldData& lhs, const Field& rhs);
 
 proto::schema::DataType
 DataTypeCast(DataType type);
+
+DataType
+DataTypeCast(proto::schema::DataType type);
 
 proto::schema::VectorField*
 CreateProtoFieldData(const BinaryVecFieldData& field);
@@ -128,5 +132,17 @@ CreateIDArray(const proto::schema::IDs& ids);
 
 IDArray
 CreateIDArray(const proto::schema::IDs& ids, size_t offset, size_t size);
+
+void
+ConvertFieldSchema(const proto::schema::FieldSchema& proto_schema, FieldSchema& schema);
+
+void
+ConvertCollectionSchema(const proto::schema::CollectionSchema& proto_schema, CollectionSchema& schema);
+
+void
+ConvertFieldSchema(const FieldSchema& schema, proto::schema::FieldSchema& proto_schema);
+
+void
+ConvertCollectionSchema(const CollectionSchema& schema, proto::schema::CollectionSchema& proto_schema);
 
 }  // namespace milvus

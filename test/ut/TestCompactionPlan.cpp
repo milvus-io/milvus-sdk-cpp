@@ -21,10 +21,11 @@
 class CompactionPlanTest : public ::testing::Test {};
 
 TEST_F(CompactionPlanTest, GeneralTesting) {
-    std::vector<int64_t> src_segments = {1, 2, 3};
     int64_t dst_segment = 4;
 
-    milvus::CompactionPlan plan(src_segments, dst_segment);
+    milvus::CompactionPlan plan;
+    plan.SetSourceSegments({1, 2, 3});
+    plan.SetDestinySegemnt(dst_segment);
     EXPECT_EQ(3, plan.SourceSegments().size());
     EXPECT_EQ(dst_segment, plan.DestinySegemnt());
 }
