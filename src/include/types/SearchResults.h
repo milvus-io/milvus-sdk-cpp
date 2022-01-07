@@ -20,17 +20,33 @@
 #include <vector>
 
 #include "FieldData.h"
+#include "IDArray.h"
 
 namespace milvus {
 
-struct IDScorePair {
-    int64_t id_ = 0;
-    float score_ = 0.0;
-};
-
 struct SingleResult {
-    std::vector<IDScorePair> topk_items_;
+    IDArray ids_;
+    std::vector<float> scores_;
     std::vector<FieldDataPtr> output_fields_;
+
+    SingleResult(IDArray&& ids, std::vector<float>&& scores, std::vector<FieldDataPtr>&& output_fields)
+        : ids_{std::move(ids)}, scores_{std::move(scores)}, output_fields_{std::move(output_fields)} {
+    }
+
+    const std::vector<float>&
+    Scores() const {
+        return scores_;
+    }
+
+    const IDArray&
+    Ids() const {
+        return ids_;
+    }
+
+    const std::vector<FieldDataPtr>&
+    OutputFields() const {
+        return output_fields_;
+    }
 };
 
 /**
@@ -38,7 +54,9 @@ struct SingleResult {
  */
 class SearchResults {
  public:
-    explicit SearchResults(std::vector<SingleResult>& results) {
+    SearchResults() = default;
+
+    explicit SearchResults(std::vector<SingleResult>&& results) {
         nq_results_.swap(results);
     }
 
@@ -51,7 +69,7 @@ class SearchResults {
     }
 
  private:
-    std::vector<SingleResult> nq_results_;
+    std::vector<SingleResult> nq_results_{};
 };
 
 }  // namespace milvus

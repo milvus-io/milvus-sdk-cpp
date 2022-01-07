@@ -124,7 +124,7 @@ class MilvusClientImpl : public MilvusClient {
            IDArray& id_array) final;
 
     Status
-    Search(const SearchArguments& arguments, const SearchResults& results) final;
+    Search(const SearchArguments& arguments, SearchResults& results) final;
 
     Status
     Query(const QueryArguments& arguments, QueryResults& results) final;

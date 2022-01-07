@@ -542,4 +542,29 @@ CreateIDArray(const proto::schema::IDs& ids) {
     }
 }
 
+IDArray
+CreateIDArray(const proto::schema::IDs& ids, size_t offset, size_t size) {
+    if (ids.has_int_id()) {
+        std::vector<int64_t> int_array;
+        auto& int_ids = ids.int_id();
+        int_array.reserve(size);
+        auto it = int_ids.data().begin();
+        std::advance(it, offset);
+        auto it_end = it;
+        std::advance(it_end, size);
+        std::copy(it, it_end, std::back_inserter(int_array));
+        return IDArray(int_array);
+    } else {
+        std::vector<std::string> str_array;
+        auto& str_ids = ids.str_id();
+        str_array.reserve(size);
+        auto it = str_ids.data().begin();
+        std::advance(it, offset);
+        auto it_end = it;
+        std::advance(it_end, size);
+        std::copy(it, it_end, std::back_inserter(str_array));
+        return IDArray(str_array);
+    }
+}
+
 }  // namespace milvus

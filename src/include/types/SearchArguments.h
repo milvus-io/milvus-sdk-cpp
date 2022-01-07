@@ -69,7 +69,7 @@ class SearchArguments {
             return {StatusCode::INVALID_AGUMENT, "Partition name cannot be empty!"};
         }
 
-        partition_names_.insert(partition_name);
+        partition_names_.emplace(partition_name);
         return Status::OK();
     }
 
@@ -189,7 +189,7 @@ class SearchArguments {
      */
     uint64_t
     GuaranteeTimestamp() const {
-        return travel_timestamp_;
+        return guarantee_timestamp_;
     }
 
     /**
@@ -200,6 +200,40 @@ class SearchArguments {
     SetGuaranteeTimestamp(uint64_t timestamp) {
         guarantee_timestamp_ = timestamp;
         return Status::OK();
+    }
+
+    /**
+     * @brief Specify search limit, AIK topk
+     */
+    Status
+    SetTopK(int64_t topk) {
+        topk_ = topk;
+        return Status::OK();
+    }
+
+    /**
+     * @brief Get Top K
+     */
+    int64_t
+    TopK() const {
+        return topk_;
+    }
+
+    /**
+     * @brief Specifies the decimal place of the returned results.
+     */
+    Status
+    SetRoundDecimal(int round_decimal) {
+        round_decimal_ = round_decimal;
+        return Status::OK();
+    }
+
+    /**
+     * @brief Get the decimal place of the returned results
+     */
+    int
+    RoundDecimal() const {
+        return round_decimal_;
     }
 
  private:
@@ -214,8 +248,11 @@ class SearchArguments {
     std::set<std::string> output_fields_;
     std::map<std::string, std::string> extra_params_;
 
-    uint64_t travel_timestamp_ = 0;
-    uint64_t guarantee_timestamp_ = 0;
+    uint64_t travel_timestamp_{0};
+    uint64_t guarantee_timestamp_{0};
+
+    int64_t topk_{1};
+    int round_decimal_{-1};
 };
 
 }  // namespace milvus
