@@ -70,7 +70,7 @@ MilvusConnection::HasCollection(const proto::milvus::HasCollectionRequest& reque
 
 Status
 MilvusConnection::LoadCollection(const proto::milvus::LoadCollectionRequest& request, proto::common::Status& response) {
-    return Status::OK();
+    return grpcCall("LoadCollection", &Stub::LoadCollection, request, response);
 }
 
 Status

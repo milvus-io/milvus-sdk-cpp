@@ -115,7 +115,33 @@ MilvusClientImpl::DropCollection(const std::string& collection_name) {
 
 Status
 MilvusClientImpl::LoadCollection(const std::string& collection_name, const ProgressMonitor& progress_monitor) {
-    return Status::OK();
+    auto pre = [&collection_name]() {
+        proto::milvus::LoadCollectionRequest rpc_request;
+        rpc_request.set_collection_name(collection_name);
+        return rpc_request;
+    };
+
+    auto wait_for_status = [this, &collection_name, &progress_monitor](const proto::common::Status&) {
+        Status ret;
+        waitForStatus(
+            [&collection_name, this](Progress& progress) -> Status {
+                CollectionsInfo collections_info;
+                auto collection_names = std::vector<std::string>{collection_name};
+                auto status = ShowCollections(collection_names, collections_info);
+                if (not status.IsOk()) {
+                    return status;
+                }
+                progress.total_ = collections_info.size();
+                progress.finished_ = std::count_if(
+                    collections_info.begin(), collections_info.end(),
+                    [](const CollectionInfo& collection_info) { return collection_info.MemoryPercentage() >= 100; });
+                return status;
+            },
+            progress_monitor, ret);
+    };
+
+    return apiHandler<proto::milvus::LoadCollectionRequest, proto::common::Status>(
+        pre, &MilvusConnection::LoadCollection, wait_for_status);
 }
 
 Status
