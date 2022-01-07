@@ -291,6 +291,34 @@ DataTypeCast(DataType type) {
     }
 }
 
+DataType
+DataTypeCast(proto::schema::DataType type) {
+    switch (type) {
+        case proto::schema::DataType::Bool:
+            return DataType::BOOL;
+        case proto::schema::DataType::Int8:
+            return DataType::INT8;
+        case proto::schema::DataType::Int16:
+            return DataType::INT16;
+        case proto::schema::DataType::Int32:
+            return DataType::INT32;
+        case proto::schema::DataType::Int64:
+            return DataType::INT64;
+        case proto::schema::DataType::Float:
+            return DataType::FLOAT;
+        case proto::schema::DataType::Double:
+            return DataType::DOUBLE;
+        case proto::schema::DataType::String:
+            return DataType::STRING;
+        case proto::schema::DataType::BinaryVector:
+            return DataType::BINARY_VECTOR;
+        case proto::schema::DataType::FloatVector:
+            return DataType::FLOAT_VECTOR;
+        default:
+            return DataType::UNKNOWN;
+    }
+}
+
 proto::schema::VectorField*
 CreateProtoFieldData(const BinaryVecFieldData& field) {
     auto ret = new proto::schema::VectorField{};
@@ -564,6 +592,61 @@ CreateIDArray(const proto::schema::IDs& ids, size_t offset, size_t size) {
         std::advance(it_end, size);
         std::copy(it, it_end, std::back_inserter(str_array));
         return IDArray(str_array);
+    }
+}
+
+void
+ConvertFieldSchema(const proto::schema::FieldSchema& proto_schema, FieldSchema& field_schema) {
+    field_schema.SetName(proto_schema.name());
+    field_schema.SetDescription(proto_schema.description());
+    field_schema.SetPrimaryKey(proto_schema.is_primary_key());
+    field_schema.SetAutoID(proto_schema.autoid());
+    field_schema.SetDataType(DataTypeCast(proto_schema.data_type()));
+
+    std::map<std::string, std::string> params;
+    for (int k = 0; k < proto_schema.type_params_size(); ++k) {
+        auto& kv = proto_schema.type_params(k);
+        params.insert(std::make_pair(kv.key(), kv.value()));
+    }
+    field_schema.SetTypeParams(std::move(params));
+}
+
+void
+ConvertCollectionSchema(const proto::schema::CollectionSchema& proto_schema, CollectionSchema& schema) {
+    schema.SetName(proto_schema.name());
+    schema.SetDescription(proto_schema.description());
+
+    for (int i = 0; i < proto_schema.fields_size(); ++i) {
+        auto& proto_field = proto_schema.fields(i);
+        FieldSchema field_schema;
+        ConvertFieldSchema(proto_field, field_schema);
+        schema.AddField(std::move(field_schema));
+    }
+}
+
+void
+ConvertFieldSchema(const FieldSchema& schema, proto::schema::FieldSchema& proto_schema) {
+    proto_schema.set_name(schema.Name());
+    proto_schema.set_description(schema.Description());
+    proto_schema.set_is_primary_key(schema.IsPrimaryKey());
+    proto_schema.set_autoid(schema.AutoID());
+    proto_schema.set_data_type(DataTypeCast(schema.FieldDataType()));
+
+    for (auto& kv : schema.TypeParams()) {
+        auto pair = proto_schema.add_type_params();
+        pair->set_key(kv.first);
+        pair->set_value(kv.second);
+    }
+}
+
+void
+ConvertCollectionSchema(const CollectionSchema& schema, proto::schema::CollectionSchema& proto_schema) {
+    proto_schema.set_name(schema.Name());
+    proto_schema.set_description(schema.Description());
+
+    for (auto& field : schema.Fields()) {
+        auto proto_field = proto_schema.add_fields();
+        ConvertFieldSchema(field, *proto_field);
     }
 }
 

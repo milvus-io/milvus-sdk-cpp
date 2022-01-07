@@ -34,12 +34,7 @@ enum class CompactionStateCode {
  */
 class CompactionState {
  public:
-    CompactionState(CompactionStateCode state, int64_t executing_plan, int64_t timeout_plan, int64_t completed_plan)
-        : state_code_(state),
-          executing_plan_(executing_plan),
-          timeout_plan_(timeout_plan),
-          completed_plan_(completed_plan) {
-    }
+    CompactionState() = default;
 
     /**
      * @brief Compaction state code.
@@ -47,6 +42,14 @@ class CompactionState {
     CompactionStateCode
     State() const {
         return state_code_;
+    }
+
+    /**
+     * @brief Set compaction state code.
+     */
+    void
+    SetState(const CompactionStateCode& state) {
+        state_code_ = state;
     }
 
     /**
@@ -58,6 +61,14 @@ class CompactionState {
     }
 
     /**
+     * @brief Set the executing plan id.
+     */
+    void
+    SetExecutingPlan(const int64_t id) {
+        executing_plan_ = id;
+    }
+
+    /**
      * @brief The timeout plan id.
      */
     int64_t
@@ -66,11 +77,27 @@ class CompactionState {
     }
 
     /**
+     * @brief Set the timeout plan id.
+     */
+    void
+    SetTimeoutPlan(const int64_t id) {
+        timeout_plan_ = id;
+    }
+
+    /**
      * @brief The completed plan id.
      */
     int64_t
     CompletedPlan() const {
         return completed_plan_;
+    }
+
+    /**
+     * @brief Set the completed plan id.
+     */
+    void
+    SetCompletedPlan(const int64_t id) {
+        completed_plan_ = id;
     }
 
  private:

@@ -26,8 +26,10 @@ namespace milvus {
  */
 class CompactionPlan {
  public:
-    CompactionPlan(std::vector<int64_t>& src_segments, int64_t dst_segment) : dst_segment_(dst_segment) {
-        src_segments_.swap(src_segments);
+    CompactionPlan() = default;
+
+    explicit CompactionPlan(std::vector<int64_t>&& segments, int64_t dst_segment)
+        : src_segments_(std::move(segments)), dst_segment_(dst_segment) {
     }
 
     /**
@@ -39,11 +41,27 @@ class CompactionPlan {
     }
 
     /**
+     * @brief Set segment id array to be merged.
+     */
+    void
+    SetSourceSegments(std::vector<int64_t>&& segments) {
+        src_segments_ = std::move(segments);
+    }
+
+    /**
      * @brief New generated segment id after merging.
      */
     int64_t
     DestinySegemnt() const {
         return dst_segment_;
+    }
+
+    /**
+     * @brief Set segment id.
+     */
+    void
+    SetDestinySegemnt(int64_t id) {
+        dst_segment_ = id;
     }
 
  private:

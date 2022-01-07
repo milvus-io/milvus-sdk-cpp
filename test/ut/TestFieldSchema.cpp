@@ -26,11 +26,25 @@ TEST_F(FieldSchemaTest, GeneralTesting) {
     milvus::DataType dt = milvus::DataType::DOUBLE;
     bool is_primary_key = true;
     bool auto_id = false;
+    std::map<std::string, std::string> params;
+    params.insert(std::make_pair("dummy", "dummy"));
 
-    milvus::FieldSchema schema(name, dt, desc, is_primary_key, auto_id);
+    milvus::FieldSchema schema;
+    schema.SetName(name);
+    schema.SetDescription(desc);
+    schema.SetDataType(dt);
+    schema.SetPrimaryKey(is_primary_key);
+    schema.SetAutoID(auto_id);
+    schema.SetTypeParams(std::move(params));
+    schema.SetDimension(256);
+
     EXPECT_EQ(name, schema.Name());
     EXPECT_EQ(desc, schema.Description());
     EXPECT_EQ(dt, schema.FieldDataType());
     EXPECT_EQ(is_primary_key, schema.IsPrimaryKey());
     EXPECT_EQ(auto_id, schema.AutoID());
+
+    auto& type_params = schema.TypeParams();
+    EXPECT_TRUE(type_params.find(milvus::FieldDim()) != type_params.end());
+    EXPECT_EQ("256", type_params.at(milvus::FieldDim()));
 }
