@@ -28,6 +28,32 @@ namespace milvus {
  */
 class CollectionDesc {
  public:
+    CollectionDesc() = default;
+    CollectionDesc(const CollectionSchema& schema, int64_t collection_id, std::vector<std::string>& alias,
+                   uint64_t create_utc_timestamp)
+        : schema_{schema}, collection_id_{0}, alias_{0}, created_utc_timestamp_{0} {
+    }
+
+    CollectionSchema
+    Schema() const {
+        return schema_;
+    }
+
+    int64_t
+    CollectionID() const {
+        return collection_id_;
+    }
+
+    const std::vector<std::string>&
+    Alias() const {
+        return alias_;
+    }
+
+    uint64_t
+    CreatedTime() const {
+        return created_utc_timestamp_;
+    }
+
  private:
     /**
      * @brief Collection schema defined by CreateCollection().

@@ -150,7 +150,18 @@ MilvusClientImpl::ReleaseCollection(const std::string& collection_name) {
 
 Status
 MilvusClientImpl::DescribeCollection(const std::string& collection_name, CollectionDesc& collection_desc) {
-    return Status::OK();
+    ON_ERROR_IF_NO_CONNECTION(connection_);
+
+    proto::milvus::DescribeCollectionRequest rpc_request;
+    rpc_request.set_collection_name(collection_name);
+    rpc_request.set_time_stamp(collection_desc.CreatedTime());
+    rpc_request.set_collectionid(collection_desc.CollectionID());
+
+    proto::milvus::DescribeCollectionResponse rpc_response;
+    auto ret = connection_->DescribeCollection(rpc_request, rpc_response);
+
+    ON_ERROR_RETURN(ret, rpc_response.status());
+    return ret;
 }
 
 Status

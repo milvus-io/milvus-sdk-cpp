@@ -82,7 +82,7 @@ MilvusConnection::ReleaseCollection(const proto::milvus::ReleaseCollectionReques
 Status
 MilvusConnection::DescribeCollection(const proto::milvus::DescribeCollectionRequest& request,
                                      proto::milvus::DescribeCollectionResponse& response) {
-    return Status::OK();
+    return grpcCall("DescribeCollection", &Stub::DescribeCollection, request, response);
 }
 
 Status
