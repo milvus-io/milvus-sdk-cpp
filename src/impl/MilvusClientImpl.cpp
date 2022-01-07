@@ -110,7 +110,14 @@ MilvusClientImpl::HasCollection(const std::string& collection_name, bool& has) {
 
 Status
 MilvusClientImpl::DropCollection(const std::string& collection_name) {
-    return Status::OK();
+    auto pre = [&collection_name]() {
+        proto::milvus::DropCollectionRequest rpc_request;
+        rpc_request.set_collection_name(collection_name);
+        return rpc_request;
+    };
+
+    return apiHandler<proto::milvus::DropCollectionRequest, proto::common::Status>(pre,
+                                                                                   &MilvusConnection::DropCollection);
 }
 
 Status
