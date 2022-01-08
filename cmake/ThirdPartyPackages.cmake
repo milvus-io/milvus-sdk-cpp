@@ -47,7 +47,11 @@ endif ()
 if (DEFINED ENV{MILVUS_GTEST_URL})
     set(GTEST_SOURCE_URL "$ENV{MILVUS_GTEST_URL}")
 else ()
-    set(GTEST_SOURCE_URL "https://github.com/google/googletest/archive/release-1.10.0.tar.gz")
+    # default using 1.11, for legacy compilers using 1.10
+    set(GTEST_SOURCE_URL "https://github.com/google/googletest/archive/release-1.11.0.tar.gz")
+    if (CMAKE_CXX_COMPILER_VERSION VERSION_LESS 5.0 AND CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+        set(GTEST_SOURCE_URL "https://github.com/google/googletest/archive/release-1.10.0.tar.gz")
+    endif()
 endif ()
 
 
