@@ -59,7 +59,7 @@ MilvusConnection::CreateCollection(const proto::milvus::CreateCollectionRequest&
 
 Status
 MilvusConnection::DropCollection(const proto::milvus::DropCollectionRequest& request, proto::common::Status& response) {
-    return Status::OK();
+    return grpcCall("DropCollection", &Stub::DropCollection, request, response);
 }
 
 Status
