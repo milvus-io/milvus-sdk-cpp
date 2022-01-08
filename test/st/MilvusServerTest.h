@@ -13,3 +13,28 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+
+#include <gtest/gtest.h>
+
+#include "MilvusClient.h"
+#include "MilvusDockerServer.h"
+
+namespace milvus {
+class MilvusServerTest : public ::testing::Test {
+ protected:
+    MilvusDockerServer server_{};
+    std::shared_ptr<milvus::MilvusClient> client_{nullptr};
+
+    void
+    SetUp() override {
+        server_.Start();
+        client_ = milvus::MilvusClient::Create();
+    }
+
+    void
+    TearDown() override {
+    }
+};
+}  // namespace milvus
+
+using milvus::MilvusServerTest;

@@ -191,7 +191,6 @@ class MilvusConnection {
         ::grpc::Status grpc_status = (stub_.get()->*func)(&context, request, &response);
 
         if (!grpc_status.ok()) {
-            std::cerr << name << " failed!" << std::endl;
             return {StatusCode::SERVER_FAILED, grpc_status.error_message()};
         }
 

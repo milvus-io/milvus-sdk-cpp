@@ -39,7 +39,7 @@ TEST_F(MilvusMockedTest, DescribeCollectionFoo) {
     const int64_t created_ts = 999;
 
     milvus::CollectionSchema collection_schema("test", "test_desc", 3);
-    collection_schema.AddField(std::move(field_schema));
+    collection_schema.AddField(field_schema);
 
     EXPECT_CALL(service_, DescribeCollection(
                               _, Property(&DescribeCollectionRequest::collection_name, collection_schema.Name()), _))

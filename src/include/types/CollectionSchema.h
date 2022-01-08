@@ -94,9 +94,16 @@ class CollectionSchema {
      * @brief Add a field schema.
      */
     bool
-    AddField(FieldSchema&& field_schema) {
+    AddField(const FieldSchema& field_schema) {
         // TODO: check duplicate field name
         fields_.emplace_back(field_schema);
+        return true;
+    }
+
+    bool
+    AddField(FieldSchema&& field_schema) {
+        // TODO: check duplicate field name
+        fields_.emplace_back(std::move(field_schema));
         return true;
     }
 
