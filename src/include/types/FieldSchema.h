@@ -155,6 +155,12 @@ class FieldSchema {
         return true;
     }
 
+    FieldSchema&
+    WithDimension(uint32_t dimension) {
+        (void)SetDimension(dimension);
+        return *this;
+    }
+
  private:
     std::string name_;
     std::string description_;
