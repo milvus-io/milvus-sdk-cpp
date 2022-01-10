@@ -501,6 +501,60 @@ CreateProtoFieldData(const Field& field) {
 }
 
 FieldDataPtr
+CreateMilvusFieldData(const milvus::proto::schema::FieldData& field_data, size_t offset, size_t count) {
+    auto field_type = field_data.type();
+    const auto& name = field_data.field_name();
+
+    switch (field_type) {
+        case proto::schema::DataType::BinaryVector:
+            return std::make_shared<BinaryVecFieldData>(
+                name, BuildFieldDataVectors<uint8_t>(field_data.vectors().dim(), field_data.vectors().binary_vector(),
+                                                     offset, count));
+
+        case proto::schema::DataType::FloatVector:
+            return std::make_shared<FloatVecFieldData>(
+                name, BuildFieldDataVectors<float>(field_data.vectors().dim(),
+                                                   field_data.vectors().float_vector().data(), offset, count));
+
+        case proto::schema::DataType::Bool:
+            return std::make_shared<BoolFieldData>(
+                name, BuildFieldDataScalars<bool>(field_data.scalars().bool_data().data(), offset, count));
+
+        case proto::schema::DataType::Int8:
+            return std::make_shared<Int8FieldData>(
+                name, BuildFieldDataScalars<int8_t>(field_data.scalars().int_data().data(), offset, count));
+
+        case proto::schema::DataType::Int16:
+            return std::make_shared<Int16FieldData>(
+                name, BuildFieldDataScalars<int16_t>(field_data.scalars().int_data().data(), offset, count));
+
+        case proto::schema::DataType::Int32:
+            return std::make_shared<Int32FieldData>(
+                name, BuildFieldDataScalars<int32_t>(field_data.scalars().int_data().data(), offset, count));
+
+        case proto::schema::DataType::Int64:
+            return std::make_shared<Int64FieldData>(
+                name, BuildFieldDataScalars<int64_t>(field_data.scalars().long_data().data(), offset, count));
+
+        case proto::schema::DataType::Float:
+            return std::make_shared<FloatFieldData>(
+                name, BuildFieldDataScalars<float>(field_data.scalars().float_data().data(), offset, count));
+
+        case proto::schema::DataType::Double:
+            return std::make_shared<DoubleFieldData>(
+                name, BuildFieldDataScalars<double>(field_data.scalars().double_data().data(), offset, count));
+
+        case proto::schema::DataType::String:
+            return std::make_shared<StringFieldData>(
+                name, BuildFieldDataScalars<std::string>(field_data.scalars().string_data().data(), offset, count));
+        default:
+            break;
+    }
+
+    return nullptr;
+}
+
+FieldDataPtr
 CreateMilvusFieldData(const milvus::proto::schema::FieldData& field_data) {
     auto field_type = field_data.type();
     const auto& name = field_data.field_name();
@@ -549,7 +603,6 @@ CreateMilvusFieldData(const milvus::proto::schema::FieldData& field_data) {
         default:
             break;
     }
-
     return nullptr;
 }
 

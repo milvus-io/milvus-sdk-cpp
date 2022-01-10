@@ -117,9 +117,9 @@ class SearchArguments {
     FieldDataPtr
     TargetVectors() const {
         if (binary_vectors_ != nullptr) {
-            return std::static_pointer_cast<Field>(binary_vectors_);
+            return binary_vectors_;
         } else if (float_vectors_ != nullptr) {
-            return std::static_pointer_cast<Field>(float_vectors_);
+            return float_vectors_;
         }
 
         return nullptr;
@@ -129,13 +129,13 @@ class SearchArguments {
      * @brief Add a binary vector to search
      */
     Status
-    AddTargetVector(const BinaryVecFieldData::ElementT& vector) {
+    AddTargetVector(const std::string& field_name, const BinaryVecFieldData::ElementT& vector) {
         if (float_vectors_ != nullptr) {
             return {StatusCode::INVALID_AGUMENT, "Target vector must be float type!"};
         }
 
         if (nullptr == binary_vectors_) {
-            binary_vectors_ = std::make_shared<BinaryVecFieldData>();
+            binary_vectors_ = std::make_shared<BinaryVecFieldData>(field_name);
         }
 
         auto code = binary_vectors_->Add(vector);
@@ -150,13 +150,13 @@ class SearchArguments {
      * @brief Add a float vector to search
      */
     Status
-    AddTargetVector(const FloatVecFieldData::ElementT& vector) {
+    AddTargetVector(const std::string& field_name, const FloatVecFieldData::ElementT& vector) {
         if (binary_vectors_ != nullptr) {
             return {StatusCode::INVALID_AGUMENT, "Target vector must be binary type!"};
         }
 
         if (nullptr == float_vectors_) {
-            float_vectors_ = std::make_shared<FloatVecFieldData>();
+            float_vectors_ = std::make_shared<FloatVecFieldData>(field_name);
         }
 
         auto code = float_vectors_->Add(vector);

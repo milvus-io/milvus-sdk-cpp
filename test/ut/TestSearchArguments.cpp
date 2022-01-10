@@ -54,14 +54,14 @@ TEST_F(SearchArgumentsTest, VectorTesting) {
 
     {
         milvus::SearchArguments arguments;
-        auto status = arguments.AddTargetVector(binary_vector);
+        auto status = arguments.AddTargetVector("dummy", binary_vector);
         EXPECT_TRUE(status.IsOk());
 
-        status = arguments.AddTargetVector(float_vector);
+        status = arguments.AddTargetVector("dummy", float_vector);
         EXPECT_FALSE(status.IsOk());
 
         milvus::BinaryVecFieldData::ElementT new_vector = {1, 2};
-        status = arguments.AddTargetVector(new_vector);
+        status = arguments.AddTargetVector("dummy", new_vector);
         EXPECT_FALSE(status.IsOk());
 
         auto target_vectors = arguments.TargetVectors();
@@ -72,14 +72,14 @@ TEST_F(SearchArgumentsTest, VectorTesting) {
 
     {
         milvus::SearchArguments arguments;
-        auto status = arguments.AddTargetVector(float_vector);
+        auto status = arguments.AddTargetVector("dummy", float_vector);
         EXPECT_TRUE(status.IsOk());
 
-        status = arguments.AddTargetVector(binary_vector);
+        status = arguments.AddTargetVector("dummy", binary_vector);
         EXPECT_FALSE(status.IsOk());
 
         milvus::FloatVecFieldData::ElementT new_vector = {1.0, 2.0, 3.0};
-        status = arguments.AddTargetVector(new_vector);
+        status = arguments.AddTargetVector("dummy", new_vector);
         EXPECT_FALSE(status.IsOk());
 
         auto target_vectors = arguments.TargetVectors();

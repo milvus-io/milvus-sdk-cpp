@@ -17,6 +17,7 @@
 #pragma once
 
 #include <string>
+#include <unordered_set>
 #include <vector>
 
 #include "FieldSchema.h"
@@ -105,6 +106,21 @@ class CollectionSchema {
         // TODO: check duplicate field name
         fields_.emplace_back(std::move(field_schema));
         return true;
+    }
+
+    /**
+     * @brief Return Anns field names, if not exist return empty
+     */
+    std::unordered_set<std::string>
+    AnnsFieldNames() const {
+        std::unordered_set<std::string> ret;
+        for (const auto& field : fields_) {
+            auto data_type = field.FieldDataType();
+            if (data_type == DataType::BINARY_VECTOR || data_type == DataType::FLOAT_VECTOR) {
+                ret.emplace(field.Name());
+            }
+        }
+        return ret;
     }
 
  private:

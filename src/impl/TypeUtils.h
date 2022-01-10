@@ -100,12 +100,14 @@ CreateProtoFieldData(const Field& field);
 
 template <typename T, typename VectorData>
 std::vector<std::vector<T>>
-BuildFieldDataVectors(int64_t dim, const VectorData& vector_data) {
+BuildFieldDataVectors(int64_t dim, const VectorData& vector_data, size_t offset, size_t count) {
     std::vector<std::vector<T>> data{};
-    const auto row_count = vector_data.size() / dim;
-    data.reserve(row_count);
+    data.reserve(count * dim);
     auto cursor = vector_data.begin();
-    while (cursor != vector_data.end()) {
+    std::advance(cursor, offset * dim);
+    auto end = cursor;
+    std::advance(end, count * dim);
+    while (cursor != end) {
         std::vector<T> item{};
         item.reserve(dim);
         std::copy_n(cursor, dim, std::back_inserter(item));
@@ -115,14 +117,33 @@ BuildFieldDataVectors(int64_t dim, const VectorData& vector_data) {
     return data;
 }
 
+template <typename T, typename VectorData>
+std::vector<std::vector<T>>
+BuildFieldDataVectors(int64_t dim, const VectorData& vector_data) {
+    return BuildFieldDataVectors<T>(dim, vector_data, 0, vector_data.size() / dim);
+}
+
+template <typename T, typename ScalarData>
+std::vector<T>
+BuildFieldDataScalars(const ScalarData& scalar_data, size_t offset, size_t count) {
+    std::vector<T> data{};
+    data.reserve(count);
+    auto begin = scalar_data.begin();
+    std::advance(begin, offset);
+    auto end = begin;
+    std::advance(end, count);
+    std::copy(begin, end, std::back_inserter(data));
+    return data;
+}
+
 template <typename T, typename ScalarData>
 std::vector<T>
 BuildFieldDataScalars(const ScalarData& scalar_data) {
-    std::vector<T> data{};
-    data.reserve(scalar_data.size());
-    std::copy(scalar_data.begin(), scalar_data.end(), std::back_inserter(data));
-    return data;
+    return BuildFieldDataScalars<T>(scalar_data, 0, scalar_data.size());
 }
+
+FieldDataPtr
+CreateMilvusFieldData(const proto::schema::FieldData& field_data, size_t offset, size_t count);
 
 FieldDataPtr
 CreateMilvusFieldData(const proto::schema::FieldData& field_data);
