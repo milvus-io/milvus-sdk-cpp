@@ -498,7 +498,24 @@ MilvusClientImpl::Delete(const std::string& collection_name, const std::string& 
 
 Status
 MilvusClientImpl::Search(const SearchArguments& arguments, SearchResults& results) {
-    auto pre = [&arguments]() {
+    std::string anns_field;
+    auto validate = [this, &arguments, &anns_field]() {
+        CollectionDesc collection_desc;
+        auto status = DescribeCollection(arguments.CollectionName(), collection_desc);
+        if (status.IsOk()) {
+            // check anns fields
+            auto& field_name = arguments.TargetVectors()->Name();
+            auto anns_fileds = collection_desc.Schema().AnnsFieldNames();
+            if (anns_fileds.find(field_name) != anns_fileds.end()) {
+                anns_field = field_name;
+            } else {
+                return Status{StatusCode::INVALID_AGUMENT, std::string(field_name + " is not a valid anns field")};
+            }
+        }
+        return status;
+    };
+
+    auto pre = [&arguments, &anns_field]() {
         proto::milvus::SearchRequest rpc_request;
         rpc_request.set_collection_name(arguments.CollectionName());
         rpc_request.set_dsl_type(proto::common::DslType::BoolExprV1);
@@ -539,8 +556,7 @@ MilvusClientImpl::Search(const SearchArguments& arguments, SearchResults& result
 
         auto kv_pair = rpc_request.add_search_params();
         kv_pair->set_key("anns_field");
-        // TODO(jibin): get anns field after DescribeCollection ready
-        kv_pair->set_value("dummy");
+        kv_pair->set_value(anns_field);
 
         kv_pair = rpc_request.add_search_params();
         kv_pair->set_key("topk");
@@ -548,12 +564,18 @@ MilvusClientImpl::Search(const SearchArguments& arguments, SearchResults& result
 
         kv_pair = rpc_request.add_search_params();
         kv_pair->set_key("metric_type");
-        // TODO(jibin): get metric type after DescribeCollection ready
-        kv_pair->set_value("dummy");
+        // TODO(jibin): get metric type from user input
+        kv_pair->set_value("L2");
 
         kv_pair = rpc_request.add_search_params();
         kv_pair->set_key("round_decimal");
         kv_pair->set_value(std::to_string(arguments.RoundDecimal()));
+
+        kv_pair = rpc_request.add_search_params();
+        kv_pair->set_key("params");
+        // TODO(jibin): introducing json nlohmann/json
+        //              to provides params like: nprobe
+        kv_pair->set_value("{}");
 
         rpc_request.set_travel_timestamp(arguments.TravelTimestamp());
         rpc_request.set_guarantee_timestamp(arguments.GuaranteeTimestamp());
@@ -564,7 +586,7 @@ MilvusClientImpl::Search(const SearchArguments& arguments, SearchResults& result
         auto& result_data = response.results();
         const auto& ids = result_data.ids();
         const auto& scores = result_data.scores();
-        const auto& field_data = result_data.fields_data();
+        const auto& fields_data = result_data.fields_data();
         auto num_of_queries = result_data.num_queries();
         std::vector<int64_t> topks(num_of_queries, result_data.top_k());
         for (int i = 0; i < result_data.topks_size(); ++i) {
@@ -578,10 +600,12 @@ MilvusClientImpl::Search(const SearchArguments& arguments, SearchResults& result
             std::vector<FieldDataPtr> item_field_data;
             auto item_topk = topks[i];
             item_scores.reserve(item_topk);
-            item_field_data.reserve(item_topk);
             for (int64_t j = 0; j < item_topk; ++j) {
                 item_scores.emplace_back(scores.at(offset + j));
-                item_field_data.emplace_back(std::move(CreateMilvusFieldData(field_data.at(offset + j))));
+            }
+            item_field_data.reserve(fields_data.size());
+            for (const auto& field_data : fields_data) {
+                item_field_data.emplace_back(std::move(milvus::CreateMilvusFieldData(field_data, offset, item_topk)));
             }
             single_results.emplace_back(std::move(CreateIDArray(ids, offset, item_topk)), std::move(item_scores),
                                         std::move(item_field_data));
@@ -591,7 +615,8 @@ MilvusClientImpl::Search(const SearchArguments& arguments, SearchResults& result
         results = std::move(SearchResults(std::move(single_results)));
     };
 
-    return apiHandler<proto::milvus::SearchRequest, proto::milvus::SearchResults>(pre, &MilvusConnection::Search, post);
+    return apiHandler<proto::milvus::SearchRequest, proto::milvus::SearchResults>(
+        validate, pre, &MilvusConnection::Search, nullptr, post);
 }
 
 Status

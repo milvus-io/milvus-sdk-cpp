@@ -20,6 +20,17 @@
 
 class SearchResultsTest : public ::testing::Test {};
 
+TEST_F(SearchResultsTest, TestSingleResult) {
+    milvus::SingleResult result{
+        milvus::IDArray{std::vector<int64_t>{10000}}, std::vector<float>{0.1f},
+        std::vector<milvus::FieldDataPtr>{std::make_shared<milvus::BoolFieldData>("bool", std::vector<bool>{true}),
+                                          std::make_shared<milvus::Int16FieldData>("int16", std::vector<int16_t>{1})}};
+    EXPECT_EQ(result.Ids().IntIDArray(), std::vector<int64_t>{10000});
+    EXPECT_EQ(result.Scores(), std::vector<float>{0.1f});
+    EXPECT_EQ(result.OutputField("bool")->Name(), "bool");
+    EXPECT_EQ(result.OutputField("int16")->Name(), "int16");
+}
+
 TEST_F(SearchResultsTest, GeneralTesting) {
     milvus::IDArray ids{std::vector<int64_t>{}};
     std::vector<float> scores{};
