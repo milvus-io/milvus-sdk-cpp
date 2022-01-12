@@ -20,6 +20,7 @@
 #include "types/CollectionSchema.h"
 #include "types/FieldData.h"
 #include "types/IDArray.h"
+#include "types/MetricType.h"
 
 namespace milvus {
 
@@ -167,3 +168,7 @@ void
 ConvertCollectionSchema(const CollectionSchema& schema, proto::schema::CollectionSchema& proto_schema);
 
 }  // namespace milvus
+
+namespace std {
+std::string to_string(milvus::MetricType);
+}

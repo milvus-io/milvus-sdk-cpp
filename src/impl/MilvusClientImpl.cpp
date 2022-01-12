@@ -564,8 +564,7 @@ MilvusClientImpl::Search(const SearchArguments& arguments, SearchResults& result
 
         kv_pair = rpc_request.add_search_params();
         kv_pair->set_key("metric_type");
-        // TODO(jibin): get metric type from user input
-        kv_pair->set_value("L2");
+        kv_pair->set_value(std::to_string(arguments.MetricType()));
 
         kv_pair = rpc_request.add_search_params();
         kv_pair->set_key("round_decimal");

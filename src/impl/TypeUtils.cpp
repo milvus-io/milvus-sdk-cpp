@@ -704,3 +704,30 @@ ConvertCollectionSchema(const CollectionSchema& schema, proto::schema::Collectio
 }
 
 }  // namespace milvus
+
+namespace std {
+std::string
+to_string(milvus::MetricType metric_type) {
+    switch (metric_type) {
+        case milvus::MetricType::L2:
+            return "L2";
+        case milvus::MetricType::IP:
+            return "IP";
+        case milvus::MetricType::HAMMING:
+            return "HAMMING";
+        case milvus::MetricType::JACCARD:
+            return "JACCARD";
+        case milvus::MetricType::TANIMOTO:
+            return "TANIMOTO";
+        case milvus::MetricType::SUBSTRUCTURE:
+            return "SUBSTRUCTURE";
+        case milvus::MetricType::SUPERSTRUCTURE:
+            return "SUPERSTRUCTURE";
+        case milvus::MetricType::INVALID:
+            break;
+        default:
+            break;
+    }
+    return "INVALID";
+}
+}  // namespace std
