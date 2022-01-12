@@ -30,3 +30,4 @@ enum class MetricType {
     SUPERSTRUCTURE
 };
 }  // namespace milvus
+>>>>>>> 2f889a7... Using MetricType from user input for Search
