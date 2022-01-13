@@ -21,6 +21,7 @@
 #include <string>
 
 #include "FieldData.h"
+#include "MetricType.h"
 #include "Status.h"
 
 namespace milvus {
@@ -236,6 +237,23 @@ class SearchArguments {
         return round_decimal_;
     }
 
+    /**
+     * @brief Specifies the metric type
+     */
+    Status
+    SetMetricType(MetricType metric_type) {
+        metric_type_ = metric_type;
+        return Status::OK();
+    }
+
+    /**
+     * @brief Get the metric type
+     */
+    ::milvus::MetricType
+    MetricType() const {
+        return metric_type_;
+    }
+
  private:
     std::string collection_name_;
     std::set<std::string> partition_names_;
@@ -253,6 +271,8 @@ class SearchArguments {
 
     int64_t topk_{1};
     int round_decimal_{-1};
+
+    ::milvus::MetricType metric_type_{::milvus::MetricType::L2};
 };
 
 }  // namespace milvus

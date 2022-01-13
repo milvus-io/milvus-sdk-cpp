@@ -215,3 +215,14 @@ TEST_F(TypeUtilsTest, CreateMilvusFieldDataWithRange) {
     EXPECT_THAT(floats_field_data_ptr->Data(),
                 ElementsAre(std::vector<float>{0.4f, 0.5f, 0.6f}, std::vector<float>{0.7f, 0.8f, 0.9f}));
 }
+
+TEST_F(TypeUtilsTest, MetricTypeToString) {
+    EXPECT_EQ(std::to_string(milvus::MetricType::IP), "IP");
+    EXPECT_EQ(std::to_string(milvus::MetricType::L2), "L2");
+    EXPECT_EQ(std::to_string(milvus::MetricType::HAMMING), "HAMMING");
+    EXPECT_EQ(std::to_string(milvus::MetricType::SUBSTRUCTURE), "SUBSTRUCTURE");
+    EXPECT_EQ(std::to_string(milvus::MetricType::SUPERSTRUCTURE), "SUPERSTRUCTURE");
+    EXPECT_EQ(std::to_string(milvus::MetricType::TANIMOTO), "TANIMOTO");
+    EXPECT_EQ(std::to_string(milvus::MetricType::JACCARD), "JACCARD");
+    EXPECT_EQ(std::to_string(milvus::MetricType::INVALID), "INVALID");
+}

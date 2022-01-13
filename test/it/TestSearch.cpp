@@ -71,6 +71,7 @@ TEST_F(MilvusMockedTest, SearchFoo) {
     search_arguments.SetGuaranteeTimestamp(10001);
     search_arguments.SetTopK(10);
     search_arguments.SetRoundDecimal(-1);
+    search_arguments.SetMetricType(milvus::MetricType::IP);
 
     EXPECT_CALL(service_, DescribeCollection(_, Property(&DescribeCollectionRequest::collection_name, "foo"), _))
         .WillOnce([](::grpc::ServerContext*, const DescribeCollectionRequest*, DescribeCollectionResponse* response) {
@@ -95,7 +96,7 @@ TEST_F(MilvusMockedTest, SearchFoo) {
                              Property(&SearchRequest::output_fields, UnorderedElementsAre("f1", "f2")),
                              Property(&SearchRequest::search_params,
                                       UnorderedElementsAre(TestKv("anns_field", "anns_dummy"), TestKv("topk", "10"),
-                                                           TestKv("metric_type", "L2"), TestKv("round_decimal", "-1"),
+                                                           TestKv("metric_type", "IP"), TestKv("round_decimal", "-1"),
                                                            TestKv("params", "{}")))),
                        _))
         .WillOnce([&floats_vec](::grpc::ServerContext*, const SearchRequest* request, SearchResults* response) {
