@@ -16,7 +16,7 @@
 
 #include <gtest/gtest.h>
 
-#include "types/IndexDesc.h"
+#include "milvus/types/IndexDesc.h"
 
 class IndexDescTest : public ::testing::Test {};
 

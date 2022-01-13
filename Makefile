@@ -33,7 +33,6 @@ build-sdk-release:
 	@echo "Building Milvus SDK release version ..."
 	@(env bash $(PWD)/scripts/build.sh -t Release)
 
-
 test:
 	@echo "Testing with Milvus SDK"
 	@(env bash $(PWD)/scripts/build.sh -u)
@@ -46,4 +45,12 @@ coverage: test
 	@echo "Run code coverage ..."
 	@(env bash $(PWD)/scripts/coverage.sh)
 
-.PHONY: test
+package:
+	@echo "Building Milvus SDK package ..."
+	@(env bash $(PWD)/scripts/build.sh -p)
+
+clean:
+	@echo "Cleaning"
+	rm -fr cmake_build/
+
+.PHONY: test clean package

@@ -55,7 +55,7 @@ install_deps_for_centos_7() {
     check_sudo
     ${SUDO} yum -y update
     ${SUDO} yum -y install epel-release
-    yum -y install gcc gcc-c++ python gpg wget ccache make openssl-devel which lcov
+    yum -y install gcc gcc-c++ python gpg wget ccache make openssl-devel which lcov rpm-build
     
     # for cmake >= 3.12, using cmake3 from epel
     current_cmake_version=$(get_cmake_version)

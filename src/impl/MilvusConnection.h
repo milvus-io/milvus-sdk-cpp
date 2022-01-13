@@ -25,10 +25,10 @@
 #include <memory>
 #include <string>
 
-#include "Status.h"
 #include "common.pb.h"
 #include "milvus.grpc.pb.h"
 #include "milvus.pb.h"
+#include "milvus/Status.h"
 #include "schema.pb.h"
 
 namespace milvus {

@@ -16,7 +16,7 @@
 
 #include <gtest/gtest.h>
 
-#include "types/QueryArguments.h"
+#include "milvus/types/QueryArguments.h"
 
 class QueryArgumentsTest : public ::testing::Test {};
 

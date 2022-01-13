@@ -19,8 +19,8 @@
 #include <memory>
 #include <vector>
 
-#include "Status.h"
-#include "types/DataType.h"
+#include "../Status.h"
+#include "DataType.h"
 
 namespace milvus {
 class Field {

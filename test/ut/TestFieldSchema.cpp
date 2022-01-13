@@ -16,7 +16,7 @@
 
 #include <gtest/gtest.h>
 
-#include "types/FieldSchema.h"
+#include "milvus/types/FieldSchema.h"
 
 class FieldSchemaTest : public ::testing::Test {};
 

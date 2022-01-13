@@ -17,8 +17,8 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
-#include "MilvusClient.h"
 #include "MilvusDockerServer.h"
+#include "milvus/MilvusClient.h"
 
 namespace milvus {
 class MilvusServerTest : public ::testing::Test {

@@ -16,7 +16,7 @@
 
 #include <gtest/gtest.h>
 
-#include "types/SearchResults.h"
+#include "milvus/types/SearchResults.h"
 
 class SearchResultsTest : public ::testing::Test {};
 

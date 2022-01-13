@@ -22,7 +22,7 @@
 #include <sstream>
 #include <thread>
 
-#include "MilvusClient.h"
+#include "milvus/MilvusClient.h"
 
 namespace {
 constexpr uint16_t milvus_listen_port{19530};

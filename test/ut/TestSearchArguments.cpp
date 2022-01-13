@@ -16,7 +16,7 @@
 
 #include <gtest/gtest.h>
 
-#include "types/SearchArguments.h"
+#include "milvus/types/SearchArguments.h"
 
 class SearchArgumentsTest : public ::testing::Test {};
 

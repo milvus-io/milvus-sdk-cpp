@@ -16,22 +16,19 @@
 
 #pragma once
 
-#include <map>
 #include <set>
 #include <string>
 
-#include "FieldData.h"
-#include "MetricType.h"
-#include "Status.h"
+#include "../Status.h"
 
 namespace milvus {
 
 /**
- * @brief Arguments for Search().
+ * @brief Arguments for Query().
  */
-class SearchArguments {
+class QueryArguments {
  public:
-    SearchArguments() = default;
+    QueryArguments() = default;
 
     /**
      * @brief Get name of the target collection
@@ -62,7 +59,7 @@ class SearchArguments {
     }
 
     /**
-     * @brief Specify partition name to control search scope, the name cannot be empty
+     * @brief Specify partition name to control query scope, the name cannot be empty
      */
     Status
     AddPartitionName(const std::string& partition_name) {
@@ -70,7 +67,7 @@ class SearchArguments {
             return {StatusCode::INVALID_AGUMENT, "Partition name cannot be empty!"};
         }
 
-        partition_names_.emplace(partition_name);
+        partition_names_.insert(partition_name);
         return Status::OK();
     }
 
@@ -104,67 +101,15 @@ class SearchArguments {
     }
 
     /**
-     * @brief Set filter expression
+     * @brief Set filter expression, the expression cannot be empty
      */
     Status
     SetExpression(const std::string& expression) {
+        if (expression.empty()) {
+            return {StatusCode::INVALID_AGUMENT, "Filter expression cannot be empty!"};
+        }
+
         filter_expression_ = expression;
-        return Status::OK();
-    }
-
-    /**
-     * @brief Get target vectors
-     */
-    FieldDataPtr
-    TargetVectors() const {
-        if (binary_vectors_ != nullptr) {
-            return binary_vectors_;
-        } else if (float_vectors_ != nullptr) {
-            return float_vectors_;
-        }
-
-        return nullptr;
-    }
-
-    /**
-     * @brief Add a binary vector to search
-     */
-    Status
-    AddTargetVector(const std::string& field_name, const BinaryVecFieldData::ElementT& vector) {
-        if (float_vectors_ != nullptr) {
-            return {StatusCode::INVALID_AGUMENT, "Target vector must be float type!"};
-        }
-
-        if (nullptr == binary_vectors_) {
-            binary_vectors_ = std::make_shared<BinaryVecFieldData>(field_name);
-        }
-
-        auto code = binary_vectors_->Add(vector);
-        if (code != StatusCode::OK) {
-            return {code, "Failed to add vector"};
-        }
-
-        return Status::OK();
-    }
-
-    /**
-     * @brief Add a float vector to search
-     */
-    Status
-    AddTargetVector(const std::string& field_name, const FloatVecFieldData::ElementT& vector) {
-        if (binary_vectors_ != nullptr) {
-            return {StatusCode::INVALID_AGUMENT, "Target vector must be binary type!"};
-        }
-
-        if (nullptr == float_vectors_) {
-            float_vectors_ = std::make_shared<FloatVecFieldData>(field_name);
-        }
-
-        auto code = float_vectors_->Add(vector);
-        if (code != StatusCode::OK) {
-            return {code, "Failed to add vector"};
-        }
-
         return Status::OK();
     }
 
@@ -203,76 +148,16 @@ class SearchArguments {
         return Status::OK();
     }
 
-    /**
-     * @brief Specify search limit, AIK topk
-     */
-    Status
-    SetTopK(int64_t topk) {
-        topk_ = topk;
-        return Status::OK();
-    }
-
-    /**
-     * @brief Get Top K
-     */
-    int64_t
-    TopK() const {
-        return topk_;
-    }
-
-    /**
-     * @brief Specifies the decimal place of the returned results.
-     */
-    Status
-    SetRoundDecimal(int round_decimal) {
-        round_decimal_ = round_decimal;
-        return Status::OK();
-    }
-
-    /**
-     * @brief Get the decimal place of the returned results
-     */
-    int
-    RoundDecimal() const {
-        return round_decimal_;
-    }
-
-    /**
-     * @brief Specifies the metric type
-     */
-    Status
-    SetMetricType(MetricType metric_type) {
-        metric_type_ = metric_type;
-        return Status::OK();
-    }
-
-    /**
-     * @brief Get the metric type
-     */
-    ::milvus::MetricType
-    MetricType() const {
-        return metric_type_;
-    }
-
  private:
     std::string collection_name_;
     std::set<std::string> partition_names_;
     std::set<std::string> output_field_names_;
     std::string filter_expression_;
 
-    BinaryVecFieldDataPtr binary_vectors_;
-    FloatVecFieldDataPtr float_vectors_;
-
     std::set<std::string> output_fields_;
-    std::map<std::string, std::string> extra_params_;
 
-    uint64_t travel_timestamp_{0};
-    uint64_t guarantee_timestamp_{0};
-
-    int64_t topk_{1};
-    int round_decimal_{-1};
-
-    ::milvus::MetricType metric_type_{::milvus::MetricType::L2};
+    uint64_t travel_timestamp_ = 0;
+    uint64_t guarantee_timestamp_ = 0;
 };
 
 }  // namespace milvus

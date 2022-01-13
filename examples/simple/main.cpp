@@ -17,8 +17,8 @@
 #include <iostream>
 #include <string>
 
-#include "MilvusClient.h"
-#include "types/CollectionSchema.h"
+#include "milvus/MilvusClient.h"
+#include "milvus/types/CollectionSchema.h"
 
 int
 main(int argc, char* argv[]) {

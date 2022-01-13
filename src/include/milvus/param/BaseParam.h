@@ -16,7 +16,7 @@
 
 #pragma once
 
-#include "Status.h"
+#include "../Status.h"
 
 namespace milvus {
 
