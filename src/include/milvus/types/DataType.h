@@ -36,4 +36,9 @@ enum DataType {
     FLOAT_VECTOR = 101,
 };
 
+inline bool
+IsVectorType(DataType type) {
+    return (BINARY_VECTOR == type || FLOAT_VECTOR == type);
+}
+
 }  // namespace milvus

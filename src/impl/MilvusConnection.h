@@ -131,6 +131,9 @@ class MilvusConnection {
     Query(const proto::milvus::QueryRequest& request, proto::milvus::QueryResults& response);
 
     Status
+    CalcDistance(const proto::milvus::CalcDistanceRequest& request, proto::milvus::CalcDistanceResults& response);
+
+    Status
     GetFlushState(const proto::milvus::GetFlushStateRequest& request, proto::milvus::GetFlushStateResponse& response);
 
     Status
