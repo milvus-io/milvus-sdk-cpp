@@ -54,6 +54,11 @@ else ()
     endif()
 endif ()
 
+if (DEFINED ENV{MILVUS_NLOHMANN_JSON_URL})
+    set(NLOHMANN_JSON_SOURCE_URL "${ENV{MILVUS_NLOHMANN_JSON_URL}")
+else ()
+    set(NLOHMANN_JSON_SOURCE_URL "https://github.com/nlohmann/json/archive/refs/tags/v3.10.5.tar.gz")
+endif ()
 
 # Openssl required for grpc
 if (CMAKE_HOST_APPLE)
@@ -80,9 +85,20 @@ FetchContent_Declare(
     URL ${GTEST_SOURCE_URL}
 )
 
+FetchContent_Declare(
+    nlohmann_json
+    URL ${NLOHMANN_JSON_SOURCE_URL}
+)
+
 # enable grpc
 if(NOT grpc_POPULATED)
     FetchContent_Populate(grpc)
     set(gRPC_SSL_PROVIDER "package" CACHE INTERNAL "Provider of ssl library")
     add_subdirectory(${grpc_SOURCE_DIR} ${grpc_BINARY_DIR} EXCLUDE_FROM_ALL)
 endif()
+
+# header only nlohmann json
+if(NOT nlohmann_json_POPULATED)
+    FetchContent_Populate(nlohmann_json)
+endif()
+include_directories(${nlohmann_json_SOURCE_DIR}/include)

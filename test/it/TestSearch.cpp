@@ -17,6 +17,7 @@
 #include <gtest/gtest.h>
 
 #include <memory>
+#include <nlohmann/json.hpp>
 
 #include "TypeUtils.h"
 #include "mocks/MilvusMockedTest.h"
@@ -73,6 +74,9 @@ TEST_F(MilvusMockedTest, SearchFoo) {
     search_arguments.SetRoundDecimal(-1);
     search_arguments.SetMetricType(milvus::MetricType::IP);
 
+    search_arguments.AddExtraParams("nprobe", "10");
+    search_arguments.AddExtraParams("foo", "bar");
+
     EXPECT_CALL(service_, DescribeCollection(_, Property(&DescribeCollectionRequest::collection_name, "foo"), _))
         .WillOnce([](::grpc::ServerContext*, const DescribeCollectionRequest*, DescribeCollectionResponse* response) {
             response->set_collectionid(1000);
@@ -85,21 +89,33 @@ TEST_F(MilvusMockedTest, SearchFoo) {
             return ::grpc::Status{};
         });
 
-    EXPECT_CALL(service_,
-                Search(_,
-                       AllOf(Property(&SearchRequest::collection_name, "foo"),
-                             Property(&SearchRequest::dsl, "dummy expression"),
-                             Property(&SearchRequest::dsl_type, milvus::proto::common::DslType::BoolExprV1),
-                             Property(&SearchRequest::travel_timestamp, 10000),
-                             Property(&SearchRequest::guarantee_timestamp, 10001),
-                             Property(&SearchRequest::partition_names, UnorderedElementsAre("part1", "part2")),
-                             Property(&SearchRequest::output_fields, UnorderedElementsAre("f1", "f2")),
-                             Property(&SearchRequest::search_params,
-                                      UnorderedElementsAre(TestKv("anns_field", "anns_dummy"), TestKv("topk", "10"),
-                                                           TestKv("metric_type", "IP"), TestKv("round_decimal", "-1"),
-                                                           TestKv("params", "{}")))),
-                       _))
+    EXPECT_CALL(
+        service_,
+        Search(
+            _,
+            AllOf(Property(&SearchRequest::collection_name, "foo"), Property(&SearchRequest::dsl, "dummy expression"),
+                  Property(&SearchRequest::dsl_type, milvus::proto::common::DslType::BoolExprV1),
+                  Property(&SearchRequest::travel_timestamp, 10000),
+                  Property(&SearchRequest::guarantee_timestamp, 10001),
+                  Property(&SearchRequest::partition_names, UnorderedElementsAre("part1", "part2")),
+                  Property(&SearchRequest::output_fields, UnorderedElementsAre("f1", "f2")),
+                  Property(&SearchRequest::search_params,
+                           UnorderedElementsAre(TestKv("anns_field", "anns_dummy"), TestKv("topk", "10"),
+                                                TestKv("metric_type", "IP"), TestKv("round_decimal", "-1"), _))),
+            _))
         .WillOnce([&floats_vec](::grpc::ServerContext*, const SearchRequest* request, SearchResults* response) {
+            // check params
+            auto& search_params = request->search_params();
+            std::string extra_params_payload;
+            for (const auto& pair : search_params) {
+                if (pair.key() == "params") {
+                    extra_params_payload = pair.value();
+                }
+            }
+            auto json_params = nlohmann::json::parse(extra_params_payload);
+            EXPECT_EQ(json_params["nprobe"].get<std::string>(), "10");
+            EXPECT_EQ(json_params["foo"].get<std::string>(), "bar");
+
             // check placeholder
             auto placeholder_group_payload = request->placeholder_group();
             milvus::proto::milvus::PlaceholderGroup placeholder_group;

@@ -254,6 +254,23 @@ class SearchArguments {
         return metric_type_;
     }
 
+    /**
+     * @brief Add extra params
+     */
+    Status
+    AddExtraParams(const std::string& key, const std::string& value) {
+        extra_params_.emplace(key, value);
+        return Status::OK();
+    }
+
+    /**
+     * @brief Get extra params
+     */
+    const std::map<std::string, std::string>&
+    ExtraParams() const {
+        return extra_params_;
+    }
+
  private:
     std::string collection_name_;
     std::set<std::string> partition_names_;
