@@ -19,6 +19,7 @@
 #include <memory>
 
 #include "Status.h"
+#include "types/CalcDistanceArguments.h"
 #include "types/CollectionDesc.h"
 #include "types/CollectionInfo.h"
 #include "types/CollectionSchema.h"
@@ -26,6 +27,7 @@
 #include "types/CompactionPlan.h"
 #include "types/CompactionState.h"
 #include "types/ConnectParam.h"
+#include "types/DistanceArray.h"
 #include "types/FieldData.h"
 #include "types/IDArray.h"
 #include "types/IndexDesc.h"
@@ -376,6 +378,22 @@ class MilvusClient {
      */
     virtual Status
     Query(const QueryArguments& arguments, QueryResults& results) = 0;
+
+    /**
+     * Calculate distance between two vector arrays.
+     *
+     * @param [in] arguments the input vectors can be float vectors or binary vectors, also can be an id array to ask
+     * server to retrieve vectors to calculate distance.
+     * @param [out] results 2-d array distances
+     *        std::vector<std::vector<int>> for "HAMMING" or std::vector<std::vector<float>> for others
+     *        Assume the vectors_left: L_1, L_2, L_3
+     *        Assume the vectors_right: R_a, R_b
+     *        Distance between L_n and R_m we called "D_n_m"
+     *        The returned distances are arranged like this: [[D_1_a, D_1_b], [D_2_a, D_2_b], [D_3_a, D_3_b]]
+     * @return Status operation successfully or not
+     */
+    virtual Status
+    CalcDistance(const CalcDistanceArguments& arguments, DistanceArray& results) = 0;
 
     /**
      * Flush insert buffer into storage. To makesure the buffer persisted successfully, it calls

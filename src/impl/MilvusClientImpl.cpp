@@ -654,6 +654,116 @@ MilvusClientImpl::Query(const QueryArguments& arguments, QueryResults& results) 
 }
 
 Status
+MilvusClientImpl::CalcDistance(const CalcDistanceArguments& arguments, DistanceArray& results) {
+    auto validate = [&arguments]() { return arguments.Validate(); };
+
+    auto pre = [&arguments]() {
+        auto pass_arguments = [&arguments](proto::milvus::VectorsArray* rpc_vectors, FieldDataPtr&& arg_vectors,
+                                           bool is_left) {
+            if (IsVectorType(arg_vectors->Type())) {
+                auto data_array = rpc_vectors->mutable_data_array();
+
+                if (arg_vectors->Type() == DataType::FLOAT_VECTOR) {
+                    FloatVecFieldDataPtr data_ptr = std::static_pointer_cast<FloatVecFieldData>(arg_vectors);
+                    auto float_vectors = data_array->mutable_float_vector();
+                    auto mutable_data = float_vectors->mutable_data();
+                    auto& vectors = data_ptr->Data();
+                    for (auto& vector : vectors) {
+                        mutable_data->Add(vector.begin(), vector.end());
+                    }
+
+                    // suppose vectors is not empty, already checked by Validate()
+                    data_array->set_dim(vectors[0].size());
+                } else {
+                    BinaryVecFieldDataPtr data_ptr = std::static_pointer_cast<BinaryVecFieldData>(arg_vectors);
+                    auto str = data_array->mutable_binary_vector();
+                    auto& vectors = data_ptr->Data();
+                    for (auto& vector : vectors) {
+                        str->append(reinterpret_cast<char*>(vector.data()), vector.size());
+                    }
+
+                    // suppose vectors is not empty, already checked by Validate()
+                    data_array->set_dim(vectors[0].size());
+
+                    // user specify dimension(only for binary vectors)
+                    if (arguments.Dimension() > 0) {
+                        data_array->set_dim(arguments.Dimension());
+                    }
+                }
+
+            } else if (arg_vectors->Type() == DataType::INT64) {
+                auto id_array = rpc_vectors->mutable_id_array();
+                id_array->set_collection_name(is_left ? arguments.LeftCollection() : arguments.RightCollection());
+                auto& partitions = is_left ? arguments.LeftPartitions() : arguments.RightPartitions();
+                for (auto& name : partitions) {
+                    id_array->add_partition_names(name);
+                }
+
+                auto ids = id_array->mutable_id_array();
+                auto long_ids = ids->mutable_int_id();
+                auto mutable_data = long_ids->mutable_data();
+                Int64FieldDataPtr data_ptr = std::static_pointer_cast<Int64FieldData>(arg_vectors);
+                auto& vector_ids = data_ptr->Data();
+                mutable_data->Add(vector_ids.begin(), vector_ids.end());
+            }
+        };
+
+        // set vectors data
+        proto::milvus::CalcDistanceRequest rpc_request;
+        pass_arguments(rpc_request.mutable_op_left(), arguments.LeftVectors(), true);
+        pass_arguments(rpc_request.mutable_op_right(), arguments.RightVectors(), false);
+
+        // set metric
+        auto kv = rpc_request.add_params();
+        kv->set_key("metric");
+        kv->set_value(arguments.MetricType());
+
+        return std::move(rpc_request);
+    };
+
+    auto post = [&arguments, &results](const proto::milvus::CalcDistanceResults& response) {
+        size_t left_count = arguments.LeftVectors()->Count();
+        size_t right_count = arguments.RightVectors()->Count();
+        if (response.has_int_dist()) {
+            auto& int_array = response.int_dist();
+            auto& distance_array = int_array.data();
+            const int32_t* distance_data = distance_array.data();
+            auto distance_count = int_array.data_size();
+            std::vector<std::vector<int32_t>> all_distances;
+
+            // for id array, suppose all the vectors are exist.
+            // if some vectors are missed(or deleted), the server will return error by the CalcDistance api.
+            if (distance_count == left_count * right_count) {
+                for (size_t i = 0; i < left_count; ++i) {
+                    std::vector<int32_t> distances(right_count);
+                    memcpy(distances.data(), distance_data + i * right_count, right_count * sizeof(int32_t));
+                    all_distances.emplace_back(distances);
+                }
+            }
+            results.SetIntDistance(std::move(all_distances));
+        } else {
+            auto& float_array = response.float_dist();
+            auto& distance_array = float_array.data();
+            const float* distance_data = distance_array.data();
+            auto distance_count = float_array.data_size();
+            std::vector<std::vector<float>> all_distances;
+
+            // suppose distance count is always equal to left_count * right_count
+            if (distance_count == left_count * right_count) {
+                for (size_t i = 0; i < left_count; ++i) {
+                    std::vector<float> distances(right_count);
+                    memcpy(distances.data(), distance_data + i * right_count, right_count * sizeof(float));
+                    all_distances.emplace_back(distances);
+                }
+            }
+            results.SetFloatDistance(std::move(all_distances));
+        }
+    };
+    return apiHandler<proto::milvus::CalcDistanceRequest, proto::milvus::CalcDistanceResults>(
+        validate, pre, &MilvusConnection::CalcDistance, post);
+}
+
+Status
 MilvusClientImpl::Flush(const std::vector<std::string>& collection_names, const ProgressMonitor& progress_monitor) {
     auto pre = [&collection_names]() {
         proto::milvus::FlushRequest rpc_request;

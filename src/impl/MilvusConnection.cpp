@@ -200,6 +200,12 @@ MilvusConnection::Query(const proto::milvus::QueryRequest& request, proto::milvu
 }
 
 Status
+MilvusConnection::CalcDistance(const proto::milvus::CalcDistanceRequest& request,
+                               proto::milvus::CalcDistanceResults& response) {
+    return grpcCall("CalcDistance", &Stub::CalcDistance, request, response);
+}
+
+Status
 MilvusConnection::GetFlushState(const proto::milvus::GetFlushStateRequest& request,
                                 proto::milvus::GetFlushStateResponse& response) {
     return grpcCall("GetFlushState", &Stub::GetFlushState, request, response);
