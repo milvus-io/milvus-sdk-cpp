@@ -17,6 +17,7 @@
 #include "MilvusClientImpl.h"
 
 #include <chrono>
+#include <nlohmann/json.hpp>
 #include <thread>
 
 #include "TypeUtils.h"
@@ -511,6 +512,7 @@ MilvusClientImpl::Search(const SearchArguments& arguments, SearchResults& result
             } else {
                 return Status{StatusCode::INVALID_AGUMENT, std::string(field_name + " is not a valid anns field")};
             }
+            // TODO(jibin): check nprobe/ef/search_k
         }
         return status;
     };
@@ -572,9 +574,11 @@ MilvusClientImpl::Search(const SearchArguments& arguments, SearchResults& result
 
         kv_pair = rpc_request.add_search_params();
         kv_pair->set_key("params");
-        // TODO(jibin): introducing json nlohmann/json
-        //              to provides params like: nprobe
-        kv_pair->set_value("{}");
+        nlohmann::json json_params = {};
+        for (const auto& pair : arguments.ExtraParams()) {
+            json_params[pair.first] = pair.second;
+        }
+        kv_pair->set_value(nlohmann::to_string(json_params));
 
         rpc_request.set_travel_timestamp(arguments.TravelTimestamp());
         rpc_request.set_guarantee_timestamp(arguments.GuaranteeTimestamp());
