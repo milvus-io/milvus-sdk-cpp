@@ -16,7 +16,7 @@
 
 #include <gtest/gtest.h>
 
-#include "types/SegmentInfo.h"
+#include "milvus/types/SegmentInfo.h"
 
 class SegmentInfoTest : public ::testing::Test {};
 

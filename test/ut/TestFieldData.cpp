@@ -16,7 +16,7 @@
 
 #include <gtest/gtest.h>
 
-#include "types/FieldData.h"
+#include "milvus/types/FieldData.h"
 
 class FieldDataTest : public ::testing::Test {};
 

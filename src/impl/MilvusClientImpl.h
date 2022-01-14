@@ -18,8 +18,8 @@
 
 #include <memory>
 
-#include "MilvusClient.h"
 #include "MilvusConnection.h"
+#include "milvus/MilvusClient.h"
 
 /**
  *  @brief namespace milvus

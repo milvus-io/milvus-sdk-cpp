@@ -17,10 +17,10 @@
 #pragma once
 
 #include "milvus.pb.h"
-#include "types/CollectionSchema.h"
-#include "types/FieldData.h"
-#include "types/IDArray.h"
-#include "types/MetricType.h"
+#include "milvus/types/CollectionSchema.h"
+#include "milvus/types/FieldData.h"
+#include "milvus/types/IDArray.h"
+#include "milvus/types/MetricType.h"
 
 namespace milvus {
 

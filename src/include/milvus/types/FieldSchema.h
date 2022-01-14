@@ -19,8 +19,8 @@
 #include <map>
 #include <string>
 
-#include "types/Constants.h"
-#include "types/DataType.h"
+#include "Constants.h"
+#include "DataType.h"
 
 namespace milvus {
 class FieldSchema {

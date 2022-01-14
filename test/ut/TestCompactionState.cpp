@@ -16,7 +16,7 @@
 
 #include <gtest/gtest.h>
 
-#include "types/CompactionState.h"
+#include "milvus/types/CompactionState.h"
 
 class CompactionStateTest : public ::testing::Test {};
 

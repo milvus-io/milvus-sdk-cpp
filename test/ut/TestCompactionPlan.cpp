@@ -16,7 +16,7 @@
 
 #include <gtest/gtest.h>
 
-#include "types/CompactionPlan.h"
+#include "milvus/types/CompactionPlan.h"
 
 class CompactionPlanTest : public ::testing::Test {};
 

@@ -18,7 +18,7 @@
 
 #include <limits>
 
-#include "types/ProgressMonitor.h"
+#include "milvus/types/ProgressMonitor.h"
 
 class ProgressMonitorTest : public ::testing::Test {};
 

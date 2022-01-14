@@ -23,8 +23,14 @@ SYS_TEST="OFF"
 BUILD_TEST="OFF"
 MAKE_CLEAN="OFF"
 RUN_CPPLINT="OFF"
+BUILD_PACKAGE="OFF"
 
-while getopts "t:ulrsh" arg; do
+JOBS="$(nproc)"
+if [ ${JOBS} -lt 8 ] ; then
+    JOBS=8
+fi
+
+while getopts "t:ulrsph" arg; do
   case $arg in
   t)
     BUILD_TYPE=$OPTARG # BUILD_TYPE
@@ -35,7 +41,7 @@ while getopts "t:ulrsh" arg; do
     ;;
   r)
     if [[ -d ${BUILD_OUTPUT_DIR} ]]; then
-      rm ./${BUILD_OUTPUT_DIR} -r
+      rm ./${BUILD_OUTPUT_DIR} -rf
       MAKE_CLEAN="ON"
     fi
     ;;
@@ -46,6 +52,15 @@ while getopts "t:ulrsh" arg; do
   s)
     SYS_TEST="ON"
     BUILD_TEST="ON"
+    ;;
+  p)
+    BUILD_PACKAGE="ON"
+    BUILD_TYPE=RelWithDebInfo
+    RUN_CPPLINT="OFF"
+    SYS_TEST="OFF"
+    UNIT_TEST="OFF"
+    BUILD_TEST="OFF"
+    MAKE_CLEAN="ON"
     ;;
   h) # help
     echo "
@@ -80,7 +95,8 @@ make rebuild_cache >/dev/null 2>&1
 
 CMAKE_CMD="cmake \
 -DCMAKE_BUILD_TYPE=${BUILD_TYPE} \
--DBUILD_TEST=${BUILD_TEST}
+-DBUILD_TEST=${BUILD_TEST} \
+-DMAKE_BUILD_ARGS=${JOBS}
 ../"
 echo ${CMAKE_CMD}
 ${CMAKE_CMD}
@@ -107,7 +123,7 @@ if [[ ${RUN_CPPLINT} == "ON" ]]; then
   echo "clang-format check passed!"
 
   # clang-tidy check
-  make -j 4 || exit 1
+  make -j ${JOBS} || exit 1
   make check-clang-tidy
   if [ $? -ne 0 ]; then
     echo "ERROR! clang-tidy check failed"
@@ -116,16 +132,20 @@ if [[ ${RUN_CPPLINT} == "ON" ]]; then
   echo "clang-tidy check passed!"
 else
   # compile and build
-  make -j 4  || exit 1
+  make -j ${JOBS}  || exit 1
 fi
 
 if [[ "${UNIT_TEST}" == "ON" ]]; then
-  make -j 4  || exit 1
+  make -j ${JOBS}  || exit 1
   make CTEST_OUTPUT_ON_FAILURE=1 test || exit 1
 fi
 
 if [[ "${SYS_TEST}" == "ON" ]]; then
-  make -j 4  || exit 1
+  make -j ${JOBS}  || exit 1
   make CTEST_OUTPUT_ON_FAILURE=1 system-test || exit 1
+fi
+
+if [[ "${BUILD_PACKAGE}" == "ON" ]]; then
+  make -j ${JOBS} package || exit 1
 fi
 

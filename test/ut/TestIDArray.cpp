@@ -16,7 +16,7 @@
 
 #include <gtest/gtest.h>
 
-#include "types/IDArray.h"
+#include "milvus/types/IDArray.h"
 
 class IDArrayTest : public ::testing::Test {};
 

@@ -16,7 +16,7 @@
 
 #include <gtest/gtest.h>
 
-#include "types/CollectionInfo.h"
+#include "milvus/types/CollectionInfo.h"
 
 class CollectionInfoTest : public ::testing::Test {};
 

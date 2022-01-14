@@ -16,7 +16,7 @@
 
 #include <gtest/gtest.h>
 
-#include "Status.h"
+#include "milvus/Status.h"
 
 class StatusTest : public ::testing::Test {};
 

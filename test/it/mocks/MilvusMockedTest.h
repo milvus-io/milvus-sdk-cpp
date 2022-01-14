@@ -17,9 +17,9 @@
 
 #include <gtest/gtest.h>
 
-#include "MilvusClient.h"
 #include "MilvusMockedServer.h"
 #include "MilvusMockedService.h"
+#include "milvus/MilvusClient.h"
 
 namespace milvus {
 class MilvusMockedTest : public ::testing::Test {

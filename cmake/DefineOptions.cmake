@@ -60,6 +60,16 @@ set_option_category("Milvus Build Option")
 
 define_option(BUILD_TEST "Build with testing" OFF)
 define_option(BUILD_COVERAGE "Build with coverage" OFF)
+define_option(BUILD_SHARED "Build with shared" ON)
+define_option(BUILD_STATIC "Build with static" OFF)
+
+# options for package
+define_option_string(MILVUS_SDK_VERSION
+    "Version for sdk"
+    "2.0.0")
+define_option_string(MILVUS_SDK_RELEASE
+    "Release number for sdk"
+    "1")
 
 #----------------------------------------------------------------------
 set_option_category("Thirdparty")

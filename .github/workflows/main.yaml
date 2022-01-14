@@ -188,3 +188,41 @@ jobs:
       - name: System Test
         run: |
           make st
+  centos-rpm:
+    name: Package AMD64 CentOS ${{ matrix.centos }}
+    runs-on: ubuntu-latest
+    container: centos:${{ matrix.centos }}
+    timeout-minutes: 90
+    strategy:
+      fail-fast: false
+      matrix:
+        centos: [7]
+    env:
+      CCACHE_COMPILERCHECK: content
+      CCACHE_COMPRESS: 1
+      CCACHE_COMPRESSLEVEL: 5
+      CCACHE_MAXSIZE: 2G
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Cache ccache
+        uses: actions/cache@v2
+        with:
+          path: |
+            ~/.ccache
+          key: centos-${{ matrix.centos }}-ccache-${{ github.sha }}
+          restore-keys: centos-${{ matrix.centos }}-ccache-
+      - name: Cache rpm
+        uses: actions/cache@v2
+        with:
+          path: |
+            /var/cache/yum
+          key: centos-${{ matrix.centos }}-rpm-${{ github.sha }}
+          restore-keys: centos-${{ matrix.centos }}-rpm-
+      - name: Prepare
+        run: |
+          sh scripts/install_deps.sh
+      - name: Package
+        run: |
+          make package
+
