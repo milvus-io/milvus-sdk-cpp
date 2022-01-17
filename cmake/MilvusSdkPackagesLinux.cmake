@@ -75,12 +75,25 @@ elseif(EXISTS "/etc/os-release")
 endif()
 
 string(REGEX REPLACE " " "" PLATFORM_VERSION "${PLATFORM_VERSION}")
+
+
 set(DISTRO_NAME ${PLATFORM}-${PLATFORM_VERSION})
 string(TOLOWER ${DISTRO_NAME} distro_name)
 MESSAGE(STATUS "Platform = ${PLATFORM}")
 MESSAGE(STATUS "Platform Version = ${PLATFORM_VERSION}")
 MESSAGE(STATUS "Distribution name = ${DISTRO_NAME}")
 
+
+# release string
+set(MILVUS_SDK_RELEASE_STRING "${MILVUS_SDK_RELEASE}")
+if(PLATFORM STREQUAL "CentOS")
+    execute_process(
+        COMMAND rpm --eval %dist
+        OUTPUT_VARIABLE distro_name OUTPUT_STRIP_TRAILING_WHITESPACE)
+    set(MILVUS_SDK_RELEASE_STRING "${MILVUS_SDK_RELEASE}${distro_name}")
+endif()
+
+# arch
 if(PLATFORM STREQUAL "Debian" OR PLATFORM STREQUAL "Ubuntu")
     find_program(DPKG_CMD dpkg)
     if(NOT DPKG_CMD)
@@ -102,7 +115,7 @@ MESSAGE(STATUS "Architecture = ${ARCHITECTURE}")
 install(TARGETS milvus_sdk_shared
         DESTINATION ${CMAKE_INSTALL_LIBDIR}
         COMPONENT lib)
-install(FILES ${milvus_public_headers}
+install(DIRECTORY include/milvus
         DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
         COMPONENT dev)
 
@@ -119,7 +132,7 @@ set(CPACK_PACKAGE_lib_DESCRIPTION           "This package contains Milvus C++ cl
 set(CPACK_PACKAGE_dev_DESCRIPTION           "This package contains Milvus C++ client headers for Milvus 2.0+")
 set(CPACK_PACKAGE_NAME                      "libmilvus")
 set(CPACK_PACKAGE_VERSION                   "${MILVUS_SDK_VERSION}")
-set(CPACK_PACKAGE_RELEASE                   "${MILVUS_SDK_RELEASE}")
+set(CPACK_PACKAGE_RELEASE                   "${MILVUS_SDK_RELEASE_STRING}")
 set(CPACK_PACKAGE_VENDOR                    ${VENDOR})
 set(CPACK_PACKAGE_LICENSE                   ${LICENSE})
 set(CPACK_RESOURCE_FILE_LICENSE             "${CMAKE_SOURCE_DIR}/LICENSE")
@@ -138,16 +151,17 @@ if (PLATFORM STREQUAL "CentOS" OR PLATFORM STREQUAL "openSUSE")
     set(CPACK_RPM_PACKAGE_VENDOR            ${CPACK_PACKAGE_VENDOR})
     set(CPACK_RPM_PACKAGE_AUTOREQ           "yes")
     set(CPACK_RPM_PACKAGE_RELOCATABLE       "OFF")
+    set(CPACK_RPM_PACKAGE_RELEASE           ${CPACK_PACKAGE_RELEASE})
     set(CPACK_RPM_PACKAGE_ARCHITECTURE      "${ARCHITECTURE}")
 
     set(CPACK_RPM_lib_PACKAGE_NAME          "${CPACK_PACKAGE_NAME}")
-    set(CPACK_RPM_lib_FILE_NAME             "${CPACK_PACKAGE_NAME}-${CPACK_PACKAGE_VERSION}-${CPACK_PACKAGE_RELEASE}-${distro_name}-${ARCHITECTURE}.rpm")
+    set(CPACK_RPM_lib_FILE_NAME             "${CPACK_PACKAGE_NAME}-${CPACK_PACKAGE_VERSION}-${CPACK_PACKAGE_RELEASE}.${ARCHITECTURE}.rpm")
     set(CPACK_RPM_lib_PACKAGE_SUMMARY       ${CPACK_PACKAGE_lib_DESCRIPTION_SUMMARY})
     set(CPACK_RPM_lib_PACKAGE_DESCRIPTION   ${CPACK_PACKAGE_lib_DESCRIPTION})
     set(CPACK_RPM_lib_DEBUGINFO_PACKAGE     ON)
 
     set(CPACK_RPM_dev_PACKAGE_NAME          "${CPACK_PACKAGE_NAME}-devel")
-    set(CPACK_RPM_dev_FILE_NAME             "${CPACK_PACKAGE_NAME}-devel-${CPACK_PACKAGE_VERSION}-${CPACK_PACKAGE_RELEASE}-${distro_name}-${ARCHITECTURE}.rpm")
+    set(CPACK_RPM_dev_FILE_NAME             "${CPACK_PACKAGE_NAME}-devel-${CPACK_PACKAGE_VERSION}-${CPACK_PACKAGE_RELEASE}.${ARCHITECTURE}.rpm")
     set(CPACK_RPM_dev_PACKAGE_SUMMARY       ${CPACK_PACKAGE_dev_DESCRIPTION_SUMMARY})
     set(CPACK_RPM_dev_PACKAGE_DESCRIPTION   ${CPACK_PACKAGE_dev_DESCRIPTION})
 endif()
