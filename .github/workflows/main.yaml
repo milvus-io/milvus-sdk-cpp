@@ -225,4 +225,12 @@ jobs:
       - name: Package
         run: |
           make package
+      - name:  Build with examples
+        run: |
+          set -e
+          yum install -y cmake_build/src/Pack/libmilvus{-devel,}-2*el*.rpm
+          mkdir -p cmake_build_example
+          cd cmake_build_example
+          cmake ../examples
+          make -j
 

@@ -49,35 +49,5 @@ endif()
 add_library(milvus_sdk INTERFACE)
 target_link_libraries(milvus_sdk INTERFACE ${milvus_sdk_internal})
 
-# public headers
-set(milvus_public_headers
-    include/milvus/param/BaseParam.h
-    include/milvus/types/ConnectParam.h
-    include/milvus/types/DataType.h
-    include/milvus/types/CollectionStat.h
-    include/milvus/types/PartitionStat.h
-    include/milvus/types/IndexState.h
-    include/milvus/types/PartitionInfo.h
-    include/milvus/types/IDArray.h
-    include/milvus/types/QueryArguments.h
-    include/milvus/types/QueryResults.h
-    include/milvus/types/CollectionInfo.h
-    include/milvus/types/IndexDesc.h
-    include/milvus/types/SegmentInfo.h
-    include/milvus/types/CompactionPlan.h
-    include/milvus/types/CompactionState.h
-    include/milvus/types/Constants.h
-    include/milvus/types/FieldSchema.h
-    include/milvus/types/ProgressMonitor.h
-    include/milvus/types/CollectionSchema.h
-    include/milvus/types/MetricType.h
-    include/milvus/types/SearchResults.h
-    include/milvus/types/CollectionDesc.h
-    include/milvus/types/FieldData.h
-    include/milvus/types/SearchArguments.h
-    include/milvus/Status.h
-    include/milvus/MilvusClient.h
-)
-
 # package
 include(MilvusSdkPackages)
