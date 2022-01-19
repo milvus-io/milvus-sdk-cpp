@@ -22,6 +22,7 @@ class SearchArgumentsTest : public ::testing::Test {};
 
 TEST_F(SearchArgumentsTest, GeneralTesting) {
     milvus::SearchArguments arguments;
+    EXPECT_EQ(arguments.TargetVectors(), nullptr);
 
     std::string empty_name = "";
     std::string collection_name = "test";
@@ -46,6 +47,9 @@ TEST_F(SearchArgumentsTest, GeneralTesting) {
     EXPECT_EQ(ts, arguments.TravelTimestamp());
     arguments.SetGuaranteeTimestamp(ts);
     EXPECT_EQ(ts, arguments.GuaranteeTimestamp());
+
+    auto status = arguments.AddOutputField("");
+    EXPECT_FALSE(status.IsOk());
 }
 
 TEST_F(SearchArgumentsTest, VectorTesting) {

@@ -16,6 +16,8 @@
 
 #include <gmock/gmock.h>
 
+#include <functional>
+#include <unordered_map>
 #include <vector>
 
 #include "TypeUtils.h"
@@ -225,4 +227,34 @@ TEST_F(TypeUtilsTest, MetricTypeToString) {
     EXPECT_EQ(std::to_string(milvus::MetricType::TANIMOTO), "TANIMOTO");
     EXPECT_EQ(std::to_string(milvus::MetricType::JACCARD), "JACCARD");
     EXPECT_EQ(std::to_string(milvus::MetricType::INVALID), "INVALID");
+}
+
+TEST_F(TypeUtilsTest, DataTypeCast) {
+    const std::unordered_map<int32_t, int32_t> sdk2proto = {
+        {milvus::DataType::UNKNOWN, milvus::proto::schema::DataType::None},
+        {milvus::DataType::BOOL, milvus::proto::schema::DataType::Bool},
+        {milvus::DataType::INT8, milvus::proto::schema::DataType::Int8},
+        {milvus::DataType::INT16, milvus::proto::schema::DataType::Int16},
+        {milvus::DataType::INT32, milvus::proto::schema::DataType::Int32},
+        {milvus::DataType::INT64, milvus::proto::schema::DataType::Int64},
+        {milvus::DataType::FLOAT, milvus::proto::schema::DataType::Float},
+        {milvus::DataType::DOUBLE, milvus::proto::schema::DataType::Double},
+        {milvus::DataType::STRING, milvus::proto::schema::DataType::String},
+        {milvus::DataType::FLOAT_VECTOR, milvus::proto::schema::DataType::FloatVector},
+        {milvus::DataType::BINARY_VECTOR, milvus::proto::schema::DataType::BinaryVector}};
+
+    for (auto& pair : sdk2proto) {
+        auto dt = milvus::DataTypeCast(milvus::DataType(pair.first));
+        EXPECT_EQ(dt, pair.second);
+    }
+
+    std::unordered_map<int32_t, int32_t> proto2sdk;
+    for (auto& pair : sdk2proto) {
+        proto2sdk.insert(std::make_pair(pair.second, pair.first));
+    }
+
+    for (auto& pair : proto2sdk) {
+        auto dt = milvus::DataTypeCast(milvus::proto::schema::DataType(pair.first));
+        EXPECT_EQ(dt, pair.second);
+    }
 }
