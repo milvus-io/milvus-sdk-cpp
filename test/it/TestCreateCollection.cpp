@@ -28,6 +28,11 @@ TEST_F(MilvusMockedTest, CreateCollectionFoo) {
     client_->Connect(connect_param);
 
     milvus::CollectionSchema collection_schema("Foo");
+    collection_schema.AddField(milvus::FieldSchema("id", milvus::DataType::INT64, "id", true, true));
+    collection_schema.AddField(milvus::FieldSchema("age", milvus::DataType::INT16, "age"));
+    collection_schema.AddField(
+        milvus::FieldSchema("face", milvus::DataType::FLOAT_VECTOR, "face signature").WithDimension(4));
+
     milvus::proto::milvus::CreateCollectionRequest rpc_request;
     rpc_request.set_collection_name("Foo");
 

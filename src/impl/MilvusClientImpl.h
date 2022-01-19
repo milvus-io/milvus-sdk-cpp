@@ -117,11 +117,11 @@ class MilvusClientImpl : public MilvusClient {
 
     Status
     Insert(const std::string& collection_name, const std::string& partition_name,
-           const std::vector<FieldDataPtr>& fields, IDArray& id_array) final;
+           const std::vector<FieldDataPtr>& fields, DmlResults& results) final;
 
     Status
     Delete(const std::string& collection_name, const std::string& partition_name, const std::string& expression,
-           IDArray& id_array) final;
+           DmlResults& results) final;
 
     Status
     Search(const SearchArguments& arguments, SearchResults& results) final;

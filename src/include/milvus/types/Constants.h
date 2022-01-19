@@ -29,4 +29,14 @@ FieldDim() {
     return "dim";
 }
 
+inline uint64_t
+GuaranteeStrongTs() {
+    return 0;
+}
+
+inline uint64_t
+GuaranteeEventuallyTs() {
+    return 1;
+}
+
 }  // namespace milvus

@@ -452,7 +452,7 @@ MilvusClientImpl::DropIndex(const std::string& collection_name, const std::strin
 
 Status
 MilvusClientImpl::Insert(const std::string& collection_name, const std::string& partition_name,
-                         const std::vector<FieldDataPtr>& fields, IDArray& id_array) {
+                         const std::vector<FieldDataPtr>& fields, DmlResults& results) {
     // TODO(matrixji): add common validations check for fields
     // TODO(matrixji): add scheme based validations check for fields
     // auto validate = nullptr;
@@ -470,8 +470,10 @@ MilvusClientImpl::Insert(const std::string& collection_name, const std::string& 
         return rpc_request;
     };
 
-    auto post = [&id_array](const proto::milvus::MutationResult& response) {
-        id_array = CreateIDArray(response.ids());
+    auto post = [&results](const proto::milvus::MutationResult& response) {
+        auto id_array = CreateIDArray(response.ids());
+        results.SetIdArray(std::move(id_array));
+        results.SetTimestamp(response.timestamp());
     };
 
     return apiHandler<proto::milvus::InsertRequest, proto::milvus::MutationResult>(pre, &MilvusConnection::Insert,
@@ -480,7 +482,7 @@ MilvusClientImpl::Insert(const std::string& collection_name, const std::string& 
 
 Status
 MilvusClientImpl::Delete(const std::string& collection_name, const std::string& partition_name,
-                         const std::string& expression, IDArray& id_array) {
+                         const std::string& expression, DmlResults& results) {
     auto pre = [&collection_name, &partition_name, &expression]() {
         proto::milvus::DeleteRequest rpc_request;
         rpc_request.set_collection_name(collection_name);
@@ -489,8 +491,10 @@ MilvusClientImpl::Delete(const std::string& collection_name, const std::string& 
         return rpc_request;
     };
 
-    auto post = [&id_array](const proto::milvus::MutationResult& response) {
-        id_array = CreateIDArray(response.ids());
+    auto post = [&results](const proto::milvus::MutationResult& response) {
+        auto id_array = CreateIDArray(response.ids());
+        results.SetIdArray(std::move(id_array));
+        results.SetTimestamp(response.timestamp());
     };
 
     return apiHandler<proto::milvus::DeleteRequest, proto::milvus::MutationResult>(pre, &MilvusConnection::Delete,

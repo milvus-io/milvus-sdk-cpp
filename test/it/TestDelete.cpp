@@ -34,7 +34,6 @@ TEST_F(MilvusMockedTest, DeleteFoo) {
     milvus::ConnectParam connect_param{"127.0.0.1", server_.ListenPort()};
     client_->Connect(connect_param);
 
-    milvus::IDArray ids{std::vector<int64_t>{}};
     std::vector<int64_t> ret_ids{1000, 10001, 1002, 1003};
 
     EXPECT_CALL(service_, Delete(_,
@@ -48,18 +47,19 @@ TEST_F(MilvusMockedTest, DeleteFoo) {
             return ::grpc::Status{};
         });
 
-    auto status = client_->Delete("collection", "partition", "dummy expr", ids);
+    milvus::DmlResults results;
+    auto status = client_->Delete("collection", "partition", "dummy expr", results);
 
     EXPECT_TRUE(status.IsOk());
-    EXPECT_TRUE(ids.IsIntegerID());
-    EXPECT_THAT(ids.IntIDArray(), ElementsAreArray(ret_ids));
+    EXPECT_TRUE(results.IdArray().IsIntegerID());
+    EXPECT_THAT(results.IdArray().IntIDArray(), ElementsAreArray(ret_ids));
 }
 
 TEST_F(MilvusMockedTest, DeleteWithoutConnect) {
     milvus::ConnectParam connect_param{"127.0.0.1", server_.ListenPort()};
 
-    milvus::IDArray ids{std::vector<int64_t>{}};
-    auto status = client_->Delete("collection", "partition", "dummy expr", ids);
+    milvus::DmlResults results;
+    auto status = client_->Delete("collection", "partition", "dummy expr", results);
 
     EXPECT_FALSE(status.IsOk());
     EXPECT_EQ(status.Code(), StatusCode::NOT_CONNECTED);

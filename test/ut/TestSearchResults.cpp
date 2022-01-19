@@ -29,6 +29,8 @@ TEST_F(SearchResultsTest, TestSingleResult) {
     EXPECT_EQ(result.Scores(), std::vector<float>{0.1f});
     EXPECT_EQ(result.OutputField("bool")->Name(), "bool");
     EXPECT_EQ(result.OutputField("int16")->Name(), "int16");
+    EXPECT_EQ(result.OutputField("invalid"), nullptr);
+    EXPECT_EQ(result.OutputFields().size(), 2);
 }
 
 TEST_F(SearchResultsTest, GeneralTesting) {

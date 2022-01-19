@@ -77,7 +77,6 @@ TEST_F(MilvusMockedTest, InsertFoo) {
     milvus::ConnectParam connect_param{"127.0.0.1", server_.ListenPort()};
     client_->Connect(connect_param);
 
-    milvus::IDArray ids{std::vector<int64_t>(num_of_rows)};
     std::vector<int64_t> ret_ids{1000, 10001, 1002, 1003};
 
     EXPECT_CALL(service_,
@@ -99,18 +98,19 @@ TEST_F(MilvusMockedTest, InsertFoo) {
             return ::grpc::Status{};
         });
 
-    auto status = client_->Insert(collection, partition, fields, ids);
+    milvus::DmlResults results;
+    auto status = client_->Insert(collection, partition, fields, results);
 
     EXPECT_TRUE(status.IsOk());
-    EXPECT_TRUE(ids.IsIntegerID());
-    EXPECT_THAT(ids.IntIDArray(), ElementsAreArray(ret_ids));
+    EXPECT_TRUE(results.IdArray().IsIntegerID());
+    EXPECT_THAT(results.IdArray().IntIDArray(), ElementsAreArray(ret_ids));
 }
 
 TEST_F(MilvusMockedTest, InsertWithoutConnect) {
     milvus::ConnectParam connect_param{"127.0.0.1", server_.ListenPort()};
 
-    milvus::IDArray ids{std::vector<int64_t>(num_of_rows)};
-    auto status = client_->Insert(collection, partition, fields, ids);
+    milvus::DmlResults results;
+    auto status = client_->Insert(collection, partition, fields, results);
 
     EXPECT_FALSE(status.IsOk());
     EXPECT_EQ(status.Code(), StatusCode::NOT_CONNECTED);

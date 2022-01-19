@@ -54,11 +54,11 @@ TEST_F(MilvusServerTestSearch, SearchWithoutIndex) {
         std::make_shared<milvus::FloatVecFieldData>(
             "face", std::vector<std::vector<float>>{std::vector<float>{0.1f, 0.2f, 0.3f, 0.4f},
                                                     std::vector<float>{0.5f, 0.6f, 0.7f, 0.8f}})};
-    milvus::IDArray id_array{std::vector<int64_t>{}};
-    status = client_->Insert("Foo", "Bar", fields, id_array);
+    milvus::DmlResults dml_results;
+    status = client_->Insert("Foo", "Bar", fields, dml_results);
     EXPECT_EQ(status.Message(), "OK");
     EXPECT_TRUE(status.IsOk());
-    EXPECT_EQ(id_array.IntIDArray().size(), 2);
+    EXPECT_EQ(dml_results.IdArray().IntIDArray().size(), 2);
 
     milvus::ProgressMonitor progress_monitor{5};
     status = client_->LoadPartitions("Foo", std::vector<std::string>{"Bar"}, progress_monitor);
@@ -80,8 +80,8 @@ TEST_F(MilvusServerTestSearch, SearchWithoutIndex) {
 
     const auto& results = search_results.Results();
     EXPECT_EQ(results.size(), 2);
-    EXPECT_THAT(results.at(0).Ids().IntIDArray(), UnorderedElementsAreArray(id_array.IntIDArray()));
-    EXPECT_THAT(results.at(1).Ids().IntIDArray(), UnorderedElementsAreArray(id_array.IntIDArray()));
+    EXPECT_THAT(results.at(0).Ids().IntIDArray(), UnorderedElementsAreArray(dml_results.IdArray().IntIDArray()));
+    EXPECT_THAT(results.at(1).Ids().IntIDArray(), UnorderedElementsAreArray(dml_results.IdArray().IntIDArray()));
 
     EXPECT_EQ(results.at(0).Scores().size(), 2);
     EXPECT_EQ(results.at(1).Scores().size(), 2);
