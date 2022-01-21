@@ -59,8 +59,8 @@ class MilvusClientImpl : public MilvusClient {
     DescribeCollection(const std::string& collection_name, CollectionDesc& collection_desc) final;
 
     Status
-    GetCollectionStatistics(const std::string& collection_name, const ProgressMonitor& progress_monitor,
-                            CollectionStat& collection_stat) final;
+    GetCollectionStatistics(const std::string& collection_name, CollectionStat& collection_stat,
+                            const ProgressMonitor& progress_monitor) final;
 
     Status
     ShowCollections(const std::vector<std::string>& collection_names, CollectionsInfo& collections_info) final;
@@ -83,7 +83,7 @@ class MilvusClientImpl : public MilvusClient {
 
     Status
     GetPartitionStatistics(const std::string& collection_name, const std::string& partition_name,
-                           const ProgressMonitor& progress_monitor, PartitionStat& partition_stat) final;
+                           PartitionStat& partition_stat, const ProgressMonitor& progress_monitor) final;
 
     Status
     ShowPartitions(const std::string& collection_name, const std::vector<std::string>& partition_names,
