@@ -46,16 +46,17 @@ class ProgressMonitor {
  public:
     using CallbackFunc = std::function<void(Progress&)>;
 
- public:
     /**
      * @brief Set time duration to wait the progress complete.
      *
-     * @param [in] check_timeout set the value to controls the time duration to wait the progress. Unit: second. Default
-     * value: 60 seconds.
+     * @param [in] check_timeout set the value to controls the time duration to wait the progress. Unit: second.
      */
     explicit ProgressMonitor(uint32_t check_timeout) : check_timeout_(check_timeout) {
     }
 
+    /**
+     * @brief Default progress setting. Default timeout value: 60 seconds.
+     */
     ProgressMonitor() = default;
 
     uint32_t

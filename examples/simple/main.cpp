@@ -67,15 +67,14 @@ main(int argc, char* argv[]) {
     std::cout << "Successfully create partition." << std::endl;
 
     // tell server prepare to load collection
-    milvus::ProgressMonitor pm = milvus::ProgressMonitor::NoWait();
-    status = client->LoadCollection(collection_name, pm);
+    status = client->LoadCollection(collection_name);
 
     // insert some rows
     const int32_t row_count = 100;
-    std::vector<int16_t> ages;
+    std::vector<int8_t> ages;
     std::vector<std::vector<float>> vectors;
     std::default_random_engine ran;
-    std::uniform_int_distribution<int16_t> int_gen(1, 100);
+    std::uniform_int_distribution<int8_t> int_gen(1, 100);
     std::uniform_real_distribution<float> float_gen(0.0, 1.0);
     for (auto i = 0; i < row_count; ++i) {
         ages.push_back(int_gen(ran));
@@ -87,7 +86,7 @@ main(int argc, char* argv[]) {
         vectors.emplace_back(vector);
     }
 
-    std::vector<milvus::FieldDataPtr> fields_data{std::make_shared<milvus::Int16FieldData>("age", ages),
+    std::vector<milvus::FieldDataPtr> fields_data{std::make_shared<milvus::Int8FieldData>("age", ages),
                                                   std::make_shared<milvus::FloatVecFieldData>("face", vectors)};
     milvus::DmlResults dml_results;
     status = client->Insert(collection_name, partition_name, fields_data, dml_results);
@@ -120,19 +119,20 @@ main(int argc, char* argv[]) {
     std::cout << "Successfully search." << std::endl;
 
     // TODO: here return empty results, not sure why, need more investigation
-    auto& results = search_results.Results();
-    std::cout << "Topk IDs: ";
-    for (auto id : results[0].Ids().IntIDArray()) {
-        std::cout << id << ",";
-    }
-    std::cout << std::endl;
+    for (auto& result : search_results.Results()) {
+        auto& ids = result.Ids().IntIDArray();
+        auto& distances = result.Scores();
+        if (ids.size() != distances.size()) {
+            std::cout << "Illegal result!" << std::endl;
+            continue;
+        }
 
-    std::cout << "Topk distances: ";
-    for (auto score : results[0].Scores()) {
-        std::cout << score << ",";
+        for (size_t i = 0; i < ids.size(); ++i) {
+            std::cout << "ID: " << ids[i] << "\tDistance: " << distances[i] << std::endl;
+        }
     }
-    std::cout << std::endl;
 
+    // drop collection
     status = client->DropCollection(collection_name);
     std::cout << "Drop collection " << collection_name << std::endl;
 

@@ -184,8 +184,8 @@ MilvusClientImpl::DescribeCollection(const std::string& collection_name, Collect
 }
 
 Status
-MilvusClientImpl::GetCollectionStatistics(const std::string& collection_name, const ProgressMonitor& progress_monitor,
-                                          CollectionStat& collection_stat) {
+MilvusClientImpl::GetCollectionStatistics(const std::string& collection_name, CollectionStat& collection_stat,
+                                          const ProgressMonitor& progress_monitor) {
     return Status::OK();
 }
 
@@ -315,7 +315,7 @@ MilvusClientImpl::ReleasePartitions(const std::string& collection_name,
 
 Status
 MilvusClientImpl::GetPartitionStatistics(const std::string& collection_name, const std::string& partition_name,
-                                         const ProgressMonitor& progress_monitor, PartitionStat& partition_stat) {
+                                         PartitionStat& partition_stat, const ProgressMonitor& progress_monitor) {
     return Status::OK();
 }
 
