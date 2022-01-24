@@ -139,7 +139,7 @@ class MilvusClient {
 
     /**
      * Get collection statistics, currently only return row count.
-     * If the timeout is specified, this api will call Flush() and wait all segmetns persisted into storage.
+     * If the timeout is specified, this api will call Flush() and wait all segments persisted into storage.
      *
      * @param [in] collection_name name of the collection
      * @param [in] progress_monitor set timeout to wait flush progress complete, set to ProgressMonitor::NoWait() to
@@ -220,7 +220,7 @@ class MilvusClient {
 
     /**
      * Get partition statistics, currently only return row count.
-     * If the timeout is specified, this api will call Flush() and wait all segmetns persisted into storage.
+     * If the timeout is specified, this api will call Flush() and wait all segments persisted into storage.
      *
      * @param [in] collection_name name of the collection
      * @param [in] partition_name name of the partition

@@ -28,22 +28,45 @@ namespace milvus {
  */
 class PartitionStat {
  public:
+    PartitionStat() = default;
+
     /**
      * @brief Return row count of this partition.
      *
      * @return uint64_t row count of this partition
      */
     uint64_t
-    GetRowCount() const {
+    RowCount() const {
         const auto iter = statistics_.find(KeyRowCount());
         if (iter == statistics_.end()) {
             // TODO: throw exception or log
             return 0;
         }
+        return std::atoll(iter->second.c_str());
+    }
 
-        std::string str = iter->second;
+    /**
+     *  @brief Set partition name
+     */
+    void
+    SetName(std::string name) {
+        name_ = std::move(name);
+    }
 
-        return atol(str.c_str());
+    /**
+     *  @brief Get partition name
+     */
+    const std::string&
+    Name() const {
+        return name_;
+    }
+
+    /**
+     * @brief add key/value data
+     */
+    void
+    Emplace(std::string key, std::string value) {
+        statistics_.emplace(std::move(key), std::move(value));
     }
 
  private:
