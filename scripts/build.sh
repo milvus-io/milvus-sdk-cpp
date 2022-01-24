@@ -25,7 +25,7 @@ MAKE_CLEAN="OFF"
 RUN_CPPLINT="OFF"
 BUILD_PACKAGE="OFF"
 
-JOBS="$(nproc)"
+JOBS="$(nproc 2>/dev/null || sysctl -n hw.logicalcpu 2>/dev/null || echo 8)"
 if [ ${JOBS} -lt 8 ] ; then
     JOBS=8
 fi
