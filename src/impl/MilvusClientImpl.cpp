@@ -880,7 +880,19 @@ MilvusClientImpl::GetQuerySegmentInfo(const std::string& collection_name, QueryS
 
 Status
 MilvusClientImpl::GetMetrics(const std::string& request, std::string& response, std::string& component_name) {
-    return Status::OK();
+    auto pre = [&request]() {
+        proto::milvus::GetMetricsRequest rpc_request;
+        rpc_request.set_request(request);
+        return rpc_request;
+    };
+
+    auto post = [&response, &component_name](const proto::milvus::GetMetricsResponse& rpc_response) {
+        response = rpc_response.response();
+        component_name = rpc_response.component_name();
+    };
+
+    return apiHandler<proto::milvus::GetMetricsRequest, proto::milvus::GetMetricsResponse>(
+        pre, &MilvusConnection::GetMetrics, post);
 }
 
 Status
