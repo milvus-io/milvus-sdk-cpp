@@ -316,7 +316,31 @@ MilvusClientImpl::ReleasePartitions(const std::string& collection_name,
 Status
 MilvusClientImpl::GetPartitionStatistics(const std::string& collection_name, const std::string& partition_name,
                                          PartitionStat& partition_stat, const ProgressMonitor& progress_monitor) {
-    return Status::OK();
+    // do flush in validate stage if needed
+    auto validate = [&collection_name, &progress_monitor, this] {
+        Status ret;
+        if (progress_monitor.CheckTimeout() > 0) {
+            ret = Flush(std::vector<std::string>{collection_name}, progress_monitor);
+        }
+        return ret;
+    };
+
+    auto pre = [&collection_name, &partition_name] {
+        proto::milvus::GetPartitionStatisticsRequest rpc_request;
+        rpc_request.set_collection_name(collection_name);
+        rpc_request.set_partition_name(partition_name);
+        return rpc_request;
+    };
+
+    auto post = [&partition_stat, &partition_name](const proto::milvus::GetPartitionStatisticsResponse& response) {
+        partition_stat.SetName(partition_name);
+        for (const auto& stat_pair : response.stats()) {
+            partition_stat.Emplace(stat_pair.key(), stat_pair.value());
+        }
+    };
+
+    return apiHandler<proto::milvus::GetPartitionStatisticsRequest, proto::milvus::GetPartitionStatisticsResponse>(
+        validate, pre, &MilvusConnection::GetPartitionStatistics, nullptr, post);
 }
 
 Status
