@@ -18,9 +18,17 @@ get_cmake_version() {
 
 install_deps_for_ubuntu_common() {
     dist=$1
-
     check_sudo
+
     ${SUDO} apt-get update
+
+    # patch for install tzdata under noninteractive
+    if [ -z "${SUDO}" ] ; then
+        DEBIAN_FRONTEND=noninteractive DEBCONF_NONINTERACTIVE_SEEN=true apt-get -y install tzdata
+    else
+        ${SUDO} DEBIAN_FRONTEND=noninteractive DEBCONF_NONINTERACTIVE_SEEN=true apt-get -y install tzdata
+    fi
+
     ${SUDO} apt-get -y install python2.7 gpg wget gcc g++ ccache make \
                        libssl-dev iwyu lcov git
 
@@ -53,7 +61,6 @@ install_deps_for_ubuntu_2004() {
 
 install_deps_for_centos_7() {
     check_sudo
-    ${SUDO} yum -y update
     ${SUDO} yum -y install epel-release
     yum -y install gcc gcc-c++ python gpg wget ccache make openssl-devel which lcov git rpm-build
     

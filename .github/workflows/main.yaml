@@ -32,11 +32,11 @@ jobs:
     name: Build and test AMD64 Ubuntu ${{ matrix.ubuntu }}
     runs-on: ubuntu-latest
     container: ubuntu:${{ matrix.ubuntu }}
-    timeout-minutes: 90
+    timeout-minutes: 45
     strategy:
       fail-fast: false
       matrix:
-        ubuntu: [18.04]
+        ubuntu: [18.04, 20.04]
     env:
       UBUNTU: ${{ matrix.ubuntu }}
       CCACHE_COMPILERCHECK: content
@@ -81,7 +81,7 @@ jobs:
     name: Build and test AMD64 CentOS ${{ matrix.centos }}
     runs-on: ubuntu-latest
     container: centos:${{ matrix.centos }}
-    timeout-minutes: 90
+    timeout-minutes: 45
     strategy:
       fail-fast: false
       matrix:
@@ -120,7 +120,7 @@ jobs:
   macos:
     name: Build and test macOS ${{ matrix.macos }}
     runs-on: macos-${{ matrix.macos }}
-    timeout-minutes: 90
+    timeout-minutes: 45
     strategy:
       fail-fast: false
       matrix:
@@ -154,7 +154,7 @@ jobs:
   ubuntu-st:
     name: Acceptance Test Ubuntu ${{ matrix.ubuntu }}
     runs-on: ubuntu-${{ matrix.ubuntu }}
-    timeout-minutes: 90
+    timeout-minutes: 45
     strategy:
       fail-fast: false
       matrix:
@@ -188,11 +188,57 @@ jobs:
       - name: System Test
         run: |
           make st
+  ubuntu-deb:
+    name: Package AMD64 Ubuntu ${{ matrix.ubuntu }}
+    runs-on: ubuntu-latest
+    container: ubuntu:${{ matrix.ubuntu }}
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        ubuntu: [18.04, 20.04]
+    env:
+      UBUNTU: ${{ matrix.ubuntu }}
+      CCACHE_COMPILERCHECK: content
+      CCACHE_COMPRESS: 1
+      CCACHE_COMPRESSLEVEL: 5
+      CCACHE_MAXSIZE: 2G
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Cache ccache
+        uses: actions/cache@v2
+        with:
+          path: |
+            ~/.ccache
+          key: ubuntu-${{ matrix.ubuntu }}-ccache-${{ github.sha }}
+          restore-keys: ubuntu-${{ matrix.ubuntu }}-ccache-
+      - name: Cache apk
+        uses: actions/cache@v2
+        with:
+          path: |
+            /var/cache/apt/archives
+          key: ubuntu-${{ matrix.ubuntu }}-apt-${{ github.sha }}
+          restore-keys: ubuntu-${{ matrix.ubuntu }}-apt-
+      - name: Prepare
+        run: |
+          sh scripts/install_deps.sh
+      - name: Package
+        run: |
+          make package
+      - name: Build with examples
+        run: |
+          set -e
+          dpkg -i cmake_build/src/Pack/libmilvus*amd64.deb
+          mkdir -p cmake_build_example
+          cd cmake_build_example
+          cmake ../examples
+          make -j
   centos-rpm:
     name: Package AMD64 CentOS ${{ matrix.centos }}
     runs-on: ubuntu-latest
     container: centos:${{ matrix.centos }}
-    timeout-minutes: 90
+    timeout-minutes: 45
     strategy:
       fail-fast: false
       matrix:
