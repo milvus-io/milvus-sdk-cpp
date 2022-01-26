@@ -36,7 +36,7 @@ constexpr char minio_image_tag[] = "RELEASE.2020-12-03T00-03-10Z";
 constexpr char minio_start_cmd[] = "minio server /minio_data";
 
 constexpr char milvus_image_repo[] = "milvusdb/milvus";
-constexpr char milvus_image_tag[] = "v2.0.0-pre-ga";
+constexpr char milvus_image_tag[] = "v2.0.0";
 constexpr char milvus_start_cmd[] = "milvus run standalone";
 }  // namespace
 
