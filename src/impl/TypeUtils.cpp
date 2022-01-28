@@ -263,6 +263,12 @@ operator==(const proto::schema::FieldData& lhs, const Field& rhs) {
     }
 }
 
+bool
+operator==(const SegmentInfo& lhs, const SegmentInfo& rhs) {
+    return lhs.CollectionID() == rhs.CollectionID() && lhs.PartitionID() == rhs.PartitionID() &&
+           lhs.RowCount() == rhs.RowCount() && lhs.SegmentID() == rhs.SegmentID() && lhs.State() == rhs.State();
+}
+
 proto::schema::DataType
 DataTypeCast(DataType type) {
     switch (type) {
@@ -700,6 +706,46 @@ ConvertCollectionSchema(const CollectionSchema& schema, proto::schema::Collectio
     for (auto& field : schema.Fields()) {
         auto proto_field = proto_schema.add_fields();
         ConvertFieldSchema(field, *proto_field);
+    }
+}
+
+SegmentState
+SegmentStateCast(proto::common::SegmentState state) {
+    switch (state) {
+        case proto::common::SegmentState::Dropped:
+            return SegmentState::DROPPED;
+        case proto::common::SegmentState::Flushed:
+            return SegmentState::FLUSHED;
+        case proto::common::SegmentState::Flushing:
+            return SegmentState::FLUSHING;
+        case proto::common::SegmentState::Growing:
+            return SegmentState::GROWING;
+        case proto::common::SegmentState::NotExist:
+            return SegmentState::NOT_EXIST;
+        case proto::common::SegmentState::Sealed:
+            return SegmentState::SEALED;
+        default:
+            return SegmentState::UNKNOWN;
+    }
+}
+
+proto::common::SegmentState
+SegmentStateCast(SegmentState state) {
+    switch (state) {
+        case SegmentState::DROPPED:
+            return proto::common::SegmentState::Dropped;
+        case SegmentState::FLUSHED:
+            return proto::common::SegmentState::Flushed;
+        case SegmentState::FLUSHING:
+            return proto::common::SegmentState::Flushing;
+        case SegmentState::GROWING:
+            return proto::common::SegmentState::Growing;
+        case SegmentState::NOT_EXIST:
+            return proto::common::SegmentState::NotExist;
+        case SegmentState::SEALED:
+            return proto::common::SegmentState::Sealed;
+        default:
+            return proto::common::SegmentState::SegmentStateNone;
     }
 }
 
