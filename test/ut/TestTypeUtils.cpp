@@ -258,3 +258,12 @@ TEST_F(TypeUtilsTest, DataTypeCast) {
         EXPECT_EQ(dt, pair.second);
     }
 }
+
+TEST_F(TypeUtilsTest, SegmentStateCast) {
+    auto values = {milvus::SegmentState::DROPPED, milvus::SegmentState::FLUSHED,   milvus::SegmentState::FLUSHING,
+                   milvus::SegmentState::GROWING, milvus::SegmentState::NOT_EXIST, milvus::SegmentState::SEALED,
+                   milvus::SegmentState::UNKNOWN};
+    for (auto value : values) {
+        EXPECT_EQ(milvus::SegmentStateCast(milvus::SegmentStateCast(value)), value);
+    }
+}

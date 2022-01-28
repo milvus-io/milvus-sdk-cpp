@@ -21,6 +21,7 @@
 #include "milvus/types/FieldData.h"
 #include "milvus/types/IDArray.h"
 #include "milvus/types/MetricType.h"
+#include "milvus/types/SegmentInfo.h"
 
 namespace milvus {
 
@@ -59,6 +60,9 @@ operator==(const proto::schema::FieldData& lhs, const proto::schema::FieldData& 
 
 bool
 operator==(const proto::schema::FieldData& lhs, const Field& rhs);
+
+bool
+operator==(const SegmentInfo& lhs, const SegmentInfo& rhs);
 
 proto::schema::DataType
 DataTypeCast(DataType type);
@@ -166,6 +170,12 @@ ConvertFieldSchema(const FieldSchema& schema, proto::schema::FieldSchema& proto_
 
 void
 ConvertCollectionSchema(const CollectionSchema& schema, proto::schema::CollectionSchema& proto_schema);
+
+SegmentState
+SegmentStateCast(proto::common::SegmentState state);
+
+proto::common::SegmentState
+SegmentStateCast(SegmentState state);
 
 }  // namespace milvus
 

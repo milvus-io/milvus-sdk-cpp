@@ -870,7 +870,21 @@ MilvusClientImpl::GetFlushState(const std::vector<int64_t>& segments, bool& flus
 
 Status
 MilvusClientImpl::GetPersistentSegmentInfo(const std::string& collection_name, SegmentsInfo& segments_info) {
-    return Status::OK();
+    auto pre = [&collection_name] {
+        proto::milvus::GetPersistentSegmentInfoRequest rpc_request;
+        rpc_request.set_collectionname(collection_name);
+        return rpc_request;
+    };
+
+    auto post = [&segments_info](const proto::milvus::GetPersistentSegmentInfoResponse& response) {
+        for (const auto& info : response.infos()) {
+            segments_info.emplace_back(info.collectionid(), info.partitionid(), info.segmentid(), info.num_rows(),
+                                       SegmentStateCast(info.state()));
+        }
+    };
+
+    return apiHandler<proto::milvus::GetPersistentSegmentInfoRequest, proto::milvus::GetPersistentSegmentInfoResponse>(
+        pre, &MilvusConnection::GetPersistentSegmentInfo, post);
 }
 
 Status
