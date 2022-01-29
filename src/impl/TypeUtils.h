@@ -64,6 +64,9 @@ operator==(const proto::schema::FieldData& lhs, const Field& rhs);
 bool
 operator==(const SegmentInfo& lhs, const SegmentInfo& rhs);
 
+bool
+operator==(const QuerySegmentInfo& lhs, const QuerySegmentInfo& rhs);
+
 proto::schema::DataType
 DataTypeCast(DataType type);
 
