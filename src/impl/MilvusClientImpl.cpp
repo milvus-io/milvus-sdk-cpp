@@ -889,7 +889,21 @@ MilvusClientImpl::GetPersistentSegmentInfo(const std::string& collection_name, S
 
 Status
 MilvusClientImpl::GetQuerySegmentInfo(const std::string& collection_name, QuerySegmentsInfo& segments_info) {
-    return Status::OK();
+    auto pre = [&collection_name] {
+        proto::milvus::GetQuerySegmentInfoRequest rpc_request;
+        rpc_request.set_collectionname(collection_name);
+        return rpc_request;
+    };
+
+    auto post = [&segments_info](const proto::milvus::GetQuerySegmentInfoResponse& response) {
+        for (const auto& info : response.infos()) {
+            segments_info.emplace_back(info.collectionid(), info.partitionid(), info.segmentid(), info.num_rows(),
+                                       milvus::SegmentStateCast(info.state()), info.index_name(), info.indexid(),
+                                       info.nodeid());
+        }
+    };
+    return apiHandler<proto::milvus::GetQuerySegmentInfoRequest, proto::milvus::GetQuerySegmentInfoResponse>(
+        pre, &MilvusConnection::GetQuerySegmentInfo, post);
 }
 
 Status
@@ -912,7 +926,20 @@ MilvusClientImpl::GetMetrics(const std::string& request, std::string& response, 
 Status
 MilvusClientImpl::LoadBalance(int64_t src_node, const std::vector<int64_t>& dst_nodes,
                               const std::vector<int64_t>& segments) {
-    return Status::OK();
+    auto pre = [src_node, &dst_nodes, &segments] {
+        proto::milvus::LoadBalanceRequest rpc_request;
+        rpc_request.set_src_nodeid(src_node);
+        for (const auto dst_node : dst_nodes) {
+            rpc_request.add_dst_nodeids(dst_node);
+        }
+        for (const auto segment : segments) {
+            rpc_request.add_sealed_segmentids(segment);
+        }
+        return rpc_request;
+    };
+
+    return apiHandler<proto::milvus::LoadBalanceRequest, proto::common::Status>(pre, &MilvusConnection::LoadBalance,
+                                                                                nullptr);
 }
 
 Status

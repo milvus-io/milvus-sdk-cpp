@@ -269,6 +269,13 @@ operator==(const SegmentInfo& lhs, const SegmentInfo& rhs) {
            lhs.RowCount() == rhs.RowCount() && lhs.SegmentID() == rhs.SegmentID() && lhs.State() == rhs.State();
 }
 
+bool
+operator==(const QuerySegmentInfo& lhs, const QuerySegmentInfo& rhs) {
+    return lhs.CollectionID() == rhs.CollectionID() && lhs.PartitionID() == rhs.PartitionID() &&
+           lhs.RowCount() == rhs.RowCount() && lhs.SegmentID() == rhs.SegmentID() && lhs.State() == rhs.State() &&
+           lhs.IndexName() == rhs.IndexName() && lhs.IndexID() == rhs.IndexID() && lhs.NodeID() == rhs.NodeID();
+}
+
 proto::schema::DataType
 DataTypeCast(DataType type) {
     switch (type) {
