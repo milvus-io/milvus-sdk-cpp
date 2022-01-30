@@ -64,8 +64,8 @@ class MilvusConnection {
                        proto::milvus::DescribeCollectionResponse& response);
 
     Status
-    GetCollectionStats(const proto::milvus::GetCollectionStatisticsRequest& request,
-                       proto::milvus::GetCollectionStatisticsResponse& response);
+    GetCollectionStatistics(const proto::milvus::GetCollectionStatisticsRequest& request,
+                            proto::milvus::GetCollectionStatisticsResponse& response);
 
     Status
     ShowCollections(const proto::milvus::ShowCollectionsRequest& request,
