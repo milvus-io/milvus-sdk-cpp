@@ -154,7 +154,14 @@ MilvusClientImpl::LoadCollection(const std::string& collection_name, const Progr
 
 Status
 MilvusClientImpl::ReleaseCollection(const std::string& collection_name) {
-    return Status::OK();
+    auto pre = [&collection_name]() {
+        proto::milvus::ReleaseCollectionRequest rpc_request;
+        rpc_request.set_collection_name(collection_name);
+        return rpc_request;
+    };
+
+    return apiHandler<proto::milvus::ReleaseCollectionRequest, proto::common::Status>(
+        pre, &MilvusConnection::ReleaseCollection);
 }
 
 Status

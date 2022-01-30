@@ -76,7 +76,7 @@ MilvusConnection::LoadCollection(const proto::milvus::LoadCollectionRequest& req
 Status
 MilvusConnection::ReleaseCollection(const proto::milvus::ReleaseCollectionRequest& request,
                                     proto::common::Status& response) {
-    return Status::OK();
+    return grpcCall("ReleaseCollection", &Stub::ReleaseCollection, request, response);
 }
 
 Status
