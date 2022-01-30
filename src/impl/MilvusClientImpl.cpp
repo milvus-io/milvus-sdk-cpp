@@ -193,7 +193,29 @@ MilvusClientImpl::DescribeCollection(const std::string& collection_name, Collect
 Status
 MilvusClientImpl::GetCollectionStatistics(const std::string& collection_name, CollectionStat& collection_stat,
                                           const ProgressMonitor& progress_monitor) {
-    return Status::OK();
+    auto validate = [&collection_name, &progress_monitor, this]() {
+        Status ret;
+        if (progress_monitor.CheckTimeout() > 0) {
+            ret = Flush(std::vector<std::string>{collection_name}, progress_monitor);
+        }
+        return ret;
+    };
+
+    auto pre = [&collection_name]() {
+        proto::milvus::GetCollectionStatisticsRequest rpc_request;
+        rpc_request.set_collection_name(collection_name);
+        return rpc_request;
+    };
+
+    auto post = [&collection_stat, &collection_name](const proto::milvus::GetCollectionStatisticsResponse& response) {
+        collection_stat.SetName(collection_name);
+        for (const auto& stat_pair : response.stats()) {
+            collection_stat.Emplace(stat_pair.key(), stat_pair.value());
+        }
+    };
+
+    return apiHandler<proto::milvus::GetCollectionStatisticsRequest, proto::milvus::GetCollectionStatisticsResponse>(
+        validate, pre, &MilvusConnection::GetCollectionStatistics, nullptr, post);
 }
 
 Status
