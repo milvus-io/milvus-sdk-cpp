@@ -484,7 +484,34 @@ MilvusClientImpl::CreateIndex(const std::string& collection_name, const IndexDes
 Status
 MilvusClientImpl::DescribeIndex(const std::string& collection_name, const std::string& field_name,
                                 IndexDesc& index_desc) {
-    return Status::OK();
+    auto pre = [&collection_name, &field_name]() {
+        proto::milvus::DescribeIndexRequest rpc_request;
+        rpc_request.set_collection_name(collection_name);
+        rpc_request.set_field_name(field_name);
+        return rpc_request;
+    };
+
+    auto post = [&index_desc](const proto::milvus::DescribeIndexResponse& response) {
+        auto count = response.index_descriptions_size();
+        for (size_t i = 0; i < count; ++i) {
+            auto& field_name = response.index_descriptions(i).field_name();
+            auto& index_name = response.index_descriptions(i).index_name();
+            index_desc.SetFieldName(field_name);
+            index_desc.SetIndexName(index_name);
+            std::unordered_map<std::string, std::string> index_params;
+            auto index_params_size = response.index_descriptions(i).params_size();
+            index_params.reserve(index_params_size);
+
+            for (size_t j = 0; j < index_params_size; ++j) {
+                index_params.emplace(response.index_descriptions(i).params(j).key(),
+                                     response.index_descriptions(i).params(j).value());
+            }
+            index_desc.SetParams(index_params);
+        }
+    };
+
+    return apiHandler<proto::milvus::DescribeIndexRequest, proto::milvus::DescribeIndexResponse>(
+        pre, &MilvusConnection::DescribeIndex, post);
 }
 
 Status

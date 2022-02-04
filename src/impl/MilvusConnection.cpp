@@ -160,7 +160,7 @@ MilvusConnection::CreateIndex(const proto::milvus::CreateIndexRequest& request, 
 Status
 MilvusConnection::DescribeIndex(const proto::milvus::DescribeIndexRequest& request,
                                 proto::milvus::DescribeIndexResponse& response) {
-    return Status::OK();
+    return grpcCall("DescribeIndex", &Stub::DescribeIndex, request, response);
 }
 
 Status
