@@ -49,6 +49,11 @@ package:
 	@echo "Building Milvus SDK package ..."
 	@(env bash $(PWD)/scripts/build.sh -p)
 
+documentation:
+	@echo "Generating Milvus SDK documentation ..."
+	rm -rf ./doc/html ./doc/latex
+	doxygen ./doc/Doxyfile
+
 clean:
 	@echo "Cleaning"
 	rm -fr cmake_build/

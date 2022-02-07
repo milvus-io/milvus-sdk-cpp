@@ -84,6 +84,10 @@ Milvus C++ SDK using **lcov** tool to generate code coverage report. You could r
 After the command, a folder named "code_coverage" will be created under the project.
 You could open the **code_coverage/index.html** by a web browser to review the code coverage report.
 
+## Generate documentation
+Milvus C++ SDK using **doxygen** tool to generate documentation. Run `make documentation` to generate documentation.
+Typically, we only publish documentation before releasing a new sdk version.
+Since the **doxygen** is not included in the `install_deps.sh`, you need to manually install it if you want to generate the documentation by yourself.
 
 # Build C++ SDK with your macOS
 
