@@ -48,7 +48,7 @@ TEST_F(MilvusMockedTest, GetCollectionStatisticsInstantly) {
 
     auto status = client_->GetCollectionStatistics(collection, collection_stat, milvus::ProgressMonitor::NoWait());
     EXPECT_TRUE(status.IsOk());
-    EXPECT_EQ(collection_stat.GetRowCount(), 1000);
+    EXPECT_EQ(collection_stat.RowCount(), 1000);
 }
 
 TEST_F(MilvusMockedTest, GetCollectionStatisticsWithFlushInstantly) {
@@ -75,7 +75,7 @@ TEST_F(MilvusMockedTest, GetCollectionStatisticsWithFlushInstantly) {
     auto status = client_->GetCollectionStatistics(collection, collection_stat, milvus::ProgressMonitor{1});
 
     EXPECT_TRUE(status.IsOk());
-    EXPECT_EQ(collection_stat.GetRowCount(), 1000);
+    EXPECT_EQ(collection_stat.RowCount(), 1000);
 }
 
 TEST_F(MilvusMockedTest, GetCollectionStatisticsWithFlushFailure) {
