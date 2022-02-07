@@ -527,7 +527,13 @@ MilvusClientImpl::GetIndexBuildProgress(const std::string& collection_name, cons
 
 Status
 MilvusClientImpl::DropIndex(const std::string& collection_name, const std::string& field_name) {
-    return Status::OK();
+    auto pre = [&collection_name, &field_name]() {
+        proto::milvus::DropIndexRequest rpc_request;
+        rpc_request.set_collection_name(collection_name);
+        rpc_request.set_field_name(field_name);
+        return rpc_request;
+    };
+    return apiHandler<proto::milvus::DropIndexRequest, proto::common::Status>(pre, &MilvusConnection::DropIndex);
 }
 
 Status
