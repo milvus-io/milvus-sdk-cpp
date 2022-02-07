@@ -35,7 +35,7 @@ class CollectionStat {
      * @return uint64_t row count of this collection
      */
     uint64_t
-    GetRowCount() const {
+    RowCount() const {
         const auto iter = statistics_.find(KeyRowCount());
         if (iter == statistics_.end()) {
             // TODO: throw exception or log
