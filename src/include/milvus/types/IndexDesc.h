@@ -41,11 +41,27 @@ class IndexDesc {
     }
 
     /**
+     * @brief Set Field name.
+     */
+    void
+    SetFieldName(const std::string& field_name) {
+        field_name_ = field_name;
+    }
+
+    /**
      * @brief Index name.
      */
     const std::string&
     IndexName() const {
         return index_name_;
+    }
+
+    /**
+     * @brief Set Index name.
+     */
+    void
+    SetIndexName(const std::string& index_name) {
+        index_name_ = index_name;
     }
 
     /**
@@ -57,11 +73,27 @@ class IndexDesc {
     }
 
     /**
+     * @brief Set Index ID.
+     */
+    void
+    SetIndexId(int64_t index_id) {
+        index_id_ = index_id;
+    }
+
+    /**
      * @brief Parameters of the index.
      */
     const std::unordered_map<std::string, std::string>&
     Params() const {
         return params_;
+    }
+
+    /**
+     * @brief Set Parameters of the index.
+     */
+    void
+    SetParams(const std::unordered_map<std::string, std::string>& params) {
+        params_ = params;
     }
 
  private:
