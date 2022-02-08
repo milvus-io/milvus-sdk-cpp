@@ -24,7 +24,7 @@ using ::testing::_;
 using ::testing::AllOf;
 using ::testing::Property;
 
-TEST_F(MilvusMockedTest, DISABLED_TestCreateIndex) {
+TEST_F(MilvusMockedTest, TestCreateIndex) {
     milvus::ConnectParam connect_param{"127.0.0.1", server_.ListenPort()};
     client_->Connect(connect_param);
 
@@ -41,12 +41,13 @@ TEST_F(MilvusMockedTest, DISABLED_TestCreateIndex) {
 
     milvus::IndexDesc index_desc(field_name, index_name, index_id, params);
     const auto progress_monitor = ::milvus::ProgressMonitor::NoWait();
-
-    milvus::proto::milvus::CreateIndexRequest request;
-    request.set_collection_name(collection_name);
-    request.set_db_name(index_name);
-    request.set_field_name(field_name);
-
+    EXPECT_CALL(service_, CreateIndex(_,
+                                      AllOf(Property(&CreateIndexRequest::collection_name, collection_name),
+                                            Property(&CreateIndexRequest::field_name, field_name)),
+                                      _))
+        .WillOnce([](::grpc::ServerContext*, const CreateIndexRequest*, ::milvus::proto::common::Status*) {
+            return ::grpc::Status{};
+        });
     auto status = client_->CreateIndex(collection_name, index_desc, progress_monitor);
     EXPECT_TRUE(status.IsOk());
 }
