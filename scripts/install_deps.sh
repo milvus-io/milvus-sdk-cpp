@@ -59,11 +59,24 @@ install_deps_for_ubuntu_2004() {
     install_deps_for_ubuntu_common focal
 }
 
+install_deps_for_fedora_common() {
+    check_sudo
+    ${SUDO} dnf -y install gcc gcc-c++ python2 gpg wget ccache make openssl-devel which lcov git rpm-build
+    ${SUDO} dnf -y install cmake
+}
+
+install_deps_for_centos_8() {
+    check_sudo
+    ${SUDO} dnf -y install epel-release
+    ${SUDO} dnf -y install gcc gcc-c++ python2 gpg wget ccache make openssl-devel which lcov git rpm-build
+    ${SUDO} dnf -y install cmake
+}
+
 install_deps_for_centos_7() {
     check_sudo
     ${SUDO} yum -y install epel-release
-    yum -y install gcc gcc-c++ python gpg wget ccache make openssl-devel which lcov git rpm-build
-    
+    ${SUDO} yum -y install gcc gcc-c++ python gpg wget ccache make openssl-devel which lcov git rpm-build
+
     # for cmake >= 3.12, using cmake3 from epel
     current_cmake_version=$(get_cmake_version)
     if [ $current_cmake_version -lt 312 ] ; then
@@ -94,8 +107,21 @@ if uname | grep -wq Linux ; then
         # for os support yum
         if grep -q 'CentOS Linux release 7' /etc/redhat-release ; then
             install_deps_for_centos_7
+        elif grep -q 'Red Hat Enterprise Linux release 7' /etc/redhat-release ; then
+            install_deps_for_centos_7
+        elif grep -q 'CentOS Linux release 8' /etc/redhat-release ; then
+            install_deps_for_centos_8
+        elif grep -q 'CentOS Stream release 8' /etc/redhat-release ; then
+            install_deps_for_centos_8
+        elif grep -q 'Red Hat Enterprise Linux release 8' /etc/redhat-release ; then
+            install_deps_for_centos_8
+        elif grep -q 'Fedora release 34' /etc/redhat-release ; then
+            install_deps_for_fedora_common
+        elif grep -q 'Fedora release 35' /etc/redhat-release ; then
+            install_deps_for_fedora_common
         fi
     fi
 elif uname | grep -wq Darwin ; then
     install_deps_for_macos
 fi
+
