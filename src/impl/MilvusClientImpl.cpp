@@ -130,8 +130,7 @@ MilvusClientImpl::LoadCollection(const std::string& collection_name, const Progr
     };
 
     auto wait_for_status = [this, &collection_name, &progress_monitor](const proto::common::Status&) {
-        Status ret;
-        waitForStatus(
+        return waitForStatus(
             [&collection_name, this](Progress& progress) -> Status {
                 CollectionsInfo collections_info;
                 auto collection_names = std::vector<std::string>{collection_name};
@@ -145,7 +144,7 @@ MilvusClientImpl::LoadCollection(const std::string& collection_name, const Progr
                     [](const CollectionInfo& collection_info) { return collection_info.MemoryPercentage() >= 100; });
                 return status;
             },
-            progress_monitor, ret);
+            progress_monitor);
     };
 
     return apiHandler<proto::milvus::LoadCollectionRequest, proto::common::Status>(
@@ -303,8 +302,7 @@ MilvusClientImpl::LoadPartitions(const std::string& collection_name, const std::
     };
 
     auto wait_for_status = [this, &collection_name, &partition_names, &progress_monitor](const proto::common::Status&) {
-        Status ret;
-        waitForStatus(
+        return waitForStatus(
             [&collection_name, &partition_names, this](Progress& progress) -> Status {
                 PartitionsInfo partitions_info;
                 auto status = ShowPartitions(collection_name, partition_names, partitions_info);
@@ -318,8 +316,7 @@ MilvusClientImpl::LoadPartitions(const std::string& collection_name, const std::
 
                 return status;
             },
-            progress_monitor, ret);
-        return ret;
+            progress_monitor);
     };
     return apiHandler<proto::milvus::LoadPartitionsRequest, proto::common::Status>(
         nullptr, pre, &MilvusConnection::LoadPartitions, wait_for_status, nullptr);
@@ -452,9 +449,8 @@ MilvusClientImpl::CreateIndex(const std::string& collection_name, const IndexDes
     };
 
     auto wait_for_status = [&collection_name, &index_desc, &progress_monitor, this](const proto::common::Status&) {
-        Status ret;
-        waitForStatus(
-            [&collection_name, &index_desc, ret, this](Progress& progress) -> Status {
+        return waitForStatus(
+            [&collection_name, &index_desc, this](Progress& progress) -> Status {
                 IndexState index_state;
                 auto status = GetIndexState(collection_name, index_desc.FieldName(), index_state);
                 if (not status.IsOk()) {
@@ -474,8 +470,7 @@ MilvusClientImpl::CreateIndex(const std::string& collection_name, const IndexDes
 
                 return status;
             },
-            progress_monitor, ret);
-        return ret;
+            progress_monitor);
     };
     return apiHandler<proto::milvus::CreateIndexRequest, proto::common::Status>(
         nullptr, pre, &MilvusConnection::CreateIndex, wait_for_status, nullptr);
@@ -881,10 +876,9 @@ MilvusClientImpl::Flush(const std::vector<std::string>& collection_names, const 
         if (segment_count == 0) {
             return Status::OK();
         }
-        Status ret;
 
-        waitForStatus(
-            [&](Progress& p) -> Status {
+        return waitForStatus(
+            [&segment_count, &flush_segments, &finished_count, this](Progress& p) -> Status {
                 p.total_ = segment_count;
 
                 // call GetFlushState() to check segment state
@@ -906,8 +900,7 @@ MilvusClientImpl::Flush(const std::vector<std::string>& collection_names, const 
 
                 return Status::OK();
             },
-            progress_monitor, ret);
-        return ret;
+            progress_monitor);
     };
 
     return apiHandler<proto::milvus::FlushRequest, proto::milvus::FlushResponse>(nullptr, pre, &MilvusConnection::Flush,
@@ -1078,12 +1071,12 @@ MilvusClientImpl::GetCompactionPlans(int64_t compaction_id, CompactionPlans& pla
         pre, &MilvusConnection::GetCompactionPlans, post);
 }
 
-void
+Status
 MilvusClientImpl::waitForStatus(std::function<Status(Progress&)> query_function,
-                                const ProgressMonitor& progress_monitor, Status& status) {
+                                const ProgressMonitor& progress_monitor) {
     // no need to check
     if (progress_monitor.CheckTimeout() == 0) {
-        return;
+        return Status::OK();
     }
 
     std::chrono::time_point<std::chrono::steady_clock> started = std::chrono::steady_clock::now();
@@ -1098,11 +1091,11 @@ MilvusClientImpl::waitForStatus(std::function<Status(Progress&)> query_function,
         std::this_thread::sleep_until(next_wait);
 
         Progress current_progress;
-        status = query_function(current_progress);
+        auto status = query_function(current_progress);
 
         // if the internal check function failed, return error
         if (not status.IsOk()) {
-            break;
+            return status;
         }
 
         // notify progress
@@ -1110,13 +1103,12 @@ MilvusClientImpl::waitForStatus(std::function<Status(Progress&)> query_function,
 
         // if progress all done, break the circle
         if (current_progress.Done()) {
-            break;
+            return status;
         }
 
         // if time to deadline, return timeout error
         if (next_wait >= final_timeout) {
-            status = Status{StatusCode::TIMEOUT, "time out"};
-            break;
+            return Status{StatusCode::TIMEOUT, "time out"};
         }
     }
 }

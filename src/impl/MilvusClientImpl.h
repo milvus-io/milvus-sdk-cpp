@@ -165,11 +165,10 @@ class MilvusClientImpl : public MilvusClient {
      *
      * @param [in] query_function one time query for return Status, return TIMEOUT status if not done
      * @param [in] progress_monitor timeout setting for waiting progress
-     * @param [inout] status the final returned status
+     * @return Status, the final status
      */
-    void
-    waitForStatus(std::function<Status(Progress&)> query_function, const ProgressMonitor& progress_monitor,
-                  Status& status);
+    Status
+    waitForStatus(std::function<Status(Progress&)> query_function, const ProgressMonitor& progress_monitor);
 
     /**
      * @brief template for public api call
