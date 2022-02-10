@@ -517,7 +517,20 @@ MilvusClientImpl::GetIndexState(const std::string& collection_name, const std::s
 Status
 MilvusClientImpl::GetIndexBuildProgress(const std::string& collection_name, const std::string& field_name,
                                         IndexProgress& progress) {
-    return Status::OK();
+    auto pre = [&collection_name, &field_name]() {
+        proto::milvus::GetIndexBuildProgressRequest rpc_request;
+        rpc_request.set_collection_name(collection_name);
+        rpc_request.set_field_name(field_name);
+        return rpc_request;
+    };
+
+    auto post = [&progress](const proto::milvus::GetIndexBuildProgressResponse& response) {
+        progress.SetTotalRows(response.total_rows());
+        progress.SetIndexedRows(response.indexed_rows());
+    };
+
+    return apiHandler<proto::milvus::GetIndexBuildProgressRequest, proto::milvus::GetIndexBuildProgressResponse>(
+        pre, &MilvusConnection::GetIndexBuildProgress, post);
 }
 
 Status
