@@ -20,9 +20,9 @@
 #include "milvus/types/CollectionSchema.h"
 #include "milvus/types/FieldData.h"
 #include "milvus/types/IDArray.h"
+#include "milvus/types/IndexState.h"
 #include "milvus/types/MetricType.h"
 #include "milvus/types/SegmentInfo.h"
-
 namespace milvus {
 
 bool
@@ -179,6 +179,9 @@ SegmentStateCast(proto::common::SegmentState state);
 
 proto::common::SegmentState
 SegmentStateCast(SegmentState state);
+
+IndexStateCode
+IndexStateCast(proto::common::IndexState state);
 
 }  // namespace milvus
 
