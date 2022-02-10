@@ -71,11 +71,27 @@ class IndexProgress {
     }
 
     /**
+     * @brief Set Row count already indexed.
+     */
+    void
+    SetIndexedRows(int64_t indexed_rows) {
+        indexed_rows_ = indexed_rows;
+    }
+
+    /**
      * @brief Total rows need to be indxed.
      */
     int64_t
     TotalRows() const {
         return total_rows_;
+    }
+
+    /**
+     * @brief Set total rows need to be indexed.
+     */
+    void
+    SetTotalRows(int64_t total_rows) {
+        total_rows_ = total_rows;
     }
 
  private:

@@ -172,7 +172,7 @@ MilvusConnection::GetIndexState(const proto::milvus::GetIndexStateRequest& reque
 Status
 MilvusConnection::GetIndexBuildProgress(const proto::milvus::GetIndexBuildProgressRequest& request,
                                         proto::milvus::GetIndexBuildProgressResponse& response) {
-    return grpcCall("HasParition", &Stub::GetIndexBuildProgress, request, response);
+    return grpcCall("GetIndexBuildProgress", &Stub::GetIndexBuildProgress, request, response);
 }
 
 Status
