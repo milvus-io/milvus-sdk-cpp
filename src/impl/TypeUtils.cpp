@@ -442,70 +442,36 @@ CreateProtoFieldData(const Field& field) {
     field_data.set_type(DataTypeCast(field_type));
 
     switch (field_type) {
-        case DataType::BINARY_VECTOR: {
-            const auto* original_field = dynamic_cast<const BinaryVecFieldData*>(&field);
-            if (original_field) {
-                field_data.set_allocated_vectors(CreateProtoFieldData(*original_field));
-            }
-        } break;
-
-        case DataType::FLOAT_VECTOR: {
-            const auto* original_field = dynamic_cast<const FloatVecFieldData*>(&field);
-            if (original_field) {
-                field_data.set_allocated_vectors(CreateProtoFieldData(*original_field));
-            }
-        } break;
-
-        case DataType::BOOL: {
-            const auto* original_field = dynamic_cast<const BoolFieldData*>(&field);
-            if (original_field) {
-                field_data.set_allocated_scalars(CreateProtoFieldData(*original_field));
-            }
-        } break;
-
-        case DataType::INT8: {
-            const auto* original_field = dynamic_cast<const Int8FieldData*>(&field);
-            if (original_field) {
-                field_data.set_allocated_scalars(CreateProtoFieldData(*original_field));
-            }
-        } break;
-        case DataType::INT16: {
-            const auto* original_field = dynamic_cast<const Int16FieldData*>(&field);
-            if (original_field) {
-                field_data.set_allocated_scalars(CreateProtoFieldData(*original_field));
-            }
-        } break;
-        case DataType::INT32: {
-            const auto* original_field = dynamic_cast<const Int32FieldData*>(&field);
-            if (original_field) {
-                field_data.set_allocated_scalars(CreateProtoFieldData(*original_field));
-            }
-        } break;
-        case DataType::INT64: {
-            const auto* original_field = dynamic_cast<const Int64FieldData*>(&field);
-            if (original_field) {
-                field_data.set_allocated_scalars(CreateProtoFieldData(*original_field));
-            }
-        } break;
-        case DataType::FLOAT: {
-            const auto* original_field = dynamic_cast<const FloatFieldData*>(&field);
-            if (original_field) {
-                field_data.set_allocated_scalars(CreateProtoFieldData(*original_field));
-            }
-        } break;
-        case DataType::DOUBLE: {
-            const auto* original_field = dynamic_cast<const DoubleFieldData*>(&field);
-            if (original_field) {
-                field_data.set_allocated_scalars(CreateProtoFieldData(*original_field));
-            }
-        } break;
-        case DataType::STRING: {
-            const auto* original_field = dynamic_cast<const StringFieldData*>(&field);
-            if (original_field) {
-                field_data.set_allocated_scalars(CreateProtoFieldData(*original_field));
-            }
-        } break;
-
+        case DataType::BINARY_VECTOR:
+            field_data.set_allocated_vectors(CreateProtoFieldData(dynamic_cast<const BinaryVecFieldData&>(field)));
+            break;
+        case DataType::FLOAT_VECTOR:
+            field_data.set_allocated_vectors(CreateProtoFieldData(dynamic_cast<const FloatVecFieldData&>(field)));
+            break;
+        case DataType::BOOL:
+            field_data.set_allocated_scalars(CreateProtoFieldData(dynamic_cast<const BoolFieldData&>(field)));
+            break;
+        case DataType::INT8:
+            field_data.set_allocated_scalars(CreateProtoFieldData(dynamic_cast<const Int8FieldData&>(field)));
+            break;
+        case DataType::INT16:
+            field_data.set_allocated_scalars(CreateProtoFieldData(dynamic_cast<const Int16FieldData&>(field)));
+            break;
+        case DataType::INT32:
+            field_data.set_allocated_scalars(CreateProtoFieldData(dynamic_cast<const Int32FieldData&>(field)));
+            break;
+        case DataType::INT64:
+            field_data.set_allocated_scalars(CreateProtoFieldData(dynamic_cast<const Int64FieldData&>(field)));
+            break;
+        case DataType::FLOAT:
+            field_data.set_allocated_scalars(CreateProtoFieldData(dynamic_cast<const FloatFieldData&>(field)));
+            break;
+        case DataType::DOUBLE:
+            field_data.set_allocated_scalars(CreateProtoFieldData(dynamic_cast<const DoubleFieldData&>(field)));
+            break;
+        case DataType::STRING:
+            field_data.set_allocated_scalars(CreateProtoFieldData(dynamic_cast<const StringFieldData&>(field)));
+            break;
         default:
             break;
     }
