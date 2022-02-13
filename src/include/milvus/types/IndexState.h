@@ -45,11 +45,26 @@ class IndexState {
     }
 
     /**
+     * @brief Set Index state code.
+     */
+    void
+    SetStateCode(IndexStateCode state_code) {
+        state_code_ = state_code;
+    }
+
+    /**
      * @brief Failed reason why the index failed to build.
      */
     std::string
     FailedReason() const {
         return failed_reason_;
+    }
+    /**
+     * @brief Set Failure resaon.
+     */
+    void
+    SetFailedReason(const std::string& failed_reason) {
+        failed_reason_ = failed_reason;
     }
 
  private:

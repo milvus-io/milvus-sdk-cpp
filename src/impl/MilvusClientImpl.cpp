@@ -511,7 +511,20 @@ MilvusClientImpl::DescribeIndex(const std::string& collection_name, const std::s
 
 Status
 MilvusClientImpl::GetIndexState(const std::string& collection_name, const std::string& field_name, IndexState& state) {
-    return Status::OK();
+    auto pre = [&collection_name, &field_name]() {
+        proto::milvus::GetIndexStateRequest rpc_request;
+        rpc_request.set_collection_name(collection_name);
+        rpc_request.set_field_name(field_name);
+        return rpc_request;
+    };
+
+    auto post = [&state](const proto::milvus::GetIndexStateResponse& response) {
+        state.SetStateCode(IndexStateCast(response.state()));
+        state.SetFailedReason(response.fail_reason());
+    };
+
+    return apiHandler<proto::milvus::GetIndexStateRequest, proto::milvus::GetIndexStateResponse>(
+        pre, &MilvusConnection::GetIndexState, post);
 }
 
 Status

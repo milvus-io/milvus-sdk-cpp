@@ -722,6 +722,22 @@ SegmentStateCast(SegmentState state) {
     }
 }
 
+IndexStateCode
+IndexStateCast(proto::common::IndexState state) {
+    switch (state) {
+        case proto::common::IndexState::IndexStateNone:
+            return IndexStateCode::NONE;
+        case proto::common::IndexState::Unissued:
+            return IndexStateCode::UNISSUED;
+        case proto::common::IndexState::InProgress:
+            return IndexStateCode::IN_PROGRESS;
+        case proto::common::IndexState::Finished:
+            return IndexStateCode::FINISHED;
+        default:
+            return IndexStateCode::FAILED;
+    }
+}
+
 }  // namespace milvus
 
 namespace std {
