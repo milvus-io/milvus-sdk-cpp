@@ -20,24 +20,24 @@
 
 using ::milvus::StatusCode;
 using ::milvus::proto::milvus::CreateIndexRequest;
+using ::milvus::proto::milvus::GetIndexStateRequest;
+using ::milvus::proto::milvus::GetIndexStateResponse;
 using ::testing::_;
 using ::testing::AllOf;
 using ::testing::Property;
 
-TEST_F(MilvusMockedTest, TestCreateIndex) {
+TEST_F(MilvusMockedTest, TestCreateIndexInstantly) {
     milvus::ConnectParam connect_param{"127.0.0.1", server_.ListenPort()};
     client_->Connect(connect_param);
 
     std::string collection_name = "test_collection";
     std::string field_name = "test_field";
     std::string index_name = "test_index";
-    std::string db_name = "test_db";
     int64_t index_id = 0;
-    std::unordered_map<std::string, std::string> params;
-    params["nlist"] = "10";
-    params["nprobe"] = "10";
-    params["nbits"] = "10";
-    params["nlevel"] = "10";
+    const std::unordered_map<std::string, std::string> params = {
+        {"nlist", "1024"},
+        {"m", "100"},
+    };
 
     milvus::IndexDesc index_desc(field_name, index_name, index_id, params);
     const auto progress_monitor = ::milvus::ProgressMonitor::NoWait();
@@ -50,4 +50,93 @@ TEST_F(MilvusMockedTest, TestCreateIndex) {
         });
     auto status = client_->CreateIndex(collection_name, index_desc, progress_monitor);
     EXPECT_TRUE(status.IsOk());
+}
+
+TEST_F(MilvusMockedTest, TestCreateIndexWithProgress) {
+    milvus::ConnectParam connect_param{"127.0.0.1", server_.ListenPort()};
+    client_->Connect(connect_param);
+
+    std::string collection_name = "test_collection";
+    std::string field_name = "test_field";
+    int64_t index_id = 0;
+    const std::unordered_map<std::string, std::string> params = {
+        {"nlist", "1024"},
+        {"m", "100"},
+    };
+
+    milvus::IndexDesc index_desc(field_name, "", index_id, params);
+    auto progress_monitor = ::milvus::ProgressMonitor::Forever();
+    progress_monitor.SetCheckInterval(10);
+    EXPECT_CALL(service_, CreateIndex(_,
+                                      AllOf(Property(&CreateIndexRequest::collection_name, collection_name),
+                                            Property(&CreateIndexRequest::field_name, field_name)),
+                                      _))
+        .WillOnce([](::grpc::ServerContext*, const CreateIndexRequest*, ::milvus::proto::common::Status* status) {
+            status->set_error_code(milvus::proto::common::ErrorCode::Success);
+            return ::grpc::Status{};
+        });
+
+    int called_times{0};
+    EXPECT_CALL(service_, GetIndexState(_,
+                                        AllOf(Property(&GetIndexStateRequest::collection_name, collection_name),
+                                              Property(&GetIndexStateRequest::field_name, field_name)),
+                                        _))
+        .Times(10)
+        .WillRepeatedly(
+            [&](::grpc::ServerContext*, const GetIndexStateRequest* request, GetIndexStateResponse* response) {
+                called_times++;
+                milvus::proto::common::IndexState state = (called_times == 10)
+                                                              ? milvus::proto::common::IndexState::Finished
+                                                              : milvus::proto::common::IndexState::InProgress;
+                response->set_state(state);
+                return ::grpc::Status{};
+            });
+
+    auto status = client_->CreateIndex(collection_name, index_desc, progress_monitor);
+    EXPECT_TRUE(status.IsOk());
+}
+
+TEST_F(MilvusMockedTest, TestCreateIndexFailed) {
+    milvus::ConnectParam connect_param{"127.0.0.1", server_.ListenPort()};
+    client_->Connect(connect_param);
+
+    std::string collection_name = "test_collection";
+    std::string field_name = "test_field";
+    int64_t index_id = 0;
+    const std::unordered_map<std::string, std::string> params = {
+        {"nlist", "1024"},
+        {"m", "100"},
+    };
+
+    milvus::IndexDesc index_desc(field_name, "", index_id, params);
+    auto progress_monitor = ::milvus::ProgressMonitor::Forever();
+    progress_monitor.SetCheckInterval(10);
+    EXPECT_CALL(service_, CreateIndex(_,
+                                      AllOf(Property(&CreateIndexRequest::collection_name, collection_name),
+                                            Property(&CreateIndexRequest::field_name, field_name)),
+                                      _))
+        .WillRepeatedly([](::grpc::ServerContext*, const CreateIndexRequest*, ::milvus::proto::common::Status* status) {
+            status->set_error_code(milvus::proto::common::ErrorCode::Success);
+            return ::grpc::Status{};
+        });
+
+    std::string failed_reason = "unknow";
+    EXPECT_CALL(service_, GetIndexState(_, _, _))
+        .WillOnce([&failed_reason](::grpc::ServerContext*, const GetIndexStateRequest*, GetIndexStateResponse*) {
+            return ::grpc::Status{::grpc::StatusCode::UNKNOWN, failed_reason};
+        });
+
+    auto status = client_->CreateIndex(collection_name, index_desc, progress_monitor);
+    EXPECT_FALSE(status.IsOk());
+
+    EXPECT_CALL(service_, GetIndexState(_, _, _))
+        .WillOnce(
+            [&failed_reason](::grpc::ServerContext*, const GetIndexStateRequest*, GetIndexStateResponse* response) {
+                response->set_state(milvus::proto::common::IndexState::Failed);
+                response->set_fail_reason(failed_reason);
+                return ::grpc::Status{};
+            });
+
+    status = client_->CreateIndex(collection_name, index_desc, progress_monitor);
+    EXPECT_FALSE(status.IsOk());
 }
