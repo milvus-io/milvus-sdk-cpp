@@ -28,17 +28,120 @@ on:
       - '.clang-tidy'
 
 jobs:
-  ubuntu:
-    name: Build and test AMD64 Ubuntu ${{ matrix.ubuntu }}
+  linux:
+    name: Build and test AMD64 ${{ matrix.os.distro }} ${{ matrix.os.version }}
     runs-on: ubuntu-latest
-    container: ubuntu:${{ matrix.ubuntu }}
+    container: ${{ matrix.os.image }}
     timeout-minutes: 45
     strategy:
       fail-fast: false
       matrix:
-        ubuntu: [18.04, 20.04]
+        os:
+          - distro: Ubuntu
+            version: 18.04
+            image: ubuntu:18.04
+            key: u1804
+          - distro: Ubuntu
+            version: 20.04
+            image: ubuntu:20.04
+            key: u2004
+          - distro: CentOS
+            version: 7
+            image: centos:7
+            key: c7
+          - distro: Fedora
+            version: 34
+            image: fedora:34
+            key: fc34
+          - distro: Fedora
+            version: 35
+            image: fedora:35
+            key: fc35
     env:
-      UBUNTU: ${{ matrix.ubuntu }}
+      CCACHE_COMPILERCHECK: content
+      CCACHE_COMPRESS: 1
+      CCACHE_COMPRESSLEVEL: 5
+      CCACHE_MAXSIZE: 2G
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Cache ccache
+        uses: actions/cache@v2
+        with:
+          path: |
+            ~/.ccache
+          key: linux-${{ matrix.os.key }}-ccache-${{ github.sha }}
+          restore-keys: linux-${{ matrix.os.key }}-ccache-
+      - name: Cache apk
+        uses: actions/cache@v2
+        if: ${{ matrix.os.distro }} == "Ubuntu"
+        with:
+          path: |
+            /var/cache/apt/archives
+          key: linux-${{ matrix.os.key }}-ccache-${{ github.sha }}
+          restore-keys: linux-${{ matrix.os.key }}-ccache-
+      - name: Cache rpm
+        uses: actions/cache@v2
+        if: ${{ matrix.os.distro == 'CentOS' || matrix.os.distro == 'Fedora' }}
+        with:
+          path: |
+            /var/cache/yum
+          key: linux-${{ matrix.os.key }}-rpm-${{ github.sha }}
+          restore-keys: linux-${{ matrix.os.key }}-rpm-
+      - name: Prepare
+        run: |
+          sh scripts/install_deps.sh
+      - name: Build
+        run: |
+          make
+      - name: Lint
+        if: ${{ matrix.os.distro == 'Ubuntu' }}
+        run: |
+          make lint
+      - name: Uint Testing
+        if: ${{ matrix.os.key != 'u2004' }}
+        run: |
+          make test
+      - name: Uint Testing With Coverage
+        if: ${{ matrix.os.key == 'u2004' }}
+        run: |
+          make coverage
+      - name: Upload coverage
+        uses: codecov/codecov-action@v2
+        if: ${{ matrix.os.key == 'u2004' }}
+        with:
+          files: ./code_coverage/lcov_output.info
+          name: ubuntu-${{ matrix.ubuntu }}-coverage
+      - name: Build Packages
+        run: |
+          make package
+      - name: Build with examples apk
+        if: ${{ matrix.os.distro == 'Ubuntu' }}
+        run: |
+          set -e
+          dpkg -i cmake_build/src/Pack/libmilvus*amd64.deb
+          mkdir -p cmake_build_example
+          cd cmake_build_example
+          cmake ../examples
+          make -j
+      - name: Build with examples rpm
+        if: ${{ matrix.os.distro == 'CentOS' || matrix.os.distro == 'Fedora' }}
+        run: |
+          set -e
+          yum install -y cmake_build/src/Pack/libmilvus{-devel,}-2*.rpm
+          mkdir -p cmake_build_example
+          cd cmake_build_example
+          cmake ../examples
+          make -j
+  st-ubuntu:
+    name: Acceptance Test Ubuntu ${{ matrix.ubuntu }}
+    runs-on: ubuntu-${{ matrix.ubuntu }}
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        ubuntu: [18.04]
+    env:
       CCACHE_COMPILERCHECK: content
       CCACHE_COMPRESS: 1
       CCACHE_COMPRESSLEVEL: 5
@@ -57,66 +160,15 @@ jobs:
         uses: actions/cache@v2
         with:
           path: |
-            /var/cache/apt/archives
+            /var/cache/apt/archives/*.deb
           key: ubuntu-${{ matrix.ubuntu }}-apt-${{ github.sha }}
           restore-keys: ubuntu-${{ matrix.ubuntu }}-apt-
       - name: Prepare
         run: |
           sh scripts/install_deps.sh
-      - name: Build
+      - name: System Test
         run: |
-          make
-      - name: Lint
-        run: |
-          make lint
-      - name: Uint Testing
-        run: |
-          make coverage
-      - name: Upload coverage
-        uses: codecov/codecov-action@v2
-        with:
-          files: ./code_coverage/lcov_output.info
-          name: ubuntu-${{ matrix.ubuntu }}-coverage
-  centos:
-    name: Build and test AMD64 CentOS ${{ matrix.centos }}
-    runs-on: ubuntu-latest
-    container: centos:${{ matrix.centos }}
-    timeout-minutes: 45
-    strategy:
-      fail-fast: false
-      matrix:
-        centos: [7]
-    env:
-      CCACHE_COMPILERCHECK: content
-      CCACHE_COMPRESS: 1
-      CCACHE_COMPRESSLEVEL: 5
-      CCACHE_MAXSIZE: 2G
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-      - name: Cache ccache
-        uses: actions/cache@v2
-        with:
-          path: |
-            ~/.ccache
-          key: centos-${{ matrix.centos }}-ccache-${{ github.sha }}
-          restore-keys: centos-${{ matrix.centos }}-ccache-
-      - name: Cache rpm
-        uses: actions/cache@v2
-        with:
-          path: |
-            /var/cache/yum
-          key: centos-${{ matrix.centos }}-rpm-${{ github.sha }}
-          restore-keys: centos-${{ matrix.centos }}-rpm-
-      - name: Prepare
-        run: |
-          sh scripts/install_deps.sh
-      - name: Build
-        run: |
-          make
-      - name: Uint Testing
-        run: |
-          make test
+          make st
   macos:
     name: Build and test macOS ${{ matrix.macos }}
     runs-on: macos-${{ matrix.macos }}
@@ -151,132 +203,3 @@ jobs:
       - name: Uint Testing
         run: |
           make test
-  ubuntu-st:
-    name: Acceptance Test Ubuntu ${{ matrix.ubuntu }}
-    runs-on: ubuntu-${{ matrix.ubuntu }}
-    timeout-minutes: 45
-    strategy:
-      fail-fast: false
-      matrix:
-        ubuntu: [18.04]
-    env:
-      UBUNTU: ${{ matrix.ubuntu }}
-      CCACHE_COMPILERCHECK: content
-      CCACHE_COMPRESS: 1
-      CCACHE_COMPRESSLEVEL: 5
-      CCACHE_MAXSIZE: 2G
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-      - name: Cache ccache
-        uses: actions/cache@v2
-        with:
-          path: |
-            ~/.ccache
-          key: ubuntu-${{ matrix.ubuntu }}-ccache-${{ github.sha }}
-          restore-keys: ubuntu-${{ matrix.ubuntu }}-ccache-
-      - name: Cache apk
-        uses: actions/cache@v2
-        with:
-          path: |
-            /var/cache/apt/archives/*.deb
-          key: ubuntu-${{ matrix.ubuntu }}-apt-${{ github.sha }}
-          restore-keys: ubuntu-${{ matrix.ubuntu }}-apt-
-      - name: Prepare
-        run: |
-          sh scripts/install_deps.sh
-      - name: System Test
-        run: |
-          make st
-  ubuntu-deb:
-    name: Package AMD64 Ubuntu ${{ matrix.ubuntu }}
-    runs-on: ubuntu-latest
-    container: ubuntu:${{ matrix.ubuntu }}
-    timeout-minutes: 45
-    strategy:
-      fail-fast: false
-      matrix:
-        ubuntu: [18.04, 20.04]
-    env:
-      UBUNTU: ${{ matrix.ubuntu }}
-      CCACHE_COMPILERCHECK: content
-      CCACHE_COMPRESS: 1
-      CCACHE_COMPRESSLEVEL: 5
-      CCACHE_MAXSIZE: 2G
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-      - name: Cache ccache
-        uses: actions/cache@v2
-        with:
-          path: |
-            ~/.ccache
-          key: ubuntu-${{ matrix.ubuntu }}-ccache-${{ github.sha }}
-          restore-keys: ubuntu-${{ matrix.ubuntu }}-ccache-
-      - name: Cache apk
-        uses: actions/cache@v2
-        with:
-          path: |
-            /var/cache/apt/archives
-          key: ubuntu-${{ matrix.ubuntu }}-apt-${{ github.sha }}
-          restore-keys: ubuntu-${{ matrix.ubuntu }}-apt-
-      - name: Prepare
-        run: |
-          sh scripts/install_deps.sh
-      - name: Package
-        run: |
-          make package
-      - name: Build with examples
-        run: |
-          set -e
-          dpkg -i cmake_build/src/Pack/libmilvus*amd64.deb
-          mkdir -p cmake_build_example
-          cd cmake_build_example
-          cmake ../examples
-          make -j
-  centos-rpm:
-    name: Package AMD64 CentOS ${{ matrix.centos }}
-    runs-on: ubuntu-latest
-    container: centos:${{ matrix.centos }}
-    timeout-minutes: 45
-    strategy:
-      fail-fast: false
-      matrix:
-        centos: [7]
-    env:
-      CCACHE_COMPILERCHECK: content
-      CCACHE_COMPRESS: 1
-      CCACHE_COMPRESSLEVEL: 5
-      CCACHE_MAXSIZE: 2G
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-      - name: Cache ccache
-        uses: actions/cache@v2
-        with:
-          path: |
-            ~/.ccache
-          key: centos-${{ matrix.centos }}-ccache-${{ github.sha }}
-          restore-keys: centos-${{ matrix.centos }}-ccache-
-      - name: Cache rpm
-        uses: actions/cache@v2
-        with:
-          path: |
-            /var/cache/yum
-          key: centos-${{ matrix.centos }}-rpm-${{ github.sha }}
-          restore-keys: centos-${{ matrix.centos }}-rpm-
-      - name: Prepare
-        run: |
-          sh scripts/install_deps.sh
-      - name: Package
-        run: |
-          make package
-      - name:  Build with examples
-        run: |
-          set -e
-          yum install -y cmake_build/src/Pack/libmilvus{-devel,}-2*el*.rpm
-          mkdir -p cmake_build_example
-          cd cmake_build_example
-          cmake ../examples
-          make -j
-
