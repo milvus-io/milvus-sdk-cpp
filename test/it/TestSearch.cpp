@@ -50,13 +50,10 @@ operator==(const milvus::proto::common::KeyValuePair& lhs, const TestKv& rhs) {
 }
 }  // namespace
 
-TEST_F(MilvusMockedTest, SearchFoo) {
-    milvus::ConnectParam connect_param{"127.0.0.1", server_.ListenPort()};
-    client_->Connect(connect_param);
-
-    std::vector<std::vector<float>> floats_vec = {std::vector<float>{0.1f, 0.2f, 0.3f, 0.4f},
-                                                  std::vector<float>{0.2f, 0.3f, 0.4f, 0.5f}};
-
+template <typename T>
+void
+TestSearchVectors(testing::StrictMock<::milvus::MilvusMockedService>& service_,
+                  std::shared_ptr<::milvus::MilvusClient>& client_, std::vector<std::vector<T>> vectors) {
     milvus::SearchArguments search_arguments{};
     milvus::SearchResults search_results{};
     search_arguments.SetCollectionName("foo");
@@ -65,11 +62,11 @@ TEST_F(MilvusMockedTest, SearchFoo) {
     search_arguments.AddOutputField("f1");
     search_arguments.AddOutputField("f2");
     search_arguments.SetExpression("dummy expression");
-    for (const auto& floats : floats_vec) {
-        search_arguments.AddTargetVector("anns_dummy", floats);
+    for (const auto& vec : vectors) {
+        search_arguments.AddTargetVector("anns_dummy", vec);
     }
     search_arguments.SetTravelTimestamp(10000);
-    search_arguments.SetGuaranteeTimestamp(10001);
+    search_arguments.SetGuaranteeTimestamp(milvus::GuaranteeStrongTs());
     search_arguments.SetTopK(10);
     search_arguments.SetRoundDecimal(-1);
     search_arguments.SetMetricType(milvus::MetricType::IP);
@@ -96,14 +93,14 @@ TEST_F(MilvusMockedTest, SearchFoo) {
             AllOf(Property(&SearchRequest::collection_name, "foo"), Property(&SearchRequest::dsl, "dummy expression"),
                   Property(&SearchRequest::dsl_type, milvus::proto::common::DslType::BoolExprV1),
                   Property(&SearchRequest::travel_timestamp, 10000),
-                  Property(&SearchRequest::guarantee_timestamp, 10001),
+                  Property(&SearchRequest::guarantee_timestamp, milvus::GuaranteeStrongTs()),
                   Property(&SearchRequest::partition_names, UnorderedElementsAre("part1", "part2")),
                   Property(&SearchRequest::output_fields, UnorderedElementsAre("f1", "f2")),
                   Property(&SearchRequest::search_params,
                            UnorderedElementsAre(TestKv("anns_field", "anns_dummy"), TestKv("topk", "10"),
                                                 TestKv("metric_type", "IP"), TestKv("round_decimal", "-1"), _))),
             _))
-        .WillOnce([&floats_vec](::grpc::ServerContext*, const SearchRequest* request, SearchResults* response) {
+        .WillOnce([&vectors](::grpc::ServerContext*, const SearchRequest* request, SearchResults* response) {
             // check params
             auto& search_params = request->search_params();
             std::string extra_params_payload;
@@ -122,13 +119,13 @@ TEST_F(MilvusMockedTest, SearchFoo) {
             placeholder_group.ParseFromString(placeholder_group_payload);
             EXPECT_EQ(placeholder_group.placeholders_size(), 1);
             const auto& placeholders = placeholder_group.placeholders(0);
-            EXPECT_EQ(placeholders.values_size(), floats_vec.size());
-            for (int i = 0; i < floats_vec.size(); ++i) {
-                const auto& floats = floats_vec.at(i);
+            EXPECT_EQ(placeholders.values_size(), vectors.size());
+            for (int i = 0; i < vectors.size(); ++i) {
+                const auto& vector = vectors.at(i);
                 const auto& placeholder = placeholders.values(i);
-                std::vector<float> test_floats(floats.size());
-                std::copy_n(placeholder.data(), placeholder.size(), reinterpret_cast<char*>(test_floats.data()));
-                EXPECT_EQ(test_floats, floats);
+                std::vector<T> test_vector(vector.size());
+                std::copy_n(placeholder.data(), placeholder.size(), reinterpret_cast<char*>(test_vector.data()));
+                EXPECT_EQ(test_vector, vector);
             }
 
             response->mutable_status()->set_error_code(milvus::proto::common::ErrorCode::Success);
@@ -186,6 +183,19 @@ TEST_F(MilvusMockedTest, SearchFoo) {
                 ElementsAre(false, true));
     EXPECT_THAT(std::static_pointer_cast<milvus::Int16FieldData>(results.at(1).OutputField("f2"))->Data(),
                 ElementsAre(3, 4));
+}
+
+TEST_F(MilvusMockedTest, SearchFoo) {
+    milvus::ConnectParam connect_param{"127.0.0.1", server_.ListenPort()};
+    client_->Connect(connect_param);
+
+    std::vector<std::vector<float>> float_vectors = {std::vector<float>{0.1f, 0.2f, 0.3f, 0.4f},
+                                                     std::vector<float>{0.2f, 0.3f, 0.4f, 0.5f}};
+    TestSearchVectors<float>(service_, client_, float_vectors);
+
+    std::vector<std::vector<uint8_t>> bin_vectors = {std::vector<uint8_t>{1, 2, 3, 4},
+                                                     std::vector<uint8_t>{2, 3, 4, 5}};
+    TestSearchVectors<uint8_t>(service_, client_, bin_vectors);
 }
 
 TEST_F(MilvusMockedTest, SearchWithoutConnect) {

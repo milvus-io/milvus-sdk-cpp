@@ -527,10 +527,8 @@ CreateMilvusFieldData(const milvus::proto::schema::FieldData& field_data, size_t
             return std::make_shared<StringFieldData>(
                 name, BuildFieldDataScalars<std::string>(field_data.scalars().string_data().data(), offset, count));
         default:
-            break;
+            return nullptr;
     }
-
-    return nullptr;
 }
 
 FieldDataPtr
@@ -580,9 +578,8 @@ CreateMilvusFieldData(const milvus::proto::schema::FieldData& field_data) {
             return std::make_shared<StringFieldData>(
                 name, BuildFieldDataScalars<std::string>(field_data.scalars().string_data().data()));
         default:
-            break;
+            return nullptr;
     }
-    return nullptr;
 }
 
 IDArray
@@ -759,10 +756,8 @@ to_string(milvus::MetricType metric_type) {
         case milvus::MetricType::SUPERSTRUCTURE:
             return "SUPERSTRUCTURE";
         case milvus::MetricType::INVALID:
-            break;
         default:
-            break;
+            return "INVALID";
     }
-    return "INVALID";
 }
 }  // namespace std

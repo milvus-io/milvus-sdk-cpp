@@ -143,6 +143,19 @@ class FieldSchema {
     }
 
     /**
+     * @brief Get dimension for a vector field
+     */
+    uint32_t
+    Dimension() const {
+        uint32_t dim = 0;
+        auto iter = type_params_.find(FieldDim());
+        if (iter != type_params_.end()) {
+            dim = atol(iter->second.c_str());
+        }
+        return dim;
+    }
+
+    /**
      * @brief Quickly set dimension for a vector field
      */
     bool

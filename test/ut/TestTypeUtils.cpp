@@ -483,3 +483,49 @@ TEST_F(TypeUtilsTest, SegmentStateCast) {
         EXPECT_EQ(milvus::SegmentStateCast(milvus::SegmentStateCast(value)), value);
     }
 }
+
+TEST_F(TypeUtilsTest, IndexStateCast) {
+    const std::unordered_map<int32_t, int32_t> state_map = {
+        {milvus::proto::common::IndexState::IndexStateNone, (int32_t)milvus::IndexStateCode::NONE},
+        {milvus::proto::common::IndexState::Unissued, (int32_t)milvus::IndexStateCode::UNISSUED},
+        {milvus::proto::common::IndexState::InProgress, (int32_t)milvus::IndexStateCode::IN_PROGRESS},
+        {milvus::proto::common::IndexState::Finished, (int32_t)milvus::IndexStateCode::FINISHED},
+        {milvus::proto::common::IndexState::Failed, (int32_t)milvus::IndexStateCode::FAILED}};
+
+    for (auto& pair : state_map) {
+        auto it = milvus::IndexStateCast(milvus::proto::common::IndexState(pair.first));
+        EXPECT_EQ(it, milvus::IndexStateCode(pair.second));
+    }
+}
+
+TEST_F(TypeUtilsTest, ConvertFieldSchema) {
+    const std::string field_name = "face";
+    const std::string field_desc = "face signature";
+    const bool primary_key = true;
+    const bool auto_id = true;
+    const milvus::DataType field_type = milvus::DataType::FLOAT_VECTOR;
+    const uint32_t dimension = 128;
+    milvus::FieldSchema field(field_name, field_type, field_desc, primary_key, auto_id);
+    field.SetDimension(dimension);
+
+    milvus::proto::schema::FieldSchema proto_field;
+    milvus::ConvertFieldSchema(field, proto_field);
+
+    EXPECT_EQ(proto_field.name(), field_name);
+    EXPECT_EQ(proto_field.description(), field_desc);
+    EXPECT_EQ(proto_field.is_primary_key(), primary_key);
+    EXPECT_EQ(proto_field.autoid(), auto_id);
+    EXPECT_EQ(proto_field.data_type(), milvus::DataTypeCast(field_type));
+
+    milvus::FieldSchema sdk_field;
+    milvus::ConvertFieldSchema(proto_field, sdk_field);
+    EXPECT_EQ(sdk_field.Name(), field_name);
+    EXPECT_EQ(sdk_field.Description(), field_desc);
+    EXPECT_EQ(sdk_field.IsPrimaryKey(), primary_key);
+    EXPECT_EQ(sdk_field.AutoID(), auto_id);
+    EXPECT_EQ(sdk_field.FieldDataType(), field_type);
+    EXPECT_EQ(sdk_field.Dimension(), dimension);
+}
+
+TEST_F(TypeUtilsTest, ConvertCollectionSchema) {
+}
