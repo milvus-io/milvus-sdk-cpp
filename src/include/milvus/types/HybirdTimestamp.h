@@ -55,7 +55,7 @@ class HybirdTimestamp {
     /**
      * @brief logical value
      */
-    u_int64_t
+    uint64_t
     Logical() const {
         return ts_ & milvus::HybirdtsLogicalBitsMask();
     }
@@ -63,7 +63,7 @@ class HybirdTimestamp {
     /**
      * @brief Physical value in milliseconds
      */
-    u_int64_t
+    uint64_t
     Physical() const {
         return ts_ >> milvus::HybirdtsLogicalBits();
     }
