@@ -23,11 +23,15 @@ namespace milvus {
 
 /**
  * @brief Collection runtime information including create timestamp and loading percentage, returned by
- * ShowCollections().
+ * MilvusClient::ShowCollections().
  */
 class CollectionInfo {
  public:
     CollectionInfo() = default;
+
+    /**
+     * @brief Constructor
+     */
     CollectionInfo(const std::string& collection_name, int64_t collection_id, uint64_t create_time,
                    uint64_t load_percentage)
         : name_{collection_name},
@@ -45,7 +49,7 @@ class CollectionInfo {
     }
 
     /**
-     * @brief ID of the collection.
+     * @brief Internal ID of the collection.
      */
     int64_t
     ID() const {
@@ -53,7 +57,7 @@ class CollectionInfo {
     }
 
     /**
-     * @brief Created utc time.
+     * @brief The utc time when the collection is created.
      */
     uint64_t
     CreatedTime() const {
@@ -69,27 +73,15 @@ class CollectionInfo {
     }
 
  private:
-    /**
-     * @brief Name of this collection.
-     */
     std::string name_;
-
-    /**
-     * @brief Internal id of this collection.
-     */
     int64_t collection_id_;
-
-    /**
-     * @brief The utc timestamp calculated by created_timestamp.
-     */
     uint64_t created_utc_timestamp_ = 0;
-
-    /**
-     * @brief Collection loading percentage.
-     */
     uint64_t in_memory_percentage_ = 0;
 };
 
+/**
+ * @brief CollectionsInfo objects array
+ */
 using CollectionsInfo = std::vector<CollectionInfo>;
 
 }  // namespace milvus

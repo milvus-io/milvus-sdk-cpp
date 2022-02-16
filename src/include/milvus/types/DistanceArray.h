@@ -22,18 +22,24 @@
 namespace milvus {
 
 /**
- * @brief 2-d array distances for CalcDistance(), each distance could be int type or float type.
- *
+ * @brief 2-d array distances returned by MilvusClient::CalcDistance(), each distance could be int type or float type.
+ * \n
  * Note: std::vector<std::vector<int>> for "HAMMING" or std::vector<std::vector<float>> for others.
  */
 class DistanceArray {
  public:
     DistanceArray() = default;
 
+    /**
+     * @brief Constructor
+     */
     explicit DistanceArray(std::vector<std::vector<int32_t>> distance_array)
         : int_array_(std::move(distance_array)), is_int_distance_{true} {
     }
 
+    /**
+     * @brief Constructor
+     */
     explicit DistanceArray(std::vector<std::vector<float>> distance_array) : float_array_(std::move(distance_array)) {
     }
 
@@ -46,11 +52,12 @@ class DistanceArray {
     }
 
     /**
-     * @brief Integer distance 2-d array
-     *        Assume the vectors_left: L_1, L_2, L_3
-     *        Assume the vectors_right: R_a, R_b
-     *        Distance between L_n and R_m we called "D_n_m"
+     * @brief Integer distance 2-d array.
+     *        Assume the vectors_left: L_1, L_2, L_3 \n
+     *        Assume the vectors_right: R_a, R_b \n
+     *        Distance between L_n and R_m we called "D_n_m" \n
      *        The returned distances are arranged like this: [[D_1_a, D_1_b], [D_2_a, D_2_b], [D_3_a, D_3_b]]
+     *
      */
     const std::vector<std::vector<int32_t>>&
     IntDistanceArray() const {
@@ -68,10 +75,10 @@ class DistanceArray {
     }
 
     /**
-     * @brief Float distance 2-d array
-     *        Assume the vectors_left: L_1, L_2, L_3
-     *        Assume the vectors_right: R_a, R_b
-     *        Distance between L_n and R_m we called "D_n_m"
+     * @brief Float distance 2-d arraywe called.
+     *        Assume the vectors_left: L_1, L_2, L_3 \n
+     *        Assume the vectors_right: R_a, R_b \n
+     *        Distance between L_n and R_m we called "D_n_m" \n
      *        The returned distances are arranged like this: [[D_1_a, D_1_b], [D_2_a, D_2_b], [D_3_a, D_3_b]]
      */
     const std::vector<std::vector<float>>&

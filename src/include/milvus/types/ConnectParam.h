@@ -19,12 +19,26 @@
 #include <string>
 
 namespace milvus {
+
+/**
+ * @brief Connection parameters. Used by MilvusClient::Connect()
+ */
 class ConnectParam {
  public:
+    /**
+     * @brief Constructor
+     */
     ConnectParam(const std::string& host, uint16_t port) : host_(host), port_(port) {
     }
 
+    /**
+     * @brief IP of the milvus proxy.
+     */
     std::string host_;
+
+    /**
+     * @brief Port of the milvus proxy.
+     */
     uint16_t port_ = 0;
 };
 

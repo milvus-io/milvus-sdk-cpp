@@ -61,9 +61,15 @@ operator==(const proto::schema::FieldData& lhs, const proto::schema::FieldData& 
 bool
 operator==(const proto::schema::FieldData& lhs, const Field& rhs);
 
+/**
+ * @brief To test two SegmentInfo are equal
+ */
 bool
 operator==(const SegmentInfo& lhs, const SegmentInfo& rhs);
 
+/**
+ * @brief To test two QuerySegmentInfo are equal
+ */
 bool
 operator==(const QuerySegmentInfo& lhs, const QuerySegmentInfo& rhs);
 

@@ -26,9 +26,6 @@
  */
 namespace milvus {
 
-/**
- * @brief milvus client implementation
- */
 class MilvusClientImpl : public MilvusClient {
  public:
     MilvusClientImpl() = default;

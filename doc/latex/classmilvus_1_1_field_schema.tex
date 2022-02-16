@@ -1,0 +1,109 @@
+\hypertarget{classmilvus_1_1_field_schema}{}\section{milvus\+:\+:Field\+Schema Class Reference}
+\label{classmilvus_1_1_field_schema}\index{milvus\+::\+Field\+Schema@{milvus\+::\+Field\+Schema}}
+
+
+Field schema used by \hyperlink{classmilvus_1_1_collection_schema}{Collection\+Schema}.  
+
+
+
+
+{\ttfamily \#include $<$Field\+Schema.\+h$>$}
+
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{classmilvus_1_1_field_schema_ad626ad325c05abf8e8c020d1564c82aa}\label{classmilvus_1_1_field_schema_ad626ad325c05abf8e8c020d1564c82aa}} 
+\hyperlink{classmilvus_1_1_field_schema_ad626ad325c05abf8e8c020d1564c82aa}{Field\+Schema} (const std\+::string \&name, \hyperlink{namespacemilvus_a3bdf02cc09dcb59a1e1d2f287d90788b}{Data\+Type} data\+\_\+type, const std\+::string \&description=\char`\"{}\char`\"{}, bool is\+\_\+primary\+\_\+key=false, bool auto\+\_\+id=false)
+\begin{DoxyCompactList}\small\item\em Constructor. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_field_schema_a8224147697c1416a8e80157224a9cc2a}\label{classmilvus_1_1_field_schema_a8224147697c1416a8e80157224a9cc2a}} 
+const std\+::string \& \hyperlink{classmilvus_1_1_field_schema_a8224147697c1416a8e80157224a9cc2a}{Name} () const
+\begin{DoxyCompactList}\small\item\em Name of this field, cannot be empty. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_field_schema_a268b44271a055039710e3a50c87903bb}\label{classmilvus_1_1_field_schema_a268b44271a055039710e3a50c87903bb}} 
+void \hyperlink{classmilvus_1_1_field_schema_a268b44271a055039710e3a50c87903bb}{Set\+Name} (const std\+::string \&name)
+\begin{DoxyCompactList}\small\item\em Set name of the field. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_field_schema_ae3be1be55cf303c618b09382b181dc9c}\label{classmilvus_1_1_field_schema_ae3be1be55cf303c618b09382b181dc9c}} 
+const std\+::string \& \hyperlink{classmilvus_1_1_field_schema_ae3be1be55cf303c618b09382b181dc9c}{Description} () const
+\begin{DoxyCompactList}\small\item\em Description of this field, can be empty. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_field_schema_ae12d825b5d1e914801efb02d399bb8e7}\label{classmilvus_1_1_field_schema_ae12d825b5d1e914801efb02d399bb8e7}} 
+void \hyperlink{classmilvus_1_1_field_schema_ae12d825b5d1e914801efb02d399bb8e7}{Set\+Description} (const std\+::string \&description)
+\begin{DoxyCompactList}\small\item\em Set description of the field. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_field_schema_a7fdfe0d44e25b598b491f9529d170227}\label{classmilvus_1_1_field_schema_a7fdfe0d44e25b598b491f9529d170227}} 
+\hyperlink{namespacemilvus_a3bdf02cc09dcb59a1e1d2f287d90788b}{Data\+Type} \hyperlink{classmilvus_1_1_field_schema_a7fdfe0d44e25b598b491f9529d170227}{Field\+Data\+Type} () const
+\begin{DoxyCompactList}\small\item\em Field data type. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_field_schema_a9e308a0e98b447381db2747bb9e28fbd}\label{classmilvus_1_1_field_schema_a9e308a0e98b447381db2747bb9e28fbd}} 
+void \hyperlink{classmilvus_1_1_field_schema_a9e308a0e98b447381db2747bb9e28fbd}{Set\+Data\+Type} (const \hyperlink{namespacemilvus_a3bdf02cc09dcb59a1e1d2f287d90788b}{Data\+Type} dt)
+\begin{DoxyCompactList}\small\item\em Set field data type. \end{DoxyCompactList}\item 
+bool \hyperlink{classmilvus_1_1_field_schema_a5f0f254379db440e1acfc18b61f35fa3}{Is\+Primary\+Key} () const
+\begin{DoxyCompactList}\small\item\em The field is primary key or not. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_field_schema_af564ad9a7a8eadfa0c6348566bd2ad8f}\label{classmilvus_1_1_field_schema_af564ad9a7a8eadfa0c6348566bd2ad8f}} 
+void \hyperlink{classmilvus_1_1_field_schema_af564ad9a7a8eadfa0c6348566bd2ad8f}{Set\+Primary\+Key} (bool is\+\_\+primary\+\_\+key)
+\begin{DoxyCompactList}\small\item\em Set field to be primary key. \end{DoxyCompactList}\item 
+bool \hyperlink{classmilvus_1_1_field_schema_ae18e54e3d2c90e10a1abdd7426743e75}{Auto\+ID} () const
+\begin{DoxyCompactList}\small\item\em Field item\textquotesingle{}s id is auto-\/generated or not. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_field_schema_abf644dc4321561c41781bd115e019009}\label{classmilvus_1_1_field_schema_abf644dc4321561c41781bd115e019009}} 
+void \hyperlink{classmilvus_1_1_field_schema_abf644dc4321561c41781bd115e019009}{Set\+Auto\+ID} (bool auto\+\_\+id)
+\begin{DoxyCompactList}\small\item\em Set field item\textquotesingle{}s id to be auto-\/generated. \end{DoxyCompactList}\item 
+const std\+::map$<$ std\+::string, std\+::string $>$ \& \hyperlink{classmilvus_1_1_field_schema_aabcec133858a09803bed5647a2cb2421}{Type\+Params} () const
+\begin{DoxyCompactList}\small\item\em Extra key-\/value pair setting for this field. \end{DoxyCompactList}\item 
+void \hyperlink{classmilvus_1_1_field_schema_a2e85d1229a2a1a84f9771bab95d4b471}{Set\+Type\+Params} (std\+::map$<$ std\+::string, std\+::string $>$ \&\&params)
+\begin{DoxyCompactList}\small\item\em Set extra key-\/value pair setting for this field. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_field_schema_afe4cfe65bb0b33f2ad0996b1e540af45}\label{classmilvus_1_1_field_schema_afe4cfe65bb0b33f2ad0996b1e540af45}} 
+uint32\+\_\+t \hyperlink{classmilvus_1_1_field_schema_afe4cfe65bb0b33f2ad0996b1e540af45}{Dimension} () const
+\begin{DoxyCompactList}\small\item\em Get dimension for a vector field. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_field_schema_a814d15d24fbf01b281168affdc2419a6}\label{classmilvus_1_1_field_schema_a814d15d24fbf01b281168affdc2419a6}} 
+bool \hyperlink{classmilvus_1_1_field_schema_a814d15d24fbf01b281168affdc2419a6}{Set\+Dimension} (uint32\+\_\+t dimension)
+\begin{DoxyCompactList}\small\item\em Quickly set dimension for a vector field. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_field_schema_a2c127175f2b3481b0b952273618e7b71}\label{classmilvus_1_1_field_schema_a2c127175f2b3481b0b952273618e7b71}} 
+\hyperlink{classmilvus_1_1_field_schema}{Field\+Schema} \& \hyperlink{classmilvus_1_1_field_schema_a2c127175f2b3481b0b952273618e7b71}{With\+Dimension} (uint32\+\_\+t dimension)
+\begin{DoxyCompactList}\small\item\em Quickly set dimension for a vector field. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+Field schema used by \hyperlink{classmilvus_1_1_collection_schema}{Collection\+Schema}. 
+
+\subsection{Member Function Documentation}
+\mbox{\Hypertarget{classmilvus_1_1_field_schema_ae18e54e3d2c90e10a1abdd7426743e75}\label{classmilvus_1_1_field_schema_ae18e54e3d2c90e10a1abdd7426743e75}} 
+\index{milvus\+::\+Field\+Schema@{milvus\+::\+Field\+Schema}!Auto\+ID@{Auto\+ID}}
+\index{Auto\+ID@{Auto\+ID}!milvus\+::\+Field\+Schema@{milvus\+::\+Field\+Schema}}
+\subsubsection{\texorpdfstring{Auto\+I\+D()}{AutoID()}}
+{\footnotesize\ttfamily bool milvus\+::\+Field\+Schema\+::\+Auto\+ID (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption}) const\hspace{0.3cm}{\ttfamily [inline]}}
+
+
+
+Field item\textquotesingle{}s id is auto-\/generated or not. 
+
+If ths flag is true, server will generate id when data is inserted. Else the client must provide id for each entity when insert data. \mbox{\Hypertarget{classmilvus_1_1_field_schema_a5f0f254379db440e1acfc18b61f35fa3}\label{classmilvus_1_1_field_schema_a5f0f254379db440e1acfc18b61f35fa3}} 
+\index{milvus\+::\+Field\+Schema@{milvus\+::\+Field\+Schema}!Is\+Primary\+Key@{Is\+Primary\+Key}}
+\index{Is\+Primary\+Key@{Is\+Primary\+Key}!milvus\+::\+Field\+Schema@{milvus\+::\+Field\+Schema}}
+\subsubsection{\texorpdfstring{Is\+Primary\+Key()}{IsPrimaryKey()}}
+{\footnotesize\ttfamily bool milvus\+::\+Field\+Schema\+::\+Is\+Primary\+Key (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption}) const\hspace{0.3cm}{\ttfamily [inline]}}
+
+
+
+The field is primary key or not. 
+
+Each collection only has one primary key. Currently only int64 type field can be primary key . \mbox{\Hypertarget{classmilvus_1_1_field_schema_a2e85d1229a2a1a84f9771bab95d4b471}\label{classmilvus_1_1_field_schema_a2e85d1229a2a1a84f9771bab95d4b471}} 
+\index{milvus\+::\+Field\+Schema@{milvus\+::\+Field\+Schema}!Set\+Type\+Params@{Set\+Type\+Params}}
+\index{Set\+Type\+Params@{Set\+Type\+Params}!milvus\+::\+Field\+Schema@{milvus\+::\+Field\+Schema}}
+\subsubsection{\texorpdfstring{Set\+Type\+Params()}{SetTypeParams()}}
+{\footnotesize\ttfamily void milvus\+::\+Field\+Schema\+::\+Set\+Type\+Params (\begin{DoxyParamCaption}\item[{std\+::map$<$ std\+::string, std\+::string $>$ \&\&}]{params }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
+
+
+
+Set extra key-\/value pair setting for this field. 
+
+Currently vector field need to input \char`\"{}dim\char`\"{}\+:\char`\"{}x\char`\"{} to specify dimension. \mbox{\Hypertarget{classmilvus_1_1_field_schema_aabcec133858a09803bed5647a2cb2421}\label{classmilvus_1_1_field_schema_aabcec133858a09803bed5647a2cb2421}} 
+\index{milvus\+::\+Field\+Schema@{milvus\+::\+Field\+Schema}!Type\+Params@{Type\+Params}}
+\index{Type\+Params@{Type\+Params}!milvus\+::\+Field\+Schema@{milvus\+::\+Field\+Schema}}
+\subsubsection{\texorpdfstring{Type\+Params()}{TypeParams()}}
+{\footnotesize\ttfamily const std\+::map$<$std\+::string, std\+::string$>$\& milvus\+::\+Field\+Schema\+::\+Type\+Params (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption}) const\hspace{0.3cm}{\ttfamily [inline]}}
+
+
+
+Extra key-\/value pair setting for this field. 
+
+Currently vector field need to input \char`\"{}dim\char`\"{}\+:\char`\"{}x\char`\"{} to specify dimension. 
+
+The documentation for this class was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+src/include/milvus/types/Field\+Schema.\+h\end{DoxyCompactItemize}

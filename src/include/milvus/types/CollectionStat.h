@@ -24,15 +24,15 @@
 namespace milvus {
 
 /**
- * @brief Collection statistics returned by GetCollectionStatistics().
+ * @brief Collection statistics returned by MilvusClient::GetCollectionStatistics().
  */
 class CollectionStat {
  public:
     CollectionStat() = default;
+
     /**
      * @brief Return row count of this collection.
      *
-     * @return uint64_t row count of this collection
      */
     uint64_t
     RowCount() const {
@@ -66,7 +66,7 @@ class CollectionStat {
     }
 
     /**
-     * @brief add key/value data
+     * @brief add key/value pair for collection statistics
      */
     void
     Emplace(std::string key, std::string value) {
@@ -74,14 +74,7 @@ class CollectionStat {
     }
 
  private:
-    /**
-     * @brief Name of this collection.
-     */
     std::string name_;
-
-    /**
-     * @brief Collection statistics in key-value format.
-     */
     std::unordered_map<std::string, std::string> statistics_;
 };
 

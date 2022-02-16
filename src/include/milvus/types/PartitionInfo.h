@@ -22,35 +22,14 @@
 namespace milvus {
 
 /**
- * @brief Partition runtime information including create timestamp and loading percentage, returned by ShowPartitions().
+ * @brief Partition runtime information including create timestamp and loading percentage, returned by
+ * MilvusClient::ShowPartitions().
  */
 class PartitionInfo {
  public:
-    std::string
-    Name() const {
-        return name_;
-    }
-
-    int64_t
-    Id() const {
-        return id_;
-    }
-
-    uint64_t
-    CreatedUtcTimestamp() const {
-        return created_utc_timestamp_;
-    }
-
-    int64_t
-    InMemoryPercentage() const {
-        return in_memory_percentage_;
-    }
-
-    bool
-    Loaded() const {
-        return in_memory_percentage_ >= 100;
-    }
-
+    /**
+     * @brief Constructor
+     */
     PartitionInfo(std::string name, int64_t id, uint64_t created_utc_timestamp = 0, int64_t in_memory_percentage = 0)
         : name_(std::move(name)),
           id_(id),
@@ -58,34 +37,65 @@ class PartitionInfo {
           in_memory_percentage_(in_memory_percentage) {
     }
 
+    /**
+     * @brief Get name of this partition.
+     */
+    std::string
+    Name() const {
+        return name_;
+    }
+
+    /**
+     * @brief Get internal id of this partition.
+     */
+    int64_t
+    Id() const {
+        return id_;
+    }
+
+    /**
+     * @brief Get the utc timestamp calculated by created_timestamp.
+     */
+    uint64_t
+    CreatedUtcTimestamp() const {
+        return created_utc_timestamp_;
+    }
+
+    /**
+     * @brief Get partition loading percentage.
+     */
+    int64_t
+    InMemoryPercentage() const {
+        return in_memory_percentage_;
+    }
+
+    /**
+     * @brief Indicated whether the partition has been loaded completed.
+     */
+    bool
+    Loaded() const {
+        return in_memory_percentage_ >= 100;
+    }
+
  private:
-    /**
-     * @brief Name of this partition.
-     */
     std::string name_;
-
-    /**
-     * @brief Internal id of this partition.
-     */
-    int64_t id_;
-
-    /**
-     * @brief The utc timestamp calculated by created_timestamp.
-     */
+    int64_t id_ = 0;
     uint64_t created_utc_timestamp_ = 0;
-
-    /**
-     * @brief Partition loading percentage.
-     */
     int64_t in_memory_percentage_ = 0;
 };
 
+/**
+ * @brief To test two PartitionInfo are equal
+ */
 inline bool
 operator==(const PartitionInfo& a, const PartitionInfo& b) {
     return a.Name() == b.Name() && a.Id() && b.Id() && a.CreatedUtcTimestamp() == b.CreatedUtcTimestamp() &&
            a.InMemoryPercentage() == b.InMemoryPercentage();
 }
 
+/**
+ * @brief PartitionsInfo objects array
+ */
 using PartitionsInfo = std::vector<PartitionInfo>;
 
 }  // namespace milvus

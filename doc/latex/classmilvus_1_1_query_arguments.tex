@@ -1,0 +1,79 @@
+\hypertarget{classmilvus_1_1_query_arguments}{}\section{milvus\+:\+:Query\+Arguments Class Reference}
+\label{classmilvus_1_1_query_arguments}\index{milvus\+::\+Query\+Arguments@{milvus\+::\+Query\+Arguments}}
+
+
+Arguments for \hyperlink{classmilvus_1_1_milvus_client_a2c27e3b681313329ccf491867d717182}{Milvus\+Client\+::\+Query()}.  
+
+
+
+
+{\ttfamily \#include $<$Query\+Arguments.\+h$>$}
+
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{classmilvus_1_1_query_arguments_a416be756508349aa00e1dda7274602c7}\label{classmilvus_1_1_query_arguments_a416be756508349aa00e1dda7274602c7}} 
+const std\+::string \& \hyperlink{classmilvus_1_1_query_arguments_a416be756508349aa00e1dda7274602c7}{Collection\+Name} () const
+\begin{DoxyCompactList}\small\item\em Get name of the target collection. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_query_arguments_ab22ac8a6ea43f235be7ac34f7e80536a}\label{classmilvus_1_1_query_arguments_ab22ac8a6ea43f235be7ac34f7e80536a}} 
+\hyperlink{classmilvus_1_1_status}{Status} \hyperlink{classmilvus_1_1_query_arguments_ab22ac8a6ea43f235be7ac34f7e80536a}{Set\+Collection\+Name} (const std\+::string \&collection\+\_\+name)
+\begin{DoxyCompactList}\small\item\em Set name of this collection, cannot be empty. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_query_arguments_ae80f29c55ba3039d968df772a0b51f64}\label{classmilvus_1_1_query_arguments_ae80f29c55ba3039d968df772a0b51f64}} 
+const std\+::set$<$ std\+::string $>$ \& \hyperlink{classmilvus_1_1_query_arguments_ae80f29c55ba3039d968df772a0b51f64}{Partition\+Names} () const
+\begin{DoxyCompactList}\small\item\em Get partition names. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_query_arguments_adcc03a1d8834de6ac0c33e72f06c62f3}\label{classmilvus_1_1_query_arguments_adcc03a1d8834de6ac0c33e72f06c62f3}} 
+\hyperlink{classmilvus_1_1_status}{Status} \hyperlink{classmilvus_1_1_query_arguments_adcc03a1d8834de6ac0c33e72f06c62f3}{Add\+Partition\+Name} (const std\+::string \&partition\+\_\+name)
+\begin{DoxyCompactList}\small\item\em Specify partition name to control query scope, the name cannot be empty. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_query_arguments_a31fb09de17771c1dad8bb550882193f1}\label{classmilvus_1_1_query_arguments_a31fb09de17771c1dad8bb550882193f1}} 
+const std\+::set$<$ std\+::string $>$ \& \hyperlink{classmilvus_1_1_query_arguments_a31fb09de17771c1dad8bb550882193f1}{Output\+Fields} () const
+\begin{DoxyCompactList}\small\item\em Get output field names. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_query_arguments_a8d83919df77dfe560d278aecb049bbd7}\label{classmilvus_1_1_query_arguments_a8d83919df77dfe560d278aecb049bbd7}} 
+\hyperlink{classmilvus_1_1_status}{Status} \hyperlink{classmilvus_1_1_query_arguments_a8d83919df77dfe560d278aecb049bbd7}{Add\+Output\+Field} (const std\+::string \&field\+\_\+name)
+\begin{DoxyCompactList}\small\item\em Specify output field names to return field data, the name cannot be empty. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_query_arguments_a13a167fb62fb87e6fe63cf4f922a2ae6}\label{classmilvus_1_1_query_arguments_a13a167fb62fb87e6fe63cf4f922a2ae6}} 
+const std\+::string \& \hyperlink{classmilvus_1_1_query_arguments_a13a167fb62fb87e6fe63cf4f922a2ae6}{Expression} () const
+\begin{DoxyCompactList}\small\item\em Get filter expression. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_query_arguments_a1d475057c34f81f51cdc98a8b3676292}\label{classmilvus_1_1_query_arguments_a1d475057c34f81f51cdc98a8b3676292}} 
+\hyperlink{classmilvus_1_1_status}{Status} \hyperlink{classmilvus_1_1_query_arguments_a1d475057c34f81f51cdc98a8b3676292}{Set\+Expression} (const std\+::string \&expression)
+\begin{DoxyCompactList}\small\item\em Set filter expression, the expression cannot be empty. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_query_arguments_a775438bb6cbd1a1a397d15d319a33292}\label{classmilvus_1_1_query_arguments_a775438bb6cbd1a1a397d15d319a33292}} 
+uint64\+\_\+t \hyperlink{classmilvus_1_1_query_arguments_a775438bb6cbd1a1a397d15d319a33292}{Travel\+Timestamp} () const
+\begin{DoxyCompactList}\small\item\em Get travel timestamp. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_query_arguments_a114498bb746857299e37e2e6e3867536}\label{classmilvus_1_1_query_arguments_a114498bb746857299e37e2e6e3867536}} 
+\hyperlink{classmilvus_1_1_status}{Status} \hyperlink{classmilvus_1_1_query_arguments_a114498bb746857299e37e2e6e3867536}{Set\+Travel\+Timestamp} (uint64\+\_\+t timestamp)
+\begin{DoxyCompactList}\small\item\em Specify an absolute timestamp in a query to get results based on a data view at a specified point in time. ~\newline
+ Default value is 0, server executes query on a full data view. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_query_arguments_a12d32edef32435204f9be016296f4246}\label{classmilvus_1_1_query_arguments_a12d32edef32435204f9be016296f4246}} 
+uint64\+\_\+t \hyperlink{classmilvus_1_1_query_arguments_a12d32edef32435204f9be016296f4246}{Guarantee\+Timestamp} () const
+\begin{DoxyCompactList}\small\item\em Get guarantee timestamp. \end{DoxyCompactList}\item 
+\hyperlink{classmilvus_1_1_status}{Status} \hyperlink{classmilvus_1_1_query_arguments_a027873a6b8008516c638838698dbb81d}{Set\+Guarantee\+Timestamp} (uint64\+\_\+t timestamp)
+\begin{DoxyCompactList}\small\item\em Instructs server to see insert/delete operations performed before a provided timestamp. ~\newline
+If no such timestamp is specified, the server will wait for the latest operation to finish and query. ~\newline
+. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+Arguments for \hyperlink{classmilvus_1_1_milvus_client_a2c27e3b681313329ccf491867d717182}{Milvus\+Client\+::\+Query()}. 
+
+\subsection{Member Function Documentation}
+\mbox{\Hypertarget{classmilvus_1_1_query_arguments_a027873a6b8008516c638838698dbb81d}\label{classmilvus_1_1_query_arguments_a027873a6b8008516c638838698dbb81d}} 
+\index{milvus\+::\+Query\+Arguments@{milvus\+::\+Query\+Arguments}!Set\+Guarantee\+Timestamp@{Set\+Guarantee\+Timestamp}}
+\index{Set\+Guarantee\+Timestamp@{Set\+Guarantee\+Timestamp}!milvus\+::\+Query\+Arguments@{milvus\+::\+Query\+Arguments}}
+\subsubsection{\texorpdfstring{Set\+Guarantee\+Timestamp()}{SetGuaranteeTimestamp()}}
+{\footnotesize\ttfamily \hyperlink{classmilvus_1_1_status}{Status} milvus\+::\+Query\+Arguments\+::\+Set\+Guarantee\+Timestamp (\begin{DoxyParamCaption}\item[{uint64\+\_\+t}]{timestamp }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
+
+
+
+Instructs server to see insert/delete operations performed before a provided timestamp. ~\newline
+If no such timestamp is specified, the server will wait for the latest operation to finish and query. ~\newline
+. 
+
+Note\+: The timestamp is not an absolute timestamp, it is a hybrid value combined by U\+TC time and internal flags. ~\newline
+ We call it T\+SO, for more information please refer to\+: ~\newline
+\href{https://github.com/milvus-io/milvus/blob/master/docs/design_docs/milvus_hybrid_ts_en.md}{\tt https\+://github.\+com/milvus-\/io/milvus/blob/master/docs/design\+\_\+docs/milvus\+\_\+hybrid\+\_\+ts\+\_\+en.\+md}. You can get a T\+SO from insert/delete results. Use an operation\textquotesingle{}s T\+SO to set this parameter, ~\newline
+ the server will execute query after this operation is finished. ~\newline
+ Default value is 1, server executes search immediately. 
+
+The documentation for this class was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+src/include/milvus/types/Query\+Arguments.\+h\end{DoxyCompactItemize}

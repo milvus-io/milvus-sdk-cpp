@@ -18,11 +18,14 @@
 
 namespace milvus {
 
+/**
+ * @brief Supported metric types.
+ */
 enum class MetricType {
     INVALID,
     L2,
     IP,
-    // For binary vectors
+    // The following values are for binary vectors
     HAMMING,
     JACCARD,
     TANIMOTO,

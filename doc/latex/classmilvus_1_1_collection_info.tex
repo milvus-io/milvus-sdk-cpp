@@ -1,0 +1,37 @@
+\hypertarget{classmilvus_1_1_collection_info}{}\section{milvus\+:\+:Collection\+Info Class Reference}
+\label{classmilvus_1_1_collection_info}\index{milvus\+::\+Collection\+Info@{milvus\+::\+Collection\+Info}}
+
+
+Collection runtime information including create timestamp and loading percentage, returned by \hyperlink{classmilvus_1_1_milvus_client_a8c5d625d72056a6e4f2f98607ebd0051}{Milvus\+Client\+::\+Show\+Collections()}.  
+
+
+
+
+{\ttfamily \#include $<$Collection\+Info.\+h$>$}
+
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{classmilvus_1_1_collection_info_a95f99f43e901b1b3cd503b7301a5f1d7}\label{classmilvus_1_1_collection_info_a95f99f43e901b1b3cd503b7301a5f1d7}} 
+\hyperlink{classmilvus_1_1_collection_info_a95f99f43e901b1b3cd503b7301a5f1d7}{Collection\+Info} (const std\+::string \&collection\+\_\+name, int64\+\_\+t collection\+\_\+id, uint64\+\_\+t create\+\_\+time, uint64\+\_\+t load\+\_\+percentage)
+\begin{DoxyCompactList}\small\item\em Constructor. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_collection_info_ac32c7342e63e4f4ecaf3e66b819d68dc}\label{classmilvus_1_1_collection_info_ac32c7342e63e4f4ecaf3e66b819d68dc}} 
+const std\+::string \& \hyperlink{classmilvus_1_1_collection_info_ac32c7342e63e4f4ecaf3e66b819d68dc}{Name} () const
+\begin{DoxyCompactList}\small\item\em Name of the collection. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_collection_info_a71efb911e988eaec9b17683dea28f306}\label{classmilvus_1_1_collection_info_a71efb911e988eaec9b17683dea28f306}} 
+int64\+\_\+t \hyperlink{classmilvus_1_1_collection_info_a71efb911e988eaec9b17683dea28f306}{ID} () const
+\begin{DoxyCompactList}\small\item\em Internal ID of the collection. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_collection_info_ae4575d2fa6fa9d49590072b967cc6a48}\label{classmilvus_1_1_collection_info_ae4575d2fa6fa9d49590072b967cc6a48}} 
+uint64\+\_\+t \hyperlink{classmilvus_1_1_collection_info_ae4575d2fa6fa9d49590072b967cc6a48}{Created\+Time} () const
+\begin{DoxyCompactList}\small\item\em The utc time when the collection is created. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_collection_info_a8f27c2eafdc9f930d4a0d2eb381fb3ef}\label{classmilvus_1_1_collection_info_a8f27c2eafdc9f930d4a0d2eb381fb3ef}} 
+uint64\+\_\+t \hyperlink{classmilvus_1_1_collection_info_a8f27c2eafdc9f930d4a0d2eb381fb3ef}{Memory\+Percentage} () const
+\begin{DoxyCompactList}\small\item\em Loading percentage of the collection. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+Collection runtime information including create timestamp and loading percentage, returned by \hyperlink{classmilvus_1_1_milvus_client_a8c5d625d72056a6e4f2f98607ebd0051}{Milvus\+Client\+::\+Show\+Collections()}. 
+
+The documentation for this class was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+src/include/milvus/types/Collection\+Info.\+h\end{DoxyCompactItemize}

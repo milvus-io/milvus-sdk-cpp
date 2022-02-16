@@ -24,7 +24,7 @@
 namespace milvus {
 
 /**
- * @brief Status Code for SDK interface return
+ * @brief Status code for SDK interface return
  */
 enum class StatusCode {
     OK = 0,
@@ -46,28 +46,43 @@ enum class StatusCode {
 };
 
 /**
- * @brief Status for SDK interface return
+ * @brief Status code and message returned by SDK interface.
  */
 class Status {
  public:
+    /**
+     * @brief Constructor of Status
+     */
     Status(StatusCode code, const std::string& msg);
     Status() = default;
 
+    /**
+     * @brief A success status
+     */
     static Status
     OK() {
         return Status{};
     }
 
+    /**
+     * @brief Indicate the status is ok
+     */
     bool
     IsOk() const {
         return code_ == StatusCode::OK;
     }
 
+    /**
+     * @brief Return the status code
+     */
     StatusCode
     Code() const {
         return code_;
     }
 
+    /**
+     * @brief Return the error message
+     */
     const std::string&
     Message() const;
 

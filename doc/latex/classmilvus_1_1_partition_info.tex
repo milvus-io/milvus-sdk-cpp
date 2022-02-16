@@ -1,0 +1,40 @@
+\hypertarget{classmilvus_1_1_partition_info}{}\section{milvus\+:\+:Partition\+Info Class Reference}
+\label{classmilvus_1_1_partition_info}\index{milvus\+::\+Partition\+Info@{milvus\+::\+Partition\+Info}}
+
+
+Partition runtime information including create timestamp and loading percentage, returned by \hyperlink{classmilvus_1_1_milvus_client_a12b481158b57a806f8d341178348f735}{Milvus\+Client\+::\+Show\+Partitions()}.  
+
+
+
+
+{\ttfamily \#include $<$Partition\+Info.\+h$>$}
+
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{classmilvus_1_1_partition_info_a6ff5836b7cda5f6de16263b36e28409e}\label{classmilvus_1_1_partition_info_a6ff5836b7cda5f6de16263b36e28409e}} 
+\hyperlink{classmilvus_1_1_partition_info_a6ff5836b7cda5f6de16263b36e28409e}{Partition\+Info} (std\+::string name, int64\+\_\+t id, uint64\+\_\+t created\+\_\+utc\+\_\+timestamp=0, int64\+\_\+t in\+\_\+memory\+\_\+percentage=0)
+\begin{DoxyCompactList}\small\item\em Constructor. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_partition_info_abce6b71f98c1418c632b6d284ce0116c}\label{classmilvus_1_1_partition_info_abce6b71f98c1418c632b6d284ce0116c}} 
+std\+::string \hyperlink{classmilvus_1_1_partition_info_abce6b71f98c1418c632b6d284ce0116c}{Name} () const
+\begin{DoxyCompactList}\small\item\em Get name of this partition. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_partition_info_a58e31cc567e27b7f73b0f0a7cf6749d3}\label{classmilvus_1_1_partition_info_a58e31cc567e27b7f73b0f0a7cf6749d3}} 
+int64\+\_\+t \hyperlink{classmilvus_1_1_partition_info_a58e31cc567e27b7f73b0f0a7cf6749d3}{Id} () const
+\begin{DoxyCompactList}\small\item\em Get internal id of this partition. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_partition_info_a09043cbc379c5d2d3939137b78bc3af0}\label{classmilvus_1_1_partition_info_a09043cbc379c5d2d3939137b78bc3af0}} 
+uint64\+\_\+t \hyperlink{classmilvus_1_1_partition_info_a09043cbc379c5d2d3939137b78bc3af0}{Created\+Utc\+Timestamp} () const
+\begin{DoxyCompactList}\small\item\em Get the utc timestamp calculated by created\+\_\+timestamp. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_partition_info_aa760577d344207a0a170ab30e92f244d}\label{classmilvus_1_1_partition_info_aa760577d344207a0a170ab30e92f244d}} 
+int64\+\_\+t \hyperlink{classmilvus_1_1_partition_info_aa760577d344207a0a170ab30e92f244d}{In\+Memory\+Percentage} () const
+\begin{DoxyCompactList}\small\item\em Get partition loading percentage. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_partition_info_ae104eecfb6d501a19e77ff1ee3e28e5d}\label{classmilvus_1_1_partition_info_ae104eecfb6d501a19e77ff1ee3e28e5d}} 
+bool \hyperlink{classmilvus_1_1_partition_info_ae104eecfb6d501a19e77ff1ee3e28e5d}{Loaded} () const
+\begin{DoxyCompactList}\small\item\em Indicated whether the partition has been loaded completed. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+Partition runtime information including create timestamp and loading percentage, returned by \hyperlink{classmilvus_1_1_milvus_client_a12b481158b57a806f8d341178348f735}{Milvus\+Client\+::\+Show\+Partitions()}. 
+
+The documentation for this class was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+src/include/milvus/types/Partition\+Info.\+h\end{DoxyCompactItemize}

@@ -1,0 +1,162 @@
+\hypertarget{namespacemilvus}{}\section{milvus Namespace Reference}
+\label{namespacemilvus}\index{milvus@{milvus}}
+
+
+namespace milvus  
+
+
+\subsection*{Classes}
+\begin{DoxyCompactItemize}
+\item 
+class \hyperlink{classmilvus_1_1_calc_distance_arguments}{Calc\+Distance\+Arguments}
+\begin{DoxyCompactList}\small\item\em Arguments for \hyperlink{classmilvus_1_1_milvus_client_a105c243c7d93ff2cd81b4d9c1751f5fb}{Milvus\+Client\+::\+Calc\+Distance()}. \end{DoxyCompactList}\item 
+class \hyperlink{classmilvus_1_1_collection_desc}{Collection\+Desc}
+\begin{DoxyCompactList}\small\item\em Collection schema and runtime information returned by \hyperlink{classmilvus_1_1_milvus_client_a5bdc7d4afdf9c84b7b50b4a8b4508c6e}{Milvus\+Client\+::\+Describe\+Collection()}. \end{DoxyCompactList}\item 
+class \hyperlink{classmilvus_1_1_collection_info}{Collection\+Info}
+\begin{DoxyCompactList}\small\item\em Collection runtime information including create timestamp and loading percentage, returned by \hyperlink{classmilvus_1_1_milvus_client_a8c5d625d72056a6e4f2f98607ebd0051}{Milvus\+Client\+::\+Show\+Collections()}. \end{DoxyCompactList}\item 
+class \hyperlink{classmilvus_1_1_collection_schema}{Collection\+Schema}
+\begin{DoxyCompactList}\small\item\em Collection schema for \hyperlink{classmilvus_1_1_milvus_client_a437b0a97bd9f7789504fdfeab885b5dd}{Milvus\+Client\+::\+Create\+Collection()}. \end{DoxyCompactList}\item 
+class \hyperlink{classmilvus_1_1_collection_stat}{Collection\+Stat}
+\begin{DoxyCompactList}\small\item\em Collection statistics returned by \hyperlink{classmilvus_1_1_milvus_client_a0c49e2a5728a70f203118232c16ba47f}{Milvus\+Client\+::\+Get\+Collection\+Statistics()}. \end{DoxyCompactList}\item 
+class \hyperlink{classmilvus_1_1_compaction_plan}{Compaction\+Plan}
+\begin{DoxyCompactList}\small\item\em Compaction plan information. Used by \hyperlink{classmilvus_1_1_milvus_client_a39d54736f4b08bba8d6b055277aa71ea}{Milvus\+Client\+::\+Get\+Compaction\+Plans()}. \end{DoxyCompactList}\item 
+class \hyperlink{classmilvus_1_1_compaction_state}{Compaction\+State}
+\begin{DoxyCompactList}\small\item\em Compaction state. Used by \hyperlink{classmilvus_1_1_milvus_client_a8041cd363470774d2cdb3c295307e1d9}{Milvus\+Client\+::\+Get\+Compaction\+State()}. \end{DoxyCompactList}\item 
+class \hyperlink{classmilvus_1_1_connect_param}{Connect\+Param}
+\begin{DoxyCompactList}\small\item\em Connection parameters. Used by \hyperlink{classmilvus_1_1_milvus_client_a617f8dbeb20e2bd3da0736f38927d2bb}{Milvus\+Client\+::\+Connect()} \end{DoxyCompactList}\item 
+class \hyperlink{classmilvus_1_1_distance_array}{Distance\+Array}
+\begin{DoxyCompactList}\small\item\em 2-\/d array distances returned by \hyperlink{classmilvus_1_1_milvus_client_a105c243c7d93ff2cd81b4d9c1751f5fb}{Milvus\+Client\+::\+Calc\+Distance()}, each distance could be int type or float type. ~\newline
+Note\+: std\+::vector$<$std\+::vector$<$int$>$$>$ for \char`\"{}\+H\+A\+M\+M\+I\+N\+G\char`\"{} or std\+::vector$<$std\+::vector$<$float$>$$>$ for others. \end{DoxyCompactList}\item 
+class \hyperlink{classmilvus_1_1_dml_results}{Dml\+Results}
+\begin{DoxyCompactList}\small\item\em Result returned by \hyperlink{classmilvus_1_1_milvus_client_a64a2dca576e0933571a6889910d56390}{Milvus\+Client\+::\+Insert()} and \hyperlink{classmilvus_1_1_milvus_client_a271b16333636621f24aaf89993c72301}{Milvus\+Client\+::\+Delete()} \end{DoxyCompactList}\item 
+class \hyperlink{classmilvus_1_1_field_data}{Field\+Data}
+\begin{DoxyCompactList}\small\item\em Template class represents column-\/based data of a field. Avaiable inheritance classes\+: ~\newline
+ Bool\+Field\+Data for boolean scalar field ~\newline
+ Int8\+Field\+Data for 8-\/bits integer scalar field ~\newline
+ Int16\+Field\+Data for 16-\/bits integer scalar field ~\newline
+ Int32\+Field\+Data for 32-\/bits integer scalar field ~\newline
+ Int64\+Field\+Data for 64-\/bits integer scalar field ~\newline
+ Float\+Field\+Data for float scalar field ~\newline
+ Double\+Field\+Data for double scalar field ~\newline
+ String\+Field\+Data for string scalar field (not supported in 2.\+0, reserved) ~\newline
+ Binary\+Vec\+Field\+Data for float vector scalar field ~\newline
+ Float\+Vec\+Field\+Data for binary vector scalar field ~\newline
+. \end{DoxyCompactList}\item 
+class \hyperlink{classmilvus_1_1_field_schema}{Field\+Schema}
+\begin{DoxyCompactList}\small\item\em Field schema used by \hyperlink{classmilvus_1_1_collection_schema}{Collection\+Schema}. \end{DoxyCompactList}\item 
+class \hyperlink{classmilvus_1_1_i_d_array}{I\+D\+Array}
+\begin{DoxyCompactList}\small\item\em ID array, each ID could be int64 type or string type. ~\newline
+Note\+: v2.\+0 only support int64 type id. \end{DoxyCompactList}\item 
+class \hyperlink{classmilvus_1_1_index_desc}{Index\+Desc}
+\begin{DoxyCompactList}\small\item\em Index description. Used by \hyperlink{classmilvus_1_1_milvus_client_a9d56f35a497504a7dee610d368d22b7a}{Milvus\+Client\+::\+Create\+Index()} and \hyperlink{classmilvus_1_1_milvus_client_a58ed7015339719ab8dc7d6acad90d9a1}{Milvus\+Client\+::\+Describe\+Index()}. \end{DoxyCompactList}\item 
+class \hyperlink{classmilvus_1_1_index_progress}{Index\+Progress}
+\begin{DoxyCompactList}\small\item\em Index progress. Used by Get\+Index\+Build\+Progress(). \end{DoxyCompactList}\item 
+class \hyperlink{classmilvus_1_1_index_state}{Index\+State}
+\begin{DoxyCompactList}\small\item\em Index state. Used by \hyperlink{classmilvus_1_1_milvus_client_ad4abd1fc1153cd777a5080aa2ad8ca2b}{Milvus\+Client\+::\+Get\+Index\+State()}. \end{DoxyCompactList}\item 
+class \hyperlink{classmilvus_1_1_milvus_client}{Milvus\+Client}
+\begin{DoxyCompactList}\small\item\em Milvus client abstract class, provide \hyperlink{classmilvus_1_1_milvus_client_a2fadefe95c16f9a5ea11bc899fc878bd}{Create()} method to create an implementation instance. \end{DoxyCompactList}\item 
+class \hyperlink{classmilvus_1_1_partition_info}{Partition\+Info}
+\begin{DoxyCompactList}\small\item\em Partition runtime information including create timestamp and loading percentage, returned by \hyperlink{classmilvus_1_1_milvus_client_a12b481158b57a806f8d341178348f735}{Milvus\+Client\+::\+Show\+Partitions()}. \end{DoxyCompactList}\item 
+class \hyperlink{classmilvus_1_1_partition_stat}{Partition\+Stat}
+\begin{DoxyCompactList}\small\item\em Partition statistics returned by \hyperlink{classmilvus_1_1_milvus_client_a91ad7ca6b18c8c1eafd10ea0d6af1c61}{Milvus\+Client\+::\+Get\+Partition\+Statistics()}. \end{DoxyCompactList}\item 
+struct \hyperlink{structmilvus_1_1_progress}{Progress}
+\begin{DoxyCompactList}\small\item\em Notify progress of a request, returned by callback function of \hyperlink{classmilvus_1_1_progress_monitor}{Progress\+Monitor}. \end{DoxyCompactList}\item 
+class \hyperlink{classmilvus_1_1_progress_monitor}{Progress\+Monitor}
+\begin{DoxyCompactList}\small\item\em Monitor progress of a request. \end{DoxyCompactList}\item 
+class \hyperlink{classmilvus_1_1_query_arguments}{Query\+Arguments}
+\begin{DoxyCompactList}\small\item\em Arguments for \hyperlink{classmilvus_1_1_milvus_client_a2c27e3b681313329ccf491867d717182}{Milvus\+Client\+::\+Query()}. \end{DoxyCompactList}\item 
+class \hyperlink{classmilvus_1_1_query_results}{Query\+Results}
+\begin{DoxyCompactList}\small\item\em Results returned by \hyperlink{classmilvus_1_1_milvus_client_a2c27e3b681313329ccf491867d717182}{Milvus\+Client\+::\+Query()}. \end{DoxyCompactList}\item 
+class \hyperlink{classmilvus_1_1_query_segment_info}{Query\+Segment\+Info}
+\begin{DoxyCompactList}\small\item\em In-\/memory segment information returned by \hyperlink{classmilvus_1_1_milvus_client_a7a5a78cb57e5d80adea1f1b0bffe5ba0}{Milvus\+Client\+::\+Get\+Query\+Segment\+Info()}. \end{DoxyCompactList}\item 
+class \hyperlink{classmilvus_1_1_search_arguments}{Search\+Arguments}
+\begin{DoxyCompactList}\small\item\em Arguments for \hyperlink{classmilvus_1_1_milvus_client_a46c70fc2b7c386003babd90e02b299d1}{Milvus\+Client\+::\+Search()}. \end{DoxyCompactList}\item 
+class \hyperlink{classmilvus_1_1_search_results}{Search\+Results}
+\begin{DoxyCompactList}\small\item\em Results returned by \hyperlink{classmilvus_1_1_milvus_client_a46c70fc2b7c386003babd90e02b299d1}{Milvus\+Client\+::\+Search()}. \end{DoxyCompactList}\item 
+class \hyperlink{classmilvus_1_1_segment_info}{Segment\+Info}
+\begin{DoxyCompactList}\small\item\em Persisted segment information returned by \hyperlink{classmilvus_1_1_milvus_client_a383e2ef16d4add6af450170775869604}{Milvus\+Client\+::\+Get\+Persistent\+Segment\+Info()}. \end{DoxyCompactList}\item 
+struct \hyperlink{structmilvus_1_1_single_result}{Single\+Result}
+\begin{DoxyCompactList}\small\item\em Topk results for one target vector of \hyperlink{classmilvus_1_1_milvus_client_a46c70fc2b7c386003babd90e02b299d1}{Milvus\+Client\+::\+Search()} \end{DoxyCompactList}\item 
+class \hyperlink{classmilvus_1_1_status}{Status}
+\begin{DoxyCompactList}\small\item\em \hyperlink{classmilvus_1_1_status}{Status} code and message returned by S\+DK interface. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Typedefs}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{namespacemilvus_aca75f624e858185d26527e9c47b40ed6}\label{namespacemilvus_aca75f624e858185d26527e9c47b40ed6}} 
+using \hyperlink{namespacemilvus_aca75f624e858185d26527e9c47b40ed6}{Collections\+Info} = std\+::vector$<$ \hyperlink{classmilvus_1_1_collection_info}{Collection\+Info} $>$
+\begin{DoxyCompactList}\small\item\em Collections\+Info objects array. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{namespacemilvus_ae8e1cc7774a3ff7a1c5d564c1937bec8}\label{namespacemilvus_ae8e1cc7774a3ff7a1c5d564c1937bec8}} 
+using \hyperlink{namespacemilvus_ae8e1cc7774a3ff7a1c5d564c1937bec8}{Compaction\+Plans} = std\+::vector$<$ \hyperlink{classmilvus_1_1_compaction_plan}{Compaction\+Plan} $>$
+\begin{DoxyCompactList}\small\item\em Compaction\+Plans objects array. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{namespacemilvus_affb31ba1d459f7fa231ffda305c08733}\label{namespacemilvus_affb31ba1d459f7fa231ffda305c08733}} 
+using \hyperlink{namespacemilvus_affb31ba1d459f7fa231ffda305c08733}{Partitions\+Info} = std\+::vector$<$ \hyperlink{classmilvus_1_1_partition_info}{Partition\+Info} $>$
+\begin{DoxyCompactList}\small\item\em Partitions\+Info objects array. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{namespacemilvus_ac4d75d0f392eb243587a67248164636b}\label{namespacemilvus_ac4d75d0f392eb243587a67248164636b}} 
+using \hyperlink{namespacemilvus_ac4d75d0f392eb243587a67248164636b}{Segments\+Info} = std\+::vector$<$ \hyperlink{classmilvus_1_1_segment_info}{Segment\+Info} $>$
+\begin{DoxyCompactList}\small\item\em Segments\+Info objects array. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{namespacemilvus_a12c0975ef69afebb6673596a78f0c1c6}\label{namespacemilvus_a12c0975ef69afebb6673596a78f0c1c6}} 
+using \hyperlink{namespacemilvus_a12c0975ef69afebb6673596a78f0c1c6}{Query\+Segments\+Info} = std\+::vector$<$ \hyperlink{classmilvus_1_1_query_segment_info}{Query\+Segment\+Info} $>$
+\begin{DoxyCompactList}\small\item\em Query\+Segments\+Info objects array. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Enumerations}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{namespacemilvus_ad8f8a6a0abb456a62ed9fec3f2ff1f23}\label{namespacemilvus_ad8f8a6a0abb456a62ed9fec3f2ff1f23}} 
+enum \hyperlink{namespacemilvus_ad8f8a6a0abb456a62ed9fec3f2ff1f23}{Status\+Code} \begin{DoxyCompactList}\small\item\em Status code for S\+DK interface return. \end{DoxyCompactList}
+\item 
+\mbox{\Hypertarget{namespacemilvus_ae2c03b3dbf792fba6a8ab10cb3a7cc5a}\label{namespacemilvus_ae2c03b3dbf792fba6a8ab10cb3a7cc5a}} 
+enum \hyperlink{namespacemilvus_ae2c03b3dbf792fba6a8ab10cb3a7cc5a}{Compaction\+State\+Code} \begin{DoxyCompactList}\small\item\em State Code for compaction. \end{DoxyCompactList}
+\item 
+\mbox{\Hypertarget{namespacemilvus_a3bdf02cc09dcb59a1e1d2f287d90788b}\label{namespacemilvus_a3bdf02cc09dcb59a1e1d2f287d90788b}} 
+enum \hyperlink{namespacemilvus_a3bdf02cc09dcb59a1e1d2f287d90788b}{Data\+Type} \begin{DoxyCompactList}\small\item\em Data type of field. \end{DoxyCompactList}
+\item 
+\mbox{\Hypertarget{namespacemilvus_a41d88e00964bea51a391cff73f2cb256}\label{namespacemilvus_a41d88e00964bea51a391cff73f2cb256}} 
+enum \hyperlink{namespacemilvus_a41d88e00964bea51a391cff73f2cb256}{Index\+State\+Code} \begin{DoxyCompactList}\small\item\em State Code for index. \end{DoxyCompactList}
+\item 
+\mbox{\Hypertarget{namespacemilvus_a188c0c4910c0aaa1d67c0f089b55c00e}\label{namespacemilvus_a188c0c4910c0aaa1d67c0f089b55c00e}} 
+enum \hyperlink{namespacemilvus_a188c0c4910c0aaa1d67c0f089b55c00e}{Metric\+Type} \begin{DoxyCompactList}\small\item\em Supported metric types. \end{DoxyCompactList}
+\item 
+\mbox{\Hypertarget{namespacemilvus_abe8ed76f6dc4b1b12a59f67fcef5afed}\label{namespacemilvus_abe8ed76f6dc4b1b12a59f67fcef5afed}} 
+enum \hyperlink{namespacemilvus_abe8ed76f6dc4b1b12a59f67fcef5afed}{Segment\+State} \begin{DoxyCompactList}\small\item\em State of segment. \end{DoxyCompactList}
+\end{DoxyCompactItemize}
+\subsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{namespacemilvus_abc4c6056766027cdd6939c1202b9f76e}\label{namespacemilvus_abc4c6056766027cdd6939c1202b9f76e}} 
+bool \hyperlink{namespacemilvus_abc4c6056766027cdd6939c1202b9f76e}{operator==} (const \hyperlink{classmilvus_1_1_segment_info}{Segment\+Info} \&lhs, const \hyperlink{classmilvus_1_1_segment_info}{Segment\+Info} \&rhs)
+\begin{DoxyCompactList}\small\item\em To test two \hyperlink{classmilvus_1_1_segment_info}{Segment\+Info} are equal. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{namespacemilvus_a2203eefb89850518240702b86c79c1df}\label{namespacemilvus_a2203eefb89850518240702b86c79c1df}} 
+bool \hyperlink{namespacemilvus_a2203eefb89850518240702b86c79c1df}{operator==} (const \hyperlink{classmilvus_1_1_query_segment_info}{Query\+Segment\+Info} \&lhs, const \hyperlink{classmilvus_1_1_query_segment_info}{Query\+Segment\+Info} \&rhs)
+\begin{DoxyCompactList}\small\item\em To test two \hyperlink{classmilvus_1_1_query_segment_info}{Query\+Segment\+Info} are equal. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{namespacemilvus_a90e6cfd38449351dc8fbd719c71bff24}\label{namespacemilvus_a90e6cfd38449351dc8fbd719c71bff24}} 
+const std\+::string \hyperlink{namespacemilvus_a90e6cfd38449351dc8fbd719c71bff24}{Key\+Row\+Count} ()
+\begin{DoxyCompactList}\small\item\em Global definition for row count label. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{namespacemilvus_a2f4f7f32992a2db940dcc0eba6286d63}\label{namespacemilvus_a2f4f7f32992a2db940dcc0eba6286d63}} 
+const std\+::string \hyperlink{namespacemilvus_a2f4f7f32992a2db940dcc0eba6286d63}{Field\+Dim} ()
+\begin{DoxyCompactList}\small\item\em Global definition for vector dimension label. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{namespacemilvus_adfce5db74c674b5ad863c7348197440e}\label{namespacemilvus_adfce5db74c674b5ad863c7348197440e}} 
+uint64\+\_\+t \hyperlink{namespacemilvus_adfce5db74c674b5ad863c7348197440e}{Guarantee\+Strong\+Ts} ()
+\begin{DoxyCompactList}\small\item\em Global definition for strong guarantee timestamp. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{namespacemilvus_a6ef6eb309be61920d45c4394b3de6bf7}\label{namespacemilvus_a6ef6eb309be61920d45c4394b3de6bf7}} 
+uint64\+\_\+t \hyperlink{namespacemilvus_a6ef6eb309be61920d45c4394b3de6bf7}{Guarantee\+Eventually\+Ts} ()
+\begin{DoxyCompactList}\small\item\em Global definition for eventually guarantee timestamp. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{namespacemilvus_a86c6786005938232a0289c47bab94005}\label{namespacemilvus_a86c6786005938232a0289c47bab94005}} 
+bool \hyperlink{namespacemilvus_a86c6786005938232a0289c47bab94005}{Is\+Vector\+Type} (\hyperlink{namespacemilvus_a3bdf02cc09dcb59a1e1d2f287d90788b}{Data\+Type} type)
+\begin{DoxyCompactList}\small\item\em To test a data type is vector type. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{namespacemilvus_a8d4f13c82ef4bffd6547d5f316ec543b}\label{namespacemilvus_a8d4f13c82ef4bffd6547d5f316ec543b}} 
+{\footnotesize template$<$typename T , Data\+Type Dt$>$ }\\bool \hyperlink{namespacemilvus_a8d4f13c82ef4bffd6547d5f316ec543b}{operator==} (const \hyperlink{classmilvus_1_1_field_data}{Field\+Data}$<$ T, Dt $>$ \&lhs, const \hyperlink{classmilvus_1_1_field_data}{Field\+Data}$<$ T, Dt $>$ \&rhs)
+\begin{DoxyCompactList}\small\item\em To test two \hyperlink{classmilvus_1_1_field_data}{Field\+Data} are equal. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{namespacemilvus_ad06f82efe8a3fbe854463509fe1ace25}\label{namespacemilvus_ad06f82efe8a3fbe854463509fe1ace25}} 
+{\footnotesize template$<$typename T , Data\+Type Dt$>$ }\\bool \hyperlink{namespacemilvus_ad06f82efe8a3fbe854463509fe1ace25}{operator==} (const \hyperlink{classmilvus_1_1_field_data}{Field\+Data}$<$ T, Dt $>$ \&lhs, const Field \&rhs)
+\begin{DoxyCompactList}\small\item\em To test two \hyperlink{classmilvus_1_1_field_data}{Field\+Data} are equal. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{namespacemilvus_a1766e577643b07c7292147cc33adb724}\label{namespacemilvus_a1766e577643b07c7292147cc33adb724}} 
+bool \hyperlink{namespacemilvus_a1766e577643b07c7292147cc33adb724}{operator==} (const \hyperlink{classmilvus_1_1_partition_info}{Partition\+Info} \&a, const \hyperlink{classmilvus_1_1_partition_info}{Partition\+Info} \&b)
+\begin{DoxyCompactList}\small\item\em To test two \hyperlink{classmilvus_1_1_partition_info}{Partition\+Info} are equal. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{namespacemilvus_ae89ba7744a4ea07a4482acdbf783e4c0}\label{namespacemilvus_ae89ba7744a4ea07a4482acdbf783e4c0}} 
+bool \hyperlink{namespacemilvus_ae89ba7744a4ea07a4482acdbf783e4c0}{operator==} (const \hyperlink{structmilvus_1_1_progress}{Progress} \&a, const \hyperlink{structmilvus_1_1_progress}{Progress} \&b)
+\begin{DoxyCompactList}\small\item\em To test two \hyperlink{structmilvus_1_1_progress}{Progress} are equal. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+namespace milvus 
+
+Milvus S\+DK namespace. 

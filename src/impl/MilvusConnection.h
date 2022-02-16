@@ -32,6 +32,7 @@
 #include "schema.pb.h"
 
 namespace milvus {
+
 class MilvusConnection {
  public:
     MilvusConnection() = default;

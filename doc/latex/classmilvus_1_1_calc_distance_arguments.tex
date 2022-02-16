@@ -1,0 +1,79 @@
+\hypertarget{classmilvus_1_1_calc_distance_arguments}{}\section{milvus\+:\+:Calc\+Distance\+Arguments Class Reference}
+\label{classmilvus_1_1_calc_distance_arguments}\index{milvus\+::\+Calc\+Distance\+Arguments@{milvus\+::\+Calc\+Distance\+Arguments}}
+
+
+Arguments for \hyperlink{classmilvus_1_1_milvus_client_a105c243c7d93ff2cd81b4d9c1751f5fb}{Milvus\+Client\+::\+Calc\+Distance()}.  
+
+
+
+
+{\ttfamily \#include $<$Calc\+Distance\+Arguments.\+h$>$}
+
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{classmilvus_1_1_calc_distance_arguments_afe700e8366e907b1348e6942b5f8bd7f}\label{classmilvus_1_1_calc_distance_arguments_afe700e8366e907b1348e6942b5f8bd7f}} 
+\hyperlink{classmilvus_1_1_status}{Status} \hyperlink{classmilvus_1_1_calc_distance_arguments_afe700e8366e907b1348e6942b5f8bd7f}{Set\+Left\+Vectors} (Float\+Vec\+Field\+Data\+Ptr \&\&vectors)
+\begin{DoxyCompactList}\small\item\em Set the float vectors on the left of operator, without field name. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_calc_distance_arguments_a5f47701301616a97590d99434eac03aa}\label{classmilvus_1_1_calc_distance_arguments_a5f47701301616a97590d99434eac03aa}} 
+\hyperlink{classmilvus_1_1_status}{Status} \hyperlink{classmilvus_1_1_calc_distance_arguments_a5f47701301616a97590d99434eac03aa}{Set\+Left\+Vectors} (Binary\+Vec\+Field\+Data\+Ptr \&\&vectors)
+\begin{DoxyCompactList}\small\item\em Set the binary vectors on the left of operator, without field name. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_calc_distance_arguments_acf43223811b29c5f373dff4885293008}\label{classmilvus_1_1_calc_distance_arguments_acf43223811b29c5f373dff4885293008}} 
+\hyperlink{classmilvus_1_1_status}{Status} \hyperlink{classmilvus_1_1_calc_distance_arguments_acf43223811b29c5f373dff4885293008}{Set\+Left\+Vectors} (Int64\+Field\+Data\+Ptr \&\&ids, const std\+::string \&collection\+\_\+name, std\+::vector$<$ std\+::string $>$ \&\&partition\+\_\+names=\{\})
+\begin{DoxyCompactList}\small\item\em Set id array of the vectors on the left of operator, must specify field name and collection name. Partition names is optinal, to narrow down the query scope. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_calc_distance_arguments_a5354a8e20690b2fa95b3b0b31b1d1aea}\label{classmilvus_1_1_calc_distance_arguments_a5354a8e20690b2fa95b3b0b31b1d1aea}} 
+Field\+Data\+Ptr \hyperlink{classmilvus_1_1_calc_distance_arguments_a5354a8e20690b2fa95b3b0b31b1d1aea}{Left\+Vectors} () const
+\begin{DoxyCompactList}\small\item\em Get the vectors on the left of operator. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_calc_distance_arguments_a6f6261ea0a295c1e8700624e00fc206a}\label{classmilvus_1_1_calc_distance_arguments_a6f6261ea0a295c1e8700624e00fc206a}} 
+\hyperlink{classmilvus_1_1_status}{Status} \hyperlink{classmilvus_1_1_calc_distance_arguments_a6f6261ea0a295c1e8700624e00fc206a}{Set\+Right\+Vectors} (Float\+Vec\+Field\+Data\+Ptr \&\&vectors)
+\begin{DoxyCompactList}\small\item\em Set the float vectors on the right of operator, without field name. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_calc_distance_arguments_a87342315cb662b50302b9940601b5f22}\label{classmilvus_1_1_calc_distance_arguments_a87342315cb662b50302b9940601b5f22}} 
+\hyperlink{classmilvus_1_1_status}{Status} \hyperlink{classmilvus_1_1_calc_distance_arguments_a87342315cb662b50302b9940601b5f22}{Set\+Right\+Vectors} (Binary\+Vec\+Field\+Data\+Ptr \&\&vectors)
+\begin{DoxyCompactList}\small\item\em Set the binary vectors on the right of operator, without field name. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_calc_distance_arguments_aba56914db49d14fc4a63399e37d86b41}\label{classmilvus_1_1_calc_distance_arguments_aba56914db49d14fc4a63399e37d86b41}} 
+\hyperlink{classmilvus_1_1_status}{Status} \hyperlink{classmilvus_1_1_calc_distance_arguments_aba56914db49d14fc4a63399e37d86b41}{Set\+Right\+Vectors} (Int64\+Field\+Data\+Ptr \&\&ids, const std\+::string \&collection\+\_\+name, std\+::vector$<$ std\+::string $>$ \&\&partition\+\_\+names=\{\})
+\begin{DoxyCompactList}\small\item\em Set id array of the vectors on the right of operator, must specify field name and collection name. Partition names is optinal, to narrow down the query scope. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_calc_distance_arguments_aa2d7b3c97b9107ae44c9173b1e10ef83}\label{classmilvus_1_1_calc_distance_arguments_aa2d7b3c97b9107ae44c9173b1e10ef83}} 
+Field\+Data\+Ptr \hyperlink{classmilvus_1_1_calc_distance_arguments_aa2d7b3c97b9107ae44c9173b1e10ef83}{Right\+Vectors} () const
+\begin{DoxyCompactList}\small\item\em Get the vectors on the right of operator. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_calc_distance_arguments_ac8cc5ef70d425a599fec7fc20dc26af2}\label{classmilvus_1_1_calc_distance_arguments_ac8cc5ef70d425a599fec7fc20dc26af2}} 
+\hyperlink{classmilvus_1_1_status}{Status} \hyperlink{classmilvus_1_1_calc_distance_arguments_ac8cc5ef70d425a599fec7fc20dc26af2}{Set\+Metric\+Type} (std\+::string \&\&metric)
+\begin{DoxyCompactList}\small\item\em Set metric type of calculation, options\+: \char`\"{}\+L2\char`\"{}/\char`\"{}\+I\+P\char`\"{}/\char`\"{}\+H\+A\+M\+M\+I\+N\+G\char`\"{}/\char`\"{}\+T\+A\+N\+I\+M\+O\+T\+O\char`\"{}, default is \char`\"{}\+L2\char`\"{}. The type string is case insensitive. \char`\"{}\+L2\char`\"{} and \char`\"{}\+I\+P\char`\"{} is only for float vectors, \char`\"{}\+H\+A\+M\+M\+I\+N\+G\char`\"{} and \char`\"{}\+T\+A\+N\+I\+M\+O\+T\+O\char`\"{} is for binary vectors. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_calc_distance_arguments_af5e2a03eb0f1160b33094ae43e8eef19}\label{classmilvus_1_1_calc_distance_arguments_af5e2a03eb0f1160b33094ae43e8eef19}} 
+std\+::string \hyperlink{classmilvus_1_1_calc_distance_arguments_af5e2a03eb0f1160b33094ae43e8eef19}{Metric\+Type} () const
+\begin{DoxyCompactList}\small\item\em Get the specified metric type. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_calc_distance_arguments_a2e834af0540d636c428640502a165e6f}\label{classmilvus_1_1_calc_distance_arguments_a2e834af0540d636c428640502a165e6f}} 
+\hyperlink{classmilvus_1_1_status}{Status} \hyperlink{classmilvus_1_1_calc_distance_arguments_a2e834af0540d636c428640502a165e6f}{Set\+Dimension} (int32\+\_\+t dim)
+\begin{DoxyCompactList}\small\item\em Specify dimension value if dimension is not a multiple of 8, otherwise the dimension will be calculted by vector data length, only for \char`\"{}\+H\+A\+M\+M\+I\+N\+G\char`\"{} and \char`\"{}\+T\+A\+N\+I\+M\+O\+T\+O\char`\"{}. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_calc_distance_arguments_aa74c643ffc308d96dff399970ae7dece}\label{classmilvus_1_1_calc_distance_arguments_aa74c643ffc308d96dff399970ae7dece}} 
+int32\+\_\+t \hyperlink{classmilvus_1_1_calc_distance_arguments_aa74c643ffc308d96dff399970ae7dece}{Dimension} () const
+\begin{DoxyCompactList}\small\item\em Get specified dimension, only for \char`\"{}\+H\+A\+M\+M\+I\+N\+G\char`\"{} and \char`\"{}\+T\+A\+N\+I\+M\+O\+T\+O\char`\"{}. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_calc_distance_arguments_a2af6d6ec052a56f8e54163e01317f904}\label{classmilvus_1_1_calc_distance_arguments_a2af6d6ec052a56f8e54163e01317f904}} 
+void \hyperlink{classmilvus_1_1_calc_distance_arguments_a2af6d6ec052a56f8e54163e01317f904}{Set\+Sqrt} (bool sqrt\+\_\+distance)
+\begin{DoxyCompactList}\small\item\em Calculate extraction of a root of distance values, default is false, only for \char`\"{}\+L2\char`\"{} metric type. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_calc_distance_arguments_a24dacf8c988e26fae2e2df24cb8e5f03}\label{classmilvus_1_1_calc_distance_arguments_a24dacf8c988e26fae2e2df24cb8e5f03}} 
+bool \hyperlink{classmilvus_1_1_calc_distance_arguments_a24dacf8c988e26fae2e2df24cb8e5f03}{Sqrt} () const
+\begin{DoxyCompactList}\small\item\em Get flag of sqrt, only for \char`\"{}\+L2\char`\"{} metric type. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_calc_distance_arguments_a28e1b2f9d2650ae3ddd78206c91f955c}\label{classmilvus_1_1_calc_distance_arguments_a28e1b2f9d2650ae3ddd78206c91f955c}} 
+std\+::string \hyperlink{classmilvus_1_1_calc_distance_arguments_a28e1b2f9d2650ae3ddd78206c91f955c}{Left\+Collection} () const
+\begin{DoxyCompactList}\small\item\em Get the collection which left vectors belong. Only for vector id array. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_calc_distance_arguments_a5e8d67c5973be79e2f01eecedead8813}\label{classmilvus_1_1_calc_distance_arguments_a5e8d67c5973be79e2f01eecedead8813}} 
+std\+::string \hyperlink{classmilvus_1_1_calc_distance_arguments_a5e8d67c5973be79e2f01eecedead8813}{Right\+Collection} () const
+\begin{DoxyCompactList}\small\item\em Get the collection which right vectors belong. Only for vector id array. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_calc_distance_arguments_a8683beee06c4482527d7ac824fb8fa33}\label{classmilvus_1_1_calc_distance_arguments_a8683beee06c4482527d7ac824fb8fa33}} 
+const std\+::vector$<$ std\+::string $>$ \& \hyperlink{classmilvus_1_1_calc_distance_arguments_a8683beee06c4482527d7ac824fb8fa33}{Left\+Partitions} () const
+\begin{DoxyCompactList}\small\item\em Get the partitions which left vectors belong. Only for vector id array. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_calc_distance_arguments_a470efed41a86078bb67e664723200379}\label{classmilvus_1_1_calc_distance_arguments_a470efed41a86078bb67e664723200379}} 
+const std\+::vector$<$ std\+::string $>$ \& \hyperlink{classmilvus_1_1_calc_distance_arguments_a470efed41a86078bb67e664723200379}{Right\+Partitions} () const
+\begin{DoxyCompactList}\small\item\em Get the partitions which right vectors belong. Only for vector id array. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_calc_distance_arguments_afbdf8fc8ac08cbce2f7a37d4ac4ac251}\label{classmilvus_1_1_calc_distance_arguments_afbdf8fc8ac08cbce2f7a37d4ac4ac251}} 
+\hyperlink{classmilvus_1_1_status}{Status} \hyperlink{classmilvus_1_1_calc_distance_arguments_afbdf8fc8ac08cbce2f7a37d4ac4ac251}{Validate} () const
+\begin{DoxyCompactList}\small\item\em Basic validation for the input arguments. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+Arguments for \hyperlink{classmilvus_1_1_milvus_client_a105c243c7d93ff2cd81b4d9c1751f5fb}{Milvus\+Client\+::\+Calc\+Distance()}. 
+
+The documentation for this class was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+src/include/milvus/types/Calc\+Distance\+Arguments.\+h\end{DoxyCompactItemize}

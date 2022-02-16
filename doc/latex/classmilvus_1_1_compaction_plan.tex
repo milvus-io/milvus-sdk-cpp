@@ -1,0 +1,37 @@
+\hypertarget{classmilvus_1_1_compaction_plan}{}\section{milvus\+:\+:Compaction\+Plan Class Reference}
+\label{classmilvus_1_1_compaction_plan}\index{milvus\+::\+Compaction\+Plan@{milvus\+::\+Compaction\+Plan}}
+
+
+Compaction plan information. Used by \hyperlink{classmilvus_1_1_milvus_client_a39d54736f4b08bba8d6b055277aa71ea}{Milvus\+Client\+::\+Get\+Compaction\+Plans()}.  
+
+
+
+
+{\ttfamily \#include $<$Compaction\+Plan.\+h$>$}
+
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{classmilvus_1_1_compaction_plan_a71d0a329ce6789c3d989439aad07625b}\label{classmilvus_1_1_compaction_plan_a71d0a329ce6789c3d989439aad07625b}} 
+\hyperlink{classmilvus_1_1_compaction_plan_a71d0a329ce6789c3d989439aad07625b}{Compaction\+Plan} (std\+::vector$<$ int64\+\_\+t $>$ \&\&segments, int64\+\_\+t dst\+\_\+segment)
+\begin{DoxyCompactList}\small\item\em Constructor. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_compaction_plan_a5a2bf812c105790f53859d3cbe503f49}\label{classmilvus_1_1_compaction_plan_a5a2bf812c105790f53859d3cbe503f49}} 
+const std\+::vector$<$ int64\+\_\+t $>$ \& \hyperlink{classmilvus_1_1_compaction_plan_a5a2bf812c105790f53859d3cbe503f49}{Source\+Segments} () const
+\begin{DoxyCompactList}\small\item\em Segment id array to be merged. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_compaction_plan_a2929a97a02802fe807c9a99b5758c625}\label{classmilvus_1_1_compaction_plan_a2929a97a02802fe807c9a99b5758c625}} 
+void \hyperlink{classmilvus_1_1_compaction_plan_a2929a97a02802fe807c9a99b5758c625}{Set\+Source\+Segments} (std\+::vector$<$ int64\+\_\+t $>$ \&\&segments)
+\begin{DoxyCompactList}\small\item\em Set segment id array to be merged. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_compaction_plan_a0765051a47792bb18045190d5751998a}\label{classmilvus_1_1_compaction_plan_a0765051a47792bb18045190d5751998a}} 
+int64\+\_\+t \hyperlink{classmilvus_1_1_compaction_plan_a0765051a47792bb18045190d5751998a}{Destiny\+Segemnt} () const
+\begin{DoxyCompactList}\small\item\em New generated segment id after merging. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_compaction_plan_aa7e24bf3960613e661f0f281ba9ef298}\label{classmilvus_1_1_compaction_plan_aa7e24bf3960613e661f0f281ba9ef298}} 
+void \hyperlink{classmilvus_1_1_compaction_plan_aa7e24bf3960613e661f0f281ba9ef298}{Set\+Destiny\+Segemnt} (int64\+\_\+t id)
+\begin{DoxyCompactList}\small\item\em Set segment id. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+Compaction plan information. Used by \hyperlink{classmilvus_1_1_milvus_client_a39d54736f4b08bba8d6b055277aa71ea}{Milvus\+Client\+::\+Get\+Compaction\+Plans()}. 
+
+The documentation for this class was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+src/include/milvus/types/Compaction\+Plan.\+h\end{DoxyCompactItemize}

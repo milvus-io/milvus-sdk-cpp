@@ -28,7 +28,7 @@
 namespace milvus {
 
 /**
- * @brief Arguments for Search().
+ * @brief Arguments for MilvusClient::Search().
  */
 class SearchArguments {
  public:
@@ -179,7 +179,7 @@ class SearchArguments {
 
     /**
      * @brief Specify an absolute timestamp in a search to get results based on a data view at a specified point in
-     * time.
+     * time. \n
      *
      * Default value is 0, server executes search on a full data view.
      */
@@ -198,14 +198,14 @@ class SearchArguments {
     }
 
     /**
-     * @brief Instructs server to see insert/delete operations performed before a provided timestamp.
-     * If no such timestamp is specified, the server will wait for the latest operation to finish and search.
+     * @brief Instructs server to see insert/delete operations performed before a provided timestamp. \n
+     * If no such timestamp is specified, the server will wait for the latest operation to finish and search. \n
      *
      * Note: The timestamp is not an absolute timestamp, it is a hybrid value combined by UTC time and internal flags.
-     * We call it TSO, for more information please refer to:
-     * https://github.com/milvus-io/milvus/blob/master/docs/design_docs/milvus_hybrid_ts_en.md. You can get a TSO from
-     * insert/delete results. Use an operation's TSO to set this parameter, the server will execute search after this
-     * operation is finished.
+     * \n We call it TSO, for more information please refer to: \n
+     * https://github.com/milvus-io/milvus/blob/master/docs/design_docs/milvus_hybrid_ts_en.md.
+     * You can get a TSO from insert/delete results. Use an operation's TSO to set this parameter,
+     * the server will execute search after this operation is finished. \n
      *
      * Default value is 1, server executes search immediately.
      */

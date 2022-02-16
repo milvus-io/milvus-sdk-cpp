@@ -18,6 +18,9 @@
 
 namespace milvus {
 
+/**
+ * @brief Data type of field
+ */
 enum DataType {
     UNKNOWN = 0,
 
@@ -36,6 +39,9 @@ enum DataType {
     FLOAT_VECTOR = 101,
 };
 
+/**
+ * @brief To test a data type is vector type
+ */
 inline bool
 IsVectorType(DataType type) {
     return (BINARY_VECTOR == type || FLOAT_VECTOR == type);

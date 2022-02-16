@@ -30,7 +30,7 @@ enum class CompactionStateCode {
 };
 
 /**
- * @brief Compaction state. Used by GetCompactionState().
+ * @brief Compaction state. Used by MilvusClient::GetCompactionState().
  */
 class CompactionState {
  public:

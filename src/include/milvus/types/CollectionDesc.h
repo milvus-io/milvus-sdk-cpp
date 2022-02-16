@@ -24,7 +24,7 @@
 namespace milvus {
 
 /**
- * @brief Collection schema and runtime information returned by DescribeCollection().
+ * @brief Collection schema and runtime information returned by MilvusClient::DescribeCollection().
  */
 class CollectionDesc {
  public:
@@ -63,7 +63,7 @@ class CollectionDesc {
     }
 
     /**
-     * @brief Collection id.
+     * @brief Collection alias.
      */
     const std::vector<std::string>&
     Alias() const {
@@ -71,7 +71,7 @@ class CollectionDesc {
     }
 
     /**
-     * @brief Set collection id.
+     * @brief Set collection alias.
      */
     void
     SetAlias(std::vector<std::string>&& alias) {

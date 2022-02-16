@@ -25,12 +25,15 @@
 namespace milvus {
 
 /**
- * @brief Collection schema for CreateCollection().
+ * @brief Collection schema for MilvusClient::CreateCollection().
  */
 class CollectionSchema {
  public:
     CollectionSchema() = default;
 
+    /**
+     * @brief Constructor
+     */
     explicit CollectionSchema(const std::string& name, const std::string& desc = "", int32_t shard_num = 2)
         : name_(name), description_(desc), shard_num_(shard_num) {
     }
@@ -101,6 +104,9 @@ class CollectionSchema {
         return true;
     }
 
+    /**
+     * @brief Add a field schema.
+     */
     bool
     AddField(FieldSchema&& field_schema) {
         // TODO: check duplicate field name
@@ -109,7 +115,7 @@ class CollectionSchema {
     }
 
     /**
-     * @brief Return Anns field names, if not exist return empty
+     * @brief Return Anns field names.
      */
     std::unordered_set<std::string>
     AnnsFieldNames() const {
