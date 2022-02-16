@@ -51,4 +51,18 @@ GuaranteeEventuallyTs() {
     return 1;
 }
 
+/**
+ * @brief The logical bits in hybird timestamp
+ */
+constexpr size_t inline HybirdtsLogicalBits() {
+    return 18;
+}
+
+/**
+ * @brief The logical bits mask for hybird timestamp
+ */
+constexpr uint64_t inline HybirdtsLogicalBitsMask() {
+    return (1 << HybirdtsLogicalBits()) - 1;
+}
+
 }  // namespace milvus

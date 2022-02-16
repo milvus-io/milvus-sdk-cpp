@@ -30,6 +30,7 @@
 #include "types/DistanceArray.h"
 #include "types/DmlResults.h"
 #include "types/FieldData.h"
+#include "types/HybirdTimestamp.h"
 #include "types/IndexDesc.h"
 #include "types/IndexState.h"
 #include "types/PartitionInfo.h"
