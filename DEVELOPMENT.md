@@ -15,7 +15,8 @@ Currently, we tested the below platform and compilers for developing Milvus C++ 
 | -------- | ------------ | --------------- | ----------------------------- |
 | Linux    | Ubuntu 18.04 | GCC 7.0.0       | Full (Compile, Lint, Testing) |
 | Linux    | Ubuntu 20.04 | GCC 9.3.0       | Full (Compile, Lint, Testing) |
-| Linux    | CentOS       | GCC 4.8.5       | Compile, Testing              |
+| Linux    | Fedora 34/35 | GCC 11.2        | Compile, Testing              |
+| Linux    | CentOS 7     | GCC 4.8.5       | Compile, Testing              |
 
 ### Clone the code
 
