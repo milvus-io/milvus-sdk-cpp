@@ -19,21 +19,33 @@
 
 namespace milvus {
 
+/**
+ * @brief Global definition for row count label
+ */
 inline const std::string
 KeyRowCount() {
     return "row_count";
 }
 
+/**
+ * @brief Global definition for vector dimension label
+ */
 inline const std::string
 FieldDim() {
     return "dim";
 }
 
+/**
+ * @brief Global definition for strong guarantee timestamp
+ */
 inline uint64_t
 GuaranteeStrongTs() {
     return 0;
 }
 
+/**
+ * @brief Global definition for eventually guarantee timestamp
+ */
 inline uint64_t
 GuaranteeEventuallyTs() {
     return 1;

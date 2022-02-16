@@ -1,0 +1,44 @@
+\hypertarget{classmilvus_1_1_segment_info}{}\section{milvus\+:\+:Segment\+Info Class Reference}
+\label{classmilvus_1_1_segment_info}\index{milvus\+::\+Segment\+Info@{milvus\+::\+Segment\+Info}}
+
+
+Persisted segment information returned by \hyperlink{classmilvus_1_1_milvus_client_a383e2ef16d4add6af450170775869604}{Milvus\+Client\+::\+Get\+Persistent\+Segment\+Info()}.  
+
+
+
+
+{\ttfamily \#include $<$Segment\+Info.\+h$>$}
+
+
+
+Inherited by \hyperlink{classmilvus_1_1_query_segment_info}{milvus\+::\+Query\+Segment\+Info}.
+
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{classmilvus_1_1_segment_info_abf2dd48b267d9604ec2691826256553a}\label{classmilvus_1_1_segment_info_abf2dd48b267d9604ec2691826256553a}} 
+\hyperlink{classmilvus_1_1_segment_info_abf2dd48b267d9604ec2691826256553a}{Segment\+Info} (int64\+\_\+t collection\+\_\+id, int64\+\_\+t partition\+\_\+id, int64\+\_\+t segment\+\_\+id, int64\+\_\+t row\+\_\+count, \hyperlink{namespacemilvus_abe8ed76f6dc4b1b12a59f67fcef5afed}{Segment\+State} state)
+\begin{DoxyCompactList}\small\item\em Constructor. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_segment_info_aeb5635df3b65361525a1fe30360b3700}\label{classmilvus_1_1_segment_info_aeb5635df3b65361525a1fe30360b3700}} 
+int64\+\_\+t \hyperlink{classmilvus_1_1_segment_info_aeb5635df3b65361525a1fe30360b3700}{Collection\+ID} () const
+\begin{DoxyCompactList}\small\item\em The collection id which this segment belong to. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_segment_info_af90cf5f8a20981b416436abba4b312da}\label{classmilvus_1_1_segment_info_af90cf5f8a20981b416436abba4b312da}} 
+int64\+\_\+t \hyperlink{classmilvus_1_1_segment_info_af90cf5f8a20981b416436abba4b312da}{Partition\+ID} () const
+\begin{DoxyCompactList}\small\item\em The partition id which this segment belong to. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_segment_info_a599886968a2397433c87e5613481218c}\label{classmilvus_1_1_segment_info_a599886968a2397433c87e5613481218c}} 
+int64\+\_\+t \hyperlink{classmilvus_1_1_segment_info_a599886968a2397433c87e5613481218c}{Segment\+ID} () const
+\begin{DoxyCompactList}\small\item\em ID of the segment. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_segment_info_adcf9ed245a2c6f52355e1c61b7d9cf9e}\label{classmilvus_1_1_segment_info_adcf9ed245a2c6f52355e1c61b7d9cf9e}} 
+int64\+\_\+t \hyperlink{classmilvus_1_1_segment_info_adcf9ed245a2c6f52355e1c61b7d9cf9e}{Row\+Count} () const
+\begin{DoxyCompactList}\small\item\em Row count of the segment. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_segment_info_a5b99f45e8128d969f3a40bf66857a31d}\label{classmilvus_1_1_segment_info_a5b99f45e8128d969f3a40bf66857a31d}} 
+\hyperlink{namespacemilvus_abe8ed76f6dc4b1b12a59f67fcef5afed}{Segment\+State} \hyperlink{classmilvus_1_1_segment_info_a5b99f45e8128d969f3a40bf66857a31d}{State} () const
+\begin{DoxyCompactList}\small\item\em Current state of the segment. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+Persisted segment information returned by \hyperlink{classmilvus_1_1_milvus_client_a383e2ef16d4add6af450170775869604}{Milvus\+Client\+::\+Get\+Persistent\+Segment\+Info()}. 
+
+The documentation for this class was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+src/include/milvus/types/Segment\+Info.\+h\end{DoxyCompactItemize}

@@ -1,0 +1,37 @@
+\hypertarget{classmilvus_1_1_dml_results}{}\section{milvus\+:\+:Dml\+Results Class Reference}
+\label{classmilvus_1_1_dml_results}\index{milvus\+::\+Dml\+Results@{milvus\+::\+Dml\+Results}}
+
+
+Result returned by \hyperlink{classmilvus_1_1_milvus_client_a64a2dca576e0933571a6889910d56390}{Milvus\+Client\+::\+Insert()} and \hyperlink{classmilvus_1_1_milvus_client_a271b16333636621f24aaf89993c72301}{Milvus\+Client\+::\+Delete()}  
+
+
+
+
+{\ttfamily \#include $<$Dml\+Results.\+h$>$}
+
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{classmilvus_1_1_dml_results_a086b83fbe3bb8b15bd5849f05be045df}\label{classmilvus_1_1_dml_results_a086b83fbe3bb8b15bd5849f05be045df}} 
+\hyperlink{classmilvus_1_1_dml_results_a086b83fbe3bb8b15bd5849f05be045df}{Dml\+Results} ()
+\begin{DoxyCompactList}\small\item\em Constructor. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_dml_results_a615fe477fede81255f77507a5a8e28f6}\label{classmilvus_1_1_dml_results_a615fe477fede81255f77507a5a8e28f6}} 
+const \hyperlink{classmilvus_1_1_i_d_array}{I\+D\+Array} \& \hyperlink{classmilvus_1_1_dml_results_a615fe477fede81255f77507a5a8e28f6}{Id\+Array} () const
+\begin{DoxyCompactList}\small\item\em The id array for entities which are inserted or deleted. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_dml_results_a2dbc2bb23485ea853934f31d647355c8}\label{classmilvus_1_1_dml_results_a2dbc2bb23485ea853934f31d647355c8}} 
+void \hyperlink{classmilvus_1_1_dml_results_a2dbc2bb23485ea853934f31d647355c8}{Set\+Id\+Array} (\hyperlink{classmilvus_1_1_i_d_array}{I\+D\+Array} \&\&id\+\_\+array)
+\begin{DoxyCompactList}\small\item\em Set the id array. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_dml_results_a6b87cdaf3663ed38a57a6a2c3bf77991}\label{classmilvus_1_1_dml_results_a6b87cdaf3663ed38a57a6a2c3bf77991}} 
+uint64\+\_\+t \hyperlink{classmilvus_1_1_dml_results_a6b87cdaf3663ed38a57a6a2c3bf77991}{Timestamp} () const
+\begin{DoxyCompactList}\small\item\em The operation timestamp marked by server side. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_dml_results_a62f4a7da55812f45b4967a04f2dfe651}\label{classmilvus_1_1_dml_results_a62f4a7da55812f45b4967a04f2dfe651}} 
+void \hyperlink{classmilvus_1_1_dml_results_a62f4a7da55812f45b4967a04f2dfe651}{Set\+Timestamp} (uint64\+\_\+t timestamp)
+\begin{DoxyCompactList}\small\item\em Set operation timestamp. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+Result returned by \hyperlink{classmilvus_1_1_milvus_client_a64a2dca576e0933571a6889910d56390}{Milvus\+Client\+::\+Insert()} and \hyperlink{classmilvus_1_1_milvus_client_a271b16333636621f24aaf89993c72301}{Milvus\+Client\+::\+Delete()} 
+
+The documentation for this class was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+src/include/milvus/types/Dml\+Results.\+h\end{DoxyCompactItemize}

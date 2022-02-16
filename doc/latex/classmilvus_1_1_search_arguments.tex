@@ -1,0 +1,121 @@
+\hypertarget{classmilvus_1_1_search_arguments}{}\section{milvus\+:\+:Search\+Arguments Class Reference}
+\label{classmilvus_1_1_search_arguments}\index{milvus\+::\+Search\+Arguments@{milvus\+::\+Search\+Arguments}}
+
+
+Arguments for \hyperlink{classmilvus_1_1_milvus_client_a46c70fc2b7c386003babd90e02b299d1}{Milvus\+Client\+::\+Search()}.  
+
+
+
+
+{\ttfamily \#include $<$Search\+Arguments.\+h$>$}
+
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{classmilvus_1_1_search_arguments_a9128de327c2178bb97cb0f1784a1ae4b}\label{classmilvus_1_1_search_arguments_a9128de327c2178bb97cb0f1784a1ae4b}} 
+const std\+::string \& \hyperlink{classmilvus_1_1_search_arguments_a9128de327c2178bb97cb0f1784a1ae4b}{Collection\+Name} () const
+\begin{DoxyCompactList}\small\item\em Get name of the target collection. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_search_arguments_a317118297874569144428031af12e47e}\label{classmilvus_1_1_search_arguments_a317118297874569144428031af12e47e}} 
+\hyperlink{classmilvus_1_1_status}{Status} \hyperlink{classmilvus_1_1_search_arguments_a317118297874569144428031af12e47e}{Set\+Collection\+Name} (const std\+::string \&collection\+\_\+name)
+\begin{DoxyCompactList}\small\item\em Set name of this collection, cannot be empty. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_search_arguments_a7880af3cc2d8e678d62db9b619f7a7ba}\label{classmilvus_1_1_search_arguments_a7880af3cc2d8e678d62db9b619f7a7ba}} 
+const std\+::set$<$ std\+::string $>$ \& \hyperlink{classmilvus_1_1_search_arguments_a7880af3cc2d8e678d62db9b619f7a7ba}{Partition\+Names} () const
+\begin{DoxyCompactList}\small\item\em Get partition names. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_search_arguments_a6bf0e7a699f1c51ed9723c700db73197}\label{classmilvus_1_1_search_arguments_a6bf0e7a699f1c51ed9723c700db73197}} 
+\hyperlink{classmilvus_1_1_status}{Status} \hyperlink{classmilvus_1_1_search_arguments_a6bf0e7a699f1c51ed9723c700db73197}{Add\+Partition\+Name} (const std\+::string \&partition\+\_\+name)
+\begin{DoxyCompactList}\small\item\em Specify partition name to control search scope, the name cannot be empty. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_search_arguments_a7aca68d702f30329d9b2adcbcb03b187}\label{classmilvus_1_1_search_arguments_a7aca68d702f30329d9b2adcbcb03b187}} 
+const std\+::set$<$ std\+::string $>$ \& \hyperlink{classmilvus_1_1_search_arguments_a7aca68d702f30329d9b2adcbcb03b187}{Output\+Fields} () const
+\begin{DoxyCompactList}\small\item\em Get output field names. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_search_arguments_ae75451989818436518e6916054519771}\label{classmilvus_1_1_search_arguments_ae75451989818436518e6916054519771}} 
+\hyperlink{classmilvus_1_1_status}{Status} \hyperlink{classmilvus_1_1_search_arguments_ae75451989818436518e6916054519771}{Add\+Output\+Field} (const std\+::string \&field\+\_\+name)
+\begin{DoxyCompactList}\small\item\em Specify output field names to return field data, the name cannot be empty. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_search_arguments_ab5d81af06850a4833ae07fdeaa85256c}\label{classmilvus_1_1_search_arguments_ab5d81af06850a4833ae07fdeaa85256c}} 
+const std\+::string \& \hyperlink{classmilvus_1_1_search_arguments_ab5d81af06850a4833ae07fdeaa85256c}{Expression} () const
+\begin{DoxyCompactList}\small\item\em Get filter expression. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_search_arguments_a3a32dffea9f778d5af313900359ccafc}\label{classmilvus_1_1_search_arguments_a3a32dffea9f778d5af313900359ccafc}} 
+\hyperlink{classmilvus_1_1_status}{Status} \hyperlink{classmilvus_1_1_search_arguments_a3a32dffea9f778d5af313900359ccafc}{Set\+Expression} (const std\+::string \&expression)
+\begin{DoxyCompactList}\small\item\em Set filter expression. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_search_arguments_a72912d513c19ebe0f4cc489eaea60271}\label{classmilvus_1_1_search_arguments_a72912d513c19ebe0f4cc489eaea60271}} 
+Field\+Data\+Ptr \hyperlink{classmilvus_1_1_search_arguments_a72912d513c19ebe0f4cc489eaea60271}{Target\+Vectors} () const
+\begin{DoxyCompactList}\small\item\em Get target vectors. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_search_arguments_a3c5f3050bbc9ef11d582156eda8de17b}\label{classmilvus_1_1_search_arguments_a3c5f3050bbc9ef11d582156eda8de17b}} 
+\hyperlink{classmilvus_1_1_status}{Status} \hyperlink{classmilvus_1_1_search_arguments_a3c5f3050bbc9ef11d582156eda8de17b}{Add\+Target\+Vector} (const std\+::string \&field\+\_\+name, const \hyperlink{classmilvus_1_1_field_data_a921c839e5d8df646cb7a20029ddb17f6}{Binary\+Vec\+Field\+Data\+::\+ElementT} \&vector)
+\begin{DoxyCompactList}\small\item\em Add a binary vector to search. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_search_arguments_a8c1f949d3056d21a92c84331399e79ef}\label{classmilvus_1_1_search_arguments_a8c1f949d3056d21a92c84331399e79ef}} 
+\hyperlink{classmilvus_1_1_status}{Status} \hyperlink{classmilvus_1_1_search_arguments_a8c1f949d3056d21a92c84331399e79ef}{Add\+Target\+Vector} (const std\+::string \&field\+\_\+name, const \hyperlink{classmilvus_1_1_field_data_a921c839e5d8df646cb7a20029ddb17f6}{Float\+Vec\+Field\+Data\+::\+ElementT} \&vector)
+\begin{DoxyCompactList}\small\item\em Add a float vector to search. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_search_arguments_a7266302c96fa8219a67e28d08fd4742c}\label{classmilvus_1_1_search_arguments_a7266302c96fa8219a67e28d08fd4742c}} 
+uint64\+\_\+t \hyperlink{classmilvus_1_1_search_arguments_a7266302c96fa8219a67e28d08fd4742c}{Travel\+Timestamp} () const
+\begin{DoxyCompactList}\small\item\em Get travel timestamp. \end{DoxyCompactList}\item 
+\hyperlink{classmilvus_1_1_status}{Status} \hyperlink{classmilvus_1_1_search_arguments_a4fae6c38804ea381a7c5c9ec21313c2a}{Set\+Travel\+Timestamp} (uint64\+\_\+t timestamp)
+\begin{DoxyCompactList}\small\item\em Specify an absolute timestamp in a search to get results based on a data view at a specified point in time. ~\newline
+. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_search_arguments_ab07eb3b4968436f36f0b3ec620dcdc11}\label{classmilvus_1_1_search_arguments_ab07eb3b4968436f36f0b3ec620dcdc11}} 
+uint64\+\_\+t \hyperlink{classmilvus_1_1_search_arguments_ab07eb3b4968436f36f0b3ec620dcdc11}{Guarantee\+Timestamp} () const
+\begin{DoxyCompactList}\small\item\em Get guarantee timestamp. \end{DoxyCompactList}\item 
+\hyperlink{classmilvus_1_1_status}{Status} \hyperlink{classmilvus_1_1_search_arguments_ac2e9e3e820db51c764c816b14b6e717f}{Set\+Guarantee\+Timestamp} (uint64\+\_\+t timestamp)
+\begin{DoxyCompactList}\small\item\em Instructs server to see insert/delete operations performed before a provided timestamp. ~\newline
+If no such timestamp is specified, the server will wait for the latest operation to finish and search. ~\newline
+. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_search_arguments_a3ad3e29cfd3726628cbd77203e7af277}\label{classmilvus_1_1_search_arguments_a3ad3e29cfd3726628cbd77203e7af277}} 
+\hyperlink{classmilvus_1_1_status}{Status} \hyperlink{classmilvus_1_1_search_arguments_a3ad3e29cfd3726628cbd77203e7af277}{Set\+TopK} (int64\+\_\+t topk)
+\begin{DoxyCompactList}\small\item\em Specify search limit, A\+IK topk. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_search_arguments_acf264bf78982b48aff4dbb040e520fad}\label{classmilvus_1_1_search_arguments_acf264bf78982b48aff4dbb040e520fad}} 
+int64\+\_\+t \hyperlink{classmilvus_1_1_search_arguments_acf264bf78982b48aff4dbb040e520fad}{TopK} () const
+\begin{DoxyCompactList}\small\item\em Get Top K. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_search_arguments_a4296b7588545b044aafc7e6d05ffd96d}\label{classmilvus_1_1_search_arguments_a4296b7588545b044aafc7e6d05ffd96d}} 
+\hyperlink{classmilvus_1_1_status}{Status} \hyperlink{classmilvus_1_1_search_arguments_a4296b7588545b044aafc7e6d05ffd96d}{Set\+Round\+Decimal} (int round\+\_\+decimal)
+\begin{DoxyCompactList}\small\item\em Specifies the decimal place of the returned results. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_search_arguments_a86e54279326bee6c1b2cf1c3864dc847}\label{classmilvus_1_1_search_arguments_a86e54279326bee6c1b2cf1c3864dc847}} 
+int \hyperlink{classmilvus_1_1_search_arguments_a86e54279326bee6c1b2cf1c3864dc847}{Round\+Decimal} () const
+\begin{DoxyCompactList}\small\item\em Get the decimal place of the returned results. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_search_arguments_a97daeb16c5645b0732740a8b04ab159e}\label{classmilvus_1_1_search_arguments_a97daeb16c5645b0732740a8b04ab159e}} 
+\hyperlink{classmilvus_1_1_status}{Status} \hyperlink{classmilvus_1_1_search_arguments_a97daeb16c5645b0732740a8b04ab159e}{Set\+Metric\+Type} (\hyperlink{namespacemilvus_a188c0c4910c0aaa1d67c0f089b55c00e}{Metric\+Type} metric\+\_\+type)
+\begin{DoxyCompactList}\small\item\em Specifies the metric type. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_search_arguments_ad0bcd83cd8cd719a021d671a8bd1e696}\label{classmilvus_1_1_search_arguments_ad0bcd83cd8cd719a021d671a8bd1e696}} 
+\+::\hyperlink{namespacemilvus_a188c0c4910c0aaa1d67c0f089b55c00e}{milvus\+::\+Metric\+Type} \hyperlink{classmilvus_1_1_search_arguments_ad0bcd83cd8cd719a021d671a8bd1e696}{Metric\+Type} () const
+\begin{DoxyCompactList}\small\item\em Get the metric type. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_search_arguments_a3bf19cb083212dc8d6543fd1615c3585}\label{classmilvus_1_1_search_arguments_a3bf19cb083212dc8d6543fd1615c3585}} 
+\hyperlink{classmilvus_1_1_status}{Status} \hyperlink{classmilvus_1_1_search_arguments_a3bf19cb083212dc8d6543fd1615c3585}{Add\+Extra\+Params} (const std\+::string \&key, const std\+::string \&value)
+\begin{DoxyCompactList}\small\item\em Add extra params. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_search_arguments_ada4f753dfdaf9d8bb843a577f56c4660}\label{classmilvus_1_1_search_arguments_ada4f753dfdaf9d8bb843a577f56c4660}} 
+const std\+::map$<$ std\+::string, std\+::string $>$ \& \hyperlink{classmilvus_1_1_search_arguments_ada4f753dfdaf9d8bb843a577f56c4660}{Extra\+Params} () const
+\begin{DoxyCompactList}\small\item\em Get extra params. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+Arguments for \hyperlink{classmilvus_1_1_milvus_client_a46c70fc2b7c386003babd90e02b299d1}{Milvus\+Client\+::\+Search()}. 
+
+\subsection{Member Function Documentation}
+\mbox{\Hypertarget{classmilvus_1_1_search_arguments_ac2e9e3e820db51c764c816b14b6e717f}\label{classmilvus_1_1_search_arguments_ac2e9e3e820db51c764c816b14b6e717f}} 
+\index{milvus\+::\+Search\+Arguments@{milvus\+::\+Search\+Arguments}!Set\+Guarantee\+Timestamp@{Set\+Guarantee\+Timestamp}}
+\index{Set\+Guarantee\+Timestamp@{Set\+Guarantee\+Timestamp}!milvus\+::\+Search\+Arguments@{milvus\+::\+Search\+Arguments}}
+\subsubsection{\texorpdfstring{Set\+Guarantee\+Timestamp()}{SetGuaranteeTimestamp()}}
+{\footnotesize\ttfamily \hyperlink{classmilvus_1_1_status}{Status} milvus\+::\+Search\+Arguments\+::\+Set\+Guarantee\+Timestamp (\begin{DoxyParamCaption}\item[{uint64\+\_\+t}]{timestamp }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
+
+
+
+Instructs server to see insert/delete operations performed before a provided timestamp. ~\newline
+If no such timestamp is specified, the server will wait for the latest operation to finish and search. ~\newline
+. 
+
+Note\+: The timestamp is not an absolute timestamp, it is a hybrid value combined by U\+TC time and internal flags. ~\newline
+ We call it T\+SO, for more information please refer to\+: ~\newline
+\href{https://github.com/milvus-io/milvus/blob/master/docs/design_docs/milvus_hybrid_ts_en.md}{\tt https\+://github.\+com/milvus-\/io/milvus/blob/master/docs/design\+\_\+docs/milvus\+\_\+hybrid\+\_\+ts\+\_\+en.\+md}. You can get a T\+SO from insert/delete results. Use an operation\textquotesingle{}s T\+SO to set this parameter, the server will execute search after this operation is finished. ~\newline
+ Default value is 1, server executes search immediately. \mbox{\Hypertarget{classmilvus_1_1_search_arguments_a4fae6c38804ea381a7c5c9ec21313c2a}\label{classmilvus_1_1_search_arguments_a4fae6c38804ea381a7c5c9ec21313c2a}} 
+\index{milvus\+::\+Search\+Arguments@{milvus\+::\+Search\+Arguments}!Set\+Travel\+Timestamp@{Set\+Travel\+Timestamp}}
+\index{Set\+Travel\+Timestamp@{Set\+Travel\+Timestamp}!milvus\+::\+Search\+Arguments@{milvus\+::\+Search\+Arguments}}
+\subsubsection{\texorpdfstring{Set\+Travel\+Timestamp()}{SetTravelTimestamp()}}
+{\footnotesize\ttfamily \hyperlink{classmilvus_1_1_status}{Status} milvus\+::\+Search\+Arguments\+::\+Set\+Travel\+Timestamp (\begin{DoxyParamCaption}\item[{uint64\+\_\+t}]{timestamp }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
+
+
+
+Specify an absolute timestamp in a search to get results based on a data view at a specified point in time. ~\newline
+. 
+
+Default value is 0, server executes search on a full data view. 
+
+The documentation for this class was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+src/include/milvus/types/Search\+Arguments.\+h\end{DoxyCompactItemize}

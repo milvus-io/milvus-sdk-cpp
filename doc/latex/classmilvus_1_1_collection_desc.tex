@@ -1,0 +1,46 @@
+\hypertarget{classmilvus_1_1_collection_desc}{}\section{milvus\+:\+:Collection\+Desc Class Reference}
+\label{classmilvus_1_1_collection_desc}\index{milvus\+::\+Collection\+Desc@{milvus\+::\+Collection\+Desc}}
+
+
+Collection schema and runtime information returned by \hyperlink{classmilvus_1_1_milvus_client_a5bdc7d4afdf9c84b7b50b4a8b4508c6e}{Milvus\+Client\+::\+Describe\+Collection()}.  
+
+
+
+
+{\ttfamily \#include $<$Collection\+Desc.\+h$>$}
+
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{classmilvus_1_1_collection_desc_a120f0da00f0c8162b2891f7c5e9d2242}\label{classmilvus_1_1_collection_desc_a120f0da00f0c8162b2891f7c5e9d2242}} 
+\hyperlink{classmilvus_1_1_collection_schema}{Collection\+Schema} \hyperlink{classmilvus_1_1_collection_desc_a120f0da00f0c8162b2891f7c5e9d2242}{Schema} () const
+\begin{DoxyCompactList}\small\item\em Collection schema. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_collection_desc_a450ed4fd3fd78d2a37992874a21afa7b}\label{classmilvus_1_1_collection_desc_a450ed4fd3fd78d2a37992874a21afa7b}} 
+void \hyperlink{classmilvus_1_1_collection_desc_a450ed4fd3fd78d2a37992874a21afa7b}{Set\+Schema} (\hyperlink{classmilvus_1_1_collection_schema}{Collection\+Schema} \&\&schema)
+\begin{DoxyCompactList}\small\item\em Set collection schema. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_collection_desc_a6338d6fc7104d7d046e18196dca63b2c}\label{classmilvus_1_1_collection_desc_a6338d6fc7104d7d046e18196dca63b2c}} 
+int64\+\_\+t \hyperlink{classmilvus_1_1_collection_desc_a6338d6fc7104d7d046e18196dca63b2c}{ID} () const
+\begin{DoxyCompactList}\small\item\em Collection id. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_collection_desc_a80942c758981691e9a2be3ebf8e79932}\label{classmilvus_1_1_collection_desc_a80942c758981691e9a2be3ebf8e79932}} 
+void \hyperlink{classmilvus_1_1_collection_desc_a80942c758981691e9a2be3ebf8e79932}{Set\+ID} (const int64\+\_\+t id)
+\begin{DoxyCompactList}\small\item\em Set collection id. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_collection_desc_a6357d0287c7d8d7075f51a5538b9cb48}\label{classmilvus_1_1_collection_desc_a6357d0287c7d8d7075f51a5538b9cb48}} 
+const std\+::vector$<$ std\+::string $>$ \& \hyperlink{classmilvus_1_1_collection_desc_a6357d0287c7d8d7075f51a5538b9cb48}{Alias} () const
+\begin{DoxyCompactList}\small\item\em Collection alias. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_collection_desc_a816cb28d871b36bdaeb872d918ba9619}\label{classmilvus_1_1_collection_desc_a816cb28d871b36bdaeb872d918ba9619}} 
+void \hyperlink{classmilvus_1_1_collection_desc_a816cb28d871b36bdaeb872d918ba9619}{Set\+Alias} (std\+::vector$<$ std\+::string $>$ \&\&alias)
+\begin{DoxyCompactList}\small\item\em Set collection alias. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_collection_desc_a212d74fa96a9006d8580a7a943501b4a}\label{classmilvus_1_1_collection_desc_a212d74fa96a9006d8580a7a943501b4a}} 
+uint64\+\_\+t \hyperlink{classmilvus_1_1_collection_desc_a212d74fa96a9006d8580a7a943501b4a}{Created\+Time} () const
+\begin{DoxyCompactList}\small\item\em Timestamp when the collection created. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_collection_desc_a34c1c5ad3548ea909a4175529dd7723c}\label{classmilvus_1_1_collection_desc_a34c1c5ad3548ea909a4175529dd7723c}} 
+void \hyperlink{classmilvus_1_1_collection_desc_a34c1c5ad3548ea909a4175529dd7723c}{Set\+Created\+Time} (const uint64\+\_\+t ts)
+\begin{DoxyCompactList}\small\item\em Set timestamp when the collection created. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+Collection schema and runtime information returned by \hyperlink{classmilvus_1_1_milvus_client_a5bdc7d4afdf9c84b7b50b4a8b4508c6e}{Milvus\+Client\+::\+Describe\+Collection()}. 
+
+The documentation for this class was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+src/include/milvus/types/Collection\+Desc.\+h\end{DoxyCompactItemize}

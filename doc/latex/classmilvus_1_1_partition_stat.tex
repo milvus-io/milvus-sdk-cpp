@@ -1,0 +1,49 @@
+\hypertarget{classmilvus_1_1_partition_stat}{}\section{milvus\+:\+:Partition\+Stat Class Reference}
+\label{classmilvus_1_1_partition_stat}\index{milvus\+::\+Partition\+Stat@{milvus\+::\+Partition\+Stat}}
+
+
+Partition statistics returned by \hyperlink{classmilvus_1_1_milvus_client_a91ad7ca6b18c8c1eafd10ea0d6af1c61}{Milvus\+Client\+::\+Get\+Partition\+Statistics()}.  
+
+
+
+
+{\ttfamily \#include $<$Partition\+Stat.\+h$>$}
+
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+uint64\+\_\+t \hyperlink{classmilvus_1_1_partition_stat_a67137365a97dd5a4d62a993a9aa6b86e}{Row\+Count} () const
+\begin{DoxyCompactList}\small\item\em Return row count of this partition. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_partition_stat_a8e94b1437fafa471b9506e32439586e5}\label{classmilvus_1_1_partition_stat_a8e94b1437fafa471b9506e32439586e5}} 
+void \hyperlink{classmilvus_1_1_partition_stat_a8e94b1437fafa471b9506e32439586e5}{Set\+Name} (std\+::string name)
+\begin{DoxyCompactList}\small\item\em Set partition name. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_partition_stat_a86a0d0888c605f889d257d11ab2ed976}\label{classmilvus_1_1_partition_stat_a86a0d0888c605f889d257d11ab2ed976}} 
+const std\+::string \& \hyperlink{classmilvus_1_1_partition_stat_a86a0d0888c605f889d257d11ab2ed976}{Name} () const
+\begin{DoxyCompactList}\small\item\em Get partition name. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_partition_stat_ae9e56c1103903e353ee9f59e6e5d64fc}\label{classmilvus_1_1_partition_stat_ae9e56c1103903e353ee9f59e6e5d64fc}} 
+void \hyperlink{classmilvus_1_1_partition_stat_ae9e56c1103903e353ee9f59e6e5d64fc}{Emplace} (std\+::string key, std\+::string value)
+\begin{DoxyCompactList}\small\item\em add key/value pair for partition statistics \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+Partition statistics returned by \hyperlink{classmilvus_1_1_milvus_client_a91ad7ca6b18c8c1eafd10ea0d6af1c61}{Milvus\+Client\+::\+Get\+Partition\+Statistics()}. 
+
+\subsection{Member Function Documentation}
+\mbox{\Hypertarget{classmilvus_1_1_partition_stat_a67137365a97dd5a4d62a993a9aa6b86e}\label{classmilvus_1_1_partition_stat_a67137365a97dd5a4d62a993a9aa6b86e}} 
+\index{milvus\+::\+Partition\+Stat@{milvus\+::\+Partition\+Stat}!Row\+Count@{Row\+Count}}
+\index{Row\+Count@{Row\+Count}!milvus\+::\+Partition\+Stat@{milvus\+::\+Partition\+Stat}}
+\subsubsection{\texorpdfstring{Row\+Count()}{RowCount()}}
+{\footnotesize\ttfamily uint64\+\_\+t milvus\+::\+Partition\+Stat\+::\+Row\+Count (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption}) const\hspace{0.3cm}{\ttfamily [inline]}}
+
+
+
+Return row count of this partition. 
+
+\begin{DoxyReturn}{Returns}
+uint64\+\_\+t row count of this partition 
+\end{DoxyReturn}
+
+
+The documentation for this class was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+src/include/milvus/types/Partition\+Stat.\+h\end{DoxyCompactItemize}

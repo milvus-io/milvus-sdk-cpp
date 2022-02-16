@@ -24,30 +24,44 @@
 
 namespace milvus {
 
+/**
+ * @brief Topk results for one target vector of MilvusClient::Search()
+ */
 struct SingleResult {
-    IDArray ids_;
-    std::vector<float> scores_;
-    std::vector<FieldDataPtr> output_fields_;
-
+    /**
+     * @brief Constructor
+     */
     SingleResult(IDArray&& ids, std::vector<float>&& scores, std::vector<FieldDataPtr>&& output_fields)
         : ids_{std::move(ids)}, scores_{std::move(scores)}, output_fields_{std::move(output_fields)} {
     }
 
+    /**
+     * @brief Distances/scores array of one target vector
+     */
     const std::vector<float>&
     Scores() const {
         return scores_;
     }
 
+    /**
+     * @brief Topk id array of one target vecotor
+     */
     const IDArray&
     Ids() const {
         return ids_;
     }
 
+    /**
+     * @brief Output fields data
+     */
     const std::vector<FieldDataPtr>&
     OutputFields() const {
         return output_fields_;
     }
 
+    /**
+     * @brief Get an output field by name
+     */
     const FieldDataPtr
     OutputField(const std::string& name) const {
         for (const auto& output_field : output_fields_) {
@@ -57,15 +71,23 @@ struct SingleResult {
         }
         return nullptr;
     }
+
+ private:
+    IDArray ids_;
+    std::vector<float> scores_;
+    std::vector<FieldDataPtr> output_fields_;
 };
 
 /**
- * @brief Results for Search().
+ * @brief Results returned by MilvusClient::Search().
  */
 class SearchResults {
  public:
     SearchResults() = default;
 
+    /**
+     * @brief Constructor
+     */
     explicit SearchResults(std::vector<SingleResult>&& results) {
         nq_results_.swap(results);
     }

@@ -1,0 +1,50 @@
+\hypertarget{classmilvus_1_1_index_desc}{}\section{milvus\+:\+:Index\+Desc Class Reference}
+\label{classmilvus_1_1_index_desc}\index{milvus\+::\+Index\+Desc@{milvus\+::\+Index\+Desc}}
+
+
+Index description. Used by \hyperlink{classmilvus_1_1_milvus_client_a9d56f35a497504a7dee610d368d22b7a}{Milvus\+Client\+::\+Create\+Index()} and \hyperlink{classmilvus_1_1_milvus_client_a58ed7015339719ab8dc7d6acad90d9a1}{Milvus\+Client\+::\+Describe\+Index()}.  
+
+
+
+
+{\ttfamily \#include $<$Index\+Desc.\+h$>$}
+
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{classmilvus_1_1_index_desc_a2092ba6a3b857aad3c50cc7488b79d03}\label{classmilvus_1_1_index_desc_a2092ba6a3b857aad3c50cc7488b79d03}} 
+\hyperlink{classmilvus_1_1_index_desc_a2092ba6a3b857aad3c50cc7488b79d03}{Index\+Desc} (const std\+::string \&field\+\_\+name, const std\+::string \&index\+\_\+name, int64\+\_\+t index\+\_\+id, std\+::unordered\+\_\+map$<$ std\+::string, std\+::string $>$ params)
+\begin{DoxyCompactList}\small\item\em Constructor. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_index_desc_a7d77f73748275653f45d8e43bbfed29a}\label{classmilvus_1_1_index_desc_a7d77f73748275653f45d8e43bbfed29a}} 
+const std\+::string \& \hyperlink{classmilvus_1_1_index_desc_a7d77f73748275653f45d8e43bbfed29a}{Field\+Name} () const
+\begin{DoxyCompactList}\small\item\em Filed name which the index belong to. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_index_desc_a16db300b7f71fe55d086ff9372f9b041}\label{classmilvus_1_1_index_desc_a16db300b7f71fe55d086ff9372f9b041}} 
+void \hyperlink{classmilvus_1_1_index_desc_a16db300b7f71fe55d086ff9372f9b041}{Set\+Field\+Name} (const std\+::string \&field\+\_\+name)
+\begin{DoxyCompactList}\small\item\em Set Field name. Field name cannot be empty. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_index_desc_a872f191a1af296330643481abf40592a}\label{classmilvus_1_1_index_desc_a872f191a1af296330643481abf40592a}} 
+const std\+::string \& \hyperlink{classmilvus_1_1_index_desc_a872f191a1af296330643481abf40592a}{Index\+Name} () const
+\begin{DoxyCompactList}\small\item\em Index name. Index name cannot be empty. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_index_desc_ad0423fffeab0948b133625701f7dcf0a}\label{classmilvus_1_1_index_desc_ad0423fffeab0948b133625701f7dcf0a}} 
+void \hyperlink{classmilvus_1_1_index_desc_ad0423fffeab0948b133625701f7dcf0a}{Set\+Index\+Name} (const std\+::string \&index\+\_\+name)
+\begin{DoxyCompactList}\small\item\em Set name of the index. Reserved for funture feature\+: multiple indice in one field. ~\newline
+Only avaiable for Describe\+Index(). No need to specify it for Create\+Index(). \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_index_desc_acdbcda54adc38c1de7e017377e936412}\label{classmilvus_1_1_index_desc_acdbcda54adc38c1de7e017377e936412}} 
+int64\+\_\+t \hyperlink{classmilvus_1_1_index_desc_acdbcda54adc38c1de7e017377e936412}{Index\+Id} () const
+\begin{DoxyCompactList}\small\item\em Index ID. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_index_desc_a694d72afa6b8fe664cf1b04cc71a334d}\label{classmilvus_1_1_index_desc_a694d72afa6b8fe664cf1b04cc71a334d}} 
+void \hyperlink{classmilvus_1_1_index_desc_a694d72afa6b8fe664cf1b04cc71a334d}{Set\+Index\+Id} (int64\+\_\+t index\+\_\+id)
+\begin{DoxyCompactList}\small\item\em Set internal id of the index. Reserved for funture feature\+: multiple indice in one field. Only avaiable for Describe\+Index(). No need to specify it for Create\+Index(). \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_index_desc_a4ff4cdb9509840589ba3373f1502b12f}\label{classmilvus_1_1_index_desc_a4ff4cdb9509840589ba3373f1502b12f}} 
+const std\+::unordered\+\_\+map$<$ std\+::string, std\+::string $>$ \& \hyperlink{classmilvus_1_1_index_desc_a4ff4cdb9509840589ba3373f1502b12f}{Params} () const
+\begin{DoxyCompactList}\small\item\em Parameters of the index. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_index_desc_af04f5778f35b9fb45f5c3b1d43221ce1}\label{classmilvus_1_1_index_desc_af04f5778f35b9fb45f5c3b1d43221ce1}} 
+void \hyperlink{classmilvus_1_1_index_desc_af04f5778f35b9fb45f5c3b1d43221ce1}{Set\+Params} (const std\+::unordered\+\_\+map$<$ std\+::string, std\+::string $>$ \&params)
+\begin{DoxyCompactList}\small\item\em Set Parameters of the index. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+Index description. Used by \hyperlink{classmilvus_1_1_milvus_client_a9d56f35a497504a7dee610d368d22b7a}{Milvus\+Client\+::\+Create\+Index()} and \hyperlink{classmilvus_1_1_milvus_client_a58ed7015339719ab8dc7d6acad90d9a1}{Milvus\+Client\+::\+Describe\+Index()}. 
+
+The documentation for this class was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+src/include/milvus/types/Index\+Desc.\+h\end{DoxyCompactItemize}

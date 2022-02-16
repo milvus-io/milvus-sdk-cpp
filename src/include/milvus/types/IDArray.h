@@ -22,27 +22,42 @@
 namespace milvus {
 
 /**
- * @brief ID array, each ID could be int64 type or string type.
+ * @brief ID array, each ID could be int64 type or string type. \n
  * Note: v2.0 only support int64 type id.
  */
 class IDArray {
  public:
+    /**
+     * @brief Constructor
+     */
     explicit IDArray(std::vector<int64_t> id_array) : int_id_array_(std::move(id_array)) {
     }
 
+    /**
+     * @brief Constructor
+     */
     explicit IDArray(std::vector<std::string> id_array) : str_id_array_(std::move(id_array)), is_int_array_{false} {
     }
 
+    /**
+     * @brief Indicate this is an integer id array
+     */
     bool
     IsIntegerID() const {
         return is_int_array_;
     }
 
+    /**
+     * @brief Return integer id array
+     */
     const std::vector<int64_t>&
     IntIDArray() const {
         return int_id_array_;
     }
 
+    /**
+     * @brief Return string id array
+     */
     const std::vector<std::string>&
     StrIDArray() const {
         return str_id_array_;

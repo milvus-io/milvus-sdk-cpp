@@ -27,7 +27,7 @@
 namespace milvus {
 
 /**
- * @brief Arguments for CalcDistance().
+ * @brief Arguments for MilvusClient::CalcDistance().
  */
 class CalcDistanceArguments {
  public:

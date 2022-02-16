@@ -1,0 +1,51 @@
+\hypertarget{classmilvus_1_1_distance_array}{}\section{milvus\+:\+:Distance\+Array Class Reference}
+\label{classmilvus_1_1_distance_array}\index{milvus\+::\+Distance\+Array@{milvus\+::\+Distance\+Array}}
+
+
+2-\/d array distances returned by \hyperlink{classmilvus_1_1_milvus_client_a105c243c7d93ff2cd81b4d9c1751f5fb}{Milvus\+Client\+::\+Calc\+Distance()}, each distance could be int type or float type. ~\newline
+Note\+: std\+::vector$<$std\+::vector$<$int$>$$>$ for \char`\"{}\+H\+A\+M\+M\+I\+N\+G\char`\"{} or std\+::vector$<$std\+::vector$<$float$>$$>$ for others.  
+
+
+
+
+{\ttfamily \#include $<$Distance\+Array.\+h$>$}
+
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{classmilvus_1_1_distance_array_af17665670feba52e82903c24aed09151}\label{classmilvus_1_1_distance_array_af17665670feba52e82903c24aed09151}} 
+\hyperlink{classmilvus_1_1_distance_array_af17665670feba52e82903c24aed09151}{Distance\+Array} (std\+::vector$<$ std\+::vector$<$ int32\+\_\+t $>$$>$ distance\+\_\+array)
+\begin{DoxyCompactList}\small\item\em Constructor. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_distance_array_a77ce89ebc2e4da79678cede25ec1a3cf}\label{classmilvus_1_1_distance_array_a77ce89ebc2e4da79678cede25ec1a3cf}} 
+\hyperlink{classmilvus_1_1_distance_array_a77ce89ebc2e4da79678cede25ec1a3cf}{Distance\+Array} (std\+::vector$<$ std\+::vector$<$ float $>$$>$ distance\+\_\+array)
+\begin{DoxyCompactList}\small\item\em Constructor. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_distance_array_ac6d31fd8e0baddc05b87f61af2e3dc2d}\label{classmilvus_1_1_distance_array_ac6d31fd8e0baddc05b87f61af2e3dc2d}} 
+bool \hyperlink{classmilvus_1_1_distance_array_ac6d31fd8e0baddc05b87f61af2e3dc2d}{Is\+Integer\+Distance} () const
+\begin{DoxyCompactList}\small\item\em Test the distance is float or integer. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_distance_array_a0f6a878eed8019fab14d78970bbf4dc0}\label{classmilvus_1_1_distance_array_a0f6a878eed8019fab14d78970bbf4dc0}} 
+const std\+::vector$<$ std\+::vector$<$ int32\+\_\+t $>$ $>$ \& \hyperlink{classmilvus_1_1_distance_array_a0f6a878eed8019fab14d78970bbf4dc0}{Int\+Distance\+Array} () const
+\begin{DoxyCompactList}\small\item\em Integer distance 2-\/d array. Assume the vectors\+\_\+left\+: L\+\_\+1, L\+\_\+2, L\+\_\+3 ~\newline
+ Assume the vectors\+\_\+right\+: R\+\_\+a, R\+\_\+b ~\newline
+ Distance between L\+\_\+n and R\+\_\+m we called \char`\"{}\+D\+\_\+n\+\_\+m\char`\"{} ~\newline
+ The returned distances are arranged like this\+: \mbox{[}\mbox{[}D\+\_\+1\+\_\+a, D\+\_\+1\+\_\+b\mbox{]}, \mbox{[}D\+\_\+2\+\_\+a, D\+\_\+2\+\_\+b\mbox{]}, \mbox{[}D\+\_\+3\+\_\+a, D\+\_\+3\+\_\+b\mbox{]}\mbox{]}. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_distance_array_a61962fb3b84dcad9e02b7bd0b3bc21fe}\label{classmilvus_1_1_distance_array_a61962fb3b84dcad9e02b7bd0b3bc21fe}} 
+void \hyperlink{classmilvus_1_1_distance_array_a61962fb3b84dcad9e02b7bd0b3bc21fe}{Set\+Int\+Distance} (std\+::vector$<$ std\+::vector$<$ int32\+\_\+t $>$$>$ \&\&distance\+\_\+array)
+\begin{DoxyCompactList}\small\item\em Set integer distance array. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_distance_array_a0e8e9ec651b51ec7032095a801d33121}\label{classmilvus_1_1_distance_array_a0e8e9ec651b51ec7032095a801d33121}} 
+const std\+::vector$<$ std\+::vector$<$ float $>$ $>$ \& \hyperlink{classmilvus_1_1_distance_array_a0e8e9ec651b51ec7032095a801d33121}{Float\+Distance\+Array} () const
+\begin{DoxyCompactList}\small\item\em Float distance 2-\/d arraywe called. Assume the vectors\+\_\+left\+: L\+\_\+1, L\+\_\+2, L\+\_\+3 ~\newline
+ Assume the vectors\+\_\+right\+: R\+\_\+a, R\+\_\+b ~\newline
+ Distance between L\+\_\+n and R\+\_\+m we called \char`\"{}\+D\+\_\+n\+\_\+m\char`\"{} ~\newline
+ The returned distances are arranged like this\+: \mbox{[}\mbox{[}D\+\_\+1\+\_\+a, D\+\_\+1\+\_\+b\mbox{]}, \mbox{[}D\+\_\+2\+\_\+a, D\+\_\+2\+\_\+b\mbox{]}, \mbox{[}D\+\_\+3\+\_\+a, D\+\_\+3\+\_\+b\mbox{]}\mbox{]}. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_distance_array_a8b09380ce9272a1a7a8b6bc708d42d34}\label{classmilvus_1_1_distance_array_a8b09380ce9272a1a7a8b6bc708d42d34}} 
+void \hyperlink{classmilvus_1_1_distance_array_a8b09380ce9272a1a7a8b6bc708d42d34}{Set\+Float\+Distance} (std\+::vector$<$ std\+::vector$<$ float $>$$>$ \&\&distance\+\_\+array)
+\begin{DoxyCompactList}\small\item\em Set float distance array. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+2-\/d array distances returned by \hyperlink{classmilvus_1_1_milvus_client_a105c243c7d93ff2cd81b4d9c1751f5fb}{Milvus\+Client\+::\+Calc\+Distance()}, each distance could be int type or float type. ~\newline
+Note\+: std\+::vector$<$std\+::vector$<$int$>$$>$ for \char`\"{}\+H\+A\+M\+M\+I\+N\+G\char`\"{} or std\+::vector$<$std\+::vector$<$float$>$$>$ for others. 
+
+The documentation for this class was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+src/include/milvus/types/Distance\+Array.\+h\end{DoxyCompactItemize}

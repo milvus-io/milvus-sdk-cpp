@@ -22,11 +22,15 @@
 namespace milvus {
 
 /**
- * @brief Index description. Used by CreateIndex() and DescribeIndex().
+ * @brief Index description. Used by MilvusClient::CreateIndex() and MilvusClient::DescribeIndex().
  */
 class IndexDesc {
  public:
     IndexDesc() = default;
+
+    /**
+     * @brief Constructor
+     */
     IndexDesc(const std::string& field_name, const std::string& index_name, int64_t index_id,
               std::unordered_map<std::string, std::string> params)
         : field_name_{field_name}, index_name_{index_name}, index_id_{index_id}, params_{params} {
@@ -41,7 +45,7 @@ class IndexDesc {
     }
 
     /**
-     * @brief Set Field name.
+     * @brief Set Field name. Field name cannot be empty.
      */
     void
     SetFieldName(const std::string& field_name) {
@@ -49,7 +53,7 @@ class IndexDesc {
     }
 
     /**
-     * @brief Index name.
+     * @brief Index name. Index name cannot be empty.
      */
     const std::string&
     IndexName() const {
@@ -57,7 +61,8 @@ class IndexDesc {
     }
 
     /**
-     * @brief Set Index name.
+     * @brief Set name of the index. Reserved for funture feature: multiple indice in one field.  \n
+     * Only avaiable for DescribeIndex(). No need to specify it for CreateIndex().
      */
     void
     SetIndexName(const std::string& index_name) {
@@ -73,7 +78,8 @@ class IndexDesc {
     }
 
     /**
-     * @brief Set Index ID.
+     * @brief Set internal id of the index. Reserved for funture feature: multiple indice in one field.
+     * Only avaiable for DescribeIndex(). No need to specify it for CreateIndex().
      */
     void
     SetIndexId(int64_t index_id) {
@@ -97,26 +103,10 @@ class IndexDesc {
     }
 
  private:
-    /**
-     * @brief Name of the field.
-     */
     std::string field_name_;
-
-    /**
-     * @brief Internal name of the index. Reserved for funture feature: multiple indice in one field.
-     * Only avaiable for DescribeIndex(). No need to specify it for CreateIndex().
-     */
     std::string index_name_;
+    int64_t index_id_ = 0;
 
-    /**
-     * @brief Internal id of the index. Reserved for funture feature: multiple indice in one field.
-     * Only avaiable for DescribeIndex(). No need to specify it for CreateIndex().
-     */
-    int64_t index_id_;
-
-    /**
-     * @brief Extra parameters of the index.
-     */
     std::unordered_map<std::string, std::string> params_;
 };
 

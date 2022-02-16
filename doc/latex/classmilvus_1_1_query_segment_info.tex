@@ -1,0 +1,38 @@
+\hypertarget{classmilvus_1_1_query_segment_info}{}\section{milvus\+:\+:Query\+Segment\+Info Class Reference}
+\label{classmilvus_1_1_query_segment_info}\index{milvus\+::\+Query\+Segment\+Info@{milvus\+::\+Query\+Segment\+Info}}
+
+
+In-\/memory segment information returned by \hyperlink{classmilvus_1_1_milvus_client_a7a5a78cb57e5d80adea1f1b0bffe5ba0}{Milvus\+Client\+::\+Get\+Query\+Segment\+Info()}.  
+
+
+
+
+{\ttfamily \#include $<$Segment\+Info.\+h$>$}
+
+
+
+Inherits \hyperlink{classmilvus_1_1_segment_info}{milvus\+::\+Segment\+Info}.
+
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{classmilvus_1_1_query_segment_info_a9f223b1e79cd116f05b7057de7d916b8}\label{classmilvus_1_1_query_segment_info_a9f223b1e79cd116f05b7057de7d916b8}} 
+\hyperlink{classmilvus_1_1_query_segment_info_a9f223b1e79cd116f05b7057de7d916b8}{Query\+Segment\+Info} (int64\+\_\+t collection\+\_\+id, int64\+\_\+t partition\+\_\+id, int64\+\_\+t segment\+\_\+id, int64\+\_\+t row\+\_\+count, \hyperlink{namespacemilvus_abe8ed76f6dc4b1b12a59f67fcef5afed}{Segment\+State} state, const std\+::string \&index\+\_\+name, int64\+\_\+t index\+\_\+id, int64\+\_\+t node\+\_\+id)
+\begin{DoxyCompactList}\small\item\em Constructor. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_query_segment_info_af3d8c5bdbe58421216e34d929fb8664f}\label{classmilvus_1_1_query_segment_info_af3d8c5bdbe58421216e34d929fb8664f}} 
+std\+::string \hyperlink{classmilvus_1_1_query_segment_info_af3d8c5bdbe58421216e34d929fb8664f}{Index\+Name} () const
+\begin{DoxyCompactList}\small\item\em Index name of the segment. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_query_segment_info_a2e6a6bb0f808f8ec98c1b1dc9e79e7b1}\label{classmilvus_1_1_query_segment_info_a2e6a6bb0f808f8ec98c1b1dc9e79e7b1}} 
+int64\+\_\+t \hyperlink{classmilvus_1_1_query_segment_info_a2e6a6bb0f808f8ec98c1b1dc9e79e7b1}{Index\+ID} () const
+\begin{DoxyCompactList}\small\item\em Index id the segment. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_query_segment_info_a35c405ba48db8b6c05a10fabe3ad306d}\label{classmilvus_1_1_query_segment_info_a35c405ba48db8b6c05a10fabe3ad306d}} 
+int64\+\_\+t \hyperlink{classmilvus_1_1_query_segment_info_a35c405ba48db8b6c05a10fabe3ad306d}{Node\+ID} () const
+\begin{DoxyCompactList}\small\item\em Node id of the segment. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+In-\/memory segment information returned by \hyperlink{classmilvus_1_1_milvus_client_a7a5a78cb57e5d80adea1f1b0bffe5ba0}{Milvus\+Client\+::\+Get\+Query\+Segment\+Info()}. 
+
+The documentation for this class was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+src/include/milvus/types/Segment\+Info.\+h\end{DoxyCompactItemize}

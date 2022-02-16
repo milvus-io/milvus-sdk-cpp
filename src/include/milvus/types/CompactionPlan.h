@@ -22,12 +22,15 @@
 namespace milvus {
 
 /**
- * @brief Compaction plan information. Used by GetCompactionPlans().
+ * @brief Compaction plan information. Used by MilvusClient::GetCompactionPlans().
  */
 class CompactionPlan {
  public:
     CompactionPlan() = default;
 
+    /**
+     * @brief Constructor
+     */
     explicit CompactionPlan(std::vector<int64_t>&& segments, int64_t dst_segment)
         : src_segments_(std::move(segments)), dst_segment_(dst_segment) {
     }
@@ -66,10 +69,12 @@ class CompactionPlan {
 
  private:
     std::vector<int64_t> src_segments_;
-
     int64_t dst_segment_ = 0;
 };
 
+/**
+ * @brief CompactionPlans objects array
+ */
 using CompactionPlans = std::vector<CompactionPlan>;
 
 }  // namespace milvus

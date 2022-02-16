@@ -52,14 +52,7 @@ class Field {
     }
 
  private:
-    /**
-     * @brief Name of this field, cannot be empty
-     */
     std::string name_;
-
-    /**
-     * @brief Field data tpye
-     */
     DataType data_type_;
 };
 
@@ -102,17 +95,42 @@ AddElement(const T& element, std::vector<T>& array) {
     return StatusCode::OK;
 }
 
+/**
+ * @brief Template class represents column-based data of a field. Avaiable inheritance classes: \n
+ *  BoolFieldData for boolean scalar field \n
+ *  Int8FieldData for 8-bits integer scalar field \n
+ *  Int16FieldData for 16-bits integer scalar field \n
+ *  Int32FieldData for 32-bits integer scalar field \n
+ *  Int64FieldData for 64-bits integer scalar field \n
+ *  FloatFieldData for float scalar field \n
+ *  DoubleFieldData for double scalar field \n
+ *  StringFieldData for string scalar field (not supported in 2.0, reserved) \n
+ *  BinaryVecFieldData for float vector scalar field \n
+ *  FloatVecFieldData for binary vector scalar field \n
+ */
 template <typename T, DataType Dt>
 class FieldData : public Field {
  public:
+    /**
+     * @brief Field element type
+     */
     using ElementT = T;
 
+    /**
+     * @brief Constructor
+     */
     FieldData() : Field("", Dt) {
     }
 
+    /**
+     * @brief Constructor
+     */
     explicit FieldData(const std::string& name) : Field(name, Dt) {
     }
 
+    /**
+     * @brief Constructor
+     */
     FieldData(const std::string& name, std::vector<T> data) : Field(name, Dt), data_{std::move(data)} {
     }
 
@@ -152,12 +170,18 @@ class FieldData : public Field {
     std::vector<T> data_;
 };
 
+/**
+ * @brief To test two FieldData are equal
+ */
 template <typename T, DataType Dt>
 bool
 operator==(const FieldData<T, Dt>& lhs, const FieldData<T, Dt>& rhs) {
     return lhs.Name() == rhs.Name() && lhs.Count() == rhs.Count() && lhs.Data() == rhs.Data();
 }
 
+/**
+ * @brief To test two FieldData are equal
+ */
 template <typename T, DataType Dt>
 bool
 operator==(const FieldData<T, Dt>& lhs, const Field& rhs) {

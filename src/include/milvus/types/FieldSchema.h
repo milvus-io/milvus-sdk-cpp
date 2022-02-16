@@ -23,10 +23,17 @@
 #include "DataType.h"
 
 namespace milvus {
+
+/**
+ * @brief Field schema used by CollectionSchema
+ */
 class FieldSchema {
  public:
     FieldSchema() = default;
 
+    /**
+     * @brief Constructor
+     */
     FieldSchema(const std::string& name, DataType data_type, const std::string& description = "",
                 bool is_primary_key = false, bool auto_id = false)
         : name_(name),
@@ -168,6 +175,9 @@ class FieldSchema {
         return true;
     }
 
+    /**
+     * @brief Quickly set dimension for a vector field
+     */
     FieldSchema&
     WithDimension(uint32_t dimension) {
         (void)SetDimension(dimension);

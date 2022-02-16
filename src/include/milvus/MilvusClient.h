@@ -47,7 +47,7 @@
 namespace milvus {
 
 /**
- * @brief milvus client abstract class
+ * @brief Milvus client abstract class, provide Create() method to create an implementation instance.
  */
 class MilvusClient {
  public:
@@ -105,7 +105,7 @@ class MilvusClient {
     DropCollection(const std::string& collection_name) = 0;
 
     /**
-     * Load collection data into CPU memory of query node.
+     * Load collection data into CPU memory of query node. \n
      * If the timeout is specified, this api will call ShowCollections() to check collection's loading state,
      * waiting until the collection completely loaded into query node.
      *
@@ -138,7 +138,7 @@ class MilvusClient {
     DescribeCollection(const std::string& collection_name, CollectionDesc& collection_desc) = 0;
 
     /**
-     * Get collection statistics, currently only return row count.
+     * Get collection statistics, currently only return row count. \n
      * If the timeout is specified, this api will call Flush() and wait all segments persisted into storage.
      *
      * @param [in] collection_name name of the collection
@@ -152,7 +152,7 @@ class MilvusClient {
                             const ProgressMonitor& progress_monitor = ProgressMonitor::Forever()) = 0;  // NOLINT
 
     /**
-     * If the collection_names is empty, list all collections brief informations.
+     * If the collection_names is empty, list all collections brief informations. \n
      * If the collection_names is specified, return the specified collection's loading process state.
      *
      * @param [in] collection_names name array of collections
@@ -194,7 +194,7 @@ class MilvusClient {
     HasPartition(const std::string& collection_name, const std::string& partition_name, bool& has) = 0;
 
     /**
-     * Load specific partitions data of one collection into query nodes.
+     * Load specific partitions data of one collection into query nodes. \n
      * If the timeout is specified, this api will call ShowPartitions() to check partition's loading state,
      * waiting until the collection completely loaded into query node.
      *
@@ -220,7 +220,7 @@ class MilvusClient {
 
     /**
      * Get partition statistics, currently only return row count.
-     * If the timeout is specified, this api will call Flush() and wait all segments persisted into storage.
+     * If the timeout is specified, this api will call Flush() and wait all segments persisted into storage. \n
      *
      * @param [in] collection_name name of the collection
      * @param [in] partition_name name of the partition
@@ -235,7 +235,7 @@ class MilvusClient {
                            const ProgressMonitor& progress_monitor = ProgressMonitor::Forever()) = 0;  // NOLINT
 
     /**
-     * If the partition_names is empty, list all partitions brief informations.
+     * If the partition_names is empty, list all partitions brief informations. \n
      * If the partition_names is specified, return the specified partition's loading process state.
      *
      * @param [in] collection_name name of the collection
@@ -248,7 +248,7 @@ class MilvusClient {
                    PartitionsInfo& partitions_info) = 0;
 
     /**
-     * Create an alias for a collection. Alias can be used in search or query to replace the collection name.
+     * Create an alias for a collection. Alias can be used in search or query to replace the collection name. \n
      * For more information: https://wiki.lfaidata.foundation/display/MIL/MEP+10+--+Support+Collection+Alias
      *
      * @param [in] collection_name name of the collection
@@ -386,11 +386,11 @@ class MilvusClient {
      *
      * @param [in] arguments the input vectors can be float vectors or binary vectors, also can be an id array to ask
      * server to retrieve vectors to calculate distance.
-     * @param [out] results 2-d array distances
-     *        std::vector<std::vector<int>> for "HAMMING" or std::vector<std::vector<float>> for others
-     *        Assume the vectors_left: L_1, L_2, L_3
-     *        Assume the vectors_right: R_a, R_b
-     *        Distance between L_n and R_m we called "D_n_m"
+     * @param [out] results 2-d array distances \n
+     *        std::vector<std::vector<int>> for "HAMMING" or std::vector<std::vector<float>> for others \n
+     *        Assume the vectors_left: L_1, L_2, L_3 \n
+     *        Assume the vectors_right: R_a, R_b \n
+     *        Distance between L_n and R_m we called "D_n_m" \n
      *        The returned distances are arranged like this: [[D_1_a, D_1_b], [D_2_a, D_2_b], [D_3_a, D_3_b]]
      * @return Status operation successfully or not
      */
@@ -398,8 +398,8 @@ class MilvusClient {
     CalcDistance(const CalcDistanceArguments& arguments, DistanceArray& results) = 0;
 
     /**
-     * Flush insert buffer into storage. To makesure the buffer persisted successfully, it calls
-     * GetFlushState() to check related segments state.
+     * Flush insert buffer into storage.  \n
+     * To makesure the buffer persisted successfully, it calls GetFlushState() to check related segments state.
      *
      * @param [in] collection_names specify target collection names, if this array is empty, will flush all collections
      * @param [in] progress_monitor timeout setting for waiting progress. Set ProgressMonitor::NoWait() to return

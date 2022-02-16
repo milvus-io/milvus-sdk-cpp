@@ -24,7 +24,7 @@
 namespace milvus {
 
 /**
- * @brief Partition statistics returned by GetPartitionStatistics().
+ * @brief Partition statistics returned by MilvusClient::GetPartitionStatistics().
  */
 class PartitionStat {
  public:
@@ -62,7 +62,7 @@ class PartitionStat {
     }
 
     /**
-     * @brief add key/value data
+     * @brief add key/value pair for partition statistics
      */
     void
     Emplace(std::string key, std::string value) {
@@ -70,14 +70,7 @@ class PartitionStat {
     }
 
  private:
-    /**
-     * @brief Name of this partition.
-     */
     std::string name_;
-
-    /**
-     * @brief Partition statistics in key-value format.
-     */
     std::unordered_map<std::string, std::string> statistics_;
 };
 

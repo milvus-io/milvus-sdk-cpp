@@ -1,0 +1,37 @@
+\hypertarget{structmilvus_1_1_single_result}{}\section{milvus\+:\+:Single\+Result Struct Reference}
+\label{structmilvus_1_1_single_result}\index{milvus\+::\+Single\+Result@{milvus\+::\+Single\+Result}}
+
+
+Topk results for one target vector of \hyperlink{classmilvus_1_1_milvus_client_a46c70fc2b7c386003babd90e02b299d1}{Milvus\+Client\+::\+Search()}  
+
+
+
+
+{\ttfamily \#include $<$Search\+Results.\+h$>$}
+
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{structmilvus_1_1_single_result_ab22d2306df593a1ba47b6f8c464db90c}\label{structmilvus_1_1_single_result_ab22d2306df593a1ba47b6f8c464db90c}} 
+\hyperlink{structmilvus_1_1_single_result_ab22d2306df593a1ba47b6f8c464db90c}{Single\+Result} (\hyperlink{classmilvus_1_1_i_d_array}{I\+D\+Array} \&\&ids, std\+::vector$<$ float $>$ \&\&scores, std\+::vector$<$ Field\+Data\+Ptr $>$ \&\&output\+\_\+fields)
+\begin{DoxyCompactList}\small\item\em Constructor. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{structmilvus_1_1_single_result_a40265056460809a9b951b5ad99b8afaa}\label{structmilvus_1_1_single_result_a40265056460809a9b951b5ad99b8afaa}} 
+const std\+::vector$<$ float $>$ \& \hyperlink{structmilvus_1_1_single_result_a40265056460809a9b951b5ad99b8afaa}{Scores} () const
+\begin{DoxyCompactList}\small\item\em Distances/scores array of one target vector. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{structmilvus_1_1_single_result_a6685ef57bc00a67a615055305d23a920}\label{structmilvus_1_1_single_result_a6685ef57bc00a67a615055305d23a920}} 
+const \hyperlink{classmilvus_1_1_i_d_array}{I\+D\+Array} \& \hyperlink{structmilvus_1_1_single_result_a6685ef57bc00a67a615055305d23a920}{Ids} () const
+\begin{DoxyCompactList}\small\item\em Topk id array of one target vecotor. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{structmilvus_1_1_single_result_abe8e800870319ea38ab3e907e116a0b0}\label{structmilvus_1_1_single_result_abe8e800870319ea38ab3e907e116a0b0}} 
+const std\+::vector$<$ Field\+Data\+Ptr $>$ \& \hyperlink{structmilvus_1_1_single_result_abe8e800870319ea38ab3e907e116a0b0}{Output\+Fields} () const
+\begin{DoxyCompactList}\small\item\em Output fields data. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{structmilvus_1_1_single_result_a919949d8183f746982b8bb532012c4ba}\label{structmilvus_1_1_single_result_a919949d8183f746982b8bb532012c4ba}} 
+const Field\+Data\+Ptr \hyperlink{structmilvus_1_1_single_result_a919949d8183f746982b8bb532012c4ba}{Output\+Field} (const std\+::string \&name) const
+\begin{DoxyCompactList}\small\item\em Get an output field by name. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+Topk results for one target vector of \hyperlink{classmilvus_1_1_milvus_client_a46c70fc2b7c386003babd90e02b299d1}{Milvus\+Client\+::\+Search()} 
+
+The documentation for this struct was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+src/include/milvus/types/Search\+Results.\+h\end{DoxyCompactItemize}

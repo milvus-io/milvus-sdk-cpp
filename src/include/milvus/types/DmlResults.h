@@ -24,10 +24,13 @@
 namespace milvus {
 
 /**
- * @brief Result content for insert and delete.
+ * @brief Result returned by MilvusClient::Insert() and MilvusClient::Delete()
  */
 class DmlResults {
  public:
+    /**
+     * @brief Constructor
+     */
     DmlResults() : id_array_{std::vector<int64_t>{}} {
     }
 

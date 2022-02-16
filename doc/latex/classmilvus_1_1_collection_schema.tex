@@ -1,0 +1,55 @@
+\hypertarget{classmilvus_1_1_collection_schema}{}\section{milvus\+:\+:Collection\+Schema Class Reference}
+\label{classmilvus_1_1_collection_schema}\index{milvus\+::\+Collection\+Schema@{milvus\+::\+Collection\+Schema}}
+
+
+Collection schema for \hyperlink{classmilvus_1_1_milvus_client_a437b0a97bd9f7789504fdfeab885b5dd}{Milvus\+Client\+::\+Create\+Collection()}.  
+
+
+
+
+{\ttfamily \#include $<$Collection\+Schema.\+h$>$}
+
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{classmilvus_1_1_collection_schema_aa80b3f460e7356b76eae642918ae8f07}\label{classmilvus_1_1_collection_schema_aa80b3f460e7356b76eae642918ae8f07}} 
+\hyperlink{classmilvus_1_1_collection_schema_aa80b3f460e7356b76eae642918ae8f07}{Collection\+Schema} (const std\+::string \&name, const std\+::string \&desc=\char`\"{}\char`\"{}, int32\+\_\+t shard\+\_\+num=2)
+\begin{DoxyCompactList}\small\item\em Constructor. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_collection_schema_ad53e007042cc09ecb321e7adca70148f}\label{classmilvus_1_1_collection_schema_ad53e007042cc09ecb321e7adca70148f}} 
+const std\+::string \& \hyperlink{classmilvus_1_1_collection_schema_ad53e007042cc09ecb321e7adca70148f}{Name} () const
+\begin{DoxyCompactList}\small\item\em Collection name, cannot be empty. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_collection_schema_aab99e07591c2dc4a64b20d32bc260a85}\label{classmilvus_1_1_collection_schema_aab99e07591c2dc4a64b20d32bc260a85}} 
+void \hyperlink{classmilvus_1_1_collection_schema_aab99e07591c2dc4a64b20d32bc260a85}{Set\+Name} (const std\+::string \&name)
+\begin{DoxyCompactList}\small\item\em Set collection name, cannot be empty. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_collection_schema_ae8a43e75b2f9c2820a8513d752174e4a}\label{classmilvus_1_1_collection_schema_ae8a43e75b2f9c2820a8513d752174e4a}} 
+const std\+::string \& \hyperlink{classmilvus_1_1_collection_schema_ae8a43e75b2f9c2820a8513d752174e4a}{Description} () const
+\begin{DoxyCompactList}\small\item\em Collection description, can be empty. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_collection_schema_a7796f8d75d54ec07d69f69cd861b5a4a}\label{classmilvus_1_1_collection_schema_a7796f8d75d54ec07d69f69cd861b5a4a}} 
+void \hyperlink{classmilvus_1_1_collection_schema_a7796f8d75d54ec07d69f69cd861b5a4a}{Set\+Description} (const std\+::string \&description)
+\begin{DoxyCompactList}\small\item\em Set collection description, can be empty. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_collection_schema_a1b9ea81c13f83282a135dda3a8461eb4}\label{classmilvus_1_1_collection_schema_a1b9ea81c13f83282a135dda3a8461eb4}} 
+int32\+\_\+t \hyperlink{classmilvus_1_1_collection_schema_a1b9ea81c13f83282a135dda3a8461eb4}{Shards\+Num} () const
+\begin{DoxyCompactList}\small\item\em Collection shards number, the number must be larger than zero, default value is 2. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_collection_schema_af14377075e0cf7f247c304db391395cb}\label{classmilvus_1_1_collection_schema_af14377075e0cf7f247c304db391395cb}} 
+void \hyperlink{classmilvus_1_1_collection_schema_af14377075e0cf7f247c304db391395cb}{Set\+Shards\+Num} (int32\+\_\+t num)
+\begin{DoxyCompactList}\small\item\em Set shards number, the number must be larger than zero, default value is 2. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_collection_schema_ae589903c587b07827eb6a13725883077}\label{classmilvus_1_1_collection_schema_ae589903c587b07827eb6a13725883077}} 
+const std\+::vector$<$ \hyperlink{classmilvus_1_1_field_schema}{Field\+Schema} $>$ \& \hyperlink{classmilvus_1_1_collection_schema_ae589903c587b07827eb6a13725883077}{Fields} () const
+\begin{DoxyCompactList}\small\item\em Fields schema array. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_collection_schema_ac9678b123654fbc07d9c4f1d8698bb1f}\label{classmilvus_1_1_collection_schema_ac9678b123654fbc07d9c4f1d8698bb1f}} 
+bool \hyperlink{classmilvus_1_1_collection_schema_ac9678b123654fbc07d9c4f1d8698bb1f}{Add\+Field} (const \hyperlink{classmilvus_1_1_field_schema}{Field\+Schema} \&field\+\_\+schema)
+\begin{DoxyCompactList}\small\item\em Add a field schema. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_collection_schema_a7b4cc07641fa507a8f64e8f2cbf18e33}\label{classmilvus_1_1_collection_schema_a7b4cc07641fa507a8f64e8f2cbf18e33}} 
+bool \hyperlink{classmilvus_1_1_collection_schema_a7b4cc07641fa507a8f64e8f2cbf18e33}{Add\+Field} (\hyperlink{classmilvus_1_1_field_schema}{Field\+Schema} \&\&field\+\_\+schema)
+\begin{DoxyCompactList}\small\item\em Add a field schema. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_collection_schema_abfaa9580cb5fb4253cf6723dde06592c}\label{classmilvus_1_1_collection_schema_abfaa9580cb5fb4253cf6723dde06592c}} 
+std\+::unordered\+\_\+set$<$ std\+::string $>$ \hyperlink{classmilvus_1_1_collection_schema_abfaa9580cb5fb4253cf6723dde06592c}{Anns\+Field\+Names} () const
+\begin{DoxyCompactList}\small\item\em Return Anns field names. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+Collection schema for \hyperlink{classmilvus_1_1_milvus_client_a437b0a97bd9f7789504fdfeab885b5dd}{Milvus\+Client\+::\+Create\+Collection()}. 
+
+The documentation for this class was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+src/include/milvus/types/Collection\+Schema.\+h\end{DoxyCompactItemize}

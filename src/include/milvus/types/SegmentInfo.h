@@ -35,10 +35,13 @@ enum class SegmentState {
 };
 
 /**
- * @brief Persisted segment information returned by GetPersistentSegmentInfo().
+ * @brief Persisted segment information returned by MilvusClient::GetPersistentSegmentInfo().
  */
 class SegmentInfo {
  public:
+    /**
+     * @brief Constructor
+     */
     SegmentInfo(int64_t collection_id, int64_t partition_id, int64_t segment_id, int64_t row_count, SegmentState state)
         : collection_id_{collection_id},
           partition_id_{partition_id},
@@ -96,10 +99,19 @@ class SegmentInfo {
     SegmentState state_{SegmentState::UNKNOWN};
 };
 
+/**
+ * @brief SegmentsInfo objects array
+ */
 using SegmentsInfo = std::vector<SegmentInfo>;
 
+/**
+ * @brief In-memory segment information returned by MilvusClient::GetQuerySegmentInfo().
+ */
 class QuerySegmentInfo : public SegmentInfo {
  public:
+    /**
+     * @brief Constructor
+     */
     QuerySegmentInfo(int64_t collection_id, int64_t partition_id, int64_t segment_id, int64_t row_count,
                      SegmentState state, const std::string& index_name, int64_t index_id, int64_t node_id)
         : SegmentInfo(collection_id, partition_id, segment_id, row_count, state),
@@ -138,6 +150,9 @@ class QuerySegmentInfo : public SegmentInfo {
     int64_t node_id_ = 0;
 };
 
+/**
+ * @brief QuerySegmentsInfo objects array
+ */
 using QuerySegmentsInfo = std::vector<QuerySegmentInfo>;
 
 }  // namespace milvus

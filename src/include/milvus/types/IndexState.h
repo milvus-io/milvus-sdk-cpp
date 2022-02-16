@@ -32,7 +32,7 @@ enum class IndexStateCode {
 };
 
 /**
- * @brief Index state. Used by GetIndexState().
+ * @brief Index state. Used by MilvusClient::GetIndexState().
  */
 class IndexState {
  public:
