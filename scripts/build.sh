@@ -24,16 +24,20 @@ BUILD_TEST="OFF"
 MAKE_CLEAN="OFF"
 RUN_CPPLINT="OFF"
 BUILD_PACKAGE="OFF"
+MILVUS_SDK_VERSION=${MILVUS_SDK_VERSION:-2.0.0}
 
 JOBS="$(nproc 2>/dev/null || sysctl -n hw.logicalcpu 2>/dev/null || echo 8)"
 if [ ${JOBS} -lt 8 ] ; then
     JOBS=8
 fi
 
-while getopts "t:ulrsph" arg; do
+while getopts "t:v:ulrsph" arg; do
   case $arg in
   t)
     BUILD_TYPE=$OPTARG # BUILD_TYPE
+    ;;
+  v)
+    MILVUS_SDK_VERSION=$OPTARG
     ;;
   l)
     RUN_CPPLINT="ON"
@@ -72,7 +76,7 @@ parameter:
 -h: help
 
 usage:
-./build.sh -t \${BUILD_TYPE} [-l] [-r] [-h]
+./build.sh -t \${BUILD_TYPE} -v \${MILVUS_SDK_VERSION} [-l] [-r] [-h]
                 "
     exit 0
     ;;
@@ -97,6 +101,7 @@ CMAKE_CMD="cmake \
 -DCMAKE_BUILD_TYPE=${BUILD_TYPE} \
 -DBUILD_TEST=${BUILD_TEST} \
 -DMAKE_BUILD_ARGS=${JOBS}
+-DMILVUS_SDK_VERSION=${MILVUS_SDK_VERSION} \
 ../"
 echo ${CMAKE_CMD}
 ${CMAKE_CMD}

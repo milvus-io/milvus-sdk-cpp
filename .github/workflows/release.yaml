@@ -1,0 +1,58 @@
+name: Release packages
+
+# This workflow is triggered on pushes or pull request to the repository.
+on:
+  push:
+    tags:
+      - v*
+
+jobs:
+  linux:
+    name: Release package for ${{ matrix.os.distro }} ${{ matrix.os.version }}
+    runs-on: ubuntu-latest
+    container: ${{ matrix.os.image }}
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - distro: Ubuntu
+            version: 18.04
+            image: ubuntu:18.04
+            key: u1804
+          - distro: Ubuntu
+            version: 20.04
+            image: ubuntu:20.04
+            key: u2004
+          - distro: CentOS
+            version: 7
+            image: centos:7
+            key: c7
+          - distro: Fedora
+            version: 34
+            image: fedora:34
+            key: fc34
+          - distro: Fedora
+            version: 35
+            image: fedora:35
+            key: fc35
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Prepare
+        run: |
+          sh scripts/install_deps.sh
+      - name: Build
+        run: |
+          export MILVUS_SDK_VERSION="$(echo ${{ github.event.ref }} | sed s@refs/tags/v@@)"
+          make test
+          make clean
+          make package
+          # remove package with `Linux` from thridpart
+          rm -fr cmake_build/src/Pack/*Linux*
+      - name: Release
+        uses: ncipollo/release-action@v1
+        with:
+          allowUpdates: true
+          artifacts: cmake_build/src/Pack/libmilvus-*
+          token: ${{ secrets.GITHUB_TOKEN }}
