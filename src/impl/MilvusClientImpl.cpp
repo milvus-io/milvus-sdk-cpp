@@ -441,10 +441,15 @@ MilvusClientImpl::AlterAlias(const std::string& collection_name, const std::stri
 Status
 MilvusClientImpl::CreateIndex(const std::string& collection_name, const IndexDesc& index_desc,
                               const ProgressMonitor& progress_monitor) {
-    auto pre = [&collection_name, index_desc]() {
+    auto pre = [&collection_name, &index_desc]() {
         proto::milvus::CreateIndexRequest rpc_request;
         rpc_request.set_collection_name(collection_name);
         rpc_request.set_field_name(index_desc.FieldName());
+        for (const auto& pair : index_desc.Params()) {
+            auto kv_pair = rpc_request.add_extra_params();
+            kv_pair->set_key(pair.first);
+            kv_pair->set_value(pair.second);
+        }
         return rpc_request;
     };
 
@@ -685,11 +690,7 @@ MilvusClientImpl::Search(const SearchArguments& arguments, SearchResults& result
 
         kv_pair = rpc_request.add_search_params();
         kv_pair->set_key("params");
-        nlohmann::json json_params = {};
-        for (const auto& pair : arguments.ExtraParams()) {
-            json_params[pair.first] = pair.second;
-        }
-        kv_pair->set_value(nlohmann::to_string(json_params));
+        kv_pair->set_value(arguments.ExtraParams());
 
         rpc_request.set_travel_timestamp(arguments.TravelTimestamp());
         rpc_request.set_guarantee_timestamp(arguments.GuaranteeTimestamp());
