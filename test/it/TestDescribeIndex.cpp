@@ -39,27 +39,27 @@ TEST_F(MilvusMockedTest, DescribeIndexFoo) {
     request.set_collection_name(collection_name);
     request.set_field_name(field_name);
 
-    const std::unordered_map<std::string, std::string> params = {
-        {"nlist", "1024"},
-        {"m", "100"},
-    };
-
     milvus::IndexDesc index_desc;
     EXPECT_CALL(service_, DescribeIndex(_,
                                         AnyOf(Property(&DescribeIndexRequest::collection_name, collection_name),
                                               Property(&DescribeIndexRequest::field_name, field_name)),
                                         _))
-        .WillOnce([&field_name, &index_name, &params](::grpc::ServerContext*, const DescribeIndexRequest*,
-                                                      DescribeIndexResponse* response) {
+        .WillOnce([&field_name, &index_name](::grpc::ServerContext*, const DescribeIndexRequest*,
+                                             DescribeIndexResponse* response) {
             auto* index_desc_ptr = response->add_index_descriptions();
             index_desc_ptr->set_index_name(index_name);
             index_desc_ptr->set_field_name(field_name);
 
-            for (auto& pair : params) {
-                auto kv = index_desc_ptr->add_params();
-                kv->set_key(pair.first);
-                kv->set_value(pair.second);
-            }
+            auto kv = index_desc_ptr->add_params();
+            kv->set_key(milvus::KeyIndexType());
+            kv->set_value(std::to_string(milvus::IndexType::IVF_FLAT));
+            kv = index_desc_ptr->add_params();
+            kv->set_key(milvus::KeyMetricType());
+            kv->set_value(std::to_string(milvus::MetricType::L2));
+
+            kv = index_desc_ptr->add_params();
+            kv->set_key(milvus::KeyParams());
+            kv->set_value("{\"nlist\": 1024}");
 
             return ::grpc::Status{};
         });
@@ -68,11 +68,6 @@ TEST_F(MilvusMockedTest, DescribeIndexFoo) {
     EXPECT_TRUE(status.IsOk());
     EXPECT_EQ(index_desc.FieldName(), field_name);
     EXPECT_EQ(index_desc.IndexName(), index_name);
-
-    auto& index_params = index_desc.Params();
-    for (auto& pair : params) {
-        auto iter = index_params.find(pair.first);
-        EXPECT_TRUE(iter != index_params.end());
-        EXPECT_EQ(iter->second, pair.second);
-    }
+    EXPECT_EQ(index_desc.IndexType(), milvus::IndexType::IVF_FLAT);
+    EXPECT_EQ(index_desc.MetricType(), milvus::MetricType::L2);
 }

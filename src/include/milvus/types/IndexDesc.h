@@ -16,8 +16,12 @@
 
 #pragma once
 
+#include <memory>
 #include <string>
-#include <unordered_map>
+
+#include "../Status.h"
+#include "IndexType.h"
+#include "MetricType.h"
 
 namespace milvus {
 
@@ -26,88 +30,118 @@ namespace milvus {
  */
 class IndexDesc {
  public:
-    IndexDesc() = default;
+    /**
+     * @brief Construct a new Index Desc object
+     */
+    IndexDesc();
 
     /**
-     * @brief Constructor
+     * @brief Construct a new Index Desc object
+     *
+     * @param field_name field name which the index belong to
+     * @param index_name index name
+     * @param index_type  index type see IndexType
+     * @param metric_type  metric type see MetricType
+     * @param index_id internal id of the index reserved for funture feature
      */
-    IndexDesc(const std::string& field_name, const std::string& index_name, int64_t index_id,
-              std::unordered_map<std::string, std::string> params)
-        : field_name_{field_name}, index_name_{index_name}, index_id_{index_id}, params_{std::move(params)} {
-    }
+    IndexDesc(const std::string& field_name, const std::string& index_name, milvus::IndexType index_type,
+              milvus::MetricType metric_type, int64_t index_id = 0);
+
+    /**
+     * @brief Destroy the Index Desc object
+     */
+    ~IndexDesc();
 
     /**
      * @brief Filed name which the index belong to.
      */
     const std::string&
-    FieldName() const {
-        return field_name_;
-    }
+    FieldName() const;
 
     /**
-     * @brief Set Field name. Field name cannot be empty.
+     * @brief Set field name which the index belong to.
      */
-    void
-    SetFieldName(const std::string& field_name) {
-        field_name_ = field_name;
-    }
+    Status
+    SetFieldName(const std::string& field_name);
 
     /**
      * @brief Index name. Index name cannot be empty.
      */
     const std::string&
-    IndexName() const {
-        return index_name_;
-    }
+    IndexName() const;
 
     /**
-     * @brief Set name of the index. Reserved for funture feature: multiple indice in one field.  \n
-     * Only avaiable for DescribeIndex(). No need to specify it for CreateIndex().
+     * @brief Set index name.
      */
-    void
-    SetIndexName(const std::string& index_name) {
-        index_name_ = index_name;
-    }
+    Status
+    SetIndexName(const std::string& index_name);
 
     /**
      * @brief Index ID.
      */
     int64_t
-    IndexId() const {
-        return index_id_;
-    }
+    IndexId() const;
 
     /**
-     * @brief Set internal id of the index. Reserved for funture feature: multiple indice in one field.
-     * Only avaiable for DescribeIndex(). No need to specify it for CreateIndex().
+     * @brief Set index id.
      */
-    void
-    SetIndexId(int64_t index_id) {
-        index_id_ = index_id;
-    }
+    Status
+    SetIndexId(int64_t index_id);
+
+    /**
+     * @brief Metric type.
+     */
+    milvus::MetricType
+    MetricType() const;
+
+    /**
+     * @brief Set metric type.
+     */
+    Status
+    SetMetricType(milvus::MetricType metric_type);
+
+    /**
+     * @brief Index type.
+     */
+    milvus::IndexType
+    IndexType() const;
+
+    /**
+     * @brief Set index type.
+     */
+    Status
+    SetIndexType(milvus::IndexType index_type);
 
     /**
      * @brief Parameters of the index.
      */
-    const std::unordered_map<std::string, std::string>&
-    Params() const {
-        return params_;
-    }
+    const std::string
+    ExtraParams() const;
 
     /**
-     * @brief Set Parameters of the index.
+     * @brief Add param, current all param is a numberic value
      */
-    void
-    SetParams(const std::unordered_map<std::string, std::string>& params) {
-        params_ = params;
-    }
+    Status
+    AddExtraParam(const std::string& key, int64_t value);
+
+    /**
+     * @brief Construct a new Index Desc:: From Json object
+     * @param json Json string for parse
+     */
+    Status
+    ExtraParamsFromJson(const std::string& json);
+
+    /**
+     * @brief Validate for create index
+     *
+     */
+    Status
+    Validate() const;
 
  private:
-    std::string field_name_;
-    std::string index_name_;
-    int64_t index_id_ = 0;
+    struct Impl;
 
-    std::unordered_map<std::string, std::string> params_;
+    std::unique_ptr<Impl> impl_;
 };
 
 }  // namespace milvus

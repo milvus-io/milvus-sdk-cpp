@@ -17,7 +17,6 @@
 #include "milvus/types/SearchArguments.h"
 
 #include <nlohmann/json.hpp>
-#include <unordered_map>
 
 namespace milvus {
 struct SearchArguments::Impl {

@@ -43,6 +43,7 @@ enum class StatusCode {
     // validation error
     DIMENSION_NOT_EQUAL = 2000,
     VECTOR_IS_EMPTY,
+    JSON_PARSE_ERROR,
 };
 
 /**

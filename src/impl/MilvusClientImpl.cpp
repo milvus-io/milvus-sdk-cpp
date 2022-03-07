@@ -441,15 +441,25 @@ MilvusClientImpl::AlterAlias(const std::string& collection_name, const std::stri
 Status
 MilvusClientImpl::CreateIndex(const std::string& collection_name, const IndexDesc& index_desc,
                               const ProgressMonitor& progress_monitor) {
+    auto validate = [&index_desc] { return index_desc.Validate(); };
+
     auto pre = [&collection_name, &index_desc]() {
         proto::milvus::CreateIndexRequest rpc_request;
         rpc_request.set_collection_name(collection_name);
         rpc_request.set_field_name(index_desc.FieldName());
-        for (const auto& pair : index_desc.Params()) {
-            auto kv_pair = rpc_request.add_extra_params();
-            kv_pair->set_key(pair.first);
-            kv_pair->set_value(pair.second);
-        }
+
+        auto kv_pair = rpc_request.add_extra_params();
+        kv_pair->set_key(milvus::KeyIndexType());
+        kv_pair->set_value(std::to_string(index_desc.IndexType()));
+
+        kv_pair = rpc_request.add_extra_params();
+        kv_pair->set_key(milvus::KeyMetricType());
+        kv_pair->set_value(std::to_string(index_desc.MetricType()));
+
+        kv_pair = rpc_request.add_extra_params();
+        kv_pair->set_key(milvus::KeyParams());
+        kv_pair->set_value(index_desc.ExtraParams());
+
         return rpc_request;
     };
 
@@ -478,7 +488,7 @@ MilvusClientImpl::CreateIndex(const std::string& collection_name, const IndexDes
             progress_monitor);
     };
     return apiHandler<proto::milvus::CreateIndexRequest, proto::common::Status>(
-        nullptr, pre, &MilvusConnection::CreateIndex, wait_for_status, nullptr);
+        validate, pre, &MilvusConnection::CreateIndex, wait_for_status, nullptr);
 }
 
 Status
@@ -498,15 +508,18 @@ MilvusClientImpl::DescribeIndex(const std::string& collection_name, const std::s
             auto& index_name = response.index_descriptions(i).index_name();
             index_desc.SetFieldName(field_name);
             index_desc.SetIndexName(index_name);
-            std::unordered_map<std::string, std::string> index_params;
             auto index_params_size = response.index_descriptions(i).params_size();
-            index_params.reserve(index_params_size);
-
             for (size_t j = 0; j < index_params_size; ++j) {
-                index_params.emplace(response.index_descriptions(i).params(j).key(),
-                                     response.index_descriptions(i).params(j).value());
+                auto& key = response.index_descriptions(i).params(j).key();
+                auto& value = response.index_descriptions(i).params(j).value();
+                if (key == milvus::KeyIndexType()) {
+                    index_desc.SetIndexType(IndexTypeCast(value));
+                } else if (key == milvus::KeyMetricType()) {
+                    index_desc.SetMetricType(MetricTypeCast(value));
+                } else if (key == milvus::KeyParams()) {
+                    index_desc.ExtraParamsFromJson(value);
+                }
             }
-            index_desc.SetParams(index_params);
         }
     };
 
@@ -681,7 +694,7 @@ MilvusClientImpl::Search(const SearchArguments& arguments, SearchResults& result
         kv_pair->set_value(std::to_string(arguments.TopK()));
 
         kv_pair = rpc_request.add_search_params();
-        kv_pair->set_key("metric_type");
+        kv_pair->set_key(milvus::KeyMetricType());
         kv_pair->set_value(std::to_string(arguments.MetricType()));
 
         kv_pair = rpc_request.add_search_params();
@@ -689,7 +702,7 @@ MilvusClientImpl::Search(const SearchArguments& arguments, SearchResults& result
         kv_pair->set_value(std::to_string(arguments.RoundDecimal()));
 
         kv_pair = rpc_request.add_search_params();
-        kv_pair->set_key("params");
+        kv_pair->set_key(milvus::KeyParams());
         kv_pair->set_value(arguments.ExtraParams());
 
         rpc_request.set_travel_timestamp(arguments.TravelTimestamp());

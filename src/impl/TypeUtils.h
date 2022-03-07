@@ -21,6 +21,7 @@
 #include "milvus/types/FieldData.h"
 #include "milvus/types/IDArray.h"
 #include "milvus/types/IndexState.h"
+#include "milvus/types/IndexType.h"
 #include "milvus/types/MetricType.h"
 #include "milvus/types/SegmentInfo.h"
 namespace milvus {
@@ -78,6 +79,12 @@ DataTypeCast(DataType type);
 
 DataType
 DataTypeCast(proto::schema::DataType type);
+
+MetricType
+MetricTypeCast(const std::string& type);
+
+IndexType
+IndexTypeCast(const std::string& type);
 
 proto::schema::VectorField*
 CreateProtoFieldData(const BinaryVecFieldData& field);
@@ -192,5 +199,6 @@ IndexStateCast(proto::common::IndexState state);
 }  // namespace milvus
 
 namespace std {
+std::string to_string(milvus::IndexType);
 std::string to_string(milvus::MetricType);
-}
+}  // namespace std

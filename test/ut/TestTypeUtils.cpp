@@ -434,15 +434,18 @@ TEST_F(TypeUtilsTest, CreateMilvusFieldDataWithRange) {
                 ElementsAre(std::vector<float>{0.4f, 0.5f, 0.6f}, std::vector<float>{0.7f, 0.8f, 0.9f}));
 }
 
-TEST_F(TypeUtilsTest, MetricTypeToString) {
-    EXPECT_EQ(std::to_string(milvus::MetricType::IP), "IP");
-    EXPECT_EQ(std::to_string(milvus::MetricType::L2), "L2");
-    EXPECT_EQ(std::to_string(milvus::MetricType::HAMMING), "HAMMING");
-    EXPECT_EQ(std::to_string(milvus::MetricType::SUBSTRUCTURE), "SUBSTRUCTURE");
-    EXPECT_EQ(std::to_string(milvus::MetricType::SUPERSTRUCTURE), "SUPERSTRUCTURE");
-    EXPECT_EQ(std::to_string(milvus::MetricType::TANIMOTO), "TANIMOTO");
-    EXPECT_EQ(std::to_string(milvus::MetricType::JACCARD), "JACCARD");
-    EXPECT_EQ(std::to_string(milvus::MetricType::INVALID), "INVALID");
+TEST_F(TypeUtilsTest, MetricTypeCastTest) {
+    for (const auto& name :
+         {"IP", "L2", "HAMMING", "SUBSTRUCTURE", "SUPERSTRUCTURE", "TANIMOTO", "JACCARD", "INVALID"}) {
+        EXPECT_EQ(std::to_string(milvus::MetricTypeCast(name)), name);
+    }
+}
+
+TEST_F(TypeUtilsTest, IndexTypeCastTest) {
+    for (const auto& name : {"INVALID", "FLAT", "IVF_FLAT", "IVF_SQ8", "IVF_PQ", "HNSW", "IVF_HNSW", "RHNSW_FLAT",
+                             "RHNSW_SQ", "RHNSW_PQ", "ANNOY", "BIN_FLAT", "BIN_IVF_FLAT"}) {
+        EXPECT_EQ(std::to_string(milvus::IndexTypeCast(name)), name);
+    }
 }
 
 TEST_F(TypeUtilsTest, DataTypeCast) {
