@@ -16,6 +16,7 @@
 
 #include <gtest/gtest.h>
 
+#include "TypeUtils.h"
 #include "mocks/MilvusMockedTest.h"
 
 using ::milvus::StatusCode;
@@ -33,13 +34,12 @@ TEST_F(MilvusMockedTest, TestCreateIndexInstantly) {
     std::string collection_name = "test_collection";
     std::string field_name = "test_field";
     std::string index_name = "test_index";
+    auto index_type = milvus::IndexType::IVF_FLAT;
+    auto metric_type = milvus::MetricType::L2;
     int64_t index_id = 0;
-    const std::unordered_map<std::string, std::string> params = {
-        {"nlist", "1024"},
-        {"m", "100"},
-    };
 
-    milvus::IndexDesc index_desc(field_name, index_name, index_id, params);
+    milvus::IndexDesc index_desc(field_name, "", index_type, metric_type, index_id);
+    index_desc.AddExtraParam("nlist", 1024);
     const auto progress_monitor = ::milvus::ProgressMonitor::NoWait();
     EXPECT_CALL(service_, CreateIndex(_,
                                       AllOf(Property(&CreateIndexRequest::collection_name, collection_name),
@@ -58,20 +58,28 @@ TEST_F(MilvusMockedTest, TestCreateIndexWithProgress) {
 
     std::string collection_name = "test_collection";
     std::string field_name = "test_field";
+    auto index_type = milvus::IndexType::IVF_FLAT;
+    auto metric_type = milvus::MetricType::L2;
     int64_t index_id = 0;
-    const std::unordered_map<std::string, std::string> params = {
-        {"nlist", "1024"},
-        {"m", "100"},
-    };
 
-    milvus::IndexDesc index_desc(field_name, "", index_id, params);
+    milvus::IndexDesc index_desc(field_name, "", index_type, metric_type, index_id);
+    index_desc.AddExtraParam("nlist", 1024);
     auto progress_monitor = ::milvus::ProgressMonitor::Forever();
     progress_monitor.SetCheckInterval(10);
     EXPECT_CALL(service_, CreateIndex(_,
                                       AllOf(Property(&CreateIndexRequest::collection_name, collection_name),
                                             Property(&CreateIndexRequest::field_name, field_name)),
                                       _))
-        .WillOnce([](::grpc::ServerContext*, const CreateIndexRequest*, ::milvus::proto::common::Status* status) {
+        .WillOnce([index_type, metric_type](::grpc::ServerContext*, const CreateIndexRequest* req,
+                                            ::milvus::proto::common::Status* status) {
+            std::unordered_map<std::string, std::string> params{};
+            for (const auto& pair : req->extra_params()) {
+                params.emplace(pair.key(), pair.value());
+            }
+            EXPECT_EQ(params[milvus::KeyIndexType()], std::to_string(index_type));
+            EXPECT_EQ(params[milvus::KeyMetricType()], std::to_string(metric_type));
+            EXPECT_EQ(params[milvus::KeyParams()], "{\"nlist\":1024}");
+
             status->set_error_code(milvus::proto::common::ErrorCode::Success);
             return ::grpc::Status{};
         });
@@ -102,13 +110,12 @@ TEST_F(MilvusMockedTest, TestCreateIndexFailed) {
 
     std::string collection_name = "test_collection";
     std::string field_name = "test_field";
+    auto index_type = milvus::IndexType::IVF_FLAT;
+    auto metric_type = milvus::MetricType::L2;
     int64_t index_id = 0;
-    const std::unordered_map<std::string, std::string> params = {
-        {"nlist", "1024"},
-        {"m", "100"},
-    };
 
-    milvus::IndexDesc index_desc(field_name, "", index_id, params);
+    milvus::IndexDesc index_desc(field_name, "", index_type, metric_type, index_id);
+    index_desc.AddExtraParam("nlist", 1024);
     auto progress_monitor = ::milvus::ProgressMonitor::Forever();
     progress_monitor.SetCheckInterval(10);
     EXPECT_CALL(service_, CreateIndex(_,

@@ -143,13 +143,8 @@ TEST_F(MilvusServerTestSearch, SearchWithIVFIndex) {
     CreateCollectionAndPartitions();
     auto dml_results = InsertRecords(fields);
 
-    // create index
-    const std::unordered_map<std::string, std::string> params = {
-        {"index_type", "IVF_FLAT"},
-        {"metric_type", "L2"},
-        {"params", "{\"nlist\": 1024}"},
-    };
-    milvus::IndexDesc index_desc("face", "", 0, params);
+    milvus::IndexDesc index_desc("face", "", milvus::IndexType::IVF_FLAT, milvus::MetricType::L2, 0);
+    index_desc.AddExtraParam("nlist", 1024);
     auto status = client_->CreateIndex(collection_name, index_desc);
     EXPECT_EQ(status.Message(), "OK");
     EXPECT_TRUE(status.IsOk());
@@ -160,7 +155,7 @@ TEST_F(MilvusServerTestSearch, SearchWithIVFIndex) {
     arguments.SetCollectionName(collection_name);
     arguments.SetTopK(10);
     arguments.SetMetricType(milvus::MetricType::L2);
-    arguments.AddExtraParams("nprobe", "10");
+    arguments.AddExtraParams("nprobe", 10);
     arguments.AddTargetVector("face", std::vector<float>{0.f, 0.f, 0.f, 0.f});
     arguments.AddTargetVector("face", std::vector<float>{1.f, 1.f, 1.f, 1.f});
     milvus::SearchResults search_results{};

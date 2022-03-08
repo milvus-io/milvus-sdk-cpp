@@ -28,6 +28,30 @@ KeyRowCount() {
 }
 
 /**
+ * @brief Global definition for index type label
+ */
+inline const std::string
+KeyIndexType() {
+    return "index_type";
+}
+
+/**
+ * @brief Global definition for metric type label
+ */
+inline const std::string
+KeyMetricType() {
+    return "metric_type";
+}
+
+/**
+ * @brief Global definition for metric type label
+ */
+inline const std::string
+KeyParams() {
+    return "params";
+}
+
+/**
  * @brief Global definition for vector dimension label
  */
 inline const std::string

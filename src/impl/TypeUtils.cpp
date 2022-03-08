@@ -332,6 +332,73 @@ DataTypeCast(proto::schema::DataType type) {
     }
 }
 
+MetricType
+MetricTypeCast(const std::string& type) {
+    if (type == "L2") {
+        return MetricType::L2;
+    }
+    if (type == "IP") {
+        return MetricType::IP;
+    }
+    if (type == "HAMMING") {
+        return MetricType::HAMMING;
+    }
+    if (type == "JACCARD") {
+        return MetricType::JACCARD;
+    }
+    if (type == "TANIMOTO") {
+        return MetricType::TANIMOTO;
+    }
+    if (type == "SUBSTRUCTURE") {
+        return MetricType::SUBSTRUCTURE;
+    }
+    if (type == "SUPERSTRUCTURE") {
+        return MetricType::SUPERSTRUCTURE;
+    }
+    return MetricType::INVALID;
+}
+
+IndexType
+IndexTypeCast(const std::string& type) {
+    if (type == "FLAT") {
+        return IndexType::FLAT;
+    }
+    if (type == "IVF_FLAT") {
+        return IndexType::IVF_FLAT;
+    }
+    if (type == "IVF_SQ8") {
+        return IndexType::IVF_SQ8;
+    }
+    if (type == "IVF_PQ") {
+        return IndexType::IVF_PQ;
+    }
+    if (type == "HNSW") {
+        return IndexType::HNSW;
+    }
+    if (type == "IVF_HNSW") {
+        return IndexType::IVF_HNSW;
+    }
+    if (type == "RHNSW_FLAT") {
+        return IndexType::RHNSW_FLAT;
+    }
+    if (type == "RHNSW_SQ") {
+        return IndexType::RHNSW_SQ;
+    }
+    if (type == "RHNSW_PQ") {
+        return IndexType::RHNSW_PQ;
+    }
+    if (type == "ANNOY") {
+        return IndexType::ANNOY;
+    }
+    if (type == "BIN_FLAT") {
+        return IndexType::BIN_FLAT;
+    }
+    if (type == "BIN_IVF_FLAT") {
+        return IndexType::BIN_IVF_FLAT;
+    }
+    return IndexType::INVALID;
+}
+
 proto::schema::VectorField*
 CreateProtoFieldData(const BinaryVecFieldData& field) {
     auto ret = new proto::schema::VectorField{};
@@ -756,6 +823,37 @@ to_string(milvus::MetricType metric_type) {
         case milvus::MetricType::SUPERSTRUCTURE:
             return "SUPERSTRUCTURE";
         case milvus::MetricType::INVALID:
+        default:
+            return "INVALID";
+    }
+}
+std::string
+to_string(milvus::IndexType index_type) {
+    switch (index_type) {
+        case milvus::IndexType::FLAT:
+            return "FLAT";
+        case milvus::IndexType::IVF_FLAT:
+            return "IVF_FLAT";
+        case milvus::IndexType::IVF_PQ:
+            return "IVF_PQ";
+        case milvus::IndexType::IVF_SQ8:
+            return "IVF_SQ8";
+        case milvus::IndexType::HNSW:
+            return "HNSW";
+        case milvus::IndexType::IVF_HNSW:
+            return "IVF_HNSW";
+        case milvus::IndexType::RHNSW_FLAT:
+            return "RHNSW_FLAT";
+        case milvus::IndexType::RHNSW_SQ:
+            return "RHNSW_SQ";
+        case milvus::IndexType::RHNSW_PQ:
+            return "RHNSW_PQ";
+        case milvus::IndexType::ANNOY:
+            return "ANNOY";
+        case milvus::IndexType::BIN_FLAT:
+            return "BIN_FLAT";
+        case milvus::IndexType::BIN_IVF_FLAT:
+            return "BIN_IVF_FLAT";
         default:
             return "INVALID";
     }
