@@ -71,8 +71,7 @@ TestSearchVectors(testing::StrictMock<::milvus::MilvusMockedService>& service_,
     search_arguments.SetRoundDecimal(-1);
     search_arguments.SetMetricType(milvus::MetricType::IP);
 
-    search_arguments.AddExtraParams("nprobe", 10);
-    search_arguments.AddExtraParams("foo", "bar");
+    search_arguments.AddExtraParam("nprobe", 10);
 
     EXPECT_CALL(service_, DescribeCollection(_, Property(&DescribeCollectionRequest::collection_name, "foo"), _))
         .WillOnce([](::grpc::ServerContext*, const DescribeCollectionRequest*, DescribeCollectionResponse* response) {
@@ -111,7 +110,6 @@ TestSearchVectors(testing::StrictMock<::milvus::MilvusMockedService>& service_,
             }
             auto json_params = nlohmann::json::parse(extra_params_payload);
             EXPECT_EQ(json_params["nprobe"].get<int>(), 10);
-            EXPECT_EQ(json_params["foo"].get<std::string>(), "bar");
 
             // check placeholder
             auto placeholder_group_payload = request->placeholder_group();

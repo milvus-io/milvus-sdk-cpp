@@ -641,7 +641,8 @@ MilvusClientImpl::Search(const SearchArguments& arguments, SearchResults& result
             } else {
                 return Status{StatusCode::INVALID_AGUMENT, std::string(field_name + " is not a valid anns field")};
             }
-            // TODO(jibin): check nprobe/ef/search_k
+            // basic check for extra params
+            status = arguments.Validate();
         }
         return status;
     };

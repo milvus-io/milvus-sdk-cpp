@@ -92,3 +92,26 @@ TEST_F(SearchArgumentsTest, VectorTesting) {
         EXPECT_EQ(1, target_vectors->Count());
     }
 }
+
+TEST_F(SearchArgumentsTest, ValidateTesting) {
+    {
+        milvus::SearchArguments arguments;
+        arguments.AddExtraParam("nprobe", 0);
+        auto status = arguments.Validate();
+        EXPECT_FALSE(status.IsOk());
+    }
+
+    {
+        milvus::SearchArguments arguments;
+        arguments.AddExtraParam("nprobe", 1000000);
+        auto status = arguments.Validate();
+        EXPECT_FALSE(status.IsOk());
+    }
+
+    {
+        milvus::SearchArguments arguments;
+        arguments.AddExtraParam("nprobe", 10);
+        auto status = arguments.Validate();
+        EXPECT_TRUE(status.IsOk());
+    }
+}
