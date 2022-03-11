@@ -38,6 +38,56 @@ struct SearchArguments::Impl {
     int round_decimal_{-1};
 
     ::milvus::MetricType metric_type_{::milvus::MetricType::L2};
+
+    struct Validation {
+        std::string param;
+        int64_t min;
+        int64_t max;
+        bool required;
+
+        Status
+        Validate(const SearchArguments::Impl& data) const {
+            auto it = data.extra_params_.find(param);
+            // TODO(jibin) create a dedicate validator
+            // if (it == data.extra_params_.end() && required) {
+            //     return {StatusCode::INVALID_AGUMENT, "missing required parameter: " + param};
+            // }
+            // found, check value
+            if (it != data.extra_params_.end()) {
+                auto value = it.value();
+                // TODO(jibin) create a dedicate validator
+                // if (!value.is_number()) {
+                //     return {StatusCode::INVALID_AGUMENT,
+                //             "invalid value: " + param + "=" + value.dump() + ", requires number"};
+                // }
+                auto v = value.get<int64_t>();
+                if (v < min || v > max) {
+                    return {StatusCode::INVALID_AGUMENT, "invalid value: " + param + "=" + std::to_string(v) +
+                                                             ", requires [" + std::to_string(min) + ", " +
+                                                             std::to_string(max) + "]"};
+                }
+            }
+            return Status::OK();
+        }
+    };
+
+    Status
+    Validate() const {
+        auto status = Status::OK();
+        auto validations = {
+            Validation{"nprobe", 1, 65536, false},
+            Validation{"ef", 1, 32768, false},
+            Validation{"search_k", -1, 65536, false},
+        };
+
+        for (const auto& validation : validations) {
+            status = validation.Validate(*this);
+            if (!status.IsOk()) {
+                return status;
+            }
+        }
+        return status;
+    }
 };
 
 SearchArguments::SearchArguments() : impl_(new Impl()) {
@@ -202,13 +252,7 @@ SearchArguments::MetricType() const {
 }
 
 Status
-SearchArguments::AddExtraParams(const std::string& key, const std::string& value) {
-    impl_->extra_params_[key] = value;
-    return Status::OK();
-}
-
-Status
-SearchArguments::AddExtraParams(const std::string& key, int64_t value) {
+SearchArguments::AddExtraParam(const std::string& key, int64_t value) {
     impl_->extra_params_[key] = value;
     return Status::OK();
 }
@@ -216,6 +260,11 @@ SearchArguments::AddExtraParams(const std::string& key, int64_t value) {
 const std::string
 SearchArguments::ExtraParams() const {
     return impl_->extra_params_.dump();
+}
+
+Status
+SearchArguments::Validate() const {
+    return impl_->Validate();
 }
 
 }  // namespace milvus

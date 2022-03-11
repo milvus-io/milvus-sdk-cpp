@@ -155,7 +155,7 @@ TEST_F(MilvusServerTestSearch, SearchWithIVFIndex) {
     arguments.SetCollectionName(collection_name);
     arguments.SetTopK(10);
     arguments.SetMetricType(milvus::MetricType::L2);
-    arguments.AddExtraParams("nprobe", 10);
+    arguments.AddExtraParam("nprobe", 10);
     arguments.AddTargetVector("face", std::vector<float>{0.f, 0.f, 0.f, 0.f});
     arguments.AddTargetVector("face", std::vector<float>{1.f, 1.f, 1.f, 1.f});
     milvus::SearchResults search_results{};

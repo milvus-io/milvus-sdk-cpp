@@ -182,22 +182,23 @@ class SearchArguments {
     MetricType() const;
 
     /**
-     * @brief Add extra params
+     * @brief Add extra param
      */
     Status
-    AddExtraParams(const std::string& key, const std::string& value);
+    AddExtraParam(const std::string& key, int64_t value);
 
     /**
-     * @brief Add extra params
-     */
-    Status
-    AddExtraParams(const std::string& key, int64_t value);
-
-    /**
-     * @brief Get extra params
+     * @brief Get extra param
      */
     const std::string
     ExtraParams() const;
+
+    /**
+     * @brief Validate for search arguments
+     *
+     */
+    Status
+    Validate() const;
 
  private:
     struct Impl;
