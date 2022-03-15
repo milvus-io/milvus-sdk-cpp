@@ -64,7 +64,9 @@ jobs:
       CCACHE_MAXSIZE: 2G
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v1
+        with:
+          submodules: recursive
       - name: Cache ccache
         uses: actions/cache@v2
         with:
@@ -148,7 +150,9 @@ jobs:
       CCACHE_MAXSIZE: 2G
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v1
+        with:
+          submodules: recursive
       - name: Cache ccache
         uses: actions/cache@v2
         with:
@@ -186,7 +190,9 @@ jobs:
       CCACHE_MAXSIZE: 2G
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v1
+        with:
+          submodules: recursive
       - name: Cache ccache
         uses: actions/cache@v2
         with:
