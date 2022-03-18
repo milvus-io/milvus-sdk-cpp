@@ -16,6 +16,7 @@
 
 #pragma once
 
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -27,56 +28,54 @@ namespace milvus {
  */
 class CollectionInfo {
  public:
-    CollectionInfo() = default;
+    /**
+     * @brief Constructor
+     */
+    CollectionInfo();
 
     /**
      * @brief Constructor
      */
     CollectionInfo(const std::string& collection_name, int64_t collection_id, uint64_t create_time,
-                   uint64_t load_percentage)
-        : name_{collection_name},
-          collection_id_{collection_id},
-          created_utc_timestamp_{create_time},
-          in_memory_percentage_{load_percentage} {
-    }
+                   uint64_t load_percentage);
+
+    /**
+     * @brief Construct a new Collection Info object
+     */
+    CollectionInfo(CollectionInfo&&) noexcept;
+
+    /**
+     * @brief Destroy the Collection Info object
+     */
+    ~CollectionInfo();
 
     /**
      * @brief Name of the collection.
      */
     const std::string&
-    Name() const {
-        return name_;
-    }
+    Name() const;
 
     /**
      * @brief Internal ID of the collection.
      */
     int64_t
-    ID() const {
-        return collection_id_;
-    }
+    ID() const;
 
     /**
      * @brief The utc time when the collection is created.
      */
     uint64_t
-    CreatedTime() const {
-        return created_utc_timestamp_;
-    }
+    CreatedTime() const;
 
     /**
      * @brief Loading percentage of the collection.
      */
     uint64_t
-    MemoryPercentage() const {
-        return in_memory_percentage_;
-    }
+    MemoryPercentage() const;
 
  private:
-    std::string name_;
-    int64_t collection_id_;
-    uint64_t created_utc_timestamp_ = 0;
-    uint64_t in_memory_percentage_ = 0;
+    struct Impl;
+    std::unique_ptr<Impl> impl_;
 };
 
 /**

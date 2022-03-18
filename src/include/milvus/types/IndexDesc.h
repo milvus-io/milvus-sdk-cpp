@@ -48,6 +48,11 @@ class IndexDesc {
               milvus::MetricType metric_type, int64_t index_id = 0);
 
     /**
+     * @brief Construct a new Index Desc object
+     */
+    IndexDesc(IndexDesc&&) noexcept;
+
+    /**
      * @brief Destroy the Index Desc object
      */
     ~IndexDesc();

@@ -33,13 +33,16 @@ class SearchArguments {
  public:
     /**
      * @brief Construct a new Search Arguments object
-     *
      */
     SearchArguments();
 
     /**
+     * @brief Construct a new Search Arguments object
+     */
+    SearchArguments(SearchArguments&&) noexcept;
+
+    /**
      * @brief Destroy the Search Arguments object
-     *
      */
     ~SearchArguments();
 

@@ -175,13 +175,13 @@ MilvusClientImpl::DescribeCollection(const std::string& collection_name, Collect
         CollectionSchema schema;
         ConvertCollectionSchema(response.schema(), schema);
         schema.SetShardsNum(response.shards_num());
-        collection_desc.SetSchema(std::move(schema));
+        collection_desc.SetSchema(schema);
         collection_desc.SetID(response.collectionid());
 
         std::vector<std::string> aliases;
         aliases.insert(aliases.end(), response.aliases().begin(), response.aliases().end());
 
-        collection_desc.SetAlias(std::move(aliases));
+        collection_desc.SetAlias(aliases);
         collection_desc.SetCreatedTime(response.created_timestamp());
     };
 
@@ -235,9 +235,8 @@ MilvusClientImpl::ShowCollections(const std::vector<std::string>& collection_nam
 
     auto post = [&collections_info](const proto::milvus::ShowCollectionsResponse& response) {
         for (size_t i = 0; i < response.collection_ids_size(); i++) {
-            collections_info.push_back(CollectionInfo(response.collection_names(i), response.collection_ids(i),
-                                                      response.created_utc_timestamps(i),
-                                                      response.inmemory_percentages(i)));
+            collections_info.emplace_back(response.collection_names(i), response.collection_ids(i),
+                                          response.created_utc_timestamps(i), response.inmemory_percentages(i));
         }
     };
     return apiHandler<proto::milvus::ShowCollectionsRequest, proto::milvus::ShowCollectionsResponse>(

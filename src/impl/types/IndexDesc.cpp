@@ -160,6 +160,8 @@ IndexDesc::IndexDesc(const std::string& field_name, const std::string& index_nam
     : impl_{new Impl(field_name, index_name, index_id, metric_type, index_type)} {
 }
 
+IndexDesc::IndexDesc(IndexDesc&&) noexcept = default;
+
 IndexDesc::~IndexDesc() = default;
 
 const std::string&

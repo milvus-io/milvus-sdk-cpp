@@ -31,4 +31,10 @@ TEST_F(CollectionInfoTest, GeneralTesting) {
     EXPECT_EQ(id, info.ID());
     EXPECT_EQ(created_ts, info.CreatedTime());
     EXPECT_EQ(in_memory_percent, info.MemoryPercentage());
+
+    milvus::CollectionInfo info_bar;
+    EXPECT_EQ("", info_bar.Name());
+    EXPECT_EQ(0, info_bar.ID());
+    EXPECT_EQ(0, info_bar.CreatedTime());
+    EXPECT_EQ(0, info_bar.MemoryPercentage());
 }
