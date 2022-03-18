@@ -16,6 +16,7 @@
 
 #pragma once
 
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -28,78 +29,72 @@ namespace milvus {
  */
 class CollectionDesc {
  public:
-    CollectionDesc() = default;
+    /**
+     * @brief Construct a new Collection Desc object
+     */
+    CollectionDesc();
+
+    /**
+     * @brief Construct a new Collection Desc object
+     */
+    CollectionDesc(CollectionDesc&&) noexcept;
+
+    /**
+     * @brief Destroy the Collection Desc object
+     */
+    ~CollectionDesc();
 
     /**
      * @brief Collection schema.
      */
-    CollectionSchema
-    Schema() const {
-        return schema_;
-    }
+    const CollectionSchema&
+    Schema() const;
 
     /**
      * @brief Set collection schema.
      */
     void
-    SetSchema(CollectionSchema&& schema) {
-        schema_ = std::move(schema);
-    }
+    SetSchema(const CollectionSchema& schema);
 
     /**
      * @brief Collection id.
      */
     int64_t
-    ID() const {
-        return collection_id_;
-    }
+    ID() const;
 
     /**
      * @brief Set collection id.
      */
     void
-    SetID(const int64_t id) {
-        collection_id_ = id;
-    }
+    SetID(const int64_t id);
 
     /**
      * @brief Collection alias.
      */
     const std::vector<std::string>&
-    Alias() const {
-        return alias_;
-    }
+    Alias() const;
 
     /**
      * @brief Set collection alias.
      */
     void
-    SetAlias(std::vector<std::string>&& alias) {
-        alias_ = std::move(alias);
-    }
+    SetAlias(const std::vector<std::string>& alias);
 
     /**
      * @brief Timestamp when the collection created.
      */
     uint64_t
-    CreatedTime() const {
-        return created_utc_timestamp_;
-    }
+    CreatedTime() const;
 
     /**
      * @brief Set timestamp when the collection created.
      */
     void
-    SetCreatedTime(const uint64_t ts) {
-        created_utc_timestamp_ = ts;
-    }
+    SetCreatedTime(const uint64_t ts);
 
  private:
-    CollectionSchema schema_;
-
-    int64_t collection_id_;
-    std::vector<std::string> alias_;
-    uint64_t created_utc_timestamp_ = 0;
+    struct Impl;
+    std::unique_ptr<Impl> impl_;
 };
 
 }  // namespace milvus

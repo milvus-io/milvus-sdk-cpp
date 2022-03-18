@@ -93,6 +93,8 @@ struct SearchArguments::Impl {
 SearchArguments::SearchArguments() : impl_(new Impl()) {
 }
 
+SearchArguments::SearchArguments(SearchArguments&&) noexcept = default;
+
 SearchArguments::~SearchArguments() = default;
 
 const std::string&
