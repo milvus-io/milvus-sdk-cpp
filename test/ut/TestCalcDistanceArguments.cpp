@@ -146,6 +146,14 @@ TEST_F(CalcDistanceArgumentsTest, VectorIDs) {
     arguments.SetRightVectors(std::make_shared<milvus::Int64FieldData>("f2", std::vector<int64_t>{}), right_collection);
     EXPECT_FALSE(status.IsOk());
 
+    status = arguments.SetLeftVectors(std::make_shared<milvus::Int64FieldData>("f1", ids_1), left_collection,
+                                      left_partitions);
+    EXPECT_TRUE(status.IsOk());
+
+    status = arguments.SetRightVectors(std::make_shared<milvus::Int64FieldData>("f2", ids_2), right_collection,
+                                       right_partitions);
+    EXPECT_TRUE(status.IsOk());
+
     status =
         arguments.SetLeftVectors(std::make_shared<milvus::Int64FieldData>("f1", ids_1), "", std::move(left_partitions));
     EXPECT_FALSE(status.IsOk());
@@ -153,14 +161,6 @@ TEST_F(CalcDistanceArgumentsTest, VectorIDs) {
     status = arguments.SetRightVectors(std::make_shared<milvus::Int64FieldData>("f2", ids_2), "",
                                        std::move(right_partitions));
     EXPECT_FALSE(status.IsOk());
-
-    status = arguments.SetLeftVectors(std::make_shared<milvus::Int64FieldData>("f1", ids_1), left_collection,
-                                      std::move(left_partitions));
-    EXPECT_TRUE(status.IsOk());
-
-    status = arguments.SetRightVectors(std::make_shared<milvus::Int64FieldData>("f2", ids_2), right_collection,
-                                       std::move(right_partitions));
-    EXPECT_TRUE(status.IsOk());
 
     EXPECT_NE(arguments.LeftVectors(), nullptr);
     EXPECT_NE(arguments.RightVectors(), nullptr);

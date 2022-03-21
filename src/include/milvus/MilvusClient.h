@@ -117,7 +117,7 @@ class MilvusClient {
      */
     virtual Status
     LoadCollection(const std::string& collection_name,
-                   const ProgressMonitor& progress_monitor = ProgressMonitor::Forever()) = 0;  // NOLINT
+                   const ProgressMonitor& progress_monitor = ProgressMonitor::Forever()) = 0;
 
     /**
      * Release collection data from query node.
@@ -150,7 +150,7 @@ class MilvusClient {
      */
     virtual Status
     GetCollectionStatistics(const std::string& collection_name, CollectionStat& collection_stat,
-                            const ProgressMonitor& progress_monitor = ProgressMonitor::Forever()) = 0;  // NOLINT
+                            const ProgressMonitor& progress_monitor = ProgressMonitor::Forever()) = 0;
 
     /**
      * If the collection_names is empty, list all collections brief informations. \n
@@ -207,7 +207,7 @@ class MilvusClient {
      */
     virtual Status
     LoadPartitions(const std::string& collection_name, const std::vector<std::string>& partition_names,
-                   const ProgressMonitor& progress_monitor = ProgressMonitor::Forever()) = 0;  // NOLINT
+                   const ProgressMonitor& progress_monitor = ProgressMonitor::Forever()) = 0;
 
     /**
      * Release specific partitions data of one collection into query nodes.
@@ -233,7 +233,7 @@ class MilvusClient {
     virtual Status
     GetPartitionStatistics(const std::string& collection_name, const std::string& partition_name,
                            PartitionStat& partition_stat,
-                           const ProgressMonitor& progress_monitor = ProgressMonitor::Forever()) = 0;  // NOLINT
+                           const ProgressMonitor& progress_monitor = ProgressMonitor::Forever()) = 0;
 
     /**
      * If the partition_names is empty, list all partitions brief informations. \n
@@ -289,7 +289,7 @@ class MilvusClient {
      */
     virtual Status
     CreateIndex(const std::string& collection_name, const IndexDesc& index_desc,
-                const ProgressMonitor& progress_monitor = ProgressMonitor::Forever()) = 0;  // NOLINT
+                const ProgressMonitor& progress_monitor = ProgressMonitor::Forever()) = 0;
 
     /**
      * Get index descriptions and parameters.
@@ -409,7 +409,7 @@ class MilvusClient {
      */
     virtual Status
     Flush(const std::vector<std::string>& collection_names,
-          const ProgressMonitor& progress_monitor = ProgressMonitor::Forever()) = 0;  // NOLINT
+          const ProgressMonitor& progress_monitor = ProgressMonitor::Forever()) = 0;
 
     /**
      * Get flush state of specified segments.

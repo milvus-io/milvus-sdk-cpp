@@ -14,29 +14,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#pragma once
+#include <gtest/gtest.h>
 
-namespace milvus {
+#include "milvus/types/ConnectParam.h"
 
-/**
- * @brief Data type of field
- */
-enum class DataType {
-    UNKNOWN = 0,
+class ConnectParamTest : public ::testing::Test {};
 
-    BOOL = 1,
-    INT8 = 2,
-    INT16 = 3,
-    INT32 = 4,
-    INT64 = 5,
-
-    FLOAT = 10,
-    DOUBLE = 11,
-
-    STRING = 20,
-
-    BINARY_VECTOR = 100,
-    FLOAT_VECTOR = 101,
-};
-
-}  // namespace milvus
+TEST_F(ConnectParamTest, GeneralTesting) {
+    milvus::ConnectParam param{"localhost", 10000};
+    EXPECT_EQ(param.Host(), "localhost");
+    EXPECT_EQ(param.Port(), 10000);
+    EXPECT_EQ(param.Uri(), "localhost:10000");
+}

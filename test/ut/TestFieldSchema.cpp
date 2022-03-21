@@ -16,6 +16,7 @@
 
 #include <gtest/gtest.h>
 
+#include "milvus/types/Constants.h"
 #include "milvus/types/FieldSchema.h"
 
 class FieldSchemaTest : public ::testing::Test {};
@@ -30,13 +31,16 @@ TEST_F(FieldSchemaTest, GeneralTesting) {
     params.insert(std::make_pair("dummy", "dummy"));
 
     milvus::FieldSchema schema;
+    EXPECT_EQ(schema.Dimension(), 0);
     schema.SetName(name);
     schema.SetDescription(desc);
     schema.SetDataType(dt);
     schema.SetPrimaryKey(is_primary_key);
     schema.SetAutoID(auto_id);
+    schema.SetTypeParams(params);
     schema.SetTypeParams(std::move(params));
-    schema.SetDimension(256);
+    EXPECT_TRUE(schema.SetDimension(256));
+    EXPECT_FALSE(schema.SetDimension(0));
 
     EXPECT_EQ(name, schema.Name());
     EXPECT_EQ(desc, schema.Description());

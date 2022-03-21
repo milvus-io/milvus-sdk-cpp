@@ -20,7 +20,24 @@
 
 namespace milvus {
 
-Status::Status(StatusCode code, const std::string& msg) : code_(code), msg_(msg) {
+Status::Status(StatusCode code, std::string msg) : code_(code), msg_(std::move(msg)) {
+}
+
+Status::Status() = default;
+
+Status
+Status::OK() {
+    return {};
+}
+
+bool
+Status::IsOk() const {
+    return code_ == StatusCode::OK;
+}
+
+StatusCode
+Status::Code() const {
+    return code_;
 }
 
 const std::string&

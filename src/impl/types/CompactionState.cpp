@@ -14,29 +14,52 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#pragma once
+#include "milvus/types/CompactionState.h"
+
+#include <string>
 
 namespace milvus {
 
-/**
- * @brief Data type of field
- */
-enum class DataType {
-    UNKNOWN = 0,
+CompactionState::CompactionState() = default;
 
-    BOOL = 1,
-    INT8 = 2,
-    INT16 = 3,
-    INT32 = 4,
-    INT64 = 5,
+CompactionStateCode
+CompactionState::State() const {
+    return state_code_;
+}
 
-    FLOAT = 10,
-    DOUBLE = 11,
+void
+CompactionState::SetState(CompactionStateCode state) {
+    state_code_ = state;
+}
 
-    STRING = 20,
+int64_t
+CompactionState::ExecutingPlan() const {
+    return executing_plan_;
+}
 
-    BINARY_VECTOR = 100,
-    FLOAT_VECTOR = 101,
-};
+void
+CompactionState::SetExecutingPlan(int64_t id) {
+    executing_plan_ = id;
+}
+
+int64_t
+CompactionState::TimeoutPlan() const {
+    return timeout_plan_;
+}
+
+void
+CompactionState::SetTimeoutPlan(int64_t id) {
+    timeout_plan_ = id;
+}
+
+int64_t
+CompactionState::CompletedPlan() const {
+    return completed_plan_;
+}
+
+void
+CompactionState::SetCompletedPlan(int64_t id) {
+    completed_plan_ = id;
+}
 
 }  // namespace milvus

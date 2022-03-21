@@ -14,29 +14,24 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#pragma once
+#include <gtest/gtest.h>
 
-namespace milvus {
+#include "milvus/types/CollectionDesc.h"
 
-/**
- * @brief Data type of field
- */
-enum class DataType {
-    UNKNOWN = 0,
+class CollectionDescTest : public ::testing::Test {};
 
-    BOOL = 1,
-    INT8 = 2,
-    INT16 = 3,
-    INT32 = 4,
-    INT64 = 5,
+TEST_F(CollectionDescTest, GeneralTesting) {
+    milvus::CollectionDesc desc;
+    milvus::CollectionSchema schema;
 
-    FLOAT = 10,
-    DOUBLE = 11,
+    desc.SetSchema(schema);
+    desc.SetSchema(milvus::CollectionSchema{"foo"});
+    EXPECT_EQ(desc.Schema().Name(), "foo");
 
-    STRING = 20,
+    std::vector<std::string> alias{"bar", "foobar"};
+    desc.SetAlias(alias);
+    EXPECT_EQ(desc.Alias().size(), 2);
 
-    BINARY_VECTOR = 100,
-    FLOAT_VECTOR = 101,
-};
-
-}  // namespace milvus
+    desc.SetCreatedTime(10000);
+    EXPECT_EQ(desc.CreatedTime(), 10000);
+}

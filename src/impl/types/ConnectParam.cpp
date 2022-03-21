@@ -14,29 +14,26 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#pragma once
+#include "milvus/types/ConnectParam.h"
 
 namespace milvus {
 
-/**
- * @brief Data type of field
- */
-enum class DataType {
-    UNKNOWN = 0,
+ConnectParam::ConnectParam(std::string host, uint16_t port) : host_(std::move(host)), port_(port) {
+}
 
-    BOOL = 1,
-    INT8 = 2,
-    INT16 = 3,
-    INT32 = 4,
-    INT64 = 5,
+const std::string&
+ConnectParam::Host() const {
+    return host_;
+}
 
-    FLOAT = 10,
-    DOUBLE = 11,
+uint16_t
+ConnectParam::Port() const {
+    return port_;
+}
 
-    STRING = 20,
-
-    BINARY_VECTOR = 100,
-    FLOAT_VECTOR = 101,
-};
+const std::string
+ConnectParam::Uri() const {
+    return host_ + ":" + std::to_string(port_);
+}
 
 }  // namespace milvus

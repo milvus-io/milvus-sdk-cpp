@@ -14,58 +14,43 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "milvus/types/CollectionDesc.h"
+#include "milvus/types/CompactionPlan.h"
 
 namespace milvus {
 
-const CollectionSchema&
-CollectionDesc::Schema() const {
-    return schema_;
+CompactionPlan::CompactionPlan() = default;
+
+CompactionPlan::CompactionPlan(const std::vector<int64_t>& segments, int64_t dst_segment)
+    : src_segments_(segments), dst_segment_(dst_segment) {
+}
+
+CompactionPlan::CompactionPlan(std::vector<int64_t>&& segments, int64_t dst_segment)
+    : src_segments_(std::move(segments)), dst_segment_(dst_segment) {
+}
+
+const std::vector<int64_t>&
+CompactionPlan::SourceSegments() const {
+    return src_segments_;
 }
 
 void
-CollectionDesc::SetSchema(const CollectionSchema& schema) {
-    schema_ = schema;
+CompactionPlan::SetSourceSegments(const std::vector<int64_t>& segments) {
+    src_segments_ = segments;
 }
 
 void
-CollectionDesc::SetSchema(CollectionSchema&& schema) {
-    schema_ = std::move(schema);
+CompactionPlan::SetSourceSegments(std::vector<int64_t>&& segments) {
+    src_segments_ = std::move(segments);
 }
 
 int64_t
-CollectionDesc::ID() const {
-    return collection_id_;
+CompactionPlan::DestinySegemnt() const {
+    return dst_segment_;
 }
 
 void
-CollectionDesc::SetID(int64_t id) {
-    collection_id_ = id;
-}
-
-const std::vector<std::string>&
-CollectionDesc::Alias() const {
-    return alias_;
-}
-
-void
-CollectionDesc::SetAlias(const std::vector<std::string>& alias) {
-    alias_ = alias;
-}
-
-void
-CollectionDesc::SetAlias(std::vector<std::string>&& alias) {
-    alias_ = std::move(alias);
-}
-
-uint64_t
-CollectionDesc::CreatedTime() const {
-    return created_utc_timestamp_;
-}
-
-void
-CollectionDesc::SetCreatedTime(uint64_t ts) {
-    created_utc_timestamp_ = ts;
+CompactionPlan::SetDestinySegemnt(int64_t id) {
+    dst_segment_ = id;
 }
 
 }  // namespace milvus

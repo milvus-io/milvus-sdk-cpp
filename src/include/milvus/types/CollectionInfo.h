@@ -16,7 +16,6 @@
 
 #pragma once
 
-#include <memory>
 #include <string>
 #include <vector>
 
@@ -36,18 +35,7 @@ class CollectionInfo {
     /**
      * @brief Constructor
      */
-    CollectionInfo(const std::string& collection_name, int64_t collection_id, uint64_t create_time,
-                   uint64_t load_percentage);
-
-    /**
-     * @brief Construct a new Collection Info object
-     */
-    CollectionInfo(CollectionInfo&&) noexcept;
-
-    /**
-     * @brief Destroy the Collection Info object
-     */
-    ~CollectionInfo();
+    CollectionInfo(std::string collection_name, int64_t collection_id, uint64_t create_time, uint64_t load_percentage);
 
     /**
      * @brief Name of the collection.
@@ -74,8 +62,10 @@ class CollectionInfo {
     MemoryPercentage() const;
 
  private:
-    struct Impl;
-    std::unique_ptr<Impl> impl_;
+    std::string name_;
+    int64_t collection_id_ = 0;
+    uint64_t created_utc_timestamp_ = 0;
+    uint64_t in_memory_percentage_ = 0;
 };
 
 /**

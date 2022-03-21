@@ -26,46 +26,51 @@ namespace milvus {
  */
 class CompactionPlan {
  public:
-    CompactionPlan() = default;
+    /**
+     * @brief Construct a new Compaction Plan object
+     *
+     */
+    CompactionPlan();
 
     /**
      * @brief Constructor
      */
-    explicit CompactionPlan(std::vector<int64_t>&& segments, int64_t dst_segment)
-        : src_segments_(std::move(segments)), dst_segment_(dst_segment) {
-    }
+    CompactionPlan(const std::vector<int64_t>& segments, int64_t dst_segment);
+
+    /**
+     * @brief Constructor
+     */
+    CompactionPlan(std::vector<int64_t>&& segments, int64_t dst_segment);
 
     /**
      * @brief Segment id array to be merged.
      */
     const std::vector<int64_t>&
-    SourceSegments() const {
-        return src_segments_;
-    }
+    SourceSegments() const;
 
     /**
      * @brief Set segment id array to be merged.
      */
     void
-    SetSourceSegments(std::vector<int64_t>&& segments) {
-        src_segments_ = std::move(segments);
-    }
+    SetSourceSegments(const std::vector<int64_t>& segments);
+
+    /**
+     * @brief Set segment id array to be merged.
+     */
+    void
+    SetSourceSegments(std::vector<int64_t>&& segments);
 
     /**
      * @brief New generated segment id after merging.
      */
     int64_t
-    DestinySegemnt() const {
-        return dst_segment_;
-    }
+    DestinySegemnt() const;
 
     /**
      * @brief Set segment id.
      */
     void
-    SetDestinySegemnt(int64_t id) {
-        dst_segment_ = id;
-    }
+    SetDestinySegemnt(int64_t id);
 
  private:
     std::vector<int64_t> src_segments_;

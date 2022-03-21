@@ -18,6 +18,7 @@
 
 #include <memory>
 #include <string>
+#include <unordered_map>
 
 #include "../Status.h"
 #include "IndexType.h"
@@ -44,18 +45,8 @@ class IndexDesc {
      * @param metric_type  metric type see MetricType
      * @param index_id internal id of the index reserved for funture feature
      */
-    IndexDesc(const std::string& field_name, const std::string& index_name, milvus::IndexType index_type,
+    IndexDesc(std::string field_name, std::string index_name, milvus::IndexType index_type,
               milvus::MetricType metric_type, int64_t index_id = 0);
-
-    /**
-     * @brief Construct a new Index Desc object
-     */
-    IndexDesc(IndexDesc&&) noexcept;
-
-    /**
-     * @brief Destroy the Index Desc object
-     */
-    ~IndexDesc();
 
     /**
      * @brief Filed name which the index belong to.
@@ -67,7 +58,7 @@ class IndexDesc {
      * @brief Set field name which the index belong to.
      */
     Status
-    SetFieldName(const std::string& field_name);
+    SetFieldName(std::string field_name);
 
     /**
      * @brief Index name. Index name cannot be empty.
@@ -79,7 +70,7 @@ class IndexDesc {
      * @brief Set index name.
      */
     Status
-    SetIndexName(const std::string& index_name);
+    SetIndexName(std::string index_name);
 
     /**
      * @brief Index ID.
@@ -127,14 +118,14 @@ class IndexDesc {
      * @brief Add param, current all param is a numberic value
      */
     Status
-    AddExtraParam(const std::string& key, int64_t value);
+    AddExtraParam(std::string key, int64_t value);
 
     /**
      * @brief Construct a new Index Desc:: From Json object
      * @param json Json string for parse
      */
     Status
-    ExtraParamsFromJson(const std::string& json);
+    ExtraParamsFromJson(std::string json);
 
     /**
      * @brief Validate for create index
@@ -144,9 +135,12 @@ class IndexDesc {
     Validate() const;
 
  private:
-    struct Impl;
-
-    std::unique_ptr<Impl> impl_;
+    std::string field_name_;
+    std::string index_name_;
+    int64_t index_id_{0};
+    milvus::MetricType metric_type_{milvus::MetricType::INVALID};
+    milvus::IndexType index_type_{milvus::IndexType::INVALID};
+    std::unordered_map<std::string, int64_t> extra_params_;
 };
 
 }  // namespace milvus

@@ -29,105 +29,75 @@ namespace milvus {
  */
 class CollectionSchema {
  public:
-    CollectionSchema() = default;
+    /**
+     * @brief Constructor
+     */
+    CollectionSchema();
 
     /**
      * @brief Constructor
      */
-    explicit CollectionSchema(const std::string& name, const std::string& desc = "", int32_t shard_num = 2)
-        : name_(name), description_(desc), shard_num_(shard_num) {
-    }
+    explicit CollectionSchema(std::string name, std::string desc = "", int32_t shard_num = 2);
 
     /**
      * @brief Collection name, cannot be empty.
      */
     const std::string&
-    Name() const {
-        return name_;
-    }
+    Name() const;
 
     /**
      * @brief Set collection name, cannot be empty.
      */
     void
-    SetName(const std::string& name) {
-        name_ = name;
-    }
+    SetName(std::string name);
 
     /**
      * @brief Collection description, can be empty.
      */
     const std::string&
-    Description() const {
-        return description_;
-    }
+    Description() const;
 
     /**
      * @brief Set collection description, can be empty.
      */
     void
-    SetDescription(const std::string& description) {
-        description_ = description;
-    }
+    SetDescription(std::string description);
 
     /**
      * @brief Collection shards number, the number must be larger than zero, default value is 2.
      */
     int32_t
-    ShardsNum() const {
-        return shard_num_;
-    }
+    ShardsNum() const;
 
     /**
      * @brief Set shards number, the number must be larger than zero, default value is 2.
      */
     void
-    SetShardsNum(int32_t num) {
-        shard_num_ = num;
-    }
+    SetShardsNum(int32_t num);
 
     /**
      * @brief Fields schema array.
      */
     const std::vector<FieldSchema>&
-    Fields() const {
-        return fields_;
-    }
+    Fields() const;
 
     /**
      * @brief Add a field schema.
      */
     bool
-    AddField(const FieldSchema& field_schema) {
-        // TODO: check duplicate field name
-        fields_.emplace_back(field_schema);
-        return true;
-    }
+    AddField(const FieldSchema& field_schema);
 
     /**
      * @brief Add a field schema.
      */
     bool
-    AddField(FieldSchema&& field_schema) {
-        // TODO: check duplicate field name
-        fields_.emplace_back(std::move(field_schema));
-        return true;
-    }
+    AddField(FieldSchema&& field_schema);
 
     /**
      * @brief Return Anns field names.
      */
     std::unordered_set<std::string>
-    AnnsFieldNames() const {
-        std::unordered_set<std::string> ret;
-        for (const auto& field : fields_) {
-            auto data_type = field.FieldDataType();
-            if (data_type == DataType::BINARY_VECTOR || data_type == DataType::FLOAT_VECTOR) {
-                ret.emplace(field.Name());
-            }
-        }
-        return ret;
-    }
+    AnnsFieldNames() const;
 
  private:
     std::string name_;

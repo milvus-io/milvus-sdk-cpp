@@ -16,7 +16,7 @@
 
 #pragma once
 
-#include <string>
+#include <cstdint>
 
 namespace milvus {
 
@@ -34,71 +34,55 @@ enum class CompactionStateCode {
  */
 class CompactionState {
  public:
-    CompactionState() = default;
+    CompactionState();
 
     /**
      * @brief Compaction state code.
      */
     CompactionStateCode
-    State() const {
-        return state_code_;
-    }
+    State() const;
 
     /**
      * @brief Set compaction state code.
      */
     void
-    SetState(const CompactionStateCode& state) {
-        state_code_ = state;
-    }
+    SetState(CompactionStateCode state);
 
     /**
      * @brief The executing plan id.
      */
     int64_t
-    ExecutingPlan() const {
-        return executing_plan_;
-    }
+    ExecutingPlan() const;
 
     /**
      * @brief Set the executing plan id.
      */
     void
-    SetExecutingPlan(const int64_t id) {
-        executing_plan_ = id;
-    }
+    SetExecutingPlan(int64_t id);
 
     /**
      * @brief The timeout plan id.
      */
     int64_t
-    TimeoutPlan() const {
-        return timeout_plan_;
-    }
+    TimeoutPlan() const;
 
     /**
      * @brief Set the timeout plan id.
      */
     void
-    SetTimeoutPlan(const int64_t id) {
-        timeout_plan_ = id;
-    }
+    SetTimeoutPlan(int64_t id);
 
     /**
      * @brief The completed plan id.
      */
     int64_t
-    CompletedPlan() const {
-        return completed_plan_;
-    }
+    CompletedPlan() const;
 
     /**
      * @brief Set the completed plan id.
      */
     void
-    SetCompletedPlan(const int64_t id) {
-        completed_plan_ = id;
-    }
+    SetCompletedPlan(int64_t id);
 
  private:
     CompactionStateCode state_code_{CompactionStateCode::UNKNOWN};

@@ -19,8 +19,6 @@
 #include <string>
 #include <unordered_map>
 
-#include "Constants.h"
-
 namespace milvus {
 
 /**
@@ -28,50 +26,37 @@ namespace milvus {
  */
 class CollectionStat {
  public:
-    CollectionStat() = default;
+    /**
+     * @brief Construct a new Collection Stat object
+     */
+    CollectionStat();
 
     /**
      * @brief Return row count of this collection.
      *
      */
     uint64_t
-    RowCount() const {
-        const auto iter = statistics_.find(KeyRowCount());
-        if (iter == statistics_.end()) {
-            // TODO: throw exception or log
-            return 0;
-        }
-
-        std::string str = iter->second;
-
-        return atol(str.c_str());
-    }
+    RowCount() const;
 
     /**
      * @brief Set collection name
      *
      */
     void
-    SetName(std::string name) {
-        name_ = std::move(name);
-    }
+    SetName(std::string name);
 
     /**
      * @brief Get collection name
      *
      */
     const std::string&
-    Name() const {
-        return name_;
-    }
+    Name() const;
 
     /**
      * @brief add key/value pair for collection statistics
      */
     void
-    Emplace(std::string key, std::string value) {
-        statistics_.emplace(std::move(key), std::move(value));
-    }
+    Emplace(std::string key, std::string value);
 
  private:
     std::string name_;
