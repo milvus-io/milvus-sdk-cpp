@@ -28,47 +28,29 @@ namespace milvus {
  */
 class QueryResults {
  public:
-    QueryResults() = default;
+    QueryResults();
 
     /**
      * @brief Constructor
      */
-    explicit QueryResults(const std::vector<FieldDataPtr>& output_fields) {
-        output_fields_ = output_fields;
-    }
+    explicit QueryResults(const std::vector<FieldDataPtr>& output_fields);
 
     /**
      * @brief Constructor
      */
-    explicit QueryResults(std::vector<FieldDataPtr>&& output_fields) {
-        output_fields_ = std::move(output_fields);
-    }
+    explicit QueryResults(std::vector<FieldDataPtr>&& output_fields);
 
     /**
      * @brief Get output field data by name.
      */
     FieldDataPtr
-    GetFieldByName(const std::string& name) {
-        for (FieldDataPtr& field : output_fields_) {
-            if (nullptr == field) {
-                continue;
-            }
-
-            if (field->Name() == name) {
-                return field;
-            }
-        }
-
-        return nullptr;
-    }
+    GetFieldByName(const std::string& name);
 
     /**
      * @brief Get all output fields data.
      */
     const std::vector<FieldDataPtr>&
-    OutputFields() const {
-        return output_fields_;
-    }
+    OutputFields() const;
 
  private:
     std::vector<FieldDataPtr> output_fields_;

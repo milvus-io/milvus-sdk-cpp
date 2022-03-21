@@ -23,17 +23,27 @@ class IDArrayTest : public ::testing::Test {};
 TEST_F(IDArrayTest, GeneralTesting) {
     {
         std::vector<int64_t> ids = {1, 2, 3};
-        milvus::IDArray id_array(ids);
-        EXPECT_TRUE(id_array.IsIntegerID());
-        EXPECT_EQ(id_array.IntIDArray().size(), ids.size());
-        EXPECT_TRUE(id_array.StrIDArray().empty());
+        milvus::IDArray id_array_foo(ids);
+        EXPECT_TRUE(id_array_foo.IsIntegerID());
+        EXPECT_EQ(id_array_foo.IntIDArray().size(), 3);
+        EXPECT_TRUE(id_array_foo.StrIDArray().empty());
+
+        milvus::IDArray id_array_bar(std::move(ids));
+        EXPECT_TRUE(id_array_bar.IsIntegerID());
+        EXPECT_EQ(id_array_bar.IntIDArray().size(), 3);
+        EXPECT_TRUE(id_array_bar.StrIDArray().empty());
     }
 
     {
         std::vector<std::string> ids = {"a", "b", "c"};
-        milvus::IDArray id_array(ids);
-        EXPECT_FALSE(id_array.IsIntegerID());
-        EXPECT_EQ(id_array.StrIDArray().size(), ids.size());
-        EXPECT_TRUE(id_array.IntIDArray().empty());
+        milvus::IDArray id_array_foo(ids);
+        EXPECT_FALSE(id_array_foo.IsIntegerID());
+        EXPECT_EQ(id_array_foo.StrIDArray().size(), 3);
+        EXPECT_TRUE(id_array_foo.IntIDArray().empty());
+
+        milvus::IDArray id_array_bar(std::move(ids));
+        EXPECT_FALSE(id_array_bar.IsIntegerID());
+        EXPECT_EQ(id_array_bar.StrIDArray().size(), 3);
+        EXPECT_TRUE(id_array_bar.IntIDArray().empty());
     }
 }

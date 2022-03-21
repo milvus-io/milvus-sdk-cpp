@@ -33,11 +33,6 @@ namespace milvus {
 class SearchArguments {
  public:
     /**
-     * @brief Construct a new Search Arguments object
-     */
-    SearchArguments();
-
-    /**
      * @brief Get name of the target collection
      */
     const std::string&

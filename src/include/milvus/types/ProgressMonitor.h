@@ -26,21 +26,18 @@ namespace milvus {
  * @brief Notify progress of a request, returned by callback function of ProgressMonitor
  */
 struct Progress {
-    Progress() = default;
+    Progress();
 
     /**
      * @brief Constructor
      */
-    Progress(uint32_t finished, uint32_t total) : finished_(finished), total_(total) {
-    }
+    Progress(uint32_t finished, uint32_t total);
 
     /**
      * @brief The progress is done or not
      */
     bool
-    Done() const {
-        return finished_ >= total_;
-    }
+    Done() const;
 
     /**
      * @brief How much work is finised
@@ -56,10 +53,8 @@ struct Progress {
 /**
  * @brief To test two Progress are equal
  */
-inline bool
-operator==(const Progress& a, const Progress& b) {
-    return a.finished_ == b.finished_ && a.total_ == b.total_;
-}
+bool
+operator==(const Progress& a, const Progress& b);
 
 /**
  * @brief Monitor progress of a request
@@ -76,29 +71,24 @@ class ProgressMonitor {
      *
      * @param [in] check_timeout set the value to controls the time duration to wait the progress. Unit: second.
      */
-    explicit ProgressMonitor(uint32_t check_timeout) : check_timeout_(check_timeout) {
-    }
+    explicit ProgressMonitor(uint32_t check_timeout);
 
     /**
      * @brief Default progress setting. Default timeout value: 60 seconds.
      */
-    ProgressMonitor() = default;
+    ProgressMonitor();
 
     /**
      * @brief time duration to wait the progress complete.
      */
     uint32_t
-    CheckTimeout() const {
-        return check_timeout_;
-    }
+    CheckTimeout() const;
 
     /**
      * @brief time interval to check the progress state.
      */
     uint32_t
-    CheckInterval() const {
-        return check_interval_;
-    }
+    CheckInterval() const;
 
     /**
      * @brief Set time interval to check the progress state.
@@ -107,19 +97,13 @@ class ProgressMonitor {
      * check progress state. Unit: millisecond. Default value: 500 milliseconds.
      */
     void
-    SetCheckInterval(uint32_t check_interval) {
-        check_interval_ = check_interval;
-    }
+    SetCheckInterval(uint32_t check_interval);
 
     /**
      * @brief Trigger the call back function to notify progress
      */
     void
-    DoProgress(Progress& p) const {
-        if (callback_func_ != nullptr) {
-            callback_func_(p);
-        }
-    }
+    DoProgress(Progress& p) const;
 
     /**
      * @brief Set call back function to receive progress notification.
@@ -127,25 +111,19 @@ class ProgressMonitor {
      * @param [in] func call back function to recieve progress notification.
      */
     void
-    SetCallbackFunc(const CallbackFunc& func) {
-        callback_func_ = func;
-    }
+    SetCallbackFunc(CallbackFunc func);
 
     /**
      * @brief Immediately return without waiting request finished
      */
     static ProgressMonitor
-    NoWait() {
-        return ProgressMonitor{0};
-    }
+    NoWait();
 
     /**
      * @brief A monitor to wait request until it is finished
      */
     static ProgressMonitor
-    Forever() {
-        return ProgressMonitor{std::numeric_limits<uint32_t>::max()};
-    }
+    Forever();
 
  private:
     uint32_t check_interval_{500};

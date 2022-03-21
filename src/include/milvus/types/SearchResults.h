@@ -31,46 +31,31 @@ struct SingleResult {
     /**
      * @brief Constructor
      */
-    SingleResult(IDArray&& ids, std::vector<float>&& scores, std::vector<FieldDataPtr>&& output_fields)
-        : ids_{std::move(ids)}, scores_{std::move(scores)}, output_fields_{std::move(output_fields)} {
-    }
+    SingleResult(IDArray&& ids, std::vector<float>&& scores, std::vector<FieldDataPtr>&& output_fields);
 
     /**
      * @brief Distances/scores array of one target vector
      */
     const std::vector<float>&
-    Scores() const {
-        return scores_;
-    }
+    Scores() const;
 
     /**
      * @brief Topk id array of one target vecotor
      */
     const IDArray&
-    Ids() const {
-        return ids_;
-    }
+    Ids() const;
 
     /**
      * @brief Output fields data
      */
     const std::vector<FieldDataPtr>&
-    OutputFields() const {
-        return output_fields_;
-    }
+    OutputFields() const;
 
     /**
      * @brief Get an output field by name
      */
     const FieldDataPtr
-    OutputField(const std::string& name) const {
-        for (const auto& output_field : output_fields_) {
-            if (output_field->Name() == name) {
-                return output_field;
-            }
-        }
-        return nullptr;
-    }
+    OutputField(const std::string& name) const;
 
  private:
     IDArray ids_;
@@ -83,22 +68,18 @@ struct SingleResult {
  */
 class SearchResults {
  public:
-    SearchResults() = default;
+    SearchResults();
 
     /**
      * @brief Constructor
      */
-    explicit SearchResults(std::vector<SingleResult>&& results) {
-        nq_results_.swap(results);
-    }
+    explicit SearchResults(std::vector<SingleResult>&& results);
 
     /**
      * @brief Get search results.
      */
     std::vector<SingleResult>&
-    Results() {
-        return nq_results_;
-    }
+    Results();
 
  private:
     std::vector<SingleResult> nq_results_{};

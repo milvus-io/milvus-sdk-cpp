@@ -30,41 +30,43 @@ class IDArray {
     /**
      * @brief Constructor
      */
-    explicit IDArray(std::vector<int64_t> id_array) : int_id_array_(std::move(id_array)) {
-    }
+    explicit IDArray(const std::vector<int64_t>& id_array);
 
     /**
      * @brief Constructor
      */
-    explicit IDArray(std::vector<std::string> id_array) : str_id_array_(std::move(id_array)), is_int_array_{false} {
-    }
+    explicit IDArray(std::vector<int64_t>&& id_array);
+
+    /**
+     * @brief Constructor
+     */
+    explicit IDArray(const std::vector<std::string>& id_array);
+
+    /**
+     * @brief Constructor
+     */
+    explicit IDArray(std::vector<std::string>&& id_array);
 
     /**
      * @brief Indicate this is an integer id array
      */
     bool
-    IsIntegerID() const {
-        return is_int_array_;
-    }
+    IsIntegerID() const;
 
     /**
      * @brief Return integer id array
      */
     const std::vector<int64_t>&
-    IntIDArray() const {
-        return int_id_array_;
-    }
+    IntIDArray() const;
 
     /**
      * @brief Return string id array
      */
     const std::vector<std::string>&
-    StrIDArray() const {
-        return str_id_array_;
-    }
+    StrIDArray() const;
 
  private:
-    bool is_int_array_ = true;
+    bool is_int_array_{true};
     std::vector<int64_t> int_id_array_;
     std::vector<std::string> str_id_array_;
 };

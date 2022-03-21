@@ -16,16 +16,20 @@
 
 #include <gtest/gtest.h>
 
-#include "milvus/types/PartitionStat.h"
+#include "milvus/types/QueryResults.h"
 
-class PartitionStatTest : public ::testing::Test {};
+class QueryResultsTest : public ::testing::Test {};
 
-TEST_F(PartitionStatTest, GeneralTesting) {
-    milvus::PartitionStat stat;
-    stat.SetName("foo");
-    EXPECT_EQ(stat.Name(), "foo");
-    EXPECT_EQ(stat.RowCount(), 0);
+TEST_F(QueryResultsTest, GeneralTesting) {
+    std::vector<milvus::FieldDataPtr> fields{
+        nullptr,
+        std::make_shared<milvus::BoolFieldData>("bool_data"),
+        std::make_shared<milvus::Int16FieldData>("int16_data"),
+    };
 
-    stat.Emplace("row_count", "1000");
-    EXPECT_EQ(stat.RowCount(), 1000);
+    milvus::QueryResults results(fields);
+    EXPECT_EQ(results.GetFieldByName("foo"), nullptr);
+    EXPECT_EQ(results.GetFieldByName("int16_data")->Name(), "int16_data");
+
+    EXPECT_EQ(results.OutputFields().front(), nullptr);
 }

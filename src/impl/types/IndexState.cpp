@@ -14,49 +14,47 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#pragma once
-
-#include <string>
-#include <unordered_map>
-
-#include "Constants.h"
+#include "milvus/types/IndexState.h"
 
 namespace milvus {
 
-/**
- * @brief Partition statistics returned by MilvusClient::GetPartitionStatistics().
- */
-class PartitionStat {
- public:
-    /**
-     * @brief Return row count of this partition.
-     *
-     * @return uint64_t row count of this partition
-     */
-    uint64_t
-    RowCount() const;
+IndexStateCode
+IndexState::StateCode() const {
+    return state_code_;
+}
 
-    /**
-     *  @brief Set partition name
-     */
-    void
-    SetName(std::string name);
+void
+IndexState::SetStateCode(IndexStateCode state_code) {
+    state_code_ = state_code;
+}
 
-    /**
-     *  @brief Get partition name
-     */
-    const std::string&
-    Name() const;
+std::string
+IndexState::FailedReason() const {
+    return failed_reason_;
+}
+void
+IndexState::SetFailedReason(std::string failed_reason) {
+    failed_reason_ = std::move(failed_reason);
+}
 
-    /**
-     * @brief add key/value pair for partition statistics
-     */
-    void
-    Emplace(std::string key, std::string value);
+int64_t
+IndexProgress::IndexedRows() const {
+    return indexed_rows_;
+}
 
- private:
-    std::string name_;
-    std::unordered_map<std::string, std::string> statistics_;
-};
+void
+IndexProgress::SetIndexedRows(int64_t indexed_rows) {
+    indexed_rows_ = indexed_rows;
+}
+
+int64_t
+IndexProgress::TotalRows() const {
+    return total_rows_;
+}
+
+void
+IndexProgress::SetTotalRows(int64_t total_rows) {
+    total_rows_ = total_rows;
+}
 
 }  // namespace milvus

@@ -14,49 +14,32 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#pragma once
-
-#include <string>
-#include <unordered_map>
-
-#include "Constants.h"
+#include "milvus/types/PartitionStat.h"
 
 namespace milvus {
+uint64_t
+PartitionStat::RowCount() const {
+    const auto iter = statistics_.find(KeyRowCount());
+    if (iter == statistics_.end()) {
+        // TODO: throw exception or log
+        return 0;
+    }
+    return std::atoll(iter->second.c_str());
+}
 
-/**
- * @brief Partition statistics returned by MilvusClient::GetPartitionStatistics().
- */
-class PartitionStat {
- public:
-    /**
-     * @brief Return row count of this partition.
-     *
-     * @return uint64_t row count of this partition
-     */
-    uint64_t
-    RowCount() const;
+void
+PartitionStat::SetName(std::string name) {
+    name_ = std::move(name);
+}
 
-    /**
-     *  @brief Set partition name
-     */
-    void
-    SetName(std::string name);
+const std::string&
+PartitionStat::Name() const {
+    return name_;
+}
 
-    /**
-     *  @brief Get partition name
-     */
-    const std::string&
-    Name() const;
-
-    /**
-     * @brief add key/value pair for partition statistics
-     */
-    void
-    Emplace(std::string key, std::string value);
-
- private:
-    std::string name_;
-    std::unordered_map<std::string, std::string> statistics_;
-};
+void
+PartitionStat::Emplace(std::string key, std::string value) {
+    statistics_.emplace(std::move(key), std::move(value));
+}
 
 }  // namespace milvus

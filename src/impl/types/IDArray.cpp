@@ -14,49 +14,35 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#pragma once
-
-#include <string>
-#include <unordered_map>
-
-#include "Constants.h"
+#include "milvus/types/IDArray.h"
 
 namespace milvus {
 
-/**
- * @brief Partition statistics returned by MilvusClient::GetPartitionStatistics().
- */
-class PartitionStat {
- public:
-    /**
-     * @brief Return row count of this partition.
-     *
-     * @return uint64_t row count of this partition
-     */
-    uint64_t
-    RowCount() const;
+IDArray::IDArray(const std::vector<int64_t>& id_array) : int_id_array_(id_array) {
+}
 
-    /**
-     *  @brief Set partition name
-     */
-    void
-    SetName(std::string name);
+IDArray::IDArray(std::vector<int64_t>&& id_array) : int_id_array_(std::move(id_array)) {
+}
 
-    /**
-     *  @brief Get partition name
-     */
-    const std::string&
-    Name() const;
+IDArray::IDArray(const std::vector<std::string>& id_array) : str_id_array_(id_array), is_int_array_{false} {
+}
 
-    /**
-     * @brief add key/value pair for partition statistics
-     */
-    void
-    Emplace(std::string key, std::string value);
+IDArray::IDArray(std::vector<std::string>&& id_array) : str_id_array_(std::move(id_array)), is_int_array_{false} {
+}
 
- private:
-    std::string name_;
-    std::unordered_map<std::string, std::string> statistics_;
-};
+bool
+IDArray::IsIntegerID() const {
+    return is_int_array_;
+}
+
+const std::vector<int64_t>&
+IDArray::IntIDArray() const {
+    return int_id_array_;
+}
+
+const std::vector<std::string>&
+IDArray::StrIDArray() const {
+    return str_id_array_;
+}
 
 }  // namespace milvus
