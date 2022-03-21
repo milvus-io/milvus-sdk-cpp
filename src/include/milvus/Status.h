@@ -54,32 +54,26 @@ class Status {
     /**
      * @brief Constructor of Status
      */
-    Status(StatusCode code, const std::string& msg);
-    Status() = default;
+    Status(StatusCode code, std::string msg);
+    Status();
 
     /**
      * @brief A success status
      */
     static Status
-    OK() {
-        return Status{};
-    }
+    OK();
 
     /**
      * @brief Indicate the status is ok
      */
     bool
-    IsOk() const {
-        return code_ == StatusCode::OK;
-    }
+    IsOk() const;
 
     /**
      * @brief Return the status code
      */
     StatusCode
-    Code() const {
-        return code_;
-    }
+    Code() const;
 
     /**
      * @brief Return the error message

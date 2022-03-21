@@ -28,28 +28,36 @@ namespace milvus {
  */
 class DistanceArray {
  public:
-    DistanceArray() = default;
+    /**
+     * @brief Constructor
+     */
+    DistanceArray();
 
     /**
      * @brief Constructor
      */
-    explicit DistanceArray(std::vector<std::vector<int32_t>> distance_array)
-        : int_array_(std::move(distance_array)), is_int_distance_{true} {
-    }
+    explicit DistanceArray(const std::vector<std::vector<int32_t>>& distance_array);
 
     /**
      * @brief Constructor
      */
-    explicit DistanceArray(std::vector<std::vector<float>> distance_array) : float_array_(std::move(distance_array)) {
-    }
+    explicit DistanceArray(std::vector<std::vector<int32_t>>&& distance_array);
+
+    /**
+     * @brief Constructor
+     */
+    explicit DistanceArray(const std::vector<std::vector<float>>& distance_array);
+
+    /**
+     * @brief Constructor
+     */
+    explicit DistanceArray(std::vector<std::vector<float>>&& distance_array);
 
     /**
      * @brief Test the distance is float or integer
      */
     bool
-    IsIntegerDistance() const {
-        return is_int_distance_;
-    }
+    IsIntegerDistance() const;
 
     /**
      * @brief Integer distance 2-d array.
@@ -60,19 +68,19 @@ class DistanceArray {
      *
      */
     const std::vector<std::vector<int32_t>>&
-    IntDistanceArray() const {
-        return int_array_;
-    }
+    IntDistanceArray() const;
 
     /**
      * @brief Set integer distance array
      */
     void
-    SetIntDistance(std::vector<std::vector<int32_t>>&& distance_array) {
-        int_array_ = std::move(distance_array);
-        float_array_.clear();
-        is_int_distance_ = true;
-    }
+    SetIntDistance(const std::vector<std::vector<int32_t>>& distance_array);
+
+    /**
+     * @brief Set integer distance array
+     */
+    void
+    SetIntDistance(std::vector<std::vector<int32_t>>&& distance_array);
 
     /**
      * @brief Float distance 2-d arraywe called.
@@ -82,22 +90,22 @@ class DistanceArray {
      *        The returned distances are arranged like this: [[D_1_a, D_1_b], [D_2_a, D_2_b], [D_3_a, D_3_b]]
      */
     const std::vector<std::vector<float>>&
-    FloatDistanceArray() const {
-        return float_array_;
-    }
+    FloatDistanceArray() const;
 
     /**
      * @brief Set float distance array
      */
     void
-    SetFloatDistance(std::vector<std::vector<float>>&& distance_array) {
-        float_array_ = std::move(distance_array);
-        int_array_.clear();
-        is_int_distance_ = false;
-    }
+    SetFloatDistance(const std::vector<std::vector<float>>& distance_array);
+
+    /**
+     * @brief Set float distance array
+     */
+    void
+    SetFloatDistance(std::vector<std::vector<float>>&& distance_array);
 
  private:
-    bool is_int_distance_ = false;
+    bool is_int_distance_{false};
     std::vector<std::vector<int32_t>> int_array_;
     std::vector<std::vector<float>> float_array_;
 };

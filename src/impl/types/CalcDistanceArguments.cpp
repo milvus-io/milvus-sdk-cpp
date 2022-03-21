@@ -17,56 +17,28 @@
 #include "milvus/types/CalcDistanceArguments.h"
 
 #include <algorithm>
+#include <functional>
 #include <set>
 #include <unordered_map>
 
+#include "../TypeUtils.h"
+
 namespace milvus {
 
-struct CalcDistanceArguments::Impl {
-    FieldDataPtr vectors_left_;
-    FieldDataPtr vectors_right_;
-
-    std::string metric_ = "L2";
-    bool sqrt_ = false;      // only for "L2"
-    int32_t dimension_ = 0;  // only for "HAMMING" and "TANIMOTO"
-
-    // only for id array
-    std::string collection_left_;
-    std::vector<std::string> partitions_left_;
-    std::string collection_right_;
-    std::vector<std::string> partitions_right_;
-};
-
-CalcDistanceArguments::CalcDistanceArguments() : impl_(new Impl) {
-}
-
-CalcDistanceArguments::CalcDistanceArguments(CalcDistanceArguments&&) noexcept = default;
-
-CalcDistanceArguments::~CalcDistanceArguments() = default;
-
+namespace {
+template <typename VectorPtr>
 Status
-CalcDistanceArguments::SetLeftVectors(const FloatVecFieldDataPtr& vectors) {
+validate_vectors_with_oper(const VectorPtr& vectors, std::function<void()> func) {
     if (nullptr == vectors || vectors->Count() == 0) {
         return {StatusCode::INVALID_AGUMENT, "Input vectors cannot be empty!"};
     }
-
-    impl_->vectors_left_ = vectors;
+    func();
     return Status::OK();
 }
 
+template <typename Name>
 Status
-CalcDistanceArguments::SetLeftVectors(const BinaryVecFieldDataPtr& vectors) {
-    if (nullptr == vectors || vectors->Count() == 0) {
-        return {StatusCode::INVALID_AGUMENT, "Input vectors cannot be empty!"};
-    }
-
-    impl_->vectors_left_ = vectors;
-    return Status::OK();
-}
-
-Status
-CalcDistanceArguments::SetLeftVectors(const Int64FieldDataPtr& ids, const std::string& collection_name,
-                                      const std::vector<std::string>& partition_names) {
+validate_vectors_with_oper(const Int64FieldDataPtr& ids, Name name, std::function<void()> func) {
     if (nullptr == ids || ids->Count() == 0) {
         return {StatusCode::INVALID_AGUMENT, "Input vectors cannot be empty!"};
     }
@@ -75,82 +47,100 @@ CalcDistanceArguments::SetLeftVectors(const Int64FieldDataPtr& ids, const std::s
         return {StatusCode::INVALID_AGUMENT, "Field name cannot be empty!"};
     }
 
-    if (collection_name.empty()) {
+    if (name.empty()) {
         return {StatusCode::INVALID_AGUMENT, "Collection name cannot be empty!"};
     }
-
-    impl_->vectors_left_ = ids;
-    impl_->collection_left_ = collection_name;
-    impl_->partitions_left_ = partition_names;
+    func();
     return Status::OK();
+}
+}  // namespace
+
+CalcDistanceArguments::CalcDistanceArguments() = default;
+
+Status
+CalcDistanceArguments::SetLeftVectors(FloatVecFieldDataPtr vectors) {
+    return validate_vectors_with_oper(vectors, [this, &vectors]() { this->vectors_left_ = std::move(vectors); });
+}
+
+Status
+CalcDistanceArguments::SetLeftVectors(BinaryVecFieldDataPtr vectors) {
+    return validate_vectors_with_oper(vectors, [this, &vectors]() { this->vectors_left_ = std::move(vectors); });
+}
+
+Status
+CalcDistanceArguments::SetLeftVectors(Int64FieldDataPtr ids, std::string collection_name,
+                                      const std::vector<std::string>& partition_names) {
+    return validate_vectors_with_oper(ids, collection_name, [this, &ids, &collection_name, &partition_names]() {
+        this->vectors_left_ = std::move(ids);
+        this->collection_left_ = std::move(collection_name);
+        this->partitions_left_ = partition_names;
+    });
+}
+
+Status
+CalcDistanceArguments::SetLeftVectors(Int64FieldDataPtr ids, std::string collection_name,
+                                      std::vector<std::string>&& partition_names) {
+    return validate_vectors_with_oper(ids, collection_name, [this, &ids, &collection_name, &partition_names]() {
+        this->vectors_left_ = std::move(ids);
+        this->collection_left_ = std::move(collection_name);
+        this->partitions_left_ = std::move(partition_names);
+    });
 }
 
 FieldDataPtr
 CalcDistanceArguments::LeftVectors() const {
-    return impl_->vectors_left_;
+    return vectors_left_;
 }
 
 Status
-CalcDistanceArguments::SetRightVectors(const FloatVecFieldDataPtr& vectors) {
-    if (nullptr == vectors || vectors->Count() == 0) {
-        return {StatusCode::INVALID_AGUMENT, "Input vectors cannot be empty!"};
-    }
-
-    impl_->vectors_right_ = vectors;
-    return Status::OK();
+CalcDistanceArguments::SetRightVectors(FloatVecFieldDataPtr vectors) {
+    return validate_vectors_with_oper(vectors, [this, &vectors]() { this->vectors_right_ = std::move(vectors); });
 }
 
 Status
-CalcDistanceArguments::SetRightVectors(const BinaryVecFieldDataPtr& vectors) {
-    if (nullptr == vectors || vectors->Count() == 0) {
-        return {StatusCode::INVALID_AGUMENT, "Input vectors cannot be empty!"};
-    }
-
-    impl_->vectors_right_ = vectors;
-    return Status::OK();
+CalcDistanceArguments::SetRightVectors(BinaryVecFieldDataPtr vectors) {
+    return validate_vectors_with_oper(vectors, [this, &vectors]() { this->vectors_right_ = std::move(vectors); });
 }
 
 Status
-CalcDistanceArguments::SetRightVectors(const Int64FieldDataPtr& ids, const std::string& collection_name,
+CalcDistanceArguments::SetRightVectors(Int64FieldDataPtr ids, std::string collection_name,
                                        const std::vector<std::string>& partition_names) {
-    if (nullptr == ids || ids->Count() == 0) {
-        return {StatusCode::INVALID_AGUMENT, "Input vectors cannot be empty!"};
-    }
+    return validate_vectors_with_oper(ids, collection_name, [this, &ids, &collection_name, &partition_names]() {
+        this->vectors_right_ = std::move(ids);
+        this->collection_right_ = std::move(collection_name);
+        this->partitions_right_ = partition_names;
+    });
+}
 
-    if (ids->Name().empty()) {
-        return {StatusCode::INVALID_AGUMENT, "Field name cannot be empty!"};
-    }
-
-    if (collection_name.empty()) {
-        return {StatusCode::INVALID_AGUMENT, "Collection name cannot be empty!"};
-    }
-
-    impl_->vectors_right_ = ids;
-    impl_->collection_right_ = collection_name;
-    impl_->partitions_right_ = partition_names;
-    return Status::OK();
+Status
+CalcDistanceArguments::SetRightVectors(Int64FieldDataPtr ids, std::string collection_name,
+                                       std::vector<std::string>&& partition_names) {
+    return validate_vectors_with_oper(ids, collection_name, [this, &ids, &collection_name, &partition_names]() {
+        this->vectors_right_ = std::move(ids);
+        this->collection_right_ = std::move(collection_name);
+        this->partitions_right_ = std::move(partition_names);
+    });
 }
 
 FieldDataPtr
 CalcDistanceArguments::RightVectors() const {
-    return impl_->vectors_right_;
+    return vectors_right_;
 }
 
 Status
-CalcDistanceArguments::SetMetricType(const std::string& metric) {
-    std::string upper_metric = metric;
-    std::transform(upper_metric.begin(), upper_metric.end(), upper_metric.begin(), ::toupper);
+CalcDistanceArguments::SetMetricType(std::string metric) {
+    std::transform(metric.begin(), metric.end(), metric.begin(), ::toupper);
     static const std::set<std::string> avaiable_types = {"L2", "IP", "HAMMING", "TANIMOTO"};
-    if (avaiable_types.find(upper_metric) == avaiable_types.end()) {
+    if (avaiable_types.find(metric) == avaiable_types.end()) {
         return {StatusCode::INVALID_AGUMENT, "Invalid metric type!"};
     }
-    impl_->metric_ = std::move(upper_metric);
+    metric_ = std::move(metric);
     return Status::OK();
 }
 
 const std::string&
 CalcDistanceArguments::MetricType() const {
-    return impl_->metric_;
+    return metric_;
 }
 
 Status
@@ -159,71 +149,69 @@ CalcDistanceArguments::SetDimension(int32_t dim) {
         return {StatusCode::INVALID_AGUMENT, "Dimension must be greater than 0!"};
     }
 
-    impl_->dimension_ = dim;
+    dimension_ = dim;
     return Status::OK();
 }
 
 int32_t
 CalcDistanceArguments::Dimension() const {
-    return impl_->dimension_;
+    return dimension_;
 }
 
 void
 CalcDistanceArguments::SetSqrt(bool sqrt_distance) {
-    impl_->sqrt_ = sqrt_distance;
+    sqrt_ = sqrt_distance;
 }
 
 bool
 CalcDistanceArguments::Sqrt() const {
-    return impl_->sqrt_;
+    return sqrt_;
 }
 
 const std::string&
 CalcDistanceArguments::LeftCollection() const {
-    return impl_->collection_left_;
+    return collection_left_;
 }
 
 const std::string&
 CalcDistanceArguments::RightCollection() const {
-    return impl_->collection_right_;
+    return collection_right_;
 }
 
 const std::vector<std::string>&
 CalcDistanceArguments::LeftPartitions() const {
-    return impl_->partitions_left_;
+    return partitions_left_;
 }
 
 const std::vector<std::string>&
 CalcDistanceArguments::RightPartitions() const {
-    return impl_->partitions_right_;
+    return partitions_right_;
 }
 
 Status
 CalcDistanceArguments::Validate() const {
-    if (nullptr == impl_->vectors_left_ || impl_->vectors_left_->Count() == 0) {
+    if (nullptr == vectors_left_ || vectors_left_->Count() == 0) {
         return {StatusCode::INVALID_AGUMENT, "Vectors on the left of operator cannot be empty!"};
     }
 
-    if (nullptr == impl_->vectors_right_ || impl_->vectors_right_->Count() == 0) {
+    if (nullptr == vectors_right_ || vectors_right_->Count() == 0) {
         return {StatusCode::INVALID_AGUMENT, "Vectors on the right of operator cannot be empty!"};
     }
 
     // To calculate distance, vector type must be equal.
     // If user specified id array, the CalcDistance API will get collection schema to verify.
-    if (IsVectorType(impl_->vectors_left_->Type()) && IsVectorType(impl_->vectors_right_->Type())) {
-        if (impl_->vectors_left_->Type() != impl_->vectors_right_->Type()) {
+    if (IsVectorType(vectors_left_->Type()) && IsVectorType(vectors_right_->Type())) {
+        if (vectors_left_->Type() != vectors_right_->Type()) {
             return {StatusCode::INVALID_AGUMENT, "Vector types of left and right do not equal!"};
         }
 
         static const std::set<std::string> float_types = {"L2", "IP"};
-        if (impl_->vectors_left_->Type() == DataType::FLOAT_VECTOR &&
-            float_types.find(impl_->metric_) == float_types.end()) {
+        if (vectors_left_->Type() == DataType::FLOAT_VECTOR && float_types.find(metric_) == float_types.end()) {
             return {StatusCode::INVALID_AGUMENT, "Invalid metric type for float vectors!"};
         }
 
         static const std::set<std::string> binary_types = {"HAMMING", "TANIMOTO"};
-        if (impl_->vectors_left_->Type() == DataType::BINARY_VECTOR &&
-            binary_types.find(impl_->metric_) == binary_types.end()) {
+        if (vectors_left_->Type() == DataType::BINARY_VECTOR && binary_types.find(metric_) == binary_types.end()) {
             return {StatusCode::INVALID_AGUMENT, "Invalid metric type for binary vectors!"};
         }
     }

@@ -14,29 +14,18 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#pragma once
+#include <gtest/gtest.h>
 
-namespace milvus {
+#include "milvus/types/CollectionStat.h"
+#include "milvus/types/Constants.h"
 
-/**
- * @brief Data type of field
- */
-enum class DataType {
-    UNKNOWN = 0,
+class CollectionStatTest : public ::testing::Test {};
 
-    BOOL = 1,
-    INT8 = 2,
-    INT16 = 3,
-    INT32 = 4,
-    INT64 = 5,
-
-    FLOAT = 10,
-    DOUBLE = 11,
-
-    STRING = 20,
-
-    BINARY_VECTOR = 100,
-    FLOAT_VECTOR = 101,
-};
-
-}  // namespace milvus
+TEST_F(CollectionStatTest, GeneralTesting) {
+    milvus::CollectionStat stat;
+    stat.SetName("test");
+    EXPECT_EQ(stat.Name(), "test");
+    EXPECT_EQ(stat.RowCount(), 0);
+    stat.Emplace(milvus::KeyRowCount(), "1000");
+    EXPECT_EQ(stat.RowCount(), 1000);
+}

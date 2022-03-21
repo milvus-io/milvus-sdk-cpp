@@ -14,29 +14,37 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#pragma once
+#include "milvus/types/CollectionStat.h"
+
+#include "milvus/types/Constants.h"
 
 namespace milvus {
 
-/**
- * @brief Data type of field
- */
-enum class DataType {
-    UNKNOWN = 0,
+CollectionStat::CollectionStat() = default;
 
-    BOOL = 1,
-    INT8 = 2,
-    INT16 = 3,
-    INT32 = 4,
-    INT64 = 5,
+uint64_t
+CollectionStat::RowCount() const {
+    const auto iter = statistics_.find(KeyRowCount());
+    if (iter == statistics_.end()) {
+        // TODO: throw exception or log
+        return 0;
+    }
+    return std::atoll(iter->second.c_str());
+}
 
-    FLOAT = 10,
-    DOUBLE = 11,
+void
+CollectionStat::SetName(std::string name) {
+    name_ = std::move(name);
+}
 
-    STRING = 20,
+const std::string&
+CollectionStat::Name() const {
+    return name_;
+}
 
-    BINARY_VECTOR = 100,
-    FLOAT_VECTOR = 101,
-};
+void
+CollectionStat::Emplace(std::string key, std::string value) {
+    statistics_.emplace(std::move(key), std::move(value));
+}
 
 }  // namespace milvus

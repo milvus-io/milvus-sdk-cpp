@@ -14,29 +14,33 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#pragma once
+#include "milvus/types/DmlResults.h"
 
 namespace milvus {
 
-/**
- * @brief Data type of field
- */
-enum class DataType {
-    UNKNOWN = 0,
+const IDArray&
+DmlResults::IdArray() const {
+    return id_array_;
+}
 
-    BOOL = 1,
-    INT8 = 2,
-    INT16 = 3,
-    INT32 = 4,
-    INT64 = 5,
+void
+DmlResults::SetIdArray(const IDArray& id_array) {
+    id_array_ = id_array;
+}
 
-    FLOAT = 10,
-    DOUBLE = 11,
+void
+DmlResults::SetIdArray(IDArray&& id_array) {
+    id_array_ = std::move(id_array);
+}
 
-    STRING = 20,
+uint64_t
+DmlResults::Timestamp() const {
+    return timestamp_;
+}
 
-    BINARY_VECTOR = 100,
-    FLOAT_VECTOR = 101,
-};
+void
+DmlResults::SetTimestamp(uint64_t timestamp) {
+    timestamp_ = timestamp;
+}
 
 }  // namespace milvus

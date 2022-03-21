@@ -29,17 +29,12 @@ class Field {
      * @brief Get field name
      */
     const std::string&
-    Name() const {
-        return name_;
-    }
-
+    Name() const;
     /**
      * @brief Get field data tpye
      */
     DataType
-    Type() const {
-        return data_type_;
-    }
+    Type() const;
 
     /**
      * @brief Total number of field elements
@@ -48,8 +43,7 @@ class Field {
     Count() const = 0;
 
  protected:
-    Field(const std::string& name, DataType data_type) : name_(name), data_type_(data_type) {
-    }
+    Field(std::string name, DataType data_type);
 
  private:
     std::string name_;
@@ -57,43 +51,6 @@ class Field {
 };
 
 using FieldDataPtr = std::shared_ptr<Field>;
-
-template <DataType Dt>
-struct DataTypeTraits {
-    static const bool is_vector = false;
-};
-
-template <>
-struct DataTypeTraits<DataType::BINARY_VECTOR> {
-    static const bool is_vector = true;
-};
-
-template <>
-struct DataTypeTraits<DataType::FLOAT_VECTOR> {
-    static const bool is_vector = true;
-};
-
-template <typename T, DataType Dt>
-typename std::enable_if<!DataTypeTraits<Dt>::is_vector, StatusCode>::type
-AddElement(const T& element, std::vector<T>& array) {
-    array.push_back(element);
-    return StatusCode::OK;
-}
-
-template <typename T, DataType Dt>
-typename std::enable_if<DataTypeTraits<Dt>::is_vector, StatusCode>::type
-AddElement(const T& element, std::vector<T>& array) {
-    if (element.empty()) {
-        return StatusCode::VECTOR_IS_EMPTY;
-    }
-
-    if (!array.empty() && element.size() != array.at(0).size()) {
-        return StatusCode::DIMENSION_NOT_EQUAL;
-    }
-
-    array.emplace_back(element);
-    return StatusCode::OK;
-}
 
 /**
  * @brief Template class represents column-based data of a field. Avaiable inheritance classes: \n
@@ -119,52 +76,48 @@ class FieldData : public Field {
     /**
      * @brief Constructor
      */
-    FieldData() : Field("", Dt) {
-    }
+    FieldData();
 
     /**
      * @brief Constructor
      */
-    explicit FieldData(const std::string& name) : Field(name, Dt) {
-    }
+    explicit FieldData(std::string name);
 
     /**
      * @brief Constructor
      */
-    FieldData(const std::string& name, std::vector<T> data) : Field(name, Dt), data_{std::move(data)} {
-    }
+    FieldData(std::string name, const std::vector<T>& data);
+    /**
+     * @brief Constructor
+     */
+    FieldData(std::string name, std::vector<T>&& data);
+    /**
+     * @brief Add element to field data
+     */
+    StatusCode
+    Add(const T& element);
 
     /**
      * @brief Add element to field data
      */
     StatusCode
-    Add(const T& element) {
-        return AddElement<T, Dt>(element, data_);
-    }
-
+    Add(T&& element);
     /**
      * @brief Total number of field elements
      */
     size_t
-    Count() const final {
-        return data_.size();
-    }
-
+    Count() const final;
     /**
      * @brief Field elements array
      */
     const std::vector<T>&
-    Data() const {
-        return data_;
-    }
+    Data() const;
 
     /**
      * @brief Field elements array
      */
     std::vector<T>&
-    Data() {
-        return data_;
-    }
+    Data();
 
  private:
     std::vector<T> data_;
@@ -209,5 +162,16 @@ using DoubleFieldDataPtr = std::shared_ptr<DoubleFieldData>;
 using StringFieldDataPtr = std::shared_ptr<StringFieldData>;
 using BinaryVecFieldDataPtr = std::shared_ptr<BinaryVecFieldData>;
 using FloatVecFieldDataPtr = std::shared_ptr<FloatVecFieldData>;
+
+extern template class FieldData<bool, DataType::BOOL>;
+extern template class FieldData<int8_t, DataType::INT8>;
+extern template class FieldData<int16_t, DataType::INT16>;
+extern template class FieldData<int32_t, DataType::INT32>;
+extern template class FieldData<int64_t, DataType::INT64>;
+extern template class FieldData<float, DataType::FLOAT>;
+extern template class FieldData<double, DataType::DOUBLE>;
+extern template class FieldData<std::string, DataType::STRING>;
+extern template class FieldData<std::vector<uint8_t>, DataType::BINARY_VECTOR>;
+extern template class FieldData<std::vector<float>, DataType::FLOAT_VECTOR>;
 
 }  // namespace milvus

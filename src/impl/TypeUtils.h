@@ -196,6 +196,9 @@ SegmentStateCast(SegmentState state);
 IndexStateCode
 IndexStateCast(proto::common::IndexState state);
 
+bool
+IsVectorType(DataType type);
+
 }  // namespace milvus
 
 namespace std {

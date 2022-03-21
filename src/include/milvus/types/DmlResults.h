@@ -29,46 +29,38 @@ namespace milvus {
 class DmlResults {
  public:
     /**
-     * @brief Constructor
-     */
-    DmlResults() : id_array_{std::vector<int64_t>{}} {
-    }
-
-    /**
      * @brief The id array for entities which are inserted or deleted.
      */
     const IDArray&
-    IdArray() const {
-        return id_array_;
-    }
+    IdArray() const;
 
     /**
      * @brief Set the id array.
      */
     void
-    SetIdArray(IDArray&& id_array) {
-        id_array_ = std::move(id_array);
-    }
+    SetIdArray(const IDArray& id_array);
+
+    /**
+     * @brief Set the id array.
+     */
+    void
+    SetIdArray(IDArray&& id_array);
 
     /**
      * @brief The operation timestamp marked by server side.
      */
     uint64_t
-    Timestamp() const {
-        return timestamp_;
-    }
+    Timestamp() const;
 
     /**
      * @brief Set operation timestamp.
      */
     void
-    SetTimestamp(uint64_t timestamp) {
-        timestamp_ = timestamp;
-    }
+    SetTimestamp(uint64_t timestamp);
 
  private:
-    IDArray id_array_;
-    uint64_t timestamp_ = 0;
+    IDArray id_array_{std::vector<int64_t>{}};
+    uint64_t timestamp_{0};
 };
 
 }  // namespace milvus

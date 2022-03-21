@@ -19,7 +19,6 @@
 #include <map>
 #include <string>
 
-#include "Constants.h"
 #include "DataType.h"
 
 namespace milvus {
@@ -29,67 +28,49 @@ namespace milvus {
  */
 class FieldSchema {
  public:
-    FieldSchema() = default;
+    FieldSchema();
 
     /**
      * @brief Constructor
      */
-    FieldSchema(const std::string& name, DataType data_type, const std::string& description = "",
-                bool is_primary_key = false, bool auto_id = false)
-        : name_(name),
-          description_(description),
-          data_type_(data_type),
-          is_primary_key_(is_primary_key),
-          auto_id_(auto_id) {
-    }
+    FieldSchema(std::string name, DataType data_type, std::string description = "", bool is_primary_key = false,
+                bool auto_id = false);
 
     /**
      * @brief Name of this field, cannot be empty.
      */
     const std::string&
-    Name() const {
-        return name_;
-    }
+    Name() const;
 
     /**
      * @brief Set name of the field.
      */
     void
-    SetName(const std::string& name) {
-        name_ = name;
-    }
+    SetName(std::string name);
 
     /**
      * @brief Description of this field, can be empty.
      */
     const std::string&
-    Description() const {
-        return description_;
-    }
+    Description() const;
 
     /**
      * @brief Set description of the field.
      */
     void
-    SetDescription(const std::string& description) {
-        description_ = description;
-    }
+    SetDescription(std::string description);
 
     /**
      * @brief Field data type.
      */
     DataType
-    FieldDataType() const {
-        return data_type_;
-    }
+    FieldDataType() const;
 
     /**
      * @brief Set field data type.
      */
     void
-    SetDataType(const DataType dt) {
-        data_type_ = dt;
-    }
+    SetDataType(DataType dt);
 
     /**
      * @brief The field is primary key or not.
@@ -98,17 +79,12 @@ class FieldSchema {
      * Currently only int64 type field can be primary key .
      */
     bool
-    IsPrimaryKey() const {
-        return is_primary_key_;
-    }
-
+    IsPrimaryKey() const;
     /**
      * @brief Set field to be primary key.
      */
     void
-    SetPrimaryKey(bool is_primary_key) {
-        is_primary_key_ = is_primary_key;
-    }
+    SetPrimaryKey(bool is_primary_key);
 
     /**
      * @brief Field item's id is auto-generated or not.
@@ -117,17 +93,13 @@ class FieldSchema {
      * Else the client must provide id for each entity when insert data.
      */
     bool
-    AutoID() const {
-        return auto_id_;
-    }
+    AutoID() const;
 
     /**
      * @brief Set field item's id to be auto-generated.
      */
     void
-    SetAutoID(bool auto_id) {
-        auto_id_ = auto_id;
-    }
+    SetAutoID(bool auto_id);
 
     /**
      * @brief Extra key-value pair setting for this field
@@ -135,9 +107,7 @@ class FieldSchema {
      * Currently vector field need to input "dim":"x" to specify dimension.
      */
     const std::map<std::string, std::string>&
-    TypeParams() const {
-        return type_params_;
-    }
+    TypeParams() const;
 
     /**
      * @brief Set extra key-value pair setting for this field
@@ -145,44 +115,33 @@ class FieldSchema {
      * Currently vector field need to input "dim":"x" to specify dimension.
      */
     void
-    SetTypeParams(std::map<std::string, std::string>&& params) {
-        type_params_ = std::move(params);
-    }
+    SetTypeParams(const std::map<std::string, std::string>& params);
+
+    /**
+     * @brief Set extra key-value pair setting for this field
+     *
+     * Currently vector field need to input "dim":"x" to specify dimension.
+     */
+    void
+    SetTypeParams(std::map<std::string, std::string>&& params);
 
     /**
      * @brief Get dimension for a vector field
      */
     uint32_t
-    Dimension() const {
-        uint32_t dim = 0;
-        auto iter = type_params_.find(FieldDim());
-        if (iter != type_params_.end()) {
-            dim = atol(iter->second.c_str());
-        }
-        return dim;
-    }
+    Dimension() const;
 
     /**
      * @brief Quickly set dimension for a vector field
      */
     bool
-    SetDimension(uint32_t dimension) {
-        if (dimension == 0) {
-            return false;
-        }
-
-        type_params_.insert(std::make_pair(FieldDim(), std::to_string(dimension)));
-        return true;
-    }
+    SetDimension(uint32_t dimension);
 
     /**
      * @brief Quickly set dimension for a vector field
      */
     FieldSchema&
-    WithDimension(uint32_t dimension) {
-        (void)SetDimension(dimension);
-        return *this;
-    }
+    WithDimension(uint32_t dimension);
 
  private:
     std::string name_;

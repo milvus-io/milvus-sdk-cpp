@@ -28,17 +28,28 @@ class ConnectParam {
     /**
      * @brief Constructor
      */
-    ConnectParam(const std::string& host, uint16_t port) : host_(host), port_(port) {
-    }
+    ConnectParam(std::string host, uint16_t port);
 
     /**
      * @brief IP of the milvus proxy.
      */
-    std::string host_;
+    const std::string&
+    Host() const;
 
     /**
      * @brief Port of the milvus proxy.
      */
+    uint16_t
+    Port() const;
+
+    /**
+     * @brief Uri for connecting to the milvus.
+     */
+    const std::string
+    Uri() const;
+
+ private:
+    std::string host_;
     uint16_t port_ = 0;
 };
 

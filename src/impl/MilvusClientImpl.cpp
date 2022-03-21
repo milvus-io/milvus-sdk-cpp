@@ -44,11 +44,8 @@ MilvusClientImpl::Connect(const ConnectParam& connect_param) {
     }
 
     // TODO: check connect parameter
-
     connection_ = std::make_shared<MilvusConnection>();
-    std::string uri = connect_param.host_ + ":" + std::to_string(connect_param.port_);
-
-    return connection_->Connect(uri);
+    return connection_->Connect(connect_param.Uri());
 }
 
 Status
@@ -175,13 +172,14 @@ MilvusClientImpl::DescribeCollection(const std::string& collection_name, Collect
         CollectionSchema schema;
         ConvertCollectionSchema(response.schema(), schema);
         schema.SetShardsNum(response.shards_num());
-        collection_desc.SetSchema(schema);
+        collection_desc.SetSchema(std::move(schema));
         collection_desc.SetID(response.collectionid());
 
         std::vector<std::string> aliases;
+        aliases.reserve(response.aliases_size());
         aliases.insert(aliases.end(), response.aliases().begin(), response.aliases().end());
 
-        collection_desc.SetAlias(aliases);
+        collection_desc.SetAlias(std::move(aliases));
         collection_desc.SetCreatedTime(response.created_timestamp());
     };
 
@@ -509,8 +507,8 @@ MilvusClientImpl::DescribeIndex(const std::string& collection_name, const std::s
             index_desc.SetIndexName(index_name);
             auto index_params_size = response.index_descriptions(i).params_size();
             for (size_t j = 0; j < index_params_size; ++j) {
-                auto& key = response.index_descriptions(i).params(j).key();
-                auto& value = response.index_descriptions(i).params(j).value();
+                const auto& key = response.index_descriptions(i).params(j).key();
+                const auto& value = response.index_descriptions(i).params(j).value();
                 if (key == milvus::KeyIndexType()) {
                     index_desc.SetIndexType(IndexTypeCast(value));
                 } else if (key == milvus::KeyMetricType()) {
@@ -859,10 +857,11 @@ MilvusClientImpl::CalcDistance(const CalcDistanceArguments& arguments, DistanceA
             // for id array, suppose all the vectors are exist.
             // if some vectors are missed(or deleted), the server will return error by the CalcDistance api.
             if (distance_count == left_count * right_count) {
+                all_distances.reserve(left_count);
                 for (size_t i = 0; i < left_count; ++i) {
                     std::vector<int32_t> distances(right_count);
                     memcpy(distances.data(), distance_data + i * right_count, right_count * sizeof(int32_t));
-                    all_distances.emplace_back(distances);
+                    all_distances.emplace_back(std::move(distances));
                 }
             }
             results.SetIntDistance(std::move(all_distances));
@@ -875,10 +874,11 @@ MilvusClientImpl::CalcDistance(const CalcDistanceArguments& arguments, DistanceA
 
             // suppose distance count is always equal to left_count * right_count
             if (distance_count == left_count * right_count) {
+                all_distances.reserve(left_count);
                 for (size_t i = 0; i < left_count; ++i) {
                     std::vector<float> distances(right_count);
                     memcpy(distances.data(), distance_data + i * right_count, right_count * sizeof(float));
-                    all_distances.emplace_back(distances);
+                    all_distances.emplace_back(std::move(distances));
                 }
             }
             results.SetFloatDistance(std::move(all_distances));
@@ -903,6 +903,7 @@ MilvusClientImpl::Flush(const std::vector<std::string>& collection_names, const 
         for (const auto& iter : response.coll_segids()) {
             const auto& ids = iter.second.data();
             std::vector<int64_t> seg_ids;
+            seg_ids.reserve(ids.size());
             seg_ids.insert(seg_ids.end(), ids.begin(), ids.end());
             flush_segments.insert(std::make_pair(iter.first, seg_ids));
         }
@@ -1101,9 +1102,9 @@ MilvusClientImpl::GetCompactionPlans(int64_t compaction_id, CompactionPlans& pla
         for (int i = 0; i < response.mergeinfos_size(); ++i) {
             auto& info = response.mergeinfos(i);
             std::vector<int64_t> source_ids;
+            source_ids.reserve(info.sources_size());
             source_ids.insert(source_ids.end(), info.sources().begin(), info.sources().end());
-
-            plans.emplace_back(CompactionPlan{std::move(source_ids), info.target()});
+            plans.emplace_back(source_ids, info.target());
         }
     };
 

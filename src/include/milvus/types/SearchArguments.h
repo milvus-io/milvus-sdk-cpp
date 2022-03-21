@@ -18,6 +18,7 @@
 
 #include <set>
 #include <string>
+#include <unordered_map>
 
 #include "../Status.h"
 #include "Constants.h"
@@ -37,16 +38,6 @@ class SearchArguments {
     SearchArguments();
 
     /**
-     * @brief Construct a new Search Arguments object
-     */
-    SearchArguments(SearchArguments&&) noexcept;
-
-    /**
-     * @brief Destroy the Search Arguments object
-     */
-    ~SearchArguments();
-
-    /**
      * @brief Get name of the target collection
      */
     const std::string&
@@ -56,7 +47,7 @@ class SearchArguments {
      * @brief Set name of this collection, cannot be empty
      */
     Status
-    SetCollectionName(const std::string& collection_name);
+    SetCollectionName(std::string collection_name);
 
     /**
      * @brief Get partition names
@@ -68,7 +59,7 @@ class SearchArguments {
      * @brief Specify partition name to control search scope, the name cannot be empty
      */
     Status
-    AddPartitionName(const std::string& partition_name);
+    AddPartitionName(std::string partition_name);
 
     /**
      * @brief Get output field names
@@ -80,7 +71,7 @@ class SearchArguments {
      * @brief Specify output field names to return field data, the name cannot be empty
      */
     Status
-    AddOutputField(const std::string& field_name);
+    AddOutputField(std::string field_name);
 
     /**
      * @brief Get filter expression
@@ -92,7 +83,7 @@ class SearchArguments {
      * @brief Set filter expression
      */
     Status
-    SetExpression(const std::string& expression);
+    SetExpression(std::string expression);
 
     /**
      * @brief Get target vectors
@@ -104,13 +95,25 @@ class SearchArguments {
      * @brief Add a binary vector to search
      */
     Status
-    AddTargetVector(const std::string& field_name, const BinaryVecFieldData::ElementT& vector);
+    AddTargetVector(std::string field_name, const BinaryVecFieldData::ElementT& vector);
+
+    /**
+     * @brief Add a binary vector to search
+     */
+    Status
+    AddTargetVector(std::string field_name, BinaryVecFieldData::ElementT&& vector);
 
     /**
      * @brief Add a float vector to search
      */
     Status
-    AddTargetVector(const std::string& field_name, const FloatVecFieldData::ElementT& vector);
+    AddTargetVector(std::string field_name, const FloatVecFieldData::ElementT& vector);
+
+    /**
+     * @brief Add a float vector to search
+     */
+    Status
+    AddTargetVector(std::string field_name, FloatVecFieldData::ElementT&& vector);
 
     /**
      * @brief Get travel timestamp.
@@ -188,7 +191,7 @@ class SearchArguments {
      * @brief Add extra param
      */
     Status
-    AddExtraParam(const std::string& key, int64_t value);
+    AddExtraParam(std::string key, int64_t value);
 
     /**
      * @brief Get extra param
@@ -204,8 +207,24 @@ class SearchArguments {
     Validate() const;
 
  private:
-    struct Impl;
-    std::unique_ptr<Impl> impl_;
+    std::string collection_name_;
+    std::set<std::string> partition_names_;
+    std::set<std::string> output_field_names_;
+    std::string filter_expression_;
+
+    BinaryVecFieldDataPtr binary_vectors_;
+    FloatVecFieldDataPtr float_vectors_;
+
+    std::set<std::string> output_fields_;
+    std::unordered_map<std::string, int64_t> extra_params_;
+
+    uint64_t travel_timestamp_{0};
+    uint64_t guarantee_timestamp_{GuaranteeEventuallyTs()};
+
+    int64_t topk_{1};
+    int round_decimal_{-1};
+
+    ::milvus::MetricType metric_type_{::milvus::MetricType::L2};
 };
 
 }  // namespace milvus

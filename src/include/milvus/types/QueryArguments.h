@@ -67,7 +67,7 @@ class QueryArguments {
             return {StatusCode::INVALID_AGUMENT, "Partition name cannot be empty!"};
         }
 
-        partition_names_.insert(partition_name);
+        partition_names_.emplace(partition_name);
         return Status::OK();
     }
 
@@ -88,7 +88,7 @@ class QueryArguments {
             return {StatusCode::INVALID_AGUMENT, "Field name cannot be empty!"};
         }
 
-        output_field_names_.insert(field_name);
+        output_field_names_.emplace(field_name);
         return Status::OK();
     }
 

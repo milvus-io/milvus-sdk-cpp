@@ -16,7 +16,6 @@
 
 #pragma once
 
-#include <memory>
 #include <string>
 #include <vector>
 
@@ -30,21 +29,6 @@ namespace milvus {
 class CollectionDesc {
  public:
     /**
-     * @brief Construct a new Collection Desc object
-     */
-    CollectionDesc();
-
-    /**
-     * @brief Construct a new Collection Desc object
-     */
-    CollectionDesc(CollectionDesc&&) noexcept;
-
-    /**
-     * @brief Destroy the Collection Desc object
-     */
-    ~CollectionDesc();
-
-    /**
      * @brief Collection schema.
      */
     const CollectionSchema&
@@ -57,6 +41,12 @@ class CollectionDesc {
     SetSchema(const CollectionSchema& schema);
 
     /**
+     * @brief Set collection schema.
+     */
+    void
+    SetSchema(CollectionSchema&& schema);
+
+    /**
      * @brief Collection id.
      */
     int64_t
@@ -66,7 +56,7 @@ class CollectionDesc {
      * @brief Set collection id.
      */
     void
-    SetID(const int64_t id);
+    SetID(int64_t id);
 
     /**
      * @brief Collection alias.
@@ -81,6 +71,12 @@ class CollectionDesc {
     SetAlias(const std::vector<std::string>& alias);
 
     /**
+     * @brief Set collection alias.
+     */
+    void
+    SetAlias(std::vector<std::string>&& alias);
+
+    /**
      * @brief Timestamp when the collection created.
      */
     uint64_t
@@ -90,11 +86,13 @@ class CollectionDesc {
      * @brief Set timestamp when the collection created.
      */
     void
-    SetCreatedTime(const uint64_t ts);
+    SetCreatedTime(uint64_t ts);
 
  private:
-    struct Impl;
-    std::unique_ptr<Impl> impl_;
+    CollectionSchema schema_;
+    int64_t collection_id_;
+    std::vector<std::string> alias_;
+    uint64_t created_utc_timestamp_ = 0;
 };
 
 }  // namespace milvus

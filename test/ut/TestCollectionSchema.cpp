@@ -16,21 +16,24 @@
 
 #include <gtest/gtest.h>
 
-#include "milvus/types/CompactionPlan.h"
+#include "milvus/types/CollectionSchema.h"
 
-class CompactionPlanTest : public ::testing::Test {};
+class CollectionSchemaTest : public ::testing::Test {};
 
-TEST_F(CompactionPlanTest, GeneralTesting) {
-    int64_t dst_segment = 4;
+TEST_F(CollectionSchemaTest, GeneralTesting) {
+    milvus::CollectionSchema schema;
+    schema.SetName("test");
+    schema.SetDescription("test");
 
-    milvus::CompactionPlan plan;
-    plan.SetSourceSegments({1, 2, 3});
-    plan.SetDestinySegemnt(dst_segment);
-    EXPECT_EQ(3, plan.SourceSegments().size());
-    EXPECT_EQ(dst_segment, plan.DestinySegemnt());
+    milvus::FieldSchema id_field{"foo", milvus::DataType::INT64, "foo"};
+    EXPECT_TRUE(schema.AddField(id_field));
+    EXPECT_FALSE(schema.AddField(id_field));
 
-    milvus::CompactionPlan plan_foo{std::vector<int64_t>{1, 2, 3}, dst_segment};
-    auto segments = plan_foo.SourceSegments();
-    plan_foo.SetSourceSegments(segments);
-    EXPECT_EQ(plan_foo.SourceSegments(), segments);
+    EXPECT_TRUE(schema.AddField(milvus::FieldSchema("bar", milvus::DataType::FLOAT_VECTOR, "bar")));
+    EXPECT_FALSE(schema.AddField(milvus::FieldSchema("bar", milvus::DataType::FLOAT_VECTOR, "bar")));
+
+    EXPECT_EQ(schema.ShardsNum(), 2);
+    EXPECT_EQ(schema.Fields().size(), 2);
+    EXPECT_EQ(schema.AnnsFieldNames().size(), 1);
+    EXPECT_EQ(*schema.AnnsFieldNames().begin(), "bar");
 }

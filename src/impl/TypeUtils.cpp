@@ -702,7 +702,7 @@ ConvertFieldSchema(const proto::schema::FieldSchema& proto_schema, FieldSchema& 
     std::map<std::string, std::string> params;
     for (int k = 0; k < proto_schema.type_params_size(); ++k) {
         auto& kv = proto_schema.type_params(k);
-        params.insert(std::make_pair(kv.key(), kv.value()));
+        params.emplace(kv.key(), kv.value());
     }
     field_schema.SetTypeParams(std::move(params));
 }
@@ -800,6 +800,11 @@ IndexStateCast(proto::common::IndexState state) {
         default:
             return IndexStateCode::FAILED;
     }
+}
+
+bool
+IsVectorType(DataType type) {
+    return (DataType::BINARY_VECTOR == type || DataType::FLOAT_VECTOR == type);
 }
 
 }  // namespace milvus

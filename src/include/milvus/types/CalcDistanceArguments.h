@@ -16,6 +16,7 @@
 
 #pragma once
 
+#include <string>
 #include <vector>
 
 #include "../Status.h"
@@ -34,34 +35,31 @@ class CalcDistanceArguments {
     CalcDistanceArguments();
 
     /**
-     * @brief Move constructor
-     */
-    CalcDistanceArguments(CalcDistanceArguments&&) noexcept;
-
-    /**
-     * @brief Destructor
-     */
-    ~CalcDistanceArguments();
-
-    /**
      * @brief Set the float vectors on the left of operator, without field name.
      */
     Status
-    SetLeftVectors(const FloatVecFieldDataPtr& vectors);
+    SetLeftVectors(FloatVecFieldDataPtr vectors);
 
     /**
      * @brief Set the binary vectors on the left of operator, without field name.
      */
     Status
-    SetLeftVectors(const BinaryVecFieldDataPtr& vectors);
+    SetLeftVectors(BinaryVecFieldDataPtr vectors);
 
     /**
      * @brief Set id array of the vectors on the left of operator, must specify field name and collection name.
      * Partition names is optinal, to narrow down the query scope.
      */
     Status
-    SetLeftVectors(const Int64FieldDataPtr& ids, const std::string& collection_name,
+    SetLeftVectors(Int64FieldDataPtr ids, std::string collection_name,
                    const std::vector<std::string>& partition_names = {});
+
+    /**
+     * @brief Set id array of the vectors on the left of operator, must specify field name and collection name.
+     * Partition names is optinal, to narrow down the query scope.
+     */
+    Status
+    SetLeftVectors(Int64FieldDataPtr ids, std::string collection_name, std::vector<std::string>&& partition_names);
 
     /**
      * @brief Get the vectors on the left of operator.
@@ -73,21 +71,28 @@ class CalcDistanceArguments {
      * @brief Set the float vectors on the right of operator, without field name.
      */
     Status
-    SetRightVectors(const FloatVecFieldDataPtr& vectors);
+    SetRightVectors(FloatVecFieldDataPtr vectors);
 
     /**
      * @brief Set the binary vectors on the right of operator, without field name.
      */
     Status
-    SetRightVectors(const BinaryVecFieldDataPtr& vectors);
+    SetRightVectors(BinaryVecFieldDataPtr vectors);
 
     /**
      * @brief Set id array of the vectors on the right of operator, must specify field name and collection name.
      * Partition names is optinal, to narrow down the query scope.
      */
     Status
-    SetRightVectors(const Int64FieldDataPtr& ids, const std::string& collection_name,
+    SetRightVectors(Int64FieldDataPtr ids, std::string collection_name,
                     const std::vector<std::string>& partition_names = {});
+
+    /**
+     * @brief Set id array of the vectors on the right of operator, must specify field name and collection name.
+     * Partition names is optinal, to narrow down the query scope.
+     */
+    Status
+    SetRightVectors(Int64FieldDataPtr ids, std::string collection_name, std::vector<std::string>&& partition_names);
 
     /**
      * @brief Get the vectors on the right of operator.
@@ -100,7 +105,7 @@ class CalcDistanceArguments {
      * is case insensitive. "L2" and "IP" is only for float vectors, "HAMMING" and "TANIMOTO" is for binary vectors.
      */
     Status
-    SetMetricType(const std::string& metric);
+    SetMetricType(std::string metric);
 
     /**
      * @brief Get the specified metric type.
@@ -164,8 +169,18 @@ class CalcDistanceArguments {
     Validate() const;
 
  private:
-    struct Impl;
-    std::unique_ptr<Impl> impl_;
+    FieldDataPtr vectors_left_;
+    FieldDataPtr vectors_right_;
+
+    std::string metric_ = "L2";
+    bool sqrt_ = false;      // only for "L2"
+    int32_t dimension_ = 0;  // only for "HAMMING" and "TANIMOTO"
+
+    // only for id array
+    std::string collection_left_;
+    std::vector<std::string> partitions_left_;
+    std::string collection_right_;
+    std::vector<std::string> partitions_right_;
 };
 
 }  // namespace milvus

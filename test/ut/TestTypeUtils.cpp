@@ -17,7 +17,6 @@
 #include <gmock/gmock.h>
 
 #include <functional>
-#include <unordered_map>
 #include <vector>
 
 #include "TypeUtils.h"
@@ -449,7 +448,7 @@ TEST_F(TypeUtilsTest, IndexTypeCastTest) {
 }
 
 TEST_F(TypeUtilsTest, DataTypeCast) {
-    const std::unordered_map<int32_t, int32_t> sdk2proto = {
+    const std::vector<std::pair<milvus::DataType, milvus::proto::schema::DataType>> data_types = {
         {milvus::DataType::UNKNOWN, milvus::proto::schema::DataType::None},
         {milvus::DataType::BOOL, milvus::proto::schema::DataType::Bool},
         {milvus::DataType::INT8, milvus::proto::schema::DataType::Int8},
@@ -462,19 +461,13 @@ TEST_F(TypeUtilsTest, DataTypeCast) {
         {milvus::DataType::FLOAT_VECTOR, milvus::proto::schema::DataType::FloatVector},
         {milvus::DataType::BINARY_VECTOR, milvus::proto::schema::DataType::BinaryVector}};
 
-    for (auto& pair : sdk2proto) {
+    for (auto& pair : data_types) {
         auto dt = milvus::DataTypeCast(milvus::DataType(pair.first));
         EXPECT_EQ(dt, pair.second);
     }
-
-    std::unordered_map<int32_t, int32_t> proto2sdk;
-    for (auto& pair : sdk2proto) {
-        proto2sdk.insert(std::make_pair(pair.second, pair.first));
-    }
-
-    for (auto& pair : proto2sdk) {
-        auto dt = milvus::DataTypeCast(milvus::proto::schema::DataType(pair.first));
-        EXPECT_EQ(dt, pair.second);
+    for (auto& pair : data_types) {
+        auto dt = milvus::DataTypeCast(milvus::proto::schema::DataType(pair.second));
+        EXPECT_EQ(dt, pair.first);
     }
 }
 
@@ -488,14 +481,14 @@ TEST_F(TypeUtilsTest, SegmentStateCast) {
 }
 
 TEST_F(TypeUtilsTest, IndexStateCast) {
-    const std::unordered_map<int32_t, int32_t> state_map = {
-        {milvus::proto::common::IndexState::IndexStateNone, (int32_t)milvus::IndexStateCode::NONE},
-        {milvus::proto::common::IndexState::Unissued, (int32_t)milvus::IndexStateCode::UNISSUED},
-        {milvus::proto::common::IndexState::InProgress, (int32_t)milvus::IndexStateCode::IN_PROGRESS},
-        {milvus::proto::common::IndexState::Finished, (int32_t)milvus::IndexStateCode::FINISHED},
-        {milvus::proto::common::IndexState::Failed, (int32_t)milvus::IndexStateCode::FAILED}};
+    const std::vector<std::pair<int32_t, milvus::IndexStateCode>> states = {
+        {milvus::proto::common::IndexState::IndexStateNone, milvus::IndexStateCode::NONE},
+        {milvus::proto::common::IndexState::Unissued, milvus::IndexStateCode::UNISSUED},
+        {milvus::proto::common::IndexState::InProgress, milvus::IndexStateCode::IN_PROGRESS},
+        {milvus::proto::common::IndexState::Finished, milvus::IndexStateCode::FINISHED},
+        {milvus::proto::common::IndexState::Failed, milvus::IndexStateCode::FAILED}};
 
-    for (auto& pair : state_map) {
+    for (auto& pair : states) {
         auto it = milvus::IndexStateCast(milvus::proto::common::IndexState(pair.first));
         EXPECT_EQ(it, milvus::IndexStateCode(pair.second));
     }

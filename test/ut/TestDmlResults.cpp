@@ -1,3 +1,4 @@
+
 // Licensed to the LF AI & Data foundation under one
 // or more contributor license agreements. See the NOTICE file
 // distributed with this work for additional information
@@ -14,29 +15,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#pragma once
+#include <gtest/gtest.h>
 
-namespace milvus {
+#include "milvus/types/DmlResults.h"
 
-/**
- * @brief Data type of field
- */
-enum class DataType {
-    UNKNOWN = 0,
+class DmlResultsTest : public ::testing::Test {};
 
-    BOOL = 1,
-    INT8 = 2,
-    INT16 = 3,
-    INT32 = 4,
-    INT64 = 5,
-
-    FLOAT = 10,
-    DOUBLE = 11,
-
-    STRING = 20,
-
-    BINARY_VECTOR = 100,
-    FLOAT_VECTOR = 101,
-};
-
-}  // namespace milvus
+TEST_F(DmlResultsTest, GeneralTesting) {
+    milvus::DmlResults dml_results;
+    milvus::IDArray id_array{std::vector<int64_t>{10000, 20000}};
+    dml_results.SetIdArray(id_array);
+    dml_results.SetTimestamp(10000);
+    EXPECT_EQ(dml_results.IdArray().IntIDArray(), id_array.IntIDArray());
+    EXPECT_EQ(dml_results.Timestamp(), 10000);
+}
