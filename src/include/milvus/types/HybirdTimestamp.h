@@ -36,37 +36,29 @@ class HybirdTimestamp {
     uint64_t ts_{0};
 
  public:
-    HybirdTimestamp() = default;
+    HybirdTimestamp();
 
-    explicit HybirdTimestamp(uint64_t ts) : ts_(ts) {
-    }
+    explicit HybirdTimestamp(uint64_t ts);
 
-    HybirdTimestamp(uint64_t physical, uint64_t logical) : ts_((physical << milvus::HybirdtsLogicalBits()) + logical) {
-    }
+    HybirdTimestamp(uint64_t physical, uint64_t logical);
 
     /**
      * @brief Hybird timestamp value
      */
     uint64_t
-    Timestamp() const {
-        return ts_;
-    }
+    Timestamp() const;
 
     /**
      * @brief logical value
      */
     uint64_t
-    Logical() const {
-        return ts_ & milvus::HybirdtsLogicalBitsMask();
-    }
+    Logical() const;
 
     /**
      * @brief Physical value in milliseconds
      */
     uint64_t
-    Physical() const {
-        return ts_ >> milvus::HybirdtsLogicalBits();
-    }
+    Physical() const;
 
     /**
      * @brief Increase duration in physical part
@@ -86,10 +78,7 @@ class HybirdTimestamp {
      * @return HybirdTimestamp
      */
     HybirdTimestamp&
-    operator+=(uint64_t milliseconds) {
-        ts_ += (milliseconds << milvus::HybirdtsLogicalBits());
-        return *this;
-    }
+    operator+=(uint64_t milliseconds);
 
     /**
      * @brief Add duration in physical part
@@ -111,16 +100,12 @@ class HybirdTimestamp {
      * @return HybirdTimestamp
      */
     HybirdTimestamp
-    operator+(uint64_t milliseconds) {
-        return {Physical() + milliseconds, Logical()};
-    }
+    operator+(uint64_t milliseconds);
 
     /**
      * @brief Create hybird timestamp from unix time
      */
     static HybirdTimestamp
-    CreateFromUnixtime(uint64_t epoch_in_milliseconds) {
-        return {epoch_in_milliseconds, 0};
-    }
+    CreateFromUnixtime(uint64_t epoch_in_milliseconds);
 };
 }  // namespace milvus

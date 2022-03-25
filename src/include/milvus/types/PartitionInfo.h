@@ -30,68 +30,50 @@ class PartitionInfo {
     /**
      * @brief Constructor
      */
-    PartitionInfo(std::string name, int64_t id, uint64_t created_utc_timestamp = 0, int64_t in_memory_percentage = 0)
-        : name_(std::move(name)),
-          id_(id),
-          created_utc_timestamp_(created_utc_timestamp),
-          in_memory_percentage_(in_memory_percentage) {
-    }
+    PartitionInfo(std::string name, int64_t id, uint64_t created_utc_timestamp = 0, int64_t in_memory_percentage = 0);
 
     /**
      * @brief Get name of this partition.
      */
     std::string
-    Name() const {
-        return name_;
-    }
+    Name() const;
 
     /**
      * @brief Get internal id of this partition.
      */
     int64_t
-    Id() const {
-        return id_;
-    }
+    Id() const;
 
     /**
      * @brief Get the utc timestamp calculated by created_timestamp.
      */
     uint64_t
-    CreatedUtcTimestamp() const {
-        return created_utc_timestamp_;
-    }
+    CreatedUtcTimestamp() const;
 
     /**
      * @brief Get partition loading percentage.
      */
     int64_t
-    InMemoryPercentage() const {
-        return in_memory_percentage_;
-    }
+    InMemoryPercentage() const;
 
     /**
      * @brief Indicated whether the partition has been loaded completed.
      */
     bool
-    Loaded() const {
-        return in_memory_percentage_ >= 100;
-    }
+    Loaded() const;
 
  private:
     std::string name_;
-    int64_t id_ = 0;
-    uint64_t created_utc_timestamp_ = 0;
-    int64_t in_memory_percentage_ = 0;
+    int64_t id_{0};
+    uint64_t created_utc_timestamp_{0};
+    int64_t in_memory_percentage_ = {0};
 };
 
 /**
  * @brief To test two PartitionInfo are equal
  */
-inline bool
-operator==(const PartitionInfo& a, const PartitionInfo& b) {
-    return a.Name() == b.Name() && a.Id() && b.Id() && a.CreatedUtcTimestamp() == b.CreatedUtcTimestamp() &&
-           a.InMemoryPercentage() == b.InMemoryPercentage();
-}
+bool
+operator==(const PartitionInfo& a, const PartitionInfo& b);
 
 /**
  * @brief PartitionsInfo objects array

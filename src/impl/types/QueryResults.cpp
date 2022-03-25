@@ -14,49 +14,38 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#pragma once
-
-#include <string>
-#include <unordered_map>
-
-#include "Constants.h"
+#include "milvus/types/QueryResults.h"
 
 namespace milvus {
 
-/**
- * @brief Partition statistics returned by MilvusClient::GetPartitionStatistics().
- */
-class PartitionStat {
- public:
-    /**
-     * @brief Return row count of this partition.
-     *
-     * @return uint64_t row count of this partition
-     */
-    uint64_t
-    RowCount() const;
+QueryResults::QueryResults() = default;
 
-    /**
-     *  @brief Set partition name
-     */
-    void
-    SetName(std::string name);
+QueryResults::QueryResults(const std::vector<FieldDataPtr>& output_fields) {
+    output_fields_ = output_fields;
+}
 
-    /**
-     *  @brief Get partition name
-     */
-    const std::string&
-    Name() const;
+QueryResults::QueryResults(std::vector<FieldDataPtr>&& output_fields) {
+    output_fields_ = std::move(output_fields);
+}
 
-    /**
-     * @brief add key/value pair for partition statistics
-     */
-    void
-    Emplace(std::string key, std::string value);
+FieldDataPtr
+QueryResults::GetFieldByName(const std::string& name) {
+    for (FieldDataPtr& field : output_fields_) {
+        if (nullptr == field) {
+            continue;
+        }
 
- private:
-    std::string name_;
-    std::unordered_map<std::string, std::string> statistics_;
-};
+        if (field->Name() == name) {
+            return field;
+        }
+    }
+
+    return nullptr;
+}
+
+const std::vector<FieldDataPtr>&
+QueryResults::OutputFields() const {
+    return output_fields_;
+}
 
 }  // namespace milvus

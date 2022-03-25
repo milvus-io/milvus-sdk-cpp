@@ -40,32 +40,25 @@ class IndexState {
      * @brief Index state code.
      */
     IndexStateCode
-    StateCode() const {
-        return state_code_;
-    }
+    StateCode() const;
 
     /**
      * @brief Set Index state code.
      */
     void
-    SetStateCode(IndexStateCode state_code) {
-        state_code_ = state_code;
-    }
+    SetStateCode(IndexStateCode state_code);
 
     /**
      * @brief Failed reason why the index failed to build.
      */
     std::string
-    FailedReason() const {
-        return failed_reason_;
-    }
+    FailedReason() const;
+
     /**
      * @brief Set Failure resaon.
      */
     void
-    SetFailedReason(const std::string& failed_reason) {
-        failed_reason_ = failed_reason;
-    }
+    SetFailedReason(std::string failed_reason);
 
  private:
     IndexStateCode state_code_{IndexStateCode::NONE};
@@ -81,33 +74,25 @@ class IndexProgress {
      * @brief Row count already indexed.
      */
     int64_t
-    IndexedRows() const {
-        return indexed_rows_;
-    }
+    IndexedRows() const;
 
     /**
      * @brief Set Row count already indexed.
      */
     void
-    SetIndexedRows(int64_t indexed_rows) {
-        indexed_rows_ = indexed_rows;
-    }
+    SetIndexedRows(int64_t indexed_rows);
 
     /**
      * @brief Total rows need to be indxed.
      */
     int64_t
-    TotalRows() const {
-        return total_rows_;
-    }
+    TotalRows() const;
 
     /**
      * @brief Set total rows need to be indexed.
      */
     void
-    SetTotalRows(int64_t total_rows) {
-        total_rows_ = total_rows;
-    }
+    SetTotalRows(int64_t total_rows);
 
  private:
     int64_t indexed_rows_ = 0;

@@ -28,116 +28,70 @@ namespace milvus {
  */
 class QueryArguments {
  public:
-    QueryArguments() = default;
-
     /**
      * @brief Get name of the target collection
      */
     const std::string&
-    CollectionName() const {
-        return collection_name_;
-    }
+    CollectionName() const;
 
     /**
      * @brief Set name of this collection, cannot be empty
      */
     Status
-    SetCollectionName(const std::string& collection_name) {
-        if (collection_name.empty()) {
-            return {StatusCode::INVALID_AGUMENT, "Collection name cannot be empty!"};
-        }
-        collection_name_ = collection_name;
-        return Status::OK();
-    }
+    SetCollectionName(std::string collection_name);
 
     /**
      * @brief Get partition names
      */
     const std::set<std::string>&
-    PartitionNames() const {
-        return partition_names_;
-    }
+    PartitionNames() const;
 
     /**
      * @brief Specify partition name to control query scope, the name cannot be empty
      */
     Status
-    AddPartitionName(const std::string& partition_name) {
-        if (partition_name.empty()) {
-            return {StatusCode::INVALID_AGUMENT, "Partition name cannot be empty!"};
-        }
-
-        partition_names_.emplace(partition_name);
-        return Status::OK();
-    }
+    AddPartitionName(std::string partition_name);
 
     /**
      * @brief Get output field names
      */
     const std::set<std::string>&
-    OutputFields() const {
-        return output_field_names_;
-    }
-
+    OutputFields() const;
     /**
      * @brief Specify output field names to return field data, the name cannot be empty
      */
     Status
-    AddOutputField(const std::string& field_name) {
-        if (field_name.empty()) {
-            return {StatusCode::INVALID_AGUMENT, "Field name cannot be empty!"};
-        }
-
-        output_field_names_.emplace(field_name);
-        return Status::OK();
-    }
+    AddOutputField(std::string field_name);
 
     /**
      * @brief Get filter expression
      */
     const std::string&
-    Expression() const {
-        return filter_expression_;
-    }
+    Expression() const;
 
     /**
      * @brief Set filter expression, the expression cannot be empty
      */
     Status
-    SetExpression(const std::string& expression) {
-        if (expression.empty()) {
-            return {StatusCode::INVALID_AGUMENT, "Filter expression cannot be empty!"};
-        }
-
-        filter_expression_ = expression;
-        return Status::OK();
-    }
+    SetExpression(std::string expression);
 
     /**
      * @brief Get travel timestamp.
      */
     uint64_t
-    TravelTimestamp() const {
-        return travel_timestamp_;
-    }
-
+    TravelTimestamp() const;
     /**
      * @brief  @brief Specify an absolute timestamp in a query to get results based on a data view at a specified point
      * in time. \n Default value is 0, server executes query on a full data view.
      */
     Status
-    SetTravelTimestamp(uint64_t timestamp) {
-        travel_timestamp_ = timestamp;
-        return Status::OK();
-    }
+    SetTravelTimestamp(uint64_t timestamp);
 
     /**
      * @brief Get guarantee timestamp.
      */
     uint64_t
-    GuaranteeTimestamp() const {
-        return guarantee_timestamp_;
-    }
+    GuaranteeTimestamp() const;
 
     /**
      * @brief Instructs server to see insert/delete operations performed before a provided timestamp. \n
@@ -152,10 +106,7 @@ class QueryArguments {
      * Default value is 1, server executes search immediately.
      */
     Status
-    SetGuaranteeTimestamp(uint64_t timestamp) {
-        guarantee_timestamp_ = timestamp;
-        return Status::OK();
-    }
+    SetGuaranteeTimestamp(uint64_t timestamp);
 
  private:
     std::string collection_name_;
@@ -165,8 +116,8 @@ class QueryArguments {
 
     std::set<std::string> output_fields_;
 
-    uint64_t travel_timestamp_ = 0;
-    uint64_t guarantee_timestamp_ = 0;
+    uint64_t travel_timestamp_{0};
+    uint64_t guarantee_timestamp_{0};
 };
 
 }  // namespace milvus

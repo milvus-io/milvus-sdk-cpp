@@ -61,8 +61,6 @@ validate(const SearchArguments& data, std::unordered_map<std::string, int64_t> p
 }
 }  // namespace
 
-SearchArguments::SearchArguments() = default;
-
 const std::string&
 SearchArguments::CollectionName() const {
     return collection_name_;

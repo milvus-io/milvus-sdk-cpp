@@ -46,4 +46,9 @@ TEST_F(HybirdTimestampTest, GeneralTesting) {
     bar = milvus::HybirdTimestamp::CreateFromUnixtime(1000);
     EXPECT_EQ(bar.Logical(), 0);
     EXPECT_EQ(bar.Physical(), 1000);
+
+    milvus::HybirdTimestamp ts_a = milvus::HybirdTimestamp::CreateFromUnixtime(3);
+    milvus::HybirdTimestamp ts_b{ts_a.Timestamp()};
+    EXPECT_EQ(ts_a.Logical(), ts_b.Logical());
+    EXPECT_EQ(ts_a.Physical(), ts_b.Physical());
 }
