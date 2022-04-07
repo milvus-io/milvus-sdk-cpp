@@ -21,7 +21,7 @@ Currently, we tested the below platform and compilers for developing Milvus C++ 
 ### Clone the code
 
 ```shell
-$ git clone git@github.com:milvus-io/milvus-sdk-cpp.git
+$ git clone --recursive git@github.com:milvus-io/milvus-sdk-cpp.git
 ```
 
 ### Install the dependencies
