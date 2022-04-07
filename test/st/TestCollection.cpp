@@ -22,7 +22,6 @@ TEST_F(MilvusServerTest, CreateAndDeleteCollection) {
 
     milvus::CollectionSchema collection_schema("Foo");
     collection_schema.AddField(milvus::FieldSchema("id", milvus::DataType::INT64, "id", true, true));
-    collection_schema.AddField(milvus::FieldSchema("name", milvus::DataType::STRING, "name"));
     collection_schema.AddField(milvus::FieldSchema("age", milvus::DataType::INT16, "age"));
     collection_schema.AddField(
         milvus::FieldSchema("face", milvus::DataType::FLOAT_VECTOR, "face signature").WithDimension(1024));
