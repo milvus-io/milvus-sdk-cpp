@@ -46,7 +46,7 @@ MilvusConnection::Connect(const std::string& uri) {
 
 Status
 MilvusConnection::Disconnect() {
-    stub_.release();
+    stub_.reset();
     channel_.reset();
     return Status::OK();
 }
