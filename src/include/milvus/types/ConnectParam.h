@@ -48,9 +48,24 @@ class ConnectParam {
     const std::string
     Uri() const;
 
+    /**
+     * @brief Connect timeout in milliseconds.
+     *
+     */
+    uint32_t
+    ConnectTimeout() const;
+
+    /**
+     * @brief Set connect timeout in milliseconds.
+     *
+     */
+    void
+    SetConnectTimeout(uint32_t timeout);
+
  private:
     std::string host_;
     uint16_t port_ = 0;
+    uint32_t connect_timeout_ = 5000;
 };
 
 }  // namespace milvus
