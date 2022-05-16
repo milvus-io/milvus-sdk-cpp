@@ -40,7 +40,7 @@ class MilvusConnection {
     virtual ~MilvusConnection();
 
     Status
-    Connect(const std::string& uri);
+    Connect(const std::string& uri, uint32_t timeout);
 
     Status
     Disconnect();

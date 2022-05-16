@@ -30,12 +30,13 @@ MilvusConnection::~MilvusConnection() {
 }
 
 Status
-MilvusConnection::Connect(const std::string& uri) {
+MilvusConnection::Connect(const std::string& uri, uint32_t timeout) {
     ::grpc::ChannelArguments args;
     args.SetMaxSendMessageSize(-1);     // max send message size: 2GB
     args.SetMaxReceiveMessageSize(-1);  // max receive message size: 2GB
     channel_ = ::grpc::CreateCustomChannel(uri, ::grpc::InsecureChannelCredentials(), args);
-    if (channel_ != nullptr) {
+    auto connected = channel_->WaitForConnected(std::chrono::system_clock::now() + std::chrono::milliseconds{timeout});
+    if (connected) {
         stub_ = proto::milvus::MilvusService::NewStub(channel_);
         return Status::OK();
     }

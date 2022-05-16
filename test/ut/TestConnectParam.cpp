@@ -25,4 +25,8 @@ TEST_F(ConnectParamTest, GeneralTesting) {
     EXPECT_EQ(param.Host(), "localhost");
     EXPECT_EQ(param.Port(), 10000);
     EXPECT_EQ(param.Uri(), "localhost:10000");
+    EXPECT_EQ(param.ConnectTimeout(), 5000);
+
+    param.SetConnectTimeout(1000);
+    EXPECT_EQ(param.ConnectTimeout(), 1000);
 }

@@ -36,4 +36,14 @@ ConnectParam::Uri() const {
     return host_ + ":" + std::to_string(port_);
 }
 
+uint32_t
+ConnectParam::ConnectTimeout() const {
+    return connect_timeout_;
+}
+
+void
+ConnectParam::SetConnectTimeout(uint32_t timeout) {
+    connect_timeout_ = timeout;
+}
+
 }  // namespace milvus
