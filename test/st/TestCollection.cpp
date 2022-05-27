@@ -30,6 +30,25 @@ TEST_F(MilvusServerTest, CreateAndDeleteCollection) {
     EXPECT_EQ(status.Message(), "OK");
     EXPECT_TRUE(status.IsOk());
 
+    // test for https://github.com/milvus-io/milvus-sdk-cpp/issues/188
+    std::vector<std::string> names;
+    std::vector<milvus::CollectionInfo> collection_infos;
+    status = client_->ShowCollections(names, collection_infos);
+    EXPECT_TRUE(status.IsOk());
+    EXPECT_EQ(collection_infos.size(), 1);
+    EXPECT_EQ(collection_infos.front().MemoryPercentage(), 0);
+    EXPECT_EQ(collection_infos.front().Name(), "Foo");
+
+    names.emplace_back("Foo");
+    collection_infos.clear();
+    status = client_->LoadCollection("Foo");
+    EXPECT_TRUE(status.IsOk());
+
+    status = client_->ShowCollections(names, collection_infos);
+    EXPECT_TRUE(status.IsOk());
+    EXPECT_EQ(collection_infos.size(), 1);
+    EXPECT_EQ(collection_infos.front().MemoryPercentage(), 100);
+
     status = client_->DropCollection("Foo");
     EXPECT_TRUE(status.IsOk());
 }

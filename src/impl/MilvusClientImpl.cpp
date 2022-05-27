@@ -233,8 +233,12 @@ MilvusClientImpl::ShowCollections(const std::vector<std::string>& collection_nam
 
     auto post = [&collections_info](const proto::milvus::ShowCollectionsResponse& response) {
         for (size_t i = 0; i < response.collection_ids_size(); i++) {
+            auto inmemory_percentage = 0;
+            if (response.inmemory_percentages_size() > i) {
+                inmemory_percentage = response.inmemory_percentages(i);
+            }
             collections_info.emplace_back(response.collection_names(i), response.collection_ids(i),
-                                          response.created_utc_timestamps(i), response.inmemory_percentages(i));
+                                          response.created_utc_timestamps(i), inmemory_percentage);
         }
     };
     return apiHandler<proto::milvus::ShowCollectionsRequest, proto::milvus::ShowCollectionsResponse>(
