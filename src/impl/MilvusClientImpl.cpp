@@ -444,6 +444,12 @@ MilvusClientImpl::CreateIndex(const std::string& collection_name, const IndexDes
                               const ProgressMonitor& progress_monitor) {
     auto validate = [&index_desc] { return index_desc.Validate(); };
 
+    // flush before create index
+    auto flush_status = Flush(std::vector<std::string>{collection_name}, progress_monitor);
+    if (!flush_status.IsOk()) {
+        return flush_status;
+    }
+
     auto pre = [&collection_name, &index_desc]() {
         proto::milvus::CreateIndexRequest rpc_request;
         rpc_request.set_collection_name(collection_name);
