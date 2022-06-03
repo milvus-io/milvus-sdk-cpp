@@ -21,10 +21,13 @@
 
 using ::milvus::StatusCode;
 using ::milvus::proto::milvus::CreateIndexRequest;
+using ::milvus::proto::milvus::FlushRequest;
+using ::milvus::proto::milvus::FlushResponse;
 using ::milvus::proto::milvus::GetIndexStateRequest;
 using ::milvus::proto::milvus::GetIndexStateResponse;
 using ::testing::_;
 using ::testing::AllOf;
+using ::testing::ElementsAre;
 using ::testing::Property;
 
 TEST_F(MilvusMockedTest, TestCreateIndexInstantly) {
@@ -41,6 +44,10 @@ TEST_F(MilvusMockedTest, TestCreateIndexInstantly) {
     milvus::IndexDesc index_desc(field_name, "", index_type, metric_type, index_id);
     index_desc.AddExtraParam("nlist", 1024);
     const auto progress_monitor = ::milvus::ProgressMonitor::NoWait();
+
+    EXPECT_CALL(service_, Flush(_, AllOf(Property(&FlushRequest::collection_names, ElementsAre(collection_name))), _))
+        .WillOnce([&](::grpc::ServerContext*, const FlushRequest*, FlushResponse*) { return ::grpc::Status{}; });
+
     EXPECT_CALL(service_, CreateIndex(_,
                                       AllOf(Property(&CreateIndexRequest::collection_name, collection_name),
                                             Property(&CreateIndexRequest::field_name, field_name)),
@@ -50,6 +57,32 @@ TEST_F(MilvusMockedTest, TestCreateIndexInstantly) {
         });
     auto status = client_->CreateIndex(collection_name, index_desc, progress_monitor);
     EXPECT_TRUE(status.IsOk());
+}
+
+TEST_F(MilvusMockedTest, TestCreateIndexFlushFailedInstantly) {
+    milvus::ConnectParam connect_param{"127.0.0.1", server_.ListenPort()};
+    client_->Connect(connect_param);
+
+    std::string collection_name = "test_collection";
+    std::string field_name = "test_field";
+    std::string index_name = "test_index";
+    auto index_type = milvus::IndexType::IVF_FLAT;
+    auto metric_type = milvus::MetricType::L2;
+    int64_t index_id = 0;
+
+    milvus::IndexDesc index_desc(field_name, "", index_type, metric_type, index_id);
+    index_desc.AddExtraParam("nlist", 1024);
+    const auto progress_monitor = ::milvus::ProgressMonitor::NoWait();
+
+    EXPECT_CALL(service_, Flush(_, AllOf(Property(&FlushRequest::collection_names, ElementsAre(collection_name))), _))
+        .WillOnce([&](::grpc::ServerContext*, const FlushRequest*, FlushResponse* resp) {
+            resp->mutable_status()->set_error_code(::milvus::proto::common::ErrorCode::UnexpectedError);
+            return ::grpc::Status{};
+        });
+
+    auto status = client_->CreateIndex(collection_name, index_desc, progress_monitor);
+    EXPECT_FALSE(status.IsOk());
+    EXPECT_EQ(status.Code(), milvus::StatusCode::SERVER_FAILED);
 }
 
 TEST_F(MilvusMockedTest, TestCreateIndexWithProgress) {
@@ -66,6 +99,10 @@ TEST_F(MilvusMockedTest, TestCreateIndexWithProgress) {
     index_desc.AddExtraParam("nlist", 1024);
     auto progress_monitor = ::milvus::ProgressMonitor::Forever();
     progress_monitor.SetCheckInterval(10);
+
+    EXPECT_CALL(service_, Flush(_, AllOf(Property(&FlushRequest::collection_names, ElementsAre(collection_name))), _))
+        .WillOnce([&](::grpc::ServerContext*, const FlushRequest*, FlushResponse*) { return ::grpc::Status{}; });
+
     EXPECT_CALL(service_, CreateIndex(_,
                                       AllOf(Property(&CreateIndexRequest::collection_name, collection_name),
                                             Property(&CreateIndexRequest::field_name, field_name)),
@@ -118,6 +155,10 @@ TEST_F(MilvusMockedTest, TestCreateIndexFailed) {
     index_desc.AddExtraParam("nlist", 1024);
     auto progress_monitor = ::milvus::ProgressMonitor::Forever();
     progress_monitor.SetCheckInterval(10);
+
+    EXPECT_CALL(service_, Flush(_, AllOf(Property(&FlushRequest::collection_names, ElementsAre(collection_name))), _))
+        .WillRepeatedly([&](::grpc::ServerContext*, const FlushRequest*, FlushResponse*) { return ::grpc::Status{}; });
+
     EXPECT_CALL(service_, CreateIndex(_,
                                       AllOf(Property(&CreateIndexRequest::collection_name, collection_name),
                                             Property(&CreateIndexRequest::field_name, field_name)),
