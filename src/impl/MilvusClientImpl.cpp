@@ -669,13 +669,13 @@ MilvusClientImpl::Search(const SearchArguments& arguments, SearchResults& result
         }
 
         // placeholders
-        proto::milvus::PlaceholderGroup placeholder_group;
+        proto::common::PlaceholderGroup placeholder_group;
         auto& placeholder_value = *placeholder_group.add_placeholders();
         placeholder_value.set_tag("$0");
         auto target = arguments.TargetVectors();
         if (target->Type() == DataType::BINARY_VECTOR) {
             // bins
-            placeholder_value.set_type(proto::milvus::PlaceholderType::BinaryVector);
+            placeholder_value.set_type(proto::common::PlaceholderType::BinaryVector);
             auto& bins_vec = dynamic_cast<BinaryVecFieldData&>(*target);
             for (const auto& bins : bins_vec.Data()) {
                 std::string placeholder_data(reinterpret_cast<const char*>(bins.data()), bins.size());
@@ -683,7 +683,7 @@ MilvusClientImpl::Search(const SearchArguments& arguments, SearchResults& result
             }
         } else {
             // floats
-            placeholder_value.set_type(proto::milvus::PlaceholderType::FloatVector);
+            placeholder_value.set_type(proto::common::PlaceholderType::FloatVector);
             auto& floats_vec = dynamic_cast<FloatVecFieldData&>(*target);
             for (const auto& floats : floats_vec.Data()) {
                 std::string placeholder_data(reinterpret_cast<const char*>(floats.data()),

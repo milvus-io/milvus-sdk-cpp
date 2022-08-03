@@ -113,7 +113,7 @@ TestSearchVectors(testing::StrictMock<::milvus::MilvusMockedService>& service_,
 
             // check placeholder
             auto placeholder_group_payload = request->placeholder_group();
-            milvus::proto::milvus::PlaceholderGroup placeholder_group;
+            milvus::proto::common::PlaceholderGroup placeholder_group;
             placeholder_group.ParseFromString(placeholder_group_payload);
             EXPECT_EQ(placeholder_group.placeholders_size(), 1);
             const auto& placeholders = placeholder_group.placeholders(0);
