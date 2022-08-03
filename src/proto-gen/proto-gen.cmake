@@ -21,6 +21,7 @@ function(add_proto_source name)
                 ${protobuf_BINARY_DIR}/protoc${CMAKE_EXECUTABLE_SUFFIX}
         COMMAND ${protobuf_BINARY_DIR}/protoc${CMAKE_EXECUTABLE_SUFFIX}
                 --cpp_out ${CMAKE_CURRENT_SOURCE_DIR}/proto-gen -I${CMAKE_CURRENT_SOURCE_DIR}/milvus-proto/proto
+		-I${grpc_SOURCE_DIR}/third_party/protobuf/src
                 ${CMAKE_CURRENT_SOURCE_DIR}/milvus-proto/proto/${name}.proto
     )
 endfunction(add_proto_source name)
@@ -33,6 +34,7 @@ function(add_proto_service name)
                 ${grpc_BINARY_DIR}/grpc_cpp_plugin${CMAKE_EXECUTABLE_SUFFIX}
         COMMAND ${protobuf_BINARY_DIR}/protoc${CMAKE_EXECUTABLE_SUFFIX}
                 --grpc_out ${CMAKE_CURRENT_SOURCE_DIR}/proto-gen -I${CMAKE_CURRENT_SOURCE_DIR}/milvus-proto/proto
+		-I${grpc_SOURCE_DIR}/third_party/protobuf/src
                 --plugin=protoc-gen-grpc=${grpc_BINARY_DIR}/grpc_cpp_plugin${CMAKE_EXECUTABLE_SUFFIX}
                 ${CMAKE_CURRENT_SOURCE_DIR}/milvus-proto/proto/${name}.proto
     )
