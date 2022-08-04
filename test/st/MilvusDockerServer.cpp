@@ -32,11 +32,11 @@ constexpr char etcd_start_cmd[] =
     "etcd -advertise-client-urls=http://127.0.0.1:2379 -listen-client-urls http://0.0.0.0:2379 --data-dir /etcd";
 
 constexpr char minio_image_repo[] = "minio/minio";
-constexpr char minio_image_tag[] = "RELEASE.2020-12-03T00-03-10Z";
+constexpr char minio_image_tag[] = "RELEASE.2022-03-17T06-34-49Z";
 constexpr char minio_start_cmd[] = "minio server /minio_data";
 
 constexpr char milvus_image_repo[] = "milvusdb/milvus";
-constexpr char milvus_image_tag[] = "v2.0.2";
+constexpr char milvus_image_tag[] = "v2.1.0";
 constexpr char milvus_start_cmd[] = "milvus run standalone";
 }  // namespace
 
