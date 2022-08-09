@@ -50,14 +50,15 @@ jobs:
             image: centos:7
             key: c7
           - distro: Fedora
-            version: 34
-            image: fedora:34
-            key: fc34
-          - distro: Fedora
             version: 35
             image: fedora:35
             key: fc35
+          - distro: Fedora
+            version: 36
+            image: fedora:36
+            key: fc36
     env:
+      CCACHE_DIR: ${{ github.workspace }}/.ccache
       CCACHE_COMPILERCHECK: content
       CCACHE_COMPRESS: 1
       CCACHE_COMPRESSLEVEL: 5
@@ -71,7 +72,7 @@ jobs:
         uses: actions/cache@v2
         with:
           path: |
-            ~/.ccache
+            ${{ github.workspace }}/.ccache
           key: linux-${{ matrix.os.key }}-ccache-${{ github.sha }}
           restore-keys: linux-${{ matrix.os.key }}-ccache-
       - name: Cache apk
@@ -144,6 +145,7 @@ jobs:
       matrix:
         ubuntu: [18.04]
     env:
+      CCACHE_DIR: ${{ github.workspace }}/.ccache
       CCACHE_COMPILERCHECK: content
       CCACHE_COMPRESS: 1
       CCACHE_COMPRESSLEVEL: 5
@@ -157,7 +159,7 @@ jobs:
         uses: actions/cache@v2
         with:
           path: |
-            ~/.ccache
+            ${{ github.workspace }}/.ccache
           key: ubuntu-${{ matrix.ubuntu }}-ccache-${{ github.sha }}
           restore-keys: ubuntu-${{ matrix.ubuntu }}-ccache-
       - name: Cache apk

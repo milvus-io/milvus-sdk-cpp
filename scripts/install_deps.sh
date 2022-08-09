@@ -119,6 +119,8 @@ if uname | grep -wq Linux ; then
             install_deps_for_fedora_common
         elif grep -q 'Fedora release 35' /etc/redhat-release ; then
             install_deps_for_fedora_common
+        elif grep -q 'Fedora release 36' /etc/redhat-release ; then
+            install_deps_for_fedora_common
         fi
     fi
 elif uname | grep -wq Darwin ; then
