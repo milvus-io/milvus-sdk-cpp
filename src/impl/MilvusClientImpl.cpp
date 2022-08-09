@@ -808,20 +808,16 @@ MilvusClientImpl::CalcDistance(const CalcDistanceArguments& arguments, DistanceA
                     // suppose vectors is not empty, already checked by Validate()
                     data_array->set_dim(vectors[0].size());
                 } else {
-                    BinaryVecFieldDataPtr data_ptr = std::static_pointer_cast<BinaryVecFieldData>(arg_vectors);
-                    auto str = data_array->mutable_binary_vector();
+                    auto data_ptr = std::static_pointer_cast<BinaryVecFieldData>(arg_vectors);
+                    auto& str = *data_array->mutable_binary_vector();
                     auto& vectors = data_ptr->Data();
+                    // user specify dimension(only for binary vectors), if not, get it from vectors
+                    auto dimensions = arguments.Dimension() > 0 ? arguments.Dimension() : (vectors.front().size() * 8);
+                    str.reserve(dimensions * vectors.size() / 8);
                     for (auto& vector : vectors) {
-                        str->append(reinterpret_cast<char*>(vector.data()), vector.size());
+                        str.append(vector);
                     }
-
-                    // suppose vectors is not empty, already checked by Validate()
-                    data_array->set_dim(vectors[0].size());
-
-                    // user specify dimension(only for binary vectors)
-                    if (arguments.Dimension() > 0) {
-                        data_array->set_dim(arguments.Dimension());
-                    }
+                    data_array->set_dim(dimensions);
                 }
 
             } else if (arg_vectors->Type() == DataType::INT64) {

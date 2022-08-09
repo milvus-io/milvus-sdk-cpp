@@ -60,15 +60,15 @@ TEST_F(CalcDistanceArgumentsTest, GeneralTesting) {
 
 TEST_F(CalcDistanceArgumentsTest, FloatVectors) {
     milvus::FloatVecFieldDataPtr vectors_1 = std::make_shared<milvus::FloatVecFieldData>();
-    milvus::FloatVecFieldData::ElementT element_1 = {1.0, 2.0};
-    milvus::FloatVecFieldData::ElementT element_2 = {3.0, 4.0};
+    std::vector<float> element_1 = {1.0, 2.0};
+    std::vector<float> element_2 = {3.0, 4.0};
     vectors_1->Add(element_1);
     vectors_1->Add(element_2);
 
     milvus::FloatVecFieldDataPtr vectors_2 = std::make_shared<milvus::FloatVecFieldData>();
-    milvus::FloatVecFieldData::ElementT element_3 = {1.0, 2.0};
-    milvus::FloatVecFieldData::ElementT element_4 = {3.0, 4.0};
-    milvus::FloatVecFieldData::ElementT element_5 = {5.0, 6.0};
+    std::vector<float> element_3 = {1.0, 2.0};
+    std::vector<float> element_4 = {3.0, 4.0};
+    std::vector<float> element_5 = {5.0, 6.0};
     vectors_2->Add(element_3);
     vectors_2->Add(element_4);
     vectors_2->Add(element_5);
@@ -92,15 +92,15 @@ TEST_F(CalcDistanceArgumentsTest, FloatVectors) {
 
 TEST_F(CalcDistanceArgumentsTest, BinaryVectors) {
     milvus::BinaryVecFieldDataPtr vectors_1 = std::make_shared<milvus::BinaryVecFieldData>();
-    milvus::BinaryVecFieldData::ElementT element_1 = {1, 2};
-    milvus::BinaryVecFieldData::ElementT element_2 = {3, 4};
+    std::vector<uint8_t> element_1 = {1, 2};
+    std::vector<uint8_t> element_2 = {3, 4};
     vectors_1->Add(element_1);
     vectors_1->Add(element_2);
 
     milvus::BinaryVecFieldDataPtr vectors_2 = std::make_shared<milvus::BinaryVecFieldData>();
-    milvus::BinaryVecFieldData::ElementT element_3 = {5, 6};
-    milvus::BinaryVecFieldData::ElementT element_4 = {7, 8};
-    milvus::BinaryVecFieldData::ElementT element_5 = {9, 10};
+    std::vector<uint8_t> element_3 = {5, 6};
+    std::vector<uint8_t> element_4 = {7, 8};
+    std::vector<uint8_t> element_5 = {9, 10};
     vectors_2->Add(element_3);
     vectors_2->Add(element_4);
     vectors_2->Add(element_5);
@@ -177,15 +177,15 @@ TEST_F(CalcDistanceArgumentsTest, VectorIDs) {
 
 TEST_F(CalcDistanceArgumentsTest, Validate) {
     milvus::FloatVecFieldDataPtr vectors_1 = std::make_shared<milvus::FloatVecFieldData>();
-    milvus::FloatVecFieldData::ElementT element_1 = {1.0, 2.0};
-    milvus::FloatVecFieldData::ElementT element_2 = {3.0, 4.0};
+    std::vector<float> element_1 = {1.0, 2.0};
+    std::vector<float> element_2 = {3.0, 4.0};
     vectors_1->Add(element_1);
     vectors_1->Add(element_2);
 
     milvus::BinaryVecFieldDataPtr vectors_2 = std::make_shared<milvus::BinaryVecFieldData>();
-    milvus::BinaryVecFieldData::ElementT element_3 = {5, 6};
-    milvus::BinaryVecFieldData::ElementT element_4 = {7, 8};
-    milvus::BinaryVecFieldData::ElementT element_5 = {9, 10};
+    std::vector<uint8_t> element_3 = {5, 6};
+    std::vector<uint8_t> element_4 = {7, 8};
+    std::vector<uint8_t> element_5 = {9, 10};
     vectors_2->Add(element_3);
     vectors_2->Add(element_4);
     vectors_2->Add(element_5);
@@ -203,7 +203,7 @@ TEST_F(CalcDistanceArgumentsTest, Validate) {
     EXPECT_FALSE(status.IsOk());
 
     milvus::FloatVecFieldDataPtr vectors_3 = std::make_shared<milvus::FloatVecFieldData>();
-    milvus::FloatVecFieldData::ElementT element_6 = {1.0, 2.0};
+    std::vector<float> element_6 = {1.0, 2.0};
     vectors_3->Add(element_6);
 
     arguments.SetRightVectors(std::move(vectors_3));
@@ -215,7 +215,7 @@ TEST_F(CalcDistanceArgumentsTest, Validate) {
     EXPECT_FALSE(status.IsOk());
 
     milvus::BinaryVecFieldDataPtr vectors_4 = std::make_shared<milvus::BinaryVecFieldData>();
-    milvus::BinaryVecFieldData::ElementT element_7 = {1, 2};
+    std::vector<uint8_t> element_7 = {1, 2};
     vectors_4->Add(element_7);
 
     arguments.SetLeftVectors(milvus::BinaryVecFieldDataPtr{vectors_2});

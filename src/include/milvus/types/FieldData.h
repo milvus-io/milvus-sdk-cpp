@@ -87,10 +87,12 @@ class FieldData : public Field {
      * @brief Constructor
      */
     FieldData(std::string name, const std::vector<T>& data);
+
     /**
      * @brief Constructor
      */
     FieldData(std::string name, std::vector<T>&& data);
+
     /**
      * @brief Add element to field data
      */
@@ -102,11 +104,13 @@ class FieldData : public Field {
      */
     StatusCode
     Add(T&& element);
+
     /**
      * @brief Total number of field elements
      */
     size_t
     Count() const final;
+
     /**
      * @brief Field elements array
      */
@@ -120,7 +124,85 @@ class FieldData : public Field {
     Data();
 
  private:
+    friend class BinaryVecFieldData;
     std::vector<T> data_;
+};
+
+class BinaryVecFieldData : public FieldData<std::string, DataType::BINARY_VECTOR> {
+ public:
+    /**
+     * @brief Constructor
+     */
+    BinaryVecFieldData();
+
+    /**
+     * @brief Constructor
+     */
+    explicit BinaryVecFieldData(std::string name);
+
+    /**
+     * @brief Constructor
+     */
+    BinaryVecFieldData(std::string name, const std::vector<std::string>& data);
+
+    /**
+     * @brief Constructor
+     */
+    BinaryVecFieldData(std::string name, std::vector<std::string>&& data);
+
+    /**
+     * @brief Constructor
+     */
+    BinaryVecFieldData(std::string name, const std::vector<std::vector<uint8_t>>& data);
+
+    /**
+     * @brief Field elements array
+     */
+    const std::vector<std::string>&
+    Data() const;
+
+    /**
+     * @brief Field elements array
+     */
+    std::vector<std::string>&
+    Data();
+
+    /**
+     * @brief Data export as uint8_t's vector
+     */
+    std::vector<std::vector<uint8_t>>
+    DataAsUnsignedChars() const;
+
+    /**
+     * @brief Add element to field data
+     */
+    StatusCode
+    Add(const std::string& element);
+
+    /**
+     * @brief Add element to field data
+     */
+
+    StatusCode
+    Add(std::string&& element);
+
+    /**
+     * @brief Add element to field data
+     */
+    StatusCode
+    Add(const std::vector<uint8_t>& element);
+
+    /**
+     * @brief Create binary vector strings from uint8_t vectors
+     */
+    static std::vector<std::string>
+    CreateBinaryStrings(const std::vector<std::vector<uint8_t>>& data);
+
+    /**
+     * @brief Create binary vector string from uint8_t vector
+     */
+    static std::string
+    CreateBinaryString(const std::vector<uint8_t>& data);
 };
 
 /**
@@ -149,7 +231,6 @@ using Int64FieldData = FieldData<int64_t, DataType::INT64>;
 using FloatFieldData = FieldData<float, DataType::FLOAT>;
 using DoubleFieldData = FieldData<double, DataType::DOUBLE>;
 using StringFieldData = FieldData<std::string, DataType::STRING>;
-using BinaryVecFieldData = FieldData<std::vector<uint8_t>, DataType::BINARY_VECTOR>;
 using FloatVecFieldData = FieldData<std::vector<float>, DataType::FLOAT_VECTOR>;
 
 using BoolFieldDataPtr = std::shared_ptr<BoolFieldData>;
@@ -171,7 +252,7 @@ extern template class FieldData<int64_t, DataType::INT64>;
 extern template class FieldData<float, DataType::FLOAT>;
 extern template class FieldData<double, DataType::DOUBLE>;
 extern template class FieldData<std::string, DataType::STRING>;
-extern template class FieldData<std::vector<uint8_t>, DataType::BINARY_VECTOR>;
+extern template class FieldData<std::string, DataType::BINARY_VECTOR>;
 extern template class FieldData<std::vector<float>, DataType::FLOAT_VECTOR>;
 
 }  // namespace milvus
