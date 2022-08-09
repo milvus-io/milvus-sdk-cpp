@@ -153,35 +153,38 @@ TEST_F(FieldDataTest, GeneralTesting) {
 
     {
         milvus::BinaryVecFieldData data{name};
-        milvus::BinaryVecFieldData::ElementT element_1 = {1, 2};
-        milvus::BinaryVecFieldData::ElementT element_2 = {3, 4};
+        std::vector<uint8_t> element_1 = {1, 2};
+        std::vector<uint8_t> element_2 = {3, 4};
         data.Add(element_1);
         data.Add(element_2);
-        milvus::BinaryVecFieldData::ElementT element_3 = {5};
+        std::vector<uint8_t> element_3 = {5};
         EXPECT_EQ(data.Add(element_3), milvus::StatusCode::DIMENSION_NOT_EQUAL);
-        milvus::BinaryVecFieldData::ElementT element_4;
+        std::vector<uint8_t> element_4;
         EXPECT_EQ(data.Add(element_4), milvus::StatusCode::VECTOR_IS_EMPTY);
         EXPECT_EQ(data.Name(), name);
         EXPECT_EQ(data.Type(), milvus::DataType::BINARY_VECTOR);
         EXPECT_EQ(data.Count(), 2);
         EXPECT_EQ(data.Data().size(), 2);
+        EXPECT_EQ(data.DataAsUnsignedChars().size(), 2);
         EXPECT_FLOAT_EQ(data.Data().at(0).size(), element_1.size());
         EXPECT_FLOAT_EQ(data.Data().at(1).size(), element_2.size());
+        EXPECT_FLOAT_EQ(data.DataAsUnsignedChars().at(0).size(), element_1.size());
+        EXPECT_FLOAT_EQ(data.DataAsUnsignedChars().at(1).size(), element_2.size());
 
-        std::vector<milvus::BinaryVecFieldData::ElementT> values = {element_1, element_2};
+        std::vector<std::vector<uint8_t>> values = {element_1, element_2};
         milvus::BinaryVecFieldData cp{name, values};
         EXPECT_EQ(cp.Data().size(), 2);
     }
 
     {
         milvus::FloatVecFieldData data{name};
-        milvus::FloatVecFieldData::ElementT element_1 = {1.0, 2.0};
-        milvus::FloatVecFieldData::ElementT element_2 = {3.0, 4.0};
+        std::vector<float> element_1 = {1.0, 2.0};
+        std::vector<float> element_2 = {3.0, 4.0};
         data.Add(element_1);
         data.Add(element_2);
-        milvus::FloatVecFieldData::ElementT element_3 = {5.0};
+        std::vector<float> element_3 = {5.0};
         EXPECT_EQ(data.Add(element_3), milvus::StatusCode::DIMENSION_NOT_EQUAL);
-        milvus::FloatVecFieldData::ElementT element_4;
+        std::vector<float> element_4;
         EXPECT_EQ(data.Add(element_4), milvus::StatusCode::VECTOR_IS_EMPTY);
         EXPECT_EQ(data.Name(), name);
         EXPECT_EQ(data.Type(), milvus::DataType::FLOAT_VECTOR);
@@ -190,8 +193,23 @@ TEST_F(FieldDataTest, GeneralTesting) {
         EXPECT_FLOAT_EQ(data.Data().at(0).size(), element_1.size());
         EXPECT_FLOAT_EQ(data.Data().at(1).size(), element_2.size());
 
-        std::vector<milvus::FloatVecFieldData::ElementT> values = {element_1, element_2};
+        std::vector<std::vector<float>> values = {element_1, element_2};
         milvus::FloatVecFieldData cp{name, values};
         EXPECT_EQ(cp.Data().size(), 2);
+    }
+
+    {
+        std::string name{"foo"};
+        const std::vector<std::string> elements{"\x01\x02", "\x03\x04"};
+        milvus::BinaryVecFieldData data{name, elements};
+        std::vector<std::vector<uint8_t>> expected{{1, 2}, {3, 4}};
+        EXPECT_EQ(data.DataAsUnsignedChars(), expected);
+
+        const std::string element_1{'\x00', '\x00'};
+        auto status = data.Add(element_1);
+        std::cout << (int)status << std::endl;
+        EXPECT_EQ(status, milvus::StatusCode::OK);
+        expected = std::vector<std::vector<uint8_t>>{{1, 2}, {3, 4}, {0, 0}};
+        EXPECT_EQ(data.DataAsUnsignedChars(), expected);
     }
 }

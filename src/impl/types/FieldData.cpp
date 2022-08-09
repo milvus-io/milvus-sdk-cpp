@@ -119,6 +119,75 @@ FieldData<T, Dt>::Data() {
     return data_;
 }
 
+BinaryVecFieldData::BinaryVecFieldData() : FieldData<std::string, DataType::BINARY_VECTOR>() {
+}
+
+BinaryVecFieldData::BinaryVecFieldData(std::string name)
+    : FieldData<std::string, DataType::BINARY_VECTOR>(std::move(name)) {
+}
+
+BinaryVecFieldData::BinaryVecFieldData(std::string name, const std::vector<std::string>& data)
+    : FieldData<std::string, DataType::BINARY_VECTOR>(std::move(name), data) {
+}
+
+BinaryVecFieldData::BinaryVecFieldData(std::string name, std::vector<std::string>&& data)
+    : FieldData<std::string, DataType::BINARY_VECTOR>(std::move(name), std::move(data)) {
+}
+
+BinaryVecFieldData::BinaryVecFieldData(std::string name, const std::vector<std::vector<uint8_t>>& data)
+    : FieldData<std::string, DataType::BINARY_VECTOR>(std::move(name), CreateBinaryStrings(data)) {
+}
+
+const std::vector<std::string>&
+BinaryVecFieldData::Data() const {
+    return data_;
+}
+
+std::vector<std::string>&
+BinaryVecFieldData::Data() {
+    return data_;
+}
+
+std::vector<std::vector<uint8_t>>
+BinaryVecFieldData::DataAsUnsignedChars() const {
+    std::vector<std::vector<uint8_t>> ret;
+    ret.reserve(data_.size());
+    for (const auto& item : data_) {
+        ret.emplace_back(std::vector<uint8_t>{item.begin(), item.end()});
+    }
+    return ret;
+}
+
+StatusCode
+BinaryVecFieldData::Add(const std::string& element) {
+    return AddElement<std::string, DataType::BINARY_VECTOR>(element, data_);
+}
+
+StatusCode
+BinaryVecFieldData::Add(std::string&& element) {
+    return AddElement<std::string, DataType::BINARY_VECTOR>(element, data_);
+}
+
+StatusCode
+BinaryVecFieldData::Add(const std::vector<uint8_t>& element) {
+    return Add(std::string{element.begin(), element.end()});
+}
+
+std::vector<std::string>
+BinaryVecFieldData::CreateBinaryStrings(const std::vector<std::vector<uint8_t>>& data) {
+    std::vector<std::string> ret;
+    ret.reserve(data.size());
+    for (const auto& item : data) {
+        ret.emplace_back(std::string{item.begin(), item.end()});
+    }
+    return ret;
+}
+
+std::string
+BinaryVecFieldData::CreateBinaryString(const std::vector<uint8_t>& data) {
+    return std::string{data.begin(), data.end()};
+}
+
 // explicit declare FieldData
 template class FieldData<bool, DataType::BOOL>;
 template class FieldData<int8_t, DataType::INT8>;
@@ -128,7 +197,7 @@ template class FieldData<int64_t, DataType::INT64>;
 template class FieldData<float, DataType::FLOAT>;
 template class FieldData<double, DataType::DOUBLE>;
 template class FieldData<std::string, DataType::STRING>;
-template class FieldData<std::vector<uint8_t>, DataType::BINARY_VECTOR>;
+template class FieldData<std::string, DataType::BINARY_VECTOR>;
 template class FieldData<std::vector<float>, DataType::FLOAT_VECTOR>;
 
 }  // namespace milvus

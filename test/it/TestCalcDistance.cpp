@@ -30,15 +30,15 @@ TEST_F(MilvusMockedTest, CalcDistanceFloat) {
     client_->Connect(connect_param);
 
     milvus::FloatVecFieldDataPtr vectors_1 = std::make_shared<milvus::FloatVecFieldData>();
-    milvus::FloatVecFieldData::ElementT element_1 = {1.0, 2.0};
-    milvus::FloatVecFieldData::ElementT element_2 = {3.0, 4.0};
+    std::vector<float> element_1 = {1.0, 2.0};
+    std::vector<float> element_2 = {3.0, 4.0};
     vectors_1->Add(element_1);
     vectors_1->Add(element_2);
 
     milvus::FloatVecFieldDataPtr vectors_2 = std::make_shared<milvus::FloatVecFieldData>();
-    milvus::FloatVecFieldData::ElementT element_3 = {1.0, 2.0};
-    milvus::FloatVecFieldData::ElementT element_4 = {3.0, 4.0};
-    milvus::FloatVecFieldData::ElementT element_5 = {5.0, 6.0};
+    std::vector<float> element_3 = {1.0, 2.0};
+    std::vector<float> element_4 = {3.0, 4.0};
+    std::vector<float> element_5 = {5.0, 6.0};
     vectors_2->Add(element_3);
     vectors_2->Add(element_4);
     vectors_2->Add(element_5);
@@ -71,8 +71,8 @@ TEST_F(MilvusMockedTest, CalcDistanceFloat) {
             EXPECT_EQ(data_right.dim(), element_1.size());
             EXPECT_TRUE(data_right.has_float_vector());
 
-            auto compare_array = [](const ::milvus::proto::schema::VectorField& data_arr,
-                                    milvus::FloatVecFieldData::ElementT& element, size_t offset) {
+            auto compare_array = [](const ::milvus::proto::schema::VectorField& data_arr, std::vector<float>& element,
+                                    size_t offset) {
                 auto& float_array = data_arr.float_vector();
                 EXPECT_GE(float_array.data_size(), offset + element.size());
                 for (auto i = 0; i < element.size(); ++i) {
@@ -117,15 +117,15 @@ TEST_F(MilvusMockedTest, CalcDistanceBinary) {
     client_->Connect(connect_param);
 
     milvus::BinaryVecFieldDataPtr vectors_1 = std::make_shared<milvus::BinaryVecFieldData>();
-    milvus::BinaryVecFieldData::ElementT element_1 = {1, 2};
-    milvus::BinaryVecFieldData::ElementT element_2 = {3, 4};
+    std::vector<uint8_t> element_1 = {1, 2};
+    std::vector<uint8_t> element_2 = {3, 4};
     vectors_1->Add(element_1);
     vectors_1->Add(element_2);
 
     milvus::BinaryVecFieldDataPtr vectors_2 = std::make_shared<milvus::BinaryVecFieldData>();
-    milvus::BinaryVecFieldData::ElementT element_3 = {5, 6};
-    milvus::BinaryVecFieldData::ElementT element_4 = {7, 8};
-    milvus::BinaryVecFieldData::ElementT element_5 = {9, 10};
+    std::vector<uint8_t> element_3 = {5, 6};
+    std::vector<uint8_t> element_4 = {7, 8};
+    std::vector<uint8_t> element_5 = {9, 10};
     vectors_2->Add(element_3);
     vectors_2->Add(element_4);
     vectors_2->Add(element_5);
@@ -159,8 +159,8 @@ TEST_F(MilvusMockedTest, CalcDistanceBinary) {
             EXPECT_EQ(data_right.dim(), 1);
             EXPECT_FALSE(data_right.has_float_vector());
 
-            auto compare_array = [](const ::milvus::proto::schema::VectorField& data_arr,
-                                    milvus::BinaryVecFieldData::ElementT& element, size_t offset) {
+            auto compare_array = [](const ::milvus::proto::schema::VectorField& data_arr, std::vector<uint8_t>& element,
+                                    size_t offset) {
                 auto& binary_array = data_arr.binary_vector();
                 EXPECT_GE(binary_array.length(), offset + element.size());
                 for (auto i = 0; i < element.size(); ++i) {

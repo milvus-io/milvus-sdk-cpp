@@ -53,8 +53,9 @@ TEST_F(SearchArgumentsTest, GeneralTesting) {
 }
 
 TEST_F(SearchArgumentsTest, VectorTesting) {
-    milvus::BinaryVecFieldData::ElementT binary_vector = {1, 2, 3};
-    milvus::FloatVecFieldData::ElementT float_vector = {1.0, 2.0};
+    std::vector<uint8_t> binary_vector = {1, 2, 3};
+    std::string binary_string{'\x00', '\x00', '\x00'};
+    std::vector<float> float_vector = {1.0, 2.0};
 
     {
         milvus::SearchArguments arguments;
@@ -64,17 +65,23 @@ TEST_F(SearchArgumentsTest, VectorTesting) {
         status = arguments.AddTargetVector("dummy", float_vector);
         EXPECT_FALSE(status.IsOk());
 
-        milvus::BinaryVecFieldData::ElementT new_vector = {1, 2};
+        std::vector<uint8_t> new_vector = {1, 2};
         status = arguments.AddTargetVector("dummy", new_vector);
         EXPECT_FALSE(status.IsOk());
 
-        status = arguments.AddTargetVector("dummy", milvus::BinaryVecFieldData::ElementT{});
+        status = arguments.AddTargetVector("dummy", std::vector<uint8_t>{});
         EXPECT_FALSE(status.IsOk());
 
         auto target_vectors = arguments.TargetVectors();
         EXPECT_TRUE(target_vectors != nullptr);
         EXPECT_EQ(milvus::DataType::BINARY_VECTOR, target_vectors->Type());
         EXPECT_EQ(1, target_vectors->Count());
+
+        status = arguments.AddTargetVector("dummy", binary_string);
+        EXPECT_TRUE(status.IsOk());
+
+        target_vectors = arguments.TargetVectors();
+        EXPECT_EQ(2, target_vectors->Count());
     }
 
     {
@@ -85,11 +92,11 @@ TEST_F(SearchArgumentsTest, VectorTesting) {
         status = arguments.AddTargetVector("dummy", binary_vector);
         EXPECT_FALSE(status.IsOk());
 
-        milvus::FloatVecFieldData::ElementT new_vector = {1.0, 2.0, 3.0};
+        std::vector<float> new_vector = {1.0, 2.0, 3.0};
         status = arguments.AddTargetVector("dummy", new_vector);
         EXPECT_FALSE(status.IsOk());
 
-        status = arguments.AddTargetVector("dummy", milvus::FloatVecFieldData::ElementT{});
+        status = arguments.AddTargetVector("dummy", std::vector<float>{});
         EXPECT_FALSE(status.IsOk());
 
         auto target_vectors = arguments.TargetVectors();
@@ -100,17 +107,17 @@ TEST_F(SearchArgumentsTest, VectorTesting) {
 
     {
         milvus::SearchArguments arguments;
-        auto status = arguments.AddTargetVector("dummy", milvus::BinaryVecFieldData::ElementT{1, 2, 3});
+        auto status = arguments.AddTargetVector("dummy", std::vector<uint8_t>{1, 2, 3});
         EXPECT_TRUE(status.IsOk());
 
-        status = arguments.AddTargetVector("dummy", milvus::FloatVecFieldData::ElementT{1.f, 2.f});
+        status = arguments.AddTargetVector("dummy", std::vector<float>{1.f, 2.f});
         EXPECT_FALSE(status.IsOk());
 
-        milvus::BinaryVecFieldData::ElementT new_vector = {1, 2};
+        std::vector<uint8_t> new_vector = {1, 2};
         status = arguments.AddTargetVector("dummy", new_vector);
         EXPECT_FALSE(status.IsOk());
 
-        status = arguments.AddTargetVector("dummy", milvus::BinaryVecFieldData::ElementT{});
+        status = arguments.AddTargetVector("dummy", std::vector<uint8_t>{});
         EXPECT_FALSE(status.IsOk());
 
         auto target_vectors = arguments.TargetVectors();
@@ -121,17 +128,17 @@ TEST_F(SearchArgumentsTest, VectorTesting) {
 
     {
         milvus::SearchArguments arguments;
-        auto status = arguments.AddTargetVector("dummy", milvus::FloatVecFieldData::ElementT{1.f, 2.f});
+        auto status = arguments.AddTargetVector("dummy", std::vector<float>{1.f, 2.f});
         EXPECT_TRUE(status.IsOk());
 
-        status = arguments.AddTargetVector("dummy", milvus::BinaryVecFieldData::ElementT{1, 2, 3});
+        status = arguments.AddTargetVector("dummy", std::vector<uint8_t>{1, 2, 3});
         EXPECT_FALSE(status.IsOk());
 
-        milvus::FloatVecFieldData::ElementT new_vector = {1.0, 2.0, 3.0};
+        std::vector<float> new_vector = {1.0, 2.0, 3.0};
         status = arguments.AddTargetVector("dummy", new_vector);
         EXPECT_FALSE(status.IsOk());
 
-        status = arguments.AddTargetVector("dummy", milvus::FloatVecFieldData::ElementT{});
+        status = arguments.AddTargetVector("dummy", std::vector<float>{});
         EXPECT_FALSE(status.IsOk());
 
         auto target_vectors = arguments.TargetVectors();

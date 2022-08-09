@@ -175,31 +175,28 @@ operator==(const proto::schema::FieldData& lhs, const BinaryVecFieldData& rhs) {
     if (lhs.field_name() != rhs.Name()) {
         return false;
     }
-    if (not lhs.has_vectors()) {
+    if (!lhs.has_vectors()) {
         return false;
-    }
-    size_t dim = 0;
-    if (rhs.Count() > 0) {
-        dim = rhs.Data().front().size();
     }
 
     const auto& vectors = lhs.vectors();
     if (vectors.has_float_vector()) {
         return false;
     }
+
     const auto& vectors_data = vectors.binary_vector();
-    if (vectors_data.size() != (rhs.Count() * dim)) {
-        return false;
+    auto it = vectors_data.begin();
+    const auto& strings = rhs.Data();
+    for (const auto& s : strings) {
+        for (const auto ch : s) {
+            if (it == vectors_data.end() || *it != ch) {
+                return false;
+            }
+            ++it;
+        }
     }
 
-    auto it = vectors_data.begin();
-    for (const auto& item : rhs.Data()) {
-        if (!std::equal(item.begin(), item.end(), it, [](uint8_t a, char b) { return static_cast<char>(a) == b; })) {
-            return false;
-        }
-        std::advance(it, dim);
-    }
-    return true;
+    return it == vectors_data.end();
 }
 
 bool
@@ -403,7 +400,7 @@ proto::schema::VectorField*
 CreateProtoFieldData(const BinaryVecFieldData& field) {
     auto ret = new proto::schema::VectorField{};
     auto& data = field.Data();
-    auto dim = data.front().size();
+    auto dim = data.front().size() * 8;
     auto& vectors_data = *(ret->mutable_binary_vector());
     vectors_data.reserve(data.size() * dim);
     for (const auto& item : data) {
@@ -554,13 +551,13 @@ CreateMilvusFieldData(const milvus::proto::schema::FieldData& field_data, size_t
     switch (field_type) {
         case proto::schema::DataType::BinaryVector:
             return std::make_shared<BinaryVecFieldData>(
-                name, BuildFieldDataVectors<uint8_t>(field_data.vectors().dim(), field_data.vectors().binary_vector(),
-                                                     offset, count));
+                name, BuildFieldDataVectors<std::string>(field_data.vectors().dim() / 8,
+                                                         field_data.vectors().binary_vector(), offset, count));
 
         case proto::schema::DataType::FloatVector:
             return std::make_shared<FloatVecFieldData>(
-                name, BuildFieldDataVectors<float>(field_data.vectors().dim(),
-                                                   field_data.vectors().float_vector().data(), offset, count));
+                name, BuildFieldDataVectors<std::vector<float>>(
+                          field_data.vectors().dim(), field_data.vectors().float_vector().data(), offset, count));
 
         case proto::schema::DataType::Bool:
             return std::make_shared<BoolFieldData>(
@@ -606,12 +603,13 @@ CreateMilvusFieldData(const milvus::proto::schema::FieldData& field_data) {
     switch (field_type) {
         case proto::schema::DataType::BinaryVector:
             return std::make_shared<BinaryVecFieldData>(
-                name, BuildFieldDataVectors<uint8_t>(field_data.vectors().dim(), field_data.vectors().binary_vector()));
+                name, BuildFieldDataVectors<std::string>(field_data.vectors().dim() / 8,
+                                                         field_data.vectors().binary_vector()));
 
         case proto::schema::DataType::FloatVector:
             return std::make_shared<FloatVecFieldData>(
-                name,
-                BuildFieldDataVectors<float>(field_data.vectors().dim(), field_data.vectors().float_vector().data()));
+                name, BuildFieldDataVectors<std::vector<float>>(field_data.vectors().dim(),
+                                                                field_data.vectors().float_vector().data()));
 
         case proto::schema::DataType::Bool:
             return std::make_shared<BoolFieldData>(

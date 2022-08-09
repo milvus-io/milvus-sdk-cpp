@@ -127,25 +127,17 @@ SearchArguments::TargetVectors() const {
 }
 
 Status
-SearchArguments::AddTargetVector(std::string field_name, const BinaryVecFieldData::ElementT& vector) {
-    if (float_vectors_ != nullptr) {
-        return {StatusCode::INVALID_AGUMENT, "Target vector must be float type!"};
-    }
-
-    if (nullptr == binary_vectors_) {
-        binary_vectors_ = std::make_shared<BinaryVecFieldData>(std::move(field_name));
-    }
-
-    auto code = binary_vectors_->Add(vector);
-    if (code != StatusCode::OK) {
-        return {code, "Failed to add vector"};
-    }
-
-    return Status::OK();
+SearchArguments::AddTargetVector(std::string field_name, const std::string& vector) {
+    return AddTargetVector(field_name, std::string{vector});
 }
 
 Status
-SearchArguments::AddTargetVector(std::string field_name, BinaryVecFieldData::ElementT&& vector) {
+SearchArguments::AddTargetVector(std::string field_name, const std::vector<uint8_t>& vector) {
+    return AddTargetVector(std::move(field_name), milvus::BinaryVecFieldData::CreateBinaryString(vector));
+}
+
+Status
+SearchArguments::AddTargetVector(std::string field_name, std::string&& vector) {
     if (float_vectors_ != nullptr) {
         return {StatusCode::INVALID_AGUMENT, "Target vector must be float type!"};
     }

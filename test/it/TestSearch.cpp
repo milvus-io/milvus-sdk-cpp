@@ -53,7 +53,7 @@ operator==(const milvus::proto::common::KeyValuePair& lhs, const TestKv& rhs) {
 template <typename T>
 void
 TestSearchVectors(testing::StrictMock<::milvus::MilvusMockedService>& service_,
-                  std::shared_ptr<::milvus::MilvusClient>& client_, std::vector<std::vector<T>> vectors) {
+                  std::shared_ptr<::milvus::MilvusClient>& client_, std::vector<T> vectors) {
     milvus::SearchArguments search_arguments{};
     milvus::SearchResults search_results{};
     search_arguments.SetCollectionName("foo");
@@ -121,7 +121,7 @@ TestSearchVectors(testing::StrictMock<::milvus::MilvusMockedService>& service_,
             for (int i = 0; i < vectors.size(); ++i) {
                 const auto& vector = vectors.at(i);
                 const auto& placeholder = placeholders.values(i);
-                std::vector<T> test_vector(vector.size());
+                T test_vector(vector.size());
                 std::copy_n(placeholder.data(), placeholder.size(), reinterpret_cast<char*>(test_vector.data()));
                 EXPECT_EQ(test_vector, vector);
             }
@@ -189,11 +189,11 @@ TEST_F(MilvusMockedTest, SearchFoo) {
 
     std::vector<std::vector<float>> float_vectors = {std::vector<float>{0.1f, 0.2f, 0.3f, 0.4f},
                                                      std::vector<float>{0.2f, 0.3f, 0.4f, 0.5f}};
-    TestSearchVectors<float>(service_, client_, float_vectors);
+    TestSearchVectors<std::vector<float>>(service_, client_, float_vectors);
 
     std::vector<std::vector<uint8_t>> bin_vectors = {std::vector<uint8_t>{1, 2, 3, 4},
                                                      std::vector<uint8_t>{2, 3, 4, 5}};
-    TestSearchVectors<uint8_t>(service_, client_, bin_vectors);
+    TestSearchVectors<std::vector<uint8_t>>(service_, client_, bin_vectors);
 }
 
 TEST_F(MilvusMockedTest, SearchWithoutConnect) {

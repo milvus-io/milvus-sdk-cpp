@@ -90,13 +90,19 @@ class SearchArguments {
      * @brief Add a binary vector to search
      */
     Status
-    AddTargetVector(std::string field_name, const BinaryVecFieldData::ElementT& vector);
+    AddTargetVector(std::string field_name, const std::string& vector);
+
+    /**
+     * @brief Add a binary vector to search with uint8_t vectors
+     */
+    Status
+    AddTargetVector(std::string field_name, const std::vector<uint8_t>& vector);
 
     /**
      * @brief Add a binary vector to search
      */
     Status
-    AddTargetVector(std::string field_name, BinaryVecFieldData::ElementT&& vector);
+    AddTargetVector(std::string field_name, std::string&& vector);
 
     /**
      * @brief Add a float vector to search
