@@ -61,7 +61,7 @@ using FieldDataPtr = std::shared_ptr<Field>;
  *  Int64FieldData for 64-bits integer scalar field \n
  *  FloatFieldData for float scalar field \n
  *  DoubleFieldData for double scalar field \n
- *  StringFieldData for string scalar field (not supported in 2.0, reserved) \n
+ *  VarCharFieldData for string scalar field (not supported in 2.0, reserved) \n
  *  BinaryVecFieldData for float vector scalar field \n
  *  FloatVecFieldData for binary vector scalar field \n
  */
@@ -230,7 +230,7 @@ using Int32FieldData = FieldData<int32_t, DataType::INT32>;
 using Int64FieldData = FieldData<int64_t, DataType::INT64>;
 using FloatFieldData = FieldData<float, DataType::FLOAT>;
 using DoubleFieldData = FieldData<double, DataType::DOUBLE>;
-using StringFieldData = FieldData<std::string, DataType::STRING>;
+using VarCharFieldData = FieldData<std::string, DataType::VARCHAR>;
 using FloatVecFieldData = FieldData<std::vector<float>, DataType::FLOAT_VECTOR>;
 
 using BoolFieldDataPtr = std::shared_ptr<BoolFieldData>;
@@ -240,7 +240,7 @@ using Int32FieldDataPtr = std::shared_ptr<Int32FieldData>;
 using Int64FieldDataPtr = std::shared_ptr<Int64FieldData>;
 using FloatFieldDataPtr = std::shared_ptr<FloatFieldData>;
 using DoubleFieldDataPtr = std::shared_ptr<DoubleFieldData>;
-using StringFieldDataPtr = std::shared_ptr<StringFieldData>;
+using VarCharFieldDataPtr = std::shared_ptr<VarCharFieldData>;
 using BinaryVecFieldDataPtr = std::shared_ptr<BinaryVecFieldData>;
 using FloatVecFieldDataPtr = std::shared_ptr<FloatVecFieldData>;
 
@@ -251,7 +251,7 @@ extern template class FieldData<int32_t, DataType::INT32>;
 extern template class FieldData<int64_t, DataType::INT64>;
 extern template class FieldData<float, DataType::FLOAT>;
 extern template class FieldData<double, DataType::DOUBLE>;
-extern template class FieldData<std::string, DataType::STRING>;
+extern template class FieldData<std::string, DataType::VARCHAR>;
 extern template class FieldData<std::string, DataType::BINARY_VECTOR>;
 extern template class FieldData<std::vector<float>, DataType::FLOAT_VECTOR>;
 

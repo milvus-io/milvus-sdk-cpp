@@ -60,6 +60,14 @@ FieldDim() {
 }
 
 /**
+ * @brief Max length field name for varchar field
+ */
+inline const std::string
+FieldMaxLength() {
+    return "max_length";
+}
+
+/**
  * @brief Global definition for strong guarantee timestamp
  */
 inline uint64_t

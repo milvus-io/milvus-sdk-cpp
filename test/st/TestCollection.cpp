@@ -16,12 +16,22 @@
 
 #include "MilvusServerTest.h"
 
-TEST_F(MilvusServerTest, CreateAndDeleteCollection) {
+using MilvusServerTestCollection = MilvusServerTestWithParam<bool>;
+
+TEST_P(MilvusServerTestCollection, CreateAndDeleteCollection) {
+    auto using_string_primary_key = GetParam();
     milvus::ConnectParam connect_param{"127.0.0.1", server_.ListenPort()};
     client_->Connect(connect_param);
 
     milvus::CollectionSchema collection_schema("Foo");
-    collection_schema.AddField(milvus::FieldSchema("id", milvus::DataType::INT64, "id", true, true));
+    if (using_string_primary_key) {
+        collection_schema.AddField(
+            // string as primary key, no auto-id
+            milvus::FieldSchema("name", milvus::DataType::VARCHAR, "name", true, false).WithMaxLength(64));
+    } else {
+        collection_schema.AddField(milvus::FieldSchema("id", milvus::DataType::INT64, "id", true, true));
+        collection_schema.AddField(milvus::FieldSchema("name", milvus::DataType::VARCHAR, "name").WithMaxLength(64));
+    }
     collection_schema.AddField(milvus::FieldSchema("age", milvus::DataType::INT16, "age"));
     collection_schema.AddField(
         milvus::FieldSchema("face", milvus::DataType::FLOAT_VECTOR, "face signature").WithDimension(1024));
@@ -52,3 +62,5 @@ TEST_F(MilvusServerTest, CreateAndDeleteCollection) {
     status = client_->DropCollection("Foo");
     EXPECT_TRUE(status.IsOk());
 }
+
+INSTANTIATE_TEST_SUITE_P(SystemTest, MilvusServerTestCollection, ::testing::Values(false, true));

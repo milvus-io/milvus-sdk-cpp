@@ -19,6 +19,7 @@
 #include <map>
 #include <string>
 
+#include "../Status.h"
 #include "DataType.h"
 
 namespace milvus {
@@ -142,6 +143,24 @@ class FieldSchema {
      */
     FieldSchema&
     WithDimension(uint32_t dimension);
+
+    /**
+     * @brief Get max length for a varchar field
+     */
+    uint32_t
+    MaxLength() const;
+
+    /**
+     * @brief Quickly set max length for a varchar field
+     */
+    void
+    SetMaxLength(uint32_t length);
+
+    /**
+     * @brief Quickly set max length for a varchar field
+     */
+    FieldSchema&
+    WithMaxLength(uint32_t length);
 
  private:
     std::string name_;

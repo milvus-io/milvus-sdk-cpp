@@ -58,7 +58,7 @@ auto float_field_ptr = std::make_shared<::milvus::FloatFieldData>("float", std::
 auto double_field_ptr =
     std::make_shared<::milvus::DoubleFieldData>("double", std::vector<double>{0.11, 0.22, 0.33, 0.44});
 auto string_field_ptr =
-    std::make_shared<::milvus::StringFieldData>("string", std::vector<std::string>{"a", "b", "c", "d"});
+    std::make_shared<::milvus::VarCharFieldData>("string", std::vector<std::string>{"a", "b", "c", "d"});
 auto bins_field_ptr = std::make_shared<::milvus::BinaryVecFieldData>(
     "bins",
     std::vector<std::vector<uint8_t>>{
