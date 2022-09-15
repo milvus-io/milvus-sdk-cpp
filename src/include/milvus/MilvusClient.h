@@ -111,12 +111,13 @@ class MilvusClient {
      * waiting until the collection completely loaded into query node.
      *
      * @param [in] collection_name name of the collection
+     * @param [in] replica_number the number of replicas, default 1
      * @param [in] progress_monitor set timeout to wait loading progress complete, set to ProgressMonitor::NoWait() to
      * return instantly, set to ProgressMonitor::Forever() to wait until finished.
      * @return Status operation successfully or not
      */
     virtual Status
-    LoadCollection(const std::string& collection_name,
+    LoadCollection(const std::string& collection_name, int replica_number = 1,
                    const ProgressMonitor& progress_monitor = ProgressMonitor::Forever()) = 0;
 
     /**
@@ -201,13 +202,14 @@ class MilvusClient {
      *
      * @param [in] collection_name name of the collection
      * @param [in] partition_names name array of the partitions
+     * @param [in] replica_number the number of replicas, default 1
      * @param [in] progress_monitor set timeout to wait loading progress complete, set to
      * ProgressMonitor::NoWait() to return instantly, set to ProgressMonitor::Forever() to wait until finished.
      * @return Status operation successfully or not
      */
     virtual Status
     LoadPartitions(const std::string& collection_name, const std::vector<std::string>& partition_names,
-                   const ProgressMonitor& progress_monitor = ProgressMonitor::Forever()) = 0;
+                   int replica_number = 1, const ProgressMonitor& progress_monitor = ProgressMonitor::Forever()) = 0;
 
     /**
      * Release specific partitions data of one collection into query nodes.

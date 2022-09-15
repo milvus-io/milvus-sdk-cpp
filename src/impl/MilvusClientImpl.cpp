@@ -119,10 +119,12 @@ MilvusClientImpl::DropCollection(const std::string& collection_name) {
 }
 
 Status
-MilvusClientImpl::LoadCollection(const std::string& collection_name, const ProgressMonitor& progress_monitor) {
-    auto pre = [&collection_name]() {
+MilvusClientImpl::LoadCollection(const std::string& collection_name, int replica_number,
+                                 const ProgressMonitor& progress_monitor) {
+    auto pre = [&collection_name, replica_number]() {
         proto::milvus::LoadCollectionRequest rpc_request;
         rpc_request.set_collection_name(collection_name);
+        rpc_request.set_replica_number(replica_number);
         return rpc_request;
     };
 
@@ -291,14 +293,15 @@ MilvusClientImpl::HasPartition(const std::string& collection_name, const std::st
 
 Status
 MilvusClientImpl::LoadPartitions(const std::string& collection_name, const std::vector<std::string>& partition_names,
-                                 const ProgressMonitor& progress_monitor) {
-    auto pre = [&collection_name, &partition_names]() {
+                                 int replica_number, const ProgressMonitor& progress_monitor) {
+    auto pre = [&collection_name, &partition_names, replica_number]() {
         proto::milvus::LoadPartitionsRequest rpc_request;
 
         rpc_request.set_collection_name(collection_name);
         for (const auto& partition_name : partition_names) {
             rpc_request.add_partition_names(partition_name);
         }
+        rpc_request.set_replica_number(replica_number);
         return rpc_request;
     };
 

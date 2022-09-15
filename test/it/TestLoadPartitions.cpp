@@ -40,14 +40,14 @@ TEST_F(MilvusMockedTest, LoadPartitionsInstantly) {
     EXPECT_CALL(service_,
                 LoadPartitions(_,
                                AllOf(Property(&LoadPartitionsRequest::collection_name, collection),
-
+                                     Property(&LoadPartitionsRequest::replica_number, 1),
                                      Property(&LoadPartitionsRequest::partition_names_size, partitions.size())),
                                _))
         .WillOnce([](::grpc::ServerContext*, const LoadPartitionsRequest*, milvus::proto::common::Status* response) {
             return ::grpc::Status{};
         });
 
-    auto status = client_->LoadPartitions(collection, partitions, progress_monitor);
+    auto status = client_->LoadPartitions(collection, partitions, 1, progress_monitor);
 
     EXPECT_TRUE(status.IsOk());
 }
@@ -63,6 +63,7 @@ TEST_F(MilvusMockedTest, LoadPartitionsFailure) {
     EXPECT_CALL(service_,
                 LoadPartitions(_,
                                AllOf(Property(&LoadPartitionsRequest::collection_name, collection),
+                                     Property(&LoadPartitionsRequest::replica_number, 1),
 
                                      Property(&LoadPartitionsRequest::partition_names_size, partitions.size())),
                                _))
@@ -71,7 +72,7 @@ TEST_F(MilvusMockedTest, LoadPartitionsFailure) {
             return ::grpc::Status{};
         });
 
-    auto status = client_->LoadPartitions(collection, partitions, progress_monitor);
+    auto status = client_->LoadPartitions(collection, partitions, 1, progress_monitor);
 
     EXPECT_FALSE(status.IsOk());
     EXPECT_EQ(status.Code(), StatusCode::SERVER_FAILED);
@@ -91,6 +92,7 @@ TEST_F(MilvusMockedTest, LoadPartitionsWithQueryStatusSuccess) {
     EXPECT_CALL(service_,
                 LoadPartitions(_,
                                AllOf(Property(&LoadPartitionsRequest::collection_name, collection),
+                                     Property(&LoadPartitionsRequest::replica_number, 2),
 
                                      Property(&LoadPartitionsRequest::partition_names_size, partitions.size())),
                                _))
@@ -131,7 +133,7 @@ TEST_F(MilvusMockedTest, LoadPartitionsWithQueryStatusSuccess) {
             return ::grpc::Status{};
         });
 
-    auto status = client_->LoadPartitions(collection, partitions, progress_monitor);
+    auto status = client_->LoadPartitions(collection, partitions, 2, progress_monitor);
 
     std::vector<milvus::Progress> progresses_expected{{0, 5}, {1, 5}, {2, 5}, {3, 5}, {4, 5},
                                                       {4, 5}, {4, 5}, {4, 5}, {4, 5}, {5, 5}};
@@ -152,6 +154,7 @@ TEST_F(MilvusMockedTest, LoadPartitionsWithQueryStatusOomFailure) {
     EXPECT_CALL(service_,
                 LoadPartitions(_,
                                AllOf(Property(&LoadPartitionsRequest::collection_name, collection),
+                                     Property(&LoadPartitionsRequest::replica_number, 2),
 
                                      Property(&LoadPartitionsRequest::partition_names_size, partitions.size())),
                                _))
@@ -178,7 +181,7 @@ TEST_F(MilvusMockedTest, LoadPartitionsWithQueryStatusOomFailure) {
                 return ::grpc::Status{};
             });
 
-    auto status = client_->LoadPartitions(collection, partitions, progress_monitor);
+    auto status = client_->LoadPartitions(collection, partitions, 2, progress_monitor);
 
     EXPECT_FALSE(status.IsOk());
     EXPECT_EQ(status.Code(), StatusCode::SERVER_FAILED);
@@ -196,6 +199,7 @@ TEST_F(MilvusMockedTest, LoadPartitionsWithQueryStatusTimeout) {
     EXPECT_CALL(service_,
                 LoadPartitions(_,
                                AllOf(Property(&LoadPartitionsRequest::collection_name, collection),
+                                     Property(&LoadPartitionsRequest::replica_number, 2),
 
                                      Property(&LoadPartitionsRequest::partition_names_size, partitions.size())),
                                _))
@@ -222,7 +226,7 @@ TEST_F(MilvusMockedTest, LoadPartitionsWithQueryStatusTimeout) {
             });
 
     auto started = std::chrono::steady_clock::now();
-    auto status = client_->LoadPartitions(collection, partitions, progress_monitor);
+    auto status = client_->LoadPartitions(collection, partitions, 2, progress_monitor);
     auto finished = std::chrono::steady_clock::now();
     auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(finished - started).count();
 
