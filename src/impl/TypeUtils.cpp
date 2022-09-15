@@ -152,7 +152,7 @@ operator==(const proto::schema::FieldData& lhs, const DoubleFieldData& rhs) {
 }
 
 bool
-operator==(const proto::schema::FieldData& lhs, const StringFieldData& rhs) {
+operator==(const proto::schema::FieldData& lhs, const VarCharFieldData& rhs) {
     if (lhs.field_name() != rhs.Name()) {
         return false;
     }
@@ -249,8 +249,8 @@ operator==(const proto::schema::FieldData& lhs, const Field& rhs) {
             return lhs == dynamic_cast<const FloatFieldData&>(rhs);
         case DataType::DOUBLE:
             return lhs == dynamic_cast<const DoubleFieldData&>(rhs);
-        case DataType::STRING:
-            return lhs == dynamic_cast<const StringFieldData&>(rhs);
+        case DataType::VARCHAR:
+            return lhs == dynamic_cast<const VarCharFieldData&>(rhs);
         case DataType::BINARY_VECTOR:
             return lhs == dynamic_cast<const BinaryVecFieldData&>(rhs);
         case DataType::FLOAT_VECTOR:
@@ -290,8 +290,8 @@ DataTypeCast(DataType type) {
             return proto::schema::DataType::Float;
         case DataType::DOUBLE:
             return proto::schema::DataType::Double;
-        case DataType::STRING:
-            return proto::schema::DataType::String;
+        case DataType::VARCHAR:
+            return proto::schema::DataType::VarChar;
         case DataType::BINARY_VECTOR:
             return proto::schema::DataType::BinaryVector;
         case DataType::FLOAT_VECTOR:
@@ -318,8 +318,8 @@ DataTypeCast(proto::schema::DataType type) {
             return DataType::FLOAT;
         case proto::schema::DataType::Double:
             return DataType::DOUBLE;
-        case proto::schema::DataType::String:
-            return DataType::STRING;
+        case proto::schema::DataType::VarChar:
+            return DataType::VARCHAR;
         case proto::schema::DataType::BinaryVector:
             return DataType::BINARY_VECTOR;
         case proto::schema::DataType::FloatVector:
@@ -488,7 +488,7 @@ CreateProtoFieldData(const DoubleFieldData& field) {
 }
 
 proto::schema::ScalarField*
-CreateProtoFieldData(const StringFieldData& field) {
+CreateProtoFieldData(const VarCharFieldData& field) {
     auto ret = new proto::schema::ScalarField{};
     auto& data = field.Data();
     auto& scalars_data = *(ret->mutable_string_data());
@@ -533,8 +533,8 @@ CreateProtoFieldData(const Field& field) {
         case DataType::DOUBLE:
             field_data.set_allocated_scalars(CreateProtoFieldData(dynamic_cast<const DoubleFieldData&>(field)));
             break;
-        case DataType::STRING:
-            field_data.set_allocated_scalars(CreateProtoFieldData(dynamic_cast<const StringFieldData&>(field)));
+        case DataType::VARCHAR:
+            field_data.set_allocated_scalars(CreateProtoFieldData(dynamic_cast<const VarCharFieldData&>(field)));
             break;
         default:
             break;
@@ -587,8 +587,8 @@ CreateMilvusFieldData(const milvus::proto::schema::FieldData& field_data, size_t
             return std::make_shared<DoubleFieldData>(
                 name, BuildFieldDataScalars<double>(field_data.scalars().double_data().data(), offset, count));
 
-        case proto::schema::DataType::String:
-            return std::make_shared<StringFieldData>(
+        case proto::schema::DataType::VarChar:
+            return std::make_shared<VarCharFieldData>(
                 name, BuildFieldDataScalars<std::string>(field_data.scalars().string_data().data(), offset, count));
         default:
             return nullptr;
@@ -639,8 +639,8 @@ CreateMilvusFieldData(const milvus::proto::schema::FieldData& field_data) {
             return std::make_shared<DoubleFieldData>(
                 name, BuildFieldDataScalars<double>(field_data.scalars().double_data().data()));
 
-        case proto::schema::DataType::String:
-            return std::make_shared<StringFieldData>(
+        case proto::schema::DataType::VarChar:
+            return std::make_shared<VarCharFieldData>(
                 name, BuildFieldDataScalars<std::string>(field_data.scalars().string_data().data()));
         default:
             return nullptr;

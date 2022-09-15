@@ -232,7 +232,7 @@ TEST_F(TypeUtilsTest, DoubleFieldNotEquals) {
 }
 
 TEST_F(TypeUtilsTest, StringFieldEqualsAndCast) {
-    milvus::StringFieldData string_field_data{"foo", std::vector<std::string>{"foo", "bar"}};
+    milvus::VarCharFieldData string_field_data{"foo", std::vector<std::string>{"foo", "bar"}};
     auto proto_field_data = CreateProtoFieldData(static_cast<const milvus::Field&>(string_field_data));
     auto string_field_data_ptr = CreateMilvusFieldData(proto_field_data);
     EXPECT_EQ(proto_field_data, string_field_data);
@@ -242,7 +242,7 @@ TEST_F(TypeUtilsTest, StringFieldEqualsAndCast) {
 
 TEST_F(TypeUtilsTest, StringFieldNotEquals) {
     const std::string field_name = "foo";
-    milvus::StringFieldData string_field{field_name, std::vector<std::string>{"a", "b"}};
+    milvus::VarCharFieldData string_field{field_name, std::vector<std::string>{"a", "b"}};
     milvus::proto::schema::FieldData proto_field;
     proto_field.set_field_name("_");
     EXPECT_FALSE(proto_field == string_field);
@@ -414,8 +414,8 @@ TEST_F(TypeUtilsTest, CreateMilvusFieldDataWithRange) {
         CreateMilvusFieldData(CreateProtoFieldData(static_cast<const milvus::Field&>(double_field_data)), 1, 2));
     EXPECT_THAT(double_field_data_ptr->Data(), ElementsAre(0.2, 0.3));
 
-    milvus::StringFieldData string_field_data{"foo", std::vector<std::string>{"a", "b", "c"}};
-    const auto string_field_data_ptr = std::dynamic_pointer_cast<const milvus::StringFieldData>(
+    milvus::VarCharFieldData string_field_data{"foo", std::vector<std::string>{"a", "b", "c"}};
+    const auto string_field_data_ptr = std::dynamic_pointer_cast<const milvus::VarCharFieldData>(
         CreateMilvusFieldData(CreateProtoFieldData(static_cast<const milvus::Field&>(string_field_data)), 1, 2));
     EXPECT_THAT(string_field_data_ptr->Data(), ElementsAre("b", "c"));
 
@@ -458,7 +458,7 @@ TEST_F(TypeUtilsTest, DataTypeCast) {
         {milvus::DataType::INT64, milvus::proto::schema::DataType::Int64},
         {milvus::DataType::FLOAT, milvus::proto::schema::DataType::Float},
         {milvus::DataType::DOUBLE, milvus::proto::schema::DataType::Double},
-        {milvus::DataType::STRING, milvus::proto::schema::DataType::String},
+        {milvus::DataType::VARCHAR, milvus::proto::schema::DataType::VarChar},
         {milvus::DataType::FLOAT_VECTOR, milvus::proto::schema::DataType::FloatVector},
         {milvus::DataType::BINARY_VECTOR, milvus::proto::schema::DataType::BinaryVector}};
 

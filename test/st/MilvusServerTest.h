@@ -36,6 +36,24 @@ class MilvusServerTest : public ::testing::Test {
     TearDown() override {
     }
 };
+
+template <typename T>
+class MilvusServerTestWithParam : public ::testing::TestWithParam<T> {
+ protected:
+    MilvusDockerServer server_{};
+    std::shared_ptr<milvus::MilvusClient> client_{nullptr};
+
+    void
+    SetUp() override {
+        server_.Start();
+        client_ = milvus::MilvusClient::Create();
+    }
+
+    void
+    TearDown() override {
+    }
+};
 }  // namespace milvus
 
 using milvus::MilvusServerTest;
+using milvus::MilvusServerTestWithParam;

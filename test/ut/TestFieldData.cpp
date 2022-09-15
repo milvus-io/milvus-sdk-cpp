@@ -136,18 +136,18 @@ TEST_F(FieldDataTest, GeneralTesting) {
     }
 
     {
-        milvus::StringFieldData data{name};
+        milvus::VarCharFieldData data{name};
         data.Add("a");
         data.Add("b");
         EXPECT_EQ(data.Name(), name);
-        EXPECT_EQ(data.Type(), milvus::DataType::STRING);
+        EXPECT_EQ(data.Type(), milvus::DataType::VARCHAR);
         EXPECT_EQ(data.Count(), 2);
         EXPECT_EQ(data.Data().size(), 2);
         EXPECT_EQ(data.Data().at(0), "a");
         EXPECT_EQ(data.Data().at(1), "b");
 
         std::vector<std::string> values = {"a", "b"};
-        milvus::StringFieldData cp{name, values};
+        milvus::VarCharFieldData cp{name, values};
         EXPECT_EQ(cp.Data().size(), 2);
     }
 

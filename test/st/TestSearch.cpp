@@ -43,6 +43,7 @@ class MilvusServerTestSearch : public MilvusServerTest {
         milvus::CollectionSchema collection_schema(collection_name);
         collection_schema.AddField(milvus::FieldSchema("id", milvus::DataType::INT64, "id", true, true));
         collection_schema.AddField(milvus::FieldSchema("age", milvus::DataType::INT16, "age"));
+        collection_schema.AddField(milvus::FieldSchema("name", milvus::DataType::VARCHAR, "name").WithMaxLength(64));
         collection_schema.AddField(
             milvus::FieldSchema("face", milvus::DataType::FLOAT_VECTOR, "face signature").WithDimension(4));
 
@@ -82,6 +83,7 @@ class MilvusServerTestSearch : public MilvusServerTest {
 TEST_F(MilvusServerTestSearch, SearchWithoutIndex) {
     std::vector<milvus::FieldDataPtr> fields{
         std::make_shared<milvus::Int16FieldData>("age", std::vector<int16_t>{12, 13}),
+        std::make_shared<milvus::VarCharFieldData>("name", std::vector<std::string>{"Tom", "Jerry"}),
         std::make_shared<milvus::FloatVecFieldData>(
             "face", std::vector<std::vector<float>>{std::vector<float>{0.1f, 0.2f, 0.3f, 0.4f},
                                                     std::vector<float>{0.5f, 0.6f, 0.7f, 0.8f}})};
@@ -95,6 +97,7 @@ TEST_F(MilvusServerTestSearch, SearchWithoutIndex) {
     arguments.AddPartitionName(partition_name);
     arguments.SetTopK(10);
     arguments.AddOutputField("age");
+    arguments.AddOutputField("name");
     arguments.SetExpression("id > 0");
     arguments.AddTargetVector("face", std::vector<float>{0.f, 0.f, 0.f, 0.f});
     arguments.AddTargetVector("face", std::vector<float>{1.f, 1.f, 1.f, 1.f});
@@ -115,12 +118,62 @@ TEST_F(MilvusServerTestSearch, SearchWithoutIndex) {
     EXPECT_LT(results.at(1).Scores().at(0), results.at(1).Scores().at(1));
 
     // match fields: age
-    EXPECT_EQ(results.at(0).OutputFields().size(), 1);
-    EXPECT_EQ(results.at(1).OutputFields().size(), 1);
+    EXPECT_EQ(results.at(0).OutputFields().size(), 2);
+    EXPECT_EQ(results.at(1).OutputFields().size(), 2);
     EXPECT_THAT(dynamic_cast<milvus::Int16FieldData&>(*results.at(0).OutputField("age")).Data(),
                 UnorderedElementsAre(12, 13));
     EXPECT_THAT(dynamic_cast<milvus::Int16FieldData&>(*results.at(1).OutputField("age")).Data(),
                 UnorderedElementsAre(12, 13));
+    EXPECT_THAT(dynamic_cast<milvus::VarCharFieldData&>(*results.at(0).OutputField("name")).Data(),
+                UnorderedElementsAre("Tom", "Jerry"));
+    EXPECT_THAT(dynamic_cast<milvus::VarCharFieldData&>(*results.at(1).OutputField("name")).Data(),
+                UnorderedElementsAre("Tom", "Jerry"));
+    DropCollection();
+}
+
+TEST_F(MilvusServerTestSearch, SearchWithStringFilter) {
+    std::vector<milvus::FieldDataPtr> fields{
+        std::make_shared<milvus::Int16FieldData>("age", std::vector<int16_t>{12, 13}),
+        std::make_shared<milvus::VarCharFieldData>("name", std::vector<std::string>{"Tom", "Jerry"}),
+        std::make_shared<milvus::FloatVecFieldData>(
+            "face", std::vector<std::vector<float>>{std::vector<float>{0.1f, 0.2f, 0.3f, 0.4f},
+                                                    std::vector<float>{0.5f, 0.6f, 0.7f, 0.8f}})};
+
+    CreateCollectionAndPartitions();
+    auto dml_results = InsertRecords(fields);
+    LoadCollection();
+
+    milvus::SearchArguments arguments{};
+    arguments.SetCollectionName(collection_name);
+    arguments.AddPartitionName(partition_name);
+    arguments.SetTopK(10);
+    arguments.AddOutputField("age");
+    arguments.AddOutputField("name");
+    arguments.SetExpression("name like \"To%\"");  // Tom match To%
+    arguments.AddTargetVector("face", std::vector<float>{0.f, 0.f, 0.f, 0.f});
+    arguments.AddTargetVector("face", std::vector<float>{1.f, 1.f, 1.f, 1.f});
+    milvus::SearchResults search_results{};
+    auto status = client_->Search(arguments, search_results);
+    EXPECT_EQ(status.Message(), "OK");
+    EXPECT_TRUE(status.IsOk());
+
+    const auto& results = search_results.Results();
+    EXPECT_EQ(results.size(), 2);
+
+    EXPECT_EQ(results.at(0).Scores().size(), 1);
+    EXPECT_EQ(results.at(1).Scores().size(), 1);
+
+    // match fields: age
+    EXPECT_EQ(results.at(0).OutputFields().size(), 2);
+    EXPECT_EQ(results.at(1).OutputFields().size(), 2);
+    EXPECT_EQ(dynamic_cast<milvus::Int16FieldData&>(*results.at(0).OutputField("age")).Data(),
+              std::vector<int16_t>{12});
+    EXPECT_EQ(dynamic_cast<milvus::Int16FieldData&>(*results.at(1).OutputField("age")).Data(),
+              std::vector<int16_t>{12});
+    EXPECT_EQ(dynamic_cast<milvus::VarCharFieldData&>(*results.at(0).OutputField("name")).Data(),
+              std::vector<std::string>{"Tom"});
+    EXPECT_EQ(dynamic_cast<milvus::VarCharFieldData&>(*results.at(1).OutputField("name")).Data(),
+              std::vector<std::string>{"Tom"});
     DropCollection();
 }
 
@@ -132,12 +185,15 @@ TEST_F(MilvusServerTestSearch, SearchWithIVFIndex) {
     size_t test_count = 1000;
     std::vector<int16_t> ages{};
     std::vector<std::vector<float>> faces{};
+    std::vector<std::string> names{};
     for (auto i = test_count; i > 0; --i) {
         ages.emplace_back(age_gen(rng));
+        names.emplace_back(std::string("name_") + std::to_string(i));
         faces.emplace_back(std::vector<float>{face_gen(rng), face_gen(rng), face_gen(rng), face_gen(rng)});
     }
 
     std::vector<milvus::FieldDataPtr> fields{std::make_shared<milvus::Int16FieldData>("age", ages),
+                                             std::make_shared<milvus::VarCharFieldData>("name", names),
                                              std::make_shared<milvus::FloatVecFieldData>("face", faces)};
 
     CreateCollectionAndPartitions();

@@ -120,4 +120,24 @@ FieldSchema::WithDimension(uint32_t dimension) {
     return *this;
 }
 
+uint32_t
+FieldSchema::MaxLength() const {
+    auto iter = type_params_.find(FieldMaxLength());
+    if (iter != type_params_.end()) {
+        return std::atol(iter->second.c_str());
+    }
+    return 0;
+}
+
+void
+FieldSchema::SetMaxLength(uint32_t length) {
+    type_params_[FieldMaxLength()] = std::to_string(length);
+}
+
+FieldSchema&
+FieldSchema::WithMaxLength(uint32_t length) {
+    SetMaxLength(length);
+    return *this;
+}
+
 }  // namespace milvus
