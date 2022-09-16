@@ -47,7 +47,8 @@ class MilvusClientImpl : public MilvusClient {
     DropCollection(const std::string& collection_name) final;
 
     Status
-    LoadCollection(const std::string& collection_name, const ProgressMonitor& progress_monitor) final;
+    LoadCollection(const std::string& collection_name, int replica_number,
+                   const ProgressMonitor& progress_monitor) final;
 
     Status
     ReleaseCollection(const std::string& collection_name) final;
@@ -73,7 +74,7 @@ class MilvusClientImpl : public MilvusClient {
 
     Status
     LoadPartitions(const std::string& collection_name, const std::vector<std::string>& partition_names,
-                   const ProgressMonitor& progress_monitor) final;
+                   int replica_number, const ProgressMonitor& progress_monitor) final;
 
     Status
     ReleasePartitions(const std::string& collection_name, const std::vector<std::string>& partition_names) final;

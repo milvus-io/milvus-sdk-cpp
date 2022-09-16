@@ -23,6 +23,7 @@ using ::milvus::proto::milvus::LoadCollectionRequest;
 using ::milvus::proto::milvus::ShowCollectionsRequest;
 using ::milvus::proto::milvus::ShowCollectionsResponse;
 using ::testing::_;
+using ::testing::AllOf;
 using ::testing::Property;
 
 TEST_F(MilvusMockedTest, LoadCollectionFooInstantly) {
@@ -32,12 +33,15 @@ TEST_F(MilvusMockedTest, LoadCollectionFooInstantly) {
     std::string collection_name = "Foo";
     const auto progress_monitor = ::milvus::ProgressMonitor::NoWait();
 
-    EXPECT_CALL(service_, LoadCollection(_, Property(&LoadCollectionRequest::collection_name, collection_name), _))
+    EXPECT_CALL(service_, LoadCollection(_,
+                                         AllOf(Property(&LoadCollectionRequest::collection_name, collection_name),
+                                               Property(&LoadCollectionRequest::replica_number, 1)),
+                                         _))
         .WillOnce([](::grpc::ServerContext*, const LoadCollectionRequest*, milvus::proto::common::Status*) {
             return ::grpc::Status{};
         });
 
-    auto status = client_->LoadCollection(collection_name, progress_monitor);
+    auto status = client_->LoadCollection(collection_name, 1, progress_monitor);
     EXPECT_TRUE(status.IsOk());
 }
 
@@ -51,7 +55,10 @@ TEST_F(MilvusMockedTest, LoadCollectionFooWithProgress) {
     progress_monitor.SetCheckInterval(1);
     progress_monitor.SetCallbackFunc([&progresses](milvus::Progress& progress) { progresses.emplace_back(progress); });
 
-    EXPECT_CALL(service_, LoadCollection(_, Property(&LoadCollectionRequest::collection_name, collection_name), _))
+    EXPECT_CALL(service_, LoadCollection(_,
+                                         AllOf(Property(&LoadCollectionRequest::collection_name, collection_name),
+                                               Property(&LoadCollectionRequest::replica_number, 2)),
+                                         _))
         .WillOnce([](::grpc::ServerContext*, const LoadCollectionRequest*, milvus::proto::common::Status*) {
             return ::grpc::Status{};
         });
@@ -67,6 +74,6 @@ TEST_F(MilvusMockedTest, LoadCollectionFooWithProgress) {
             return ::grpc::Status{};
         });
 
-    auto status = client_->LoadCollection(collection_name, progress_monitor);
+    auto status = client_->LoadCollection(collection_name, 2, progress_monitor);
     EXPECT_TRUE(status.IsOk());
 }
