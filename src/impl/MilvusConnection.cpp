@@ -140,17 +140,17 @@ MilvusConnection::GetPartitionStatistics(const proto::milvus::GetPartitionStatis
 
 Status
 MilvusConnection::CreateAlias(const proto::milvus::CreateAliasRequest& request, proto::common::Status& response) {
-    return grpcCall("HasParition", &Stub::CreateAlias, request, response);
+    return grpcCall("CreateAlias", &Stub::CreateAlias, request, response);
 }
 
 Status
 MilvusConnection::DropAlias(const proto::milvus::DropAliasRequest& request, proto::common::Status& response) {
-    return grpcCall("HasParition", &Stub::DropAlias, request, response);
+    return grpcCall("DropAlias", &Stub::DropAlias, request, response);
 }
 
 Status
 MilvusConnection::AlterAlias(const proto::milvus::AlterAliasRequest& request, proto::common::Status& response) {
-    return grpcCall("HasParition", &Stub::AlterAlias, request, response);
+    return grpcCall("AlterAlias", &Stub::AlterAlias, request, response);
 }
 
 Status
@@ -257,6 +257,30 @@ Status
 MilvusConnection::GetCompactionPlans(const proto::milvus::GetCompactionPlansRequest& request,
                                      proto::milvus::GetCompactionPlansResponse& response) {
     return grpcCall("GetCompactionPlans", &Stub::GetCompactionStateWithPlans, request, response);
+}
+
+Status
+MilvusConnection::CreateCredential(const proto::milvus::CreateCredentialRequest& request,
+                                   proto::common::Status& response) {
+    return grpcCall("CreateCredential", &Stub::CreateCredential, request, response);
+}
+
+Status
+MilvusConnection::UpdateCredential(const proto::milvus::UpdateCredentialRequest& request,
+                                   proto::common::Status& response) {
+    return grpcCall("UpdateCredential", &Stub::UpdateCredential, request, response);
+}
+
+Status
+MilvusConnection::DeleteCredential(const proto::milvus::DeleteCredentialRequest& request,
+                                   proto::common::Status& response) {
+    return grpcCall("DeleteCredential", &Stub::DeleteCredential, request, response);
+}
+
+Status
+MilvusConnection::ListCredUsers(const proto::milvus::ListCredUsersRequest& request,
+                                proto::milvus::ListCredUsersResponse& response) {
+    return grpcCall("ListCredUsers", &Stub::ListCredUsers, request, response);
 }
 
 }  // namespace milvus

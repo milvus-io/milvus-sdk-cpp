@@ -157,6 +157,19 @@ class MilvusClientImpl : public MilvusClient {
     Status
     GetCompactionPlans(int64_t compaction_id, CompactionPlans& plans) final;
 
+    Status
+    CreateCredential(const std::string& username, const std::string& password) final;
+
+    Status
+    UpdateCredential(const std::string& username, const std::string& old_password,
+                     const std::string& new_password) final;
+
+    Status
+    DeleteCredential(const std::string& username) final;
+
+    Status
+    ListCredUsers(std::vector<std::string>& users) final;
+
  private:
     /**
      * Internal wait for status query done.

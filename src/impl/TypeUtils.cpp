@@ -805,6 +805,46 @@ IsVectorType(DataType type) {
     return (DataType::BINARY_VECTOR == type || DataType::FLOAT_VECTOR == type);
 }
 
+std::string
+Base64Encode(const std::string& val) {
+    const char* base64_chars = {
+        "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+        "abcdefghijklmnopqrstuvwxyz"
+        "0123456789"
+        "+/"};
+
+    auto len = val.size();
+    auto len_encoded = (len + 2) / 3 * 4;
+    std::string ret;
+    ret.reserve(len_encoded);
+
+    size_t pos = 0;
+
+    while (pos < len) {
+        ret.push_back(base64_chars[(val[pos + 0] & 0xfc) >> 2]);
+
+        if (pos + 1 < len) {
+            ret.push_back(base64_chars[((val[pos + 0] & 0x03) << 4) + ((val[pos + 1] & 0xf0) >> 4)]);
+
+            if (pos + 2 < len) {
+                ret.push_back(base64_chars[((val[pos + 1] & 0x0f) << 2) + ((val[pos + 2] & 0xc0) >> 6)]);
+                ret.push_back(base64_chars[val[pos + 2] & 0x3f]);
+            } else {
+                ret.push_back(base64_chars[(val[pos + 1] & 0x0f) << 2]);
+                ret.push_back('=');
+            }
+        } else {
+            ret.push_back(base64_chars[(val[pos + 0] & 0x03) << 4]);
+            ret.push_back('=');
+            ret.push_back('=');
+        }
+
+        pos += 3;
+    }
+
+    return ret;
+}
+
 }  // namespace milvus
 
 namespace std {

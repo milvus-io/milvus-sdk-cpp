@@ -1122,6 +1122,74 @@ MilvusClientImpl::GetCompactionPlans(int64_t compaction_id, CompactionPlans& pla
 }
 
 Status
+MilvusClientImpl::CreateCredential(const std::string& username, const std::string& password) {
+    auto pre = [&username, &password]() {
+        proto::milvus::CreateCredentialRequest rpc_request;
+        rpc_request.set_username(username);
+        rpc_request.set_password(milvus::Base64Encode(password));
+        // TODO: seconds or milliseconds?
+        auto timestamp =
+            std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now().time_since_epoch())
+                .count();
+        rpc_request.set_created_utc_timestamps(timestamp);
+        rpc_request.set_modified_utc_timestamps(timestamp);
+        return rpc_request;
+    };
+
+    return apiHandler<proto::milvus::CreateCredentialRequest, proto::common::Status>(
+        pre, &MilvusConnection::CreateCredential, nullptr);
+}
+
+Status
+MilvusClientImpl::UpdateCredential(const std::string& username, const std::string& old_password,
+                                   const std::string& new_password) {
+    auto pre = [&username, &old_password, &new_password]() {
+        proto::milvus::UpdateCredentialRequest rpc_request;
+        rpc_request.set_username(username);
+        rpc_request.set_oldpassword(milvus::Base64Encode(old_password));
+        rpc_request.set_newpassword(milvus::Base64Encode(new_password));
+        // TODO: seconds or milliseconds?
+        rpc_request.set_modified_utc_timestamps(
+            std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now().time_since_epoch())
+                .count());
+        return rpc_request;
+    };
+
+    return apiHandler<proto::milvus::UpdateCredentialRequest, proto::common::Status>(
+        pre, &MilvusConnection::UpdateCredential, nullptr);
+}
+
+Status
+MilvusClientImpl::DeleteCredential(const std::string& username) {
+    auto pre = [&username]() {
+        proto::milvus::DeleteCredentialRequest rpc_request;
+        rpc_request.set_username(username);
+        return rpc_request;
+    };
+
+    return apiHandler<proto::milvus::DeleteCredentialRequest, proto::common::Status>(
+        pre, &MilvusConnection::DeleteCredential, nullptr);
+}
+
+Status
+MilvusClientImpl::ListCredUsers(std::vector<std::string>& users) {
+    auto pre = []() {
+        proto::milvus::ListCredUsersRequest rpc_request;
+        return rpc_request;
+    };
+
+    auto post = [&users](const proto::milvus::ListCredUsersResponse& response) {
+        users.clear();
+        for (const auto& user : response.usernames()) {
+            users.emplace_back(user);
+        }
+    };
+
+    return apiHandler<proto::milvus::ListCredUsersRequest, proto::milvus::ListCredUsersResponse>(
+        pre, &MilvusConnection::ListCredUsers, post);
+}
+
+Status
 MilvusClientImpl::waitForStatus(std::function<Status(Progress&)> query_function,
                                 const ProgressMonitor& progress_monitor) {
     // no need to check

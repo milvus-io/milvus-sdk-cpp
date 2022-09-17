@@ -43,12 +43,17 @@ install_deps_for_ubuntu_common() {
         ${SUDO} apt-get -y install cmake
     fi
 
-    # install new clang-tidy clang-format
+    llvm_version=14
+    if [ "${dist}" = "bionic" ] ; then
+        llvm_version=13
+    fi
+
+    # install stable clang-tidy clang-format
     wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key | ${SUDO} apt-key add -
     ${SUDO} apt-get -y install software-properties-common
-    ${SUDO} add-apt-repository "deb http://apt.llvm.org/${dist}/   llvm-toolchain-${dist}-13  main"
+    ${SUDO} add-apt-repository -y "deb http://apt.llvm.org/${dist}/   llvm-toolchain-${dist}-${llvm_version}  main"
     ${SUDO} apt-get update
-    ${SUDO} apt-get install -y clang-format-13 clang-tidy-13
+    ${SUDO} apt-get install -y clang-format-${llvm_version} clang-tidy-${llvm_version}
 }
 
 install_deps_for_ubuntu_1804() {
@@ -57,6 +62,10 @@ install_deps_for_ubuntu_1804() {
 
 install_deps_for_ubuntu_2004() {
     install_deps_for_ubuntu_common focal
+}
+
+install_deps_for_ubuntu_2204() {
+    install_deps_for_ubuntu_common jammy
 }
 
 install_deps_for_fedora_common() {
@@ -102,6 +111,8 @@ if uname | grep -wq Linux ; then
             install_deps_for_ubuntu_1804
         elif grep -q 'Ubuntu 20.04' /etc/issue ; then
             install_deps_for_ubuntu_2004
+        elif grep -q 'Ubuntu 22.04' /etc/issue ; then
+            install_deps_for_ubuntu_2204
         fi
     elif [ -x "$(command -v yum)" ] ; then
         # for os support yum
