@@ -199,6 +199,9 @@ IndexStateCast(proto::common::IndexState state);
 bool
 IsVectorType(DataType type);
 
+std::string
+Base64Encode(const std::string& val);
+
 }  // namespace milvus
 
 namespace std {

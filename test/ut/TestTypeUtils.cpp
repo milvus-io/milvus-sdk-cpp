@@ -526,3 +526,12 @@ TEST_F(TypeUtilsTest, ConvertFieldSchema) {
 
 TEST_F(TypeUtilsTest, ConvertCollectionSchema) {
 }
+
+TEST_F(TypeUtilsTest, TestB64EncodeGeneric) {
+    EXPECT_EQ(milvus::Base64Encode(""), "");
+    EXPECT_EQ(milvus::Base64Encode("a"), "YQ==");
+    EXPECT_EQ(milvus::Base64Encode("ab"), "YWI=");
+    EXPECT_EQ(milvus::Base64Encode("abc"), "YWJj");
+    EXPECT_EQ(milvus::Base64Encode("abcd"), "YWJjZA==");
+    EXPECT_EQ(milvus::Base64Encode("abcde"), "YWJjZGU=");
+}

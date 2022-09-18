@@ -46,6 +46,7 @@ endif ()
 
 find_program(CLANG_TIDY_BIN
   NAMES
+  clang-tidy-14
   clang-tidy-13
   clang-tidy-10
   clang-tidy
@@ -94,6 +95,7 @@ if (CLANG_FORMAT_VERSION)
 else()
     find_program(CLANG_FORMAT_BIN
       NAMES
+      clang-format-14
       clang-format-13
       clang-format-10
       clang-format

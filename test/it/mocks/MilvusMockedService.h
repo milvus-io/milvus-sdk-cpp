@@ -125,6 +125,18 @@ class MilvusMockedService : public milvus::proto::milvus::MilvusService::Service
     MOCK_METHOD3(GetCompactionStateWithPlans,
                  ::grpc::Status(::grpc::ServerContext*, const ::milvus::proto::milvus::GetCompactionPlansRequest*,
                                 ::milvus::proto::milvus::GetCompactionPlansResponse*));
+    MOCK_METHOD3(CreateCredential,
+                 ::grpc::Status(::grpc::ServerContext*, const ::milvus::proto::milvus::CreateCredentialRequest*,
+                                ::milvus::proto::common::Status*));
+    MOCK_METHOD3(UpdateCredential,
+                 ::grpc::Status(::grpc::ServerContext*, const ::milvus::proto::milvus::UpdateCredentialRequest*,
+                                ::milvus::proto::common::Status*));
+    MOCK_METHOD3(DeleteCredential,
+                 ::grpc::Status(::grpc::ServerContext*, const ::milvus::proto::milvus::DeleteCredentialRequest*,
+                                ::milvus::proto::common::Status*));
+    MOCK_METHOD3(ListCredUsers,
+                 ::grpc::Status(::grpc::ServerContext*, const ::milvus::proto::milvus::ListCredUsersRequest*,
+                                ::milvus::proto::milvus::ListCredUsersResponse*));
 };
 
 }  // namespace milvus

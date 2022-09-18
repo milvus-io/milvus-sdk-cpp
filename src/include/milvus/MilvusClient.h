@@ -495,6 +495,45 @@ class MilvusClient {
      */
     virtual Status
     GetCompactionPlans(int64_t compaction_id, CompactionPlans& plans) = 0;
+
+    /**
+     * Create Credential
+     *
+     * @param [in] username the username for created
+     * @param [in] password the password for the user to be created
+     * @return Status operation successfully or not
+     */
+    virtual Status
+    CreateCredential(const std::string& username, const std::string& password) = 0;
+
+    /**
+     * Update Credential
+     *
+     * @param [in] username the username for updated
+     * @param [in] old_password the old password for the user
+     * @param [in] new_password the updated password for the user
+     * @return Status operation successfully or not
+     */
+    virtual Status
+    UpdateCredential(const std::string& username, const std::string& old_password, const std::string& new_password) = 0;
+
+    /**
+     * Delete Credential
+     *
+     * @param [in] username the username to be deleted
+     * @return Status operation successfully or not
+     */
+    virtual Status
+    DeleteCredential(const std::string& username) = 0;
+
+    /**
+     * List Users
+     *
+     * @param [out] the usernames
+     * @return Status operation successfully or not
+     */
+    virtual Status
+    ListCredUsers(std::vector<std::string>& names) = 0;
 };
 
 }  // namespace milvus

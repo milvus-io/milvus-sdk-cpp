@@ -167,6 +167,18 @@ class MilvusConnection {
     GetCompactionPlans(const proto::milvus::GetCompactionPlansRequest& request,
                        proto::milvus::GetCompactionPlansResponse& response);
 
+    Status
+    CreateCredential(const proto::milvus::CreateCredentialRequest& request, proto::common::Status& response);
+
+    Status
+    UpdateCredential(const proto::milvus::UpdateCredentialRequest& request, proto::common::Status& response);
+
+    Status
+    DeleteCredential(const proto::milvus::DeleteCredentialRequest& request, proto::common::Status& response);
+
+    Status
+    ListCredUsers(const proto::milvus::ListCredUsersRequest& request, proto::milvus::ListCredUsersResponse& response);
+
  private:
     std::unique_ptr<proto::milvus::MilvusService::Stub> stub_;
     std::shared_ptr<grpc::Channel> channel_;
