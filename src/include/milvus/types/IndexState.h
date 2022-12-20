@@ -29,6 +29,7 @@ enum class IndexStateCode {
     IN_PROGRESS = 2,
     FINISHED = 3,
     FAILED = 4,
+    RETRY = 5,
 };
 
 /**
