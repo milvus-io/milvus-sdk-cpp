@@ -40,6 +40,11 @@ TEST_P(MilvusServerTestCollection, CreateAndDeleteCollection) {
     EXPECT_EQ(status.Message(), "OK");
     EXPECT_TRUE(status.IsOk());
 
+    // create index needed after 2.2.0
+    milvus::IndexDesc index_desc("face", "", milvus::IndexType::FLAT, milvus::MetricType::L2, 0);
+    status = client_->CreateIndex("Foo", index_desc);
+    EXPECT_TRUE(status.IsOk());
+
     // test for https://github.com/milvus-io/milvus-sdk-cpp/issues/188
     std::vector<std::string> names;
     std::vector<milvus::CollectionInfo> collection_infos;

@@ -59,6 +59,12 @@ main(int argc, char* argv[]) {
     CheckStatus("Failed to create collection:", status);
     std::cout << "Successfully create collection." << std::endl;
 
+    // create index (required after 2.2.0)
+    milvus::IndexDesc index_desc(field_face_name, "", milvus::IndexType::FLAT, milvus::MetricType::L2, 0);
+    status = client->CreateIndex(collection_name, index_desc);
+    CheckStatus("Failed to create index:", status);
+    std::cout << "Successfully create index." << std::endl;
+
     // create a partition
     std::string partition_name = "Year_2022";
     status = client->CreatePartition(collection_name, partition_name);

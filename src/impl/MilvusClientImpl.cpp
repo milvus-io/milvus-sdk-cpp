@@ -487,7 +487,8 @@ MilvusClientImpl::CreateIndex(const std::string& collection_name, const IndexDes
                 // if index finished, progress set to 100%
                 // else if index failed, return error status
                 // else if index is in progressing, continue to check
-                if (index_state.StateCode() == IndexStateCode::FINISHED) {
+                if (index_state.StateCode() == IndexStateCode::FINISHED ||
+                    index_state.StateCode() == IndexStateCode::NONE) {
                     progress.finished_ = 100;
                 } else if (index_state.StateCode() == IndexStateCode::FAILED) {
                     return Status{StatusCode::SERVER_FAILED, "index failed:" + index_state.FailedReason()};

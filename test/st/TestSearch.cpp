@@ -39,7 +39,7 @@ class MilvusServerTestSearch : public MilvusServerTest {
     }
 
     void
-    CreateCollectionAndPartitions() {
+    CreateCollectionAndPartitions(bool create_flat_index) {
         milvus::CollectionSchema collection_schema(collection_name);
         collection_schema.AddField(milvus::FieldSchema("id", milvus::DataType::INT64, "id", true, true));
         collection_schema.AddField(milvus::FieldSchema("age", milvus::DataType::INT16, "age"));
@@ -50,6 +50,13 @@ class MilvusServerTestSearch : public MilvusServerTest {
         auto status = client_->CreateCollection(collection_schema);
         EXPECT_EQ(status.Message(), "OK");
         EXPECT_TRUE(status.IsOk());
+
+        if (create_flat_index) {
+            milvus::IndexDesc index_desc("face", "", milvus::IndexType::FLAT, milvus::MetricType::L2, 0);
+            status = client_->CreateIndex(collection_name, index_desc);
+            EXPECT_EQ(status.Message(), "OK");
+            EXPECT_TRUE(status.IsOk());
+        }
 
         status = client_->CreatePartition(collection_name, partition_name);
         EXPECT_EQ(status.Message(), "OK");
@@ -88,7 +95,7 @@ TEST_F(MilvusServerTestSearch, SearchWithoutIndex) {
             "face", std::vector<std::vector<float>>{std::vector<float>{0.1f, 0.2f, 0.3f, 0.4f},
                                                     std::vector<float>{0.5f, 0.6f, 0.7f, 0.8f}})};
 
-    CreateCollectionAndPartitions();
+    CreateCollectionAndPartitions(true);
     auto dml_results = InsertRecords(fields);
     LoadCollection();
 
@@ -139,7 +146,7 @@ TEST_F(MilvusServerTestSearch, SearchWithStringFilter) {
             "face", std::vector<std::vector<float>>{std::vector<float>{0.1f, 0.2f, 0.3f, 0.4f},
                                                     std::vector<float>{0.5f, 0.6f, 0.7f, 0.8f}})};
 
-    CreateCollectionAndPartitions();
+    CreateCollectionAndPartitions(true);
     auto dml_results = InsertRecords(fields);
     LoadCollection();
 
@@ -196,7 +203,7 @@ TEST_F(MilvusServerTestSearch, SearchWithIVFIndex) {
                                              std::make_shared<milvus::VarCharFieldData>("name", names),
                                              std::make_shared<milvus::FloatVecFieldData>("face", faces)};
 
-    CreateCollectionAndPartitions();
+    CreateCollectionAndPartitions(false);
     auto dml_results = InsertRecords(fields);
 
     milvus::IndexDesc index_desc("face", "", milvus::IndexType::IVF_FLAT, milvus::MetricType::L2, 0);
