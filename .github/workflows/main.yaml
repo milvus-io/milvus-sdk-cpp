@@ -42,21 +42,21 @@ jobs:
             image: ubuntu:18.04
             key: u1804
           - distro: Ubuntu
-            version: 20.04
-            image: ubuntu:20.04
-            key: u2004
+            version: 22.04
+            image: ubuntu:22.04
+            key: u2204
           - distro: CentOS
             version: 7
             image: centos:7
             key: c7
           - distro: Fedora
-            version: 35
-            image: fedora:35
-            key: fc35
-          - distro: Fedora
             version: 36
             image: fedora:36
             key: fc36
+          - distro: Fedora
+            version: 37
+            image: fedora:37
+            key: fc37
     env:
       CCACHE_DIR: ${{ github.workspace }}/.ccache
       CCACHE_COMPILERCHECK: content
@@ -75,22 +75,6 @@ jobs:
             ${{ github.workspace }}/.ccache
           key: linux-${{ matrix.os.key }}-ccache-${{ github.sha }}
           restore-keys: linux-${{ matrix.os.key }}-ccache-
-      - name: Cache apk
-        uses: actions/cache@v2
-        if: ${{ matrix.os.distro }} == "Ubuntu"
-        with:
-          path: |
-            /var/cache/apt/archives
-          key: linux-${{ matrix.os.key }}-ccache-${{ github.sha }}
-          restore-keys: linux-${{ matrix.os.key }}-ccache-
-      - name: Cache rpm
-        uses: actions/cache@v2
-        if: ${{ matrix.os.distro == 'CentOS' || matrix.os.distro == 'Fedora' }}
-        with:
-          path: |
-            /var/cache/yum
-          key: linux-${{ matrix.os.key }}-rpm-${{ github.sha }}
-          restore-keys: linux-${{ matrix.os.key }}-rpm-
       - name: Prepare
         run: |
           sh scripts/install_deps.sh
@@ -102,24 +86,25 @@ jobs:
         run: |
           make lint
       - name: Uint Testing
-        if: ${{ matrix.os.key != 'u2004' }}
         run: |
           make test
       - name: Uint Testing With Coverage
-        if: ${{ matrix.os.key == 'u2004' }}
+        if: ${{ matrix.os.key == 'u2204' }}
         run: |
           make coverage
       - name: Upload coverage
         uses: codecov/codecov-action@v2
-        if: ${{ matrix.os.key == 'u2004' }}
+        if: ${{ matrix.os.key == 'u2204' }}
         with:
           files: ./code_coverage/lcov_output.info
           name: ubuntu-${{ matrix.ubuntu }}-coverage
       - name: Build Packages
+        if: ${{ false }}
         run: |
           make package
       - name: Build with examples apk
-        if: ${{ matrix.os.distro == 'Ubuntu' }}
+        # disabled currently
+        if: ${{ false && matrix.os.distro == 'Ubuntu' }}
         run: |
           set -e
           dpkg -i cmake_build/src/Pack/libmilvus*amd64.deb
@@ -128,7 +113,8 @@ jobs:
           cmake ../examples
           make -j
       - name: Build with examples rpm
-        if: ${{ matrix.os.distro == 'CentOS' || matrix.os.distro == 'Fedora' }}
+        # disabled currently
+        if: ${{ false && (matrix.os.distro == 'CentOS' || matrix.os.distro == 'Fedora') }}
         run: |
           set -e
           yum install -y cmake_build/src/Pack/libmilvus{-devel,}-2*.rpm
@@ -162,13 +148,6 @@ jobs:
             ${{ github.workspace }}/.ccache
           key: ubuntu-${{ matrix.ubuntu }}-ccache-${{ github.sha }}
           restore-keys: ubuntu-${{ matrix.ubuntu }}-ccache-
-      - name: Cache apk
-        uses: actions/cache@v2
-        with:
-          path: |
-            /var/cache/apt/archives/*.deb
-          key: ubuntu-${{ matrix.ubuntu }}-apt-${{ github.sha }}
-          restore-keys: ubuntu-${{ matrix.ubuntu }}-apt-
       - name: Prepare
         run: |
           sh scripts/install_deps.sh

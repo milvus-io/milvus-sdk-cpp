@@ -57,7 +57,7 @@ endif ()
 if (DEFINED ENV{MILVUS_NLOHMANN_JSON_URL})
     set(NLOHMANN_JSON_SOURCE_URL "${ENV{MILVUS_NLOHMANN_JSON_URL}")
 else ()
-    set(NLOHMANN_JSON_SOURCE_URL "https://github.com/nlohmann/json/archive/refs/tags/v3.10.5.tar.gz")
+    set(NLOHMANN_JSON_SOURCE_URL "https://github.com/nlohmann/json/archive/refs/tags/v3.11.2.tar.gz")
 endif ()
 
 # Openssl required for grpc
