@@ -26,9 +26,9 @@ RUN_CPPLINT="OFF"
 BUILD_PACKAGE="OFF"
 MILVUS_SDK_VERSION=${MILVUS_SDK_VERSION:-2.0.0}
 
-JOBS="$(nproc 2>/dev/null || sysctl -n hw.logicalcpu 2>/dev/null || echo 8)"
-if [ ${JOBS} -lt 8 ] ; then
-    JOBS=8
+JOBS="$(nproc 2>/dev/null || sysctl -n hw.logicalcpu 2>/dev/null || echo 3)"
+if [ ${JOBS} -lt 3 ] ; then
+    JOBS=3
 fi
 
 while getopts "t:v:ulrsph" arg; do
