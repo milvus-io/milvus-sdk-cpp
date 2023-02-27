@@ -16,8 +16,10 @@
 
 #include <gtest/gtest.h>
 
+#include <chrono>
 #include <memory>
 #include <nlohmann/json.hpp>
+#include <thread>
 
 #include "TypeUtils.h"
 #include "mocks/MilvusMockedTest.h"
@@ -51,11 +53,11 @@ operator==(const milvus::proto::common::KeyValuePair& lhs, const TestKv& rhs) {
 }  // namespace
 
 template <typename T>
-void
-TestSearchVectors(testing::StrictMock<::milvus::MilvusMockedService>& service_,
-                  std::shared_ptr<::milvus::MilvusClient>& client_, std::vector<T> vectors) {
+milvus::Status
+DoSearchVectors(testing::StrictMock<::milvus::MilvusMockedService>& service_,
+                std::shared_ptr<::milvus::MilvusClient>& client_, std::vector<T> vectors,
+                milvus::SearchResults& search_results, int simulate_timeout = 0, int search_timeout = 0) {
     milvus::SearchArguments search_arguments{};
-    milvus::SearchResults search_results{};
     search_arguments.SetCollectionName("foo");
     search_arguments.AddPartitionName("part1");
     search_arguments.AddPartitionName("part2");
@@ -99,7 +101,8 @@ TestSearchVectors(testing::StrictMock<::milvus::MilvusMockedService>& service_,
                            UnorderedElementsAre(TestKv("anns_field", "anns_dummy"), TestKv("topk", "10"),
                                                 TestKv("metric_type", "IP"), TestKv("round_decimal", "-1"), _))),
             _))
-        .WillOnce([&vectors](::grpc::ServerContext*, const SearchRequest* request, SearchResults* response) {
+        .WillOnce([&vectors, simulate_timeout](::grpc::ServerContext*, const SearchRequest* request,
+                                               SearchResults* response) {
             // check params
             auto& search_params = request->search_params();
             std::string extra_params_payload;
@@ -161,10 +164,24 @@ TestSearchVectors(testing::StrictMock<::milvus::MilvusMockedService>& service_,
             results->mutable_ids()->mutable_int_id()->add_data(30000);
             results->mutable_ids()->mutable_int_id()->add_data(40000);
 
+            // sleep if timeout
+            if (simulate_timeout > 0) {
+                std::this_thread::sleep_for(std::chrono::milliseconds{simulate_timeout});
+            }
+
             return ::grpc::Status{};
         });
 
-    auto status = client_->Search(search_arguments, search_results);
+    return client_->Search(search_arguments, search_results, search_timeout);
+}
+
+template <typename T>
+void
+TestSearchVectors(testing::StrictMock<::milvus::MilvusMockedService>& service_,
+                  std::shared_ptr<::milvus::MilvusClient>& client_, std::vector<T> vectors) {
+    milvus::SearchResults search_results{};
+
+    auto status = DoSearchVectors<T>(service_, client_, vectors, search_results);
     EXPECT_TRUE(status.IsOk());
     auto& results = search_results.Results();
     EXPECT_EQ(results.size(), 2);
@@ -194,6 +211,41 @@ TEST_F(MilvusMockedTest, SearchFoo) {
     std::vector<std::vector<uint8_t>> bin_vectors = {std::vector<uint8_t>{1, 2, 3, 4},
                                                      std::vector<uint8_t>{2, 3, 4, 5}};
     TestSearchVectors<std::vector<uint8_t>>(service_, client_, bin_vectors);
+}
+
+TEST_F(MilvusMockedTest, SearchFooWithTimeoutExpired) {
+    milvus::ConnectParam connect_param{"127.0.0.1", server_.ListenPort()};
+    client_->Connect(connect_param);
+
+    std::vector<std::vector<float>> float_vectors = {std::vector<float>{0.1f, 0.2f, 0.3f, 0.4f},
+                                                     std::vector<float>{0.2f, 0.3f, 0.4f, 0.5f}};
+    milvus::SearchResults search_results{};
+
+    auto t0 = std::chrono::system_clock::now();
+    auto status = DoSearchVectors(service_, client_, float_vectors, search_results, 1000, 500);
+    auto duration =
+        std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - t0).count();
+
+    EXPECT_FALSE(status.IsOk());
+    EXPECT_EQ(status.Code(), milvus::StatusCode::TIMEOUT);
+    EXPECT_GE(duration, 500);
+}
+
+TEST_F(MilvusMockedTest, SearchFooWithTimeoutOk) {
+    milvus::ConnectParam connect_param{"127.0.0.1", server_.ListenPort()};
+    client_->Connect(connect_param);
+
+    std::vector<std::vector<float>> float_vectors = {std::vector<float>{0.1f, 0.2f, 0.3f, 0.4f},
+                                                     std::vector<float>{0.2f, 0.3f, 0.4f, 0.5f}};
+    milvus::SearchResults search_results{};
+
+    auto t0 = std::chrono::system_clock::now();
+    auto status = DoSearchVectors(service_, client_, float_vectors, search_results, 500, 1000);
+    auto duration =
+        std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - t0).count();
+
+    EXPECT_TRUE(status.IsOk());
+    EXPECT_GE(duration, 500);
 }
 
 TEST_F(MilvusMockedTest, SearchWithoutConnect) {

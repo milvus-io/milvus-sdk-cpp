@@ -638,7 +638,7 @@ MilvusClientImpl::Delete(const std::string& collection_name, const std::string& 
 }
 
 Status
-MilvusClientImpl::Search(const SearchArguments& arguments, SearchResults& results) {
+MilvusClientImpl::Search(const SearchArguments& arguments, SearchResults& results, int timeout) {
     std::string anns_field;
     auto validate = [this, &arguments, &anns_field]() {
         CollectionDesc collection_desc;
@@ -756,11 +756,11 @@ MilvusClientImpl::Search(const SearchArguments& arguments, SearchResults& result
     };
 
     return apiHandler<proto::milvus::SearchRequest, proto::milvus::SearchResults>(
-        validate, pre, &MilvusConnection::Search, nullptr, post);
+        validate, pre, &MilvusConnection::Search, nullptr, post, GrpcOpts{timeout});
 }
 
 Status
-MilvusClientImpl::Query(const QueryArguments& arguments, QueryResults& results) {
+MilvusClientImpl::Query(const QueryArguments& arguments, QueryResults& results, int timeout) {
     auto pre = [&arguments]() {
         proto::milvus::QueryRequest rpc_request;
         rpc_request.set_collection_name(arguments.CollectionName());
@@ -787,7 +787,8 @@ MilvusClientImpl::Query(const QueryArguments& arguments, QueryResults& results) 
 
         results = std::move(QueryResults(std::move(return_fields)));
     };
-    return apiHandler<proto::milvus::QueryRequest, proto::milvus::QueryResults>(pre, &MilvusConnection::Query, post);
+    return apiHandler<proto::milvus::QueryRequest, proto::milvus::QueryResults>(pre, &MilvusConnection::Query, post,
+                                                                                GrpcOpts{timeout});
 }
 
 Status

@@ -22,6 +22,7 @@
 #include <grpcpp/create_channel.h>
 #include <grpcpp/security/credentials.h>
 
+#include <chrono>
 #include <memory>
 #include <string>
 
@@ -35,6 +36,19 @@ namespace milvus {
 
 class MilvusConnection {
  public:
+    /**
+     * options for grpc call
+     */
+    struct GrpcContextOptions {
+        /** timeout in milliseconds */
+        int timeout{0};
+
+        // constructors
+        GrpcContextOptions() = default;
+        explicit GrpcContextOptions(int timeout_) : timeout{timeout_} {
+        }
+    };
+
     MilvusConnection() = default;
 
     virtual ~MilvusConnection();
@@ -46,138 +60,170 @@ class MilvusConnection {
     Disconnect();
 
     Status
-    CreateCollection(const proto::milvus::CreateCollectionRequest& request, proto::common::Status& response);
+    CreateCollection(const proto::milvus::CreateCollectionRequest& request, proto::common::Status& response,
+                     const GrpcContextOptions& options);
 
     Status
-    DropCollection(const proto::milvus::DropCollectionRequest& request, proto::common::Status& response);
+    DropCollection(const proto::milvus::DropCollectionRequest& request, proto::common::Status& response,
+                   const GrpcContextOptions& options);
 
     Status
-    HasCollection(const proto::milvus::HasCollectionRequest& request, proto::milvus::BoolResponse& response);
+    HasCollection(const proto::milvus::HasCollectionRequest& request, proto::milvus::BoolResponse& response,
+                  const GrpcContextOptions& options);
 
     Status
-    LoadCollection(const proto::milvus::LoadCollectionRequest& request, proto::common::Status& response);
+    LoadCollection(const proto::milvus::LoadCollectionRequest& request, proto::common::Status& response,
+                   const GrpcContextOptions& options);
 
     Status
-    ReleaseCollection(const proto::milvus::ReleaseCollectionRequest& request, proto::common::Status& response);
+    ReleaseCollection(const proto::milvus::ReleaseCollectionRequest& request, proto::common::Status& response,
+                      const GrpcContextOptions& options);
 
     Status
     DescribeCollection(const proto::milvus::DescribeCollectionRequest& request,
-                       proto::milvus::DescribeCollectionResponse& response);
+                       proto::milvus::DescribeCollectionResponse& response, const GrpcContextOptions& options);
 
     Status
     GetCollectionStatistics(const proto::milvus::GetCollectionStatisticsRequest& request,
-                            proto::milvus::GetCollectionStatisticsResponse& response);
+                            proto::milvus::GetCollectionStatisticsResponse& response,
+                            const GrpcContextOptions& options);
 
     Status
     ShowCollections(const proto::milvus::ShowCollectionsRequest& request,
-                    proto::milvus::ShowCollectionsResponse& response);
+                    proto::milvus::ShowCollectionsResponse& response, const GrpcContextOptions& options);
 
     Status
-    CreatePartition(const proto::milvus::CreatePartitionRequest& request, proto::common::Status& response);
+    CreatePartition(const proto::milvus::CreatePartitionRequest& request, proto::common::Status& response,
+                    const GrpcContextOptions& options);
 
     Status
-    DropPartition(const proto::milvus::DropPartitionRequest& request, proto::common::Status& response);
+    DropPartition(const proto::milvus::DropPartitionRequest& request, proto::common::Status& response,
+                  const GrpcContextOptions& options);
 
     Status
-    HasPartition(const proto::milvus::HasPartitionRequest& request, proto::milvus::BoolResponse& response);
+    HasPartition(const proto::milvus::HasPartitionRequest& request, proto::milvus::BoolResponse& response,
+                 const GrpcContextOptions& options);
 
     Status
-    ShowPartitions(const proto::milvus::ShowPartitionsRequest& request,
-                   proto::milvus::ShowPartitionsResponse& response);
+    ShowPartitions(const proto::milvus::ShowPartitionsRequest& request, proto::milvus::ShowPartitionsResponse& response,
+                   const GrpcContextOptions& options);
 
     Status
-    LoadPartitions(const proto::milvus::LoadPartitionsRequest& request, proto::common::Status& response);
+    LoadPartitions(const proto::milvus::LoadPartitionsRequest& request, proto::common::Status& response,
+                   const GrpcContextOptions& options);
 
     Status
-    ReleasePartitions(const proto::milvus::ReleasePartitionsRequest& request, proto::common::Status& response);
+    ReleasePartitions(const proto::milvus::ReleasePartitionsRequest& request, proto::common::Status& response,
+                      const GrpcContextOptions& options);
 
     Status
     GetPartitionStatistics(const proto::milvus::GetPartitionStatisticsRequest& request,
-                           proto::milvus::GetPartitionStatisticsResponse& response);
+                           proto::milvus::GetPartitionStatisticsResponse& response, const GrpcContextOptions& options);
 
     Status
-    CreateAlias(const proto::milvus::CreateAliasRequest& request, proto::common::Status& response);
+    CreateAlias(const proto::milvus::CreateAliasRequest& request, proto::common::Status& response,
+                const GrpcContextOptions& options);
 
     Status
-    DropAlias(const proto::milvus::DropAliasRequest& request, proto::common::Status& response);
+    DropAlias(const proto::milvus::DropAliasRequest& request, proto::common::Status& response,
+              const GrpcContextOptions& options);
 
     Status
-    AlterAlias(const proto::milvus::AlterAliasRequest& request, proto::common::Status& response);
+    AlterAlias(const proto::milvus::AlterAliasRequest& request, proto::common::Status& response,
+               const GrpcContextOptions& options);
 
     Status
-    CreateIndex(const proto::milvus::CreateIndexRequest& request, proto::common::Status& response);
+    CreateIndex(const proto::milvus::CreateIndexRequest& request, proto::common::Status& response,
+                const GrpcContextOptions& options);
 
     Status
-    DescribeIndex(const proto::milvus::DescribeIndexRequest& request, proto::milvus::DescribeIndexResponse& response);
+    DescribeIndex(const proto::milvus::DescribeIndexRequest& request, proto::milvus::DescribeIndexResponse& response,
+                  const GrpcContextOptions& options);
 
     Status
-    GetIndexState(const proto::milvus::GetIndexStateRequest& request, proto::milvus::GetIndexStateResponse& response);
+    GetIndexState(const proto::milvus::GetIndexStateRequest& request, proto::milvus::GetIndexStateResponse& response,
+                  const GrpcContextOptions& options);
 
     Status
     GetIndexBuildProgress(const proto::milvus::GetIndexBuildProgressRequest& request,
-                          proto::milvus::GetIndexBuildProgressResponse& response);
+                          proto::milvus::GetIndexBuildProgressResponse& response, const GrpcContextOptions& options);
 
     Status
-    DropIndex(const proto::milvus::DropIndexRequest& request, proto::common::Status& response);
+    DropIndex(const proto::milvus::DropIndexRequest& request, proto::common::Status& response,
+              const GrpcContextOptions& options);
 
     Status
-    Flush(const proto::milvus::FlushRequest& request, proto::milvus::FlushResponse& response);
+    Flush(const proto::milvus::FlushRequest& request, proto::milvus::FlushResponse& response,
+          const GrpcContextOptions& options);
 
     Status
-    Insert(const proto::milvus::InsertRequest& request, proto::milvus::MutationResult& response);
+    Insert(const proto::milvus::InsertRequest& request, proto::milvus::MutationResult& response,
+           const GrpcContextOptions& options);
 
     Status
-    Delete(const proto::milvus::DeleteRequest& request, proto::milvus::MutationResult& response);
+    Delete(const proto::milvus::DeleteRequest& request, proto::milvus::MutationResult& response,
+           const GrpcContextOptions& options);
 
     Status
-    Search(const proto::milvus::SearchRequest& request, proto::milvus::SearchResults& response);
+    Search(const proto::milvus::SearchRequest& request, proto::milvus::SearchResults& response,
+           const GrpcContextOptions& options);
 
     Status
-    Query(const proto::milvus::QueryRequest& request, proto::milvus::QueryResults& response);
+    Query(const proto::milvus::QueryRequest& request, proto::milvus::QueryResults& response,
+          const GrpcContextOptions& options);
 
     Status
-    CalcDistance(const proto::milvus::CalcDistanceRequest& request, proto::milvus::CalcDistanceResults& response);
+    CalcDistance(const proto::milvus::CalcDistanceRequest& request, proto::milvus::CalcDistanceResults& response,
+                 const GrpcContextOptions& options);
 
     Status
-    GetFlushState(const proto::milvus::GetFlushStateRequest& request, proto::milvus::GetFlushStateResponse& response);
+    GetFlushState(const proto::milvus::GetFlushStateRequest& request, proto::milvus::GetFlushStateResponse& response,
+                  const GrpcContextOptions& options);
 
     Status
     GetPersistentSegmentInfo(const proto::milvus::GetPersistentSegmentInfoRequest& request,
-                             proto::milvus::GetPersistentSegmentInfoResponse& response);
+                             proto::milvus::GetPersistentSegmentInfoResponse& response,
+                             const GrpcContextOptions& options);
 
     Status
     GetQuerySegmentInfo(const proto::milvus::GetQuerySegmentInfoRequest& request,
-                        proto::milvus::GetQuerySegmentInfoResponse& response);
+                        proto::milvus::GetQuerySegmentInfoResponse& response, const GrpcContextOptions& options);
 
     Status
-    GetMetrics(const proto::milvus::GetMetricsRequest& request, proto::milvus::GetMetricsResponse& response);
+    GetMetrics(const proto::milvus::GetMetricsRequest& request, proto::milvus::GetMetricsResponse& response,
+               const GrpcContextOptions& options);
 
     Status
-    LoadBalance(const proto::milvus::LoadBalanceRequest& request, proto::common::Status& response);
+    LoadBalance(const proto::milvus::LoadBalanceRequest& request, proto::common::Status& response,
+                const GrpcContextOptions& options);
 
     Status
     GetCompactionState(const proto::milvus::GetCompactionStateRequest& request,
-                       proto::milvus::GetCompactionStateResponse& response);
+                       proto::milvus::GetCompactionStateResponse& response, const GrpcContextOptions& options);
 
     Status
     ManualCompaction(const proto::milvus::ManualCompactionRequest& request,
-                     proto::milvus::ManualCompactionResponse& response);
+                     proto::milvus::ManualCompactionResponse& response, const GrpcContextOptions& options);
 
     Status
     GetCompactionPlans(const proto::milvus::GetCompactionPlansRequest& request,
-                       proto::milvus::GetCompactionPlansResponse& response);
+                       proto::milvus::GetCompactionPlansResponse& response, const GrpcContextOptions& options);
 
     Status
-    CreateCredential(const proto::milvus::CreateCredentialRequest& request, proto::common::Status& response);
+    CreateCredential(const proto::milvus::CreateCredentialRequest& request, proto::common::Status& response,
+                     const GrpcContextOptions& options);
 
     Status
-    UpdateCredential(const proto::milvus::UpdateCredentialRequest& request, proto::common::Status& response);
+    UpdateCredential(const proto::milvus::UpdateCredentialRequest& request, proto::common::Status& response,
+                     const GrpcContextOptions& options);
 
     Status
-    DeleteCredential(const proto::milvus::DeleteCredentialRequest& request, proto::common::Status& response);
+    DeleteCredential(const proto::milvus::DeleteCredentialRequest& request, proto::common::Status& response,
+                     const GrpcContextOptions& options);
 
     Status
-    ListCredUsers(const proto::milvus::ListCredUsersRequest& request, proto::milvus::ListCredUsersResponse& response);
+    ListCredUsers(const proto::milvus::ListCredUsersRequest& request, proto::milvus::ListCredUsersResponse& response,
+                  const GrpcContextOptions& options);
 
  private:
     std::unique_ptr<proto::milvus::MilvusService::Stub> stub_;
@@ -198,20 +244,32 @@ class MilvusConnection {
         return statusByProtoResponse(status);
     }
 
+    StatusCode
+    statusCodeFromGrpcStatus(const ::grpc::Status& grpc_status) {
+        if (grpc_status.error_code() == ::grpc::StatusCode::DEADLINE_EXCEEDED) {
+            return StatusCode::TIMEOUT;
+        }
+        return StatusCode::SERVER_FAILED;
+    }
+
     template <typename Request, typename Response>
     Status
     grpcCall(const char* name,
              grpc::Status (proto::milvus::MilvusService::Stub::*func)(grpc::ClientContext*, const Request&, Response*),
-             const Request& request, Response& response) {
+             const Request& request, Response& response, const GrpcContextOptions& options) {
         if (stub_ == nullptr) {
             return {StatusCode::NOT_CONNECTED, "Connection is not ready!"};
         }
 
         ::grpc::ClientContext context;
+        if (options.timeout > 0) {
+            auto deadline = std::chrono::system_clock::now() + std::chrono::milliseconds{options.timeout};
+            context.set_deadline(deadline);
+        }
         ::grpc::Status grpc_status = (stub_.get()->*func)(&context, request, &response);
 
         if (!grpc_status.ok()) {
-            return {StatusCode::SERVER_FAILED, grpc_status.error_message()};
+            return {statusCodeFromGrpcStatus(grpc_status), grpc_status.error_message()};
         }
 
         return statusByProtoResponse(response);
