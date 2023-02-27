@@ -1,6 +1,7 @@
 cmake_build/
 build/
 .vscode/
+.cache/
 
 logs/
 *.pyc

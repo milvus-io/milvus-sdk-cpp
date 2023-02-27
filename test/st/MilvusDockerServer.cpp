@@ -27,7 +27,7 @@
 namespace {
 constexpr uint16_t milvus_listen_port{19530};
 constexpr char etcd_image_repo[] = "quay.io/coreos/etcd";
-constexpr char etcd_image_tag[] = "v3.5.0";
+constexpr char etcd_image_tag[] = "v3.5.5";
 constexpr char etcd_start_cmd[] =
     "etcd -advertise-client-urls=http://127.0.0.1:2379 -listen-client-urls http://0.0.0.0:2379 --data-dir /etcd";
 
@@ -36,7 +36,7 @@ constexpr char minio_image_tag[] = "RELEASE.2022-03-17T06-34-49Z";
 constexpr char minio_start_cmd[] = "minio server /minio_data";
 
 constexpr char milvus_image_repo[] = "milvusdb/milvus";
-constexpr char milvus_image_tag[] = "v2.2.1";
+constexpr char milvus_image_tag[] = "v2.2.3";
 constexpr char milvus_start_cmd[] = "milvus run standalone";
 }  // namespace
 
