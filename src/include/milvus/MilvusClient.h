@@ -369,20 +369,22 @@ class MilvusClient {
      *
      * @param [in] arguments search arguments
      * @param [out] results search results
+     * @param [in] timeout search timeout in milliseconds
      * @return Status operation successfully or not
      */
     virtual Status
-    Search(const SearchArguments& arguments, SearchResults& results) = 0;
+    Search(const SearchArguments& arguments, SearchResults& results, int timeout = 0) = 0;
 
     /**
      * Query with a set of criteria, and results in a list of records that match the query exactly.
      *
      * @param [in] arguments query arguments
      * @param [out] results query results
+     * @param [in] timeout search timeout in milliseconds
      * @return Status operation successfully or not
      */
     virtual Status
-    Query(const QueryArguments& arguments, QueryResults& results) = 0;
+    Query(const QueryArguments& arguments, QueryResults& results, int timeout = 0) = 0;
 
     /**
      * Calculate distance between two vector arrays.
