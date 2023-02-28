@@ -21,13 +21,7 @@ Currently, we tested the below platform and compilers for developing Milvus C++ 
 ### Clone the code
 
 ```shell
-$ git clone --recursive git@github.com:milvus-io/milvus-sdk-cpp.git
-```
-
-Milvus proto files are managed by a submodule project under the directory: src/milvus-proto
-Fetch Milvus proto files by the following command:
-```shell
-$ git submodule update --init
+$ git clone git@github.com:milvus-io/milvus-sdk-cpp.git
 ```
 
 ### Install the dependencies
@@ -51,13 +45,6 @@ $ mkdir build
 $ cd build
 $ cmake ..
 $ make
-```
-
-## Update Milvus proto files
-Milvus proto files are managed by a submodule project under the directory: src/milvus-proto
-Before developing new interfaces, you need to get the latest proto files by the following command:
-```shell
-$  git submodule update --remote
 ```
 
 ## Code style for Milvus C++ SDK

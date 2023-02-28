@@ -14,29 +14,42 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+set(PROTO_VERSION v2.2.3)
+set(PROTO_URL https://github.com/milvus-io/milvus-proto/archive/refs/tags/${PROTO_VERSION}.tar.gz)
+
+# download proto
+FetchContent_Declare(prepare_proto
+    URL         ${PROTO_URL}
+)
+FetchContent_Populate(prepare_proto)
+
 function(add_proto_source name)
     add_custom_command(
         OUTPUT ${CMAKE_CURRENT_SOURCE_DIR}/proto-gen/${name}.pb.cc
-        DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/milvus-proto/proto/${name}.proto
+               ${CMAKE_CURRENT_SOURCE_DIR}/proto-gen/${name}.pb.h
+        DEPENDS ${prepare_proto_SOURCE_DIR}/proto/${name}.proto
                 ${protobuf_BINARY_DIR}/protoc${CMAKE_EXECUTABLE_SUFFIX}
         COMMAND ${protobuf_BINARY_DIR}/protoc${CMAKE_EXECUTABLE_SUFFIX}
-                --cpp_out ${CMAKE_CURRENT_SOURCE_DIR}/proto-gen -I${CMAKE_CURRENT_SOURCE_DIR}/milvus-proto/proto
-		-I${grpc_SOURCE_DIR}/third_party/protobuf/src
-                ${CMAKE_CURRENT_SOURCE_DIR}/milvus-proto/proto/${name}.proto
+                --cpp_out ${CMAKE_CURRENT_SOURCE_DIR}/proto-gen
+                -I${prepare_proto_SOURCE_DIR}/proto
+                -I${grpc_SOURCE_DIR}/third_party/protobuf/src
+                ${prepare_proto_SOURCE_DIR}/proto/${name}.proto
     )
 endfunction(add_proto_source name)
 
 function(add_proto_service name)
     add_custom_command(
         OUTPUT ${CMAKE_CURRENT_SOURCE_DIR}/proto-gen/${name}.grpc.pb.cc
-        DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/milvus-proto/proto/${name}.proto
+               ${CMAKE_CURRENT_SOURCE_DIR}/proto-gen/${name}.grpc.pb.h
+        DEPENDS ${prepare_proto_SOURCE_DIR}/proto/${name}.proto
                 ${protobuf_BINARY_DIR}/protoc${CMAKE_EXECUTABLE_SUFFIX}
                 ${grpc_BINARY_DIR}/grpc_cpp_plugin${CMAKE_EXECUTABLE_SUFFIX}
         COMMAND ${protobuf_BINARY_DIR}/protoc${CMAKE_EXECUTABLE_SUFFIX}
-                --grpc_out ${CMAKE_CURRENT_SOURCE_DIR}/proto-gen -I${CMAKE_CURRENT_SOURCE_DIR}/milvus-proto/proto
-		-I${grpc_SOURCE_DIR}/third_party/protobuf/src
+                --grpc_out ${CMAKE_CURRENT_SOURCE_DIR}/proto-gen
+                -I${prepare_proto_SOURCE_DIR}/proto
+                -I${grpc_SOURCE_DIR}/third_party/protobuf/src
                 --plugin=protoc-gen-grpc=${grpc_BINARY_DIR}/grpc_cpp_plugin${CMAKE_EXECUTABLE_SUFFIX}
-                ${CMAKE_CURRENT_SOURCE_DIR}/milvus-proto/proto/${name}.proto
+                ${prepare_proto_SOURCE_DIR}/proto/${name}.proto
     )
 endfunction(add_proto_service name)
 

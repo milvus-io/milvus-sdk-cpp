@@ -65,11 +65,9 @@ jobs:
       CCACHE_MAXSIZE: 2G
     steps:
       - name: Checkout
-        uses: actions/checkout@v1
-        with:
-          submodules: recursive
+        uses: actions/checkout@v3
       - name: Cache ccache
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: |
             ${{ github.workspace }}/.ccache
@@ -93,7 +91,7 @@ jobs:
         run: |
           make coverage
       - name: Upload coverage
-        uses: codecov/codecov-action@v2
+        uses: codecov/codecov-action@v3
         if: ${{ matrix.os.key == 'u2204' }}
         with:
           files: ./code_coverage/lcov_output.info
@@ -138,11 +136,9 @@ jobs:
       CCACHE_MAXSIZE: 2G
     steps:
       - name: Checkout
-        uses: actions/checkout@v1
-        with:
-          submodules: recursive
+        uses: actions/checkout@v3
       - name: Cache ccache
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: |
             ${{ github.workspace }}/.ccache
@@ -171,11 +167,9 @@ jobs:
       CCACHE_MAXSIZE: 2G
     steps:
       - name: Checkout
-        uses: actions/checkout@v1
-        with:
-          submodules: recursive
+        uses: actions/checkout@v3
       - name: Cache ccache
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: |
             ${{ github.workspace }}/.ccache
