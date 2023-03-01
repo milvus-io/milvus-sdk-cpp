@@ -49,14 +49,12 @@ set(BUILD_SCRIPTS_DIR ${PROJECT_SOURCE_DIR}/scripts)
 unset(CMAKE_EXPORT_COMPILE_COMMANDS CACHE)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-if (BUILD_TEST STREQUAL "ON")
+if (BUILD_TEST)
     if ( CMAKE_BUILD_TYPE STREQUAL "Debug" )
         # Set compile flag for code coverage.
         # Note: Only do this in Debug/unittest mode. Must do this before add_subdirectory(src).
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fprofile-arcs -ftest-coverage")
     endif ()
-
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DELPP_DISABLE_LOGS")
     enable_testing()
     add_subdirectory(test)
 endif ()

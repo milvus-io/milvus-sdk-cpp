@@ -39,7 +39,7 @@ class MilvusServerTestSearch : public MilvusServerTest {
     }
 
     void
-    CreateCollectionAndPartitions(bool create_flat_index) {
+    createCollectionAndPartitions(bool create_flat_index) {
         milvus::CollectionSchema collection_schema(collection_name);
         collection_schema.AddField(milvus::FieldSchema("id", milvus::DataType::INT64, "id", true, true));
         collection_schema.AddField(milvus::FieldSchema("age", milvus::DataType::INT16, "age"));
@@ -64,7 +64,7 @@ class MilvusServerTestSearch : public MilvusServerTest {
     }
 
     milvus::DmlResults
-    InsertRecords(const std::vector<milvus::FieldDataPtr>& fields) {
+    insertRecords(const std::vector<milvus::FieldDataPtr>& fields) {
         milvus::DmlResults dml_results;
         auto status = client_->Insert(collection_name, partition_name, fields, dml_results);
         EXPECT_EQ(status.Message(), "OK");
@@ -74,14 +74,14 @@ class MilvusServerTestSearch : public MilvusServerTest {
     }
 
     void
-    LoadCollection() {
+    loadCollection() {
         auto status = client_->LoadCollection(collection_name);
         EXPECT_EQ(status.Message(), "OK");
         EXPECT_TRUE(status.IsOk());
     }
 
     void
-    DropCollection() {
+    dropCollection() {
         auto status = client_->DropCollection(collection_name);
         EXPECT_TRUE(status.IsOk());
     }
@@ -95,9 +95,9 @@ TEST_F(MilvusServerTestSearch, SearchWithoutIndex) {
             "face", std::vector<std::vector<float>>{std::vector<float>{0.1f, 0.2f, 0.3f, 0.4f},
                                                     std::vector<float>{0.5f, 0.6f, 0.7f, 0.8f}})};
 
-    CreateCollectionAndPartitions(true);
-    auto dml_results = InsertRecords(fields);
-    LoadCollection();
+    createCollectionAndPartitions(true);
+    auto dml_results = insertRecords(fields);
+    loadCollection();
 
     milvus::SearchArguments arguments{};
     arguments.SetCollectionName(collection_name);
@@ -135,7 +135,7 @@ TEST_F(MilvusServerTestSearch, SearchWithoutIndex) {
                 UnorderedElementsAre("Tom", "Jerry"));
     EXPECT_THAT(dynamic_cast<milvus::VarCharFieldData&>(*results.at(1).OutputField("name")).Data(),
                 UnorderedElementsAre("Tom", "Jerry"));
-    DropCollection();
+    dropCollection();
 }
 
 TEST_F(MilvusServerTestSearch, SearchWithStringFilter) {
@@ -146,9 +146,9 @@ TEST_F(MilvusServerTestSearch, SearchWithStringFilter) {
             "face", std::vector<std::vector<float>>{std::vector<float>{0.1f, 0.2f, 0.3f, 0.4f},
                                                     std::vector<float>{0.5f, 0.6f, 0.7f, 0.8f}})};
 
-    CreateCollectionAndPartitions(true);
-    auto dml_results = InsertRecords(fields);
-    LoadCollection();
+    createCollectionAndPartitions(true);
+    auto dml_results = insertRecords(fields);
+    loadCollection();
 
     milvus::SearchArguments arguments{};
     arguments.SetCollectionName(collection_name);
@@ -181,7 +181,7 @@ TEST_F(MilvusServerTestSearch, SearchWithStringFilter) {
               std::vector<std::string>{"Tom"});
     EXPECT_EQ(dynamic_cast<milvus::VarCharFieldData&>(*results.at(1).OutputField("name")).Data(),
               std::vector<std::string>{"Tom"});
-    DropCollection();
+    dropCollection();
 }
 
 // for issue #158
@@ -203,8 +203,8 @@ TEST_F(MilvusServerTestSearch, SearchWithIVFIndex) {
                                              std::make_shared<milvus::VarCharFieldData>("name", names),
                                              std::make_shared<milvus::FloatVecFieldData>("face", faces)};
 
-    CreateCollectionAndPartitions(false);
-    auto dml_results = InsertRecords(fields);
+    createCollectionAndPartitions(false);
+    auto dml_results = insertRecords(fields);
 
     milvus::IndexDesc index_desc("face", "", milvus::IndexType::IVF_FLAT, milvus::MetricType::L2, 0);
     index_desc.AddExtraParam("nlist", 1024);
@@ -212,7 +212,7 @@ TEST_F(MilvusServerTestSearch, SearchWithIVFIndex) {
     EXPECT_EQ(status.Message(), "OK");
     EXPECT_TRUE(status.IsOk());
 
-    LoadCollection();
+    loadCollection();
 
     milvus::SearchArguments arguments{};
     arguments.SetCollectionName(collection_name);
@@ -232,5 +232,5 @@ TEST_F(MilvusServerTestSearch, SearchWithIVFIndex) {
     EXPECT_EQ(results.at(0).Scores().size(), 10);
     EXPECT_EQ(results.at(1).Scores().size(), 10);
 
-    DropCollection();
+    dropCollection();
 }
