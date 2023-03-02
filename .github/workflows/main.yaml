@@ -144,6 +144,9 @@ jobs:
             ${{ github.workspace }}/.ccache
           key: ubuntu-${{ matrix.ubuntu }}-ccache-${{ github.sha }}
           restore-keys: ubuntu-${{ matrix.ubuntu }}-ccache-
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.8'
       - name: Prepare
         run: |
           sh scripts/install_deps.sh

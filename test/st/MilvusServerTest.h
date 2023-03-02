@@ -13,23 +13,46 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+#pragma once
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
-#include "MilvusDockerServer.h"
+#include <cstdint>
+#include <string>
+#include <thread>
+
+#include "PythonMilvusServer.h"
 #include "milvus/MilvusClient.h"
+#include "milvus/Status.h"
 
 namespace milvus {
+
+inline void
+waitMilvusServerReady(uint16_t port) {
+    int max_retry = 20, retry = 0;
+    bool has;
+    milvus::Status status{StatusCode::UNKNOWN_ERROR, ""};
+    while (!status.IsOk() && retry++ < max_retry) {
+        auto client = milvus::MilvusClient::Create();
+        client->Connect({"127.0.0.1", port});
+        std::this_thread::sleep_for(std::chrono::seconds{5});
+        status = client->HasCollection("nosuchcollection", has);
+        std::cout << "Wait milvus start done, try: " << retry << ", status: " << status.Message() << std::endl;
+    }
+    std::cout << "Wait milvus start done, status: " << status.Message() << std::endl;
+}
+
 class MilvusServerTest : public ::testing::Test {
  protected:
-    MilvusDockerServer server_{};
+    PythonMilvusServer server_{};
     std::shared_ptr<milvus::MilvusClient> client_{nullptr};
 
     void
     SetUp() override {
         server_.Start();
         client_ = milvus::MilvusClient::Create();
+        waitMilvusServerReady(server_.ListenPort());
     }
 
     void
@@ -40,19 +63,21 @@ class MilvusServerTest : public ::testing::Test {
 template <typename T>
 class MilvusServerTestWithParam : public ::testing::TestWithParam<T> {
  protected:
-    MilvusDockerServer server_{};
+    PythonMilvusServer server_{};
     std::shared_ptr<milvus::MilvusClient> client_{nullptr};
 
     void
     SetUp() override {
         server_.Start();
         client_ = milvus::MilvusClient::Create();
+        waitMilvusServerReady(server_.ListenPort());
     }
 
     void
     TearDown() override {
     }
 };
+
 }  // namespace milvus
 
 using milvus::MilvusServerTest;

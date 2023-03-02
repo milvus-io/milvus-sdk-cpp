@@ -39,7 +39,7 @@ class MilvusServerTestSearchWithBinaryVectors : public MilvusServerTest {
     }
 
     void
-    CreateCollectionAndPartitions() {
+    createCollectionAndPartitions() {
         milvus::CollectionSchema collection_schema(collection_name);
         collection_schema.AddField(milvus::FieldSchema("id", milvus::DataType::INT64, "id", true, true));
         collection_schema.AddField(milvus::FieldSchema("age", milvus::DataType::INT16, "age"));
@@ -56,7 +56,7 @@ class MilvusServerTestSearchWithBinaryVectors : public MilvusServerTest {
     }
 
     milvus::DmlResults
-    InsertRecords(const std::vector<milvus::FieldDataPtr>& fields) {
+    insertRecords(const std::vector<milvus::FieldDataPtr>& fields) {
         milvus::DmlResults dml_results;
         auto status = client_->Insert(collection_name, partition_name, fields, dml_results);
         EXPECT_EQ(status.Message(), "OK");
@@ -66,14 +66,14 @@ class MilvusServerTestSearchWithBinaryVectors : public MilvusServerTest {
     }
 
     void
-    LoadCollection() {
+    loadCollection() {
         auto status = client_->LoadCollection(collection_name);
         EXPECT_EQ(status.Message(), "OK");
         EXPECT_TRUE(status.IsOk());
     }
 
     void
-    DropCollection() {
+    dropCollection() {
         auto status = client_->DropCollection(collection_name);
         EXPECT_TRUE(status.IsOk());
     }
@@ -95,15 +95,15 @@ TEST_F(MilvusServerTestSearchWithBinaryVectors, RegressionIssue194) {
     std::vector<milvus::FieldDataPtr> fields{std::make_shared<milvus::Int16FieldData>("age", ages),
                                              std::make_shared<milvus::BinaryVecFieldData>("face", faces)};
 
-    CreateCollectionAndPartitions();
-    auto dml_results = InsertRecords(fields);
+    createCollectionAndPartitions();
+    auto dml_results = insertRecords(fields);
 
     milvus::IndexDesc index_desc("face", "", milvus::IndexType::BIN_FLAT, milvus::MetricType::HAMMING, 0);
     auto status = client_->CreateIndex(collection_name, index_desc);
     EXPECT_EQ(status.Message(), "OK");
     EXPECT_TRUE(status.IsOk());
 
-    LoadCollection();
+    loadCollection();
 
     milvus::SearchArguments arguments{};
     arguments.SetCollectionName(collection_name);
@@ -122,5 +122,5 @@ TEST_F(MilvusServerTestSearchWithBinaryVectors, RegressionIssue194) {
     EXPECT_EQ(results.at(0).Scores().size(), 10);
     EXPECT_EQ(results.at(1).Scores().size(), 10);
 
-    DropCollection();
+    dropCollection();
 }
