@@ -45,7 +45,7 @@ MilvusClientImpl::Connect(const ConnectParam& connect_param) {
 
     // TODO: check connect parameter
     connection_ = std::make_shared<MilvusConnection>();
-    return connection_->Connect(connect_param.Uri(), connect_param.ConnectTimeout());
+    return connection_->Connect(connect_param.Uri(), connect_param.ConnectTimeout(), connect_param.Authorizations());
 }
 
 Status

@@ -16,9 +16,18 @@
 
 #include "milvus/types/ConnectParam.h"
 
+#include <string>
+
+#include "../TypeUtils.h"
+
 namespace milvus {
 
 ConnectParam::ConnectParam(std::string host, uint16_t port) : host_(std::move(host)), port_(port) {
+}
+
+ConnectParam::ConnectParam(std::string host, uint16_t port, std::string username, std::string password)
+    : host_(std::move(host)), port_(port) {
+    SetAuthorizations(std::move(username), std::move(password));
 }
 
 const std::string&
@@ -34,6 +43,16 @@ ConnectParam::Port() const {
 const std::string
 ConnectParam::Uri() const {
     return host_ + ":" + std::to_string(port_);
+}
+
+const std::string&
+ConnectParam::Authorizations() const {
+    return authorizations_;
+}
+
+void
+ConnectParam::SetAuthorizations(std::string username, std::string password) {
+    authorizations_ = milvus::Base64Encode(std::move(username) + ':' + std::move(password));
 }
 
 uint32_t

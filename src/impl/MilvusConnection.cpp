@@ -30,10 +30,11 @@ MilvusConnection::~MilvusConnection() {
 }
 
 Status
-MilvusConnection::Connect(const std::string& uri, uint32_t timeout) {
+MilvusConnection::Connect(const std::string& uri, uint32_t timeout, const std::string& authorizations) {
     ::grpc::ChannelArguments args;
     args.SetMaxSendMessageSize(-1);     // max send message size: 2GB
     args.SetMaxReceiveMessageSize(-1);  // max receive message size: 2GB
+    authorization_value_ = authorizations;
     channel_ = ::grpc::CreateCustomChannel(uri, ::grpc::InsecureChannelCredentials(), args);
     auto connected = channel_->WaitForConnected(std::chrono::system_clock::now() + std::chrono::milliseconds{timeout});
     if (connected) {
