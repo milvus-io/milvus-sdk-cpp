@@ -29,14 +29,23 @@
 namespace milvus {
 
 inline void
-waitMilvusServerReady(uint16_t port) {
+waitMilvusServerReady(const PythonMilvusServer& server) {
     int max_retry = 20, retry = 0;
     bool has;
-    milvus::Status status{StatusCode::UNKNOWN_ERROR, ""};
+    ConnectParam param{"127.0.0.1", server.ListenPort()};
+    if (server.AuthorizationEnabled()) {
+        // root enabled by default.
+        param.SetAuthorizations("root", "Milvus");
+    }
+
+    auto client = milvus::MilvusClient::Create();
+    client->Connect(param);
+    auto status = client->HasCollection("nosuchcollection", has);
+
     while (!status.IsOk() && retry++ < max_retry) {
-        auto client = milvus::MilvusClient::Create();
-        client->Connect({"127.0.0.1", port});
         std::this_thread::sleep_for(std::chrono::seconds{5});
+        client = milvus::MilvusClient::Create();
+        client->Connect(param);
         status = client->HasCollection("nosuchcollection", has);
         std::cout << "Wait milvus start done, try: " << retry << ", status: " << status.Message() << std::endl;
     }
@@ -52,7 +61,7 @@ class MilvusServerTest : public ::testing::Test {
     SetUp() override {
         server_.Start();
         client_ = milvus::MilvusClient::Create();
-        waitMilvusServerReady(server_.ListenPort());
+        waitMilvusServerReady(server_);
     }
 
     void
@@ -70,7 +79,7 @@ class MilvusServerTestWithParam : public ::testing::TestWithParam<T> {
     SetUp() override {
         server_.Start();
         client_ = milvus::MilvusClient::Create();
-        waitMilvusServerReady(server_.ListenPort());
+        waitMilvusServerReady(server_);
     }
 
     void

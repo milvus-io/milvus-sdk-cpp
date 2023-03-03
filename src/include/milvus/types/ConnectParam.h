@@ -31,6 +31,11 @@ class ConnectParam {
     ConnectParam(std::string host, uint16_t port);
 
     /**
+     * @brief Constructor
+     */
+    ConnectParam(std::string host, uint16_t port, std::string username, std::string password);
+
+    /**
      * @brief IP of the milvus proxy.
      */
     const std::string&
@@ -47,6 +52,19 @@ class ConnectParam {
      */
     const std::string
     Uri() const;
+
+    /**
+     * @brief Authorizations header value for connecting to the milvus.
+     * Authorizations() = base64('username:password')
+     */
+    const std::string&
+    Authorizations() const;
+
+    /**
+     * @brief SetAuthorizations set username and password for connecting to the milvus.
+     */
+    void
+    SetAuthorizations(std::string username, std::string password);
 
     /**
      * @brief Connect timeout in milliseconds.
@@ -66,6 +84,7 @@ class ConnectParam {
     std::string host_;
     uint16_t port_ = 0;
     uint32_t connect_timeout_ = 5000;
+    std::string authorizations_;
 };
 
 }  // namespace milvus

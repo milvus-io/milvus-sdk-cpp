@@ -54,7 +54,7 @@ class MilvusConnection {
     virtual ~MilvusConnection();
 
     Status
-    Connect(const std::string& uri, uint32_t timeout);
+    Connect(const std::string& uri, uint32_t timeout, const std::string& authorizations);
 
     Status
     Disconnect();
@@ -228,6 +228,7 @@ class MilvusConnection {
  private:
     std::unique_ptr<proto::milvus::MilvusService::Stub> stub_;
     std::shared_ptr<grpc::Channel> channel_;
+    std::string authorization_value_{};
 
     Status
     statusByProtoResponse(const proto::common::Status& status) {
@@ -266,6 +267,12 @@ class MilvusConnection {
             auto deadline = std::chrono::system_clock::now() + std::chrono::milliseconds{options.timeout};
             context.set_deadline(deadline);
         }
+
+        if (!authorization_value_.empty()) {
+            context.AddMetadata("authorization", authorization_value_);
+            context.set_authority(authorization_value_);
+        }
+
         ::grpc::Status grpc_status = (stub_.get()->*func)(&context, request, &response);
 
         if (!grpc_status.ok()) {
