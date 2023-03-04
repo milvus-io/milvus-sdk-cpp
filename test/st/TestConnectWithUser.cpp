@@ -21,6 +21,7 @@
 #include "MilvusServerTest.h"
 #include "milvus/Status.h"
 
+using milvus::test::MilvusServerTest;
 using testing::UnorderedElementsAre;
 using testing::UnorderedElementsAreArray;
 
@@ -42,7 +43,7 @@ class MilvusServerTestWithAuth : public MilvusServerTest {
     }
 };
 
-TEST_F(MilvusServerTestWithAuth, Null) {
+TEST_F(MilvusServerTestWithAuth, GenericTest) {
     bool has;
     auto status = root_client_->HasCollection("nosuchcollection", has);
     EXPECT_TRUE(status.IsOk());

@@ -18,6 +18,7 @@
 
 #include "MilvusServerTest.h"
 
+using milvus::test::MilvusServerTest;
 using testing::UnorderedElementsAre;
 using testing::UnorderedElementsAreArray;
 

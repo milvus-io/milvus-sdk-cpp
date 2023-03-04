@@ -29,4 +29,21 @@ TEST_F(ConnectParamTest, GeneralTesting) {
 
     param.SetConnectTimeout(1000);
     EXPECT_EQ(param.ConnectTimeout(), 1000);
+
+    param.EnableTls();
+    EXPECT_TRUE(param.TlsEnabled());
+
+    param.EnableTls("local", "ca");
+    EXPECT_TRUE(param.TlsEnabled());
+    EXPECT_EQ(param.ServerName(), "local");
+    EXPECT_EQ(param.CaCert(), "ca");
+    EXPECT_EQ(param.Cert(), "");
+    EXPECT_EQ(param.Key(), "");
+
+    param.EnableTls("local", "a", "b", "c");
+    EXPECT_EQ(param.Cert(), "a");
+    EXPECT_EQ(param.Key(), "b");
+
+    param.DisableTls();
+    EXPECT_FALSE(param.TlsEnabled());
 }

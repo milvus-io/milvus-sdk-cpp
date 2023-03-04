@@ -30,6 +30,7 @@
 #include "milvus.grpc.pb.h"
 #include "milvus.pb.h"
 #include "milvus/Status.h"
+#include "milvus/types/ConnectParam.h"
 #include "schema.pb.h"
 
 namespace milvus {
@@ -54,7 +55,7 @@ class MilvusConnection {
     virtual ~MilvusConnection();
 
     Status
-    Connect(const std::string& uri, uint32_t timeout, const std::string& authorizations);
+    Connect(const ConnectParam& param);
 
     Status
     Disconnect();

@@ -73,11 +73,13 @@ parameter:
 -t: build type(default: Debug)
 -l: run cpplint, clang-format and clang-tidy(default: OFF)
 -u: build with unit testing(default: OFF)
+-r: clean before build
+-s: build with system testing(default: OFF)
+-p: build with production(-t RelWithDebInfo -r)
 -h: help
 
 usage:
-./build.sh -t \${BUILD_TYPE} -v \${MILVUS_SDK_VERSION} [-l] [-r] [-h]
-                "
+./build.sh -t \${BUILD_TYPE} -v \${MILVUS_SDK_VERSION} [-l] [-r] [-r] [-s] [-p] [-h]"
     exit 0
     ;;
   ?)
@@ -96,6 +98,11 @@ cd ${BUILD_OUTPUT_DIR}
 # remove make cache since build.sh -l use default variables
 # force update the variables each time
 make rebuild_cache >/dev/null 2>&1
+
+# if centos 7, enable devtoolset-7
+if [ -f /opt/rh/devtoolset-7/enable ] ; then
+  source /opt/rh/devtoolset-7/enable
+fi
 
 CMAKE_CMD="cmake \
 -DCMAKE_BUILD_TYPE=${BUILD_TYPE} \
