@@ -80,10 +80,91 @@ class ConnectParam {
     void
     SetConnectTimeout(uint32_t timeout);
 
+    /**
+     * @brief With ssl
+     */
+    ConnectParam&
+    WithTls();
+
+    /**
+     * @brief Enable ssl
+     */
+    void
+    EnableTls();
+
+    /**
+     * @brief With ssl
+     */
+    ConnectParam&
+    WithTls(const std::string& server_name, const std::string& ca_cert);
+
+    /**
+     * @brief Enable ssl
+     */
+    void
+    EnableTls(const std::string& server_name, const std::string& ca_cert);
+
+    /**
+     * @brief With ssl and provides certificates
+     */
+    ConnectParam&
+    WithTls(const std::string& server_name, const std::string& cert, const std::string& key,
+            const std::string& ca_cert);
+
+    /**
+     * @brief Enable ssl and provides certificates
+     */
+    void
+    EnableTls(const std::string& server_name, const std::string& cert, const std::string& key,
+              const std::string& ca_cert);
+
+    /**
+     * @brief Disable ssl
+     */
+    void
+    DisableTls();
+
+    /**
+     * @brief TlsEnabled
+     */
+    bool
+    TlsEnabled() const;
+
+    /**
+     * @brief ServerName tls hostname
+     */
+    const std::string&
+    ServerName() const;
+
+    /**
+     * @brief Cert tls cert file
+     */
+    const std::string&
+    Cert() const;
+
+    /**
+     * @brief Key tls key file
+     */
+    const std::string&
+    Key() const;
+
+    /**
+     * @brief CaCert tls ca cert file
+     */
+    const std::string&
+    CaCert() const;
+
  private:
     std::string host_;
     uint16_t port_ = 0;
     uint32_t connect_timeout_ = 5000;
+
+    bool tls_{false};
+    std::string server_name_;
+    std::string cert_;
+    std::string key_;
+    std::string ca_cert_;
+
     std::string authorizations_;
 };
 

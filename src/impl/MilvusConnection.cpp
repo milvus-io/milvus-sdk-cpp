@@ -16,6 +16,12 @@
 
 #include "MilvusConnection.h"
 
+#include <fstream>
+#include <memory>
+
+#include "grpcpp/security/credentials.h"
+#include "milvus/types/ConnectParam.h"
+
 using grpc::Channel;
 using grpc::ClientContext;
 using grpc::ClientReader;
@@ -24,19 +30,58 @@ using grpc::ClientWriter;
 using grpc::Status;
 using Stub = milvus::proto::milvus::MilvusService::Stub;
 
+namespace {
+
+std::shared_ptr<grpc::ChannelCredentials>
+createTlsCredentials(const std::string& cert, const std::string& key, const std::string& ca_cert) {
+    auto read_contents = [](const std::string& filename) -> std::string {
+        if (filename.empty()) {
+            return "";
+        }
+        std::ifstream fs;
+        fs.open(filename);
+        if (fs) {
+            fs.seekg(0, std::ios::end);
+            auto size = fs.tellg();
+            std::string buffer(size, '\0');
+            fs.seekg(0);
+            fs.read(&buffer[0], size);
+            return std::move(buffer);
+        }
+        return "";
+    };
+    grpc::SslCredentialsOptions opt{read_contents(ca_cert), read_contents(key), read_contents(cert)};
+    return ::grpc::SslCredentials(opt);
+}
+}  // namespace
+
 namespace milvus {
 MilvusConnection::~MilvusConnection() {
     Disconnect();
 }
 
 Status
-MilvusConnection::Connect(const std::string& uri, uint32_t timeout, const std::string& authorizations) {
+MilvusConnection::Connect(const ConnectParam& param) {
+    authorization_value_ = param.Authorizations();
+    std::shared_ptr<grpc::ChannelCredentials> creds{nullptr};
+    auto& uri = param.Uri();
+
     ::grpc::ChannelArguments args;
     args.SetMaxSendMessageSize(-1);     // max send message size: 2GB
     args.SetMaxReceiveMessageSize(-1);  // max receive message size: 2GB
-    authorization_value_ = authorizations;
-    channel_ = ::grpc::CreateCustomChannel(uri, ::grpc::InsecureChannelCredentials(), args);
-    auto connected = channel_->WaitForConnected(std::chrono::system_clock::now() + std::chrono::milliseconds{timeout});
+
+    if (param.TlsEnabled()) {
+        if (!param.ServerName().empty()) {
+            args.SetSslTargetNameOverride(param.ServerName());
+        }
+        creds = createTlsCredentials(param.Cert(), param.Key(), param.CaCert());
+    } else {
+        creds = ::grpc::InsecureChannelCredentials();
+    }
+
+    channel_ = ::grpc::CreateCustomChannel(uri, creds, args);
+    auto connected = channel_->WaitForConnected(std::chrono::system_clock::now() +
+                                                std::chrono::milliseconds{param.ConnectTimeout()});
     if (connected) {
         stub_ = proto::milvus::MilvusService::NewStub(channel_);
         return Status::OK();

@@ -22,27 +22,34 @@
 #include <array>
 #include <chrono>
 #include <functional>
+#include <memory>
 #include <stdexcept>
+#include <string>
 #include <thread>
 #include <vector>
 
-namespace {
+namespace milvus {
+
+namespace test {
 // using 2.2.x latest
 const char* kPythonMilvusServerVersion = "python-milvus-server~=2.2.0";
-}  // namespace
 
 PythonMilvusServer::~PythonMilvusServer() noexcept {
     Stop();
 }
 
-bool
-PythonMilvusServer::AuthorizationEnabled() const {
-    return authorization_enabled_;
-}
-
 void
 PythonMilvusServer::SetAuthorizationEnabled(bool val) {
     authorization_enabled_ = val;
+}
+
+void
+PythonMilvusServer::SetTls(int mode, const std::string& server_cert, const std::string& server_key,
+                           const std::string& ca_cert) {
+    tls_mode_ = mode;
+    server_cert_ = server_cert;
+    server_key_ = server_key;
+    ca_cert_ = ca_cert;
 }
 
 void
@@ -73,18 +80,21 @@ PythonMilvusServer::Stop() {
 void
 PythonMilvusServer::run() {
     // configs
-    std::string auth_config = "authorization_enabled=false";
-    std::string listen_config = "listen_port=19530";
+    std::string cmd = "milvus-server --data " + base_dir_;
     if (authorization_enabled_) {
-        auth_config = "authorization_enabled=true";
+        cmd += " --authorization-enabled true";
     }
 
-    const char* milvus_server = "milvus-server";
+    if (tls_mode_ != 0) {
+        cmd += " --tls-mode " + std::to_string(tls_mode_);
+        cmd += " --server-pem-path " + server_cert_;
+        cmd += " --server-key-path " + server_key_;
+        cmd += " --ca-pem-path " + ca_cert_;
+    }
 
     pid_ = fork();
     if (pid_ == 0) {
-        auto ret = execl("/usr/bin/env", "env", milvus_server, "--set", auth_config.c_str(), "--set",
-                         listen_config.c_str(), "--data", base_dir_.c_str(), nullptr);
+        auto ret = execl("/bin/bash", "bash", "-c", cmd.c_str(), nullptr);
         exit(ret);
     }
     wait(&status_);
@@ -94,3 +104,29 @@ uint16_t
 PythonMilvusServer::ListenPort() const {
     return 19530;
 }
+
+std::shared_ptr<milvus::ConnectParam>
+PythonMilvusServer::TestClientParam() const {
+    auto param = std::make_shared<ConnectParam>("127.0.0.1", ListenPort());
+    if (authorization_enabled_) {
+        // root enabled by default.
+        param->SetAuthorizations("root", "Milvus");
+    }
+    if (tls_mode_ > 0) {
+        std::array<char, 256> path;
+        getcwd(path.data(), path.size());
+        std::string pwd = path.data();
+        std::string server = "server.test.com";
+
+        if (tls_mode_ == 1) {
+            param->EnableTls(server, pwd + "/certs/ca.crt");
+        }
+
+        else if (tls_mode_ == 2) {
+            param->EnableTls(server, pwd + "/certs/client.crt", pwd + "/certs/client.key", pwd + "/certs/ca.crt");
+        }
+    }
+    return param;
+}
+}  // namespace test
+}  // namespace milvus

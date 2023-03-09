@@ -27,25 +27,22 @@
 #include "milvus/Status.h"
 
 namespace milvus {
+namespace test {
 
 inline void
 waitMilvusServerReady(const PythonMilvusServer& server) {
-    int max_retry = 20, retry = 0;
+    int max_retry = 10, retry = 0;
     bool has;
-    ConnectParam param{"127.0.0.1", server.ListenPort()};
-    if (server.AuthorizationEnabled()) {
-        // root enabled by default.
-        param.SetAuthorizations("root", "Milvus");
-    }
 
     auto client = milvus::MilvusClient::Create();
-    client->Connect(param);
+    auto param = server.TestClientParam();
+    client->Connect(*param);
     auto status = client->HasCollection("nosuchcollection", has);
 
     while (!status.IsOk() && retry++ < max_retry) {
         std::this_thread::sleep_for(std::chrono::seconds{5});
         client = milvus::MilvusClient::Create();
-        client->Connect(param);
+        client->Connect(*param);
         status = client->HasCollection("nosuchcollection", has);
         std::cout << "Wait milvus start done, try: " << retry << ", status: " << status.Message() << std::endl;
     }
@@ -86,8 +83,5 @@ class MilvusServerTestWithParam : public ::testing::TestWithParam<T> {
     TearDown() override {
     }
 };
-
+}  // namespace test
 }  // namespace milvus
-
-using milvus::MilvusServerTest;
-using milvus::MilvusServerTestWithParam;

@@ -38,14 +38,14 @@ MilvusClientImpl::~MilvusClientImpl() {
 }
 
 Status
-MilvusClientImpl::Connect(const ConnectParam& connect_param) {
+MilvusClientImpl::Connect(const ConnectParam& param) {
     if (connection_ != nullptr) {
         connection_->Disconnect();
     }
 
     // TODO: check connect parameter
     connection_ = std::make_shared<MilvusConnection>();
-    return connection_->Connect(connect_param.Uri(), connect_param.ConnectTimeout(), connect_param.Authorizations());
+    return connection_->Connect(param);
 }
 
 Status

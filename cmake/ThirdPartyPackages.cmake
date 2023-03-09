@@ -37,13 +37,6 @@ find_package(Threads REQUIRED)
 # ----------------------------------------------------------------------
 # External source default urls
 
-if (DEFINED ENV{MILVUS_GRPC_URL})
-    set(GRPC_SOURCE_URL "$ENV{MILVUS_GRPC_URL}")
-else ()
-    set(GRPC_SOURCE_URL
-            "https://github.com/milvus-io/grpc-milvus/archive/master.zip")
-endif ()
-
 if (DEFINED ENV{MILVUS_GTEST_URL})
     set(GTEST_SOURCE_URL "$ENV{MILVUS_GTEST_URL}")
 else ()
@@ -77,7 +70,8 @@ find_package(OpenSSL REQUIRED)
 # grpc
 FetchContent_Declare(
     grpc
-    URL ${GRPC_SOURCE_URL}
+    GIT_REPOSITORY https://github.com/grpc/grpc
+    GIT_TAG        v1.49.3
 )
 
 FetchContent_Declare(
@@ -94,6 +88,7 @@ FetchContent_Declare(
 if(NOT grpc_POPULATED)
     FetchContent_Populate(grpc)
     set(gRPC_SSL_PROVIDER "package" CACHE INTERNAL "Provider of ssl library")
+    set(gRPC_PROTOBUF_PROVIDER "module" CACHE INTERNAL "Provider of protobuf library")
     add_subdirectory(${grpc_SOURCE_DIR} ${grpc_BINARY_DIR} EXCLUDE_FROM_ALL)
 endif()
 

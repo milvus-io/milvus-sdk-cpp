@@ -16,6 +16,8 @@
 
 #include "MilvusServerTest.h"
 
+using milvus::test::MilvusServerTestWithParam;
+
 using MilvusServerTestCollection = MilvusServerTestWithParam<bool>;
 
 TEST_P(MilvusServerTestCollection, CreateAndDeleteCollection) {

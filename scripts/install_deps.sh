@@ -83,8 +83,11 @@ install_deps_for_centos_8() {
 
 install_deps_for_centos_7() {
     check_sudo
-    ${SUDO} yum -y install epel-release
+    ${SUDO} yum -y install epel-release centos-release-scl
     ${SUDO} yum -y install gcc gcc-c++ python gpg wget ccache make openssl-devel which lcov git rpm-build
+    ${SUDO} yum -y install devtoolset-7
+
+    scl enable devtoolset-7 bash
 
     # for cmake >= 3.12, using cmake3 from epel
     current_cmake_version=$(get_cmake_version)

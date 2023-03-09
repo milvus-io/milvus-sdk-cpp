@@ -86,16 +86,6 @@ jobs:
       - name: Uint Testing
         run: |
           make test
-      - name: Uint Testing With Coverage
-        if: ${{ matrix.os.key == 'u2204' }}
-        run: |
-          make coverage
-      - name: Upload coverage
-        uses: codecov/codecov-action@v3
-        if: ${{ matrix.os.key == 'u2204' }}
-        with:
-          files: ./code_coverage/lcov_output.info
-          name: ubuntu-${{ matrix.ubuntu }}-coverage
       - name: Build Packages
         if: ${{ false }}
         run: |
@@ -121,13 +111,13 @@ jobs:
           cmake ../examples
           make -j
   st-ubuntu:
-    name: Acceptance Test Ubuntu ${{ matrix.ubuntu }}
+    name: Test all with coverage
     runs-on: ubuntu-${{ matrix.ubuntu }}
     timeout-minutes: 45
     strategy:
       fail-fast: false
       matrix:
-        ubuntu: [18.04]
+        ubuntu: [22.04]
     env:
       CCACHE_DIR: ${{ github.workspace }}/.ccache
       CCACHE_COMPILERCHECK: content
@@ -150,9 +140,14 @@ jobs:
       - name: Prepare
         run: |
           sh scripts/install_deps.sh
-      - name: System Test
+      - name: Testing With Coverage
         run: |
-          make st
+          make coverage
+      - name: Upload coverage
+        uses: codecov/codecov-action@v3
+        with:
+          files: ./code_coverage/lcov_output.info
+          name: ubuntu-${{ matrix.ubuntu }}-coverage
   macos:
     name: Build and test macOS ${{ matrix.macos }}
     runs-on: macos-${{ matrix.macos }}

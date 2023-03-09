@@ -65,4 +65,77 @@ ConnectParam::SetConnectTimeout(uint32_t timeout) {
     connect_timeout_ = timeout;
 }
 
+ConnectParam&
+ConnectParam::WithTls() {
+    EnableTls();
+    return *this;
+}
+
+void
+ConnectParam::EnableTls() {
+    EnableTls("", "", "", "");
+}
+
+ConnectParam&
+ConnectParam::WithTls(const std::string& server_name, const std::string& ca_cert) {
+    EnableTls(server_name, ca_cert);
+    return *this;
+}
+
+void
+ConnectParam::EnableTls(const std::string& server_name, const std::string& ca_cert) {
+    EnableTls(server_name, "", "", ca_cert);
+}
+
+ConnectParam&
+ConnectParam::WithTls(const std::string& server_name, const std::string& cert, const std::string& key,
+                      const std::string& ca_cert) {
+    EnableTls(server_name, cert, key, ca_cert);
+    return *this;
+}
+
+void
+ConnectParam::EnableTls(const std::string& server_name, const std::string& cert, const std::string& key,
+                        const std::string& ca_cert) {
+    tls_ = true;
+    server_name_ = server_name;
+    cert_ = cert;
+    key_ = key;
+    ca_cert_ = ca_cert;
+}
+
+void
+ConnectParam::DisableTls() {
+    tls_ = false;
+    server_name_.clear();
+    cert_.clear();
+    key_.clear();
+    ca_cert_.clear();
+}
+
+bool
+ConnectParam::TlsEnabled() const {
+    return tls_;
+}
+
+const std::string&
+ConnectParam::ServerName() const {
+    return server_name_;
+}
+
+const std::string&
+ConnectParam::Cert() const {
+    return cert_;
+}
+
+const std::string&
+ConnectParam::Key() const {
+    return key_;
+}
+
+const std::string&
+ConnectParam::CaCert() const {
+    return ca_cert_;
+}
+
 }  // namespace milvus
