@@ -20,32 +20,31 @@ include_directories(proto-gen)
 
 aux_source_directory(${CMAKE_CURRENT_SOURCE_DIR}/impl impl_files)
 aux_source_directory(${CMAKE_CURRENT_SOURCE_DIR}/impl/types impl_types_files)
-include(proto-gen/proto-gen.cmake) # milvus_sdk_proto_files
+# generate protos -> add_protos func
+include(MilvusProtoGen)
 
 # static library
 if(${BUILD_STATIC})
-add_library(milvus_sdk_static STATIC
+    add_library(milvus_sdk_static STATIC
         ${impl_files}
         ${impl_types_files}
-        ${milvus_sdk_proto_files}
         )
-set_target_properties(milvus_sdk_static PROPERTIES OUTPUT_NAME milvus_sdk)
-target_link_libraries(milvus_sdk_static grpc++)
-add_dependencies(milvus_sdk_static protoc grpc_cpp_plugin)
-set(milvus_sdk_internal milvus_sdk_static)
+    add_protos(milvus_sdk_shared)
+    set_target_properties(milvus_sdk_static PROPERTIES OUTPUT_NAME milvus_sdk)
+    target_link_libraries(milvus_sdk_static gRPC::grpc++ nlohmann_json::nlohmann_json)
+    set(milvus_sdk_internal milvus_sdk_static)
 endif()
 
 # shared library
 if(${BUILD_SHARED})
-add_library(milvus_sdk_shared SHARED
+    add_library(milvus_sdk_shared SHARED
         ${impl_files}
         ${impl_types_files}
-        ${milvus_sdk_proto_files}
         )
-set_target_properties(milvus_sdk_shared PROPERTIES OUTPUT_NAME milvus_sdk)
-target_link_libraries(milvus_sdk_shared grpc++)
-add_dependencies(milvus_sdk_shared protoc grpc_cpp_plugin)
-set(milvus_sdk_internal milvus_sdk_shared)
+    add_protos(milvus_sdk_shared)
+    set_target_properties(milvus_sdk_shared PROPERTIES OUTPUT_NAME milvus_sdk)
+    target_link_libraries(milvus_sdk_shared gRPC::grpc++ nlohmann_json::nlohmann_json)
+    set(milvus_sdk_internal milvus_sdk_shared)
 endif()
 
 # using milvus_sdk shared first, then static

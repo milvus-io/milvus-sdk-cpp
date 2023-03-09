@@ -17,38 +17,24 @@
 find_package(GTest)
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../src/include)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../src/proto-gen)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../src/impl)
-
-# use gtest from source
-message(STATUS "Using gtest from source")
-if(NOT googletest_POPULATED)
-    FetchContent_Populate(googletest)
-    add_subdirectory(${googletest_SOURCE_DIR} ${googletest_BINARY_DIR} EXCLUDE_FROM_ALL)
-endif()
-
-set(GTEST_LIBRARIES gtest)
-set(GMOCK_LIBRARIES gmock)
-set(GTEST_MAIN_LIBRARIES gtest_main)
 
 aux_source_directory(${CMAKE_CURRENT_SOURCE_DIR}/ut ut_files)
 add_executable(testing-ut ${ut_files})
-target_link_libraries(testing-ut PRIVATE milvus_sdk ${GTEST_LIBRARIES} ${GMOCK_LIBRARIES} ${GTEST_MAIN_LIBRARIES} pthread)
+target_link_libraries(testing-ut PRIVATE milvus_sdk GTest::gtest GTest::gmock GTest::gtest_main)
 gtest_discover_tests(testing-ut)
 
 aux_source_directory(${CMAKE_CURRENT_SOURCE_DIR}/it it_files)
 aux_source_directory(${CMAKE_CURRENT_SOURCE_DIR}/it/mocks it_mocks_files)
 add_executable(testing-it ${it_files} ${it_mocks_files})
-target_link_libraries(testing-it PRIVATE milvus_sdk ${GTEST_LIBRARIES} ${GMOCK_LIBRARIES} ${GTEST_MAIN_LIBRARIES} pthread)
+target_link_libraries(testing-it PRIVATE milvus_sdk GTest::gtest GTest::gmock GTest::gtest_main)
 gtest_discover_tests(testing-it)
 
-# st only available under linux
-if (CMAKE_SYSTEM_NAME MATCHES "Linux")
+# st only available under linux/macos
 aux_source_directory(${CMAKE_CURRENT_SOURCE_DIR}/st st_files)
 add_executable(testing-st ${st_files})
-target_link_libraries(testing-st PRIVATE milvus_sdk ${GTEST_LIBRARIES} ${GMOCK_LIBRARIES} ${GTEST_MAIN_LIBRARIES} pthread)
+target_link_libraries(testing-st PRIVATE milvus_sdk GTest::gtest GTest::gmock GTest::gtest_main)
 add_custom_target(system-test
     COMMAND $<TARGET_FILE:testing-st>
     DEPENDS testing-st
 )
-endif(CMAKE_SYSTEM_NAME MATCHES "Linux")

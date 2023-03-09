@@ -32,7 +32,7 @@ jobs:
     name: Build and test AMD64 ${{ matrix.os.distro }} ${{ matrix.os.version }}
     runs-on: ubuntu-latest
     container: ${{ matrix.os.image }}
-    timeout-minutes: 45
+    timeout-minutes: 90
     strategy:
       fail-fast: false
       matrix:

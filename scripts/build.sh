@@ -93,20 +93,34 @@ if [[ ! -d ${BUILD_OUTPUT_DIR} ]]; then
   mkdir ${BUILD_OUTPUT_DIR}
 fi
 
+# if centos 7, enable devtoolset-7
+if [ -f /opt/rh/devtoolset-7/enable ] ; then
+  source /opt/rh/devtoolset-7/enable
+fi
+
+if which conan 2>/dev/null ; then
+  echo conan is installed
+else
+  echo conan is not install or not in PATH
+  exit 1
+fi
+
+# conan
+conan profile detect
+conan install . --output-folder=build --build=missing --settings=build_type=${BUILD_TYPE}
+source ${BUILD_OUTPUT_DIR}/conanbuild.sh
+
 cd ${BUILD_OUTPUT_DIR}
 
 # remove make cache since build.sh -l use default variables
 # force update the variables each time
 make rebuild_cache >/dev/null 2>&1
 
-# if centos 7, enable devtoolset-7
-if [ -f /opt/rh/devtoolset-7/enable ] ; then
-  source /opt/rh/devtoolset-7/enable
-fi
 
 CMAKE_CMD="cmake \
 -DCMAKE_BUILD_TYPE=${BUILD_TYPE} \
 -DBUILD_TEST=${BUILD_TEST} \
+-DCMAKE_TOOLCHAIN_FILE=conan_toolchain.cmake
 -DMAKE_BUILD_ARGS=-j${JOBS}
 -DMILVUS_SDK_VERSION=${MILVUS_SDK_VERSION} \
 ../"
