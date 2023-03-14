@@ -14,18 +14,23 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-find_package(GTest)
-
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../src/include)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../src/proto-gen)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../src/impl)
+include_directories(${milvus_proto_BINARY_DIR})
 
-# use gtest from source
-message(STATUS "Using gtest from source")
-if(NOT googletest_POPULATED)
-    FetchContent_Populate(googletest)
-    add_subdirectory(${googletest_SOURCE_DIR} ${googletest_BINARY_DIR} EXCLUDE_FROM_ALL)
-endif()
+# resolve gtest
+if ("${MILVUS_WITH_GTEST}" STREQUAL "pakcage")
+    find_package(GTest REQUIRED)
+else ()
+    CPMAddPackage(
+        NAME googletest
+        GIT_TAG release-1.12.1
+        VERSION 1.12.1
+        GITHUB_REPOSITORY google/googletest
+        OPTIONS
+            "INSTALL_GTEST OFF"
+    )
+endif ()
 
 set(GTEST_LIBRARIES gtest)
 set(GMOCK_LIBRARIES gmock)
@@ -42,7 +47,7 @@ add_executable(testing-it ${it_files} ${it_mocks_files})
 target_link_libraries(testing-it PRIVATE milvus_sdk ${GTEST_LIBRARIES} ${GMOCK_LIBRARIES} ${GTEST_MAIN_LIBRARIES} pthread)
 gtest_discover_tests(testing-it)
 
-# st only available under linux
+# st only available under linux/macos
 if (CMAKE_SYSTEM_NAME MATCHES "Linux")
 aux_source_directory(${CMAKE_CURRENT_SOURCE_DIR}/st st_files)
 add_executable(testing-st ${st_files})
@@ -51,4 +56,4 @@ add_custom_target(system-test
     COMMAND $<TARGET_FILE:testing-st>
     DEPENDS testing-st
 )
-endif(CMAKE_SYSTEM_NAME MATCHES "Linux")
+endif()

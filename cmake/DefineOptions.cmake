@@ -56,41 +56,6 @@ macro(define_option_string name description default)
 endmacro()
 
 #----------------------------------------------------------------------
-set_option_category("Milvus Build Option")
-
-define_option(BUILD_TEST "Build with testing" OFF)
-define_option(BUILD_COVERAGE "Build with coverage" OFF)
-define_option(BUILD_SHARED "Build with shared" ON)
-define_option(BUILD_STATIC "Build with static" OFF)
-
-# options for package
-define_option_string(MILVUS_SDK_VERSION
-    "Version for sdk"
-    "2.0.0")
-define_option_string(MILVUS_SDK_RELEASE
-    "Release number for sdk"
-    "1")
-
-#----------------------------------------------------------------------
-set_option_category("Thirdparty")
-
-set(MILVUS_DEPENDENCY_SOURCE_DEFAULT "BUNDLED")
-
-define_option_string(MILVUS_DEPENDENCY_SOURCE
-        "Method to use for acquiring MILVUS's build dependencies"
-        "${MILVUS_DEPENDENCY_SOURCE_DEFAULT}"
-        "AUTO"
-        "BUNDLED"
-        "SYSTEM")
-
-define_option(MILVUS_WITH_GRPC "Build with GRPC" ON)
-
-define_option(MILVUS_WITH_ZLIB "Build with zlib compression" ON)
-
-define_option(MILVUS_VERBOSE_THIRDPARTY_BUILD
-        "Show output from ExternalProjects rather than just logging to files" ON)
-
-#----------------------------------------------------------------------
 macro(config_summary)
     message(STATUS "---------------------------------------------------------------------")
     message(STATUS)
@@ -129,10 +94,10 @@ macro(config_summary)
             set(default ${${name}_OPTION_DEFAULT})
             set(description ${${name}_OPTION_DESCRIPTION})
             string(LENGTH ${description} description_length)
-            if (${description_length} LESS 70)
+            if (${description_length} LESS 40)
                 string(
                         SUBSTRING
-                        "                                                                     "
+                        "                                       "
                         ${description_length} -1 description_padding)
             else ()
                 set(description_padding "
@@ -150,12 +115,10 @@ macro(config_summary)
             endif ()
 
             string(
-                    SUBSTRING "${value}                                                             "
+                    SUBSTRING "${value}                               "
                     0 ${max_value_length} value)
 
             message(STATUS "  ${description} ${description_padding} ${value} ${comment}")
         endforeach ()
-
     endforeach ()
-
 endmacro()

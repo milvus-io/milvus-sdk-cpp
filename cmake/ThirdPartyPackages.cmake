@@ -14,86 +14,43 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+include_guard(GLOBAL)
 
-include(FetchContent)
-
-
-# Ensure that a default make is set
-if ("${MAKE}" STREQUAL "")
-    find_program(MAKE make)
-endif ()
-
-if (NOT DEFINED MAKE_BUILD_ARGS)
-    set(MAKE_BUILD_ARGS "-j8")
-endif ()
-message(STATUS "Third Party MAKE_BUILD_ARGS = ${MAKE_BUILD_ARGS}")
 
 # ----------------------------------------------------------------------
-# Find pthreads
-
+# Needs threads
 set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package(Threads REQUIRED)
-
-# ----------------------------------------------------------------------
-# External source default urls
-
-if (DEFINED ENV{MILVUS_GTEST_URL})
-    set(GTEST_SOURCE_URL "$ENV{MILVUS_GTEST_URL}")
-else ()
-    # default using 1.11, for legacy compilers using 1.10
-    set(GTEST_SOURCE_URL "https://github.com/google/googletest/archive/release-1.11.0.tar.gz")
-    if (CMAKE_CXX_COMPILER_VERSION VERSION_LESS 5.0 AND CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
-        set(GTEST_SOURCE_URL "https://github.com/google/googletest/archive/release-1.10.0.tar.gz")
-    endif()
-endif ()
-
-if (DEFINED ENV{MILVUS_NLOHMANN_JSON_URL})
-    set(NLOHMANN_JSON_SOURCE_URL "${ENV{MILVUS_NLOHMANN_JSON_URL}")
-else ()
-    set(NLOHMANN_JSON_SOURCE_URL "https://github.com/nlohmann/json/archive/refs/tags/v3.11.2.tar.gz")
-endif ()
-
-# Openssl required for grpc
-if (CMAKE_HOST_APPLE)
-    execute_process(
-        COMMAND brew --prefix openssl@3
-        OUTPUT_VARIABLE USER_OPENSSL_PATH
-        OUTPUT_STRIP_TRAILING_WHITESPACE
-        COMMAND_ERROR_IS_FATAL ANY
-    )
-    set(OPENSSL_ROOT_DIR ${USER_OPENSSL_PATH})
-endif (CMAKE_HOST_APPLE)
-
-find_package(OpenSSL REQUIRED)
-
+include(CPM)
 
 # grpc
-FetchContent_Declare(
-    grpc
-    GIT_REPOSITORY https://github.com/grpc/grpc
-    GIT_TAG        v1.49.3
-)
+if ("${MILVUS_WITH_GRPC}" STREQUAL "pakcage")
+    find_package(grpc REQUIRED)
+else ()
+    CPMAddPackage(
+        NAME grpc
+        VERSION 1.49.1
+        GITHUB_REPOSITORY grpc/grpc
+        OPTIONS
+            "gRPC_SSL_PROVIDER module"
+            "gRPC_PROTOBUF_PROVIDER module"
+            "gRPC_BUILD_TESTS OFF"
+            "RE2_BUILD_TESTING OFF"
+            "ABSL_PROPAGATE_CXX_STD ON"
+    )
+    if (grpc_ADDED)
+        add_library(gRPC::grpc++ ALIAS grpc++)
+    endif ()
+endif ()
 
-FetchContent_Declare(
-    googletest
-    URL ${GTEST_SOURCE_URL}
-)
 
-FetchContent_Declare(
-    nlohmann_json
-    URL ${NLOHMANN_JSON_SOURCE_URL}
-)
-
-# enable grpc
-if(NOT grpc_POPULATED)
-    FetchContent_Populate(grpc)
-    set(gRPC_SSL_PROVIDER "package" CACHE INTERNAL "Provider of ssl library")
-    set(gRPC_PROTOBUF_PROVIDER "module" CACHE INTERNAL "Provider of protobuf library")
-    add_subdirectory(${grpc_SOURCE_DIR} ${grpc_BINARY_DIR} EXCLUDE_FROM_ALL)
-endif()
-
-# header only nlohmann json
-if(NOT nlohmann_json_POPULATED)
-    FetchContent_Populate(nlohmann_json)
-endif()
-include_directories(${nlohmann_json_SOURCE_DIR}/include)
+# nlohmann_json
+if ("${MILVUS_WITH_NLOHMANN_JSON}" STREQUAL "package")
+    find_package(nlohmann_json REQUIRED)
+else ()
+    CPMAddPackage(
+        NAME nlohmann_json
+        VERSION 3.11.2
+        GITHUB_REPOSITORY nlohmann/json
+    )
+endif ()

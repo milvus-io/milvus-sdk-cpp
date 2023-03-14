@@ -15,7 +15,7 @@
 # limitations under the License.
 
 cmake_minimum_required(VERSION 3.12)
-project(milvus_sdk LANGUAGES CXX C)
+project(milvus_sdk LANGUAGES CXX)
 
 set(CMAKE_VERBOSE_MAKEFILE OFF)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
@@ -27,6 +27,7 @@ if (CMAKE_VERSION VERSION_GREATER_EQUAL "3.24.0")
     cmake_policy(SET CMP0135 NEW)
 endif()
 
+# enable ccache if possible
 find_program(CCACHE_FOUND ccache)
 if(CCACHE_FOUND)
     set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE ccache)
@@ -34,19 +35,44 @@ if(CCACHE_FOUND)
 endif(CCACHE_FOUND)
 
 include(FindPython)
-include(DefineOptions)
-include(BuildUtils)
 include(FindClangTools)
-include(ThirdPartyPackages)
 include(GoogleTest)
 include(CTest)
+
+include(DefineOptions)
+include(ThirdPartyPackages)
+include(MilvusProtoGen)
+
+# options
+
+set_option_category("Build")
+
+define_option(BUILD_TEST "Build with testing" OFF)
+define_option(BUILD_COVERAGE "Build with coverage" OFF)
+define_option(BUILD_SHARED "Build with shared" ON)
+define_option(BUILD_STATIC "Build with static" OFF)
+define_option_string(MILVUS_SDK_VERSION
+    "Version for sdk"
+    "2.0.0")
+define_option_string(MILVUS_SDK_RELEASE
+    "Release number for sdk"
+    "1")
+
+set_option_category("Thirdparty")
+# use thirdparty from:
+#  auto: Find -> Fetch_Content_Then_Find
+#  package: Find
+#  module: Fetch_Content_Then_Find
+define_option_string(MILVUS_WITH_GRPC           "Using gRPC from"       "module" "package" "module")
+define_option_string(MILVUS_WITH_ZLIB           "Using Zlib from"       "module" "package" "module")
+define_option_string(MILVUS_WITH_NLOHMANN_JSON  "nlohmann json from"    "module" "package" "module")
+define_option_string(MILVUS_WITH_GTEST          "Using GTest from"      "module" "package" "module")
+
 
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED on)
 set(BUILD_SCRIPTS_DIR ${PROJECT_SOURCE_DIR}/scripts)
 
-
-unset(CMAKE_EXPORT_COMPILE_COMMANDS CACHE)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 if (BUILD_TEST)
@@ -61,6 +87,7 @@ endif ()
 
 add_subdirectory(src)
 add_subdirectory(examples)
+
 
 # lint verbose options
 if (NOT MILVUS_VERBOSE_LINT)
@@ -155,3 +182,6 @@ if (${CLANG_TIDY_FOUND})
             ${CMAKE_CURRENT_SOURCE_DIR}
             ${MILVUS_LINT_QUIET})
 endif ()
+
+# output config summary
+config_summary()
