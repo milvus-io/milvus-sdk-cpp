@@ -23,7 +23,6 @@ SYS_TEST="OFF"
 BUILD_TEST="OFF"
 MAKE_CLEAN="OFF"
 RUN_CPPLINT="OFF"
-BUILD_PACKAGE="OFF"
 MILVUS_SDK_VERSION=${MILVUS_SDK_VERSION:-2.0.0}
 
 JOBS="$(nproc 2>/dev/null || sysctl -n hw.logicalcpu 2>/dev/null || echo 3)"
@@ -58,7 +57,6 @@ while getopts "t:v:ulrsph" arg; do
     BUILD_TEST="ON"
     ;;
   p)
-    BUILD_PACKAGE="ON"
     BUILD_TYPE=RelWithDebInfo
     RUN_CPPLINT="OFF"
     SYS_TEST="OFF"
@@ -156,8 +154,3 @@ if [[ "${SYS_TEST}" == "ON" ]]; then
   make -j ${JOBS}  || exit 1
   make CTEST_OUTPUT_ON_FAILURE=1 system-test || exit 1
 fi
-
-if [[ "${BUILD_PACKAGE}" == "ON" ]]; then
-  make -j ${JOBS} package || exit 1
-fi
-

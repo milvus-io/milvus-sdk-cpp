@@ -45,10 +45,6 @@ coverage: test st
 	@echo "Run code coverage ..."
 	@(env bash $(PWD)/scripts/coverage.sh)
 
-package:
-	@echo "Building Milvus SDK package ..."
-	@(env bash $(PWD)/scripts/build.sh -p)
-
 documentation:
 	@echo "Generating Milvus SDK documentation ..."
 	rm -rf ./doc/html ./doc/latex

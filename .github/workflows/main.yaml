@@ -76,9 +76,6 @@ jobs:
       - name: Prepare
         run: |
           sh scripts/install_deps.sh
-      - name: Build
-        run: |
-          make
       - name: Lint
         if: ${{ matrix.os.distro == 'Ubuntu' }}
         run: |
@@ -86,30 +83,6 @@ jobs:
       - name: Uint Testing
         run: |
           make test
-      - name: Build Packages
-        if: ${{ false }}
-        run: |
-          make package
-      - name: Build with examples apk
-        # disabled currently
-        if: ${{ false && matrix.os.distro == 'Ubuntu' }}
-        run: |
-          set -e
-          dpkg -i cmake_build/src/Pack/libmilvus*amd64.deb
-          mkdir -p cmake_build_example
-          cd cmake_build_example
-          cmake ../examples
-          make -j
-      - name: Build with examples rpm
-        # disabled currently
-        if: ${{ false && (matrix.os.distro == 'CentOS' || matrix.os.distro == 'Fedora') }}
-        run: |
-          set -e
-          yum install -y cmake_build/src/Pack/libmilvus{-devel,}-2*.rpm
-          mkdir -p cmake_build_example
-          cd cmake_build_example
-          cmake ../examples
-          make -j
   st-ubuntu:
     name: Test all with coverage
     runs-on: ubuntu-${{ matrix.ubuntu }}
@@ -176,9 +149,6 @@ jobs:
       - name: Prepare
         run: |
           sh scripts/install_deps.sh
-      - name: Build
-        run: |
-          make
       - name: Uint Testing
         run: |
           make test
