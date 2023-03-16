@@ -41,7 +41,8 @@ TEST_F(MilvusMockedTest, GetCompactionStateFoo) {
     const int64_t completed_id = 102;
 
     EXPECT_CALL(service_, GetCompactionState(_, Property(&GetCompactionStateRequest::compactionid, compaction_id), _))
-        .WillOnce([](::grpc::ServerContext*, const GetCompactionStateRequest*, GetCompactionStateResponse* response) {
+        .WillOnce([executing_id, timeout_id, completed_id](::grpc::ServerContext*, const GetCompactionStateRequest*,
+                                                           GetCompactionStateResponse* response) {
             response->set_executingplanno(executing_id);
             response->set_timeoutplanno(timeout_id);
             response->set_completedplanno(completed_id);
@@ -111,7 +112,8 @@ TEST_F(MilvusMockedTest, ManualCompactionFoo) {
 
     EXPECT_CALL(service_,
                 DescribeCollection(_, Property(&DescribeCollectionRequest::collection_name, collection_name), _))
-        .WillOnce([](::grpc::ServerContext*, const DescribeCollectionRequest*, DescribeCollectionResponse* response) {
+        .WillOnce([collection_id](::grpc::ServerContext*, const DescribeCollectionRequest*,
+                                  DescribeCollectionResponse* response) {
             response->set_collectionid(collection_id);
             return ::grpc::Status{};
         });
@@ -120,7 +122,8 @@ TEST_F(MilvusMockedTest, ManualCompactionFoo) {
                                            AllOf(Property(&ManualCompactionRequest::collectionid, collection_id),
                                                  Property(&ManualCompactionRequest::timetravel, travel_ts)),
                                            _))
-        .WillOnce([](::grpc::ServerContext*, const ManualCompactionRequest*, ManualCompactionResponse* response) {
+        .WillOnce([compaction_id](::grpc::ServerContext*, const ManualCompactionRequest*,
+                                  ManualCompactionResponse* response) {
             response->set_compactionid(compaction_id);
             return ::grpc::Status{};
         });

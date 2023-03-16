@@ -19,7 +19,7 @@
 #include "milvus.grpc.pb.h"
 
 namespace milvus {
-class MilvusMockedService : public milvus::proto::milvus::MilvusService::Service::Service {
+class MilvusMockedService : public ::milvus::proto::milvus::MilvusService::Service {
  public:
     MOCK_METHOD3(CreateCollection,
                  ::grpc::Status(::grpc::ServerContext*, const ::milvus::proto::milvus::CreateCollectionRequest*,
