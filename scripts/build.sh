@@ -23,6 +23,7 @@ SYS_TEST="OFF"
 BUILD_TEST="OFF"
 MAKE_CLEAN="OFF"
 RUN_CPPLINT="OFF"
+BUILD_COVERAGE="OFF"
 MILVUS_SDK_VERSION=${MILVUS_SDK_VERSION:-2.0.0}
 
 JOBS="$(nproc 2>/dev/null || sysctl -n hw.logicalcpu 2>/dev/null || echo 3)"
@@ -30,7 +31,7 @@ if [ ${JOBS} -lt 3 ] ; then
     JOBS=3
 fi
 
-while getopts "t:v:ulrsph" arg; do
+while getopts "t:v:ulrcsph" arg; do
   case $arg in
   t)
     BUILD_TYPE=$OPTARG # BUILD_TYPE
@@ -51,6 +52,9 @@ while getopts "t:v:ulrsph" arg; do
   u)
     UNIT_TEST="ON"
     BUILD_TEST="ON"
+    ;;
+  c)
+    BUILD_COVERAGE="ON"
     ;;
   s)
     SYS_TEST="ON"
@@ -73,6 +77,7 @@ parameter:
 -u: build with unit testing(default: OFF)
 -r: clean before build
 -s: build with system testing(default: OFF)
+-c: build with coverage
 -p: build with production(-t RelWithDebInfo -r)
 -h: help
 
@@ -104,8 +109,8 @@ fi
 
 CMAKE_CMD="cmake \
 -DCMAKE_BUILD_TYPE=${BUILD_TYPE} \
--DBUILD_TEST=${BUILD_TEST} \
--DMAKE_BUILD_ARGS=-j${JOBS}
+-DMILVUS_BUILD_TEST=${BUILD_TEST} \
+-DMILVUS_BUILD_COVERAGE=${BUILD_COVERAGE} \
 -DMILVUS_SDK_VERSION=${MILVUS_SDK_VERSION} \
 ../"
 echo ${CMAKE_CMD}
@@ -147,10 +152,11 @@ fi
 
 if [[ "${UNIT_TEST}" == "ON" ]]; then
   make -j ${JOBS}  || exit 1
-  make CTEST_OUTPUT_ON_FAILURE=1 test || exit 1
+  ./test/testing-ut || exit 1
+  ./test/testing-it || exit 1
 fi
 
 if [[ "${SYS_TEST}" == "ON" ]]; then
   make -j ${JOBS}  || exit 1
-  make CTEST_OUTPUT_ON_FAILURE=1 system-test || exit 1
+  ./test/testing-st || exit 1
 fi

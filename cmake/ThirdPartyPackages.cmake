@@ -16,27 +16,29 @@
 
 include_guard(GLOBAL)
 
-
-# ----------------------------------------------------------------------
-# Needs threads
-set(THREADS_PREFER_PTHREAD_FLAG ON)
-find_package(Threads REQUIRED)
 include(CPM)
 
 # grpc
 if ("${MILVUS_WITH_GRPC}" STREQUAL "pakcage")
     find_package(grpc REQUIRED)
 else ()
+    if (WIN32)
+        set(OPENSSL_NO_ASM_TXT "YES")
+    else ()
+        set(OPENSSL_NO_ASM_TXT "NO")
+    endif ()
     CPMAddPackage(
         NAME grpc
         VERSION 1.49.1
         GITHUB_REPOSITORY grpc/grpc
+        EXCLUDE_FROM_ALL YES
         OPTIONS
             "gRPC_SSL_PROVIDER module"
             "gRPC_PROTOBUF_PROVIDER module"
             "gRPC_BUILD_TESTS OFF"
             "RE2_BUILD_TESTING OFF"
             "ABSL_PROPAGATE_CXX_STD ON"
+            "OPENSSL_NO_ASM ${OPENSSL_NO_ASM_TXT}"
     )
     if (grpc_ADDED)
         add_library(gRPC::grpc++ ALIAS grpc++)

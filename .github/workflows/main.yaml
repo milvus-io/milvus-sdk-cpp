@@ -152,3 +152,40 @@ jobs:
       - name: Uint Testing
         run: |
           make test
+  windows:
+    name: Build and test windows
+    runs-on: windows-2022
+    timeout-minutes: 45
+    env:
+      CCACHE_DIR: ${{ github.workspace }}/.ccache
+      CCACHE_COMPILERCHECK: content
+      CCACHE_COMPRESS: 1
+      CCACHE_COMPRESSLEVEL: 5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Cache ccache
+        uses: actions/cache@v3
+        with:
+          path: |
+            ${{ github.workspace }}/.ccache
+          key: windows-ccache-${{ github.sha }}
+          restore-keys: windows-ccache-
+      - name: Install dependencies on windows
+        shell: cmd
+        run: |
+          choco install cmake ninja ccache
+          cmake --version
+          ninja --version
+      - name: Build
+        shell: cmd
+        run: |
+          call "%ProgramFiles%\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
+          cmake -S . -B build -DMILVUS_BUILD_TEST=YES -G Ninja
+          cmake --build build
+      - name: Uint Testing
+        shell: cmd
+        run: |
+          build\test\testing-ut
+          build\test\testing-it
+

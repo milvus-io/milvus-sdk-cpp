@@ -81,7 +81,7 @@ main(int argc, char* argv[]) {
     std::vector<int8_t> insert_ages;
     std::vector<std::vector<float>> insert_vectors;
     std::default_random_engine ran(time(nullptr));
-    std::uniform_int_distribution<int8_t> int_gen(1, 100);
+    std::uniform_int_distribution<int> int_gen(1, 100);
     std::uniform_real_distribution<float> float_gen(0.0, 1.0);
     for (auto i = 0; i < row_count; ++i) {
         insert_ids.push_back(i);

@@ -29,6 +29,7 @@ else ()
         GITHUB_REPOSITORY google/googletest
         OPTIONS
             "INSTALL_GTEST OFF"
+            "gtest_force_shared_crt ON"
     )
 endif ()
 
@@ -38,22 +39,18 @@ set(GTEST_MAIN_LIBRARIES gtest_main)
 
 aux_source_directory(${CMAKE_CURRENT_SOURCE_DIR}/ut ut_files)
 add_executable(testing-ut ${ut_files})
-target_link_libraries(testing-ut PRIVATE milvus_sdk ${GTEST_LIBRARIES} ${GMOCK_LIBRARIES} ${GTEST_MAIN_LIBRARIES} pthread)
-gtest_discover_tests(testing-ut)
+target_compile_options(testing-ut PRIVATE $<$<CXX_COMPILER_ID:MSVC>:/bigobj>)
+target_link_libraries(testing-ut PRIVATE milvus_sdk ${GTEST_LIBRARIES} ${GMOCK_LIBRARIES} ${GTEST_MAIN_LIBRARIES})
 
 aux_source_directory(${CMAKE_CURRENT_SOURCE_DIR}/it it_files)
 aux_source_directory(${CMAKE_CURRENT_SOURCE_DIR}/it/mocks it_mocks_files)
 add_executable(testing-it ${it_files} ${it_mocks_files})
-target_link_libraries(testing-it PRIVATE milvus_sdk ${GTEST_LIBRARIES} ${GMOCK_LIBRARIES} ${GTEST_MAIN_LIBRARIES} pthread)
-gtest_discover_tests(testing-it)
+target_compile_options(testing-it PRIVATE $<$<CXX_COMPILER_ID:MSVC>:/bigobj>)
+target_link_libraries(testing-it PRIVATE milvus_sdk ${GTEST_LIBRARIES} ${GMOCK_LIBRARIES} ${GTEST_MAIN_LIBRARIES})
 
 # st only available under linux/macos
 if (CMAKE_SYSTEM_NAME MATCHES "Linux")
 aux_source_directory(${CMAKE_CURRENT_SOURCE_DIR}/st st_files)
 add_executable(testing-st ${st_files})
-target_link_libraries(testing-st PRIVATE milvus_sdk ${GTEST_LIBRARIES} ${GMOCK_LIBRARIES} ${GTEST_MAIN_LIBRARIES} pthread)
-add_custom_target(system-test
-    COMMAND $<TARGET_FILE:testing-st>
-    DEPENDS testing-st
-)
+target_link_libraries(testing-st PRIVATE milvus_sdk ${GTEST_LIBRARIES} ${GMOCK_LIBRARIES} ${GTEST_MAIN_LIBRARIES})
 endif()

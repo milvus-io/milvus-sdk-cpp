@@ -32,25 +32,21 @@ find_program(CCACHE_FOUND ccache)
 if(CCACHE_FOUND)
     set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE ccache)
     set_property(GLOBAL PROPERTY RULE_LAUNCH_LINK ccache)
+    message(STATUS "using ccache")
 endif(CCACHE_FOUND)
 
-include(FindPython)
 include(FindClangTools)
 include(GoogleTest)
 include(CTest)
 
 include(DefineOptions)
-include(ThirdPartyPackages)
-include(MilvusProtoGen)
 
 # options
 
 set_option_category("Build")
 
-define_option(BUILD_TEST "Build with testing" OFF)
-define_option(BUILD_COVERAGE "Build with coverage" OFF)
-define_option(BUILD_SHARED "Build with shared" ON)
-define_option(BUILD_STATIC "Build with static" OFF)
+define_option(MILVUS_BUILD_TEST "Build with testing" OFF)
+define_option(MILVUS_BUILD_COVERAGE "Build with coverage" OFF)
 define_option_string(MILVUS_SDK_VERSION
     "Version for sdk"
     "2.0.0")
@@ -69,14 +65,19 @@ define_option_string(MILVUS_WITH_NLOHMANN_JSON  "nlohmann json from"    "module"
 define_option_string(MILVUS_WITH_GTEST          "Using GTest from"      "module" "package" "module")
 
 
-set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED on)
 set(BUILD_SCRIPTS_DIR ${PROJECT_SOURCE_DIR}/scripts)
-
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-if (BUILD_TEST)
-    if ( CMAKE_BUILD_TYPE STREQUAL "Debug" )
+
+# load third packages and milvus-proto
+include(ThirdPartyPackages)
+include(MilvusProtoGen)
+
+# add testing
+if (MILVUS_BUILD_TEST)
+    if ( "${CMAKE_BUILD_TYPE}" STREQUAL "Debug" AND MILVUS_BUILD_COVERAGE )
         # Set compile flag for code coverage.
         # Note: Only do this in Debug/unittest mode. Must do this before add_subdirectory(src).
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fprofile-arcs -ftest-coverage")
@@ -88,16 +89,10 @@ endif ()
 add_subdirectory(src)
 add_subdirectory(examples)
 
-
-# lint verbose options
-if (NOT MILVUS_VERBOSE_LINT)
-    set(MILVUS_LINT_QUIET "--quiet")
-endif ()
-
 #
 # make lint
 #
-find_package(Python)
+find_package(Python2)
 
 if (NOT LINT_EXCLUSIONS_FILE)
     set(LINT_EXCLUSIONS_FILE ${BUILD_SCRIPTS_DIR}/lint_exclusions.txt)
@@ -108,7 +103,7 @@ if (NOT FORMAT_EXCLUSIONS_FILE)
 endif ()
 
 add_custom_target(lint
-        ${Python_EXECUTABLE}
+        ${Python2_EXECUTABLE}
         ${BUILD_SCRIPTS_DIR}/run_cpplint.py
         --cpplint_binary
         ${BUILD_SCRIPTS_DIR}/cpplint.py
@@ -125,7 +120,7 @@ add_custom_target(lint
 if (${CLANG_FORMAT_FOUND})
     # runs clang format and updates files in place.
     add_custom_target(clang-format
-            ${Python_EXECUTABLE}
+            ${Python2_EXECUTABLE}
             ${BUILD_SCRIPTS_DIR}/run_clang_format.py
             --clang_format_binary
             ${CLANG_FORMAT_BIN}
@@ -138,7 +133,7 @@ if (${CLANG_FORMAT_FOUND})
 
     # runs clang format and exits with a non-zero exit code if any files need to be reformatted
     add_custom_target(check-clang-format
-            ${Python_EXECUTABLE}
+            ${Python2_EXECUTABLE}
             ${BUILD_SCRIPTS_DIR}/run_clang_format.py
             --clang_format_binary
             ${CLANG_FORMAT_BIN}
@@ -155,7 +150,7 @@ endif ()
 if (${CLANG_TIDY_FOUND})
     # runs clang-tidy and attempts to fix any warning automatically
     add_custom_target(clang-tidy
-            ${Python_EXECUTABLE}
+            ${Python2_EXECUTABLE}
             ${BUILD_SCRIPTS_DIR}/run_clang_tidy.py
             --clang_tidy_binary
             ${CLANG_TIDY_BIN}
@@ -170,7 +165,7 @@ if (${CLANG_TIDY_FOUND})
 
     # runs clang-tidy and exits with a non-zero exit code if any errors are found.
     add_custom_target(check-clang-tidy
-            ${Python_EXECUTABLE}
+            ${Python2_EXECUTABLE}
             ${BUILD_SCRIPTS_DIR}/run_clang_tidy.py
             --clang_tidy_binary
             ${CLANG_TIDY_BIN}
