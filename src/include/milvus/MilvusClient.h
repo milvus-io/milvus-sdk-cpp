@@ -78,6 +78,16 @@ class MilvusClient {
     Disconnect() = 0;
 
     /**
+     * Get milvus server version
+     *
+     * @param [out] version version string
+     * @return Status operation successfully or not
+     *
+     */
+    virtual Status
+    GetVersion(std::string& version) = 0;
+
+    /**
      * Create a collection with schema.
      *
      * @param [in] schema schema of the collection

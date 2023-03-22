@@ -17,10 +17,13 @@
 #include <gmock/gmock.h>
 
 #include "milvus.grpc.pb.h"
+#include "milvus.pb.h"
 
 namespace milvus {
 class MilvusMockedService : public ::milvus::proto::milvus::MilvusService::Service {
  public:
+    MOCK_METHOD3(GetVersion, ::grpc::Status(::grpc::ServerContext*, const ::milvus::proto::milvus::GetVersionRequest*,
+                                            ::milvus::proto::milvus::GetVersionResponse*));
     MOCK_METHOD3(CreateCollection,
                  ::grpc::Status(::grpc::ServerContext*, const ::milvus::proto::milvus::CreateCollectionRequest*,
                                 ::milvus::proto::common::Status*));

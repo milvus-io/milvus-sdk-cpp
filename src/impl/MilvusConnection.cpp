@@ -99,6 +99,12 @@ MilvusConnection::Disconnect() {
 }
 
 Status
+MilvusConnection::GetVersion(const proto::milvus::GetVersionRequest& request,
+                             proto::milvus::GetVersionResponse& response, const GrpcContextOptions& options) {
+    return grpcCall("GetVersion", &Stub::GetVersion, request, response, options);
+}
+
+Status
 MilvusConnection::CreateCollection(const proto::milvus::CreateCollectionRequest& request,
                                    proto::common::Status& response, const GrpcContextOptions& options) {
     return grpcCall("CreateCollection", &Stub::CreateCollection, request, response, options);
