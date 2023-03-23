@@ -58,6 +58,19 @@ MilvusClientImpl::Disconnect() {
 }
 
 Status
+MilvusClientImpl::GetVersion(std::string& version) {
+    auto pre = []() {
+        proto::milvus::GetVersionRequest rpc_request;
+        return rpc_request;
+    };
+
+    auto post = [&version](const proto::milvus::GetVersionResponse& response) { version = response.version(); };
+
+    return apiHandler<proto::milvus::GetVersionRequest, proto::milvus::GetVersionResponse>(
+        pre, &MilvusConnection::GetVersion, post);
+}
+
+Status
 MilvusClientImpl::CreateCollection(const CollectionSchema& schema) {
     auto pre = [&schema]() {
         proto::milvus::CreateCollectionRequest rpc_request;

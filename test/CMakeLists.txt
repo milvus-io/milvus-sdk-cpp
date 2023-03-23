@@ -22,15 +22,12 @@ include_directories(${milvus_proto_BINARY_DIR})
 if ("${MILVUS_WITH_GTEST}" STREQUAL "pakcage")
     find_package(GTest REQUIRED)
 else ()
-    CPMAddPackage(
-        NAME googletest
-        GIT_TAG release-1.12.1
-        VERSION 1.12.1
-        GITHUB_REPOSITORY google/googletest
-        OPTIONS
-            "INSTALL_GTEST OFF"
-            "gtest_force_shared_crt ON"
-    )
+    if (NOT googletest_POPULATED)
+        FetchContent_Populate(googletest)
+        set(gtest_force_shared_crt ON CACHE INTERNAL "")
+        set(INSTALL_GTEST OFF CACHE INTERNAL "")
+        add_subdirectory(${googletest_SOURCE_DIR} ${googletest_BINARY_DIR} EXCLUDE_FROM_ALL)
+    endif ()
 endif ()
 
 set(GTEST_LIBRARIES gtest)

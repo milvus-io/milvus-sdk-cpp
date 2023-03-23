@@ -38,6 +38,9 @@ class MilvusClientImpl : public MilvusClient {
     Disconnect() final;
 
     Status
+    GetVersion(std::string& version) final;
+
+    Status
     CreateCollection(const CollectionSchema& schema) final;
 
     Status

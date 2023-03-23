@@ -16,7 +16,33 @@
 
 include_guard(GLOBAL)
 
-include(CPM)
+include(FetchContent)
+
+set(GRPC_VERSION 1.49.1)
+set(NLOHMANN_JSON_VERSION 3.11.2)
+set(GOOGLETEST_VERSION 1.12.1)
+
+# grpc
+FetchContent_Declare(
+    grpc
+    GIT_REPOSITORY    https://github.com/grpc/grpc.git
+    GIT_TAG           v${GRPC_VERSION}
+)
+
+# nlohmann_json
+FetchContent_Declare(
+    nlohmann_json
+    GIT_REPOSITORY    https://github.com/nlohmann/json.git
+    GIT_TAG           v${NLOHMANN_JSON_VERSION}
+)
+
+# googletest
+FetchContent_Declare(
+    googletest
+    GIT_REPOSITORY    https://github.com/google/googletest.git
+    GIT_TAG           release-${GOOGLETEST_VERSION}
+)
+
 
 # grpc
 if ("${MILVUS_WITH_GRPC}" STREQUAL "pakcage")
@@ -27,20 +53,17 @@ else ()
     else ()
         set(OPENSSL_NO_ASM_TXT "NO")
     endif ()
-    CPMAddPackage(
-        NAME grpc
-        VERSION 1.49.1
-        GITHUB_REPOSITORY grpc/grpc
-        EXCLUDE_FROM_ALL YES
-        OPTIONS
-            "gRPC_SSL_PROVIDER module"
-            "gRPC_PROTOBUF_PROVIDER module"
-            "gRPC_BUILD_TESTS OFF"
-            "RE2_BUILD_TESTING OFF"
-            "ABSL_PROPAGATE_CXX_STD ON"
-            "OPENSSL_NO_ASM ${OPENSSL_NO_ASM_TXT}"
-    )
-    if (grpc_ADDED)
+    if (NOT grpc_POPULATED)
+        FetchContent_Populate(grpc)
+        if (WIN32)
+            set(OPENSSL_NO_ASM YES  CACHE INTERNAL "")
+        endif()
+        set(gRPC_SSL_PROVIDER "module" CACHE INTERNAL "")
+        set(gRPC_PROTOBUF_PROVIDER "module" CACHE INTERNAL "")
+        set(gRPC_BUILD_TESTS OFF CACHE INTERNAL "")
+        set(RE2_BUILD_TESTING OFF CACHE INTERNAL "")
+        set(ABSL_PROPAGATE_CXX_STD ON CACHE INTERNAL "")
+        add_subdirectory(${grpc_SOURCE_DIR} ${grpc_BINARY_DIR} EXCLUDE_FROM_ALL)
         add_library(gRPC::grpc++ ALIAS grpc++)
     endif ()
 endif ()
@@ -50,9 +73,8 @@ endif ()
 if ("${MILVUS_WITH_NLOHMANN_JSON}" STREQUAL "package")
     find_package(nlohmann_json REQUIRED)
 else ()
-    CPMAddPackage(
-        NAME nlohmann_json
-        VERSION 3.11.2
-        GITHUB_REPOSITORY nlohmann/json
-    )
+    if (NOT nlohmann_json_POPULATED)
+        FetchContent_Populate(nlohmann_json)
+        add_subdirectory(${nlohmann_json_SOURCE_DIR} ${nlohmann_json_BINARY_DIR} EXCLUDE_FROM_ALL)
+    endif ()
 endif ()

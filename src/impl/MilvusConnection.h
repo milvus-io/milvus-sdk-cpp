@@ -61,6 +61,9 @@ class MilvusConnection {
     Disconnect();
 
     Status
+    GetVersion(const proto::milvus::GetVersionRequest& request, proto::milvus::GetVersionResponse& response,
+               const GrpcContextOptions& options);
+    Status
     CreateCollection(const proto::milvus::CreateCollectionRequest& request, proto::common::Status& response,
                      const GrpcContextOptions& options);
 
