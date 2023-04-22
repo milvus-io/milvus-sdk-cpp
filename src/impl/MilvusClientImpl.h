@@ -60,6 +60,9 @@ class MilvusClientImpl : public MilvusClient {
     DescribeCollection(const std::string& collection_name, CollectionDesc& collection_desc) final;
 
     Status
+    RenameCollection(const std::string& collection_name, const std::string& new_collection_name) final;
+
+    Status
     GetCollectionStatistics(const std::string& collection_name, CollectionStat& collection_stat,
                             const ProgressMonitor& progress_monitor) final;
 

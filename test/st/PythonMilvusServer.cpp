@@ -32,7 +32,7 @@ namespace milvus {
 
 namespace test {
 // using 2.2.x latest
-const char* kPythonMilvusServerVersion = "python-milvus-server~=2.2.0";
+const char* kPythonMilvusServerVersion = "milvus~=2.2.0";
 
 PythonMilvusServer::~PythonMilvusServer() noexcept {
     Stop();

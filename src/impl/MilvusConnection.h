@@ -88,6 +88,10 @@ class MilvusConnection {
                        proto::milvus::DescribeCollectionResponse& response, const GrpcContextOptions& options);
 
     Status
+    RenameCollection(const proto::milvus::RenameCollectionRequest& request, proto::common::Status& response,
+                     const GrpcContextOptions& options);
+
+    Status
     GetCollectionStatistics(const proto::milvus::GetCollectionStatisticsRequest& request,
                             proto::milvus::GetCollectionStatisticsResponse& response,
                             const GrpcContextOptions& options);

@@ -66,7 +66,10 @@ TEST_P(MilvusServerTestCollection, CreateAndDeleteCollection) {
     EXPECT_EQ(collection_infos.size(), 1);
     EXPECT_EQ(collection_infos.front().MemoryPercentage(), 100);
 
-    status = client_->DropCollection("Foo");
+    status = client_->RenameCollection("Foo", "Bar");
+    EXPECT_TRUE(status.IsOk());
+
+    status = client_->DropCollection("Bar");
     EXPECT_TRUE(status.IsOk());
 }
 

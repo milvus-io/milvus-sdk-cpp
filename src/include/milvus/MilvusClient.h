@@ -150,6 +150,16 @@ class MilvusClient {
     DescribeCollection(const std::string& collection_name, CollectionDesc& collection_desc) = 0;
 
     /**
+     * RenameCollection rename a collection.
+     *
+     * @param [in] collection_name name of the collection
+     * @param [in] new_collection_name new name of the collection
+     * @return Status operation successfully or not
+     */
+    virtual Status
+    RenameCollection(const std::string& collection_name, const std::string& new_collection_name) = 0;
+
+    /**
      * Get collection statistics, currently only return row count. \n
      * If the timeout is specified, this api will call Flush() and wait all segments persisted into storage.
      *

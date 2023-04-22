@@ -92,7 +92,7 @@ add_subdirectory(examples)
 #
 # make lint
 #
-find_package(Python2)
+find_package(Python)
 
 if (NOT LINT_EXCLUSIONS_FILE)
     set(LINT_EXCLUSIONS_FILE ${BUILD_SCRIPTS_DIR}/lint_exclusions.txt)
@@ -103,7 +103,7 @@ if (NOT FORMAT_EXCLUSIONS_FILE)
 endif ()
 
 add_custom_target(lint
-        ${Python2_EXECUTABLE}
+        ${Python_EXECUTABLE}
         ${BUILD_SCRIPTS_DIR}/run_cpplint.py
         --cpplint_binary
         ${BUILD_SCRIPTS_DIR}/cpplint.py
@@ -120,7 +120,7 @@ add_custom_target(lint
 if (${CLANG_FORMAT_FOUND})
     # runs clang format and updates files in place.
     add_custom_target(clang-format
-            ${Python2_EXECUTABLE}
+            ${Python_EXECUTABLE}
             ${BUILD_SCRIPTS_DIR}/run_clang_format.py
             --clang_format_binary
             ${CLANG_FORMAT_BIN}
@@ -133,7 +133,7 @@ if (${CLANG_FORMAT_FOUND})
 
     # runs clang format and exits with a non-zero exit code if any files need to be reformatted
     add_custom_target(check-clang-format
-            ${Python2_EXECUTABLE}
+            ${Python_EXECUTABLE}
             ${BUILD_SCRIPTS_DIR}/run_clang_format.py
             --clang_format_binary
             ${CLANG_FORMAT_BIN}
@@ -150,7 +150,7 @@ endif ()
 if (${CLANG_TIDY_FOUND})
     # runs clang-tidy and attempts to fix any warning automatically
     add_custom_target(clang-tidy
-            ${Python2_EXECUTABLE}
+            ${Python_EXECUTABLE}
             ${BUILD_SCRIPTS_DIR}/run_clang_tidy.py
             --clang_tidy_binary
             ${CLANG_TIDY_BIN}
@@ -165,7 +165,7 @@ if (${CLANG_TIDY_FOUND})
 
     # runs clang-tidy and exits with a non-zero exit code if any errors are found.
     add_custom_target(check-clang-tidy
-            ${Python2_EXECUTABLE}
+            ${Python_EXECUTABLE}
             ${BUILD_SCRIPTS_DIR}/run_clang_tidy.py
             --clang_tidy_binary
             ${CLANG_TIDY_BIN}
