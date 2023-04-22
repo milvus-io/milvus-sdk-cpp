@@ -142,6 +142,12 @@ MilvusConnection::DescribeCollection(const proto::milvus::DescribeCollectionRequ
 }
 
 Status
+MilvusConnection::RenameCollection(const proto::milvus::RenameCollectionRequest& request,
+                                   proto::common::Status& response, const GrpcContextOptions& options) {
+    return grpcCall("RenameCollection", &Stub::RenameCollection, request, response, options);
+}
+
+Status
 MilvusConnection::GetCollectionStatistics(const proto::milvus::GetCollectionStatisticsRequest& request,
                                           proto::milvus::GetCollectionStatisticsResponse& response,
                                           const GrpcContextOptions& options) {

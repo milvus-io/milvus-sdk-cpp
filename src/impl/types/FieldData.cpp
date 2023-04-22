@@ -153,7 +153,7 @@ BinaryVecFieldData::DataAsUnsignedChars() const {
     std::vector<std::vector<uint8_t>> ret;
     ret.reserve(data_.size());
     for (const auto& item : data_) {
-        ret.emplace_back(std::vector<uint8_t>{item.begin(), item.end()});
+        ret.emplace_back(item.begin(), item.end());
     }
     return ret;
 }
@@ -178,7 +178,7 @@ BinaryVecFieldData::CreateBinaryStrings(const std::vector<std::vector<uint8_t>>&
     std::vector<std::string> ret;
     ret.reserve(data.size());
     for (const auto& item : data) {
-        ret.emplace_back(std::string{item.begin(), item.end()});
+        ret.emplace_back(item.begin(), item.end());
     }
     return ret;
 }

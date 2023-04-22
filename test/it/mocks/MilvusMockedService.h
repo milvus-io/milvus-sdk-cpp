@@ -42,6 +42,9 @@ class MilvusMockedService : public ::milvus::proto::milvus::MilvusService::Servi
     MOCK_METHOD3(DescribeCollection,
                  ::grpc::Status(::grpc::ServerContext*, const ::milvus::proto::milvus::DescribeCollectionRequest*,
                                 ::milvus::proto::milvus::DescribeCollectionResponse*));
+    MOCK_METHOD3(RenameCollection,
+                 ::grpc::Status(::grpc::ServerContext*, const ::milvus::proto::milvus::RenameCollectionRequest*,
+                                ::milvus::proto::common::Status*));
     MOCK_METHOD3(GetCollectionStatistics,
                  ::grpc::Status(::grpc::ServerContext*, const ::milvus::proto::milvus::GetCollectionStatisticsRequest*,
                                 ::milvus::proto::milvus::GetCollectionStatisticsResponse*));

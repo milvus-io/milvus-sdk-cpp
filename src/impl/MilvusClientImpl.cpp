@@ -203,6 +203,19 @@ MilvusClientImpl::DescribeCollection(const std::string& collection_name, Collect
 }
 
 Status
+MilvusClientImpl::RenameCollection(const std::string& collection_name, const std::string& new_collection_name) {
+    auto pre = [&collection_name, &new_collection_name]() {
+        proto::milvus::RenameCollectionRequest rpc_request;
+        rpc_request.set_oldname(collection_name);
+        rpc_request.set_newname(new_collection_name);
+        return rpc_request;
+    };
+
+    return apiHandler<proto::milvus::RenameCollectionRequest, proto::common::Status>(
+        pre, &MilvusConnection::RenameCollection);
+}
+
+Status
 MilvusClientImpl::GetCollectionStatistics(const std::string& collection_name, CollectionStat& collection_stat,
                                           const ProgressMonitor& progress_monitor) {
     auto validate = [&collection_name, &progress_monitor, this]() {

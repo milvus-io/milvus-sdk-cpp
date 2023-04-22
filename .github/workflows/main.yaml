@@ -32,7 +32,7 @@ jobs:
     name: Build and test AMD64 ${{ matrix.os.distro }} ${{ matrix.os.version }}
     runs-on: ubuntu-latest
     container: ${{ matrix.os.image }}
-    timeout-minutes: 45
+    timeout-minutes: 75
     strategy:
       fail-fast: false
       matrix:
@@ -86,7 +86,7 @@ jobs:
   st-ubuntu:
     name: Test all with coverage
     runs-on: ubuntu-${{ matrix.ubuntu }}
-    timeout-minutes: 45
+    timeout-minutes: 75
     strategy:
       fail-fast: false
       matrix:
@@ -124,7 +124,7 @@ jobs:
   macos:
     name: Build and test macOS ${{ matrix.macos }}
     runs-on: macos-${{ matrix.macos }}
-    timeout-minutes: 45
+    timeout-minutes: 75
     strategy:
       fail-fast: false
       matrix:
@@ -155,7 +155,7 @@ jobs:
   windows:
     name: Build and test windows
     runs-on: windows-2022
-    timeout-minutes: 45
+    timeout-minutes: 75
     env:
       CCACHE_DIR: ${{ github.workspace }}/.ccache
       CCACHE_COMPILERCHECK: content
