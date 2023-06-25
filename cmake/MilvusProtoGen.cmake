@@ -31,11 +31,8 @@ FetchContent_Populate(milvus_proto)
 set(PROTO_BINARY_DIR "${milvus_proto_BINARY_DIR}")
 set(PROTO_IMPORT_DIR "${milvus_proto_SOURCE_DIR}/proto")
 
-# resolve protoc
-find_package(Protobuf)
-if ("${Protobuf_PROTOC_EXECUTABLE}" STREQUAL "Protobuf_PROTOC_EXECUTABLE-NOTFOUND")
-    set(Protobuf_PROTOC_EXECUTABLE $<TARGET_FILE:protoc>)
-endif ()
+# resolve protoc, always use the protoc in the build tree
+set(Protobuf_PROTOC_EXECUTABLE $<TARGET_FILE:protoc>)
 message(STATUS "using protoc: ${Protobuf_PROTOC_EXECUTABLE}")
 
 # resolve grpc_cpp_plugin
