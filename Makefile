@@ -33,6 +33,16 @@ build-sdk-release:
 	@echo "Building Milvus SDK release version ..."
 	@(env bash $(PWD)/scripts/build.sh -t Release)
 
+install: install-release
+
+install-release:
+	@echo "Installing Milvus SDK release version ..."
+	@(env bash $(PWD)/scripts/build.sh -i -t Release)
+
+install-debug:
+	@echo "Installing Milvus SDK debug version ..."
+	@(env bash $(PWD)/scripts/build.sh -i -t Debug)
+
 test:
 	@echo "Testing with Milvus SDK"
 	@(env bash $(PWD)/scripts/build.sh -u)

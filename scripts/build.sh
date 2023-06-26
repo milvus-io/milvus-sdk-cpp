@@ -24,14 +24,17 @@ BUILD_TEST="OFF"
 MAKE_CLEAN="OFF"
 RUN_CPPLINT="OFF"
 BUILD_COVERAGE="OFF"
-MILVUS_SDK_VERSION=${MILVUS_SDK_VERSION:-2.0.0}
+MILVUS_SDK_VERSION=${MILVUS_SDK_VERSION:-2.2.11}
+DO_INSTALL="OFF"
+CMAKE_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX:-/usr/local}
+BUILD_SHARED_LIBS=${BUILD_SHARED_LIBS:-OFF}
 
 JOBS="$(nproc 2>/dev/null || sysctl -n hw.logicalcpu 2>/dev/null || echo 3)"
 if [ ${JOBS} -lt 3 ] ; then
     JOBS=3
 fi
 
-while getopts "t:v:ulrcsph" arg; do
+while getopts "t:v:ulrcsphi" arg; do
   case $arg in
   t)
     BUILD_TYPE=$OPTARG # BUILD_TYPE
@@ -68,6 +71,9 @@ while getopts "t:v:ulrcsph" arg; do
     BUILD_TEST="OFF"
     MAKE_CLEAN="ON"
     ;;
+  i)
+    DO_INSTALL="ON"
+    ;;
   h) # help
     echo "
 
@@ -79,6 +85,7 @@ parameter:
 -s: build with system testing(default: OFF)
 -c: build with coverage
 -p: build with production(-t RelWithDebInfo -r)
+-i: do install
 -h: help
 
 usage:
@@ -112,6 +119,8 @@ CMAKE_CMD="cmake \
 -DMILVUS_BUILD_TEST=${BUILD_TEST} \
 -DMILVUS_BUILD_COVERAGE=${BUILD_COVERAGE} \
 -DMILVUS_SDK_VERSION=${MILVUS_SDK_VERSION} \
+-DCMAKE_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX} \
+-DBUILD_SHARED_LIBS=${BUILD_SHARED_LIBS} \
 ../"
 echo ${CMAKE_CMD}
 ${CMAKE_CMD}
@@ -159,4 +168,8 @@ fi
 if [[ "${SYS_TEST}" == "ON" ]]; then
   make -j ${JOBS}  || exit 1
   ./test/testing-st || exit 1
+fi
+
+if [[ "${DO_INSTALL}" == "ON" ]]; then
+  make install || exit 1
 fi
