@@ -23,3 +23,18 @@ add_milvus_protos(milvus_sdk)
 set_target_properties(milvus_sdk PROPERTIES OUTPUT_NAME milvus_sdk)
 target_link_libraries(milvus_sdk gRPC::grpc++ nlohmann_json::nlohmann_json)
 target_include_directories(milvus_sdk PUBLIC include)
+
+
+# install
+include(GNUInstallDirs)
+
+# install headers
+install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/include/
+        DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+        FILES_MATCHING PATTERN "*.h")
+
+# install libs
+install(TARGETS milvus_sdk
+        EXPORT milvus_sdk
+        LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
