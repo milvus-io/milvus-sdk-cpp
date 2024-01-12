@@ -16,7 +16,6 @@
 
 #include <gtest/gtest.h>
 
-#include "google/protobuf/stubs/status.h"
 #include "mocks/MilvusMockedTest.h"
 
 using ::milvus::StatusCode;

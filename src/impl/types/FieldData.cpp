@@ -35,15 +35,15 @@ struct DataTypeTraits<DataType::FLOAT_VECTOR> {
     static const bool is_vector = true;
 };
 
-template <typename T, DataType Dt>
-typename std::enable_if<!DataTypeTraits<Dt>::is_vector, StatusCode>::type
+template <typename T, DataType Dt, std::enable_if_t<!DataTypeTraits<Dt>::is_vector, bool> = true>
+StatusCode
 AddElement(const T& element, std::vector<T>& array) {
     array.push_back(element);
     return StatusCode::OK;
 }
 
-template <typename T, DataType Dt>
-typename std::enable_if<DataTypeTraits<Dt>::is_vector, StatusCode>::type
+template <typename T, DataType Dt, std::enable_if_t<DataTypeTraits<Dt>::is_vector, bool> = true>
+StatusCode
 AddElement(const T& element, std::vector<T>& array) {
     if (element.empty()) {
         return StatusCode::VECTOR_IS_EMPTY;

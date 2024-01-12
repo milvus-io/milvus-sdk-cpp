@@ -147,7 +147,7 @@ MilvusClientImpl::LoadCollection(const std::string& collection_name, int replica
                 CollectionsInfo collections_info;
                 auto collection_names = std::vector<std::string>{collection_name};
                 auto status = ShowCollections(collection_names, collections_info);
-                if (not status.IsOk()) {
+                if (!status.IsOk()) {
                     return status;
                 }
                 progress.total_ = collections_info.size();
@@ -336,7 +336,7 @@ MilvusClientImpl::LoadPartitions(const std::string& collection_name, const std::
             [&collection_name, &partition_names, this](Progress& progress) -> Status {
                 PartitionsInfo partitions_info;
                 auto status = ShowPartitions(collection_name, partition_names, partitions_info);
-                if (not status.IsOk()) {
+                if (!status.IsOk()) {
                     return status;
                 }
                 progress.total_ = partition_names.size();
@@ -504,7 +504,7 @@ MilvusClientImpl::CreateIndex(const std::string& collection_name, const IndexDes
             [&collection_name, &index_desc, this](Progress& progress) -> Status {
                 IndexState index_state;
                 auto status = GetIndexState(collection_name, index_desc.FieldName(), index_state);
-                if (not status.IsOk()) {
+                if (!status.IsOk()) {
                     return status;
                 }
 
@@ -963,7 +963,7 @@ MilvusClientImpl::Flush(const std::vector<std::string>& collection_names, const 
                 for (auto iter = flush_segments.begin(); iter != flush_segments.end();) {
                     bool flushed = false;
                     Status status = GetFlushState(iter->second, flushed);
-                    if (not status.IsOk()) {
+                    if (!status.IsOk()) {
                         return status;
                     }
 
@@ -1240,7 +1240,7 @@ MilvusClientImpl::waitForStatus(std::function<Status(Progress&)> query_function,
         auto status = query_function(current_progress);
 
         // if the internal check function failed, return error
-        if (not status.IsOk()) {
+        if (!status.IsOk()) {
             return status;
         }
 

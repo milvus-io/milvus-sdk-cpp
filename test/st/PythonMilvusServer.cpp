@@ -16,23 +16,21 @@
 
 #include "PythonMilvusServer.h"
 
+#include <signal.h>
 #include <sys/wait.h>
 #include <unistd.h>
 
 #include <array>
-#include <chrono>
-#include <functional>
 #include <memory>
 #include <stdexcept>
 #include <string>
 #include <thread>
-#include <vector>
 
 namespace milvus {
 
 namespace test {
-// using 2.2.x latest
-const char* kPythonMilvusServerVersion = "milvus~=2.2.0";
+// using 2.3.x latest
+const char* kPythonMilvusServerVersion = "milvus~=2.3.0";
 
 PythonMilvusServer::~PythonMilvusServer() noexcept {
     Stop();
@@ -55,7 +53,7 @@ PythonMilvusServer::SetTls(int mode, const std::string& server_cert, const std::
 void
 PythonMilvusServer::Start() {
     // install command
-    std::string cmd = std::string("pip3 install -U ") + kPythonMilvusServerVersion;
+    std::string cmd = std::string("pip3 install ") + kPythonMilvusServerVersion;
     auto ret = system(cmd.c_str());
     if (ret != 0) {
         auto error = cmd + ", failed.";
@@ -75,6 +73,8 @@ PythonMilvusServer::Stop() {
     if (thread_.joinable()) {
         thread_.join();
     }
+    // sleep 5s to wait for release port
+    std::this_thread::sleep_for(std::chrono::seconds(5));
 }
 
 void

@@ -19,7 +19,7 @@ include_guard(GLOBAL)
 include(FetchContent)
 
 set(GRPC_VERSION 1.49.1)
-set(NLOHMANN_JSON_VERSION 3.11.2)
+set(NLOHMANN_JSON_VERSION 3.11.3)
 set(GOOGLETEST_VERSION 1.12.1)
 
 # grpc
@@ -62,6 +62,7 @@ else ()
         set(gRPC_PROTOBUF_PROVIDER "module" CACHE INTERNAL "")
         set(gRPC_BUILD_TESTS OFF CACHE INTERNAL "")
         set(RE2_BUILD_TESTING OFF CACHE INTERNAL "")
+        set(ABSL_ENABLE_INSTALL ON CACHE INTERNAL "")
         set(ABSL_PROPAGATE_CXX_STD ON CACHE INTERNAL "")
         add_subdirectory(${grpc_SOURCE_DIR} ${grpc_BINARY_DIR} EXCLUDE_FROM_ALL)
         add_library(gRPC::grpc++ ALIAS grpc++)

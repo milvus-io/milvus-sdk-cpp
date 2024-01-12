@@ -8,12 +8,9 @@ check_sudo() {
     fi
 }
 
-get_cmake_version() {
-    if [ -x "$(command -v cmake)" ] ; then
-        expr $(cmake --version | grep version | sed 's/\./ /g' | awk '{printf "%02d%02d", $3, $4}')
-    else
-        echo 0
-    fi
+install_linux_cmake_clang_toolchain() {
+    pip3 install --user -U pip scikit-build wheel
+    pip3 install --user cmake clang-tidy~=17.0 clang-format~=17.0
 }
 
 install_deps_for_ubuntu_common() {
@@ -30,30 +27,8 @@ install_deps_for_ubuntu_common() {
     fi
 
     ${SUDO} apt-get -y install python2.7 gpg wget gcc g++ ccache make \
-                       libssl-dev iwyu lcov git
-
-    # for cmake >= 3.12
-    current_cmake_version=$(get_cmake_version)
-    if [ $current_cmake_version -lt 312 ] ; then
-        ${SUDO} rm -f /usr/share/keyrings/kitware-archive-keyring.gpg /etc/apt/sources.list.d/kitware.list
-        wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/null | gpg --dearmor - | ${SUDO} tee /usr/share/keyrings/kitware-archive-keyring.gpg >/dev/null
-        echo "deb [signed-by=/usr/share/keyrings/kitware-archive-keyring.gpg] https://apt.kitware.com/ubuntu/ ${dist} main" | ${SUDO} tee /etc/apt/sources.list.d/kitware.list >/dev/null
-        ${SUDO} apt-get update
-        ${SUDO} apt-get -y install kitware-archive-keyring
-        ${SUDO} apt-get -y install cmake
-    fi
-
-    llvm_version=14
-    if [ "${dist}" = "bionic" ] ; then
-        llvm_version=13
-    fi
-
-    # install stable clang-tidy clang-format
-    wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key | ${SUDO} apt-key add -
-    ${SUDO} apt-get -y install software-properties-common
-    ${SUDO} add-apt-repository -y "deb http://apt.llvm.org/${dist}/   llvm-toolchain-${dist}-${llvm_version}  main"
-    ${SUDO} apt-get update
-    ${SUDO} apt-get install -y clang-format-${llvm_version} clang-tidy-${llvm_version}
+                       libssl-dev iwyu lcov git python3-pip
+    install_linux_cmake_clang_toolchain
 }
 
 install_deps_for_ubuntu_1804() {
@@ -70,41 +45,35 @@ install_deps_for_ubuntu_2204() {
 
 install_deps_for_fedora_common() {
     check_sudo
-    ${SUDO} dnf -y install gcc gcc-c++ python2 gpg wget ccache make openssl-devel which lcov git rpm-build
-    ${SUDO} dnf -y install cmake
+    ${SUDO} dnf -y install gcc gcc-c++ python2 gpg wget ccache make openssl-devel which lcov git rpm-build python3-pip
+    install_linux_cmake_clang_toolchain
 }
 
 install_deps_for_centos_8() {
     check_sudo
     ${SUDO} dnf -y install epel-release
-    ${SUDO} dnf -y install gcc gcc-c++ python2 gpg wget ccache make openssl-devel which lcov git rpm-build
-    ${SUDO} dnf -y install cmake
+    ${SUDO} dnf -y install gcc gcc-c++ python2 gpg wget ccache make openssl-devel which lcov git rpm-build python3-pip
+    install_linux_cmake_clang_toolchain
 }
 
 install_deps_for_centos_7() {
     check_sudo
     ${SUDO} yum -y install epel-release centos-release-scl
-    ${SUDO} yum -y install gcc gcc-c++ python gpg wget ccache make openssl-devel which lcov git rpm-build
+    ${SUDO} yum -y install gcc gcc-c++ python gpg wget ccache make openssl-devel which lcov git rpm-build python3-pip
     ${SUDO} yum -y install devtoolset-7
 
     scl enable devtoolset-7 bash
-
-    # for cmake >= 3.12, using cmake3 from epel
-    current_cmake_version=$(get_cmake_version)
-    if [ $current_cmake_version -lt 312 ] ; then
-        ${SUDO} yum -y install cmake3
-        test -L /usr/local/bin/cmake && ${SUDO} unlink /usr/local/bin/cmake
-        ${SUDO} ln -s /usr/bin/cmake3 /usr/local/bin/cmake
-    fi
+    install_linux_cmake_clang_toolchain
 }
 
 install_deps_for_macos() {
     if [ -x "$(command -v brew)" ] ; then
-        brew install wget lcov llvm openssl@3 cmake ccache
+        brew install wget lcov llvm openssl@3 ccache
     else
         echo 'Detect using macos but brew seems not installed.'
         exit 1
     fi
+    install_linux_cmake_clang_toolchain
 }
 
 if uname | grep -wq Linux ; then

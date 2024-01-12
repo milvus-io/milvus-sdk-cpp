@@ -18,7 +18,7 @@
 # The checks defined here will be run and will display by default as warnings.
 Checks: >
     -*, clang-diagnostic-*, -clang-diagnostic-error,
-    clang-analyzer-*, -clang-analyzer-alpha*,
+    clang-analyzer-*, -clang-analyzer-alpha*, -clang-diagnostic-deprecated*,
     google-*, -google-runtime-references, -google-readability-todo, -google-default-arguments,
     modernize-*, -modernize-pass-by-value, -modernize-use-equals-default, -modernize-use-trailing-return-type,
     performance-faster-string-find, performance-for-range-copy,
