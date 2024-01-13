@@ -170,3 +170,24 @@ TEST_F(SearchArgumentsTest, ValidateTesting) {
         EXPECT_TRUE(status.IsOk());
     }
 }
+
+TEST_F(SearchArgumentsTest, Nprobe) {
+    milvus::SearchArguments arguments;
+    arguments.AddExtraParam("nprobe", 10);
+    EXPECT_EQ(10, arguments.Nprobe());
+
+    arguments.SetNprobe(20);
+    EXPECT_EQ(20, arguments.Nprobe());
+}
+
+TEST_F(SearchArgumentsTest, RangeSearchParams) {
+    milvus::SearchArguments arguments;
+    arguments.SetMetricType(milvus::MetricType::IP);
+    arguments.SetRange(0.1, 0.2);
+    EXPECT_NEAR(0.1, arguments.Radius(), 0.00001);
+    EXPECT_NEAR(0.2, arguments.RangeFilter(), 0.00001);
+
+    arguments.SetMetricType(milvus::MetricType::L2);
+    EXPECT_NEAR(0.2, arguments.Radius(), 0.00001);
+    EXPECT_NEAR(0.1, arguments.RangeFilter(), 0.00001);
+}

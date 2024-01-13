@@ -22,7 +22,6 @@
 
 #include "TypeUtils.h"
 #include "common.pb.h"
-#include "milvus.grpc.pb.h"
 #include "milvus.pb.h"
 #include "schema.pb.h"
 
@@ -741,7 +740,13 @@ MilvusClientImpl::Search(const SearchArguments& arguments, SearchResults& result
 
         kv_pair = rpc_request.add_search_params();
         kv_pair->set_key(milvus::KeyParams());
-        kv_pair->set_value(arguments.ExtraParams());
+        // merge extra params with range search
+        auto json = nlohmann::json::parse(arguments.ExtraParams());
+        if (arguments.RangeSearch()) {
+            json["range_filter"] = arguments.RangeFilter();
+            json["radius"] = arguments.Radius();
+        }
+        kv_pair->set_value(json.dump());
 
         rpc_request.set_travel_timestamp(arguments.TravelTimestamp());
         rpc_request.set_guarantee_timestamp(arguments.GuaranteeTimestamp());
