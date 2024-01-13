@@ -31,7 +31,7 @@ namespace test {
 
 inline void
 waitMilvusServerReady(const PythonMilvusServer& server) {
-    int max_retry = 10, retry = 0;
+    int max_retry = 60, retry = 0;
     bool has;
 
     auto client = milvus::MilvusClient::Create();

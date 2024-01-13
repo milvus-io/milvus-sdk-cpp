@@ -64,6 +64,8 @@ jobs:
       CCACHE_COMPRESSLEVEL: 5
       CCACHE_MAXSIZE: 2G
     steps:
+      - name: Env
+        run: echo "${HOME}/.local/bin" >> $GITHUB_PATH
       - name: Checkout
         uses: actions/checkout@v3
       - name: Cache ccache
@@ -98,6 +100,8 @@ jobs:
       CCACHE_COMPRESSLEVEL: 5
       CCACHE_MAXSIZE: 2G
     steps:
+      - name: Env
+        run: echo "${HOME}/.local/bin" >> $GITHUB_PATH
       - name: Checkout
         uses: actions/checkout@v3
       - name: Cache ccache

@@ -64,8 +64,8 @@ class HybirdTimestamp {
      * @brief Increase duration in physical part
      *
      */
-    template <typename Duration>
-    typename std::enable_if<_is_std_duration<Duration>::value, HybirdTimestamp&>::type
+    template <typename Duration, std::enable_if_t<_is_std_duration<Duration>::value, bool> = true>
+    HybirdTimestamp&
     operator+=(Duration duration) {
         auto milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(duration).count();
         return *this += milliseconds;
@@ -86,8 +86,8 @@ class HybirdTimestamp {
      * @param duration Duration
      * @return HybirdTimestamp
      */
-    template <typename Duration>
-    typename std::enable_if<_is_std_duration<Duration>::value, HybirdTimestamp>::type
+    template <typename Duration, std::enable_if_t<_is_std_duration<Duration>::value, bool> = true>
+    HybirdTimestamp
     operator+(Duration duration) {
         auto milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(duration).count();
         return *this + milliseconds;
