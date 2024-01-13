@@ -37,13 +37,13 @@ waitMilvusServerReady(const PythonMilvusServer& server) {
     auto client = milvus::MilvusClient::Create();
     auto param = server.TestClientParam();
     client->Connect(*param);
-    auto status = client->HasCollection("nosuchcollection", has);
+    auto status = client->HasCollection("no_such", has);
 
     while (!status.IsOk() && retry++ < max_retry) {
         std::this_thread::sleep_for(std::chrono::seconds{5});
         client = milvus::MilvusClient::Create();
         client->Connect(*param);
-        status = client->HasCollection("nosuchcollection", has);
+        status = client->HasCollection("no_such", has);
         std::cout << "Wait milvus start done, try: " << retry << ", status: " << status.Message() << std::endl;
     }
     std::cout << "Wait milvus start done, status: " << status.Message() << std::endl;

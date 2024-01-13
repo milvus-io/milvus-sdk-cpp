@@ -19,7 +19,6 @@
 #include <random>
 
 #include "MilvusServerTest.h"
-#include "milvus/Status.h"
 
 using milvus::test::MilvusServerTest;
 using testing::UnorderedElementsAre;

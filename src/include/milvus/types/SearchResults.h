@@ -40,7 +40,7 @@ struct SingleResult {
     Scores() const;
 
     /**
-     * @brief Topk id array of one target vecotor
+     * @brief Topk id array of one target vector
      */
     const IDArray&
     Ids() const;
@@ -54,7 +54,7 @@ struct SingleResult {
     /**
      * @brief Get an output field by name
      */
-    const FieldDataPtr
+    FieldDataPtr
     OutputField(const std::string& name) const;
 
  private:

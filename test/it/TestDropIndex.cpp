@@ -56,7 +56,7 @@ TEST_F(MilvusMockedTest, DropIndexFooFailed) {
                                     _))
         .WillOnce([error_code](::grpc::ServerContext*, const DropIndexRequest* request,
                                ::milvus::proto::common::Status* status) {
-            status->set_error_code(error_code);
+            status->set_code(error_code);
             return ::grpc::Status{::grpc::StatusCode::UNKNOWN, ""};
         });
     auto status = client_->DropIndex(collection_name, field_name);

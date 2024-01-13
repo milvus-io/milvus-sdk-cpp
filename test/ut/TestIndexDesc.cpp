@@ -41,17 +41,17 @@ TEST_F(IndexDescTest, GeneralTesting) {
 
 TEST_F(IndexDescTest, ValidationTestingPossitive) {
     for (const auto& test_data : {
-             std::make_tuple(milvus::IndexType::IVF_FLAT, milvus::MetricType::L2, "{\"nlist\": 1024}"),
-             std::make_tuple(milvus::IndexType::IVF_SQ8, milvus::MetricType::L2, "{\"nlist\": 1024}"),
-             std::make_tuple(milvus::IndexType::IVF_PQ, milvus::MetricType::L2, "{\"nlist\": 1024, \"m\": 8}"),
+             std::make_tuple(milvus::IndexType::IVF_FLAT, milvus::MetricType::L2, R"({"nlist": 1024})"),
+             std::make_tuple(milvus::IndexType::IVF_SQ8, milvus::MetricType::L2, R"({"nlist": 1024})"),
+             std::make_tuple(milvus::IndexType::IVF_PQ, milvus::MetricType::L2, R"({"nlist": 1024, "m": 8})"),
              std::make_tuple(milvus::IndexType::IVF_PQ, milvus::MetricType::L2,
-                             "{\"nlist\": 1024, \"m\": 8, \"nbits\": 12}"),
-             std::make_tuple(milvus::IndexType::HNSW, milvus::MetricType::L2, "{\"M\": 4, \"efConstruction\": 12}"),
+                             R"({"nlist": 1024, "m": 8, "nbits": 12})"),
+             std::make_tuple(milvus::IndexType::HNSW, milvus::MetricType::L2, R"({"M": 4, "efConstruction": 12})"),
              std::make_tuple(milvus::IndexType::IVF_HNSW, milvus::MetricType::L2,
-                             "{\"nlist\": 1024, \"M\": 4, \"efConstruction\": 12}"),
+                             R"({"nlist": 1024, "M": 4, "efConstruction": 12})"),
              std::make_tuple(milvus::IndexType::RHNSW_PQ, milvus::MetricType::L2,
-                             "{\"PQM\": 32, \"M\": 4, \"efConstruction\": 12}"),
-             std::make_tuple(milvus::IndexType::ANNOY, milvus::MetricType::L2, "{\"n_trees\": 12}"),
+                             R"({"PQM": 32, "M": 4, "efConstruction": 12})"),
+             std::make_tuple(milvus::IndexType::ANNOY, milvus::MetricType::L2, R"({"n_trees": 12})"),
              std::make_tuple(milvus::IndexType::BIN_IVF_FLAT, milvus::MetricType::JACCARD, ""),
              std::make_tuple(milvus::IndexType::BIN_IVF_FLAT, milvus::MetricType::TANIMOTO, ""),
              std::make_tuple(milvus::IndexType::BIN_IVF_FLAT, milvus::MetricType::HAMMING, ""),
@@ -68,13 +68,13 @@ TEST_F(IndexDescTest, ValidationTestingPossitive) {
 
 TEST_F(IndexDescTest, ValidationTestingNegative) {
     for (const auto& test_data : {
-             std::make_tuple(milvus::IndexType::IVF_FLAT, milvus::MetricType::JACCARD, "{\"nlist\": 1024}"),
-             std::make_tuple(milvus::IndexType::BIN_IVF_FLAT, milvus::MetricType::SUBSTRUCTURE, "{\"nlist\": 1024}"),
-             std::make_tuple(milvus::IndexType::IVF_FLAT, milvus::MetricType::IP, "{\"nlist\": 0}"),
-             std::make_tuple(milvus::IndexType::IVF_FLAT, milvus::MetricType::IP, "{\"nlist\": \"1024\"}"),
-             std::make_tuple(milvus::IndexType::IVF_FLAT, milvus::MetricType::IP, "{\"nlist\": 65537}"),
-             std::make_tuple(milvus::IndexType::ANNOY, milvus::MetricType::IP, "{\"nlist\": 65537}"),
-             std::make_tuple(milvus::IndexType::BIN_IVF_FLAT, milvus::MetricType::IP, "{\"nlist\": 1024}"),
+             std::make_tuple(milvus::IndexType::IVF_FLAT, milvus::MetricType::JACCARD, R"({"nlist": 1024})"),
+             std::make_tuple(milvus::IndexType::BIN_IVF_FLAT, milvus::MetricType::SUBSTRUCTURE, R"({"nlist": 1024})"),
+             std::make_tuple(milvus::IndexType::IVF_FLAT, milvus::MetricType::IP, R"({"nlist": 0})"),
+             std::make_tuple(milvus::IndexType::IVF_FLAT, milvus::MetricType::IP, R"({"nlist": "1024"})"),
+             std::make_tuple(milvus::IndexType::IVF_FLAT, milvus::MetricType::IP, R"({"nlist": 65537})"),
+             std::make_tuple(milvus::IndexType::ANNOY, milvus::MetricType::IP, R"({"nlist": 65537})"),
+             std::make_tuple(milvus::IndexType::BIN_IVF_FLAT, milvus::MetricType::IP, R"({"nlist": 1024})"),
          }) {
         milvus::IndexDesc index_desc{"foo", "index", std::get<0>(test_data), std::get<1>(test_data), 0};
         index_desc.ExtraParamsFromJson(std::get<2>(test_data));

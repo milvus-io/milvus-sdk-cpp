@@ -40,7 +40,7 @@ ConnectParam::Port() const {
     return port_;
 }
 
-const std::string
+std::string
 ConnectParam::Uri() const {
     return host_ + ":" + std::to_string(port_);
 }

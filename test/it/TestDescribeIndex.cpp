@@ -59,7 +59,7 @@ TEST_F(MilvusMockedTest, DescribeIndexFoo) {
 
             kv = index_desc_ptr->add_params();
             kv->set_key(milvus::KeyParams());
-            kv->set_value("{\"nlist\": 1024}");
+            kv->set_value(R"({"nlist": 1024})");
 
             return ::grpc::Status{};
         });

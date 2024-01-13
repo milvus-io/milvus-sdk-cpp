@@ -16,17 +16,17 @@
 
 #include <gtest/gtest.h>
 
-#include "milvus/types/HybirdTimestamp.h"
+#include "milvus/types/HybridTimestamp.h"
 
-class HybirdTimestampTest : public ::testing::Test {};
+class HybridTimestampTest : public ::testing::Test {};
 
-TEST_F(HybirdTimestampTest, GeneralTesting) {
-    milvus::HybirdTimestamp foo{};
+TEST_F(HybridTimestampTest, GeneralTesting) {
+    milvus::HybridTimestamp foo{};
     EXPECT_EQ(foo.Timestamp(), 0);
     EXPECT_EQ(foo.Logical(), 0);
     EXPECT_EQ(foo.Physical(), 0);
 
-    milvus::HybirdTimestamp bar{1, 1};
+    milvus::HybridTimestamp bar{1, 1};
     EXPECT_EQ(bar.Timestamp(), (1 << 18) + 1);
     EXPECT_EQ(bar.Logical(), 1);
     EXPECT_EQ(bar.Physical(), 1);
@@ -43,12 +43,12 @@ TEST_F(HybirdTimestampTest, GeneralTesting) {
     EXPECT_EQ(bar.Logical(), 0);
     EXPECT_EQ(bar.Physical(), 2001);
 
-    bar = milvus::HybirdTimestamp::CreateFromUnixtime(1000);
+    bar = milvus::HybridTimestamp::CreateFromUnixTime(1000);
     EXPECT_EQ(bar.Logical(), 0);
     EXPECT_EQ(bar.Physical(), 1000);
 
-    milvus::HybirdTimestamp ts_a = milvus::HybirdTimestamp::CreateFromUnixtime(3);
-    milvus::HybirdTimestamp ts_b{ts_a.Timestamp()};
+    milvus::HybridTimestamp ts_a = milvus::HybridTimestamp::CreateFromUnixTime(3);
+    milvus::HybridTimestamp ts_b{ts_a.Timestamp()};
     EXPECT_EQ(ts_a.Logical(), ts_b.Logical());
     EXPECT_EQ(ts_a.Physical(), ts_b.Physical());
 }

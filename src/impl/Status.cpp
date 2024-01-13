@@ -16,8 +16,6 @@
 
 #include "milvus/Status.h"
 
-#include <cstring>
-
 namespace milvus {
 
 Status::Status(StatusCode code, std::string msg) : code_(code), msg_(std::move(msg)) {

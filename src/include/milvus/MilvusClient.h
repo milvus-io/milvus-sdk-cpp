@@ -30,7 +30,7 @@
 #include "types/DistanceArray.h"
 #include "types/DmlResults.h"
 #include "types/FieldData.h"
-#include "types/HybirdTimestamp.h"
+#include "types/HybridTimestamp.h"
 #include "types/IndexDesc.h"
 #include "types/IndexState.h"
 #include "types/PartitionInfo.h"
@@ -174,11 +174,11 @@ class MilvusClient {
                             const ProgressMonitor& progress_monitor = ProgressMonitor::Forever()) = 0;
 
     /**
-     * If the collection_names is empty, list all collections brief informations. \n
+     * If the collection_names is empty, list all collections brief information's. \n
      * If the collection_names is specified, return the specified collection's loading process state.
      *
      * @param [in] collection_names name array of collections
-     * @param [out] collections_info brief informations of the collections
+     * @param [out] collections_info brief information's of the collections
      * @return Status operation successfully or not
      */
     virtual Status
@@ -258,12 +258,12 @@ class MilvusClient {
                            const ProgressMonitor& progress_monitor = ProgressMonitor::Forever()) = 0;
 
     /**
-     * If the partition_names is empty, list all partitions brief informations. \n
+     * If the partition_names is empty, list all partitions brief information's. \n
      * If the partition_names is specified, return the specified partition's loading process state.
      *
      * @param [in] collection_name name of the collection
      * @param [in] partition_names name array of the partitions
-     * @param [out] partitions_info brief informations of the partitions
+     * @param [out] partitions_info brief information's of the partitions
      * @return Status operation successfully or not
      */
     virtual Status
@@ -385,7 +385,7 @@ class MilvusClient {
            DmlResults& results) = 0;
 
     /**
-     * Searche a collection based on the given parameters and return results.
+     * Search a collection based on the given parameters and return results.
      *
      * @param [in] arguments search arguments
      * @param [out] results search results
@@ -424,7 +424,7 @@ class MilvusClient {
 
     /**
      * Flush insert buffer into storage.  \n
-     * To makesure the buffer persisted successfully, it calls GetFlushState() to check related segments state.
+     * To make sure the buffer persisted successfully, it calls GetFlushState() to check related segments state.
      *
      * @param [in] collection_names specify target collection names, if this array is empty, will flush all collections
      * @param [in] progress_monitor timeout setting for waiting progress. Set ProgressMonitor::NoWait() to return
@@ -477,7 +477,7 @@ class MilvusClient {
     GetMetrics(const std::string& request, std::string& response, std::string& component_name) = 0;
 
     /**
-     * Rebalance sealed segments from one query node to others.
+     * Rebalanced sealed segments from one query node to others.
      *
      * @param [in] src_node the source query node id
      * @param [in] dst_nodes the destiny query nodes id array

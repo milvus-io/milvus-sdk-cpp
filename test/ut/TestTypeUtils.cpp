@@ -16,7 +16,6 @@
 
 #include <gmock/gmock.h>
 
-#include <functional>
 #include <vector>
 
 #include "TypeUtils.h"

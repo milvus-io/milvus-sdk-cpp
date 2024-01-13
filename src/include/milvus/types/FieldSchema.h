@@ -165,7 +165,7 @@ class FieldSchema {
  private:
     std::string name_;
     std::string description_;
-    DataType data_type_;
+    DataType data_type_{DataType::FLOAT};
     bool is_primary_key_ = false;
     bool auto_id_ = false;
     std::map<std::string, std::string> type_params_;

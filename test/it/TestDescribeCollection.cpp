@@ -43,8 +43,7 @@ TEST_F(MilvusMockedTest, DescribeCollectionFoo) {
 
     EXPECT_CALL(service_, DescribeCollection(
                               _, Property(&DescribeCollectionRequest::collection_name, collection_schema.Name()), _))
-        .WillOnce([&collection_id, &shards_num, &aliases, &created_ts, &collection_schema](
-                      ::grpc::ServerContext*, const DescribeCollectionRequest*, DescribeCollectionResponse* response) {
+        .WillOnce([&](::grpc::ServerContext*, const DescribeCollectionRequest*, DescribeCollectionResponse* response) {
             response->set_collectionid(collection_id);
             response->set_shards_num(shards_num);
             for (auto& alias : aliases) {

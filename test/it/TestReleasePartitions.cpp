@@ -52,7 +52,7 @@ TEST_F(MilvusMockedTest, ReleasePartitionsFailure) {
                                         Property(&ReleasePartitionsRequest::partition_names_size, partitions.size())),
                                   _))
         .WillOnce([](::grpc::ServerContext*, const ReleasePartitionsRequest*, milvus::proto::common::Status* response) {
-            response->set_error_code(::milvus::proto::common::ErrorCode::UnexpectedError);
+            response->set_code(::milvus::proto::common::ErrorCode::UnexpectedError);
             return ::grpc::Status{};
         });
 

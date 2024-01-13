@@ -77,7 +77,7 @@ TEST_F(MilvusMockedTest, GetPartitionStatisticsWithFlushFailure) {
 
     EXPECT_CALL(service_, Flush(_, AllOf(Property(&FlushRequest::collection_names, ElementsAre(collection))), _))
         .WillOnce([](::grpc::ServerContext*, const FlushRequest*, FlushResponse* response) {
-            response->mutable_status()->set_error_code(::milvus::proto::common::ErrorCode::UnexpectedError);
+            response->mutable_status()->set_code(::milvus::proto::common::ErrorCode::UnexpectedError);
             return ::grpc::Status{};
         });
 

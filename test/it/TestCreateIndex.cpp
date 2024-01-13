@@ -76,7 +76,7 @@ TEST_F(MilvusMockedTest, TestCreateIndexFlushFailedInstantly) {
 
     EXPECT_CALL(service_, Flush(_, AllOf(Property(&FlushRequest::collection_names, ElementsAre(collection_name))), _))
         .WillOnce([&](::grpc::ServerContext*, const FlushRequest*, FlushResponse* resp) {
-            resp->mutable_status()->set_error_code(::milvus::proto::common::ErrorCode::UnexpectedError);
+            resp->mutable_status()->set_code(::milvus::proto::common::ErrorCode::UnexpectedError);
             return ::grpc::Status{};
         });
 
@@ -117,7 +117,7 @@ TEST_F(MilvusMockedTest, TestCreateIndexWithProgress) {
             EXPECT_EQ(params[milvus::KeyMetricType()], std::to_string(metric_type));
             EXPECT_EQ(params[milvus::KeyParams()], "{\"nlist\":1024}");
 
-            status->set_error_code(milvus::proto::common::ErrorCode::Success);
+            status->set_code(milvus::proto::common::ErrorCode::Success);
             return ::grpc::Status{};
         });
 
@@ -164,7 +164,7 @@ TEST_F(MilvusMockedTest, TestCreateIndexFailed) {
                                             Property(&CreateIndexRequest::field_name, field_name)),
                                       _))
         .WillRepeatedly([](::grpc::ServerContext*, const CreateIndexRequest*, ::milvus::proto::common::Status* status) {
-            status->set_error_code(milvus::proto::common::ErrorCode::Success);
+            status->set_code(milvus::proto::common::ErrorCode::Success);
             return ::grpc::Status{};
         });
 

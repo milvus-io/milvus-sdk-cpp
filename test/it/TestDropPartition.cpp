@@ -59,7 +59,7 @@ TEST_F(MilvusMockedTest, DropPartitionFooFailed) {
                                         _))
         .WillOnce([error_code](::grpc::ServerContext*, const DropPartitionRequest* request,
                                ::milvus::proto::common::Status* status) {
-            status->set_error_code(error_code);
+            status->set_code(error_code);
             return ::grpc::Status{::grpc::StatusCode::UNKNOWN, ""};
         });
     auto status = client_->DropPartition(collection, partition);

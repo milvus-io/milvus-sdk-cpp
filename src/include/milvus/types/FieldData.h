@@ -31,7 +31,7 @@ class Field {
     const std::string&
     Name() const;
     /**
-     * @brief Get field data tpye
+     * @brief Get field data type
      */
     DataType
     Type() const;
@@ -53,7 +53,7 @@ class Field {
 using FieldDataPtr = std::shared_ptr<Field>;
 
 /**
- * @brief Template class represents column-based data of a field. Avaiable inheritance classes: \n
+ * @brief Template class represents column-based data of a field. Available inheritance classes: \n
  *  BoolFieldData for boolean scalar field \n
  *  Int8FieldData for 8-bits integer scalar field \n
  *  Int16FieldData for 16-bits integer scalar field \n
@@ -96,13 +96,13 @@ class FieldData : public Field {
     /**
      * @brief Add element to field data
      */
-    StatusCode
+    virtual StatusCode
     Add(const T& element);
 
     /**
      * @brief Add element to field data
      */
-    StatusCode
+    virtual StatusCode
     Add(T&& element);
 
     /**
@@ -114,13 +114,13 @@ class FieldData : public Field {
     /**
      * @brief Field elements array
      */
-    const std::vector<T>&
+    virtual const std::vector<T>&
     Data() const;
 
     /**
      * @brief Field elements array
      */
-    std::vector<T>&
+    virtual std::vector<T>&
     Data();
 
  private:
@@ -159,13 +159,13 @@ class BinaryVecFieldData : public FieldData<std::string, DataType::BINARY_VECTOR
      * @brief Field elements array
      */
     const std::vector<std::string>&
-    Data() const;
+    Data() const override;
 
     /**
      * @brief Field elements array
      */
     std::vector<std::string>&
-    Data();
+    Data() override;
 
     /**
      * @brief Data export as uint8_t's vector
@@ -177,14 +177,14 @@ class BinaryVecFieldData : public FieldData<std::string, DataType::BINARY_VECTOR
      * @brief Add element to field data
      */
     StatusCode
-    Add(const std::string& element);
+    Add(const std::string& element) override;
 
     /**
      * @brief Add element to field data
      */
 
     StatusCode
-    Add(std::string&& element);
+    Add(std::string&& element) override;
 
     /**
      * @brief Add element to field data

@@ -70,6 +70,7 @@ TEST_F(MilvusMockedTest, LoadCollectionFooWithProgress) {
             response->add_collection_ids(1);
             response->add_collection_names("dummy");
             response->add_created_utc_timestamps(10000);
+            // TODO: deprecated
             response->add_inmemory_percentages((++called_times) * 10);
             return ::grpc::Status{};
         });

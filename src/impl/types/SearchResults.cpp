@@ -37,7 +37,7 @@ SingleResult::OutputFields() const {
     return output_fields_;
 }
 
-const FieldDataPtr
+FieldDataPtr
 SingleResult::OutputField(const std::string& name) const {
     for (const auto& output_field : output_fields_) {
         if (output_field->Name() == name) {

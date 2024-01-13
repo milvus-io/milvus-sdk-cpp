@@ -406,7 +406,7 @@ CreateProtoFieldData(const BinaryVecFieldData& field) {
     for (const auto& item : data) {
         std::copy(item.begin(), item.end(), std::back_inserter(vectors_data));
     }
-    ret->set_dim(dim);
+    ret->set_dim(static_cast<int>(dim));
     return ret;
 }
 
@@ -416,11 +416,11 @@ CreateProtoFieldData(const FloatVecFieldData& field) {
     auto& data = field.Data();
     auto dim = data.front().size();
     auto& vectors_data = *(ret->mutable_float_vector()->mutable_data());
-    vectors_data.Reserve(data.size() * dim);
+    vectors_data.Reserve(static_cast<int>(data.size() * dim));
     for (const auto& item : data) {
         vectors_data.Add(item.begin(), item.end());
     }
-    ret->set_dim(dim);
+    ret->set_dim(static_cast<int>(dim));
     return ret;
 }
 

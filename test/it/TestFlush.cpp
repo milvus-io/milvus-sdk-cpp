@@ -64,7 +64,7 @@ TEST_F(MilvusMockedTest, FlushFailure) {
 
     EXPECT_CALL(service_, Flush(_, AllOf(Property(&FlushRequest::collection_names_size, collections.size())), _))
         .WillOnce([](::grpc::ServerContext*, const FlushRequest*, FlushResponse* response) {
-            response->mutable_status()->set_error_code(::milvus::proto::common::ErrorCode::UnexpectedError);
+            response->mutable_status()->set_code(::milvus::proto::common::ErrorCode::UnexpectedError);
             return ::grpc::Status{};
         });
 
@@ -171,7 +171,7 @@ TEST_F(MilvusMockedTest, FlushGetStateFailure) {
         .Times(1)
         .WillRepeatedly(
             [](::grpc::ServerContext*, const GetFlushStateRequest* request, GetFlushStateResponse* response) {
-                response->mutable_status()->set_error_code(::milvus::proto::common::ErrorCode::UnexpectedError);
+                response->mutable_status()->set_code(::milvus::proto::common::ErrorCode::UnexpectedError);
                 return ::grpc::Status{};
             });
 

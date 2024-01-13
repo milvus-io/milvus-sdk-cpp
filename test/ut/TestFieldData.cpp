@@ -199,9 +199,9 @@ TEST_F(FieldDataTest, GeneralTesting) {
     }
 
     {
-        std::string name{"foo"};
+        std::string field_name{"foo"};
         const std::vector<std::string> elements{"\x01\x02", "\x03\x04"};
-        milvus::BinaryVecFieldData data{name, elements};
+        milvus::BinaryVecFieldData data{field_name, elements};
         std::vector<std::vector<uint8_t>> expected{{1, 2}, {3, 4}};
         EXPECT_EQ(data.DataAsUnsignedChars(), expected);
 

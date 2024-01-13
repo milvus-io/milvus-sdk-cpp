@@ -41,8 +41,7 @@ TEST_F(MilvusMockedTest, GetCompactionStateFoo) {
     const int64_t completed_id = 102;
 
     EXPECT_CALL(service_, GetCompactionState(_, Property(&GetCompactionStateRequest::compactionid, compaction_id), _))
-        .WillOnce([executing_id, timeout_id, completed_id](::grpc::ServerContext*, const GetCompactionStateRequest*,
-                                                           GetCompactionStateResponse* response) {
+        .WillOnce([&](::grpc::ServerContext*, const GetCompactionStateRequest*, GetCompactionStateResponse* response) {
             response->set_executingplanno(executing_id);
             response->set_timeoutplanno(timeout_id);
             response->set_completedplanno(completed_id);
@@ -112,8 +111,7 @@ TEST_F(MilvusMockedTest, ManualCompactionFoo) {
 
     EXPECT_CALL(service_,
                 DescribeCollection(_, Property(&DescribeCollectionRequest::collection_name, collection_name), _))
-        .WillOnce([collection_id](::grpc::ServerContext*, const DescribeCollectionRequest*,
-                                  DescribeCollectionResponse* response) {
+        .WillOnce([&](::grpc::ServerContext*, const DescribeCollectionRequest*, DescribeCollectionResponse* response) {
             response->set_collectionid(collection_id);
             return ::grpc::Status{};
         });
@@ -122,8 +120,7 @@ TEST_F(MilvusMockedTest, ManualCompactionFoo) {
                                            AllOf(Property(&ManualCompactionRequest::collectionid, collection_id),
                                                  Property(&ManualCompactionRequest::timetravel, travel_ts)),
                                            _))
-        .WillOnce([compaction_id](::grpc::ServerContext*, const ManualCompactionRequest*,
-                                  ManualCompactionResponse* response) {
+        .WillOnce([&](::grpc::ServerContext*, const ManualCompactionRequest*, ManualCompactionResponse* response) {
             response->set_compactionid(compaction_id);
             return ::grpc::Status{};
         });
@@ -178,8 +175,7 @@ TEST_F(MilvusMockedTest, GetCompactionPlansFoo) {
 
     EXPECT_CALL(service_,
                 GetCompactionStateWithPlans(_, Property(&GetCompactionPlansRequest::compactionid, compaction_id), _))
-        .WillOnce([&sources, &target](::grpc::ServerContext*, const GetCompactionPlansRequest*,
-                                      GetCompactionPlansResponse* response) {
+        .WillOnce([&](::grpc::ServerContext*, const GetCompactionPlansRequest*, GetCompactionPlansResponse* response) {
             auto info = response->add_mergeinfos();
             for (auto i : sources) {
                 info->add_sources(i);
