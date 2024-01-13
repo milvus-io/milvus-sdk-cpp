@@ -165,6 +165,18 @@ class SearchArguments {
     TopK() const;
 
     /**
+     * @brief Get nprobe
+     */
+    int64_t
+    Nprobe() const;
+
+    /**
+     * @brief Set nprobe
+     */
+    Status
+    SetNprobe(int64_t nlist);
+
+    /**
      * @brief Specifies the decimal place of the returned results.
      */
     Status
@@ -197,7 +209,7 @@ class SearchArguments {
     /**
      * @brief Get extra param
      */
-    const std::string
+    std::string
     ExtraParams() const;
 
     /**
@@ -206,6 +218,35 @@ class SearchArguments {
      */
     Status
     Validate() const;
+
+    /**
+     * @brief Get range radius
+     * @return
+     */
+    float
+    Radius() const;
+
+    /**
+     * @brief Get range filter
+     * @return
+     */
+    float
+    RangeFilter() const;
+
+    /**
+     * @brief Set range radius
+     * @param from range radius from
+     * @param to range radius to
+     */
+    Status
+    SetRange(float from, float to);
+
+    /**
+     * @brief Get if do range search
+     * @return
+     */
+    bool
+    RangeSearch() const;
 
  private:
     std::string collection_name_;
@@ -225,6 +266,9 @@ class SearchArguments {
     int64_t topk_{1};
     int round_decimal_{-1};
 
+    float radius_;
+    float range_filter_;
+    bool range_search_{false};
     ::milvus::MetricType metric_type_{::milvus::MetricType::L2};
 };
 

@@ -139,6 +139,76 @@ TEST_F(MilvusServerTestSearch, SearchWithoutIndex) {
     dropCollection();
 }
 
+TEST_F(MilvusServerTestSearch, RangeSearch) {
+    std::vector<milvus::FieldDataPtr> fields{
+        std::make_shared<milvus::Int16FieldData>("age", std::vector<int16_t>{12, 13, 14, 15, 16, 17, 18}),
+        std::make_shared<milvus::VarCharFieldData>(
+            "name", std::vector<std::string>{"Tom", "Jerry", "Lily", "Foo", "Bar", "Jake", "Jonathon"}),
+        std::make_shared<milvus::FloatVecFieldData>("face", std::vector<std::vector<float>>{
+                                                                std::vector<float>{0.1f, 0.2f, 0.3f, 0.4f},
+                                                                std::vector<float>{0.2f, 0.3f, 0.4f, 0.5f},
+                                                                std::vector<float>{0.3f, 0.4f, 0.5f, 0.6f},
+                                                                std::vector<float>{0.4f, 0.5f, 0.6f, 0.7f},
+                                                                std::vector<float>{0.5f, 0.6f, 0.7f, 0.8f},
+                                                                std::vector<float>{0.6f, 0.7f, 0.8f, 0.9f},
+                                                                std::vector<float>{0.7f, 0.8f, 0.9f, 1.0f},
+                                                            })};
+
+    createCollectionAndPartitions(true);
+    auto dml_results = insertRecords(fields);
+    loadCollection();
+
+    milvus::SearchArguments arguments{};
+    arguments.SetCollectionName(collection_name);
+    arguments.AddPartitionName(partition_name);
+    arguments.SetRange(0.3, 1.0);
+    arguments.SetTopK(10);
+    arguments.AddOutputField("age");
+    arguments.AddOutputField("name");
+    arguments.AddTargetVector("face", std::vector<float>{0.f, 0.f, 0.f, 0.f});
+    arguments.AddTargetVector("face", std::vector<float>{1.f, 1.f, 1.f, 1.f});
+    milvus::SearchResults search_results{};
+    auto status = client_->Search(arguments, search_results);
+    EXPECT_EQ(status.Message(), "OK");
+    EXPECT_TRUE(status.IsOk());
+
+    const auto& results = search_results.Results();
+    EXPECT_EQ(results.size(), 2);
+
+    // validate results
+    auto validateScores = [&results](int firstRet, int secondRet) {
+        // check score should between range
+        for (const auto& result : results) {
+            for (const auto& score : result.Scores()) {
+                EXPECT_GE(score, 0.3);
+                EXPECT_LE(score, 1.0);
+            }
+        }
+        EXPECT_EQ(results.at(0).Ids().IntIDArray().size(), firstRet);
+        EXPECT_EQ(results.at(1).Ids().IntIDArray().size(), secondRet);
+    };
+
+    // valid score in range is 3, 2
+    validateScores(3, 2);
+
+    // add fields, then search again, should be 6 and 4
+    insertRecords(fields);
+    loadCollection();
+    status = client_->Search(arguments, search_results);
+    EXPECT_TRUE(status.IsOk());
+    validateScores(6, 4);
+
+    // add fields twice, and now it should be 12, 8, as limit is 10, then should be 10, 8
+    insertRecords(fields);
+    insertRecords(fields);
+    loadCollection();
+    status = client_->Search(arguments, search_results);
+    EXPECT_TRUE(status.IsOk());
+    validateScores(10, 8);
+
+    dropCollection();
+}
+
 TEST_F(MilvusServerTestSearch, SearchWithStringFilter) {
     std::vector<milvus::FieldDataPtr> fields{
         std::make_shared<milvus::Int16FieldData>("age", std::vector<int16_t>{12, 13}),

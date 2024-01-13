@@ -17,6 +17,7 @@
 #include "milvus/types/SearchArguments.h"
 
 #include <nlohmann/json.hpp>
+#include <utility>
 
 namespace milvus {
 namespace {
@@ -28,7 +29,7 @@ struct Validation {
     bool required;
 
     Status
-    Validate(const SearchArguments& data, std::unordered_map<std::string, int64_t> params) const {
+    Validate(const SearchArguments&, std::unordered_map<std::string, int64_t> params) const {
         auto it = params.find(param);
         if (it != params.end()) {
             auto value = it->second;
@@ -43,7 +44,7 @@ struct Validation {
 };
 
 Status
-validate(const SearchArguments& data, std::unordered_map<std::string, int64_t> params) {
+validate(const SearchArguments& data, const std::unordered_map<std::string, int64_t>& params) {
     auto status = Status::OK();
     auto validations = {
         Validation{"nprobe", 1, 65536, false},
@@ -128,7 +129,7 @@ SearchArguments::TargetVectors() const {
 
 Status
 SearchArguments::AddTargetVector(std::string field_name, const std::string& vector) {
-    return AddTargetVector(field_name, std::string{vector});
+    return AddTargetVector(std::move(field_name), std::string{vector});
 }
 
 Status
@@ -223,6 +224,20 @@ SearchArguments::TopK() const {
     return topk_;
 }
 
+int64_t
+SearchArguments::Nprobe() const {
+    if (extra_params_.find("nprobe") != extra_params_.end()) {
+        return extra_params_.at("nprobe");
+    }
+    return 1;
+}
+
+Status
+SearchArguments::SetNprobe(int64_t nprobe) {
+    extra_params_["nprobe"] = nprobe;
+    return Status::OK();
+}
+
 Status
 SearchArguments::SetRoundDecimal(int round_decimal) {
     round_decimal_ = round_decimal;
@@ -236,6 +251,12 @@ SearchArguments::RoundDecimal() const {
 
 Status
 SearchArguments::SetMetricType(::milvus::MetricType metric_type) {
+    if (((metric_type == MetricType::IP && metric_type_ == MetricType::L2) ||
+         (metric_type == MetricType::L2 && metric_type_ == MetricType::IP)) &&
+        range_search_) {
+        // switch radius and range_filter
+        std::swap(radius_, range_filter_);
+    }
     metric_type_ = metric_type;
     return Status::OK();
 }
@@ -251,7 +272,7 @@ SearchArguments::AddExtraParam(std::string key, int64_t value) {
     return Status::OK();
 }
 
-const std::string
+std::string
 SearchArguments::ExtraParams() const {
     return ::nlohmann::json(extra_params_).dump();
 }
@@ -259,6 +280,39 @@ SearchArguments::ExtraParams() const {
 Status
 SearchArguments::Validate() const {
     return validate(*this, extra_params_);
+}
+
+float
+SearchArguments::Radius() const {
+    return radius_;
+}
+
+float
+SearchArguments::RangeFilter() const {
+    return range_filter_;
+}
+
+Status
+SearchArguments::SetRange(float from, float to) {
+    auto low = std::min(from, to);
+    auto high = std::max(from, to);
+    if (metric_type_ == MetricType::IP) {
+        radius_ = low;
+        range_filter_ = high;
+        range_search_ = true;
+    } else if (metric_type_ == MetricType::L2) {
+        radius_ = high;
+        range_filter_ = low;
+        range_search_ = true;
+    } else {
+        return {StatusCode::INVALID_AGUMENT, "Metric type is not supported"};
+    }
+    return Status::OK();
+}
+
+bool
+SearchArguments::RangeSearch() const {
+    return range_search_;
 }
 
 }  // namespace milvus
