@@ -22,9 +22,6 @@
 #include <random>
 
 #include "MilvusServerTest.h"
-#include "milvus/MilvusClient.h"
-#include "milvus/Status.h"
-#include "milvus/types/ConnectParam.h"
 
 using testing::UnorderedElementsAre;
 using testing::UnorderedElementsAreArray;
@@ -73,7 +70,7 @@ class MilvusServerTestWithTlsMode : public MilvusServerTest {
     void
     SetUp() override {
         generate_certificates();
-        std::array<char, 256> path;
+        std::array<char, 256> path{};
         getcwd(path.data(), path.size());
         std::string pwd = path.data();
         server_.SetTls(Mode, pwd + "/certs/server.crt", pwd + "/certs/server.key", pwd + "/certs/ca.crt");

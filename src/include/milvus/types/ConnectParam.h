@@ -50,7 +50,7 @@ class ConnectParam {
     /**
      * @brief Uri for connecting to the milvus.
      */
-    const std::string
+    std::string
     Uri() const;
 
     /**

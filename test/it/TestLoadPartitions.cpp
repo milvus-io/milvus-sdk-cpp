@@ -68,7 +68,7 @@ TEST_F(MilvusMockedTest, LoadPartitionsFailure) {
                                      Property(&LoadPartitionsRequest::partition_names_size, partitions.size())),
                                _))
         .WillOnce([](::grpc::ServerContext*, const LoadPartitionsRequest*, milvus::proto::common::Status* response) {
-            response->set_error_code(::milvus::proto::common::ErrorCode::UnexpectedError);
+            response->set_code(::milvus::proto::common::ErrorCode::UnexpectedError);
             return ::grpc::Status{};
         });
 
@@ -128,6 +128,7 @@ TEST_F(MilvusMockedTest, LoadPartitionsWithQueryStatusSuccess) {
                 // time 7: 80%, 100%, 100%, 100%, 100%  -->{4, 5}
                 // time 8: 90%, 100%, 100%, 100%, 100%  -->{4, 5}
                 // time 9: 100%, 100%, 100%, 100%, 100% -->{5, 5}
+                // TODO: deprecated
                 response->add_inmemory_percentages(std::min(index * 10 * show_partitions_called, 100));
             }
             return ::grpc::Status{};
@@ -175,9 +176,10 @@ TEST_F(MilvusMockedTest, LoadPartitionsWithQueryStatusOomFailure) {
                     response->add_partition_names(partition);
                     response->add_partitionids(0);
                     response->add_created_timestamps(0);
+                    // TODO: deprecated
                     response->add_inmemory_percentages(10);
                 }
-                response->mutable_status()->set_error_code(::milvus::proto::common::ErrorCode::OutOfMemory);
+                response->mutable_status()->set_code(::milvus::proto::common::ErrorCode::OutOfMemory);
                 return ::grpc::Status{};
             });
 
@@ -220,6 +222,7 @@ TEST_F(MilvusMockedTest, LoadPartitionsWithQueryStatusTimeout) {
                     response->add_partition_names(partition);
                     response->add_partitionids(0);
                     response->add_created_timestamps(0);
+                    // TODO: deprecated
                     response->add_inmemory_percentages(0);
                 }
                 return ::grpc::Status{};

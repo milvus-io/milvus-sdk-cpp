@@ -238,23 +238,23 @@ class MilvusConnection {
     std::shared_ptr<grpc::Channel> channel_;
     std::string authorization_value_{};
 
-    Status
-    statusByProtoResponse(const proto::common::Status& status) {
-        if (status.error_code() != proto::common::ErrorCode::Success) {
+    static Status
+    StatusByProtoResponse(const proto::common::Status& status) {
+        if (status.code() != proto::common::ErrorCode::Success) {
             return Status{StatusCode::SERVER_FAILED, status.reason()};
         }
         return Status::OK();
     }
 
     template <typename Response>
-    Status
-    statusByProtoResponse(const Response& response) {
+    static Status
+    StatusByProtoResponse(const Response& response) {
         const auto& status = response.status();
-        return statusByProtoResponse(status);
+        return StatusByProtoResponse(status);
     }
 
-    StatusCode
-    statusCodeFromGrpcStatus(const ::grpc::Status& grpc_status) {
+    static StatusCode
+    StatusCodeFromGrpcStatus(const ::grpc::Status& grpc_status) {
         if (grpc_status.error_code() == ::grpc::StatusCode::DEADLINE_EXCEEDED) {
             return StatusCode::TIMEOUT;
         }
@@ -284,10 +284,10 @@ class MilvusConnection {
         ::grpc::Status grpc_status = (stub_.get()->*func)(&context, request, &response);
 
         if (!grpc_status.ok()) {
-            return {statusCodeFromGrpcStatus(grpc_status), grpc_status.error_message()};
+            return {StatusCodeFromGrpcStatus(grpc_status), grpc_status.error_message()};
         }
 
-        return statusByProtoResponse(response);
+        return StatusByProtoResponse(response);
     }
 };
 

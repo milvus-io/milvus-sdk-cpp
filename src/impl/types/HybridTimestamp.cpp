@@ -14,47 +14,47 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "milvus/types/HybirdTimestamp.h"
+#include "milvus/types/HybridTimestamp.h"
 
 namespace milvus {
 
-HybirdTimestamp::HybirdTimestamp() = default;
+HybridTimestamp::HybridTimestamp() = default;
 
-HybirdTimestamp::HybirdTimestamp(uint64_t ts) : ts_(ts) {
+HybridTimestamp::HybridTimestamp(uint64_t ts) : ts_(ts) {
 }
 
-HybirdTimestamp::HybirdTimestamp(uint64_t physical, uint64_t logical)
-    : ts_((physical << milvus::HybirdtsLogicalBits()) + logical) {
+HybridTimestamp::HybridTimestamp(uint64_t physical, uint64_t logical)
+    : ts_((physical << milvus::HybridTsLogicalBits()) + logical) {
 }
 
 uint64_t
-HybirdTimestamp::Timestamp() const {
+HybridTimestamp::Timestamp() const {
     return ts_;
 }
 
 uint64_t
-HybirdTimestamp::Logical() const {
-    return ts_ & milvus::HybirdtsLogicalBitsMask();
+HybridTimestamp::Logical() const {
+    return ts_ & milvus::HybridTsLogicalBitsMask();
 }
 
 uint64_t
-HybirdTimestamp::Physical() const {
-    return ts_ >> milvus::HybirdtsLogicalBits();
+HybridTimestamp::Physical() const {
+    return ts_ >> milvus::HybridTsLogicalBits();
 }
 
-HybirdTimestamp&
-HybirdTimestamp::operator+=(uint64_t milliseconds) {
-    ts_ += (milliseconds << milvus::HybirdtsLogicalBits());
+HybridTimestamp&
+HybridTimestamp::operator+=(uint64_t milliseconds) {
+    ts_ += (milliseconds << milvus::HybridTsLogicalBits());
     return *this;
 }
 
-HybirdTimestamp
-HybirdTimestamp::operator+(uint64_t milliseconds) {
+HybridTimestamp
+HybridTimestamp::operator+(uint64_t milliseconds) const {
     return {Physical() + milliseconds, Logical()};
 }
 
-HybirdTimestamp
-HybirdTimestamp::CreateFromUnixtime(uint64_t epoch_in_milliseconds) {
+HybridTimestamp
+HybridTimestamp::CreateFromUnixTime(uint64_t epoch_in_milliseconds) {
     return {epoch_in_milliseconds, 0};
 }
 }  // namespace milvus

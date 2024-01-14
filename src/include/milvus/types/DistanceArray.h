@@ -83,7 +83,7 @@ class DistanceArray {
     SetIntDistance(std::vector<std::vector<int32_t>>&& distance_array);
 
     /**
-     * @brief Float distance 2-d arraywe called.
+     * @brief Float distance 2-d array we called.
      *        Assume the vectors_left: L_1, L_2, L_3 \n
      *        Assume the vectors_right: R_a, R_b \n
      *        Distance between L_n and R_m we called "D_n_m" \n

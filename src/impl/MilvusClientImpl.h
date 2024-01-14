@@ -186,8 +186,8 @@ class MilvusClientImpl : public MilvusClient {
      * @param [in] progress_monitor timeout setting for waiting progress
      * @return Status, the final status
      */
-    Status
-    waitForStatus(std::function<Status(Progress&)> query_function, const ProgressMonitor& progress_monitor);
+    static Status
+    WaitForStatus(const std::function<Status(Progress&)>& query_function, const ProgressMonitor& progress_monitor);
 
     /**
      * @brief template for public api call
@@ -195,7 +195,7 @@ class MilvusClientImpl : public MilvusClient {
      */
     template <typename Request, typename Response>
     Status
-    apiHandler(std::function<Status(void)> validate, std::function<Request(void)> pre,
+    apiHandler(const std::function<Status(void)>& validate, std::function<Request(void)> pre,
                Status (MilvusConnection::*rpc)(const Request&, Response&, const GrpcOpts&),
                std::function<Status(const Response&)> wait_for_status, std::function<void(const Response&)> post,
                const GrpcOpts& options = GrpcOpts{}) {
@@ -215,7 +215,7 @@ class MilvusClientImpl : public MilvusClient {
         auto status = std::bind(rpc, connection_.get(), std::placeholders::_1, std::placeholders::_2,
                                 std::placeholders::_3)(rpc_request, rpc_response, options);
         if (!status.IsOk()) {
-            // resp's status already checked in connection class
+            // response's status already checked in connection class
             return status;
         }
 

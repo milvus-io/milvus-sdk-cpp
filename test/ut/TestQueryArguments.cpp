@@ -23,7 +23,7 @@ class QueryArgumentsTest : public ::testing::Test {};
 TEST_F(QueryArgumentsTest, GeneralTesting) {
     milvus::QueryArguments arguments;
 
-    std::string empty_name = "";
+    std::string empty_name;
     std::string collection_name = "test";
     arguments.SetCollectionName(collection_name);
     EXPECT_FALSE(arguments.SetCollectionName(empty_name).IsOk());

@@ -22,7 +22,7 @@ namespace milvus {
 /**
  * @brief Global definition for row count label
  */
-inline const std::string
+inline std::string
 KeyRowCount() {
     return "row_count";
 }
@@ -30,7 +30,7 @@ KeyRowCount() {
 /**
  * @brief Global definition for index type label
  */
-inline const std::string
+inline std::string
 KeyIndexType() {
     return "index_type";
 }
@@ -38,7 +38,7 @@ KeyIndexType() {
 /**
  * @brief Global definition for metric type label
  */
-inline const std::string
+inline std::string
 KeyMetricType() {
     return "metric_type";
 }
@@ -46,7 +46,7 @@ KeyMetricType() {
 /**
  * @brief Global definition for metric type label
  */
-inline const std::string
+inline std::string
 KeyParams() {
     return "params";
 }
@@ -54,7 +54,7 @@ KeyParams() {
 /**
  * @brief Global definition for vector dimension label
  */
-inline const std::string
+inline std::string
 FieldDim() {
     return "dim";
 }
@@ -62,7 +62,7 @@ FieldDim() {
 /**
  * @brief Max length field name for varchar field
  */
-inline const std::string
+inline std::string
 FieldMaxLength() {
     return "max_length";
 }
@@ -84,17 +84,17 @@ GuaranteeEventuallyTs() {
 }
 
 /**
- * @brief The logical bits in hybird timestamp
+ * @brief The logical bits in hybrid timestamp
  */
-constexpr size_t inline HybirdtsLogicalBits() {
+constexpr size_t inline HybridTsLogicalBits() {
     return 18;
 }
 
 /**
- * @brief The logical bits mask for hybird timestamp
+ * @brief The logical bits mask for hybrid timestamp
  */
-constexpr uint64_t inline HybirdtsLogicalBitsMask() {
-    return (1 << HybirdtsLogicalBits()) - 1;
+constexpr uint64_t inline HybridTsLogicalBitsMask() {
+    return (1 << HybridTsLogicalBits()) - 1;
 }
 
 }  // namespace milvus

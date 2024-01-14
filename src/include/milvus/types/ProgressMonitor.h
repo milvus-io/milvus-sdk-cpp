@@ -40,7 +40,7 @@ struct Progress {
     Done() const;
 
     /**
-     * @brief How much work is finised
+     * @brief How much work is finished
      */
     uint32_t finished_ = 0;
 
@@ -108,7 +108,7 @@ class ProgressMonitor {
     /**
      * @brief Set call back function to receive progress notification.
      *
-     * @param [in] func call back function to recieve progress notification.
+     * @param [in] func call back function to receive progress notification.
      */
     void
     SetCallbackFunc(CallbackFunc func);

@@ -20,7 +20,6 @@
 #include <memory>
 
 #include "grpcpp/security/credentials.h"
-#include "milvus/types/ConnectParam.h"
 
 using grpc::Channel;
 using grpc::ClientContext;
@@ -63,8 +62,8 @@ MilvusConnection::~MilvusConnection() {
 Status
 MilvusConnection::Connect(const ConnectParam& param) {
     authorization_value_ = param.Authorizations();
-    std::shared_ptr<grpc::ChannelCredentials> creds{nullptr};
-    auto& uri = param.Uri();
+    std::shared_ptr<grpc::ChannelCredentials> credentials{nullptr};
+    auto uri = param.Uri();
 
     ::grpc::ChannelArguments args;
     args.SetMaxSendMessageSize(-1);     // max send message size: 2GB
@@ -74,12 +73,12 @@ MilvusConnection::Connect(const ConnectParam& param) {
         if (!param.ServerName().empty()) {
             args.SetSslTargetNameOverride(param.ServerName());
         }
-        creds = createTlsCredentials(param.Cert(), param.Key(), param.CaCert());
+        credentials = createTlsCredentials(param.Cert(), param.Key(), param.CaCert());
     } else {
-        creds = ::grpc::InsecureChannelCredentials();
+        credentials = ::grpc::InsecureChannelCredentials();
     }
 
-    channel_ = ::grpc::CreateCustomChannel(uri, creds, args);
+    channel_ = ::grpc::CreateCustomChannel(uri, credentials, args);
     auto connected = channel_->WaitForConnected(std::chrono::system_clock::now() +
                                                 std::chrono::milliseconds{param.ConnectTimeout()});
     if (connected) {
@@ -175,7 +174,7 @@ MilvusConnection::DropPartition(const proto::milvus::DropPartitionRequest& reque
 Status
 MilvusConnection::HasPartition(const proto::milvus::HasPartitionRequest& request, proto::milvus::BoolResponse& response,
                                const GrpcContextOptions& options) {
-    return grpcCall("HasParition", &Stub::HasPartition, request, response, options);
+    return grpcCall("HasPartition", &Stub::HasPartition, request, response, options);
 }
 
 Status

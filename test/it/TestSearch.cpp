@@ -20,6 +20,7 @@
 #include <memory>
 #include <nlohmann/json.hpp>
 #include <thread>
+#include <utility>
 
 #include "TypeUtils.h"
 #include "mocks/MilvusMockedTest.h"
@@ -40,7 +41,7 @@ using ::testing::UnorderedElementsAre;
 
 namespace {
 struct TestKv {
-    TestKv(const std::string& key, const std::string& value) : key_(key), value_(value) {
+    TestKv(std::string key, std::string value) : key_(std::move(key)), value_(std::move(value)) {
     }
     std::string key_;
     std::string value_;
@@ -115,7 +116,7 @@ DoSearchVectors(testing::StrictMock<::milvus::MilvusMockedService>& service_,
             EXPECT_EQ(json_params["nprobe"].get<int>(), 10);
 
             // check placeholder
-            auto placeholder_group_payload = request->placeholder_group();
+            const auto& placeholder_group_payload = request->placeholder_group();
             milvus::proto::common::PlaceholderGroup placeholder_group;
             placeholder_group.ParseFromString(placeholder_group_payload);
             EXPECT_EQ(placeholder_group.placeholders_size(), 1);
@@ -129,7 +130,7 @@ DoSearchVectors(testing::StrictMock<::milvus::MilvusMockedService>& service_,
                 EXPECT_EQ(test_vector, vector);
             }
 
-            response->mutable_status()->set_error_code(milvus::proto::common::ErrorCode::Success);
+            response->mutable_status()->set_code(milvus::proto::common::ErrorCode::Success);
             auto* results = response->mutable_results();
             results->set_top_k(10);
             results->set_num_queries(2);

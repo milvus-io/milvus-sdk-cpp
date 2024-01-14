@@ -45,6 +45,7 @@ TEST_F(MilvusMockedTest, ShowPartitionsQueryAll) {
                 response->add_partition_names(partition.Name());
                 response->add_partitionids(partition.Id());
                 response->add_created_timestamps(partition.CreatedUtcTimestamp());
+                // TODO: deprecated
                 response->add_inmemory_percentages(partition.InMemoryPercentage());
             }
             return ::grpc::Status{};
@@ -79,6 +80,7 @@ TEST_F(MilvusMockedTest, ShowPartitionsQueryLoadingPercent) {
                 response->add_partition_names(partition.Name());
                 response->add_partitionids(partition.Id());
                 response->add_created_timestamps(partition.CreatedUtcTimestamp());
+                // TODO: deprecated
                 response->add_inmemory_percentages(partition.InMemoryPercentage());
             }
             return ::grpc::Status{};

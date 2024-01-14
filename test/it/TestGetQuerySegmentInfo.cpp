@@ -61,6 +61,7 @@ TEST_F(MilvusMockedTest, GetQuerySegmentInfoFoo) {
                 info->set_state(milvus::SegmentStateCast(info_exp.State()));
                 info->set_index_name(info_exp.IndexName());
                 info->set_indexid(info_exp.IndexID());
+                // TODO: nodeid deprecated
                 info->set_nodeid(info_exp.NodeID());
             }
             return ::grpc::Status{};

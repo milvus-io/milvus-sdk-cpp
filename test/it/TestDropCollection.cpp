@@ -63,7 +63,7 @@ TEST_F(MilvusMockedTest, DropCollectionFooFailed) {
     EXPECT_CALL(service_, DropCollection(_, Property(&DropCollectionRequest::collection_name, collection_name), _))
         .WillOnce([error_code](::grpc::ServerContext*, const DropCollectionRequest*,
                                ::milvus::proto::common::Status* status) {
-            status->set_error_code(error_code);
+            status->set_code(error_code);
             return ::grpc::Status{::grpc::StatusCode::UNKNOWN, "Collection drop failed. Internal error"};
         });
     auto status = client_->DropCollection(collection_name);

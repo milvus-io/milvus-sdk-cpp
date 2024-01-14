@@ -24,7 +24,7 @@ TEST_F(SearchArgumentsTest, GeneralTesting) {
     milvus::SearchArguments arguments;
     EXPECT_EQ(arguments.TargetVectors(), nullptr);
 
-    std::string empty_name = "";
+    std::string empty_name;
     std::string collection_name = "test";
     arguments.SetCollectionName(collection_name);
     EXPECT_FALSE(arguments.SetCollectionName(empty_name).IsOk());

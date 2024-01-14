@@ -52,9 +52,9 @@ TEST_F(MilvusMockedTest, CalcDistanceFloat) {
         .WillOnce([&](::grpc::ServerContext*, const CalcDistanceRequest* request, CalcDistanceResults* response) {
             // validate params
             auto& params = request->params();
-            for (int i = 0; i < params.size(); ++i) {
-                if (params[i].key() == "metric") {
-                    EXPECT_EQ(params[i].value(), "IP");
+            for (const auto& param : params) {
+                if (param.key() == "metric") {
+                    EXPECT_EQ(param.value(), "IP");
                 }
             }
 
@@ -140,9 +140,9 @@ TEST_F(MilvusMockedTest, CalcDistanceBinary) {
         .WillOnce([&](::grpc::ServerContext*, const CalcDistanceRequest* request, CalcDistanceResults* response) {
             // validate metric
             auto& params = request->params();
-            for (int i = 0; i < params.size(); ++i) {
-                if (params[i].key() == "metric") {
-                    EXPECT_EQ(params[i].value(), "HAMMING");
+            for (const auto& param : params) {
+                if (param.key() == "metric") {
+                    EXPECT_EQ(param.value(), "HAMMING");
                 }
             }
 
@@ -164,7 +164,7 @@ TEST_F(MilvusMockedTest, CalcDistanceBinary) {
                 auto& binary_array = data_arr.binary_vector();
                 EXPECT_GE(binary_array.length(), offset + element.size());
                 for (auto i = 0; i < element.size(); ++i) {
-                    EXPECT_EQ(binary_array.data()[offset + i], element[i]);
+                    EXPECT_EQ(binary_array[offset + i], element[i]);
                 }
             };
 
@@ -224,9 +224,9 @@ TEST_F(MilvusMockedTest, CalcDistanceIDArray) {
         .WillOnce([&](::grpc::ServerContext*, const CalcDistanceRequest* request, CalcDistanceResults* response) {
             // validate metric
             auto& params = request->params();
-            for (int i = 0; i < params.size(); ++i) {
-                if (params[i].key() == "metric") {
-                    EXPECT_EQ(params[i].value(), "L2");
+            for (const auto& param : params) {
+                if (param.key() == "metric") {
+                    EXPECT_EQ(param.value(), "L2");
                 }
             }
 

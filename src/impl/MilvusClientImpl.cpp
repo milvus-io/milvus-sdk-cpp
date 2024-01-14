@@ -141,7 +141,7 @@ MilvusClientImpl::LoadCollection(const std::string& collection_name, int replica
     };
 
     auto wait_for_status = [this, &collection_name, &progress_monitor](const proto::common::Status&) {
-        return waitForStatus(
+        return WaitForStatus(
             [&collection_name, this](Progress& progress) -> Status {
                 CollectionsInfo collections_info;
                 auto collection_names = std::vector<std::string>{collection_name};
@@ -259,7 +259,7 @@ MilvusClientImpl::ShowCollections(const std::vector<std::string>& collection_nam
     };
 
     auto post = [&collections_info](const proto::milvus::ShowCollectionsResponse& response) {
-        for (size_t i = 0; i < response.collection_ids_size(); i++) {
+        for (int i = 0; i < response.collection_ids_size(); i++) {
             auto inmemory_percentage = 0;
             if (response.inmemory_percentages_size() > i) {
                 inmemory_percentage = response.inmemory_percentages(i);
@@ -331,7 +331,7 @@ MilvusClientImpl::LoadPartitions(const std::string& collection_name, const std::
     };
 
     auto wait_for_status = [this, &collection_name, &partition_names, &progress_monitor](const proto::common::Status&) {
-        return waitForStatus(
+        return WaitForStatus(
             [&collection_name, &partition_names, this](Progress& progress) -> Status {
                 PartitionsInfo partitions_info;
                 auto status = ShowPartitions(collection_name, partition_names, partitions_info);
@@ -422,7 +422,7 @@ MilvusClientImpl::ShowPartitions(const std::string& collection_name, const std::
         if (count > 0) {
             partitions_info.reserve(count);
         }
-        for (size_t i = 0; i < count; ++i) {
+        for (int i = 0; i < count; ++i) {
             partitions_info.emplace_back(response.partition_names(i), response.partitionids(i),
                                          response.created_timestamps(i), response.inmemory_percentages(i));
         }
@@ -499,7 +499,7 @@ MilvusClientImpl::CreateIndex(const std::string& collection_name, const IndexDes
     };
 
     auto wait_for_status = [&collection_name, &index_desc, &progress_monitor, this](const proto::common::Status&) {
-        return waitForStatus(
+        return WaitForStatus(
             [&collection_name, &index_desc, this](Progress& progress) -> Status {
                 IndexState index_state;
                 auto status = GetIndexState(collection_name, index_desc.FieldName(), index_state);
@@ -539,13 +539,13 @@ MilvusClientImpl::DescribeIndex(const std::string& collection_name, const std::s
 
     auto post = [&index_desc](const proto::milvus::DescribeIndexResponse& response) {
         auto count = response.index_descriptions_size();
-        for (size_t i = 0; i < count; ++i) {
+        for (int i = 0; i < count; ++i) {
             auto& field_name = response.index_descriptions(i).field_name();
             auto& index_name = response.index_descriptions(i).index_name();
             index_desc.SetFieldName(field_name);
             index_desc.SetIndexName(index_name);
             auto index_params_size = response.index_descriptions(i).params_size();
-            for (size_t j = 0; j < index_params_size; ++j) {
+            for (int j = 0; j < index_params_size; ++j) {
                 const auto& key = response.index_descriptions(i).params(j).key();
                 const auto& value = response.index_descriptions(i).params(j).value();
                 if (key == milvus::KeyIndexType()) {
@@ -759,19 +759,20 @@ MilvusClientImpl::Search(const SearchArguments& arguments, SearchResults& result
         const auto& scores = result_data.scores();
         const auto& fields_data = result_data.fields_data();
         auto num_of_queries = result_data.num_queries();
-        std::vector<int64_t> topks(num_of_queries, result_data.top_k());
+        std::vector<int> topks{};
+        topks.reserve(result_data.topks_size());
         for (int i = 0; i < result_data.topks_size(); ++i) {
-            topks[i] = result_data.topks(i);
+            topks.emplace_back(result_data.topks(i));
         }
         std::vector<SingleResult> single_results;
         single_results.reserve(num_of_queries);
-        size_t offset{0};
-        for (int64_t i = 0; i < num_of_queries; ++i) {
+        int offset{0};
+        for (int i = 0; i < num_of_queries; ++i) {
             std::vector<float> item_scores;
             std::vector<FieldDataPtr> item_field_data;
             auto item_topk = topks[i];
             item_scores.reserve(item_topk);
-            for (int64_t j = 0; j < item_topk; ++j) {
+            for (int j = 0; j < item_topk; ++j) {
                 item_scores.emplace_back(scores.at(offset + j));
             }
             item_field_data.reserve(fields_data.size());
@@ -842,7 +843,7 @@ MilvusClientImpl::CalcDistance(const CalcDistanceArguments& arguments, DistanceA
                     }
 
                     // suppose vectors is not empty, already checked by Validate()
-                    data_array->set_dim(vectors[0].size());
+                    data_array->set_dim(static_cast<int>(vectors[0].size()));
                 } else {
                     auto data_ptr = std::static_pointer_cast<BinaryVecFieldData>(arg_vectors);
                     auto& str = *data_array->mutable_binary_vector();
@@ -853,7 +854,7 @@ MilvusClientImpl::CalcDistance(const CalcDistanceArguments& arguments, DistanceA
                     for (auto& vector : vectors) {
                         str.append(vector);
                     }
-                    data_array->set_dim(dimensions);
+                    data_array->set_dim(static_cast<int>(dimensions));
                 }
 
             } else if (arg_vectors->Type() == DataType::INT64) {
@@ -960,7 +961,7 @@ MilvusClientImpl::Flush(const std::vector<std::string>& collection_names, const 
             return Status::OK();
         }
 
-        return waitForStatus(
+        return WaitForStatus(
             [&segment_count, &flush_segments, &finished_count, this](Progress& p) -> Status {
                 p.total_ = segment_count;
 
@@ -1117,7 +1118,7 @@ MilvusClientImpl::ManualCompaction(const std::string& collection_name, uint64_t 
         return status;
     }
 
-    auto pre = [&collection_name, &travel_timestamp, &collection_desc]() {
+    auto pre = [&travel_timestamp, &collection_desc]() {
         proto::milvus::ManualCompactionRequest rpc_request;
         rpc_request.set_collectionid(collection_desc.ID());
         rpc_request.set_timetravel(travel_timestamp);
@@ -1223,7 +1224,7 @@ MilvusClientImpl::ListCredUsers(std::vector<std::string>& users) {
 }
 
 Status
-MilvusClientImpl::waitForStatus(std::function<Status(Progress&)> query_function,
+MilvusClientImpl::WaitForStatus(const std::function<Status(Progress&)>& query_function,
                                 const ProgressMonitor& progress_monitor) {
     // no need to check
     if (progress_monitor.CheckTimeout() == 0) {

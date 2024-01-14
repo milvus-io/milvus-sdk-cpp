@@ -22,25 +22,25 @@
 namespace milvus {
 
 template <typename Duration>
-struct _is_std_duration;
+struct is_std_duration;
 
-template <typename _Rep, typename _Period>
-struct _is_std_duration<std::chrono::duration<_Rep, _Period>> {
+template <typename Rep, typename Period>
+struct is_std_duration<std::chrono::duration<Rep, Period>> {
     static const bool value = true;
 };
 
 /**
- * @brief Hybird Timestamp
+ * @brief Hybrid Timestamp
  */
-class HybirdTimestamp {
+class HybridTimestamp {
     uint64_t ts_{0};
 
  public:
-    HybirdTimestamp();
+    HybridTimestamp();
 
-    explicit HybirdTimestamp(uint64_t ts);
+    explicit HybridTimestamp(uint64_t ts);
 
-    HybirdTimestamp(uint64_t physical, uint64_t logical);
+    HybridTimestamp(uint64_t physical, uint64_t logical);
 
     /**
      * @brief Hybird timestamp value
@@ -64,8 +64,8 @@ class HybirdTimestamp {
      * @brief Increase duration in physical part
      *
      */
-    template <typename Duration, std::enable_if_t<_is_std_duration<Duration>::value, bool> = true>
-    HybirdTimestamp&
+    template <typename Duration, std::enable_if_t<is_std_duration<Duration>::value, bool> = true>
+    HybridTimestamp&
     operator+=(Duration duration) {
         auto milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(duration).count();
         return *this += milliseconds;
@@ -75,19 +75,19 @@ class HybirdTimestamp {
      * @brief Increase milliseconds in physical part
      *
      * @param milliseconds
-     * @return HybirdTimestamp
+     * @return HybridTimestamp
      */
-    HybirdTimestamp&
+    HybridTimestamp&
     operator+=(uint64_t milliseconds);
 
     /**
      * @brief Add duration in physical part
      *
      * @param duration Duration
-     * @return HybirdTimestamp
+     * @return HybridTimestamp
      */
-    template <typename Duration, std::enable_if_t<_is_std_duration<Duration>::value, bool> = true>
-    HybirdTimestamp
+    template <typename Duration, std::enable_if_t<is_std_duration<Duration>::value, bool> = true>
+    HybridTimestamp
     operator+(Duration duration) {
         auto milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(duration).count();
         return *this + milliseconds;
@@ -97,15 +97,15 @@ class HybirdTimestamp {
      * @brief Add milliseconds in physical part
      *
      * @param milliseconds
-     * @return HybirdTimestamp
+     * @return HybridTimestamp
      */
-    HybirdTimestamp
-    operator+(uint64_t milliseconds);
+    HybridTimestamp
+    operator+(uint64_t milliseconds) const;
 
     /**
-     * @brief Create hybird timestamp from unix time
+     * @brief Create hybrid timestamp from unix time
      */
-    static HybirdTimestamp
-    CreateFromUnixtime(uint64_t epoch_in_milliseconds);
+    static HybridTimestamp
+    CreateFromUnixTime(uint64_t epoch_in_milliseconds);
 };
 }  // namespace milvus

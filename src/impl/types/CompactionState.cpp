@@ -16,8 +16,6 @@
 
 #include "milvus/types/CompactionState.h"
 
-#include <string>
-
 namespace milvus {
 
 CompactionState::CompactionState() = default;

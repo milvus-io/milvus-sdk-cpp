@@ -54,7 +54,7 @@ TEST_F(MilvusMockedTest, CreateCredentialError) {
                                            _))
         .WillOnce([](::grpc::ServerContext*, const CreateCredentialRequest* request,
                      ::milvus::proto::common::Status* status) {
-            status->set_error_code(milvus::proto::common::ErrorCode::CreateCredentialFailure);
+            status->set_code(milvus::proto::common::ErrorCode::CreateCredentialFailure);
             return ::grpc::Status{};
         });
     auto status = client_->CreateCredential("username", "password");

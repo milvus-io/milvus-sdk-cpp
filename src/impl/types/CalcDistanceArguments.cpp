@@ -16,8 +16,6 @@
 
 #include "milvus/types/CalcDistanceArguments.h"
 
-#include <algorithm>
-#include <functional>
 #include <set>
 #include <unordered_map>
 

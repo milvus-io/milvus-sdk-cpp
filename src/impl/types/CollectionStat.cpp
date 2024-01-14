@@ -29,7 +29,7 @@ CollectionStat::RowCount() const {
         // TODO: throw exception or log
         return 0;
     }
-    return std::atoll(iter->second.c_str());
+    return std::strtoll(iter->second.c_str(), nullptr, 10);
 }
 
 void

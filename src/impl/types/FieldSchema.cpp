@@ -100,7 +100,7 @@ uint32_t
 FieldSchema::Dimension() const {
     auto iter = type_params_.find(FieldDim());
     if (iter != type_params_.end()) {
-        return std::atol(iter->second.c_str());
+        return std::strtol(iter->second.c_str(), nullptr, 10);
     }
     return 0;
 }
@@ -124,7 +124,7 @@ uint32_t
 FieldSchema::MaxLength() const {
     auto iter = type_params_.find(FieldMaxLength());
     if (iter != type_params_.end()) {
-        return std::atol(iter->second.c_str());
+        return std::strtol(iter->second.c_str(), nullptr, 10);
     }
     return 0;
 }
