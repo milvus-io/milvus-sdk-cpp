@@ -12,9 +12,9 @@ To contribute to this project, please read our [contribution guidelines](https:/
 
 The following collection shows Milvus versions and recommended milvus-cpp-sdk versions:
 
-|Milvus version| Recommended SDK version |
+| Milvus version | Recommended SDK branch |
 |:-----:|:-----:|
-| 2.0.x | 2.0.0 |
+| 2.3.x | main  | 
 
 
 ## Installation
