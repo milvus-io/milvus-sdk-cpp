@@ -423,8 +423,12 @@ MilvusClientImpl::ShowPartitions(const std::string& collection_name, const std::
             partitions_info.reserve(count);
         }
         for (int i = 0; i < count; ++i) {
+            int inmemory_percentage = 0;
+            if (response.inmemory_percentages_size() > i) {
+                inmemory_percentage = response.inmemory_percentages(i);
+            }
             partitions_info.emplace_back(response.partition_names(i), response.partitionids(i),
-                                         response.created_timestamps(i), response.inmemory_percentages(i));
+                                         response.created_timestamps(i), inmemory_percentage);
         }
     };
 

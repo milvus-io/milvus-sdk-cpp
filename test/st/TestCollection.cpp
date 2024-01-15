@@ -56,6 +56,11 @@ TEST_P(MilvusServerTestCollection, CreateAndDeleteCollection) {
     EXPECT_EQ(collection_infos.front().MemoryPercentage(), 0);
     EXPECT_EQ(collection_infos.front().Name(), "Foo");
 
+    // test for https://github.com/milvus-io/milvus-sdk-cpp/issues/246
+    milvus::PartitionsInfo partitionsInfo{};
+    status = client_->ShowPartitions("Foo", std::vector<std::string>{}, partitionsInfo);
+    EXPECT_TRUE(status.IsOk());
+
     names.emplace_back("Foo");
     collection_infos.clear();
     status = client_->LoadCollection("Foo");
