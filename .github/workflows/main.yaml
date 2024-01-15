@@ -50,13 +50,13 @@ jobs:
             image: centos:7
             key: c7
           - distro: Fedora
-            version: 36
-            image: fedora:36
-            key: fc36
+            version: 38
+            image: fedora:38
+            key: fc38
           - distro: Fedora
-            version: 37
-            image: fedora:37
-            key: fc37
+            version: 39
+            image: fedora:39
+            key: fc39
     env:
       CCACHE_DIR: ${{ github.workspace }}/.ccache
       CCACHE_COMPILERCHECK: content

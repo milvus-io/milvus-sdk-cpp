@@ -3,7 +3,12 @@ pull_request_rules:
     conditions:
       - base=master
       - "status-success=Build and test AMD64 Ubuntu 18.04"
+      - "status-success=Build and test AMD64 Ubuntu 22.04"
       - "status-success=Build and test AMD64 CentOS 7"
+      - "status-success=Build and test AMD64 Fedora 38"
+      - "status-success=Build and test AMD64 Fedora 39"
+      - "status-success=Build and test macOS 11"
+      - "status-success=Build and test windows"
     actions:
       label:
         add:
@@ -15,6 +20,13 @@ pull_request_rules:
       - or:
         - "check-failure=Build and test AMD64 Ubuntu 18.04"
         - "check-failure=Build and test AMD64 CentOS 7"
+        - "check-failure=Build and test AMD64 Ubuntu 18.04"
+        - "check-failure=Build and test AMD64 Ubuntu 22.04"
+        - "check-failure=Build and test AMD64 CentOS 7"
+        - "check-failure=Build and test AMD64 Fedora 38"
+        - "check-failure=Build and test AMD64 Fedora 39"
+        - "check-failure=Build and test macOS 11"
+        - "check-failure=Build and test windows"
     actions:
       label:
         remove:
