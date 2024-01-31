@@ -45,7 +45,7 @@ FetchContent_Declare(
 
 
 # grpc
-if ("${MILVUS_WITH_GRPC}" STREQUAL "pakcage")
+if ("${MILVUS_WITH_GRPC}" STREQUAL "package")
     find_package(grpc REQUIRED)
 else ()
     if (WIN32)
