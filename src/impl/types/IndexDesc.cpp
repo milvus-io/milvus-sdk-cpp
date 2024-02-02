@@ -57,6 +57,7 @@ Status
 validate_index_and_metric(const MetricType metric_type, const IndexType index_type) {
     if ((metric_type == milvus::MetricType::IP || metric_type == milvus::MetricType::L2) &&
         (index_type == milvus::IndexType::FLAT || index_type == milvus::IndexType::IVF_FLAT ||
+         index_type == milvus::IndexType::GPU_IVF_FLAT || index_type == milvus::IndexType::GPU_IVF_PQ ||
          index_type == milvus::IndexType::IVF_SQ8 || index_type == milvus::IndexType::IVF_PQ ||
          index_type == milvus::IndexType::HNSW || index_type == milvus::IndexType::IVF_HNSW ||
          index_type == milvus::IndexType::RHNSW_FLAT || index_type == milvus::IndexType::RHNSW_SQ ||
@@ -89,6 +90,12 @@ validate_params(const IndexDesc& data, const std::unordered_map<std::string, int
         Validation{milvus::IndexType::IVF_PQ, "nlist", 1, 65536, true},
         Validation{milvus::IndexType::IVF_PQ, "m", 1, 65536, true},  // TODO: m requires mod(dim) == 0
         Validation{milvus::IndexType::IVF_PQ, "nbits", 1, 16, false},
+
+        Validation{milvus::IndexType::GPU_IVF_FLAT, "nlist", 1, 65536, true},
+        
+        Validation{milvus::IndexType::GPU_IVF_PQ, "nlist", 1, 65536, true},
+        Validation{milvus::IndexType::GPU_IVF_PQ, "m", 1, 65536, true},  // TODO: m requires mod(dim) == 0
+        Validation{milvus::IndexType::GPU_IVF_PQ, "nbits", 1, 16, false},
 
         Validation{milvus::IndexType::HNSW, "M", 4, 64, true},
         Validation{milvus::IndexType::HNSW, "efConstruction", 8, 512, true},

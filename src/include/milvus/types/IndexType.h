@@ -27,6 +27,8 @@ enum class IndexType {
     IVF_FLAT,
     IVF_SQ8,
     IVF_PQ,
+    GPU_IVF_FLAT,
+    GPU_IVF_PQ,
     HNSW,
     IVF_HNSW,
     RHNSW_FLAT,

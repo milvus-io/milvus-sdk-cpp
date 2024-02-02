@@ -188,3 +188,32 @@ TEST_F(MilvusMockedTest, TestCreateIndexFailed) {
     status = client_->CreateIndex(collection_name, index_desc, progress_monitor);
     EXPECT_FALSE(status.IsOk());
 }
+
+TEST_F(MilvusMockedTest, TestCreateGPUIndexInstantly){
+     milvus::ConnectParam connect_param{"127.0.0.1", server_.ListenPort()};
+    client_->Connect(connect_param);
+
+    std::string collection_name = "test_collection";
+    std::string field_name = "test_field";
+    std::string index_name = "test_gpu_index";
+    auto index_type = milvus::IndexType::GPU_IVF_FLAT;
+    auto metric_type = milvus::MetricType::IP;
+    int64_t index_id = 0;
+
+    milvus::IndexDesc index_desc(field_name, "", index_type, metric_type, index_id);
+    index_desc.AddExtraParam("nlist", 1024);
+    const auto progress_monitor = ::milvus::ProgressMonitor::NoWait();
+
+    EXPECT_CALL(service_, Flush(_, AllOf(Property(&FlushRequest::collection_names, ElementsAre(collection_name))), _))
+        .WillOnce([&](::grpc::ServerContext*, const FlushRequest*, FlushResponse*) { return ::grpc::Status{}; });
+
+    EXPECT_CALL(service_, CreateIndex(_,
+                                      AllOf(Property(&CreateIndexRequest::collection_name, collection_name),
+                                            Property(&CreateIndexRequest::field_name, field_name)),
+                                      _))
+        .WillOnce([](::grpc::ServerContext*, const CreateIndexRequest*, ::milvus::proto::common::Status*) {
+            return ::grpc::Status{};
+        });
+    auto status = client_->CreateIndex(collection_name, index_desc, progress_monitor);
+    EXPECT_TRUE(status.IsOk());
+}

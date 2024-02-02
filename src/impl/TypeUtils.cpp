@@ -393,6 +393,12 @@ IndexTypeCast(const std::string& type) {
     if (type == "BIN_IVF_FLAT") {
         return IndexType::BIN_IVF_FLAT;
     }
+    if (type == "GPU_IVF_FLAT"){
+        return IndexType::GPU_IVF_FLAT;
+    }
+    if (type == "GPU_IVF_PQ"){
+        return IndexType::GPU_IVF_PQ;
+    }
     return IndexType::INVALID;
 }
 
@@ -897,6 +903,10 @@ to_string(milvus::IndexType index_type) {
             return "BIN_FLAT";
         case milvus::IndexType::BIN_IVF_FLAT:
             return "BIN_IVF_FLAT";
+        case milvus::IndexType::GPU_IVF_FLAT:
+            return "GPU_IVF_FLAT";
+        case milvus::IndexType::GPU_IVF_PQ:
+            return "GPU_IVF_PQ";
         default:
             return "INVALID";
     }
