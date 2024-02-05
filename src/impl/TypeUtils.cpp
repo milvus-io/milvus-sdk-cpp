@@ -393,10 +393,10 @@ IndexTypeCast(const std::string& type) {
     if (type == "BIN_IVF_FLAT") {
         return IndexType::BIN_IVF_FLAT;
     }
-    if (type == "GPU_IVF_FLAT"){
+    if (type == "GPU_IVF_FLAT") {
         return IndexType::GPU_IVF_FLAT;
     }
-    if (type == "GPU_IVF_PQ"){
+    if (type == "GPU_IVF_PQ") {
         return IndexType::GPU_IVF_PQ;
     }
     return IndexType::INVALID;

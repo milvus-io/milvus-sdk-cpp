@@ -92,7 +92,7 @@ validate_params(const IndexDesc& data, const std::unordered_map<std::string, int
         Validation{milvus::IndexType::IVF_PQ, "nbits", 1, 16, false},
 
         Validation{milvus::IndexType::GPU_IVF_FLAT, "nlist", 1, 65536, true},
-        
+
         Validation{milvus::IndexType::GPU_IVF_PQ, "nlist", 1, 65536, true},
         Validation{milvus::IndexType::GPU_IVF_PQ, "m", 1, 65536, true},  // TODO: m requires mod(dim) == 0
         Validation{milvus::IndexType::GPU_IVF_PQ, "nbits", 1, 16, false},
