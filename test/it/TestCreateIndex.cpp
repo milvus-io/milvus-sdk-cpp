@@ -189,8 +189,8 @@ TEST_F(MilvusMockedTest, TestCreateIndexFailed) {
     EXPECT_FALSE(status.IsOk());
 }
 
-TEST_F(MilvusMockedTest, TestCreateGPUIndexInstantly){
-     milvus::ConnectParam connect_param{"127.0.0.1", server_.ListenPort()};
+TEST_F(MilvusMockedTest, TestCreateGPUIndexInstantly) {
+    milvus::ConnectParam connect_param{"127.0.0.1", server_.ListenPort()};
     client_->Connect(connect_param);
 
     std::string collection_name = "test_collection";
