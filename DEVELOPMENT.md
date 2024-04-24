@@ -29,7 +29,7 @@ $ git clone git@github.com:milvus-io/milvus-sdk-cpp.git
 
 ```shell
 $ cd milvus-sdk-cpp
-$ bash scrips/install_deps.sh
+$ bash scripts/install_deps.sh
 ```
 
 This script could help you set a developing environment from a minimal installation.
