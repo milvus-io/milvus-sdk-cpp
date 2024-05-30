@@ -105,9 +105,9 @@ class DistanceArray {
     SetFloatDistance(std::vector<std::vector<float>>&& distance_array);
 
  private:
-    bool is_int_distance_{false};
     std::vector<std::vector<int32_t>> int_array_;
     std::vector<std::vector<float>> float_array_;
+    bool is_int_distance_{false};
 };
 
 }  // namespace milvus

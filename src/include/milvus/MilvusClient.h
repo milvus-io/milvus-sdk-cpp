@@ -52,6 +52,7 @@ namespace milvus {
  */
 class MilvusClient {
  public:
+     virtual ~MilvusClient() = default;
     /**
      * Create a MilvusClient instance.
      *
