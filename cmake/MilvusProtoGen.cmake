@@ -32,11 +32,11 @@ set(PROTO_BINARY_DIR "${milvus_proto_BINARY_DIR}")
 set(PROTO_IMPORT_DIR "${milvus_proto_SOURCE_DIR}/proto")
 
 # resolve protoc, always use the protoc in the build tree
-set(Protobuf_PROTOC_EXECUTABLE $<TARGET_FILE:protoc>)
+set(Protobuf_PROTOC_EXECUTABLE $<TARGET_FILE:protobuf::protoc>)
 message(STATUS "using protoc: ${Protobuf_PROTOC_EXECUTABLE}")
 
 # resolve grpc_cpp_plugin
-set(GRPC_CPP_PLUGIN $<TARGET_FILE:grpc_cpp_plugin>)
+set(GRPC_CPP_PLUGIN $<TARGET_FILE:gRPC::grpc_cpp_plugin>)
 message(STATUS "using grpc_cpp_plugin: ${GRPC_CPP_PLUGIN}")
 
 

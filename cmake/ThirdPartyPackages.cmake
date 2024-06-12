@@ -45,8 +45,9 @@ FetchContent_Declare(
 
 
 # grpc
-if ("${MILVUS_WITH_GRPC}" STREQUAL "pakcage")
-    find_package(grpc REQUIRED)
+if ("${MILVUS_WITH_GRPC}" STREQUAL "package")
+    find_package(Protobuf REQUIRED)
+    find_package(gRPC REQUIRED)
 else ()
     if (WIN32)
         set(OPENSSL_NO_ASM_TXT "YES")
