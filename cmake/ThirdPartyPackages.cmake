@@ -67,6 +67,7 @@ else ()
         set(ABSL_PROPAGATE_CXX_STD ON CACHE INTERNAL "")
         add_subdirectory(${grpc_SOURCE_DIR} ${grpc_BINARY_DIR} EXCLUDE_FROM_ALL)
         add_library(gRPC::grpc++ ALIAS grpc++)
+        add_executable(gRPC::grpc_cpp_plugin ALIAS grpc_cpp_plugin)
     endif ()
 endif ()
 
