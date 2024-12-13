@@ -19,6 +19,7 @@
 #include <vector>
 
 #include "TypeUtils.h"
+#include "milvus/types/FloatUtils.h"
 
 using milvus::CreateIDArray;
 using milvus::CreateMilvusFieldData;
@@ -265,6 +266,7 @@ TEST_F(TypeUtilsTest, BinaryVecFieldEqualsAndCast) {
                                                           std::vector<uint8_t>{3, 4},
                                                       }};
     auto proto_field_data = CreateProtoFieldData(static_cast<const milvus::Field&>(bins_field_data));
+    EXPECT_EQ(proto_field_data.vectors().dim(), 16);
     auto bins_field_data_ptr = CreateMilvusFieldData(proto_field_data);
     EXPECT_EQ(proto_field_data, bins_field_data);
     EXPECT_EQ(proto_field_data, *bins_field_data_ptr);
@@ -299,16 +301,26 @@ TEST_F(TypeUtilsTest, BinaryVecFieldNotEquals) {
     EXPECT_FALSE(proto_field == bins_field);
 }
 
-TEST_F(TypeUtilsTest, FloatVecFieldEqualsAndCast) {
-    milvus::FloatVecFieldData floats_field_data{"foo", std::vector<std::vector<float>>{
-                                                           std::vector<float>{0.1f, 0.2f},
-                                                           std::vector<float>{0.3f, 0.4f},
-                                                       }};
+template <typename FloatVecFieldT>
+static void
+DoFloatVecFieldEqualsAndCast() {
+    FloatVecFieldT floats_field_data{"foo", std::vector<std::vector<float>>{
+                                                std::vector<float>{0.1f, 0.2f},
+                                                std::vector<float>{0.3f, 0.4f},
+                                            }};
     auto proto_field_data = CreateProtoFieldData(static_cast<const milvus::Field&>(floats_field_data));
     auto floats_field_data_ptr = CreateMilvusFieldData(proto_field_data);
+    EXPECT_EQ(proto_field_data.vectors().dim(), 2);
+    EXPECT_EQ(floats_field_data_ptr->Count(), 2);
     EXPECT_EQ(proto_field_data, floats_field_data);
     EXPECT_EQ(proto_field_data, *floats_field_data_ptr);
     EXPECT_EQ(floats_field_data, *floats_field_data_ptr);
+}
+
+TEST_F(TypeUtilsTest, FloatVecFieldEqualsAndCast) {
+    DoFloatVecFieldEqualsAndCast<milvus::FloatVecFieldData>();
+    DoFloatVecFieldEqualsAndCast<milvus::Float16VecFieldData>();
+    DoFloatVecFieldEqualsAndCast<milvus::BFloat16VecFieldData>();
 }
 
 TEST_F(TypeUtilsTest, FloatVecFieldNotEquals) {
@@ -325,18 +337,61 @@ TEST_F(TypeUtilsTest, FloatVecFieldNotEquals) {
     proto_field.mutable_scalars();
     EXPECT_FALSE(proto_field == floats_field);
 
+    auto* scalars = proto_field.mutable_vectors();
+    EXPECT_FALSE(proto_field == floats_field);
+
+    auto* floats_scalars = scalars->mutable_float_vector();
+    floats_scalars->add_data(0.1f);
+    EXPECT_FALSE(proto_field == floats_field);
+
+    floats_scalars->add_data(0.1f);
+    floats_scalars->add_data(0.1f);
+    floats_scalars->add_data(0.1f);
+    EXPECT_FALSE(proto_field == floats_field);
+}
+
+template <typename FloatT, typename FloatVecFieldT>
+static void
+DoFloat16VecFieldNotEquals() {
+    const std::string field_name = "foo";
+    FloatVecFieldT floats_field{"foo", std::vector<std::vector<FloatT>>{
+                                           std::vector<FloatT>{FloatT(0.1), FloatT(0.2)},
+                                           std::vector<FloatT>{FloatT(0.3), FloatT(0.4)},
+                                       }};
+    milvus::proto::schema::FieldData proto_field;
+    proto_field.set_field_name("_");
+    EXPECT_FALSE(proto_field == floats_field);
+
+    proto_field.set_field_name(field_name);
+    proto_field.mutable_scalars();
+    EXPECT_FALSE(proto_field == floats_field);
+
     auto scalars = proto_field.mutable_vectors();
-    scalars->mutable_binary_vector();
     EXPECT_FALSE(proto_field == floats_field);
 
-    auto floats_scalars = scalars->mutable_float_vector();
-    floats_scalars->add_data(0.1f);
+    std::string* floats_scalars = nullptr;
+    if constexpr (std::is_same_v<FloatVecFieldT, milvus::Float16VecFieldData>) {
+        floats_scalars = scalars->mutable_float16_vector();
+    } else {
+        floats_scalars = scalars->mutable_bfloat16_vector();
+    }
+    floats_scalars->push_back('a');
     EXPECT_FALSE(proto_field == floats_field);
 
-    floats_scalars->add_data(0.1f);
-    floats_scalars->add_data(0.1f);
-    floats_scalars->add_data(0.1f);
+    floats_scalars->push_back('a');
+    floats_scalars->push_back('a');
+    floats_scalars->push_back('a');
     EXPECT_FALSE(proto_field == floats_field);
+}
+
+TEST_F(TypeUtilsTest, Float16VecFieldNotEquals) {
+    DoFloat16VecFieldNotEquals<float, milvus::Float16VecFieldData>();
+    DoFloat16VecFieldNotEquals<double, milvus::Float16VecFieldData>();
+    DoFloat16VecFieldNotEquals<Eigen::half, milvus::Float16VecFieldData>();
+
+    DoFloat16VecFieldNotEquals<float, milvus::BFloat16VecFieldData>();
+    DoFloat16VecFieldNotEquals<double, milvus::BFloat16VecFieldData>();
+    DoFloat16VecFieldNotEquals<Eigen::bfloat16, milvus::BFloat16VecFieldData>();
 }
 
 TEST_F(TypeUtilsTest, IDArray) {
@@ -418,19 +473,53 @@ TEST_F(TypeUtilsTest, CreateMilvusFieldDataWithRange) {
         CreateMilvusFieldData(CreateProtoFieldData(static_cast<const milvus::Field&>(string_field_data)), 1, 2));
     EXPECT_THAT(string_field_data_ptr->Data(), ElementsAre("b", "c"));
 
-    milvus::BinaryVecFieldData bins_field_data{"foo",
-                                               std::vector<std::vector<uint8_t>>{{1, 2, 3}, {4, 5, 6}, {7, 8, 9}}};
-    const auto bins_field_data_ptr = std::dynamic_pointer_cast<const milvus::BinaryVecFieldData>(
-        CreateMilvusFieldData(CreateProtoFieldData(static_cast<const milvus::Field&>(bins_field_data)), 1, 2));
-    EXPECT_THAT(bins_field_data_ptr->DataAsUnsignedChars(),
-                ElementsAre(std::vector<uint8_t>{4, 5, 6}, std::vector<uint8_t>{7, 8, 9}));
+    {
+        milvus::BinaryVecFieldData bins_field_data{"foo",
+                                                   std::vector<std::vector<uint8_t>>{{1, 2, 3}, {4, 5, 6}, {7, 8, 9}}};
+        const auto bins_field_data_ptr = std::dynamic_pointer_cast<const milvus::BinaryVecFieldData>(
+            CreateMilvusFieldData(CreateProtoFieldData(static_cast<const milvus::Field&>(bins_field_data)), 1, 2));
+        EXPECT_THAT(bins_field_data_ptr->DataAsUnsignedChars(),
+                    ElementsAre(std::vector<uint8_t>{4, 5, 6}, std::vector<uint8_t>{7, 8, 9}));
+    }
 
-    milvus::FloatVecFieldData floats_field_data{
-        "foo", std::vector<std::vector<float>>{{0.1f, 0.2f, 0.3f}, {0.4f, 0.5f, 0.6f}, {0.7f, 0.8f, 0.9f}}};
-    const auto floats_field_data_ptr = std::dynamic_pointer_cast<const milvus::FloatVecFieldData>(
-        CreateMilvusFieldData(CreateProtoFieldData(static_cast<const milvus::Field&>(floats_field_data)), 1, 2));
-    EXPECT_THAT(floats_field_data_ptr->Data(),
-                ElementsAre(std::vector<float>{0.4f, 0.5f, 0.6f}, std::vector<float>{0.7f, 0.8f, 0.9f}));
+    {
+        milvus::FloatVecFieldData floats_field_data{
+            "foo", std::vector<std::vector<float>>{{0.1f, 0.2f, 0.3f}, {0.4f, 0.5f, 0.6f}, {0.7f, 0.8f, 0.9f}}};
+        const auto floats_field_data_ptr = std::dynamic_pointer_cast<const milvus::FloatVecFieldData>(
+            CreateMilvusFieldData(CreateProtoFieldData(static_cast<const milvus::Field&>(floats_field_data)), 1, 2));
+        EXPECT_THAT(floats_field_data_ptr->Data(),
+                    ElementsAre(std::vector<float>{0.4f, 0.5f, 0.6f}, std::vector<float>{0.7f, 0.8f, 0.9f}));
+    }
+
+    {
+        milvus::Float16VecFieldData float16s_field_data{
+            "foo", std::vector<std::vector<float>>{{0.1f, 0.2f, 0.3f}, {0.4f, 0.5f, 0.6f}, {0.7f, 0.8f, 0.9f}}};
+        const auto float16s_field_data_ptr = std::dynamic_pointer_cast<const milvus::Float16VecFieldData>(
+            CreateMilvusFieldData(CreateProtoFieldData(static_cast<const milvus::Field&>(float16s_field_data)), 1, 2));
+
+        std::string fp16_vec1 =
+            milvus::FloatNumVecToFloat16NumVecBytes<float, Eigen::half>(std::vector<float>{0.4f, 0.5f, 0.6f});
+        std::string fp16_vec2 =
+            milvus::FloatNumVecToFloat16NumVecBytes<float, Eigen::half>(std::vector<float>{0.7f, 0.8f, 0.9f});
+        EXPECT_THAT(float16s_field_data_ptr->DataAsUnsignedChars(),
+                    ElementsAre(std::vector<uint8_t>(fp16_vec1.begin(), fp16_vec1.end()),
+                                std::vector<uint8_t>(fp16_vec2.begin(), fp16_vec2.end())));
+    }
+
+    {
+        milvus::BFloat16VecFieldData bfloat16s_field_data{
+            "foo", std::vector<std::vector<float>>{{0.1f, 0.2f, 0.3f}, {0.4f, 0.5f, 0.6f}, {0.7f, 0.8f, 0.9f}}};
+        const auto bfloat16s_field_data_ptr = std::dynamic_pointer_cast<const milvus::BFloat16VecFieldData>(
+            CreateMilvusFieldData(CreateProtoFieldData(static_cast<const milvus::Field&>(bfloat16s_field_data)), 1, 2));
+
+        std::string bf16_vec1 =
+            milvus::FloatNumVecToFloat16NumVecBytes<float, Eigen::bfloat16>(std::vector<float>{0.4f, 0.5f, 0.6f});
+        std::string bf16_vec2 =
+            milvus::FloatNumVecToFloat16NumVecBytes<float, Eigen::bfloat16>(std::vector<float>{0.7f, 0.8f, 0.9f});
+        EXPECT_THAT(bfloat16s_field_data_ptr->DataAsUnsignedChars(),
+                    ElementsAre(std::vector<uint8_t>(bf16_vec1.begin(), bf16_vec1.end()),
+                                std::vector<uint8_t>(bf16_vec2.begin(), bf16_vec2.end())));
+    }
 }
 
 TEST_F(TypeUtilsTest, MetricTypeCastTest) {
@@ -459,7 +548,9 @@ TEST_F(TypeUtilsTest, DataTypeCast) {
         {milvus::DataType::DOUBLE, milvus::proto::schema::DataType::Double},
         {milvus::DataType::VARCHAR, milvus::proto::schema::DataType::VarChar},
         {milvus::DataType::FLOAT_VECTOR, milvus::proto::schema::DataType::FloatVector},
-        {milvus::DataType::BINARY_VECTOR, milvus::proto::schema::DataType::BinaryVector}};
+        {milvus::DataType::BINARY_VECTOR, milvus::proto::schema::DataType::BinaryVector},
+        {milvus::DataType::FLOAT16_VECTOR, milvus::proto::schema::DataType::Float16Vector},
+        {milvus::DataType::BFLOAT16_VECTOR, milvus::proto::schema::DataType::BFloat16Vector}};
 
     for (auto& pair : data_types) {
         auto dt = milvus::DataTypeCast(milvus::DataType(pair.first));

@@ -48,6 +48,18 @@ class CalcDistanceArguments {
     SetLeftVectors(BinaryVecFieldDataPtr vectors);
 
     /**
+     * @brief Set the float16 vectors on the left of operator, without field name.
+     */
+    Status
+    SetLeftVectors(Float16VecFieldDataPtr vectors);
+
+    /**
+     * @brief Set the bfloat16 vectors on the left of operator, without field name.
+     */
+    Status
+    SetLeftVectors(BFloat16VecFieldDataPtr vectors);
+
+    /**
      * @brief Set id array of the vectors on the left of operator, must specify field name and collection name.
      * Partition names is optinal, to narrow down the query scope.
      */
@@ -79,6 +91,18 @@ class CalcDistanceArguments {
      */
     Status
     SetRightVectors(BinaryVecFieldDataPtr vectors);
+
+    /**
+     * @brief Set the float16 vectors on the right of operator, without field name.
+     */
+    Status
+    SetRightVectors(Float16VecFieldDataPtr vectors);
+
+    /**
+     * @brief Set the bfloat16 vectors on the right of operator, without field name.
+     */
+    Status
+    SetRightVectors(BFloat16VecFieldDataPtr vectors);
 
     /**
      * @brief Set id array of the vectors on the right of operator, must specify field name and collection name.

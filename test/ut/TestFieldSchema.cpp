@@ -53,8 +53,16 @@ TEST_F(FieldSchemaTest, GeneralTesting) {
     EXPECT_EQ("256", type_params.at(milvus::FieldDim()));
 }
 
-TEST_F(FieldSchemaTest, TestWithDimention) {
+TEST_F(FieldSchemaTest, TestWithDimension) {
     EXPECT_EQ("1024", milvus::FieldSchema("vectors", milvus::DataType::FLOAT_VECTOR, "")
+                          .WithDimension(1024)
+                          .TypeParams()
+                          .at(milvus::FieldDim()));
+    EXPECT_EQ("1024", milvus::FieldSchema("vectors", milvus::DataType::FLOAT16_VECTOR, "")
+                          .WithDimension(1024)
+                          .TypeParams()
+                          .at(milvus::FieldDim()));
+    EXPECT_EQ("1024", milvus::FieldSchema("vectors", milvus::DataType::BFLOAT16_VECTOR, "")
                           .WithDimension(1024)
                           .TypeParams()
                           .at(milvus::FieldDim()));

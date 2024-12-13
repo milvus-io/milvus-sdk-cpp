@@ -87,34 +87,18 @@ class SearchArguments {
     TargetVectors() const;
 
     /**
-     * @brief Add a binary vector to search
+     * @brief Add a vector to search
      */
+    template <class VecFieldDataT, class ElementT>
     Status
-    AddTargetVector(std::string field_name, const std::string& vector);
+    AddTargetVector(std::string field_name, const ElementT& vector);
 
     /**
-     * @brief Add a binary vector to search with uint8_t vectors
+     * @brief Add a vector to search
      */
+    template <class VecFieldDataT>
     Status
-    AddTargetVector(std::string field_name, const std::vector<uint8_t>& vector);
-
-    /**
-     * @brief Add a binary vector to search
-     */
-    Status
-    AddTargetVector(std::string field_name, std::string&& vector);
-
-    /**
-     * @brief Add a float vector to search
-     */
-    Status
-    AddTargetVector(std::string field_name, const FloatVecFieldData::ElementT& vector);
-
-    /**
-     * @brief Add a float vector to search
-     */
-    Status
-    AddTargetVector(std::string field_name, FloatVecFieldData::ElementT&& vector);
+    AddTargetVector(std::string field_name, typename VecFieldDataT::ElementT&& vector);
 
     /**
      * @brief Get travel timestamp.
@@ -249,13 +233,15 @@ class SearchArguments {
     RangeSearch() const;
 
  private:
+    template <typename VecFieldDataT, typename T>
+    Status
+    DoAddTargetVector(std::string field_name, const T& vector);
+
     std::string collection_name_;
     std::set<std::string> partition_names_;
     std::set<std::string> output_field_names_;
     std::string filter_expression_;
-
-    BinaryVecFieldDataPtr binary_vectors_;
-    FloatVecFieldDataPtr float_vectors_;
+    FieldDataPtr field_data_;
 
     std::set<std::string> output_fields_;
     std::unordered_map<std::string, int64_t> extra_params_;
@@ -271,5 +257,38 @@ class SearchArguments {
     bool range_search_{false};
     ::milvus::MetricType metric_type_{::milvus::MetricType::L2};
 };
+
+#define TemplateAddTargetVectorDeclaration(E, VecFieldDataT)                                                           \
+    E template Status SearchArguments::AddTargetVector<VecFieldDataT>(std::string field_name,                          \
+                                                                      const typename VecFieldDataT::ElementT& vector); \
+    E template Status SearchArguments::AddTargetVector<VecFieldDataT>(std::string field_name,                          \
+                                                                      typename VecFieldDataT::ElementT && vector);
+
+TemplateAddTargetVectorDeclaration(extern, FloatVecFieldData);
+TemplateAddTargetVectorDeclaration(extern, BinaryVecFieldData);
+TemplateAddTargetVectorDeclaration(extern, Float16VecFieldData);
+TemplateAddTargetVectorDeclaration(extern, BFloat16VecFieldData);
+
+extern template Status
+SearchArguments::AddTargetVector<BinaryVecFieldData>(std::string field_name, const std::vector<uint8_t>& vector);
+
+extern template Status
+SearchArguments::AddTargetVector<Float16VecFieldData>(std::string field_name, const std::vector<Eigen::half>& vector);
+extern template Status
+SearchArguments::AddTargetVector<Float16VecFieldData>(std::string field_name, const std::vector<float>& vector);
+extern template Status
+SearchArguments::AddTargetVector<Float16VecFieldData>(std::string field_name, const std::vector<double>& vector);
+extern template Status
+SearchArguments::AddTargetVector<Float16VecFieldData>(std::string field_name, const std::vector<uint8_t>& vector);
+
+extern template Status
+SearchArguments::AddTargetVector<BFloat16VecFieldData>(std::string field_name,
+                                                       const std::vector<Eigen::bfloat16>& vector);
+extern template Status
+SearchArguments::AddTargetVector<BFloat16VecFieldData>(std::string field_name, const std::vector<float>& vector);
+extern template Status
+SearchArguments::AddTargetVector<BFloat16VecFieldData>(std::string field_name, const std::vector<double>& vector);
+extern template Status
+SearchArguments::AddTargetVector<BFloat16VecFieldData>(std::string field_name, const std::vector<uint8_t>& vector);
 
 }  // namespace milvus

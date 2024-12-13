@@ -19,7 +19,7 @@ project(milvus_sdk LANGUAGES CXX)
 
 set(CMAKE_VERBOSE_MAKEFILE OFF)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
-set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
@@ -65,13 +65,9 @@ define_option_string(MILVUS_WITH_GRPC           "Using gRPC from"       "module"
 define_option_string(MILVUS_WITH_ZLIB           "Using Zlib from"       "module" "package" "module")
 define_option_string(MILVUS_WITH_NLOHMANN_JSON  "nlohmann json from"    "module" "package" "module")
 define_option_string(MILVUS_WITH_GTEST          "Using GTest from"      "module" "package" "module")
+define_option_string(MILVUS_WITH_EIGEN          "Using Eigen from"      "module" "package" "module")
 
-
-set(CMAKE_CXX_STANDARD 14)
-set(CMAKE_CXX_STANDARD_REQUIRED on)
 set(BUILD_SCRIPTS_DIR ${PROJECT_SOURCE_DIR}/scripts)
-set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
-
 
 # load third packages and milvus-proto
 include(ThirdPartyPackages)

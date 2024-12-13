@@ -17,14 +17,18 @@
 #pragma once
 
 #include <memory>
+#include <string>
 #include <vector>
 
 #include "../Status.h"
 #include "DataType.h"
+#include "Eigen/Core"
 
 namespace milvus {
 class Field {
  public:
+    virtual ~Field() = default;
+
     /**
      * @brief Get field name
      */
@@ -123,49 +127,37 @@ class FieldData : public Field {
     virtual std::vector<T>&
     Data();
 
- private:
-    friend class BinaryVecFieldData;
+ protected:
     std::vector<T> data_;
 };
 
-class BinaryVecFieldData : public FieldData<std::string, DataType::BINARY_VECTOR> {
+template <DataType Dt>
+class BinaryVecFieldDataImpl : public FieldData<std::string, Dt> {
  public:
     /**
      * @brief Constructor
      */
-    BinaryVecFieldData();
+    BinaryVecFieldDataImpl();
 
     /**
      * @brief Constructor
      */
-    explicit BinaryVecFieldData(std::string name);
+    explicit BinaryVecFieldDataImpl(std::string name);
 
     /**
      * @brief Constructor
      */
-    BinaryVecFieldData(std::string name, const std::vector<std::string>& data);
+    BinaryVecFieldDataImpl(std::string name, const std::vector<std::string>& data);
 
     /**
      * @brief Constructor
      */
-    BinaryVecFieldData(std::string name, std::vector<std::string>&& data);
+    BinaryVecFieldDataImpl(std::string name, std::vector<std::string>&& data);
 
     /**
      * @brief Constructor
      */
-    BinaryVecFieldData(std::string name, const std::vector<std::vector<uint8_t>>& data);
-
-    /**
-     * @brief Field elements array
-     */
-    const std::vector<std::string>&
-    Data() const override;
-
-    /**
-     * @brief Field elements array
-     */
-    std::vector<std::string>&
-    Data() override;
+    BinaryVecFieldDataImpl(std::string name, const std::vector<std::vector<uint8_t>>& data);
 
     /**
      * @brief Data export as uint8_t's vector
@@ -197,12 +189,67 @@ class BinaryVecFieldData : public FieldData<std::string, DataType::BINARY_VECTOR
      */
     static std::vector<std::string>
     CreateBinaryStrings(const std::vector<std::vector<uint8_t>>& data);
+};
+
+template <typename Fp16T, DataType Dt>
+class Fp16VecFieldData : public BinaryVecFieldDataImpl<Dt> {
+ public:
+    /**
+     * @brief Constructor
+     */
+    Fp16VecFieldData() : BinaryVecFieldDataImpl<Dt>() {
+    }
 
     /**
-     * @brief Create binary vector string from uint8_t vector
+     * @brief Constructor
      */
-    static std::string
-    CreateBinaryString(const std::vector<uint8_t>& data);
+    explicit Fp16VecFieldData(std::string name) : BinaryVecFieldDataImpl<Dt>(std::move(name)) {
+    }
+
+    Fp16VecFieldData(std::string name, const std::vector<std::string>& data)
+        : BinaryVecFieldDataImpl<Dt>(std::move(name), data) {
+    }
+
+    Fp16VecFieldData(std::string name, std::vector<std::string>&& data)
+        : BinaryVecFieldDataImpl<Dt>(std::move(name), std::move(data)) {
+    }
+
+    Fp16VecFieldData(std::string name, const std::vector<std::vector<uint8_t>>& data)
+        : BinaryVecFieldDataImpl<Dt>(std::move(name), data) {
+    }
+
+    /**
+     * @brief Constructor
+     */
+    Fp16VecFieldData(std::string name, const std::vector<std::vector<Fp16T>>& data);
+
+    Fp16VecFieldData(std::string name, const std::vector<std::vector<float>>& data);
+
+    Fp16VecFieldData(std::string name, const std::vector<std::vector<double>>& data);
+
+    Fp16VecFieldData(std::string name, std::vector<std::vector<Fp16T>>&& data);
+
+    /**
+     * @brief Data export as T vector
+     */
+    template <typename T>
+    std::vector<std::vector<T>>
+    DataAsFloats() const;
+
+    template <typename FloatT>
+    static std::vector<std::string>
+    CreateBinaryStringsFromFloats(const std::vector<std::vector<FloatT>>& data);
+
+    using BinaryVecFieldDataImpl<Dt>::Add;
+
+    StatusCode
+    Add(const std::vector<Fp16T>& element);
+
+    StatusCode
+    Add(const std::vector<float>& element);
+
+    StatusCode
+    Add(const std::vector<double>& element);
 };
 
 /**
@@ -232,6 +279,9 @@ using FloatFieldData = FieldData<float, DataType::FLOAT>;
 using DoubleFieldData = FieldData<double, DataType::DOUBLE>;
 using VarCharFieldData = FieldData<std::string, DataType::VARCHAR>;
 using FloatVecFieldData = FieldData<std::vector<float>, DataType::FLOAT_VECTOR>;
+using BinaryVecFieldData = BinaryVecFieldDataImpl<DataType::BINARY_VECTOR>;
+using Float16VecFieldData = Fp16VecFieldData<Eigen::half, DataType::FLOAT16_VECTOR>;
+using BFloat16VecFieldData = Fp16VecFieldData<Eigen::bfloat16, DataType::BFLOAT16_VECTOR>;
 
 using BoolFieldDataPtr = std::shared_ptr<BoolFieldData>;
 using Int8FieldDataPtr = std::shared_ptr<Int8FieldData>;
@@ -243,6 +293,8 @@ using DoubleFieldDataPtr = std::shared_ptr<DoubleFieldData>;
 using VarCharFieldDataPtr = std::shared_ptr<VarCharFieldData>;
 using BinaryVecFieldDataPtr = std::shared_ptr<BinaryVecFieldData>;
 using FloatVecFieldDataPtr = std::shared_ptr<FloatVecFieldData>;
+using Float16VecFieldDataPtr = std::shared_ptr<Float16VecFieldData>;
+using BFloat16VecFieldDataPtr = std::shared_ptr<BFloat16VecFieldData>;
 
 extern template class FieldData<bool, DataType::BOOL>;
 extern template class FieldData<int8_t, DataType::INT8>;
@@ -254,5 +306,24 @@ extern template class FieldData<double, DataType::DOUBLE>;
 extern template class FieldData<std::string, DataType::VARCHAR>;
 extern template class FieldData<std::string, DataType::BINARY_VECTOR>;
 extern template class FieldData<std::vector<float>, DataType::FLOAT_VECTOR>;
+extern template class FieldData<std::string, DataType::BINARY_VECTOR>;
+extern template class BinaryVecFieldDataImpl<DataType::BINARY_VECTOR>;
+extern template class BinaryVecFieldDataImpl<DataType::FLOAT16_VECTOR>;
+extern template class BinaryVecFieldDataImpl<DataType::BFLOAT16_VECTOR>;
+extern template class Fp16VecFieldData<Eigen::bfloat16, DataType::BFLOAT16_VECTOR>;
+extern template class Fp16VecFieldData<Eigen::half, DataType::FLOAT16_VECTOR>;
 
+extern template std::vector<std::vector<float>>
+Fp16VecFieldData<Eigen::half, DataType::FLOAT16_VECTOR>::DataAsFloats() const;
+extern template std::vector<std::vector<double>>
+Fp16VecFieldData<Eigen::half, DataType::FLOAT16_VECTOR>::DataAsFloats() const;
+extern template std::vector<std::vector<Eigen::half>>
+Fp16VecFieldData<Eigen::half, DataType::FLOAT16_VECTOR>::DataAsFloats() const;
+
+extern template std::vector<std::vector<float>>
+Fp16VecFieldData<Eigen::bfloat16, DataType::BFLOAT16_VECTOR>::DataAsFloats() const;
+extern template std::vector<std::vector<double>>
+Fp16VecFieldData<Eigen::bfloat16, DataType::BFLOAT16_VECTOR>::DataAsFloats() const;
+extern template std::vector<std::vector<Eigen::bfloat16>>
+Fp16VecFieldData<Eigen::bfloat16, DataType::BFLOAT16_VECTOR>::DataAsFloats() const;
 }  // namespace milvus

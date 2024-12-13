@@ -67,10 +67,18 @@ auto floats_field_ptr = std::make_shared<::milvus::FloatVecFieldData>(
     "floats",
     std::vector<std::vector<float>>{
         {0.1f, 0.2f, 0.3f, 0.4f}, {0.1f, 0.2f, 0.3f, 0.4f}, {0.1f, 0.2f, 0.3f, 0.4f}, {0.1f, 0.2f, 0.3f, 0.4f}});
+auto float16s_field_ptr = std::make_shared<::milvus::Float16VecFieldData>(
+    "float16s",
+    std::vector<std::vector<float>>{
+        {0.1f, 0.2f, 0.3f, 0.4f}, {0.1f, 0.2f, 0.3f, 0.4f}, {0.1f, 0.2f, 0.3f, 0.4f}, {0.1f, 0.2f, 0.3f, 0.4f}});
+auto bfloat16_field_ptr = std::make_shared<::milvus::BFloat16VecFieldData>(
+    "bfloat16s",
+    std::vector<std::vector<float>>{
+        {0.1f, 0.2f, 0.3f, 0.4f}, {0.1f, 0.2f, 0.3f, 0.4f}, {0.1f, 0.2f, 0.3f, 0.4f}, {0.1f, 0.2f, 0.3f, 0.4f}});
 
-std::vector<FieldDataPtr> fields{bool_field_ptr,  int8_field_ptr,  int16_field_ptr,  int32_field_ptr,
-                                 int64_field_ptr, float_field_ptr, double_field_ptr, string_field_ptr,
-                                 bins_field_ptr,  floats_field_ptr};
+std::vector<FieldDataPtr> fields{bool_field_ptr,  int8_field_ptr,   int16_field_ptr,    int32_field_ptr,
+                                 int64_field_ptr, float_field_ptr,  double_field_ptr,   string_field_ptr,
+                                 bins_field_ptr,  floats_field_ptr, float16s_field_ptr, bfloat16_field_ptr};
 }  // namespace
 
 TEST_F(MilvusMockedTest, InsertFoo) {
@@ -79,17 +87,18 @@ TEST_F(MilvusMockedTest, InsertFoo) {
 
     std::vector<int64_t> ret_ids{1000, 10001, 1002, 1003};
 
-    EXPECT_CALL(service_,
-                Insert(_,
-                       AllOf(Property(&InsertRequest::collection_name, collection),
-                             Property(&InsertRequest::partition_name, partition),
-                             Property(&InsertRequest::num_rows, num_of_rows),
-                             Property(&InsertRequest::fields_data_size, fields.size()),
-                             Property(&InsertRequest::fields_data,
-                                      ElementsAre(*bool_field_ptr, *int8_field_ptr, *int16_field_ptr, *int32_field_ptr,
-                                                  *int64_field_ptr, *float_field_ptr, *double_field_ptr,
-                                                  *string_field_ptr, *bins_field_ptr, *floats_field_ptr))),
-                       _))
+    EXPECT_CALL(
+        service_,
+        Insert(
+            _,
+            AllOf(Property(&InsertRequest::collection_name, collection),
+                  Property(&InsertRequest::partition_name, partition), Property(&InsertRequest::num_rows, num_of_rows),
+                  Property(&InsertRequest::fields_data_size, fields.size()),
+                  Property(&InsertRequest::fields_data,
+                           ElementsAre(*bool_field_ptr, *int8_field_ptr, *int16_field_ptr, *int32_field_ptr,
+                                       *int64_field_ptr, *float_field_ptr, *double_field_ptr, *string_field_ptr,
+                                       *bins_field_ptr, *floats_field_ptr, *float16s_field_ptr, *bfloat16_field_ptr))),
+            _))
         .WillOnce([&ret_ids](::grpc::ServerContext*, const InsertRequest* request, MutationResult* response) {
             // ret
             for (const auto ret_id : ret_ids) {

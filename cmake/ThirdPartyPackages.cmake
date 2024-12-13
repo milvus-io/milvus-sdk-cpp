@@ -27,6 +27,7 @@ FetchContent_Declare(
     grpc
     GIT_REPOSITORY    https://github.com/grpc/grpc.git
     GIT_TAG           v${GRPC_VERSION}
+    GIT_SHALLOW       TRUE
 )
 
 # nlohmann_json
@@ -34,6 +35,7 @@ FetchContent_Declare(
     nlohmann_json
     GIT_REPOSITORY    https://github.com/nlohmann/json.git
     GIT_TAG           v${NLOHMANN_JSON_VERSION}
+    GIT_SHALLOW       TRUE
 )
 
 # googletest
@@ -41,8 +43,15 @@ FetchContent_Declare(
     googletest
     GIT_REPOSITORY    https://github.com/google/googletest.git
     GIT_TAG           release-${GOOGLETEST_VERSION}
+    GIT_SHALLOW       TRUE
 )
 
+FetchContent_Declare(
+    eigen3
+    GIT_REPOSITORY    https://gitlab.com/libeigen/eigen.git
+    GIT_TAG           3.4.0
+    GIT_SHALLOW       TRUE
+)
 
 # grpc
 if ("${MILVUS_WITH_GRPC}" STREQUAL "pakcage")
@@ -77,5 +86,16 @@ else ()
     if (NOT nlohmann_json_POPULATED)
         FetchContent_Populate(nlohmann_json)
         add_subdirectory(${nlohmann_json_SOURCE_DIR} ${nlohmann_json_BINARY_DIR} EXCLUDE_FROM_ALL)
+    endif ()
+endif ()
+
+# eigen3
+if ("${MILVUS_WITH_EIGEN}" STREQUAL "package")
+    find_package(Eigen3 REQUIRED NO_MODULE)
+else ()
+    if (NOT eigen3_POPULATED)
+        FetchContent_Populate(eigen3)
+        set(BUILD_TESTING OFF CACHE INTERNAL "")
+        add_subdirectory(${eigen3_SOURCE_DIR} ${eigen3_BINARY_DIR} EXCLUDE_FROM_ALL)
     endif ()
 endif ()
