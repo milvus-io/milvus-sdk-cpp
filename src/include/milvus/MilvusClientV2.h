@@ -357,6 +357,9 @@ class MilvusClientV2 {
     virtual Status
     DropIndex(const std::string& collection_name, const std::string& field_name) = 0;
 
+    virtual Status
+    ListIndexes(const std::string& collection_name, std::vector<std::string>& results, std::vector<std::string> field_names = {}) = 0;
+
     /**
      * Insert entities into a collection.
      *

@@ -616,6 +616,30 @@ MilvusClientImplV2::DropIndex(const std::string& collection_name, const std::str
 }
 
 Status
+MilvusClientImplV2::ListIndexes(const std::string& collection_name, std::vector<std::string>& results, std::vector<std::string> field_names) {
+    auto pre = [&collection_name]() {
+        proto::milvus::DescribeIndexRequest rpc_request;
+        rpc_request.set_collection_name(collection_name);
+        return rpc_request;
+    };
+
+    auto post = [&results, field_names](const proto::milvus::DescribeIndexResponse& response) {
+        auto count = response.index_descriptions_size();
+        for (int i = 0; i < count; ++i) {
+            auto& field_name = response.index_descriptions(i).field_name();
+            auto& index_name = response.index_descriptions(i).index_name();
+            if (field_names.empty() || std::find(field_names.begin(), field_names.end(), field_name) != field_names.end()) {
+                results.push_back(field_name);
+            }
+        }
+    };
+
+    return apiHandler<proto::milvus::DescribeIndexRequest, proto::milvus::DescribeIndexResponse>(
+        pre, &MilvusConnection::DescribeIndex, post);
+}
+
+
+Status
 MilvusClientImplV2::Insert(const std::string& collection_name, const std::string& partition_name,
                          const std::vector<FieldDataPtr>& fields, DmlResults& results) {
     // TODO(matrixji): add common validations check for fields

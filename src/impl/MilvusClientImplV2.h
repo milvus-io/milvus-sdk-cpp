@@ -120,6 +120,9 @@ class MilvusClientImplV2 : public MilvusClientV2 {
     DropIndex(const std::string& collection_name, const std::string& field_name) final;
 
     Status
+    ListIndexes(const std::string& collection_name, std::vector<std::string>& results, std::vector<std::string> field_names) final;
+
+    Status
     Insert(const std::string& collection_name, const std::string& partition_name,
            const std::vector<FieldDataPtr>& fields, DmlResults& results) final;
 
