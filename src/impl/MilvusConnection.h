@@ -169,6 +169,10 @@ class MilvusConnection {
            const GrpcContextOptions& options);
 
     Status
+    Upsert(const proto::milvus::UpsertRequest& request, proto::milvus::MutationResult& response,
+           const GrpcContextOptions& options);
+
+    Status
     Delete(const proto::milvus::DeleteRequest& request, proto::milvus::MutationResult& response,
            const GrpcContextOptions& options);
 

@@ -264,6 +264,12 @@ MilvusConnection::Insert(const proto::milvus::InsertRequest& request, proto::mil
 }
 
 Status
+MilvusConnection::Upsert(const proto::milvus::UpsertRequest& request, proto::milvus::MutationResult& response,
+                         const GrpcContextOptions& options) {
+    return grpcCall("Upsert", &Stub::Upsert, request, response, options);
+}
+
+Status
 MilvusConnection::Delete(const proto::milvus::DeleteRequest& request, proto::milvus::MutationResult& response,
                          const GrpcContextOptions& options) {
     return grpcCall("Delete", &Stub::Delete, request, response, options);

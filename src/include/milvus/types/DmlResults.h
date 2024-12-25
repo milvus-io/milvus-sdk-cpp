@@ -24,7 +24,7 @@
 namespace milvus {
 
 /**
- * @brief Result returned by MilvusClient::Insert() and MilvusClient::Delete()
+ * @brief Result returned by MilvusClientV2::Insert(), MilvusClientV2::Upsert() and MilvusClientV2::Delete()
  */
 class DmlResults {
  public:

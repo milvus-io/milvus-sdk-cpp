@@ -133,6 +133,10 @@ class MilvusClientImplV2 : public MilvusClientV2 {
            const std::vector<FieldDataPtr>& fields, DmlResults& results) final;
 
     Status
+    Upsert(const std::string& collection_name, const std::string& partition_name,
+           const std::vector<FieldDataPtr>& fields, DmlResults& results) final;
+    
+    Status
     Delete(const std::string& collection_name, const std::string& partition_name, const std::string& expression,
            DmlResults& results) final;
 

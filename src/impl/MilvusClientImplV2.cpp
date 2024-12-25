@@ -707,6 +707,32 @@ MilvusClientImplV2::Insert(const std::string& collection_name, const std::string
 }
 
 Status
+MilvusClientImplV2::Upsert(const std::string& collection_name, const std::string& partition_name,
+                           const std::vector<FieldDataPtr>& fields, DmlResults& results) {
+    auto pre = [&collection_name, &partition_name, &fields]() {
+        proto::milvus::UpsertRequest rpc_request;
+
+        auto* mutable_fields = rpc_request.mutable_fields_data();
+        rpc_request.set_collection_name(collection_name);
+        rpc_request.set_partition_name(partition_name);
+        rpc_request.set_num_rows((*fields.front()).Count());
+        for (const auto& field : fields) {
+            mutable_fields->Add(std::move(CreateProtoFieldData(*field)));
+        }
+        return rpc_request;
+    };
+
+    auto post = [&results](const proto::milvus::MutationResult& response) {
+        auto id_array = CreateIDArray(response.ids());
+        results.SetIdArray(std::move(id_array));
+        results.SetTimestamp(response.timestamp());
+    };
+
+    return apiHandler<proto::milvus::UpsertRequest, proto::milvus::MutationResult>(pre, &MilvusConnection::Upsert,
+                                                                                   post);
+}
+
+Status
 MilvusClientImplV2::Delete(const std::string& collection_name, const std::string& partition_name,
                          const std::string& expression, DmlResults& results) {
     auto pre = [&collection_name, &partition_name, &expression]() {
