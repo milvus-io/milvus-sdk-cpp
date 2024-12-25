@@ -23,7 +23,7 @@
 namespace milvus {
 
 /**
- * @brief Collection statistics returned by MilvusClient::GetCollectionStatistics().
+ * @brief Collection statistics returned by MilvusClient::GetCollectionStats().
  */
 class CollectionStat {
  public:

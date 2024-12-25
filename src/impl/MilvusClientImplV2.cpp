@@ -131,6 +131,24 @@ MilvusClientImplV2::DropCollection(const std::string& collection_name) {
 }
 
 Status
+MilvusClientImplV2::ListCollections(std::vector<std::string>& results, int timeout) {
+    auto pre = []() {
+        proto::milvus::ShowCollectionsRequest rpc_request;
+        return rpc_request;
+    };
+
+    auto post = [&results](const proto::milvus::ShowCollectionsResponse& response) {
+        results.reserve(response.collection_names_size());
+        for (int i = 0; i < response.collection_names_size(); i++) {
+            results.emplace_back(response.collection_names(i));
+        }
+    };
+
+    return apiHandler<proto::milvus::ShowCollectionsRequest, proto::milvus::ShowCollectionsResponse>(
+        pre, &MilvusConnection::ShowCollections, post, GrpcOpts{timeout});
+}
+
+Status
 MilvusClientImplV2::LoadCollection(const std::string& collection_name, int replica_number,
                                  const ProgressMonitor& progress_monitor) {
     auto pre = [&collection_name, replica_number]() {
@@ -215,7 +233,7 @@ MilvusClientImplV2::RenameCollection(const std::string& collection_name, const s
 }
 
 Status
-MilvusClientImplV2::GetCollectionStatistics(const std::string& collection_name, CollectionStat& collection_stat,
+MilvusClientImplV2::GetCollectionStats(const std::string& collection_name, CollectionStat& collection_stat,
                                           const ProgressMonitor& progress_monitor) {
     auto validate = [&collection_name, &progress_monitor, this]() {
         Status ret;
@@ -301,6 +319,25 @@ MilvusClientImplV2::DropPartition(const std::string& collection_name, const std:
 }
 
 Status
+MilvusClientImplV2::ListPartitions(const std::string& collection_name, std::vector<std::string>& results, int timeout) {
+    auto pre = [&collection_name]() {
+        proto::milvus::ShowPartitionsRequest rpc_request;
+        rpc_request.set_collection_name(collection_name);
+        return rpc_request;
+    };
+
+    auto post = [&results](const proto::milvus::ShowPartitionsResponse& response) {
+        results.reserve(response.partition_names_size());
+        for (int i = 0; i < response.partition_names_size(); i++) {
+            results.emplace_back(response.partition_names(i));
+        }
+    };
+
+    return apiHandler<proto::milvus::ShowPartitionsRequest, proto::milvus::ShowPartitionsResponse>(
+        pre, &MilvusConnection::ShowPartitions, post, GrpcOpts{timeout});
+}
+
+Status
 MilvusClientImplV2::HasPartition(const std::string& collection_name, const std::string& partition_name, bool& has) {
     auto pre = [&collection_name, &partition_name]() {
         proto::milvus::HasPartitionRequest rpc_request;
@@ -369,7 +406,7 @@ MilvusClientImplV2::ReleasePartitions(const std::string& collection_name,
 }
 
 Status
-MilvusClientImplV2::GetPartitionStatistics(const std::string& collection_name, const std::string& partition_name,
+MilvusClientImplV2::GetPartitionStats(const std::string& collection_name, const std::string& partition_name,
                                          PartitionStat& partition_stat, const ProgressMonitor& progress_monitor) {
     // do flush in validate stage if needed
     auto validate = [&collection_name, &progress_monitor, this] {

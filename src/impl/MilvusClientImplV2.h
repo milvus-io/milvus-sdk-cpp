@@ -50,6 +50,9 @@ class MilvusClientImplV2 : public MilvusClientV2 {
     DropCollection(const std::string& collection_name) final;
 
     Status
+    ListCollections(std::vector<std::string>& results, int timeout) final;
+
+    Status
     LoadCollection(const std::string& collection_name, int replica_number,
                    const ProgressMonitor& progress_monitor) final;
 
@@ -63,7 +66,7 @@ class MilvusClientImplV2 : public MilvusClientV2 {
     RenameCollection(const std::string& collection_name, const std::string& new_collection_name) final;
 
     Status
-    GetCollectionStatistics(const std::string& collection_name, CollectionStat& collection_stat,
+    GetCollectionStats(const std::string& collection_name, CollectionStat& collection_stat,
                             const ProgressMonitor& progress_monitor) final;
 
     Status
@@ -76,6 +79,9 @@ class MilvusClientImplV2 : public MilvusClientV2 {
     DropPartition(const std::string& collection_name, const std::string& partition_name) final;
 
     Status
+    ListPartitions(const std::string& collection_name, std::vector<std::string>& results, int timeout) final;
+
+    Status
     HasPartition(const std::string& collection_name, const std::string& partition_name, bool& has) final;
 
     Status
@@ -86,7 +92,7 @@ class MilvusClientImplV2 : public MilvusClientV2 {
     ReleasePartitions(const std::string& collection_name, const std::vector<std::string>& partition_names) final;
 
     Status
-    GetPartitionStatistics(const std::string& collection_name, const std::string& partition_name,
+    GetPartitionStats(const std::string& collection_name, const std::string& partition_name,
                            PartitionStat& partition_stat, const ProgressMonitor& progress_monitor) final;
 
     Status

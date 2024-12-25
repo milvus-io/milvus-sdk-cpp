@@ -126,6 +126,10 @@ class MilvusClientV2 {
      * return instantly, set to ProgressMonitor::Forever() to wait until finished.
      * @return Status operation successfully or not
      */
+
+    virtual Status
+    ListCollections(std::vector<std::string>& results, int timeout = 0) = 0;
+
     virtual Status
     LoadCollection(const std::string& collection_name, int replica_number = 1,
                    const ProgressMonitor& progress_monitor = ProgressMonitor::Forever()) = 0;
@@ -170,7 +174,7 @@ class MilvusClientV2 {
      * @return Status operation successfully or not
      */
     virtual Status
-    GetCollectionStatistics(const std::string& collection_name, CollectionStat& collection_stat,
+    GetCollectionStats(const std::string& collection_name, CollectionStat& collection_stat,
                             const ProgressMonitor& progress_monitor = ProgressMonitor::Forever()) = 0;
 
     /**
@@ -203,6 +207,9 @@ class MilvusClientV2 {
      */
     virtual Status
     DropPartition(const std::string& collection_name, const std::string& partition_name) = 0;
+
+    virtual Status
+    ListPartitions(const std::string& collection_name, std::vector<std::string>& results, int timeout = 0 ) = 0;
 
     /**
      * Check existence of a partition.
@@ -253,7 +260,7 @@ class MilvusClientV2 {
      * @return Status operation successfully or not
      */
     virtual Status
-    GetPartitionStatistics(const std::string& collection_name, const std::string& partition_name,
+    GetPartitionStats(const std::string& collection_name, const std::string& partition_name,
                            PartitionStat& partition_stat,
                            const ProgressMonitor& progress_monitor = ProgressMonitor::Forever()) = 0;
 
