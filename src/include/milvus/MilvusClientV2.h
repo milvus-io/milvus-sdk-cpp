@@ -42,6 +42,7 @@
 #include "types/SearchArguments.h"
 #include "types/SearchResults.h"
 #include "types/SegmentInfo.h"
+#include "types/UserResult.h"
 
 /**
  *  @brief namespace milvus
@@ -423,6 +424,12 @@ class MilvusClientV2 {
 
     virtual Status
     Get(const GetArguments& arguments, QueryResults& results, int timeout = 0) = 0;
+
+    virtual Status
+    ListUsers(std::vector<std::string>& results, int timeout = 0) = 0;
+
+    virtual Status
+    DescribeUser(const std::string& username, UserResult& results, int timeout = 0) = 0;
 
     /**
      * Calculate distance between two vector arrays.

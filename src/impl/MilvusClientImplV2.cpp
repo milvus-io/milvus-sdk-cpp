@@ -956,6 +956,50 @@ MilvusClientImplV2::Get(const GetArguments& arguments, QueryResults& results, in
 }
 
 Status
+MilvusClientImplV2::ListUsers(std::vector<std::string>& results, int timeout) {
+    auto pre = []() { 
+        proto::milvus::ListCredUsersRequest rpc_request;
+        return rpc_request;
+    };
+
+    auto post = [&results](const proto::milvus::ListCredUsersResponse& response) {
+        results.clear();
+        for (const auto& user : response.usernames()) {
+            results.emplace_back(user);
+        }
+    };
+
+    return apiHandler<proto::milvus::ListCredUsersRequest, proto::milvus::ListCredUsersResponse>(pre, &MilvusConnection::ListCredUsers, post,
+                                                                                                 GrpcOpts{timeout});
+}
+
+Status
+MilvusClientImplV2::DescribeUser(const std::string& username, UserResult& results, int timeout) {
+    auto pre = [&username]() {
+        proto::milvus::SelectUserRequest rpc_request;
+        auto* user_entity = rpc_request.mutable_user();
+        user_entity->set_name(username);
+        return rpc_request;
+    };
+
+    auto post = [&results, username](const proto::milvus::SelectUserResponse& response) {
+        for (int i = 0; i < response.results_size(); ++i) {
+            const auto& user_result = response.results(i);
+            if (user_result.user().name() == username) {
+                results.SetUserName(user_result.user().name());
+                for (const auto& role : user_result.roles()) {
+                    results.AddRole(role.name());
+                }
+                break;
+            }
+        }
+    };
+
+    return apiHandler<proto::milvus::SelectUserRequest, proto::milvus::SelectUserResponse>(pre, &MilvusConnection::SelectUser, post,
+                                                                                           GrpcOpts{timeout});
+}
+
+Status
 MilvusClientImplV2::CalcDistance(const CalcDistanceArguments& arguments, DistanceArray& results) {
     auto validate = [&arguments]() { return arguments.Validate(); };
 

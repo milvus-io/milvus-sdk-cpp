@@ -370,4 +370,10 @@ MilvusConnection::ListCredUsers(const proto::milvus::ListCredUsersRequest& reque
     return grpcCall("ListCredUsers", &Stub::ListCredUsers, request, response, options);
 }
 
+Status
+MilvusConnection::SelectUser(const proto::milvus::SelectUserRequest& request,
+                             proto::milvus::SelectUserResponse& response, const GrpcContextOptions& options) {
+    return grpcCall("SelectUser", &Stub::SelectUser, request, response, options);
+}
+
 }  // namespace milvus

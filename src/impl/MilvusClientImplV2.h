@@ -150,6 +150,12 @@ class MilvusClientImplV2 : public MilvusClientV2 {
     Get(const GetArguments& arguments, QueryResults& results, int timeout) final;
 
     Status
+    ListUsers(std::vector<std::string>& results, int timeout) final;
+
+    Status
+    DescribeUser(const std::string& username, UserResult& results, int timeout) final;
+
+    Status
     CalcDistance(const CalcDistanceArguments& arguments, DistanceArray& results) final;
 
     Status

@@ -237,6 +237,10 @@ class MilvusConnection {
     ListCredUsers(const proto::milvus::ListCredUsersRequest& request, proto::milvus::ListCredUsersResponse& response,
                   const GrpcContextOptions& options);
 
+    Status
+    SelectUser(const proto::milvus::SelectUserRequest& request, proto::milvus::SelectUserResponse& response,
+               const GrpcContextOptions& options);
+
  private:
     std::unique_ptr<proto::milvus::MilvusService::Stub> stub_;
     std::shared_ptr<grpc::Channel> channel_;
