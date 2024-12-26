@@ -30,6 +30,7 @@
 #include "types/DistanceArray.h"
 #include "types/DmlResults.h"
 #include "types/FieldData.h"
+#include "types/GetArguments.h"
 #include "types/HybridTimestamp.h"
 #include "types/IndexDesc.h"
 #include "types/IndexState.h"
@@ -419,6 +420,9 @@ class MilvusClientV2 {
      */
     virtual Status
     Query(const QueryArguments& arguments, QueryResults& results, int timeout = 0) = 0;
+
+    virtual Status
+    Get(const GetArguments& arguments, QueryResults& results, int timeout = 0) = 0;
 
     /**
      * Calculate distance between two vector arrays.

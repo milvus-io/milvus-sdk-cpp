@@ -147,6 +147,9 @@ class MilvusClientImplV2 : public MilvusClientV2 {
     Query(const QueryArguments& arguments, QueryResults& results, int timeout) final;
 
     Status
+    Get(const GetArguments& arguments, QueryResults& results, int timeout) final;
+
+    Status
     CalcDistance(const CalcDistanceArguments& arguments, DistanceArray& results) final;
 
     Status
@@ -287,6 +290,47 @@ class MilvusClientImplV2 : public MilvusClientV2 {
                const GrpcOpts& options = GrpcOpts{}) {
         return apiHandler(std::function<Status(void)>{}, pre, rpc, std::function<Status(const Response&)>{},
                           std::function<void(const Response&)>{}, options);
+    }
+
+
+    const FieldSchema* 
+    ExtractPrimaryField(const CollectionSchema& schema) {
+        const auto& fields = schema.Fields();
+        for (const auto& field : fields) {
+            if (field.IsPrimaryKey()) {
+                return &field;
+            }
+        }
+        return nullptr;
+    }
+
+    std::string
+    PackPksExpr(const CollectionSchema& schema, const std::vector<int64_t>& pks) {
+        auto primary_field = ExtractPrimaryField(schema);
+        if (primary_field == nullptr) {
+            return "";
+        }
+
+        std::string expr = primary_field->Name() + " in [";
+        
+        if (primary_field->FieldDataType() == DataType::VARCHAR) {
+            for (size_t i = 0; i < pks.size(); i++) {
+                if (i > 0) {
+                    expr += ",";
+                }
+                expr += "'" + std::to_string(pks[i]) + "'";
+            }
+        } else {
+            for (size_t i = 0; i < pks.size(); i++) {
+                if (i > 0) {
+                    expr += ",";
+                }
+                expr += std::to_string(pks[i]);
+            }
+        }
+        
+        expr += "]";
+        return expr;
     }
 
  private:

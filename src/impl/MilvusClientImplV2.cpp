@@ -915,6 +915,47 @@ MilvusClientImplV2::Query(const QueryArguments& arguments, QueryResults& results
 }
 
 Status
+MilvusClientImplV2::Get(const GetArguments& arguments, QueryResults& results, int timeout) {
+    CollectionDesc collection_desc;
+    auto status = DescribeCollection(arguments.CollectionName(), collection_desc);
+    if (!status.IsOk()) {
+        return status;
+    }
+    
+    std::string expr = PackPksExpr(collection_desc.Schema(), arguments.Ids());
+    if (expr.empty()) {
+        return {StatusCode::INVALID_AGUMENT, "Failed to convert IDs to query expression"};
+    }
+
+    auto pre = [&arguments, &expr]() {
+        proto::milvus::QueryRequest rpc_request;
+        rpc_request.set_collection_name(arguments.CollectionName());
+        for (const auto& partition_name : arguments.PartitionNames()) {
+            rpc_request.add_partition_names(partition_name);
+        }
+
+        rpc_request.set_expr(expr);
+        for (const auto& field : arguments.OutputFields()) {
+            rpc_request.add_output_fields(field);
+        }
+        return rpc_request;
+    };
+
+    auto post = [&results](const proto::milvus::QueryResults& response) {
+        std::vector<milvus::FieldDataPtr> return_fields{};
+        return_fields.reserve(response.fields_data_size());
+        for (const auto& field_data : response.fields_data()) {
+            return_fields.emplace_back(std::move(CreateMilvusFieldData(field_data)));
+        }
+
+        results = std::move(QueryResults(std::move(return_fields)));
+    };
+
+    return apiHandler<proto::milvus::QueryRequest, proto::milvus::QueryResults>(pre, &MilvusConnection::Query, post,
+                                                                                GrpcOpts{timeout});
+}
+
+Status
 MilvusClientImplV2::CalcDistance(const CalcDistanceArguments& arguments, DistanceArray& results) {
     auto validate = [&arguments]() { return arguments.Validate(); };
 
