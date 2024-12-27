@@ -1000,6 +1000,36 @@ MilvusClientImplV2::DescribeUser(const std::string& username, UserResult& result
 }
 
 Status
+MilvusClientImplV2::CreateUser(const std::string& username, const std::string& password, int timeout) {
+    auto pre = [&username, &password]() {
+        proto::milvus::CreateCredentialRequest rpc_request;
+        rpc_request.set_username(username);
+        rpc_request.set_password(milvus::Base64Encode(password));
+        return rpc_request;
+    };
+
+    return apiHandler<proto::milvus::CreateCredentialRequest, proto::common::Status>(pre, &MilvusConnection::CreateCredential, GrpcOpts{timeout});
+}
+
+Status
+MilvusClientImplV2::UpdatePassword(const std::string& username, const std::string& old_password, const std::string& new_password, bool reset_connection, int timeout) {
+    auto pre = [&username, &old_password, &new_password]() {
+        proto::milvus::UpdateCredentialRequest rpc_request;
+        rpc_request.set_username(username);
+        rpc_request.set_oldpassword(milvus::Base64Encode(old_password));
+        rpc_request.set_newpassword(milvus::Base64Encode(new_password));
+        return rpc_request;
+    };
+
+    auto post = [this, reset_connection, username, new_password](const proto::common::Status& status) {
+        return status;
+    };
+
+    return apiHandler<proto::milvus::UpdateCredentialRequest, proto::common::Status>(
+        pre, &MilvusConnection::UpdateCredential, post, GrpcOpts{timeout});
+}
+
+Status
 MilvusClientImplV2::CalcDistance(const CalcDistanceArguments& arguments, DistanceArray& results) {
     auto validate = [&arguments]() { return arguments.Validate(); };
 

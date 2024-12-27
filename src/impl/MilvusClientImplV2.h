@@ -156,6 +156,12 @@ class MilvusClientImplV2 : public MilvusClientV2 {
     DescribeUser(const std::string& username, UserResult& results, int timeout) final;
 
     Status
+    CreateUser(const std::string& username, const std::string& password, int timeout) final;
+
+    Status
+    UpdatePassword(const std::string& username, const std::string& old_password, const std::string& new_password, bool reset_connection, int timeout) final;
+
+    Status
     CalcDistance(const CalcDistanceArguments& arguments, DistanceArray& results) final;
 
     Status
