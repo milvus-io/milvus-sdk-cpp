@@ -20,6 +20,7 @@
 #include <memory>
 
 #include "grpcpp/security/credentials.h"
+#include "MilvusInterceptor.h"
 
 using grpc::Channel;
 using grpc::ClientContext;
@@ -78,7 +79,7 @@ MilvusConnection::Connect(const ConnectParam& param) {
         credentials = ::grpc::InsecureChannelCredentials();
     }
 
-    channel_ = ::grpc::CreateCustomChannel(uri, credentials, args);
+    channel_ = CreateChannelWithHeaderInterceptor(uri, credentials, args, GetAllHeaders());
     auto connected = channel_->WaitForConnected(std::chrono::system_clock::now() +
                                                 std::chrono::milliseconds{param.ConnectTimeout()});
     if (connected) {
@@ -374,6 +375,34 @@ Status
 MilvusConnection::SelectUser(const proto::milvus::SelectUserRequest& request,
                              proto::milvus::SelectUserResponse& response, const GrpcContextOptions& options) {
     return grpcCall("SelectUser", &Stub::SelectUser, request, response, options);
+}
+
+void
+MilvusConnection::SetHeader(const std::string& key, const std::string& value) {
+    headers_[key] = value;
+}
+
+void
+MilvusConnection::RemoveHeader(const std::string& key) {
+    headers_.erase(key);
+}
+
+std::string
+MilvusConnection::GetHeader(const std::string& key) const {
+    auto it = headers_.find(key);
+    if (it != headers_.end()) {
+        return it->second;
+    }
+    return "";
+}
+
+std::vector<std::pair<std::string, std::string>>
+MilvusConnection::GetAllHeaders() const {
+    std::vector<std::pair<std::string, std::string>> header_vec;
+    for (const auto& pair : headers_) {
+        header_vec.emplace_back(pair.first, pair.second);
+    }
+    return header_vec;
 }
 
 }  // namespace milvus

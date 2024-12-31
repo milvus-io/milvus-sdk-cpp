@@ -241,10 +241,23 @@ class MilvusConnection {
     SelectUser(const proto::milvus::SelectUserRequest& request, proto::milvus::SelectUserResponse& response,
                const GrpcContextOptions& options);
 
+    void
+    SetHeader(const std::string& key, const std::string& value);
+    
+    void
+    RemoveHeader(const std::string& key);
+    
+    std::string
+    GetHeader(const std::string& key) const;
+    
+    std::vector<std::pair<std::string, std::string>>
+    GetAllHeaders() const;
+
  private:
     std::unique_ptr<proto::milvus::MilvusService::Stub> stub_;
     std::shared_ptr<grpc::Channel> channel_;
     std::string authorization_value_{};
+    std::unordered_map<std::string, std::string> headers_;
 
     static Status
     StatusByProtoResponse(const proto::common::Status& status) {
