@@ -20,6 +20,7 @@
 #include <memory>
 
 #include "grpcpp/security/credentials.h"
+#include "TypeUtils.h"
 #include "MilvusInterceptor.h"
 
 using grpc::Channel;
@@ -77,6 +78,14 @@ MilvusConnection::Connect(const ConnectParam& param) {
         credentials = createTlsCredentials(param.Cert(), param.Key(), param.CaCert());
     } else {
         credentials = ::grpc::InsecureChannelCredentials();
+    }
+
+    if (!param.Token().empty()) {
+        std::string authorization = Base64Encode(param.Token());
+        SetHeader("authorization", authorization);
+    } else if (!param.Username().empty() && !param.Password().empty()) {
+        std::string authorization = Base64Encode(param.Username() + ":" + param.Password());
+        SetHeader("authorization", authorization);
     }
 
     channel_ = CreateChannelWithHeaderInterceptor(uri, credentials, args, GetAllHeaders());

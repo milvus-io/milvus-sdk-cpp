@@ -155,6 +155,18 @@ class ConnectParam {
     const std::string&
     CaCert() const;
 
+    const std::string& Username() const;
+
+    void SetUsername(const std::string& username);
+
+    const std::string& Password() const;
+
+    void SetPassword(const std::string& password);
+
+    const std::string& Token() const;
+
+    void SetToken(const std::string& token);
+
  private:
     std::string host_;
     uint16_t port_ = 0;
@@ -167,6 +179,9 @@ class ConnectParam {
     std::string ca_cert_;
 
     std::string authorizations_;
+    std::string username_;
+    std::string password_;
+    std::string token_;
 };
 
 }  // namespace milvus
