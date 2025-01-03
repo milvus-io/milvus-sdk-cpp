@@ -253,11 +253,46 @@ class MilvusConnection {
     std::vector<std::pair<std::string, std::string>>
     GetAllHeaders() const;
 
+    const
+    std::string& Host() const;
+    
+    void
+    SetHost(const std::string& host);
+
+    uint16_t
+    Port() const;
+    
+    void
+    SetPort(uint16_t port);
+
+    const std::string& 
+    User() const;
+    
+    void
+    SetUser(const std::string& user);
+
+    const std::string&
+    Password() const;
+    
+    void
+    SetPassword(const std::string& password);
+
+    const std::string&
+    Token() const;
+    
+    void
+    SetToken(const std::string& token);
+
  private:
     std::unique_ptr<proto::milvus::MilvusService::Stub> stub_;
     std::shared_ptr<grpc::Channel> channel_;
     std::string authorization_value_{};
     std::unordered_map<std::string, std::string> headers_;
+    std::string host_;
+    uint16_t port_;
+    std::string user_;
+    std::string password_;
+    std::string token_;
 
     static Status
     StatusByProtoResponse(const proto::common::Status& status) {

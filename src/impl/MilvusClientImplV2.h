@@ -162,6 +162,9 @@ class MilvusClientImplV2 : public MilvusClientV2 {
     UpdatePassword(const std::string& username, const std::string& old_password, const std::string& new_password, bool reset_connection, int timeout) final;
 
     Status
+    DropUser(const std::string& username, int timeout) final;
+
+    Status
     CalcDistance(const CalcDistanceArguments& arguments, DistanceArray& results) final;
 
     Status

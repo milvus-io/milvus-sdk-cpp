@@ -437,6 +437,9 @@ class MilvusClientV2 {
     virtual Status
     UpdatePassword(const std::string& username, const std::string& old_password, const std::string& new_password, bool reset_connection = false, int timeout = 0) = 0;
 
+    virtual Status
+    DropUser(const std::string& username, int timeout = 0) = 0;
+
     /**
      * Calculate distance between two vector arrays.
      *

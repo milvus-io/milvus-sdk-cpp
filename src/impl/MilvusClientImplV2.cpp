@@ -1022,11 +1022,27 @@ MilvusClientImplV2::UpdatePassword(const std::string& username, const std::strin
     };
 
     auto post = [this, reset_connection, username, new_password](const proto::common::Status& status) {
+        if (reset_connection) {
+            Disconnect();
+            milvus::ConnectParam connect_param(connection_->Host(), connection_->Port(), username, new_password);
+            Connect(connect_param);
+        }
         return status;
     };
 
     return apiHandler<proto::milvus::UpdateCredentialRequest, proto::common::Status>(
         pre, &MilvusConnection::UpdateCredential, post, GrpcOpts{timeout});
+}
+
+Status
+MilvusClientImplV2::DropUser(const std::string& username, int timeout) {
+    auto pre = [&username]() {
+        proto::milvus::DeleteCredentialRequest rpc_request;
+        rpc_request.set_username(username);
+        return rpc_request;
+    };
+
+    return apiHandler<proto::milvus::DeleteCredentialRequest, proto::common::Status>(pre, &MilvusConnection::DeleteCredential, GrpcOpts{timeout});
 }
 
 Status

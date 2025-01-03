@@ -93,6 +93,11 @@ MilvusConnection::Connect(const ConnectParam& param) {
                                                 std::chrono::milliseconds{param.ConnectTimeout()});
     if (connected) {
         stub_ = proto::milvus::MilvusService::NewStub(channel_);
+        SetHost(param.Host());
+        SetPort(param.Port());
+        SetUser(param.Username());
+        SetPassword(param.Password());
+        SetToken(param.Token());
         return Status::OK();
     }
 
@@ -412,6 +417,56 @@ MilvusConnection::GetAllHeaders() const {
         header_vec.emplace_back(pair.first, pair.second);
     }
     return header_vec;
+}
+
+const std::string&
+MilvusConnection::Host() const {
+    return host_;
+}
+
+void
+MilvusConnection::SetHost(const std::string& host) {
+    host_ = host;
+}
+
+uint16_t
+MilvusConnection::Port() const {
+    return port_;
+}
+
+void
+MilvusConnection::SetPort(uint16_t port) {
+    port_ = port;
+}
+
+const std::string&
+MilvusConnection::User() const {
+    return user_;
+}
+
+void
+MilvusConnection::SetUser(const std::string& user) {
+    user_ = user;
+}
+
+const std::string&
+MilvusConnection::Password() const {
+    return password_;
+}
+
+void
+MilvusConnection::SetPassword(const std::string& password) {
+    password_ = password;
+}
+
+const std::string&
+MilvusConnection::Token() const {
+    return token_;
+}
+
+void
+MilvusConnection::SetToken(const std::string& token) {
+    token_ = token;
 }
 
 }  // namespace milvus
