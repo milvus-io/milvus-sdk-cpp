@@ -391,6 +391,36 @@ MilvusConnection::SelectUser(const proto::milvus::SelectUserRequest& request,
     return grpcCall("SelectUser", &Stub::SelectUser, request, response, options);
 }
 
+Status
+MilvusConnection::CreateRole(const proto::milvus::CreateRoleRequest& request,
+                             proto::common::Status& response, const GrpcContextOptions& options) {
+    return grpcCall("CreateRole", &Stub::CreateRole, request, response, options);
+}
+
+Status
+MilvusConnection::DropRole(const proto::milvus::DropRoleRequest& request,
+                           proto::common::Status& response, const GrpcContextOptions& options) {
+    return grpcCall("DropRole", &Stub::DropRole, request, response, options);
+}
+
+Status
+MilvusConnection::OperateUserRole(const proto::milvus::OperateUserRoleRequest& request,
+                                  proto::common::Status& response, const GrpcContextOptions& options) {
+    return grpcCall("OperateUserRole", &Stub::OperateUserRole, request, response, options);
+}
+
+Status
+MilvusConnection::SelectGrant(const proto::milvus::SelectGrantRequest& request,
+                            proto::milvus::SelectGrantResponse& response, const GrpcContextOptions& options) {
+    return grpcCall("SelectGrant", &Stub::SelectGrant, request, response, options);
+}
+
+Status
+MilvusConnection::SelectRole(const proto::milvus::SelectRoleRequest& request,
+                           proto::milvus::SelectRoleResponse& response, const GrpcContextOptions& options) {
+    return grpcCall("SelectRole", &Stub::SelectRole, request, response, options);
+}
+
 void
 MilvusConnection::SetHeader(const std::string& key, const std::string& value) {
     headers_[key] = value;

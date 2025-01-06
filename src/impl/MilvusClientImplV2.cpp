@@ -979,6 +979,7 @@ MilvusClientImplV2::DescribeUser(const std::string& username, UserResult& result
         proto::milvus::SelectUserRequest rpc_request;
         auto* user_entity = rpc_request.mutable_user();
         user_entity->set_name(username);
+        rpc_request.set_include_role_info(true);
         return rpc_request;
     };
 
@@ -1043,6 +1044,105 @@ MilvusClientImplV2::DropUser(const std::string& username, int timeout) {
     };
 
     return apiHandler<proto::milvus::DeleteCredentialRequest, proto::common::Status>(pre, &MilvusConnection::DeleteCredential, GrpcOpts{timeout});
+}
+
+Status
+MilvusClientImplV2::CreateRole(const std::string& role_name, int timeout) {
+    auto pre = [&role_name]() {
+        proto::milvus::CreateRoleRequest rpc_request;
+        proto::milvus::RoleEntity* role_entity = rpc_request.mutable_entity();
+        role_entity->set_name(role_name);
+        return rpc_request;
+    };
+
+    return apiHandler<proto::milvus::CreateRoleRequest, proto::common::Status>(pre, &MilvusConnection::CreateRole, GrpcOpts{timeout});
+}
+
+Status
+MilvusClientImplV2::DropRole(const std::string& role_name, int timeout) {
+    auto pre = [&role_name]() {
+        proto::milvus::DropRoleRequest rpc_request;
+        rpc_request.set_role_name(role_name);
+        return rpc_request;
+    };
+
+    return apiHandler<proto::milvus::DropRoleRequest, proto::common::Status>(pre, &MilvusConnection::DropRole, GrpcOpts{timeout});
+}
+
+Status
+MilvusClientImplV2::GrantRole(const std::string& username, const std::string& role_name, int timeout) {
+    auto pre = [&username, &role_name]() {
+        proto::milvus::OperateUserRoleRequest rpc_request;
+        rpc_request.set_username(username);
+        rpc_request.set_role_name(role_name);
+        rpc_request.set_type(proto::milvus::OperateUserRoleType::AddUserToRole);
+        return rpc_request;
+    };
+
+    return apiHandler<proto::milvus::OperateUserRoleRequest, proto::common::Status>(pre, &MilvusConnection::OperateUserRole, GrpcOpts{timeout});
+}
+
+Status
+MilvusClientImplV2::RevokeRole(const std::string& username, const std::string& role_name, int timeout) {
+    auto pre = [&username, &role_name]() {
+        proto::milvus::OperateUserRoleRequest rpc_request;
+        rpc_request.set_username(username);
+        rpc_request.set_role_name(role_name);
+        rpc_request.set_type(proto::milvus::OperateUserRoleType::RemoveUserFromRole);
+        return rpc_request;
+    };
+
+    return apiHandler<proto::milvus::OperateUserRoleRequest, proto::common::Status>(
+        pre, &MilvusConnection::OperateUserRole, GrpcOpts{timeout});
+}
+
+Status
+MilvusClientImplV2::DescribeRole(const std::string& role_name, RoleDesc& role_desc, int timeout) {
+    auto pre = [&role_name]() {
+        proto::milvus::SelectGrantRequest rpc_request;
+        auto* entity = rpc_request.mutable_entity();
+        auto* role = entity->mutable_role();
+        role->set_name(role_name);
+        return rpc_request;
+    };
+
+    auto post = [&role_desc, &role_name](const proto::milvus::SelectGrantResponse& response) {
+        std::vector<Privilege> privileges;
+        for (const auto& entity : response.entities()) {
+            if (entity.role().name() == role_name) {
+                Privilege p;
+                p.object_type = entity.object().name();
+                p.object_name = entity.object_name();
+                p.db_name = entity.db_name();
+                p.role_name = entity.role().name();
+                p.privilege = entity.grantor().privilege().name();
+                p.grantor_name = entity.grantor().user().name();
+                privileges.push_back(p);
+            }
+        }
+        role_desc = RoleDesc(role_name, privileges);
+    };
+
+    return apiHandler<proto::milvus::SelectGrantRequest, proto::milvus::SelectGrantResponse>(
+        pre, &MilvusConnection::SelectGrant, post, GrpcOpts{timeout});
+}
+
+Status
+MilvusClientImplV2::ListRoles(std::vector<std::string>& roles, int timeout) {
+    auto pre = []() {
+        proto::milvus::SelectRoleRequest rpc_request;
+        return rpc_request;
+    };
+
+    auto post = [&roles](const proto::milvus::SelectRoleResponse& response) {
+        roles.clear();
+        for (const auto& result : response.results()) {
+            roles.emplace_back(result.role().name());
+        }
+    };
+
+    return apiHandler<proto::milvus::SelectRoleRequest, proto::milvus::SelectRoleResponse>(
+        pre, &MilvusConnection::SelectRole, post, GrpcOpts{timeout});
 }
 
 Status

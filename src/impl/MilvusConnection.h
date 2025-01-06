@@ -241,6 +241,26 @@ class MilvusConnection {
     SelectUser(const proto::milvus::SelectUserRequest& request, proto::milvus::SelectUserResponse& response,
                const GrpcContextOptions& options);
 
+    Status
+    CreateRole(const proto::milvus::CreateRoleRequest& request, proto::common::Status& response,
+               const GrpcContextOptions& options);
+
+    Status
+    DropRole(const proto::milvus::DropRoleRequest& request, proto::common::Status& response,
+             const GrpcContextOptions& options);
+
+    Status
+    OperateUserRole(const proto::milvus::OperateUserRoleRequest& request, proto::common::Status& response,
+                    const GrpcContextOptions& options);
+
+    Status
+    SelectGrant(const proto::milvus::SelectGrantRequest& request, proto::milvus::SelectGrantResponse& response,
+                const GrpcContextOptions& options);
+
+    Status
+    SelectRole(const proto::milvus::SelectRoleRequest& request, proto::milvus::SelectRoleResponse& response,
+               const GrpcContextOptions& options);
+
     void
     SetHeader(const std::string& key, const std::string& value);
     

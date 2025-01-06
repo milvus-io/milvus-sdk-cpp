@@ -39,6 +39,7 @@
 #include "types/ProgressMonitor.h"
 #include "types/QueryArguments.h"
 #include "types/QueryResults.h"
+#include "types/RoleDesc.h"
 #include "types/SearchArguments.h"
 #include "types/SearchResults.h"
 #include "types/SegmentInfo.h"
@@ -439,6 +440,24 @@ class MilvusClientV2 {
 
     virtual Status
     DropUser(const std::string& username, int timeout = 0) = 0;
+
+    virtual Status
+    CreateRole(const std::string& role_name, int timeout = 0) = 0;
+
+    virtual Status
+    DropRole(const std::string& role_name, int timeout = 0) = 0;
+
+    virtual Status
+    GrantRole(const std::string& username, const std::string& role_name, int timeout = 0) = 0;
+
+    virtual Status
+    RevokeRole(const std::string& username, const std::string& role_name, int timeout = 0) = 0;
+
+    virtual Status 
+    DescribeRole(const std::string& role_name, RoleDesc& role_desc, int timeout = 0) = 0;
+    
+    virtual Status 
+    ListRoles(std::vector<std::string>& roles, int timeout = 0) = 0;
 
     /**
      * Calculate distance between two vector arrays.

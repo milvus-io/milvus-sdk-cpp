@@ -165,6 +165,24 @@ class MilvusClientImplV2 : public MilvusClientV2 {
     DropUser(const std::string& username, int timeout) final;
 
     Status
+    CreateRole(const std::string& role_name, int timeout) final;
+
+    Status
+    DropRole(const std::string& role_name, int timeout) final;
+
+    Status
+    GrantRole(const std::string& username, const std::string& role_name, int timeout) final;
+
+    Status
+    RevokeRole(const std::string& username, const std::string& role_name, int timeout) final;
+
+    Status
+    DescribeRole(const std::string& role_name, RoleDesc& role_desc, int timeout) final;
+
+    Status 
+    ListRoles(std::vector<std::string>& roles, int timeout) final;
+
+    Status
     CalcDistance(const CalcDistanceArguments& arguments, DistanceArray& results) final;
 
     Status
