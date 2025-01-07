@@ -276,7 +276,7 @@ class MilvusClientImpl : public MilvusClient {
                           std::function<void(const Response&)>{}, options);
     }
 
- private:
+ protected:
     std::shared_ptr<MilvusConnection> connection_;
 };
 
