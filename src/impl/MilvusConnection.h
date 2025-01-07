@@ -129,6 +129,10 @@ class MilvusConnection {
                            proto::milvus::GetPartitionStatisticsResponse& response, const GrpcContextOptions& options);
 
     Status
+    GetLoadState(const proto::milvus::GetLoadStateRequest& request,
+                 proto::milvus::GetLoadStateResponse& response, const GrpcContextOptions& options);
+
+    Status
     CreateAlias(const proto::milvus::CreateAliasRequest& request, proto::common::Status& response,
                 const GrpcContextOptions& options);
 
@@ -260,6 +264,10 @@ class MilvusConnection {
     Status
     SelectRole(const proto::milvus::SelectRoleRequest& request, proto::milvus::SelectRoleResponse& response,
                const GrpcContextOptions& options);
+
+    Status
+    OperatePrivilege(const proto::milvus::OperatePrivilegeRequest& request, proto::common::Status& response,
+                     const GrpcContextOptions& options);
 
     void
     SetHeader(const std::string& key, const std::string& value);

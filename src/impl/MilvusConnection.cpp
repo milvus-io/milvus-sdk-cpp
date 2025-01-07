@@ -218,6 +218,13 @@ MilvusConnection::GetPartitionStatistics(const proto::milvus::GetPartitionStatis
 }
 
 Status
+MilvusConnection::GetLoadState(const proto::milvus::GetLoadStateRequest& request,
+                               proto::milvus::GetLoadStateResponse& response,
+                               const GrpcContextOptions& options) {
+    return grpcCall("GetLoadState", &Stub::GetLoadState, request, response, options);
+}
+
+Status
 MilvusConnection::CreateAlias(const proto::milvus::CreateAliasRequest& request, proto::common::Status& response,
                               const GrpcContextOptions& options) {
     return grpcCall("CreateAlias", &Stub::CreateAlias, request, response, options);
@@ -411,14 +418,20 @@ MilvusConnection::OperateUserRole(const proto::milvus::OperateUserRoleRequest& r
 
 Status
 MilvusConnection::SelectGrant(const proto::milvus::SelectGrantRequest& request,
-                            proto::milvus::SelectGrantResponse& response, const GrpcContextOptions& options) {
+                              proto::milvus::SelectGrantResponse& response, const GrpcContextOptions& options) {
     return grpcCall("SelectGrant", &Stub::SelectGrant, request, response, options);
 }
 
 Status
 MilvusConnection::SelectRole(const proto::milvus::SelectRoleRequest& request,
-                           proto::milvus::SelectRoleResponse& response, const GrpcContextOptions& options) {
+                             proto::milvus::SelectRoleResponse& response, const GrpcContextOptions& options) {
     return grpcCall("SelectRole", &Stub::SelectRole, request, response, options);
+}
+
+Status
+MilvusConnection::OperatePrivilege(const proto::milvus::OperatePrivilegeRequest& request,
+                                   proto::common::Status& response, const GrpcContextOptions& options) {
+    return grpcCall("OperatePrivilege", &Stub::OperatePrivilege, request, response, options);
 }
 
 void

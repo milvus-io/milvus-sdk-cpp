@@ -100,6 +100,13 @@ class MilvusClientImplV2 : public MilvusClientV2 {
                    PartitionsInfo& partitions_info) final;
 
     Status
+    GetLoadState(const std::string& collection_name, LoadState& state, 
+                 const std::string& partition_name, int timeout) final;
+
+    Status
+    RefreshLoad(const std::string& collection_name, int timeout) final;
+
+    Status
     CreateAlias(const std::string& collection_name, const std::string& alias) final;
 
     Status
@@ -181,6 +188,16 @@ class MilvusClientImplV2 : public MilvusClientV2 {
 
     Status 
     ListRoles(std::vector<std::string>& roles, int timeout) final;
+
+    Status
+    GrantPrivilege(const std::string& role_name, const std::string& object_type,
+                   const std::string& privilege, const std::string& object_name,
+                   const std::string& db_name, int timeout) final;
+
+    Status
+    RevokePrivilege(const std::string& role_name, const std::string& object_type,
+                    const std::string& privilege, const std::string& object_name,
+                    const std::string& db_name, int timeout) final;
 
     Status
     CalcDistance(const CalcDistanceArguments& arguments, DistanceArray& results) final;

@@ -474,6 +474,40 @@ MilvusClientImplV2::ShowPartitions(const std::string& collection_name, const std
 }
 
 Status
+MilvusClientImplV2::GetLoadState(const std::string& collection_name, LoadState& state,
+                                 const std::string& partition_name, int timeout) {
+    auto pre = [&collection_name, &partition_name]() {
+        proto::milvus::GetLoadStateRequest rpc_request;
+        rpc_request.set_collection_name(collection_name);
+        if (!partition_name.empty()) {
+            rpc_request.add_partition_names(partition_name);
+        }
+        return rpc_request;
+    };
+
+    auto post = [&state](const proto::milvus::GetLoadStateResponse& response) {
+        state.SetCode(static_cast<LoadStateCode>(response.state()));
+    };
+
+    return apiHandler<proto::milvus::GetLoadStateRequest, proto::milvus::GetLoadStateResponse>(
+        pre, &MilvusConnection::GetLoadState, post, GrpcOpts{timeout});
+}
+
+Status
+MilvusClientImplV2::RefreshLoad(const std::string& collection_name, int timeout) {
+    auto pre = [&collection_name]() {
+        proto::milvus::LoadCollectionRequest rpc_request;
+        rpc_request.set_collection_name(collection_name);
+        rpc_request.set_refresh(true);
+        rpc_request.set_replica_number(1);
+        return rpc_request;
+    };
+
+    return apiHandler<proto::milvus::LoadCollectionRequest, proto::common::Status>(
+        pre, &MilvusConnection::LoadCollection, GrpcOpts{timeout});
+}
+
+Status
 MilvusClientImplV2::CreateAlias(const std::string& collection_name, const std::string& alias) {
     auto pre = [&collection_name, &alias]() {
         proto::milvus::CreateAliasRequest rpc_request;
@@ -1143,6 +1177,64 @@ MilvusClientImplV2::ListRoles(std::vector<std::string>& roles, int timeout) {
 
     return apiHandler<proto::milvus::SelectRoleRequest, proto::milvus::SelectRoleResponse>(
         pre, &MilvusConnection::SelectRole, post, GrpcOpts{timeout});
+}
+
+Status
+MilvusClientImplV2::GrantPrivilege(const std::string& role_name, const std::string& object_type,
+                                   const std::string& privilege, const std::string& object_name,
+                                   const std::string& db_name, int timeout) {
+    auto pre = [&role_name, &object_type, &privilege, &object_name, &db_name]() {
+        proto::milvus::OperatePrivilegeRequest rpc_request;
+        
+        auto* role_entity = rpc_request.mutable_entity()->mutable_role();
+        role_entity->set_name(role_name);
+        auto* object_entity = rpc_request.mutable_entity()->mutable_object();
+        object_entity->set_name(object_type);
+        rpc_request.mutable_entity()->set_object_name(object_name);
+        auto* grantor = rpc_request.mutable_entity()->mutable_grantor();
+        auto* privilege_entity = grantor->mutable_privilege();
+        privilege_entity->set_name(privilege);
+
+        if (!db_name.empty()) {
+            rpc_request.mutable_entity()->set_db_name(db_name);
+        }
+
+        rpc_request.set_type(proto::milvus::OperatePrivilegeType::Grant);
+
+        return rpc_request;
+    };
+
+    return apiHandler<proto::milvus::OperatePrivilegeRequest, proto::common::Status>(
+        pre, &MilvusConnection::OperatePrivilege, GrpcOpts{timeout});
+}
+
+Status
+MilvusClientImplV2::RevokePrivilege(const std::string& role_name, const std::string& object_type,
+                                    const std::string& privilege, const std::string& object_name,
+                                    const std::string& db_name, int timeout) {
+    auto pre = [&role_name, &object_type, &privilege, &object_name, &db_name]() {
+        proto::milvus::OperatePrivilegeRequest rpc_request;
+        
+        auto* role_entity = rpc_request.mutable_entity()->mutable_role();
+        role_entity->set_name(role_name);
+        auto* object_entity = rpc_request.mutable_entity()->mutable_object();
+        object_entity->set_name(object_type);
+        rpc_request.mutable_entity()->set_object_name(object_name);
+        auto* grantor = rpc_request.mutable_entity()->mutable_grantor();
+        auto* privilege_entity = grantor->mutable_privilege();
+        privilege_entity->set_name(privilege);
+
+        if (!db_name.empty()) {
+            rpc_request.mutable_entity()->set_db_name(db_name);
+        }
+
+        rpc_request.set_type(proto::milvus::OperatePrivilegeType::Revoke);
+
+        return rpc_request;
+    };
+
+    return apiHandler<proto::milvus::OperatePrivilegeRequest, proto::common::Status>(
+        pre, &MilvusConnection::OperatePrivilege, GrpcOpts{timeout});
 }
 
 Status

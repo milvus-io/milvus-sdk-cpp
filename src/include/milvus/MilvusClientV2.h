@@ -34,6 +34,7 @@
 #include "types/HybridTimestamp.h"
 #include "types/IndexDesc.h"
 #include "types/IndexState.h"
+#include "types/LoadState.h"
 #include "types/PartitionInfo.h"
 #include "types/PartitionStat.h"
 #include "types/ProgressMonitor.h"
@@ -267,6 +268,14 @@ class MilvusClientV2 {
                            PartitionStat& partition_stat,
                            const ProgressMonitor& progress_monitor = ProgressMonitor::Forever()) = 0;
 
+
+    virtual Status
+    GetLoadState(const std::string& collection_name, LoadState& state, 
+                 const std::string& partition_name = "", int timeout = 0) = 0;
+
+    virtual Status
+    RefreshLoad(const std::string& collection_name, int timeout = 0) = 0;
+
     /**
      * If the partition_names is empty, list all partitions brief information's. \n
      * If the partition_names is specified, return the specified partition's loading process state.
@@ -458,6 +467,16 @@ class MilvusClientV2 {
     
     virtual Status 
     ListRoles(std::vector<std::string>& roles, int timeout = 0) = 0;
+
+    virtual Status
+    GrantPrivilege(const std::string& role_name, const std::string& object_type,
+                   const std::string& privilege, const std::string& object_name,
+                   const std::string& db_name = "", int timeout = 0) = 0;
+
+    virtual Status
+    RevokePrivilege(const std::string& role_name, const std::string& object_type,
+                    const std::string& privilege, const std::string& object_name,
+                    const std::string& db_name = "", int timeout = 0) = 0;
 
     /**
      * Calculate distance between two vector arrays.
