@@ -19,6 +19,7 @@
 #include <memory>
 
 #include "Status.h"
+#include "types/AliasDesc.h"
 #include "types/CalcDistanceArguments.h"
 #include "types/CollectionDesc.h"
 #include "types/CollectionInfo.h"
@@ -34,6 +35,7 @@
 #include "types/HybridTimestamp.h"
 #include "types/IndexDesc.h"
 #include "types/IndexState.h"
+#include "types/ListAliasesResult.h"
 #include "types/LoadState.h"
 #include "types/PartitionInfo.h"
 #include "types/PartitionStat.h"
@@ -318,6 +320,12 @@ class MilvusClientV2 {
      */
     virtual Status
     AlterAlias(const std::string& collection_name, const std::string& alias) = 0;
+
+    virtual Status
+    ListAliases(const std::string& collection_name, ListAliasesResult& result, int timeout = 0) = 0;
+
+    virtual Status
+    DescribeAlias(const std::string& alias, AliasDesc& alias_desc, int timeout = 0) = 0;
 
     /**
      * Create an index on a field. Currently only support index on vector field.

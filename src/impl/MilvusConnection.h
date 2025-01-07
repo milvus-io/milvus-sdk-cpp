@@ -145,6 +145,14 @@ class MilvusConnection {
                const GrpcContextOptions& options);
 
     Status
+    ListAliases(const proto::milvus::ListAliasesRequest& request, proto::milvus::ListAliasesResponse& response,
+                const GrpcContextOptions& options);
+
+    Status
+    DescribeAlias(const proto::milvus::DescribeAliasRequest& request, proto::milvus::DescribeAliasResponse& response,
+                  const GrpcContextOptions& options);
+
+    Status
     CreateIndex(const proto::milvus::CreateIndexRequest& request, proto::common::Status& response,
                 const GrpcContextOptions& options);
 

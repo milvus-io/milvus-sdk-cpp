@@ -243,6 +243,18 @@ MilvusConnection::AlterAlias(const proto::milvus::AlterAliasRequest& request, pr
 }
 
 Status
+MilvusConnection::ListAliases(const proto::milvus::ListAliasesRequest& request, proto::milvus::ListAliasesResponse& response,
+                              const GrpcContextOptions& options) {
+    return grpcCall("ListAliases", &Stub::ListAliases, request, response, options);
+}
+
+Status
+MilvusConnection::DescribeAlias(const proto::milvus::DescribeAliasRequest& request, proto::milvus::DescribeAliasResponse& response,
+                                const GrpcContextOptions& options) {
+    return grpcCall("DescribeAlias", &Stub::DescribeAlias, request, response, options);
+}
+
+Status
 MilvusConnection::CreateIndex(const proto::milvus::CreateIndexRequest& request, proto::common::Status& response,
                               const GrpcContextOptions& options) {
     return grpcCall("CreateIndex", &Stub::CreateIndex, request, response, options);

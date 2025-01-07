@@ -543,6 +543,46 @@ MilvusClientImplV2::AlterAlias(const std::string& collection_name, const std::st
 }
 
 Status
+MilvusClientImplV2::ListAliases(const std::string& collection_name, ListAliasesResult& result, int timeout) {
+    auto pre = [&collection_name]() {
+        proto::milvus::ListAliasesRequest rpc_request;
+        rpc_request.set_collection_name(collection_name);
+        return rpc_request;
+    };
+
+    auto post = [&result](const proto::milvus::ListAliasesResponse& response) {
+        result.SetDbName(response.db_name());
+        result.SetCollectionName(response.collection_name());
+        
+        std::vector<std::string> aliases;
+        aliases.reserve(response.aliases_size());
+        aliases.insert(aliases.end(), response.aliases().begin(), response.aliases().end());
+        result.SetAliases(std::move(aliases));
+    };
+
+    return apiHandler<proto::milvus::ListAliasesRequest, proto::milvus::ListAliasesResponse>(
+        pre, &MilvusConnection::ListAliases, post, GrpcOpts{timeout});
+}
+
+Status
+MilvusClientImplV2::DescribeAlias(const std::string& alias, AliasDesc& alias_desc, int timeout) {
+    auto pre = [&alias]() {
+        proto::milvus::DescribeAliasRequest rpc_request;
+        rpc_request.set_alias(alias);
+        return rpc_request;
+    };
+
+    auto post = [&alias_desc](const proto::milvus::DescribeAliasResponse& response) {
+        alias_desc.SetDbName(response.db_name());
+        alias_desc.SetAlias(response.alias());
+        alias_desc.SetCollectionName(response.collection());
+    };
+
+    return apiHandler<proto::milvus::DescribeAliasRequest, proto::milvus::DescribeAliasResponse>(
+        pre, &MilvusConnection::DescribeAlias, post, GrpcOpts{timeout});
+}
+
+Status
 MilvusClientImplV2::CreateIndex(const std::string& collection_name, const IndexDesc& index_desc,
                               const ProgressMonitor& progress_monitor) {
     auto validate = [&index_desc] { return index_desc.Validate(); };

@@ -116,6 +116,12 @@ class MilvusClientImplV2 : public MilvusClientV2 {
     AlterAlias(const std::string& collection_name, const std::string& alias) final;
 
     Status
+    ListAliases(const std::string& collection_name, ListAliasesResult& result, int timeout) final;
+
+    Status
+    DescribeAlias(const std::string& alias, AliasDesc& alias_desc, int timeout) final;
+
+    Status
     CreateIndex(const std::string& collection_name, const IndexDesc& index_desc,
                 const ProgressMonitor& progress_monitor) final;
 
