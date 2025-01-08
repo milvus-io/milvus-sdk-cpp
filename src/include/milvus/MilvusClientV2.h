@@ -28,6 +28,7 @@
 #include "types/CompactionPlan.h"
 #include "types/CompactionState.h"
 #include "types/ConnectParam.h"
+#include "types/DatabaseDesc.h"
 #include "types/DistanceArray.h"
 #include "types/DmlResults.h"
 #include "types/FieldData.h"
@@ -326,6 +327,24 @@ class MilvusClientV2 {
 
     virtual Status
     DescribeAlias(const std::string& alias, AliasDesc& alias_desc, int timeout = 0) = 0;
+
+    virtual Status
+    CreateDatabase(const std::string& db_name, const std::vector<std::pair<std::string, std::string>>& properties = {}, int timeout = 0) = 0;
+
+    virtual Status
+    DropDatabase(const std::string& db_name, int timeout = 0) = 0;
+
+    virtual Status
+    ListDatabases(std::vector<std::string>& db_names, int timeout = 0) = 0;
+
+    virtual Status
+    DescribeDatabase(const std::string& db_name, DatabaseDesc& database_desc, int timeout = 0) = 0;
+
+    virtual Status
+    AlterDatabaseProperties(const std::string& db_name, const std::vector<std::pair<std::string, std::string>>& properties, int timeout = 0) = 0;
+
+    virtual Status
+    DropDatabaseProperties(const std::string& db_name, const std::vector<std::string>& delete_keys, int timeout = 0) = 0;
 
     /**
      * Create an index on a field. Currently only support index on vector field.

@@ -122,6 +122,24 @@ class MilvusClientImplV2 : public MilvusClientV2 {
     DescribeAlias(const std::string& alias, AliasDesc& alias_desc, int timeout) final;
 
     Status
+    CreateDatabase(const std::string& db_name, const std::vector<std::pair<std::string, std::string>>& properties, int timeout) final;
+
+    Status
+    DropDatabase(const std::string& db_name, int timeout) final;
+
+    Status
+    ListDatabases(std::vector<std::string>& db_names, int timeout) final;
+
+    Status
+    DescribeDatabase(const std::string& db_name, DatabaseDesc& database_desc, int timeout) final;
+
+    Status
+    AlterDatabaseProperties(const std::string& db_name, const std::vector<std::pair<std::string, std::string>>& properties, int timeout) final;
+
+    Status
+    DropDatabaseProperties(const std::string& db_name, const std::vector<std::string>& delete_keys, int timeout) final;
+
+    Status
     CreateIndex(const std::string& collection_name, const IndexDesc& index_desc,
                 const ProgressMonitor& progress_monitor) final;
 

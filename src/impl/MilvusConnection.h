@@ -153,6 +153,26 @@ class MilvusConnection {
                   const GrpcContextOptions& options);
 
     Status
+    CreateDatabase(const proto::milvus::CreateDatabaseRequest& request, proto::common::Status& response,
+                   const GrpcContextOptions& options);
+
+    Status
+    DropDatabase(const proto::milvus::DropDatabaseRequest& request, proto::common::Status& response,
+                 const GrpcContextOptions& options);
+
+    Status
+    ListDatabases(const proto::milvus::ListDatabasesRequest& request, proto::milvus::ListDatabasesResponse& response,
+                  const GrpcContextOptions& options);
+
+    Status
+    DescribeDatabase(const proto::milvus::DescribeDatabaseRequest& request, proto::milvus::DescribeDatabaseResponse& response,
+                     const GrpcContextOptions& options);
+
+    Status
+    AlterDatabase(const proto::milvus::AlterDatabaseRequest& request, proto::common::Status& response,
+                  const GrpcContextOptions& options);
+
+    Status
     CreateIndex(const proto::milvus::CreateIndexRequest& request, proto::common::Status& response,
                 const GrpcContextOptions& options);
 

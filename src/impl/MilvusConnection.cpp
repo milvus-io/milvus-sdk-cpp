@@ -255,6 +255,36 @@ MilvusConnection::DescribeAlias(const proto::milvus::DescribeAliasRequest& reque
 }
 
 Status
+MilvusConnection::CreateDatabase(const proto::milvus::CreateDatabaseRequest& request, proto::common::Status& response,
+                                 const GrpcContextOptions& options) {
+    return grpcCall("CreateDatabase", &Stub::CreateDatabase, request, response, options);
+}
+
+Status
+MilvusConnection::DropDatabase(const proto::milvus::DropDatabaseRequest& request, proto::common::Status& response,
+                               const GrpcContextOptions& options) {
+    return grpcCall("DropDatabase", &Stub::DropDatabase, request, response, options);
+}
+
+Status
+MilvusConnection::ListDatabases(const proto::milvus::ListDatabasesRequest& request, proto::milvus::ListDatabasesResponse& response,
+                                const GrpcContextOptions& options) {
+    return grpcCall("ListDatabases", &Stub::ListDatabases, request, response, options);
+}
+
+Status
+MilvusConnection::DescribeDatabase(const proto::milvus::DescribeDatabaseRequest& request, proto::milvus::DescribeDatabaseResponse& response,
+                                   const GrpcContextOptions& options) {
+    return grpcCall("DescribeDatabase", &Stub::DescribeDatabase, request, response, options);
+}
+
+Status
+MilvusConnection::AlterDatabase(const proto::milvus::AlterDatabaseRequest& request, proto::common::Status& response,
+                                const GrpcContextOptions& options) {
+    return grpcCall("AlterDatabase", &Stub::AlterDatabase, request, response, options);
+}
+
+Status
 MilvusConnection::CreateIndex(const proto::milvus::CreateIndexRequest& request, proto::common::Status& response,
                               const GrpcContextOptions& options) {
     return grpcCall("CreateIndex", &Stub::CreateIndex, request, response, options);
