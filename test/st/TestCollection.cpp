@@ -22,8 +22,6 @@ using MilvusServerTestCollection = MilvusServerTestWithParam<bool>;
 
 TEST_P(MilvusServerTestCollection, CreateAndDeleteCollection) {
     auto using_string_primary_key = GetParam();
-    milvus::ConnectParam connect_param{"127.0.0.1", server_.ListenPort()};
-    client_->Connect(connect_param);
 
     milvus::CollectionSchema collection_schema("Foo");
     if (using_string_primary_key) {

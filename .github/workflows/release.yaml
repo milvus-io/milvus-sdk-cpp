@@ -17,28 +17,24 @@ jobs:
       matrix:
         os:
           - distro: Ubuntu
-            version: 18.04
-            image: ubuntu:18.04
-            key: u1804
-          - distro: Ubuntu
             version: 20.04
             image: ubuntu:20.04
             key: u2004
-          - distro: CentOS
-            version: 7
-            image: centos:7
-            key: c7
+          - distro: Ubuntu
+            version: 22.04
+            image: ubuntu:22.04
+            key: u2204
           - distro: Fedora
-            version: 34
-            image: fedora:34
-            key: fc34
+            version: 38
+            image: fedora:38
+            key: fc38
           - distro: Fedora
-            version: 35
-            image: fedora:35
-            key: fc35
+            version: 39
+            image: fedora:39
+            key: fc39
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
       - name: Prepare
         run: |
           sh scripts/install_deps.sh

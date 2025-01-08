@@ -290,5 +290,4 @@ class MilvusConnection {
         return StatusByProtoResponse(response);
     }
 };
-
 }  // namespace milvus

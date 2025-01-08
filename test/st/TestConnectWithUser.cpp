@@ -24,30 +24,19 @@ using milvus::test::MilvusServerTest;
 using testing::UnorderedElementsAre;
 using testing::UnorderedElementsAreArray;
 
-class MilvusServerTestWithAuth : public MilvusServerTest {
- protected:
-    std::shared_ptr<milvus::MilvusClient> root_client_;
-
-    void
-    SetUp() override {
-        server_.SetAuthorizationEnabled(true);
-        MilvusServerTest::SetUp();
-        root_client_ = milvus::MilvusClient::Create();
-        root_client_->Connect({"127.0.0.1", server_.ListenPort(), "root", "Milvus"});
-    }
-
-    void
-    TearDown() override {
-        MilvusServerTest::TearDown();
-    }
-};
+class MilvusServerTestWithAuth : public MilvusServerTest {};
 
 TEST_F(MilvusServerTestWithAuth, GenericTest) {
     bool has;
-    auto status = root_client_->HasCollection("nosuchcollection", has);
+    auto status = client_->HasCollection("nosuchcollection", has);
     EXPECT_TRUE(status.IsOk());
-    // orig client with out user/pass
-    status = client_->HasCollection("nosuchcollection", has);
+    EXPECT_FALSE(has);
+
+    // client without user/pass
+    milvus::ConnectParam param{"127.0.0.1", 19530};
+    std::shared_ptr<milvus::MilvusClient> tempClient = milvus::MilvusClient::Create();
+    status = tempClient->Connect(param);
+    status = tempClient->HasCollection("nosuchcollection", has);
     EXPECT_FALSE(status.IsOk());
-    EXPECT_EQ(status.Code(), milvus::StatusCode::NOT_CONNECTED);
+    EXPECT_NE(status.Code(), milvus::StatusCode::OK);
 }

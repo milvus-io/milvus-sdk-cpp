@@ -49,5 +49,5 @@ target_link_libraries(testing-it PRIVATE milvus_sdk ${GTEST_LIBRARIES} ${GMOCK_L
 if (CMAKE_SYSTEM_NAME MATCHES "(Linux|Darwin)")
 aux_source_directory(${CMAKE_CURRENT_SOURCE_DIR}/st st_files)
 add_executable(testing-st ${st_files})
-target_link_libraries(testing-st PRIVATE milvus_sdk ${GTEST_LIBRARIES} ${GMOCK_LIBRARIES} ${GTEST_MAIN_LIBRARIES})
+target_link_libraries(testing-st PRIVATE milvus_sdk ${GTEST_LIBRARIES} ${GMOCK_LIBRARIES})
 endif()
