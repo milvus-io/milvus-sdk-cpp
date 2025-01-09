@@ -73,6 +73,17 @@ class MilvusClientImplV2 : public MilvusClientV2 {
     ShowCollections(const std::vector<std::string>& collection_names, CollectionsInfo& collections_info) final;
 
     Status
+    AlterCollectionProperties(const std::string& collection_name, const std::vector<std::pair<std::string, std::string>>& properties, int timeout) final;
+
+    Status
+    DropCollectionProperties(const std::string& collection_name, const std::vector<std::string>& delete_keys, int timeout) final;
+
+    Status
+    AlterCollectionField(const std::string& collection_name, const std::string& field_name,
+                         const std::vector<std::pair<std::string, std::string>>& field_params,
+                         const std::string& db_name, int timeout) final;
+
+    Status
     CreatePartition(const std::string& collection_name, const std::string& partition_name) final;
 
     Status

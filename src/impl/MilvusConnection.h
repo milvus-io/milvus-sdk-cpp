@@ -101,6 +101,14 @@ class MilvusConnection {
                     proto::milvus::ShowCollectionsResponse& response, const GrpcContextOptions& options);
 
     Status
+    AlterCollection(const proto::milvus::AlterCollectionRequest& request, proto::common::Status& response,
+                    const GrpcContextOptions& options);
+
+    Status
+    AlterCollectionField(const proto::milvus::AlterCollectionFieldRequest& request, proto::common::Status& response,
+                        const GrpcContextOptions& options);
+
+    Status
     CreatePartition(const proto::milvus::CreatePartitionRequest& request, proto::common::Status& response,
                     const GrpcContextOptions& options);
 

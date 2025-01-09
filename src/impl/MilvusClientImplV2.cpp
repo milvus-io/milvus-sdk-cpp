@@ -291,6 +291,72 @@ MilvusClientImplV2::ShowCollections(const std::vector<std::string>& collection_n
 }
 
 Status
+MilvusClientImplV2::AlterCollectionProperties(const std::string& collection_name,
+                                              const std::vector<std::pair<std::string, std::string>>& properties,
+                                              int timeout) {
+    auto pre = [&collection_name, &properties]() {
+        proto::milvus::AlterCollectionRequest rpc_request;
+        rpc_request.set_collection_name(collection_name);
+
+        for (const auto& [key, value] : properties) {
+            auto* kv_pair = rpc_request.add_properties();
+            kv_pair->set_key(key);
+            kv_pair->set_value(value);
+        }
+
+        return rpc_request;
+    };
+
+    return apiHandler<proto::milvus::AlterCollectionRequest, proto::common::Status>(
+        pre, &MilvusConnection::AlterCollection, GrpcOpts{timeout});
+}
+
+Status
+MilvusClientImplV2::DropCollectionProperties(const std::string& collection_name,
+                                             const std::vector<std::string>& delete_keys,
+                                             int timeout) {
+    auto pre = [&collection_name, &delete_keys]() {
+        proto::milvus::AlterCollectionRequest rpc_request;
+        rpc_request.set_collection_name(collection_name);
+
+        for (const auto& key : delete_keys) {
+            rpc_request.add_delete_keys(key);
+        }
+
+        return rpc_request;
+    };
+
+    return apiHandler<proto::milvus::AlterCollectionRequest, proto::common::Status>(
+        pre, &MilvusConnection::AlterCollection, GrpcOpts{timeout});
+}
+
+Status
+MilvusClientImplV2::AlterCollectionField(const std::string& collection_name, const std::string& field_name,
+                                         const std::vector<std::pair<std::string, std::string>>& field_params,
+                                         const std::string& db_name, int timeout) {
+    auto pre = [&db_name, &collection_name, &field_name, &field_params]() {
+        proto::milvus::AlterCollectionFieldRequest rpc_request;
+        rpc_request.set_collection_name(collection_name);
+        rpc_request.set_field_name(field_name);
+
+        for (const auto& [key, value] : field_params) {
+            auto* kv_pair = rpc_request.add_properties();
+            kv_pair->set_key(key);
+            kv_pair->set_value(value);
+        }
+        
+        if (!db_name.empty()) {
+            rpc_request.set_db_name(db_name);
+        }
+
+        return rpc_request;
+    };
+
+    return apiHandler<proto::milvus::AlterCollectionFieldRequest, proto::common::Status>(
+        pre, &MilvusConnection::AlterCollectionField, GrpcOpts{timeout});
+}
+
+Status
 MilvusClientImplV2::CreatePartition(const std::string& collection_name, const std::string& partition_name) {
     auto pre = [&collection_name, &partition_name]() {
         proto::milvus::CreatePartitionRequest rpc_request;

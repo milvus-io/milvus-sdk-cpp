@@ -195,6 +195,17 @@ class MilvusClientV2 {
     virtual Status
     ShowCollections(const std::vector<std::string>& collection_names, CollectionsInfo& collections_info) = 0;
 
+    virtual Status
+    AlterCollectionProperties(const std::string& collection_name, const std::vector<std::pair<std::string, std::string>>& properties, int timeout = 0) = 0;
+
+    virtual Status
+    DropCollectionProperties(const std::string& collection_name, const std::vector<std::string>& delete_keys, int timeout = 0) = 0;
+
+    virtual Status
+    AlterCollectionField(const std::string& collection_name, const std::string& field_name,
+                         const std::vector<std::pair<std::string, std::string>>& field_params,
+                         const std::string& db_name = "", int timeout = 0) = 0;
+
     /**
      * Create a partition in a collection.
      *
