@@ -38,7 +38,7 @@ class MilvusClientImplV2 : public MilvusClientV2 {
     Disconnect() final;
 
     Status
-    GetVersion(std::string& version) final;
+    GetServerVersion(std::string& version) final;
 
     Status
     CreateCollection(const CollectionSchema& schema) final;
@@ -233,6 +233,27 @@ class MilvusClientImplV2 : public MilvusClientV2 {
     RevokePrivilege(const std::string& role_name, const std::string& object_type,
                     const std::string& privilege, const std::string& object_name,
                     const std::string& db_name, int timeout) final;
+
+    Status
+    CreatePrivilegeGroup(const std::string& group_name, int timeout) final;
+
+    Status
+    DropPrivilegeGroup(const std::string& group_name, int timeout) final;
+
+    Status
+    ListPrivilegeGroups(std::vector<PrivilegeGroupInfo>& privilege_groups, int timeout) final;
+
+    Status
+    AddPrivilegesToGroup(const std::string& group_name, const std::vector<std::string>& privileges, int timeout) final;
+    
+    Status
+    RemovePrivilegesFromGroup(const std::string& group_name, const std::vector<std::string>& privileges, int timeout) final;
+
+    Status
+    GrantPrivilegeV2(const std::string& role_name, const std::string& privilege, const std::string& collection_name, const std::string& db_name, int timeout) final;
+
+    Status
+    RevokePrivilegeV2(const std::string& role_name, const std::string& privilege, const std::string& collection_name, const std::string& db_name, int timeout) final;
 
     Status
     CalcDistance(const CalcDistanceArguments& arguments, DistanceArray& results) final;

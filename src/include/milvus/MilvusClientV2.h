@@ -40,6 +40,7 @@
 #include "types/LoadState.h"
 #include "types/PartitionInfo.h"
 #include "types/PartitionStat.h"
+#include "types/PrivilegeGroupInfo.h"
 #include "types/ProgressMonitor.h"
 #include "types/QueryArguments.h"
 #include "types/QueryResults.h"
@@ -92,7 +93,7 @@ class MilvusClientV2 {
      *
      */
     virtual Status
-    GetVersion(std::string& version) = 0;
+    GetServerVersion(std::string& version) = 0;
 
     /**
      * Create a collection with schema.
@@ -515,6 +516,27 @@ class MilvusClientV2 {
     RevokePrivilege(const std::string& role_name, const std::string& object_type,
                     const std::string& privilege, const std::string& object_name,
                     const std::string& db_name = "", int timeout = 0) = 0;
+
+    virtual Status
+    CreatePrivilegeGroup(const std::string& group_name, int timeout = 0) = 0;
+
+    virtual Status
+    DropPrivilegeGroup(const std::string& group_name, int timeout = 0) = 0;
+
+    virtual Status
+    ListPrivilegeGroups(std::vector<PrivilegeGroupInfo>& privilege_groups, int timeout = 0) = 0;
+
+    virtual Status
+    AddPrivilegesToGroup(const std::string& group_name, const std::vector<std::string>& privileges, int timeout = 0) = 0;
+
+    virtual Status
+    RemovePrivilegesFromGroup(const std::string& group_name, const std::vector<std::string>& privileges, int timeout = 0) = 0;
+
+    virtual Status
+    GrantPrivilegeV2(const std::string& role_name, const std::string& privilege, const std::string& collection_name, const std::string& db_name = "", int timeout = 0) = 0;
+
+    virtual Status
+    RevokePrivilegeV2(const std::string& role_name, const std::string& privilege, const std::string& collection_name, const std::string& db_name = "", int timeout = 0) = 0;
 
     /**
      * Calculate distance between two vector arrays.

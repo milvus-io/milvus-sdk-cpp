@@ -488,6 +488,35 @@ MilvusConnection::OperatePrivilege(const proto::milvus::OperatePrivilegeRequest&
     return grpcCall("OperatePrivilege", &Stub::OperatePrivilege, request, response, options);
 }
 
+Status
+MilvusConnection::CreatePrivilegeGroup(const proto::milvus::CreatePrivilegeGroupRequest& request,
+                                       proto::common::Status& response, const GrpcContextOptions& options) {
+    return grpcCall("CreatePrivilegeGroup", &Stub::CreatePrivilegeGroup, request, response, options);
+}
+
+Status
+MilvusConnection::DropPrivilegeGroup(const proto::milvus::DropPrivilegeGroupRequest& request,
+                                     proto::common::Status& response, const GrpcContextOptions& options) {
+    return grpcCall("DropPrivilegeGroup", &Stub::DropPrivilegeGroup, request, response, options);
+}
+
+Status
+MilvusConnection::ListPrivilegeGroups(const proto::milvus::ListPrivilegeGroupsRequest& request,
+                                      proto::milvus::ListPrivilegeGroupsResponse& response, const GrpcContextOptions& options) {
+    return grpcCall("ListPrivilegeGroups", &Stub::ListPrivilegeGroups, request, response, options);
+}
+
+Status
+MilvusConnection::OperatePrivilegeGroup(const proto::milvus::OperatePrivilegeGroupRequest& request,
+                                   proto::common::Status& response, const GrpcContextOptions& options) {
+    return grpcCall("OperatePrivilegeGroup", &Stub::OperatePrivilegeGroup, request, response, options);
+}
+
+Status
+MilvusConnection::OperatePrivilegeV2(const proto::milvus::OperatePrivilegeV2Request& request, proto::common::Status& response, const GrpcContextOptions& options) {
+    return grpcCall("OperatePrivilegeV2", &Stub::OperatePrivilegeV2, request, response, options);
+}
+
 void
 MilvusConnection::SetHeader(const std::string& key, const std::string& value) {
     headers_[key] = value;
