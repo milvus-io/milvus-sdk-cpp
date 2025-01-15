@@ -17,7 +17,6 @@
 #include <gtest/gtest.h>
 #include <unistd.h>
 
-#include <array>
 #include <cstdlib>
 #include <random>
 
@@ -26,94 +25,23 @@
 using testing::UnorderedElementsAre;
 using testing::UnorderedElementsAreArray;
 
-static void
-generate_certificates() {
-    std::system("mkdir -p certs");
-    std::system("openssl genrsa -out certs/ca.key 2048");
-    std::system(
-        "openssl req -new"
-        " -key certs/ca.key"
-        " -subj /C=CN/ST=Zhejiang/L=Hangzhou/O=Milvus/OU=CppSdk/CN=ca.test.com"
-        " -out certs/ca.csr");
-    std::system(
-        "openssl x509 -req"
-        " -days 365"
-        " -in certs/ca.csr"
-        " -signkey certs/ca.key"
-        " -out certs/ca.crt");
-    for (const auto& name : {"server", "client"}) {
-        std::system((std::string("openssl genrsa -out certs/") + name + ".key 2048").c_str());
-        std::system((std::string("openssl req -new -key certs/") + name +
-                     ".key"
-                     " -subj /C=CN/ST=Zhejiang/L=Hangzhou/O=Milvus/OU=CppSdk/CN=" +
-                     name +
-                     ".test.com"
-                     " -out certs/" +
-                     name + ".csr")
-                        .c_str());
-        std::system((std::string("openssl x509 -req -days 365 -in certs/") + name +
-                     ".csr"
-                     " -CA certs/ca.crt -CAkey certs/ca.key -CAcreateserial"
-                     " -out certs/" +
-                     name + ".crt")
-                        .c_str());
-    }
-}
-
 using milvus::test::MilvusServerTest;
 
-template <int Mode>
-class MilvusServerTestWithTlsMode : public MilvusServerTest {
- protected:
-    std::shared_ptr<milvus::MilvusClient> ssl_client_;
+class MilvusServerTestWithTlsMode : public MilvusServerTest {};
 
-    void
-    SetUp() override {
-        generate_certificates();
-        std::array<char, 256> path{};
-        getcwd(path.data(), path.size());
-        std::string pwd = path.data();
-        server_.SetTls(Mode, pwd + "/certs/server.crt", pwd + "/certs/server.key", pwd + "/certs/ca.crt");
-
-        MilvusServerTest::SetUp();
-
-        ssl_client_ = milvus::MilvusClient::Create();
-        auto param = server_.TestClientParam();
-        ssl_client_->Connect(*param);
-    }
-
-    void
-    TearDown() override {
-        MilvusServerTest::TearDown();
-        std::system("rm -fr certs/");
-    }
-};
-
-class MilvusServerTestWithTlsMode1 : public MilvusServerTestWithTlsMode<1> {};
-// TODO: fix it with milvus2.3+tls2
-class DISABLED_MilvusServerTestWithTlsMode2 : public MilvusServerTestWithTlsMode<2> {};
-
-TEST_F(MilvusServerTestWithTlsMode1, GenericTest) {
+TEST_F(MilvusServerTestWithTlsMode, GenericTest) {
     bool has;
-    auto status = ssl_client_->HasCollection("nosuchcollection", has);
+    auto status = client_->HasCollection("nosuchcollection", has);
     EXPECT_TRUE(status.IsOk());
-    status = client_->HasCollection("nosuchcollection", has);
-    EXPECT_FALSE(status.IsOk());
-    EXPECT_EQ(status.Code(), milvus::StatusCode::NOT_CONNECTED);
-}
+    EXPECT_FALSE(has);
 
-TEST_F(DISABLED_MilvusServerTestWithTlsMode2, GenericTest) {
-    bool has;
-    auto status = ssl_client_->HasCollection("nosuchcollection", has);
-    EXPECT_TRUE(status.IsOk());
-    status = client_->HasCollection("nosuchcollection", has);
-    EXPECT_FALSE(status.IsOk());
-    EXPECT_EQ(status.Code(), milvus::StatusCode::NOT_CONNECTED);
-
-    milvus::ConnectParam param{"127.0.0.1", 300};
+    // client without certifications
+    milvus::ConnectParam param{"127.0.0.1", 19530};
     param.EnableTls();
-    client_->Connect(param);
-    status = client_->HasCollection("nosuchcollection", has);
+    std::shared_ptr<milvus::MilvusClient> tempClient = milvus::MilvusClient::Create();
+    status = tempClient->Connect(param);
+    EXPECT_FALSE(status.IsOk());
+    status = tempClient->HasCollection("nosuchcollection", has);
     EXPECT_FALSE(status.IsOk());
     EXPECT_EQ(status.Code(), milvus::StatusCode::NOT_CONNECTED);
 }

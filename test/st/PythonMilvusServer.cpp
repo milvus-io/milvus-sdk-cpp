@@ -29,11 +29,46 @@
 namespace milvus {
 
 namespace test {
+
+static void
+generate_certificates() {
+    std::system("mkdir -p certs");
+    std::system("openssl genrsa -out certs/ca.key 2048");
+    std::system(
+        "openssl req -new"
+        " -key certs/ca.key"
+        " -subj /C=CN/ST=Zhejiang/L=Hangzhou/O=Milvus/OU=CppSdk/CN=ca.test.com"
+        " -out certs/ca.csr");
+    std::system(
+        "openssl x509 -req"
+        " -days 365"
+        " -in certs/ca.csr"
+        " -signkey certs/ca.key"
+        " -out certs/ca.crt");
+    for (const auto& name : {"server", "client"}) {
+        std::system((std::string("openssl genrsa -out certs/") + name + ".key 2048").c_str());
+        std::system((std::string("openssl req -new -key certs/") + name +
+                     ".key"
+                     " -subj /C=CN/ST=Zhejiang/L=Hangzhou/O=Milvus/OU=CppSdk/CN=" +
+                     name +
+                     ".test.com"
+                     " -out certs/" +
+                     name + ".csr")
+                        .c_str());
+        std::system((std::string("openssl x509 -req -days 365 -in certs/") + name +
+                     ".csr"
+                     " -CA certs/ca.crt -CAkey certs/ca.key -CAcreateserial"
+                     " -out certs/" +
+                     name + ".crt")
+                        .c_str());
+    }
+    std::system("echo generate certifications");
+}
+
 // using 2.3.x latest
 const char* kPythonMilvusServerVersion = "milvus~=2.3.0";
 
 PythonMilvusServer::~PythonMilvusServer() noexcept {
-    Stop();
 }
 
 void
@@ -86,6 +121,8 @@ PythonMilvusServer::run() {
     }
 
     if (tls_mode_ != 0) {
+        generate_certificates();
+
         cmd += " --tls-mode " + std::to_string(tls_mode_);
         cmd += " --server-pem-path " + server_cert_;
         cmd += " --server-key-path " + server_key_;
@@ -120,9 +157,7 @@ PythonMilvusServer::TestClientParam() const {
 
         if (tls_mode_ == 1) {
             param->EnableTls(server, pwd + "/certs/ca.crt");
-        }
-
-        else if (tls_mode_ == 2) {
+        } else if (tls_mode_ == 2) {
             param->EnableTls(server, pwd + "/certs/client.crt", pwd + "/certs/client.key", pwd + "/certs/ca.crt");
         }
     }

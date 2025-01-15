@@ -24,9 +24,6 @@ using milvus::test::MilvusServerTest;
 class MilvusServerTestGeneric : public MilvusServerTest {};
 
 TEST_F(MilvusServerTestGeneric, GetVersion) {
-    milvus::ConnectParam connect_param{"127.0.0.1", server_.ListenPort()};
-    client_->Connect(connect_param);
-
     std::string version;
     auto status = client_->GetVersion(version);
     EXPECT_TRUE(status.IsOk());

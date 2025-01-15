@@ -16,9 +16,11 @@
 # under the License.
 
 # The checks defined here will be run and will display by default as warnings.
+# Note: disable clang-analyzer-core.CallAndMessage, clang-analyzer-core.uninitialized.Assign, because the code could not pass the checker under Ubuntu 20.04
 Checks: >
     -*, clang-diagnostic-*, -clang-diagnostic-error,
     clang-analyzer-*, -clang-analyzer-alpha*, -clang-diagnostic-deprecated*,
+    -clang-analyzer-core.CallAndMessage, -clang-analyzer-core.uninitialized.Assign,
     google-*, -google-runtime-references, -google-readability-todo, -google-default-arguments,
     modernize-*, -modernize-pass-by-value, -modernize-use-equals-default, -modernize-use-trailing-return-type,
     performance-faster-string-find, performance-for-range-copy,

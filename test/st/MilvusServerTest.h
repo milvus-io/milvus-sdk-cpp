@@ -24,63 +24,42 @@
 
 #include "PythonMilvusServer.h"
 #include "milvus/MilvusClient.h"
-#include "milvus/Status.h"
+
+extern std::shared_ptr<milvus::ConnectParam> s_connectParam;
 
 namespace milvus {
 namespace test {
 
-inline void
-waitMilvusServerReady(const PythonMilvusServer& server) {
-    int max_retry = 60, retry = 0;
-    bool has;
-
-    auto client = milvus::MilvusClient::Create();
-    auto param = server.TestClientParam();
-    client->Connect(*param);
-    auto status = client->HasCollection("no_such", has);
-
-    while (!status.IsOk() && retry++ < max_retry) {
-        std::this_thread::sleep_for(std::chrono::seconds{5});
-        client = milvus::MilvusClient::Create();
-        client->Connect(*param);
-        status = client->HasCollection("no_such", has);
-        std::cout << "Wait milvus start done, try: " << retry << ", status: " << status.Message() << std::endl;
-    }
-    std::cout << "Wait milvus start done, status: " << status.Message() << std::endl;
-}
-
 class MilvusServerTest : public ::testing::Test {
  protected:
-    PythonMilvusServer server_{};
     std::shared_ptr<milvus::MilvusClient> client_{nullptr};
 
     void
     SetUp() override {
-        server_.Start();
         client_ = milvus::MilvusClient::Create();
-        waitMilvusServerReady(server_);
+        client_->Connect(*s_connectParam);
     }
 
     void
     TearDown() override {
+        client_->Disconnect();
     }
 };
 
 template <typename T>
 class MilvusServerTestWithParam : public ::testing::TestWithParam<T> {
  protected:
-    PythonMilvusServer server_{};
     std::shared_ptr<milvus::MilvusClient> client_{nullptr};
 
     void
     SetUp() override {
-        server_.Start();
         client_ = milvus::MilvusClient::Create();
-        waitMilvusServerReady(server_);
+        client_->Connect(*s_connectParam);
     }
 
     void
     TearDown() override {
+        client_->Disconnect();
     }
 };
 }  // namespace test

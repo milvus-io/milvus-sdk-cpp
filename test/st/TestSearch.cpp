@@ -28,18 +28,6 @@ class MilvusServerTestSearch : public MilvusServerTest {
     std::string partition_name{"Bar"};
 
     void
-    SetUp() override {
-        MilvusServerTest::SetUp();
-        milvus::ConnectParam connect_param{"127.0.0.1", server_.ListenPort()};
-        client_->Connect(connect_param);
-    }
-
-    void
-    TearDown() override {
-        MilvusServerTest::TearDown();
-    }
-
-    void
     createCollectionAndPartitions(bool create_flat_index) {
         milvus::CollectionSchema collection_schema(collection_name);
         collection_schema.AddField(milvus::FieldSchema("id", milvus::DataType::INT64, "id", true, true));
