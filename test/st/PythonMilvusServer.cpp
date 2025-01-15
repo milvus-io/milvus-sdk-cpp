@@ -87,6 +87,9 @@ PythonMilvusServer::SetTls(int mode, const std::string& server_cert, const std::
 
 void
 PythonMilvusServer::Start() {
+    if (Started()) {
+        return;
+    }
     // install command
     std::string cmd = std::string("pip3 install ") + kPythonMilvusServerVersion;
     auto ret = system(cmd.c_str());
@@ -98,10 +101,14 @@ PythonMilvusServer::Start() {
     cmd = "rm -fr " + base_dir_;
     system(cmd.c_str());
     thread_ = std::thread([this]() { this->run(); });
+    started_ = true;
 }
 
 void
 PythonMilvusServer::Stop() {
+    if (!Started()) {
+        return;
+    }
     if (pid_) {
         kill(pid_, SIGINT);
     }
@@ -110,6 +117,7 @@ PythonMilvusServer::Stop() {
     }
     // sleep 5s to wait for release port
     std::this_thread::sleep_for(std::chrono::seconds(5));
+    started_ = false;
 }
 
 void

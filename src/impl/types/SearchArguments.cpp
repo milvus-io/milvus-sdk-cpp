@@ -17,7 +17,12 @@
 #include "milvus/types/SearchArguments.h"
 
 #include <nlohmann/json.hpp>
+#include <string>
 #include <utility>
+#include <vector>
+
+#include "milvus/Status.h"
+#include "milvus/types/FieldData.h"
 
 namespace milvus {
 namespace {
@@ -118,74 +123,91 @@ SearchArguments::SetExpression(std::string expression) {
 
 FieldDataPtr
 SearchArguments::TargetVectors() const {
-    if (binary_vectors_ != nullptr) {
-        return binary_vectors_;
-    } else if (float_vectors_ != nullptr) {
-        return float_vectors_;
-    }
-
-    return nullptr;
+    return field_data_;
 }
 
-Status
-SearchArguments::AddTargetVector(std::string field_name, const std::string& vector) {
-    return AddTargetVector(std::move(field_name), std::string{vector});
-}
+TemplateAddTargetVectorDeclaration(, FloatVecFieldData);
+TemplateAddTargetVectorDeclaration(, BinaryVecFieldData);
+TemplateAddTargetVectorDeclaration(, Float16VecFieldData);
+TemplateAddTargetVectorDeclaration(, BFloat16VecFieldData);
 
-Status
-SearchArguments::AddTargetVector(std::string field_name, const std::vector<uint8_t>& vector) {
-    return AddTargetVector(std::move(field_name), milvus::BinaryVecFieldData::CreateBinaryString(vector));
-}
+template Status
+SearchArguments::AddTargetVector<BinaryVecFieldData>(std::string field_name, const std::vector<uint8_t>& vector);
 
+template Status
+SearchArguments::AddTargetVector<Float16VecFieldData>(std::string field_name, const std::vector<Eigen::half>& vector);
+template Status
+SearchArguments::AddTargetVector<Float16VecFieldData>(std::string field_name, const std::vector<float>& vector);
+template Status
+SearchArguments::AddTargetVector<Float16VecFieldData>(std::string field_name, const std::vector<double>& vector);
+template Status
+SearchArguments::AddTargetVector<Float16VecFieldData>(std::string field_name, const std::vector<uint8_t>& vector);
+
+template Status
+SearchArguments::AddTargetVector<BFloat16VecFieldData>(std::string field_name,
+                                                       const std::vector<Eigen::bfloat16>& vector);
+template Status
+SearchArguments::AddTargetVector<BFloat16VecFieldData>(std::string field_name, const std::vector<float>& vector);
+template Status
+SearchArguments::AddTargetVector<BFloat16VecFieldData>(std::string field_name, const std::vector<double>& vector);
+template Status
+SearchArguments::AddTargetVector<BFloat16VecFieldData>(std::string field_name, const std::vector<uint8_t>& vector);
+
+template <typename VecFieldDataT, typename T>
 Status
-SearchArguments::AddTargetVector(std::string field_name, std::string&& vector) {
-    if (float_vectors_ != nullptr) {
-        return {StatusCode::INVALID_AGUMENT, "Target vector must be float type!"};
+SearchArguments::DoAddTargetVector(std::string field_name, const T& vector) {
+    static_assert(
+        std::is_same_v<FloatVecFieldData, VecFieldDataT> || std::is_same_v<BinaryVecFieldData, VecFieldDataT> ||
+            std::is_same_v<Float16VecFieldData, VecFieldDataT> || std::is_same_v<BFloat16VecFieldData, VecFieldDataT>,
+        "Only FloatVecFieldData, BinaryVecFieldData, Float16VecFieldData or BFloat16VecFieldData is supported");
+    if (nullptr == field_data_) {
+        field_data_ = std::make_shared<VecFieldDataT>(std::move(field_name));
     }
 
-    if (nullptr == binary_vectors_) {
-        binary_vectors_ = std::make_shared<BinaryVecFieldData>(std::move(field_name));
-    }
-
-    auto code = binary_vectors_->Add(std::move(vector));
-    if (code != StatusCode::OK) {
-        return {code, "Failed to add vector"};
+    if (auto vectors = std::dynamic_pointer_cast<VecFieldDataT>(field_data_)) {
+        auto code = vectors->Add(vector);
+        if (code != StatusCode::OK) {
+            return {code, "Failed to add vector"};
+        }
+    } else {
+        return {StatusCode::INVALID_AGUMENT, "Invalid vector type!"};
     }
 
     return Status::OK();
 }
 
+template <class VecFieldDataT, class ElementT>
 Status
-SearchArguments::AddTargetVector(std::string field_name, const FloatVecFieldData::ElementT& vector) {
-    if (binary_vectors_ != nullptr) {
-        return {StatusCode::INVALID_AGUMENT, "Target vector must be binary type!"};
+SearchArguments::AddTargetVector(std::string field_name, const ElementT& vector) {
+    if constexpr (std::is_same_v<ElementT, std::vector<uint8_t>> &&
+                  (std::is_same_v<VecFieldDataT, BinaryVecFieldData> ||
+                   std::is_same_v<VecFieldDataT, Float16VecFieldData> ||
+                   std::is_same_v<VecFieldDataT, BFloat16VecFieldData>)) {
+        return DoAddTargetVector<VecFieldDataT>(std::move(field_name),
+                                                std::move(std::string{vector.begin(), vector.end()}));
+    } else {
+        return DoAddTargetVector<VecFieldDataT>(std::move(field_name), vector);
     }
-
-    if (nullptr == float_vectors_) {
-        float_vectors_ = std::make_shared<FloatVecFieldData>(std::move(field_name));
-    }
-
-    auto code = float_vectors_->Add(vector);
-    if (code != StatusCode::OK) {
-        return {code, "Failed to add vector"};
-    }
-
-    return Status::OK();
 }
 
+template <class VecFieldDataT>
 Status
-SearchArguments::AddTargetVector(std::string field_name, FloatVecFieldData::ElementT&& vector) {
-    if (binary_vectors_ != nullptr) {
-        return {StatusCode::INVALID_AGUMENT, "Target vector must be binary type!"};
+SearchArguments::AddTargetVector(std::string field_name, typename VecFieldDataT::ElementT&& vector) {
+    static_assert(
+        std::is_same_v<FloatVecFieldData, VecFieldDataT> || std::is_same_v<BinaryVecFieldData, VecFieldDataT> ||
+            std::is_same_v<Float16VecFieldData, VecFieldDataT> || std::is_same_v<BFloat16VecFieldData, VecFieldDataT>,
+        "Only FloatVecFieldData, BinaryVecFieldData, Float16VecFieldData or BFloat16VecFieldData is supported");
+    if (nullptr == field_data_) {
+        field_data_ = std::make_shared<VecFieldDataT>(std::move(field_name));
     }
 
-    if (nullptr == float_vectors_) {
-        float_vectors_ = std::make_shared<FloatVecFieldData>(std::move(field_name));
-    }
-
-    auto code = float_vectors_->Add(std::move(vector));
-    if (code != StatusCode::OK) {
-        return {code, "Failed to add vector"};
+    if (auto vectors = std::dynamic_pointer_cast<VecFieldDataT>(field_data_)) {
+        auto code = vectors->Add(std::move(vector));
+        if (code != StatusCode::OK) {
+            return {code, "Failed to add vector"};
+        }
+    } else {
+        return {StatusCode::INVALID_AGUMENT, "Invalid vector type!"};
     }
 
     return Status::OK();

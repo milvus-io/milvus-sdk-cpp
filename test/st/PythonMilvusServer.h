@@ -42,6 +42,7 @@ class PythonMilvusServer {
 
     int status_{0};
     int pid_{0};
+    bool started_{false};
 
     void
     run();
@@ -57,6 +58,11 @@ class PythonMilvusServer {
 
     void
     Start();
+
+    bool
+    Started() const {
+        return started_;
+    }
 
     void
     Stop();

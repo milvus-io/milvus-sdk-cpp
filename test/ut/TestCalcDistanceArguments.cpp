@@ -58,23 +58,25 @@ TEST_F(CalcDistanceArgumentsTest, GeneralTesting) {
     EXPECT_EQ(sqrt, arguments.Sqrt());
 }
 
-TEST_F(CalcDistanceArgumentsTest, FloatVectors) {
-    milvus::FloatVecFieldDataPtr vectors_1 = std::make_shared<milvus::FloatVecFieldData>();
-    std::vector<float> element_1 = {1.0, 2.0};
-    std::vector<float> element_2 = {3.0, 4.0};
+template <typename FloatVecFieldDataT, typename FloatT>
+static void
+DoTestFloatVectors() {
+    auto vectors_1 = std::make_shared<FloatVecFieldDataT>();
+    std::vector<FloatT> element_1 = {FloatT(1.0), FloatT(2.0)};
+    std::vector<FloatT> element_2 = {FloatT(3.0), FloatT(4.0)};
     vectors_1->Add(element_1);
     vectors_1->Add(element_2);
 
-    milvus::FloatVecFieldDataPtr vectors_2 = std::make_shared<milvus::FloatVecFieldData>();
-    std::vector<float> element_3 = {1.0, 2.0};
-    std::vector<float> element_4 = {3.0, 4.0};
-    std::vector<float> element_5 = {5.0, 6.0};
+    auto vectors_2 = std::make_shared<FloatVecFieldDataT>();
+    std::vector<FloatT> element_3 = {FloatT(1.0), FloatT(2.0)};
+    std::vector<FloatT> element_4 = {FloatT(3.0), FloatT(4.0)};
+    std::vector<FloatT> element_5 = {FloatT(5.0), FloatT(6.0)};
     vectors_2->Add(element_3);
     vectors_2->Add(element_4);
     vectors_2->Add(element_5);
 
     milvus::CalcDistanceArguments arguments;
-    milvus::FloatVecFieldDataPtr vectors_3 = nullptr;
+    decltype(vectors_1) vectors_3 = nullptr;
     auto status = arguments.SetLeftVectors(std::move(vectors_3));
     EXPECT_FALSE(status.IsOk());
     status = arguments.SetRightVectors(std::move(vectors_3));
@@ -88,6 +90,16 @@ TEST_F(CalcDistanceArgumentsTest, FloatVectors) {
 
     EXPECT_EQ(arguments.LeftVectors()->Count(), 2);
     EXPECT_EQ(arguments.RightVectors()->Count(), 3);
+}
+
+TEST_F(CalcDistanceArgumentsTest, FloatVectors) {
+    DoTestFloatVectors<milvus::FloatVecFieldData, float>();
+    DoTestFloatVectors<milvus::Float16VecFieldData, Eigen::half>();
+    DoTestFloatVectors<milvus::Float16VecFieldData, float>();
+    DoTestFloatVectors<milvus::Float16VecFieldData, double>();
+    DoTestFloatVectors<milvus::BFloat16VecFieldData, Eigen::bfloat16>();
+    DoTestFloatVectors<milvus::BFloat16VecFieldData, float>();
+    DoTestFloatVectors<milvus::BFloat16VecFieldData, double>();
 }
 
 TEST_F(CalcDistanceArgumentsTest, BinaryVectors) {

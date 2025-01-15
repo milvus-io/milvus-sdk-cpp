@@ -32,8 +32,17 @@ TEST_F(CollectionSchemaTest, GeneralTesting) {
     EXPECT_TRUE(schema.AddField(milvus::FieldSchema("bar", milvus::DataType::FLOAT_VECTOR, "bar")));
     EXPECT_FALSE(schema.AddField(milvus::FieldSchema("bar", milvus::DataType::FLOAT_VECTOR, "bar")));
 
+    EXPECT_TRUE(schema.AddField(milvus::FieldSchema("fp16", milvus::DataType::FLOAT16_VECTOR, "fp16")));
+    EXPECT_FALSE(schema.AddField(milvus::FieldSchema("fp16", milvus::DataType::FLOAT16_VECTOR, "fp16")));
+
+    EXPECT_TRUE(schema.AddField(milvus::FieldSchema("bf16", milvus::DataType::BFLOAT16_VECTOR, "bf16")));
+    EXPECT_FALSE(schema.AddField(milvus::FieldSchema("bf16", milvus::DataType::BFLOAT16_VECTOR, "bf16")));
+
     EXPECT_EQ(schema.ShardsNum(), 2);
-    EXPECT_EQ(schema.Fields().size(), 2);
-    EXPECT_EQ(schema.AnnsFieldNames().size(), 1);
-    EXPECT_EQ(*schema.AnnsFieldNames().begin(), "bar");
+    EXPECT_EQ(schema.Fields().size(), 4);
+    auto anns_field_names = schema.AnnsFieldNames();
+    EXPECT_EQ(anns_field_names.size(), 3);
+    EXPECT_TRUE(anns_field_names.find("bar") != anns_field_names.end());
+    EXPECT_TRUE(anns_field_names.find("fp16") != anns_field_names.end());
+    EXPECT_TRUE(anns_field_names.find("bf16") != anns_field_names.end());
 }

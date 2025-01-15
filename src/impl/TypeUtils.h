@@ -24,6 +24,7 @@
 #include "milvus/types/IndexType.h"
 #include "milvus/types/MetricType.h"
 #include "milvus/types/SegmentInfo.h"
+
 namespace milvus {
 
 bool
@@ -55,6 +56,12 @@ operator==(const proto::schema::FieldData& lhs, const BinaryVecFieldData& rhs);
 
 bool
 operator==(const proto::schema::FieldData& lhs, const FloatVecFieldData& rhs);
+
+bool
+operator==(const proto::schema::FieldData& lhs, const Float16VecFieldData& rhs);
+
+bool
+operator==(const proto::schema::FieldData& lhs, const BFloat16VecFieldData& rhs);
 
 bool
 operator==(const proto::schema::FieldData& lhs, const proto::schema::FieldData& rhs);
@@ -91,6 +98,12 @@ CreateProtoFieldData(const BinaryVecFieldData& field);
 
 proto::schema::VectorField*
 CreateProtoFieldData(const FloatVecFieldData& field);
+
+proto::schema::VectorField*
+CreateProtoFieldData(const Float16VecFieldData& field);
+
+proto::schema::VectorField*
+CreateProtoFieldData(const BFloat16VecFieldData& field);
 
 proto::schema::ScalarField*
 CreateProtoFieldData(const BoolFieldData& field);
@@ -196,8 +209,16 @@ SegmentStateCast(SegmentState state);
 IndexStateCode
 IndexStateCast(proto::common::IndexState state);
 
-bool
-IsVectorType(DataType type);
+constexpr bool
+IsDenseVectorType(DataType type) {
+    return type == DataType::BINARY_VECTOR || type == DataType::FLOAT_VECTOR || type == DataType::FLOAT16_VECTOR ||
+           type == DataType::BFLOAT16_VECTOR;
+}
+
+constexpr bool
+IsVectorType(DataType type) {
+    return IsDenseVectorType(type) || type == DataType::SPARSE_FLOAT_VECTOR;
+}
 
 std::string
 Base64Encode(const std::string& val);

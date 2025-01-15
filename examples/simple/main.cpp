@@ -122,7 +122,7 @@ main(int argc, char* argv[]) {
     std::uniform_int_distribution<int64_t> int64_gen(0, row_count - 1);
     int64_t q_number = int64_gen(ran);
     std::vector<float> q_vector = insert_vectors[q_number];
-    arguments.AddTargetVector(field_face_name, std::move(q_vector));
+    arguments.AddTargetVector<milvus::FloatVecFieldData>(field_face_name, std::move(q_vector));
     std::cout << "Searching the No." << q_number << " entity..." << std::endl;
 
     milvus::SearchResults search_results{};

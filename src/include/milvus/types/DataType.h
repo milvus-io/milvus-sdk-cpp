@@ -20,6 +20,7 @@ namespace milvus {
 
 /**
  * @brief Data type of field
+ * @refer https://github.com/milvus-io/milvus-proto/blob/master/proto/schema.proto
  */
 enum class DataType {
     UNKNOWN = 0,
@@ -39,6 +40,9 @@ enum class DataType {
 
     BINARY_VECTOR = 100,
     FLOAT_VECTOR = 101,
+    FLOAT16_VECTOR = 102,
+    BFLOAT16_VECTOR = 103,
+    SPARSE_FLOAT_VECTOR = 104,
 };
 
 }  // namespace milvus

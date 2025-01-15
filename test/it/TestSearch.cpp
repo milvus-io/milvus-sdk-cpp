@@ -53,10 +53,10 @@ operator==(const milvus::proto::common::KeyValuePair& lhs, const TestKv& rhs) {
 }
 }  // namespace
 
-template <typename T>
+template <class VecFieldDataT, class VecT>
 milvus::Status
 DoSearchVectors(testing::StrictMock<::milvus::MilvusMockedService>& service_,
-                std::shared_ptr<::milvus::MilvusClient>& client_, std::vector<T> vectors,
+                std::shared_ptr<::milvus::MilvusClient>& client_, std::vector<VecT> vectors,
                 milvus::SearchResults& search_results, int simulate_timeout = 0, int search_timeout = 0) {
     milvus::SearchArguments search_arguments{};
     search_arguments.SetCollectionName("foo");
@@ -66,7 +66,7 @@ DoSearchVectors(testing::StrictMock<::milvus::MilvusMockedService>& service_,
     search_arguments.AddOutputField("f2");
     search_arguments.SetExpression("dummy expression");
     for (const auto& vec : vectors) {
-        search_arguments.AddTargetVector("anns_dummy", vec);
+        search_arguments.AddTargetVector<VecFieldDataT>("anns_dummy", vec);
     }
     search_arguments.SetTravelTimestamp(10000);
     search_arguments.SetGuaranteeTimestamp(milvus::GuaranteeStrongTs());
@@ -125,7 +125,7 @@ DoSearchVectors(testing::StrictMock<::milvus::MilvusMockedService>& service_,
             for (int i = 0; i < vectors.size(); ++i) {
                 const auto& vector = vectors.at(i);
                 const auto& placeholder = placeholders.values(i);
-                T test_vector(vector.size());
+                VecT test_vector(vector.size());
                 std::copy_n(placeholder.data(), placeholder.size(), reinterpret_cast<char*>(test_vector.data()));
                 EXPECT_EQ(test_vector, vector);
             }
@@ -176,13 +176,13 @@ DoSearchVectors(testing::StrictMock<::milvus::MilvusMockedService>& service_,
     return client_->Search(search_arguments, search_results, search_timeout);
 }
 
-template <typename T>
+template <class VecFieldDataT, class VecT>
 void
 TestSearchVectors(testing::StrictMock<::milvus::MilvusMockedService>& service_,
-                  std::shared_ptr<::milvus::MilvusClient>& client_, std::vector<T> vectors) {
+                  std::shared_ptr<::milvus::MilvusClient>& client_, std::vector<VecT> vectors) {
     milvus::SearchResults search_results{};
 
-    auto status = DoSearchVectors<T>(service_, client_, vectors, search_results);
+    auto status = DoSearchVectors<VecFieldDataT, VecT>(service_, client_, vectors, search_results);
     EXPECT_TRUE(status.IsOk());
     auto& results = search_results.Results();
     EXPECT_EQ(results.size(), 2);
@@ -204,14 +204,30 @@ TestSearchVectors(testing::StrictMock<::milvus::MilvusMockedService>& service_,
 TEST_F(MilvusMockedTest, SearchFoo) {
     milvus::ConnectParam connect_param{"127.0.0.1", server_.ListenPort()};
     client_->Connect(connect_param);
-
-    std::vector<std::vector<float>> float_vectors = {std::vector<float>{0.1f, 0.2f, 0.3f, 0.4f},
-                                                     std::vector<float>{0.2f, 0.3f, 0.4f, 0.5f}};
-    TestSearchVectors<std::vector<float>>(service_, client_, float_vectors);
-
-    std::vector<std::vector<uint8_t>> bin_vectors = {std::vector<uint8_t>{1, 2, 3, 4},
-                                                     std::vector<uint8_t>{2, 3, 4, 5}};
-    TestSearchVectors<std::vector<uint8_t>>(service_, client_, bin_vectors);
+    {
+        std::vector<std::vector<float>> float_vectors = {std::vector<float>{0.1f, 0.2f, 0.3f, 0.4f},
+                                                         std::vector<float>{0.2f, 0.3f, 0.4f, 0.5f}};
+        TestSearchVectors<milvus::FloatVecFieldData>(service_, client_, float_vectors);
+    }
+    {
+        std::vector<std::vector<Eigen::half>> float16_vectors = {
+            std::vector<Eigen::half>{Eigen::half(0.1f), Eigen::half(0.2f), Eigen::half(0.3f), Eigen::half(0.4f)},
+            std::vector<Eigen::half>{Eigen::half(0.2f), Eigen::half(0.3f), Eigen::half(0.4f), Eigen::half(0.5f)}};
+        TestSearchVectors<milvus::Float16VecFieldData>(service_, client_, float16_vectors);
+    }
+    {
+        std::vector<std::vector<Eigen::bfloat16>> bfloat16_vectors = {
+            std::vector<Eigen::bfloat16>{Eigen::bfloat16(0.1f), Eigen::bfloat16(0.2f), Eigen::bfloat16(0.3f),
+                                         Eigen::bfloat16(0.4f)},
+            std::vector<Eigen::bfloat16>{Eigen::bfloat16(0.2f), Eigen::bfloat16(0.3f), Eigen::bfloat16(0.4f),
+                                         Eigen::bfloat16(0.5f)}};
+        TestSearchVectors<milvus::BFloat16VecFieldData>(service_, client_, bfloat16_vectors);
+    }
+    {
+        std::vector<std::vector<uint8_t>> bin_vectors = {std::vector<uint8_t>{1, 2, 3, 4},
+                                                         std::vector<uint8_t>{2, 3, 4, 5}};
+        TestSearchVectors<milvus::BinaryVecFieldData>(service_, client_, bin_vectors);
+    }
 }
 
 TEST_F(MilvusMockedTest, SearchFooWithTimeoutExpired) {
@@ -223,7 +239,8 @@ TEST_F(MilvusMockedTest, SearchFooWithTimeoutExpired) {
     milvus::SearchResults search_results{};
 
     auto t0 = std::chrono::system_clock::now();
-    auto status = DoSearchVectors(service_, client_, float_vectors, search_results, 1000, 500);
+    auto status =
+        DoSearchVectors<milvus::FloatVecFieldData>(service_, client_, float_vectors, search_results, 1000, 500);
     auto duration =
         std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - t0).count();
 
@@ -241,7 +258,8 @@ TEST_F(MilvusMockedTest, SearchFooWithTimeoutOk) {
     milvus::SearchResults search_results{};
 
     auto t0 = std::chrono::system_clock::now();
-    auto status = DoSearchVectors(service_, client_, float_vectors, search_results, 500, 1000);
+    auto status =
+        DoSearchVectors<milvus::FloatVecFieldData>(service_, client_, float_vectors, search_results, 500, 1000);
     auto duration =
         std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - t0).count();
 
@@ -277,7 +295,7 @@ TEST_F(MilvusMockedTest, SearchWithMismatchedAnnsField) {
     search_arguments.AddOutputField("f2");
     search_arguments.SetExpression("dummy expression");
     for (const auto& floats : floats_vec) {
-        search_arguments.AddTargetVector("anns_dummy", floats);
+        search_arguments.AddTargetVector<milvus::FloatVecFieldData>("anns_dummy", floats);
     }
     search_arguments.SetTravelTimestamp(10000);
     search_arguments.SetGuaranteeTimestamp(10001);

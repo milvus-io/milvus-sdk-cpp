@@ -42,8 +42,8 @@ Or `make all-release` to build the release version.
 And you could also create a dedicated CMake build directory, then use CMake to build it from the source by yourself
 
 ```shell
-$ mkdir build
-$ cd build
+$ mkdir cmake_build
+$ cd cmake_build
 $ cmake ..
 $ make
 ```

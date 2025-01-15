@@ -66,6 +66,16 @@ CalcDistanceArguments::SetLeftVectors(BinaryVecFieldDataPtr vectors) {
 }
 
 Status
+CalcDistanceArguments::SetLeftVectors(Float16VecFieldDataPtr vectors) {
+    return validate_vectors_with_oper(vectors, [this, &vectors]() { this->vectors_left_ = std::move(vectors); });
+}
+
+Status
+CalcDistanceArguments::SetLeftVectors(BFloat16VecFieldDataPtr vectors) {
+    return validate_vectors_with_oper(vectors, [this, &vectors]() { this->vectors_left_ = std::move(vectors); });
+}
+
+Status
 CalcDistanceArguments::SetLeftVectors(Int64FieldDataPtr ids, std::string collection_name,
                                       const std::vector<std::string>& partition_names) {
     return validate_vectors_with_oper(ids, collection_name, [this, &ids, &collection_name, &partition_names]() {
@@ -97,6 +107,16 @@ CalcDistanceArguments::SetRightVectors(FloatVecFieldDataPtr vectors) {
 
 Status
 CalcDistanceArguments::SetRightVectors(BinaryVecFieldDataPtr vectors) {
+    return validate_vectors_with_oper(vectors, [this, &vectors]() { this->vectors_right_ = std::move(vectors); });
+}
+
+Status
+CalcDistanceArguments::SetRightVectors(Float16VecFieldDataPtr vectors) {
+    return validate_vectors_with_oper(vectors, [this, &vectors]() { this->vectors_right_ = std::move(vectors); });
+}
+
+Status
+CalcDistanceArguments::SetRightVectors(BFloat16VecFieldDataPtr vectors) {
     return validate_vectors_with_oper(vectors, [this, &vectors]() { this->vectors_right_ = std::move(vectors); });
 }
 

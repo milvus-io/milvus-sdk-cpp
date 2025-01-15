@@ -16,6 +16,20 @@
 
 #include "TypeUtils.h"
 
+#include <endian.h>
+
+#include <cstdint>
+#include <cstring>
+#include <string>
+#include <string_view>
+#include <type_traits>
+#include <vector>
+
+#include "Eigen/src/Core/arch/Default/BFloat16.h"
+#include "Eigen/src/Core/arch/Default/Half.h"
+#include "milvus/types/DataType.h"
+#include "schema.pb.h"
+
 namespace milvus {
 
 bool
@@ -180,7 +194,7 @@ operator==(const proto::schema::FieldData& lhs, const BinaryVecFieldData& rhs) {
     }
 
     const auto& vectors = lhs.vectors();
-    if (vectors.has_float_vector()) {
+    if (!vectors.has_binary_vector()) {
         return false;
     }
 
@@ -197,6 +211,85 @@ operator==(const proto::schema::FieldData& lhs, const BinaryVecFieldData& rhs) {
     }
 
     return it == vectors_data.end();
+}
+
+template <typename T>
+struct Fp16OrBf16VecFieldDataTraits;
+
+template <>
+struct Fp16OrBf16VecFieldDataTraits<BFloat16VecFieldData> {
+    static bool
+    has_vector(const proto::schema::FieldData& field_data) {
+        return field_data.vectors().has_bfloat16_vector();
+    }
+
+    static const std::string&
+    get_vector(const proto::schema::FieldData& field_data) {
+        return field_data.vectors().bfloat16_vector();
+    }
+
+    static std::string&
+    mutable_vector(proto::schema::VectorField* field) {
+        return *(field->mutable_bfloat16_vector());
+    }
+};
+
+template <>
+struct Fp16OrBf16VecFieldDataTraits<Float16VecFieldData> {
+    static bool
+    has_vector(const proto::schema::FieldData& field_data) {
+        return field_data.vectors().has_float16_vector();
+    }
+
+    static const std::string&
+    get_vector(const proto::schema::FieldData& field_data) {
+        return field_data.vectors().float16_vector();
+    }
+
+    static std::string&
+    mutable_vector(proto::schema::VectorField* field) {
+        return *(field->mutable_float16_vector());
+    }
+};
+
+template <typename T>
+static bool
+compareFp16OrBf16VecFieldData(const proto::schema::FieldData& lhs, const T& rhs) {
+    if (lhs.field_name() != rhs.Name()) {
+        return false;
+    }
+    if (!lhs.has_vectors()) {
+        return false;
+    }
+
+    if (!Fp16OrBf16VecFieldDataTraits<T>::has_vector(lhs)) {
+        return false;
+    }
+
+    const std::string& vectors_data = Fp16OrBf16VecFieldDataTraits<T>::get_vector(lhs);
+    const auto& field_data_vecs = rhs.Data();
+    if (field_data_vecs.empty() && !vectors_data.empty()) {
+        return false;
+    }
+    const char* vector_data_begin = vectors_data.data();
+    for (const auto& field_data_vec : field_data_vecs) {
+        const std::string_view vec_data(vector_data_begin, field_data_vec.size());
+        if (vec_data != field_data_vec) {
+            return false;
+        }
+        vector_data_begin += field_data_vec.size();
+    }
+    return true;
+}
+
+bool
+operator==(const proto::schema::FieldData& lhs, const BFloat16VecFieldData& rhs) {
+    return compareFp16OrBf16VecFieldData(lhs, rhs);
+}
+
+bool
+operator==(const proto::schema::FieldData& lhs, const Float16VecFieldData& rhs) {
+    return compareFp16OrBf16VecFieldData(lhs, rhs);
 }
 
 bool
@@ -255,6 +348,10 @@ operator==(const proto::schema::FieldData& lhs, const Field& rhs) {
             return lhs == dynamic_cast<const BinaryVecFieldData&>(rhs);
         case DataType::FLOAT_VECTOR:
             return lhs == dynamic_cast<const FloatVecFieldData&>(rhs);
+        case DataType::FLOAT16_VECTOR:
+            return lhs == dynamic_cast<const Float16VecFieldData&>(rhs);
+        case DataType::BFLOAT16_VECTOR:
+            return lhs == dynamic_cast<const BFloat16VecFieldData&>(rhs);
         default:
             return false;
     }
@@ -296,6 +393,10 @@ DataTypeCast(DataType type) {
             return proto::schema::DataType::BinaryVector;
         case DataType::FLOAT_VECTOR:
             return proto::schema::DataType::FloatVector;
+        case DataType::FLOAT16_VECTOR:
+            return proto::schema::DataType::Float16Vector;
+        case DataType::BFLOAT16_VECTOR:
+            return proto::schema::DataType::BFloat16Vector;
         default:
             return proto::schema::DataType::None;
     }
@@ -324,6 +425,10 @@ DataTypeCast(proto::schema::DataType type) {
             return DataType::BINARY_VECTOR;
         case proto::schema::DataType::FloatVector:
             return DataType::FLOAT_VECTOR;
+        case proto::schema::DataType::Float16Vector:
+            return DataType::FLOAT16_VECTOR;
+        case proto::schema::DataType::BFloat16Vector:
+            return DataType::BFLOAT16_VECTOR;
         default:
             return DataType::UNKNOWN;
     }
@@ -424,6 +529,48 @@ CreateProtoFieldData(const FloatVecFieldData& field) {
     return ret;
 }
 
+template <typename T>
+proto::schema::VectorField*
+CreateFp16OrBf16VecProtoFieldData(const T& field) {
+    auto ret = new proto::schema::VectorField{};
+    auto& data = field.Data();
+    auto dim = data.front().size() / 2;
+    auto& vectors_data = Fp16OrBf16VecFieldDataTraits<T>::mutable_vector(ret);
+    vectors_data.reserve(data.size() * dim * 2);
+    for (const auto& item : data) {
+        if constexpr (BYTE_ORDER == LITTLE_ENDIAN) {
+            std::copy(item.begin(), item.end(), std::back_inserter(vectors_data));
+        } else {
+            // Big endian
+            for (auto fp : item) {
+                union {
+                    uint16_t u16;
+                    char bytes[2];
+                } value;
+                if constexpr (std::is_same_v<T, BFloat16VecFieldData>) {
+                    value.u16 = Eigen::bfloat16_impl::raw_bfloat16_as_uint16(fp);
+                } else {
+                    value.u16 = Eigen::half_impl::raw_half_as_uint16(fp);
+                }
+                vectors_data.push_back(value.bytes[1]);
+                vectors_data.push_back(value.bytes[0]);
+            }
+        }
+    }
+    ret->set_dim(static_cast<int>(dim));
+    return ret;
+}
+
+proto::schema::VectorField*
+CreateProtoFieldData(const Float16VecFieldData& field) {
+    return CreateFp16OrBf16VecProtoFieldData(field);
+}
+
+proto::schema::VectorField*
+CreateProtoFieldData(const BFloat16VecFieldData& field) {
+    return CreateFp16OrBf16VecProtoFieldData(field);
+}
+
 proto::schema::ScalarField*
 CreateProtoFieldData(const BoolFieldData& field) {
     auto ret = new proto::schema::ScalarField{};
@@ -512,6 +659,12 @@ CreateProtoFieldData(const Field& field) {
         case DataType::FLOAT_VECTOR:
             field_data.set_allocated_vectors(CreateProtoFieldData(dynamic_cast<const FloatVecFieldData&>(field)));
             break;
+        case DataType::FLOAT16_VECTOR:
+            field_data.set_allocated_vectors(CreateProtoFieldData(dynamic_cast<const Float16VecFieldData&>(field)));
+            break;
+        case DataType::BFLOAT16_VECTOR:
+            field_data.set_allocated_vectors(CreateProtoFieldData(dynamic_cast<const BFloat16VecFieldData&>(field)));
+            break;
         case DataType::BOOL:
             field_data.set_allocated_scalars(CreateProtoFieldData(dynamic_cast<const BoolFieldData&>(field)));
             break;
@@ -558,6 +711,16 @@ CreateMilvusFieldData(const milvus::proto::schema::FieldData& field_data, size_t
             return std::make_shared<FloatVecFieldData>(
                 name, BuildFieldDataVectors<std::vector<float>>(
                           field_data.vectors().dim(), field_data.vectors().float_vector().data(), offset, count));
+
+        case proto::schema::DataType::Float16Vector:
+            return std::make_shared<Float16VecFieldData>(
+                name, BuildFieldDataVectors<std::string>(field_data.vectors().dim() * 2,
+                                                         field_data.vectors().float16_vector(), offset, count));
+
+        case proto::schema::DataType::BFloat16Vector:
+            return std::make_shared<BFloat16VecFieldData>(
+                name, BuildFieldDataVectors<std::string>(field_data.vectors().dim() * 2,
+                                                         field_data.vectors().bfloat16_vector(), offset, count));
 
         case proto::schema::DataType::Bool:
             return std::make_shared<BoolFieldData>(
@@ -610,6 +773,16 @@ CreateMilvusFieldData(const milvus::proto::schema::FieldData& field_data) {
             return std::make_shared<FloatVecFieldData>(
                 name, BuildFieldDataVectors<std::vector<float>>(field_data.vectors().dim(),
                                                                 field_data.vectors().float_vector().data()));
+
+        case proto::schema::DataType::Float16Vector:
+            return std::make_shared<Float16VecFieldData>(
+                name, BuildFieldDataVectors<std::string>(field_data.vectors().dim() * 2,
+                                                         field_data.vectors().float16_vector()));
+
+        case proto::schema::DataType::BFloat16Vector:
+            return std::make_shared<BFloat16VecFieldData>(
+                name, BuildFieldDataVectors<std::string>(field_data.vectors().dim() * 2,
+                                                         field_data.vectors().bfloat16_vector()));
 
         case proto::schema::DataType::Bool:
             return std::make_shared<BoolFieldData>(
@@ -798,11 +971,6 @@ IndexStateCast(proto::common::IndexState state) {
         default:
             return IndexStateCode::FAILED;
     }
-}
-
-bool
-IsVectorType(DataType type) {
-    return (DataType::BINARY_VECTOR == type || DataType::FLOAT_VECTOR == type);
 }
 
 std::string

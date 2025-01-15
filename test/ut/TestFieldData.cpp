@@ -18,7 +18,35 @@
 
 #include "milvus/types/FieldData.h"
 
-class FieldDataTest : public ::testing::Test {};
+class FieldDataTest : public ::testing::Test {
+ protected:
+    template <typename FieldDataT, typename FloatT, milvus::DataType expected_data_type>
+    static void
+    TestFloat16Vec(const std::string& name) {
+        FieldDataT data{name};
+        std::vector<FloatT> element_1 = {FloatT(1.0), FloatT(2.0)};
+        std::vector<FloatT> element_2 = {FloatT(3.0), FloatT(4.0)};
+        data.Add(element_1);
+        data.Add(element_2);
+
+        EXPECT_EQ(data.template DataAsFloats<FloatT>().size(), 2);
+
+        std::vector<FloatT> element_3 = {FloatT(5.0)};
+        EXPECT_EQ(data.Add(element_3), milvus::StatusCode::DIMENSION_NOT_EQUAL);
+        std::vector<FloatT> element_4;
+        EXPECT_EQ(data.Add(element_4), milvus::StatusCode::VECTOR_IS_EMPTY);
+        EXPECT_EQ(data.Name(), name);
+        EXPECT_EQ(data.Type(), expected_data_type);
+        EXPECT_EQ(data.Count(), 2);
+        EXPECT_EQ(data.Data().size(), 2);
+        EXPECT_EQ(data.Data().at(0).size(), element_1.size() * 2);
+        EXPECT_EQ(data.Data().at(1).size(), element_2.size() * 2);
+
+        std::vector<std::vector<FloatT>> values = {element_1, element_2};
+        FieldDataT cp(name, values);
+        EXPECT_EQ(cp.Data().size(), 2);
+    }
+};
 
 TEST_F(FieldDataTest, GeneralTesting) {
     std::string name = "dummy";
@@ -212,4 +240,12 @@ TEST_F(FieldDataTest, GeneralTesting) {
         expected = std::vector<std::vector<uint8_t>>{{1, 2}, {3, 4}, {0, 0}};
         EXPECT_EQ(data.DataAsUnsignedChars(), expected);
     }
+
+    TestFloat16Vec<milvus::Float16VecFieldData, Eigen::half, milvus::DataType::FLOAT16_VECTOR>(name);
+    TestFloat16Vec<milvus::Float16VecFieldData, float, milvus::DataType::FLOAT16_VECTOR>(name);
+    TestFloat16Vec<milvus::Float16VecFieldData, double, milvus::DataType::FLOAT16_VECTOR>(name);
+
+    TestFloat16Vec<milvus::BFloat16VecFieldData, Eigen::bfloat16, milvus::DataType::BFLOAT16_VECTOR>(name);
+    TestFloat16Vec<milvus::BFloat16VecFieldData, float, milvus::DataType::BFLOAT16_VECTOR>(name);
+    TestFloat16Vec<milvus::BFloat16VecFieldData, double, milvus::DataType::BFLOAT16_VECTOR>(name);
 }
