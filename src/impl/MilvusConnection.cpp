@@ -45,7 +45,7 @@ createTlsCredentials(const std::string& cert, const std::string& key, const std:
             std::string buffer(size, '\0');
             fs.seekg(0);
             fs.read(&buffer[0], size);
-            return std::move(buffer);
+            return buffer;
         }
         return "";
     };

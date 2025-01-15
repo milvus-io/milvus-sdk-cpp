@@ -138,9 +138,9 @@ class IndexDesc {
  private:
     std::string field_name_;
     std::string index_name_;
-    int64_t index_id_{0};
-    milvus::MetricType metric_type_{milvus::MetricType::INVALID};
     milvus::IndexType index_type_{milvus::IndexType::INVALID};
+    milvus::MetricType metric_type_{milvus::MetricType::INVALID};
+    int64_t index_id_{0};
     std::unordered_map<std::string, int64_t> extra_params_;
 };
 

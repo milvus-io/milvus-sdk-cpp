@@ -42,6 +42,8 @@ class Field {
     virtual size_t
     Count() const = 0;
 
+    virtual ~Field() = default;
+
  protected:
     Field(std::string name, DataType data_type);
 
