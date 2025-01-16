@@ -256,6 +256,21 @@ class MilvusClientImplV2 : public MilvusClientV2 {
     RevokePrivilegeV2(const std::string& role_name, const std::string& privilege, const std::string& collection_name, const std::string& db_name, int timeout) final;
 
     Status
+    CreateResourceGroup(const std::string& resource_group, const ResourceGroupConfig& config, int timeout) final;
+
+    Status
+    DropResourceGroup(const std::string& resource_group, int timeout) final;
+
+    Status
+    DescribeResourceGroup(const std::string& resource_group, ResourceGroupDesc& resource_group_desc, int timeout = 0) final;
+
+    Status
+    ListResourceGroups(std::vector<std::string>& resource_groups, int timeout) final;
+
+    Status
+    UpdateResourceGroup(const std::string& resource_group, const ResourceGroupConfig& config, int timeout) final;
+
+    Status
     CalcDistance(const CalcDistanceArguments& arguments, DistanceArray& results) final;
 
     Status
@@ -275,6 +290,9 @@ class MilvusClientImplV2 : public MilvusClientV2 {
 
     Status
     LoadBalance(int64_t src_node, const std::vector<int64_t>& dst_nodes, const std::vector<int64_t>& segments) final;
+
+    Status
+    Compact(const std::string& collection_name, int64_t& compaction_id, bool is_clustering, int timeout) final;
 
     Status
     GetCompactionState(int64_t compaction_id, CompactionState& compaction_state) final;

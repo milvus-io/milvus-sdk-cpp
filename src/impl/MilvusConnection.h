@@ -323,6 +323,21 @@ class MilvusConnection {
     Status
     OperatePrivilegeV2(const proto::milvus::OperatePrivilegeV2Request& request, proto::common::Status& response, const GrpcContextOptions& options);
 
+    Status
+    CreateResourceGroup(const proto::milvus::CreateResourceGroupRequest& request, proto::common::Status& response, const GrpcContextOptions& options);
+
+    Status
+    DropResourceGroup(const proto::milvus::DropResourceGroupRequest& request, proto::common::Status& response, const GrpcContextOptions& options);
+
+    Status
+    DescribeResourceGroup(const proto::milvus::DescribeResourceGroupRequest& request, proto::milvus::DescribeResourceGroupResponse& response,const GrpcContextOptions& options);
+
+    Status
+    ListResourceGroups(const proto::milvus::ListResourceGroupsRequest& request, proto::milvus::ListResourceGroupsResponse& response, const GrpcContextOptions& options);
+
+    Status
+    UpdateResourceGroups(const proto::milvus::UpdateResourceGroupsRequest& request, proto::common::Status& response, const GrpcContextOptions& options);
+
     void
     SetHeader(const std::string& key, const std::string& value);
     

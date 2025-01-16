@@ -1581,6 +1581,165 @@ Status MilvusClientImplV2::RevokePrivilegeV2(const std::string& role_name, const
 }
 
 Status
+MilvusClientImplV2::CreateResourceGroup(const std::string& resource_group, const ResourceGroupConfig& config, int timeout) {
+    auto pre = [&resource_group, &config]() {
+        proto::milvus::CreateResourceGroupRequest rpc_request;
+        rpc_request.set_resource_group(resource_group);
+        
+        auto* rg_config = rpc_request.mutable_config();
+        rg_config->mutable_requests()->set_node_num(config.GetRequestsNodeNum());
+        rg_config->mutable_limits()->set_node_num(config.GetLimitsNodeNum());
+        
+        for (const auto& transfer : config.GetTransferFrom()) {
+            auto* transfer_from = rg_config->add_transfer_from();
+            transfer_from->set_resource_group(transfer);
+        }
+        
+        for (const auto& transfer : config.GetTransferTo()) {
+            auto* transfer_to = rg_config->add_transfer_to();
+            transfer_to->set_resource_group(transfer);
+        }
+        
+        auto* node_filter = rg_config->mutable_node_filter();
+        for (const auto& label : config.GetNodeLabels()) {
+            auto* kv_pair = node_filter->add_node_labels();
+            kv_pair->set_key(label.first);
+            kv_pair->set_value(label.second);
+        }
+        
+        return rpc_request;
+    };
+
+    return apiHandler<proto::milvus::CreateResourceGroupRequest, proto::common::Status>(
+        pre, &MilvusConnection::CreateResourceGroup, GrpcOpts{timeout});
+}
+
+Status
+MilvusClientImplV2::DropResourceGroup(const std::string& resource_group, int timeout) {
+    auto pre = [&resource_group]() {
+        proto::milvus::DropResourceGroupRequest rpc_request;
+        rpc_request.set_resource_group(resource_group);
+        return rpc_request;
+    };
+
+    return apiHandler<proto::milvus::DropResourceGroupRequest, proto::common::Status>(
+        pre, &MilvusConnection::DropResourceGroup, GrpcOpts{timeout});
+}
+
+Status
+MilvusClientImplV2::DescribeResourceGroup(const std::string& resource_group, ResourceGroupDesc& resource_group_desc, int timeout) {
+    auto pre = [&resource_group]() {
+        proto::milvus::DescribeResourceGroupRequest rpc_request;
+        rpc_request.set_resource_group(resource_group);
+        return rpc_request;
+    };
+
+    auto post = [&resource_group_desc](const proto::milvus::DescribeResourceGroupResponse& response) {
+        if (response.status().code() != 0) {
+            return;
+        }
+        const auto& rg = response.resource_group();
+
+        ResourceGroupConfig config;
+        config.SetRequestsNodeNum(rg.config().requests().node_num());
+        config.SetLimitsNodeNum(rg.config().limits().node_num());
+        
+        std::vector<std::string> transfer_from;
+        for (const auto& transfer : rg.config().transfer_from()) {
+            transfer_from.push_back(transfer.resource_group());
+        }
+        config.SetTransferFrom(transfer_from);
+        
+        std::vector<std::string> transfer_to;
+        for (const auto& transfer : rg.config().transfer_to()) {
+            transfer_to.push_back(transfer.resource_group());
+        }
+        config.SetTransferTo(transfer_to);
+        
+        std::vector<std::pair<std::string, std::string>> node_labels;
+        for (const auto& label : rg.config().node_filter().node_labels()) {
+            node_labels.emplace_back(label.key(), label.value());
+        }
+        config.SetNodeLabels(node_labels);
+
+        std::vector<NodeInfo> nodes;
+        for (const auto& node : rg.nodes()) {
+            nodes.emplace_back(node.node_id(), node.address(), node.hostname());
+        }
+
+        resource_group_desc = ResourceGroupDesc(
+            rg.name(),
+            rg.capacity(),
+            rg.num_available_node(),
+            std::map<std::string, int32_t>(rg.num_loaded_replica().begin(), rg.num_loaded_replica().end()),
+            std::map<std::string, int32_t>(rg.num_outgoing_node().begin(), rg.num_outgoing_node().end()),
+            std::map<std::string, int32_t>(rg.num_incoming_node().begin(), rg.num_incoming_node().end()),
+            config,
+            nodes
+        );
+    };
+
+    return apiHandler<proto::milvus::DescribeResourceGroupRequest, proto::milvus::DescribeResourceGroupResponse>(
+        pre, &MilvusConnection::DescribeResourceGroup, post, GrpcOpts{timeout});
+}
+
+Status
+MilvusClientImplV2::ListResourceGroups(std::vector<std::string>& resource_groups, int timeout) {
+    auto pre = []() {
+        proto::milvus::ListResourceGroupsRequest rpc_request;
+        return rpc_request;
+    };
+
+    auto post = [&resource_groups](const proto::milvus::ListResourceGroupsResponse& response) {
+        resource_groups.clear();
+        if (response.status().code() != 0) {
+            return;
+        }
+        for (const auto& group : response.resource_groups()) {
+            resource_groups.push_back(group);
+        }
+    };
+
+    return apiHandler<proto::milvus::ListResourceGroupsRequest, proto::milvus::ListResourceGroupsResponse>(
+        pre, &MilvusConnection::ListResourceGroups, post, GrpcOpts{timeout});
+}
+
+Status
+MilvusClientImplV2::UpdateResourceGroup(const std::string& resource_group, const ResourceGroupConfig& config, int timeout) {
+    auto pre = [&resource_group, &config]() {
+        proto::milvus::UpdateResourceGroupsRequest rpc_request;
+
+        auto& config_map = *rpc_request.mutable_resource_groups();
+        auto* rg_config = &config_map[resource_group];
+
+        rg_config->mutable_requests()->set_node_num(config.GetRequestsNodeNum());
+        rg_config->mutable_limits()->set_node_num(config.GetLimitsNodeNum());
+
+        for (const auto& transfer : config.GetTransferFrom()) {
+            auto* transfer_from = rg_config->add_transfer_from();
+            transfer_from->set_resource_group(transfer);
+        }
+
+        for (const auto& transfer : config.GetTransferTo()) {
+            auto* transfer_to = rg_config->add_transfer_to();
+            transfer_to->set_resource_group(transfer);
+        }
+
+        auto* node_filter = rg_config->mutable_node_filter();
+        for (const auto& label : config.GetNodeLabels()) {
+            auto* kv_pair = node_filter->add_node_labels();
+            kv_pair->set_key(label.first);
+            kv_pair->set_value(label.second);
+        }
+
+        return rpc_request;
+    };
+
+    return apiHandler<proto::milvus::UpdateResourceGroupsRequest, proto::common::Status>(
+        pre, &MilvusConnection::UpdateResourceGroups, GrpcOpts{timeout});
+}
+
+Status
 MilvusClientImplV2::CalcDistance(const CalcDistanceArguments& arguments, DistanceArray& results) {
     auto validate = [&arguments]() { return arguments.Validate(); };
 
@@ -1836,6 +1995,29 @@ MilvusClientImplV2::LoadBalance(int64_t src_node, const std::vector<int64_t>& ds
 
     return apiHandler<proto::milvus::LoadBalanceRequest, proto::common::Status>(pre, &MilvusConnection::LoadBalance,
                                                                                 nullptr);
+}
+
+Status MilvusClientImplV2::Compact(const std::string& collection_name, int64_t& compaction_id, bool is_clustering, int timeout) {
+    CollectionDesc collection_desc;
+    auto status = DescribeCollection(collection_name, collection_desc);
+    if (!status.IsOk()) {
+        return status;
+    }
+
+    auto pre = [&collection_desc, &collection_name, is_clustering]() {
+        proto::milvus::ManualCompactionRequest rpc_request;
+        rpc_request.set_collectionid(collection_desc.ID());
+        rpc_request.set_collection_name(collection_name);
+        rpc_request.set_majorcompaction(is_clustering);
+        return rpc_request;
+    };
+
+    auto post = [&compaction_id](const proto::milvus::ManualCompactionResponse& response) {
+        compaction_id = response.compactionid();
+    };
+
+    return apiHandler<proto::milvus::ManualCompactionRequest, proto::milvus::ManualCompactionResponse>(
+        pre, &MilvusConnection::ManualCompaction, post, GrpcOpts{timeout});
 }
 
 Status

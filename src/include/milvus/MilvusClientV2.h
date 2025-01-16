@@ -44,6 +44,8 @@
 #include "types/ProgressMonitor.h"
 #include "types/QueryArguments.h"
 #include "types/QueryResults.h"
+#include "types/ResourceGroupConfig.h"
+#include "types/ResourceGroupDesc.h"
 #include "types/RoleDesc.h"
 #include "types/SearchArguments.h"
 #include "types/SearchResults.h"
@@ -538,6 +540,21 @@ class MilvusClientV2 {
     virtual Status
     RevokePrivilegeV2(const std::string& role_name, const std::string& privilege, const std::string& collection_name, const std::string& db_name = "", int timeout = 0) = 0;
 
+    virtual Status
+    CreateResourceGroup(const std::string& resource_group, const ResourceGroupConfig& config, int timeout = 0) = 0;
+
+    virtual Status
+    DropResourceGroup(const std::string& resource_group, int timeout = 0) = 0;
+
+    virtual Status
+    DescribeResourceGroup(const std::string& resource_group, ResourceGroupDesc& resource_group_desc, int timeout = 0) = 0;
+
+    virtual Status
+    ListResourceGroups(std::vector<std::string>& resource_groups, int timeout = 0) = 0;
+
+    virtual Status
+    UpdateResourceGroup(const std::string& resource_group, const ResourceGroupConfig& config, int timeout = 0) = 0;
+
     /**
      * Calculate distance between two vector arrays.
      *
@@ -618,6 +635,9 @@ class MilvusClientV2 {
      */
     virtual Status
     LoadBalance(int64_t src_node, const std::vector<int64_t>& dst_nodes, const std::vector<int64_t>& segments) = 0;
+
+    virtual Status
+    Compact(const std::string& collection_name, int64_t& compaction_id, bool is_clustering = false, int timeout = 0) = 0;
 
     /**
      * Get compaction action state.
