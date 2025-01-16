@@ -19,7 +19,7 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../src/impl)
 include_directories(${milvus_proto_BINARY_DIR})
 
 # resolve gtest
-if ("${MILVUS_WITH_GTEST}" STREQUAL "pakcage")
+if ("${MILVUS_WITH_GTEST}" STREQUAL "package")
     find_package(GTest REQUIRED)
 else ()
     if (NOT googletest_POPULATED)

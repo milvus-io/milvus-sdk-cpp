@@ -21,12 +21,15 @@ include(FetchContent)
 set(GRPC_VERSION 1.49.1)
 set(NLOHMANN_JSON_VERSION 3.11.3)
 set(GOOGLETEST_VERSION 1.12.1)
+Set(FETCHCONTENT_QUIET FALSE)
 
 # grpc
 FetchContent_Declare(
     grpc
     GIT_REPOSITORY    https://github.com/grpc/grpc.git
     GIT_TAG           v${GRPC_VERSION}
+    GIT_SHALLOW       TRUE
+    GIT_PROGRESS      TRUE
 )
 
 # nlohmann_json
@@ -34,6 +37,8 @@ FetchContent_Declare(
     nlohmann_json
     GIT_REPOSITORY    https://github.com/nlohmann/json.git
     GIT_TAG           v${NLOHMANN_JSON_VERSION}
+    GIT_SHALLOW       TRUE
+    GIT_PROGRESS      TRUE
 )
 
 # googletest
@@ -41,12 +46,15 @@ FetchContent_Declare(
     googletest
     GIT_REPOSITORY    https://github.com/google/googletest.git
     GIT_TAG           release-${GOOGLETEST_VERSION}
+    GIT_SHALLOW       TRUE
+    GIT_PROGRESS      TRUE
 )
 
 
 # grpc
-if ("${MILVUS_WITH_GRPC}" STREQUAL "pakcage")
-    find_package(grpc REQUIRED)
+if ("${MILVUS_WITH_GRPC}" STREQUAL "package")
+    find_package(Protobuf REQUIRED)
+    find_package(gRPC REQUIRED)
 else ()
     if (WIN32)
         set(OPENSSL_NO_ASM_TXT "YES")
@@ -66,6 +74,7 @@ else ()
         set(ABSL_PROPAGATE_CXX_STD ON CACHE INTERNAL "")
         add_subdirectory(${grpc_SOURCE_DIR} ${grpc_BINARY_DIR} EXCLUDE_FROM_ALL)
         add_library(gRPC::grpc++ ALIAS grpc++)
+        add_executable(gRPC::grpc_cpp_plugin ALIAS grpc_cpp_plugin)
     endif ()
 endif ()
 
