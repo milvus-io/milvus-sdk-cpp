@@ -199,10 +199,12 @@ class MilvusClientV2 {
     ShowCollections(const std::vector<std::string>& collection_names, CollectionsInfo& collections_info) = 0;
 
     virtual Status
-    AlterCollectionProperties(const std::string& collection_name, const std::vector<std::pair<std::string, std::string>>& properties, int timeout = 0) = 0;
+    AlterCollectionProperties(const std::string& collection_name,
+                              const std::vector<std::pair<std::string, std::string>>& properties, int timeout = 0) = 0;
 
     virtual Status
-    DropCollectionProperties(const std::string& collection_name, const std::vector<std::string>& delete_keys, int timeout = 0) = 0;
+    DropCollectionProperties(const std::string& collection_name, const std::vector<std::string>& delete_keys,
+                             int timeout = 0) = 0;
 
     virtual Status
     AlterCollectionField(const std::string& collection_name, const std::string& field_name,
@@ -230,7 +232,7 @@ class MilvusClientV2 {
     DropPartition(const std::string& collection_name, const std::string& partition_name) = 0;
 
     virtual Status
-    ListPartitions(const std::string& collection_name, std::vector<std::string>& results, int timeout = 0 ) = 0;
+    ListPartitions(const std::string& collection_name, std::vector<std::string>& results, int timeout = 0) = 0;
 
     /**
      * Check existence of a partition.
@@ -287,7 +289,7 @@ class MilvusClientV2 {
 
 
     virtual Status
-    GetLoadState(const std::string& collection_name, LoadState& state, 
+    GetLoadState(const std::string& collection_name, LoadState& state,
                  const std::string& partition_name = "", int timeout = 0) = 0;
 
     virtual Status
@@ -343,7 +345,8 @@ class MilvusClientV2 {
     DescribeAlias(const std::string& alias, AliasDesc& alias_desc, int timeout = 0) = 0;
 
     virtual Status
-    CreateDatabase(const std::string& db_name, const std::vector<std::pair<std::string, std::string>>& properties = {}, int timeout = 0) = 0;
+    CreateDatabase(const std::string& db_name, const std::vector<std::pair<std::string, std::string>>& properties = {},
+                   int timeout = 0) = 0;
 
     virtual Status
     DropDatabase(const std::string& db_name, int timeout = 0) = 0;
@@ -355,10 +358,12 @@ class MilvusClientV2 {
     DescribeDatabase(const std::string& db_name, DatabaseDesc& database_desc, int timeout = 0) = 0;
 
     virtual Status
-    AlterDatabaseProperties(const std::string& db_name, const std::vector<std::pair<std::string, std::string>>& properties, int timeout = 0) = 0;
+    AlterDatabaseProperties(const std::string& db_name,
+                            const std::vector<std::pair<std::string, std::string>>& properties, int timeout = 0) = 0;
 
     virtual Status
-    DropDatabaseProperties(const std::string& db_name, const std::vector<std::string>& delete_keys, int timeout = 0) = 0;
+    DropDatabaseProperties(const std::string& db_name, const std::vector<std::string>& delete_keys,
+                           int timeout = 0) = 0;
 
     /**
      * Create an index on a field. Currently only support index on vector field.
@@ -418,7 +423,8 @@ class MilvusClientV2 {
     DropIndex(const std::string& collection_name, const std::string& field_name) = 0;
 
     virtual Status
-    ListIndexes(const std::string& collection_name, std::vector<std::string>& results, std::vector<std::string> field_names = {}) = 0;
+    ListIndexes(const std::string& collection_name, std::vector<std::string>& results,
+                std::vector<std::string> field_names = {}) = 0;
 
     /**
      * Insert entities into a collection.
@@ -486,7 +492,8 @@ class MilvusClientV2 {
     CreateUser(const std::string& username, const std::string& password, int timeout = 0) = 0;
 
     virtual Status
-    UpdatePassword(const std::string& username, const std::string& old_password, const std::string& new_password, bool reset_connection = false, int timeout = 0) = 0;
+    UpdatePassword(const std::string& username, const std::string& old_password, const std::string& new_password,
+                   bool reset_connection = false, int timeout = 0) = 0;
 
     virtual Status
     DropUser(const std::string& username, int timeout = 0) = 0;
@@ -503,10 +510,10 @@ class MilvusClientV2 {
     virtual Status
     RevokeRole(const std::string& username, const std::string& role_name, int timeout = 0) = 0;
 
-    virtual Status 
+    virtual Status
     DescribeRole(const std::string& role_name, RoleDesc& role_desc, int timeout = 0) = 0;
-    
-    virtual Status 
+
+    virtual Status
     ListRoles(std::vector<std::string>& roles, int timeout = 0) = 0;
 
     virtual Status
@@ -529,16 +536,20 @@ class MilvusClientV2 {
     ListPrivilegeGroups(std::vector<PrivilegeGroupInfo>& privilege_groups, int timeout = 0) = 0;
 
     virtual Status
-    AddPrivilegesToGroup(const std::string& group_name, const std::vector<std::string>& privileges, int timeout = 0) = 0;
+    AddPrivilegesToGroup(const std::string& group_name, const std::vector<std::string>& privileges,
+                         int timeout = 0) = 0;
 
     virtual Status
-    RemovePrivilegesFromGroup(const std::string& group_name, const std::vector<std::string>& privileges, int timeout = 0) = 0;
+    RemovePrivilegesFromGroup(const std::string& group_name, const std::vector<std::string>& privileges,
+                              int timeout = 0) = 0;
 
     virtual Status
-    GrantPrivilegeV2(const std::string& role_name, const std::string& privilege, const std::string& collection_name, const std::string& db_name = "", int timeout = 0) = 0;
+    GrantPrivilegeV2(const std::string& role_name, const std::string& privilege, const std::string& collection_name,
+                     const std::string& db_name = "", int timeout = 0) = 0;
 
     virtual Status
-    RevokePrivilegeV2(const std::string& role_name, const std::string& privilege, const std::string& collection_name, const std::string& db_name = "", int timeout = 0) = 0;
+    RevokePrivilegeV2(const std::string& role_name, const std::string& privilege, const std::string& collection_name,
+                      const std::string& db_name = "", int timeout = 0) = 0;
 
     virtual Status
     CreateResourceGroup(const std::string& resource_group, const ResourceGroupConfig& config, int timeout = 0) = 0;
@@ -547,7 +558,8 @@ class MilvusClientV2 {
     DropResourceGroup(const std::string& resource_group, int timeout = 0) = 0;
 
     virtual Status
-    DescribeResourceGroup(const std::string& resource_group, ResourceGroupDesc& resource_group_desc, int timeout = 0) = 0;
+    DescribeResourceGroup(const std::string& resource_group, ResourceGroupDesc& resource_group_desc,
+                          int timeout = 0) = 0;
 
     virtual Status
     ListResourceGroups(std::vector<std::string>& resource_groups, int timeout = 0) = 0;
@@ -637,7 +649,8 @@ class MilvusClientV2 {
     LoadBalance(int64_t src_node, const std::vector<int64_t>& dst_nodes, const std::vector<int64_t>& segments) = 0;
 
     virtual Status
-    Compact(const std::string& collection_name, int64_t& compaction_id, bool is_clustering = false, int timeout = 0) = 0;
+    Compact(const std::string& collection_name, int64_t& compaction_id, bool is_clustering = false,
+            int timeout = 0) = 0;
 
     /**
      * Get compaction action state.

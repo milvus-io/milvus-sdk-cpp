@@ -73,10 +73,12 @@ class MilvusClientImplV2 : public MilvusClientV2 {
     ShowCollections(const std::vector<std::string>& collection_names, CollectionsInfo& collections_info) final;
 
     Status
-    AlterCollectionProperties(const std::string& collection_name, const std::vector<std::pair<std::string, std::string>>& properties, int timeout) final;
+    AlterCollectionProperties(const std::string& collection_name,
+                              const std::vector<std::pair<std::string, std::string>>& properties, int timeout) final;
 
     Status
-    DropCollectionProperties(const std::string& collection_name, const std::vector<std::string>& delete_keys, int timeout) final;
+    DropCollectionProperties(const std::string& collection_name, const std::vector<std::string>& delete_keys,
+                             int timeout) final;
 
     Status
     AlterCollectionField(const std::string& collection_name, const std::string& field_name,
@@ -111,8 +113,8 @@ class MilvusClientImplV2 : public MilvusClientV2 {
                    PartitionsInfo& partitions_info) final;
 
     Status
-    GetLoadState(const std::string& collection_name, LoadState& state, 
-                 const std::string& partition_name, int timeout) final;
+    GetLoadState(const std::string& collection_name, LoadState& state, const std::string& partition_name,
+                 int timeout) final;
 
     Status
     RefreshLoad(const std::string& collection_name, int timeout) final;
@@ -133,7 +135,8 @@ class MilvusClientImplV2 : public MilvusClientV2 {
     DescribeAlias(const std::string& alias, AliasDesc& alias_desc, int timeout) final;
 
     Status
-    CreateDatabase(const std::string& db_name, const std::vector<std::pair<std::string, std::string>>& properties, int timeout) final;
+    CreateDatabase(const std::string& db_name, const std::vector<std::pair<std::string, std::string>>& properties,
+                   int timeout) final;
 
     Status
     DropDatabase(const std::string& db_name, int timeout) final;
@@ -145,7 +148,8 @@ class MilvusClientImplV2 : public MilvusClientV2 {
     DescribeDatabase(const std::string& db_name, DatabaseDesc& database_desc, int timeout) final;
 
     Status
-    AlterDatabaseProperties(const std::string& db_name, const std::vector<std::pair<std::string, std::string>>& properties, int timeout) final;
+    AlterDatabaseProperties(const std::string& db_name,
+                            const std::vector<std::pair<std::string, std::string>>& properties, int timeout) final;
 
     Status
     DropDatabaseProperties(const std::string& db_name, const std::vector<std::string>& delete_keys, int timeout) final;
@@ -168,7 +172,8 @@ class MilvusClientImplV2 : public MilvusClientV2 {
     DropIndex(const std::string& collection_name, const std::string& field_name) final;
 
     Status
-    ListIndexes(const std::string& collection_name, std::vector<std::string>& results, std::vector<std::string> field_names) final;
+    ListIndexes(const std::string& collection_name, std::vector<std::string>& results,
+                std::vector<std::string> field_names) final;
 
     Status
     Insert(const std::string& collection_name, const std::string& partition_name,
@@ -177,7 +182,7 @@ class MilvusClientImplV2 : public MilvusClientV2 {
     Status
     Upsert(const std::string& collection_name, const std::string& partition_name,
            const std::vector<FieldDataPtr>& fields, DmlResults& results) final;
-    
+
     Status
     Delete(const std::string& collection_name, const std::string& partition_name, const std::string& expression,
            DmlResults& results) final;
@@ -201,7 +206,8 @@ class MilvusClientImplV2 : public MilvusClientV2 {
     CreateUser(const std::string& username, const std::string& password, int timeout) final;
 
     Status
-    UpdatePassword(const std::string& username, const std::string& old_password, const std::string& new_password, bool reset_connection, int timeout) final;
+    UpdatePassword(const std::string& username, const std::string& old_password, const std::string& new_password,
+                   bool reset_connection, int timeout) final;
 
     Status
     DropUser(const std::string& username, int timeout) final;
@@ -221,7 +227,7 @@ class MilvusClientImplV2 : public MilvusClientV2 {
     Status
     DescribeRole(const std::string& role_name, RoleDesc& role_desc, int timeout) final;
 
-    Status 
+    Status
     ListRoles(std::vector<std::string>& roles, int timeout) final;
 
     Status
@@ -245,15 +251,18 @@ class MilvusClientImplV2 : public MilvusClientV2 {
 
     Status
     AddPrivilegesToGroup(const std::string& group_name, const std::vector<std::string>& privileges, int timeout) final;
-    
-    Status
-    RemovePrivilegesFromGroup(const std::string& group_name, const std::vector<std::string>& privileges, int timeout) final;
 
     Status
-    GrantPrivilegeV2(const std::string& role_name, const std::string& privilege, const std::string& collection_name, const std::string& db_name, int timeout) final;
+    RemovePrivilegesFromGroup(const std::string& group_name, const std::vector<std::string>& privileges,
+                              int timeout) final;
 
     Status
-    RevokePrivilegeV2(const std::string& role_name, const std::string& privilege, const std::string& collection_name, const std::string& db_name, int timeout) final;
+    GrantPrivilegeV2(const std::string& role_name, const std::string& privilege, const std::string& collection_name,
+                     const std::string& db_name, int timeout) final;
+
+    Status
+    RevokePrivilegeV2(const std::string& role_name, const std::string& privilege, const std::string& collection_name,
+                      const std::string& db_name, int timeout) final;
 
     Status
     CreateResourceGroup(const std::string& resource_group, const ResourceGroupConfig& config, int timeout) final;
@@ -262,7 +271,8 @@ class MilvusClientImplV2 : public MilvusClientV2 {
     DropResourceGroup(const std::string& resource_group, int timeout) final;
 
     Status
-    DescribeResourceGroup(const std::string& resource_group, ResourceGroupDesc& resource_group_desc, int timeout = 0) final;
+    DescribeResourceGroup(const std::string& resource_group, ResourceGroupDesc& resource_group_desc,
+                          int timeout = 0) final;
 
     Status
     ListResourceGroups(std::vector<std::string>& resource_groups, int timeout) final;
@@ -417,7 +427,7 @@ class MilvusClientImplV2 : public MilvusClientV2 {
     }
 
 
-    const FieldSchema* 
+    const FieldSchema*
     ExtractPrimaryField(const CollectionSchema& schema) {
         const auto& fields = schema.Fields();
         for (const auto& field : fields) {
@@ -436,7 +446,7 @@ class MilvusClientImplV2 : public MilvusClientV2 {
         }
 
         std::string expr = primary_field->Name() + " in [";
-        
+
         if (primary_field->FieldDataType() == DataType::VARCHAR) {
             for (size_t i = 0; i < pks.size(); i++) {
                 if (i > 0) {
@@ -452,7 +462,7 @@ class MilvusClientImplV2 : public MilvusClientV2 {
                 expr += std::to_string(pks[i]);
             }
         }
-        
+
         expr += "]";
         return expr;
     }

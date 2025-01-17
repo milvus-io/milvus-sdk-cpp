@@ -181,8 +181,8 @@ MilvusConnection::AlterCollection(const proto::milvus::AlterCollectionRequest& r
 }
 
 Status
-MilvusConnection::AlterCollectionField(const proto::milvus::AlterCollectionFieldRequest& request, proto::common::Status& response,
-                                       const GrpcContextOptions& options) {
+MilvusConnection::AlterCollectionField(const proto::milvus::AlterCollectionFieldRequest& request,
+                                       proto::common::Status& response, const GrpcContextOptions& options) {
     return grpcCall("AlterCollectionField", &Stub::AlterCollectionField, request, response, options);
 }
 
@@ -255,14 +255,14 @@ MilvusConnection::AlterAlias(const proto::milvus::AlterAliasRequest& request, pr
 }
 
 Status
-MilvusConnection::ListAliases(const proto::milvus::ListAliasesRequest& request, proto::milvus::ListAliasesResponse& response,
-                              const GrpcContextOptions& options) {
+MilvusConnection::ListAliases(const proto::milvus::ListAliasesRequest& request,
+                              proto::milvus::ListAliasesResponse& response, const GrpcContextOptions& options) {
     return grpcCall("ListAliases", &Stub::ListAliases, request, response, options);
 }
 
 Status
-MilvusConnection::DescribeAlias(const proto::milvus::DescribeAliasRequest& request, proto::milvus::DescribeAliasResponse& response,
-                                const GrpcContextOptions& options) {
+MilvusConnection::DescribeAlias(const proto::milvus::DescribeAliasRequest& request,
+                                proto::milvus::DescribeAliasResponse& response, const GrpcContextOptions& options) {
     return grpcCall("DescribeAlias", &Stub::DescribeAlias, request, response, options);
 }
 
@@ -279,13 +279,14 @@ MilvusConnection::DropDatabase(const proto::milvus::DropDatabaseRequest& request
 }
 
 Status
-MilvusConnection::ListDatabases(const proto::milvus::ListDatabasesRequest& request, proto::milvus::ListDatabasesResponse& response,
-                                const GrpcContextOptions& options) {
+MilvusConnection::ListDatabases(const proto::milvus::ListDatabasesRequest& request,
+                                proto::milvus::ListDatabasesResponse& response, const GrpcContextOptions& options) {
     return grpcCall("ListDatabases", &Stub::ListDatabases, request, response, options);
 }
 
 Status
-MilvusConnection::DescribeDatabase(const proto::milvus::DescribeDatabaseRequest& request, proto::milvus::DescribeDatabaseResponse& response,
+MilvusConnection::DescribeDatabase(const proto::milvus::DescribeDatabaseRequest& request,
+                                   proto::milvus::DescribeDatabaseResponse& response,
                                    const GrpcContextOptions& options) {
     return grpcCall("DescribeDatabase", &Stub::DescribeDatabase, request, response, options);
 }
@@ -502,7 +503,8 @@ MilvusConnection::DropPrivilegeGroup(const proto::milvus::DropPrivilegeGroupRequ
 
 Status
 MilvusConnection::ListPrivilegeGroups(const proto::milvus::ListPrivilegeGroupsRequest& request,
-                                      proto::milvus::ListPrivilegeGroupsResponse& response, const GrpcContextOptions& options) {
+                                      proto::milvus::ListPrivilegeGroupsResponse& response,
+                                      const GrpcContextOptions& options) {
     return grpcCall("ListPrivilegeGroups", &Stub::ListPrivilegeGroups, request, response, options);
 }
 
@@ -513,32 +515,40 @@ MilvusConnection::OperatePrivilegeGroup(const proto::milvus::OperatePrivilegeGro
 }
 
 Status
-MilvusConnection::OperatePrivilegeV2(const proto::milvus::OperatePrivilegeV2Request& request, proto::common::Status& response, const GrpcContextOptions& options) {
+MilvusConnection::OperatePrivilegeV2(const proto::milvus::OperatePrivilegeV2Request& request,
+                                     proto::common::Status& response, const GrpcContextOptions& options) {
     return grpcCall("OperatePrivilegeV2", &Stub::OperatePrivilegeV2, request, response, options);
 }
 
 Status
-MilvusConnection::CreateResourceGroup(const proto::milvus::CreateResourceGroupRequest& request, proto::common::Status& response, const GrpcContextOptions& options) {
+MilvusConnection::CreateResourceGroup(const proto::milvus::CreateResourceGroupRequest& request,
+                                      proto::common::Status& response, const GrpcContextOptions& options) {
     return grpcCall("CreateResourceGroup", &Stub::CreateResourceGroup, request, response, options);
 }
 
 Status
-MilvusConnection::DropResourceGroup(const proto::milvus::DropResourceGroupRequest& request, proto::common::Status& response, const GrpcContextOptions& options) {
+MilvusConnection::DropResourceGroup(const proto::milvus::DropResourceGroupRequest& request,
+                                    proto::common::Status& response, const GrpcContextOptions& options) {
     return grpcCall("DropResourceGroup", &Stub::DropResourceGroup, request, response, options);
 }
 
 Status
-MilvusConnection::DescribeResourceGroup(const proto::milvus::DescribeResourceGroupRequest& request, proto::milvus::DescribeResourceGroupResponse& response, const GrpcContextOptions& options) {
+MilvusConnection::DescribeResourceGroup(const proto::milvus::DescribeResourceGroupRequest& request,
+                                        proto::milvus::DescribeResourceGroupResponse& response,
+                                        const GrpcContextOptions& options) {
     return grpcCall("DescribeResourceGroup", &Stub::DescribeResourceGroup, request, response, options);
 }
 
 Status
-MilvusConnection::ListResourceGroups(const proto::milvus::ListResourceGroupsRequest& request, proto::milvus::ListResourceGroupsResponse& response, const GrpcContextOptions& options) {
+MilvusConnection::ListResourceGroups(const proto::milvus::ListResourceGroupsRequest& request,
+                                     proto::milvus::ListResourceGroupsResponse& response,
+                                     const GrpcContextOptions& options) {
     return grpcCall("ListResourceGroups", &Stub::ListResourceGroups, request, response, options);
 }
 
 Status
-MilvusConnection::UpdateResourceGroups(const proto::milvus::UpdateResourceGroupsRequest& request, proto::common::Status& response, const GrpcContextOptions& options) {
+MilvusConnection::UpdateResourceGroups(const proto::milvus::UpdateResourceGroupsRequest& request,
+                                       proto::common::Status& response, const GrpcContextOptions& options) {
     return grpcCall("UpdateResourceGroups", &Stub::UpdateResourceGroups, request, response, options);
 }
 

@@ -173,8 +173,8 @@ class MilvusConnection {
                   const GrpcContextOptions& options);
 
     Status
-    DescribeDatabase(const proto::milvus::DescribeDatabaseRequest& request, proto::milvus::DescribeDatabaseResponse& response,
-                     const GrpcContextOptions& options);
+    DescribeDatabase(const proto::milvus::DescribeDatabaseRequest& request,
+                     proto::milvus::DescribeDatabaseResponse& response, const GrpcContextOptions& options);
 
     Status
     AlterDatabase(const proto::milvus::AlterDatabaseRequest& request, proto::common::Status& response,
@@ -314,69 +314,76 @@ class MilvusConnection {
                        const GrpcContextOptions& options);
 
     Status
-    ListPrivilegeGroups(const proto::milvus::ListPrivilegeGroupsRequest& request, proto::milvus::ListPrivilegeGroupsResponse& response,
+    ListPrivilegeGroups(const proto::milvus::ListPrivilegeGroupsRequest& request,
+                        proto::milvus::ListPrivilegeGroupsResponse& response, const GrpcContextOptions& options);
+
+    Status
+    OperatePrivilegeGroup(const proto::milvus::OperatePrivilegeGroupRequest& request, proto::common::Status& response,
+                          const GrpcContextOptions& options);
+
+    Status
+    OperatePrivilegeV2(const proto::milvus::OperatePrivilegeV2Request& request, proto::common::Status& response,
+                       const GrpcContextOptions& options);
+
+    Status
+    CreateResourceGroup(const proto::milvus::CreateResourceGroupRequest& request, proto::common::Status& response,
                         const GrpcContextOptions& options);
 
     Status
-    OperatePrivilegeGroup(const proto::milvus::OperatePrivilegeGroupRequest& request, proto::common::Status& response, const GrpcContextOptions& options);
+    DropResourceGroup(const proto::milvus::DropResourceGroupRequest& request, proto::common::Status& response,
+                      const GrpcContextOptions& options);
 
     Status
-    OperatePrivilegeV2(const proto::milvus::OperatePrivilegeV2Request& request, proto::common::Status& response, const GrpcContextOptions& options);
+    DescribeResourceGroup(const proto::milvus::DescribeResourceGroupRequest& request,
+                          proto::milvus::DescribeResourceGroupResponse& response, const GrpcContextOptions& options);
 
     Status
-    CreateResourceGroup(const proto::milvus::CreateResourceGroupRequest& request, proto::common::Status& response, const GrpcContextOptions& options);
+    ListResourceGroups(const proto::milvus::ListResourceGroupsRequest& request,
+                       proto::milvus::ListResourceGroupsResponse& response, const GrpcContextOptions& options);
 
     Status
-    DropResourceGroup(const proto::milvus::DropResourceGroupRequest& request, proto::common::Status& response, const GrpcContextOptions& options);
-
-    Status
-    DescribeResourceGroup(const proto::milvus::DescribeResourceGroupRequest& request, proto::milvus::DescribeResourceGroupResponse& response,const GrpcContextOptions& options);
-
-    Status
-    ListResourceGroups(const proto::milvus::ListResourceGroupsRequest& request, proto::milvus::ListResourceGroupsResponse& response, const GrpcContextOptions& options);
-
-    Status
-    UpdateResourceGroups(const proto::milvus::UpdateResourceGroupsRequest& request, proto::common::Status& response, const GrpcContextOptions& options);
+    UpdateResourceGroups(const proto::milvus::UpdateResourceGroupsRequest& request, proto::common::Status& response,
+                         const GrpcContextOptions& options);
 
     void
     SetHeader(const std::string& key, const std::string& value);
-    
+
     void
     RemoveHeader(const std::string& key);
-    
+
     std::string
     GetHeader(const std::string& key) const;
-    
+
     std::vector<std::pair<std::string, std::string>>
     GetAllHeaders() const;
 
     const
     std::string& Host() const;
-    
+
     void
     SetHost(const std::string& host);
 
     uint16_t
     Port() const;
-    
+
     void
     SetPort(uint16_t port);
 
-    const std::string& 
+    const std::string&
     User() const;
-    
+
     void
     SetUser(const std::string& user);
 
     const std::string&
     Password() const;
-    
+
     void
     SetPassword(const std::string& password);
 
     const std::string&
     Token() const;
-    
+
     void
     SetToken(const std::string& token);
 
