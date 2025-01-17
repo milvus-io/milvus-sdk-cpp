@@ -1,7 +1,41 @@
+misc:
+  - branch: &BRANCHES
+      #  In this pull request, the changes are based on the master branch
+      - &MASTER_BRANCH base=master
+      #  In this pull request, the changes are based on the 2.x(or 2.x.x) branch
+      - &2X_BRANCH base~=^2(\.\d+){1,2}$
+
 pull_request_rules:
+  - name: Add needs-dco label when DCO check failed
+    conditions:
+      # branch condition: in this pull request, the changes are based on any branch referenced by BRANCHES
+      - or: *BRANCHES
+      - -status-success=DCO
+    actions:
+      label:
+        remove:
+          - dco-passed
+        add:
+          - needs-dco
+      comment:
+        message: |
+          @{{author}} Thanks for your contribution. Please submit with DCO, see the contributing guide https://github.com/milvus-io/milvus/blob/master/CONTRIBUTING.md#developer-certificate-of-origin-dco.
+
+  - name: Add dco-passed label when DCO check passed
+    conditions:
+      # branch condition: in this pull request, the changes are based on any branch referenced by BRANCHES
+      - or: *BRANCHES
+      - status-success=DCO
+    actions:
+      label:
+        remove:
+          - needs-dco
+        add:
+          - dco-passed
+
   - name: Test passed for code changed
     conditions:
-      - base=master
+      - or: *BRANCHES
       - "status-success=Build and test AMD64 Ubuntu 20.04"
       - "status-success=Build and test AMD64 Ubuntu 22.04"
       - "status-success=Build and test AMD64 Fedora 38"
@@ -15,7 +49,7 @@ pull_request_rules:
 
   - name: Remove ci-passed when build failed
     conditions:
-      - base=master
+      - or: *BRANCHES
       - or:
         - "check-failure=Build and test AMD64 Ubuntu 20.04"
         - "check-failure=Build and test AMD64 Ubuntu 22.04"
@@ -30,14 +64,12 @@ pull_request_rules:
 
   - name: Add ci-passed when no code changes
     conditions:
-      - base=master
+      - or: *BRANCHES
       - or:
         # all path not in source pattern
         # try keep same as in .github/workflows/main.yaml
         - and:
-          - -files~=^(cmake|examples|scripts|src|test|thirdparty)\/.*$
-          - -files~=^\.github\/workflows\/main.yaml$
-          - -files~=^\.clang-(tidy|format)$
+          - -files~=^(cmake|examples|doc/thirdparty)\/.*$
         # only .md files changed
         - -files~=^.*(?<!\.md)$
     actions:
