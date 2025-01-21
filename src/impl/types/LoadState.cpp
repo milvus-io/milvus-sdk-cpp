@@ -18,39 +18,43 @@
 
 namespace milvus {
 
-LoadState::LoadState() : code_(LoadStateCode::NotExist) {
-    UpdateStateDesc();
+LoadState::LoadState() : code_(LoadStateCode::NOT_EXIST) {
+    updateStateDesc();
 }
 
 LoadState::LoadState(LoadStateCode code) : code_(code) {
-    UpdateStateDesc();
+    updateStateDesc();
 }
 
-LoadStateCode LoadState::GetCode() const {
+LoadStateCode
+LoadState::GetCode() const {
     return code_;
 }
 
-const std::string& LoadState::GetDesc() const {
+const std::string&
+LoadState::GetDesc() const {
     return state_desc_;
 }
 
-void LoadState::SetCode(LoadStateCode code) {
+void
+LoadState::SetCode(LoadStateCode code) {
     code_ = code;
-    UpdateStateDesc();
+    updateStateDesc();
 }
 
-void LoadState::UpdateStateDesc() {
+void
+LoadState::updateStateDesc() {
     switch (code_) {
-        case LoadStateCode::NotExist:
+        case LoadStateCode::NOT_EXIST:
             state_desc_ = "NotExist";
             break;
-        case LoadStateCode::NotLoad:
+        case LoadStateCode::NOT_LOAD:
             state_desc_ = "NotLoad";
             break;
-        case LoadStateCode::Loading:
+        case LoadStateCode::LOADING:
             state_desc_ = "Loading";
             break;
-        case LoadStateCode::Loaded:
+        case LoadStateCode::LOADED:
             state_desc_ = "Loaded";
             break;
         default:

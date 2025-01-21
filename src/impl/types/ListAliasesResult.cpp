@@ -22,7 +22,8 @@ ListAliasesResult::ListAliasesResult() = default;
 
 ListAliasesResult::ListAliasesResult(const std::string& db_name, const std::string& collection_name,
                                      const std::vector<std::string>& aliases)
-    : db_name_(db_name), collection_name_(collection_name), aliases_(aliases) {}
+    : db_name_(db_name), collection_name_(collection_name), aliases_(aliases) {
+}
 
 const std::string&
 ListAliasesResult::GetDbName() const {

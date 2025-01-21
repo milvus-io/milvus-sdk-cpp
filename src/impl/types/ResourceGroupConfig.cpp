@@ -18,51 +18,64 @@
 
 namespace milvus {
 
-ResourceGroupConfig::ResourceGroupConfig(int req_node_num, int lim_node_num,
-                                         const std::vector<std::string>& from,
+ResourceGroupConfig::ResourceGroupConfig(int req_node_num, int lim_node_num, const std::vector<std::string>& from,
                                          const std::vector<std::string>& to,
                                          const std::vector<std::pair<std::string, std::string>>& labels)
-    : requests_node_num(req_node_num), limits_node_num(lim_node_num),
-      transfer_from(from), transfer_to(to), node_labels(labels) {}
-
-int ResourceGroupConfig::GetRequestsNodeNum() const {
-    return requests_node_num;
+    : requests_node_num_(req_node_num),
+      limits_node_num_(lim_node_num),
+      transfer_from_(from),
+      transfer_to_(to),
+      node_labels_(labels) {
 }
 
-void ResourceGroupConfig::SetRequestsNodeNum(int num) {
-    requests_node_num = num;
+int
+ResourceGroupConfig::GetRequestsNodeNum() const {
+    return requests_node_num_;
 }
 
-int ResourceGroupConfig::GetLimitsNodeNum() const {
-    return limits_node_num;
+void
+ResourceGroupConfig::SetRequestsNodeNum(int num) {
+    requests_node_num_ = num;
 }
 
-void ResourceGroupConfig::SetLimitsNodeNum(int num) {
-    limits_node_num = num;
+int
+ResourceGroupConfig::GetLimitsNodeNum() const {
+    return limits_node_num_;
 }
 
-const std::vector<std::string>& ResourceGroupConfig::GetTransferFrom() const {
-    return transfer_from;
+void
+ResourceGroupConfig::SetLimitsNodeNum(int num) {
+    limits_node_num_ = num;
 }
 
-void ResourceGroupConfig::SetTransferFrom(const std::vector<std::string>& from) {
-    transfer_from = from;
+const std::vector<std::string>&
+ResourceGroupConfig::GetTransferFrom() const {
+    return transfer_from_;
 }
 
-const std::vector<std::string>& ResourceGroupConfig::GetTransferTo() const {
-    return transfer_to;
+void
+ResourceGroupConfig::SetTransferFrom(const std::vector<std::string>& from) {
+    transfer_from_ = from;
 }
 
-void ResourceGroupConfig::SetTransferTo(const std::vector<std::string>& to) {
-    transfer_to = to;
+const std::vector<std::string>&
+ResourceGroupConfig::GetTransferTo() const {
+    return transfer_to_;
 }
 
-const std::vector<std::pair<std::string, std::string>>& ResourceGroupConfig::GetNodeLabels() const {
-    return node_labels;
+void
+ResourceGroupConfig::SetTransferTo(const std::vector<std::string>& to) {
+    transfer_to_ = to;
 }
 
-void ResourceGroupConfig::SetNodeLabels(const std::vector<std::pair<std::string, std::string>>& labels) {
-    node_labels = labels;
+const std::vector<std::pair<std::string, std::string>>&
+ResourceGroupConfig::GetNodeLabels() const {
+    return node_labels_;
+}
+
+void
+ResourceGroupConfig::SetNodeLabels(const std::vector<std::pair<std::string, std::string>>& labels) {
+    node_labels_ = labels;
 }
 
 }  // namespace milvus

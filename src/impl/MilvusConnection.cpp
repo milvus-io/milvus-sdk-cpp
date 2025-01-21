@@ -19,9 +19,9 @@
 #include <fstream>
 #include <memory>
 
-#include "grpcpp/security/credentials.h"
-#include "TypeUtils.h"
 #include "MilvusInterceptor.h"
+#include "TypeUtils.h"
+#include "grpcpp/security/credentials.h"
 
 using grpc::Channel;
 using grpc::ClientContext;
@@ -231,8 +231,7 @@ MilvusConnection::GetPartitionStatistics(const proto::milvus::GetPartitionStatis
 
 Status
 MilvusConnection::GetLoadState(const proto::milvus::GetLoadStateRequest& request,
-                               proto::milvus::GetLoadStateResponse& response,
-                               const GrpcContextOptions& options) {
+                               proto::milvus::GetLoadStateResponse& response, const GrpcContextOptions& options) {
     return grpcCall("GetLoadState", &Stub::GetLoadState, request, response, options);
 }
 
@@ -454,20 +453,20 @@ MilvusConnection::SelectUser(const proto::milvus::SelectUserRequest& request,
 }
 
 Status
-MilvusConnection::CreateRole(const proto::milvus::CreateRoleRequest& request,
-                             proto::common::Status& response, const GrpcContextOptions& options) {
+MilvusConnection::CreateRole(const proto::milvus::CreateRoleRequest& request, proto::common::Status& response,
+                             const GrpcContextOptions& options) {
     return grpcCall("CreateRole", &Stub::CreateRole, request, response, options);
 }
 
 Status
-MilvusConnection::DropRole(const proto::milvus::DropRoleRequest& request,
-                           proto::common::Status& response, const GrpcContextOptions& options) {
+MilvusConnection::DropRole(const proto::milvus::DropRoleRequest& request, proto::common::Status& response,
+                           const GrpcContextOptions& options) {
     return grpcCall("DropRole", &Stub::DropRole, request, response, options);
 }
 
 Status
-MilvusConnection::OperateUserRole(const proto::milvus::OperateUserRoleRequest& request,
-                                  proto::common::Status& response, const GrpcContextOptions& options) {
+MilvusConnection::OperateUserRole(const proto::milvus::OperateUserRoleRequest& request, proto::common::Status& response,
+                                  const GrpcContextOptions& options) {
     return grpcCall("OperateUserRole", &Stub::OperateUserRole, request, response, options);
 }
 
@@ -510,7 +509,7 @@ MilvusConnection::ListPrivilegeGroups(const proto::milvus::ListPrivilegeGroupsRe
 
 Status
 MilvusConnection::OperatePrivilegeGroup(const proto::milvus::OperatePrivilegeGroupRequest& request,
-                                   proto::common::Status& response, const GrpcContextOptions& options) {
+                                        proto::common::Status& response, const GrpcContextOptions& options) {
     return grpcCall("OperatePrivilegeGroup", &Stub::OperatePrivilegeGroup, request, response, options);
 }
 
@@ -574,6 +573,7 @@ MilvusConnection::GetHeader(const std::string& key) const {
 std::vector<std::pair<std::string, std::string>>
 MilvusConnection::GetAllHeaders() const {
     std::vector<std::pair<std::string, std::string>> header_vec;
+    header_vec.reserve(headers_.size());
     for (const auto& pair : headers_) {
         header_vec.emplace_back(pair.first, pair.second);
     }

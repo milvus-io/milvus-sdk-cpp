@@ -155,17 +155,23 @@ class ConnectParam {
     const std::string&
     CaCert() const;
 
-    const std::string& Username() const;
+    const std::string&
+    Username() const;
 
-    void SetUsername(const std::string& username);
+    void
+    SetUsername(const std::string& username);
 
-    const std::string& Password() const;
+    const std::string&
+    Password() const;
 
-    void SetPassword(const std::string& password);
+    void
+    SetPassword(const std::string& password);
 
-    const std::string& Token() const;
+    const std::string&
+    Token() const;
 
-    void SetToken(const std::string& token);
+    void
+    SetToken(const std::string& token);
 
  private:
     std::string host_;

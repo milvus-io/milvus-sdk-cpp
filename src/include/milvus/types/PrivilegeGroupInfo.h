@@ -26,15 +26,20 @@ class PrivilegeGroupInfo {
     PrivilegeGroupInfo() = default;
     explicit PrivilegeGroupInfo(const std::string& group_name);
 
-    void AddPrivilege(const std::string& privilege);
-    const std::string& GroupName() const;
-    void SetGroupName(const std::string& group_name);
-    const std::vector<std::string>& Privileges() const;
-    void SetPrivileges(const std::vector<std::string>& privileges);
+    void
+    AddPrivilege(const std::string& privilege);
+    const std::string&
+    GroupName() const;
+    void
+    SetGroupName(const std::string& group_name);
+    const std::vector<std::string>&
+    Privileges() const;
+    void
+    SetPrivileges(const std::vector<std::string>& privileges);
 
  private:
-    std::string group_name;
-    std::vector<std::string> privileges;
+    std::string group_name_;
+    std::vector<std::string> privileges_;
 };
 
 }  // namespace milvus

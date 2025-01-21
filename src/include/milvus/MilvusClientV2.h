@@ -185,7 +185,7 @@ class MilvusClientV2 {
      */
     virtual Status
     GetCollectionStats(const std::string& collection_name, CollectionStat& collection_stat,
-                            const ProgressMonitor& progress_monitor = ProgressMonitor::Forever()) = 0;
+                       const ProgressMonitor& progress_monitor = ProgressMonitor::Forever()) = 0;
 
     /**
      * If the collection_names is empty, list all collections brief information's. \n
@@ -284,13 +284,12 @@ class MilvusClientV2 {
      */
     virtual Status
     GetPartitionStats(const std::string& collection_name, const std::string& partition_name,
-                           PartitionStat& partition_stat,
-                           const ProgressMonitor& progress_monitor = ProgressMonitor::Forever()) = 0;
-
+                      PartitionStat& partition_stat,
+                      const ProgressMonitor& progress_monitor = ProgressMonitor::Forever()) = 0;
 
     virtual Status
-    GetLoadState(const std::string& collection_name, LoadState& state,
-                 const std::string& partition_name = "", int timeout = 0) = 0;
+    GetLoadState(const std::string& collection_name, LoadState& state, const std::string& partition_name = "",
+                 int timeout = 0) = 0;
 
     virtual Status
     RefreshLoad(const std::string& collection_name, int timeout = 0) = 0;
@@ -517,14 +516,12 @@ class MilvusClientV2 {
     ListRoles(std::vector<std::string>& roles, int timeout = 0) = 0;
 
     virtual Status
-    GrantPrivilege(const std::string& role_name, const std::string& object_type,
-                   const std::string& privilege, const std::string& object_name,
-                   const std::string& db_name = "", int timeout = 0) = 0;
+    GrantPrivilege(const std::string& role_name, const std::string& object_type, const std::string& privilege,
+                   const std::string& object_name, const std::string& db_name = "", int timeout = 0) = 0;
 
     virtual Status
-    RevokePrivilege(const std::string& role_name, const std::string& object_type,
-                    const std::string& privilege, const std::string& object_name,
-                    const std::string& db_name = "", int timeout = 0) = 0;
+    RevokePrivilege(const std::string& role_name, const std::string& object_type, const std::string& privilege,
+                    const std::string& object_name, const std::string& db_name = "", int timeout = 0) = 0;
 
     virtual Status
     CreatePrivilegeGroup(const std::string& group_name, int timeout = 0) = 0;

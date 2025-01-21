@@ -22,42 +22,55 @@ ResourceGroupDesc::ResourceGroupDesc(const std::string& name, int32_t capacity, 
                                      const std::map<std::string, int32_t>& loaded_replicas,
                                      const std::map<std::string, int32_t>& outgoing_nodes,
                                      const std::map<std::string, int32_t>& incoming_nodes,
-                                     const ResourceGroupConfig& config,
-                                     const std::vector<NodeInfo>& nodes)
-    : name(name), capacity(capacity), num_available_node(available_nodes),
-      num_loaded_replica(loaded_replicas), num_outgoing_node(outgoing_nodes),
-      num_incoming_node(incoming_nodes), config(config), nodes(nodes) {}
-
-const std::string& ResourceGroupDesc::GetName() const {
-    return name;
+                                     const ResourceGroupConfig& config, const std::vector<NodeInfo>& nodes)
+    : name_(name),
+      capacity_(capacity),
+      num_available_node_(available_nodes),
+      num_loaded_replica_(loaded_replicas),
+      num_outgoing_node_(outgoing_nodes),
+      num_incoming_node_(incoming_nodes),
+      config_(config),
+      nodes_(nodes) {
 }
 
-int32_t ResourceGroupDesc::GetCapacity() const {
-    return capacity;
+const std::string&
+ResourceGroupDesc::GetName() const {
+    return name_;
 }
 
-int32_t ResourceGroupDesc::GetNumAvailableNode() const {
-    return num_available_node;
+int32_t
+ResourceGroupDesc::GetCapacity() const {
+    return capacity_;
 }
 
-const std::map<std::string, int32_t>& ResourceGroupDesc::GetNumLoadedReplica() const {
-    return num_loaded_replica;
+int32_t
+ResourceGroupDesc::GetNumAvailableNode() const {
+    return num_available_node_;
 }
 
-const std::map<std::string, int32_t>& ResourceGroupDesc::GetNumOutgoingNode() const {
-    return num_outgoing_node;
+const std::map<std::string, int32_t>&
+ResourceGroupDesc::GetNumLoadedReplica() const {
+    return num_loaded_replica_;
 }
 
-const std::map<std::string, int32_t>& ResourceGroupDesc::GetNumIncomingNode() const {
-    return num_incoming_node;
+const std::map<std::string, int32_t>&
+ResourceGroupDesc::GetNumOutgoingNode() const {
+    return num_outgoing_node_;
 }
 
-const ResourceGroupConfig& ResourceGroupDesc::GetConfig() const {
-    return config;
+const std::map<std::string, int32_t>&
+ResourceGroupDesc::GetNumIncomingNode() const {
+    return num_incoming_node_;
 }
 
-const std::vector<NodeInfo>& ResourceGroupDesc::GetNodes() const {
-    return nodes;
+const ResourceGroupConfig&
+ResourceGroupDesc::GetConfig() const {
+    return config_;
+}
+
+const std::vector<NodeInfo>&
+ResourceGroupDesc::GetNodes() const {
+    return nodes_;
 }
 
 }  // namespace milvus

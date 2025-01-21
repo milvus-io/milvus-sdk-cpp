@@ -17,16 +17,20 @@
 #include "milvus/types/NodeInfo.h"
 
 NodeInfo::NodeInfo(int64_t id, const std::string& addr, const std::string& host)
-    : node_id(id), address(addr), hostname(host) {}
-
-int64_t NodeInfo::GetNodeId() const {
-    return node_id;
+    : node_id_(id), address_(addr), hostname_(host) {
 }
 
-const std::string& NodeInfo::GetAddress() const {
-    return address;
+int64_t
+NodeInfo::GetNodeId() const {
+    return node_id_;
 }
 
-const std::string& NodeInfo::GetHostname() const {
-    return hostname;
+const std::string&
+NodeInfo::GetAddress() const {
+    return address_;
+}
+
+const std::string&
+NodeInfo::GetHostname() const {
+    return hostname_;
 }

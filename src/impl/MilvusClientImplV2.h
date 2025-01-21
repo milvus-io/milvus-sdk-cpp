@@ -67,7 +67,7 @@ class MilvusClientImplV2 : public MilvusClientV2 {
 
     Status
     GetCollectionStats(const std::string& collection_name, CollectionStat& collection_stat,
-                            const ProgressMonitor& progress_monitor) final;
+                       const ProgressMonitor& progress_monitor) final;
 
     Status
     ShowCollections(const std::vector<std::string>& collection_names, CollectionsInfo& collections_info) final;
@@ -106,7 +106,7 @@ class MilvusClientImplV2 : public MilvusClientV2 {
 
     Status
     GetPartitionStats(const std::string& collection_name, const std::string& partition_name,
-                           PartitionStat& partition_stat, const ProgressMonitor& progress_monitor) final;
+                      PartitionStat& partition_stat, const ProgressMonitor& progress_monitor) final;
 
     Status
     ShowPartitions(const std::string& collection_name, const std::vector<std::string>& partition_names,
@@ -231,14 +231,12 @@ class MilvusClientImplV2 : public MilvusClientV2 {
     ListRoles(std::vector<std::string>& roles, int timeout) final;
 
     Status
-    GrantPrivilege(const std::string& role_name, const std::string& object_type,
-                   const std::string& privilege, const std::string& object_name,
-                   const std::string& db_name, int timeout) final;
+    GrantPrivilege(const std::string& role_name, const std::string& object_type, const std::string& privilege,
+                   const std::string& object_name, const std::string& db_name, int timeout) final;
 
     Status
-    RevokePrivilege(const std::string& role_name, const std::string& object_type,
-                    const std::string& privilege, const std::string& object_name,
-                    const std::string& db_name, int timeout) final;
+    RevokePrivilege(const std::string& role_name, const std::string& object_type, const std::string& privilege,
+                    const std::string& object_name, const std::string& db_name, int timeout) final;
 
     Status
     CreatePrivilegeGroup(const std::string& group_name, int timeout) final;
@@ -426,9 +424,8 @@ class MilvusClientImplV2 : public MilvusClientV2 {
                           std::function<void(const Response&)>{}, options);
     }
 
-
     const FieldSchema*
-    ExtractPrimaryField(const CollectionSchema& schema) {
+    extractPrimaryField(const CollectionSchema& schema) {
         const auto& fields = schema.Fields();
         for (const auto& field : fields) {
             if (field.IsPrimaryKey()) {
@@ -439,8 +436,8 @@ class MilvusClientImplV2 : public MilvusClientV2 {
     }
 
     std::string
-    PackPksExpr(const CollectionSchema& schema, const std::vector<int64_t>& pks) {
-        auto primary_field = ExtractPrimaryField(schema);
+    packPksExpr(const CollectionSchema& schema, const std::vector<int64_t>& pks) {
+        auto primary_field = extractPrimaryField(schema);
         if (primary_field == nullptr) {
             return "";
         }

@@ -21,8 +21,9 @@ namespace milvus {
 DatabaseDesc::DatabaseDesc() = default;
 
 DatabaseDesc::DatabaseDesc(const std::string& db_name, int64_t db_id, uint64_t created_timestamp,
-                         const std::vector<std::pair<std::string, std::string>>& properties)
-    : db_name_(db_name), db_id_(db_id), created_timestamp_(created_timestamp), properties_(properties) {}
+                           const std::vector<std::pair<std::string, std::string>>& properties)
+    : db_name_(db_name), db_id_(db_id), created_timestamp_(created_timestamp), properties_(properties) {
+}
 
 const std::string&
 DatabaseDesc::GetDbName() const {

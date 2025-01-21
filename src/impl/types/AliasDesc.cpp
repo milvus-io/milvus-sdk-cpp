@@ -21,7 +21,8 @@ namespace milvus {
 AliasDesc::AliasDesc() = default;
 
 AliasDesc::AliasDesc(const std::string& db_name, const std::string& alias, const std::string& collection_name)
-    : db_name_(db_name), alias_(alias), collection_name_(collection_name) {}
+    : db_name_(db_name), alias_(alias), collection_name_(collection_name) {
+}
 
 const std::string&
 AliasDesc::GetDbName() const {

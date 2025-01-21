@@ -106,7 +106,7 @@ class MilvusConnection {
 
     Status
     AlterCollectionField(const proto::milvus::AlterCollectionFieldRequest& request, proto::common::Status& response,
-                        const GrpcContextOptions& options);
+                         const GrpcContextOptions& options);
 
     Status
     CreatePartition(const proto::milvus::CreatePartitionRequest& request, proto::common::Status& response,
@@ -137,8 +137,8 @@ class MilvusConnection {
                            proto::milvus::GetPartitionStatisticsResponse& response, const GrpcContextOptions& options);
 
     Status
-    GetLoadState(const proto::milvus::GetLoadStateRequest& request,
-                 proto::milvus::GetLoadStateResponse& response, const GrpcContextOptions& options);
+    GetLoadState(const proto::milvus::GetLoadStateRequest& request, proto::milvus::GetLoadStateResponse& response,
+                 const GrpcContextOptions& options);
 
     Status
     CreateAlias(const proto::milvus::CreateAliasRequest& request, proto::common::Status& response,
@@ -357,8 +357,8 @@ class MilvusConnection {
     std::vector<std::pair<std::string, std::string>>
     GetAllHeaders() const;
 
-    const
-    std::string& Host() const;
+    const std::string&
+    Host() const;
 
     void
     SetHost(const std::string& host);

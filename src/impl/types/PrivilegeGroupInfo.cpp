@@ -16,24 +16,34 @@
 
 #include "milvus/types/PrivilegeGroupInfo.h"
 
-PrivilegeGroupInfo::PrivilegeGroupInfo(const std::string& group_name) : group_name(group_name) {}
+namespace milvus {
 
-void PrivilegeGroupInfo::AddPrivilege(const std::string& privilege) {
-    privileges.push_back(privilege);
+PrivilegeGroupInfo::PrivilegeGroupInfo(const std::string& group_name) : group_name_(group_name) {
 }
 
-const std::string& PrivilegeGroupInfo::GroupName() const {
-    return group_name;
+void
+PrivilegeGroupInfo::AddPrivilege(const std::string& privilege) {
+    privileges_.push_back(privilege);
 }
 
-void PrivilegeGroupInfo::SetGroupName(const std::string& group_name) {
-    this->group_name = group_name;
+const std::string&
+PrivilegeGroupInfo::GroupName() const {
+    return group_name_;
 }
 
-const std::vector<std::string>& PrivilegeGroupInfo::Privileges() const {
-    return privileges;
+void
+PrivilegeGroupInfo::SetGroupName(const std::string& group_name) {
+    this->group_name_ = group_name;
 }
 
-void PrivilegeGroupInfo::SetPrivileges(const std::vector<std::string>& privileges) {
-    this->privileges = privileges;
+const std::vector<std::string>&
+PrivilegeGroupInfo::Privileges() const {
+    return privileges_;
 }
+
+void
+PrivilegeGroupInfo::SetPrivileges(const std::vector<std::string>& privileges) {
+    this->privileges_ = privileges;
+}
+
+}  // namespace milvus

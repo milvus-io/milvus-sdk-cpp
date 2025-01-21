@@ -150,7 +150,7 @@ MilvusClientImplV2::ListCollections(std::vector<std::string>& results, int timeo
 
 Status
 MilvusClientImplV2::LoadCollection(const std::string& collection_name, int replica_number,
-                                 const ProgressMonitor& progress_monitor) {
+                                   const ProgressMonitor& progress_monitor) {
     auto pre = [&collection_name, replica_number]() {
         proto::milvus::LoadCollectionRequest rpc_request;
         rpc_request.set_collection_name(collection_name);
@@ -234,7 +234,7 @@ MilvusClientImplV2::RenameCollection(const std::string& collection_name, const s
 
 Status
 MilvusClientImplV2::GetCollectionStats(const std::string& collection_name, CollectionStat& collection_stat,
-                                          const ProgressMonitor& progress_monitor) {
+                                       const ProgressMonitor& progress_monitor) {
     auto validate = [&collection_name, &progress_monitor, this]() {
         Status ret;
         if (progress_monitor.CheckTimeout() > 0) {
@@ -299,7 +299,9 @@ MilvusClientImplV2::AlterCollectionProperties(const std::string& collection_name
         proto::milvus::AlterCollectionRequest rpc_request;
         rpc_request.set_collection_name(collection_name);
 
-        for (const auto& [key, value] : properties) {
+        for (const auto& p : properties) {
+            const auto& key = p.first;
+            const auto& value = p.second;
             auto* kv_pair = rpc_request.add_properties();
             kv_pair->set_key(key);
             kv_pair->set_value(value);
@@ -314,8 +316,7 @@ MilvusClientImplV2::AlterCollectionProperties(const std::string& collection_name
 
 Status
 MilvusClientImplV2::DropCollectionProperties(const std::string& collection_name,
-                                             const std::vector<std::string>& delete_keys,
-                                             int timeout) {
+                                             const std::vector<std::string>& delete_keys, int timeout) {
     auto pre = [&collection_name, &delete_keys]() {
         proto::milvus::AlterCollectionRequest rpc_request;
         rpc_request.set_collection_name(collection_name);
@@ -340,7 +341,9 @@ MilvusClientImplV2::AlterCollectionField(const std::string& collection_name, con
         rpc_request.set_collection_name(collection_name);
         rpc_request.set_field_name(field_name);
 
-        for (const auto& [key, value] : field_params) {
+        for (const auto& f : field_params) {
+            const auto& key = f.first;
+            const auto& value = f.second;
             auto* kv_pair = rpc_request.add_properties();
             kv_pair->set_key(key);
             kv_pair->set_value(value);
@@ -422,7 +425,7 @@ MilvusClientImplV2::HasPartition(const std::string& collection_name, const std::
 
 Status
 MilvusClientImplV2::LoadPartitions(const std::string& collection_name, const std::vector<std::string>& partition_names,
-                                 int replica_number, const ProgressMonitor& progress_monitor) {
+                                   int replica_number, const ProgressMonitor& progress_monitor) {
     auto pre = [&collection_name, &partition_names, replica_number]() {
         proto::milvus::LoadPartitionsRequest rpc_request;
 
@@ -457,7 +460,7 @@ MilvusClientImplV2::LoadPartitions(const std::string& collection_name, const std
 
 Status
 MilvusClientImplV2::ReleasePartitions(const std::string& collection_name,
-                                    const std::vector<std::string>& partition_names) {
+                                      const std::vector<std::string>& partition_names) {
     auto pre = [&collection_name, &partition_names]() {
         proto::milvus::ReleasePartitionsRequest rpc_request;
 
@@ -474,7 +477,7 @@ MilvusClientImplV2::ReleasePartitions(const std::string& collection_name,
 
 Status
 MilvusClientImplV2::GetPartitionStats(const std::string& collection_name, const std::string& partition_name,
-                                         PartitionStat& partition_stat, const ProgressMonitor& progress_monitor) {
+                                      PartitionStat& partition_stat, const ProgressMonitor& progress_monitor) {
     // do flush in validate stage if needed
     auto validate = [&collection_name, &progress_monitor, this] {
         Status ret;
@@ -504,7 +507,7 @@ MilvusClientImplV2::GetPartitionStats(const std::string& collection_name, const 
 
 Status
 MilvusClientImplV2::ShowPartitions(const std::string& collection_name, const std::vector<std::string>& partition_names,
-                                 PartitionsInfo& partitions_info) {
+                                   PartitionsInfo& partitions_info) {
     auto pre = [&collection_name, &partition_names] {
         proto::milvus::ShowPartitionsRequest rpc_request;
         rpc_request.set_collection_name(collection_name);
@@ -624,7 +627,7 @@ MilvusClientImplV2::ListAliases(const std::string& collection_name, ListAliasesR
         std::vector<std::string> aliases;
         aliases.reserve(response.aliases_size());
         aliases.insert(aliases.end(), response.aliases().begin(), response.aliases().end());
-        result.SetAliases(std::move(aliases));
+        result.SetAliases(aliases);
     };
 
     return apiHandler<proto::milvus::ListAliasesRequest, proto::milvus::ListAliasesResponse>(
@@ -656,7 +659,9 @@ MilvusClientImplV2::CreateDatabase(const std::string& db_name,
         proto::milvus::CreateDatabaseRequest rpc_request;
         rpc_request.set_db_name(db_name);
 
-        for (const auto& [key, value] : properties) {
+        for (const auto& p : properties) {
+            const auto& key = p.first;
+            const auto& value = p.second;
             auto* kv_pair = rpc_request.add_properties();
             kv_pair->set_key(key);
             kv_pair->set_value(value);
@@ -677,8 +682,8 @@ MilvusClientImplV2::DropDatabase(const std::string& db_name, int timeout) {
         return rpc_request;
     };
 
-    return apiHandler<proto::milvus::DropDatabaseRequest, proto::common::Status>(
-        pre, &MilvusConnection::DropDatabase, GrpcOpts{timeout});
+    return apiHandler<proto::milvus::DropDatabaseRequest, proto::common::Status>(pre, &MilvusConnection::DropDatabase,
+                                                                                 GrpcOpts{timeout});
 }
 
 Status
@@ -729,7 +734,9 @@ MilvusClientImplV2::AlterDatabaseProperties(const std::string& db_name,
         proto::milvus::AlterDatabaseRequest rpc_request;
         rpc_request.set_db_name(db_name);
 
-        for (const auto& [key, value] : properties) {
+        for (const auto& p : properties) {
+            const auto& key = p.first;
+            const auto& value = p.second;
             auto* kv_pair = rpc_request.add_properties();
             kv_pair->set_key(key);
             kv_pair->set_value(value);
@@ -738,8 +745,8 @@ MilvusClientImplV2::AlterDatabaseProperties(const std::string& db_name,
         return rpc_request;
     };
 
-    return apiHandler<proto::milvus::AlterDatabaseRequest, proto::common::Status>(
-        pre, &MilvusConnection::AlterDatabase, GrpcOpts{timeout});
+    return apiHandler<proto::milvus::AlterDatabaseRequest, proto::common::Status>(pre, &MilvusConnection::AlterDatabase,
+                                                                                  GrpcOpts{timeout});
 }
 
 Status
@@ -756,13 +763,13 @@ MilvusClientImplV2::DropDatabaseProperties(const std::string& db_name, const std
         return rpc_request;
     };
 
-    return apiHandler<proto::milvus::AlterDatabaseRequest, proto::common::Status>(
-        pre, &MilvusConnection::AlterDatabase, GrpcOpts{timeout});
+    return apiHandler<proto::milvus::AlterDatabaseRequest, proto::common::Status>(pre, &MilvusConnection::AlterDatabase,
+                                                                                  GrpcOpts{timeout});
 }
 
 Status
 MilvusClientImplV2::CreateIndex(const std::string& collection_name, const IndexDesc& index_desc,
-                              const ProgressMonitor& progress_monitor) {
+                                const ProgressMonitor& progress_monitor) {
     auto validate = [&index_desc] { return index_desc.Validate(); };
 
     // flush before create index
@@ -822,7 +829,7 @@ MilvusClientImplV2::CreateIndex(const std::string& collection_name, const IndexD
 
 Status
 MilvusClientImplV2::DescribeIndex(const std::string& collection_name, const std::string& field_name,
-                                IndexDesc& index_desc) {
+                                  IndexDesc& index_desc) {
     auto pre = [&collection_name, &field_name]() {
         proto::milvus::DescribeIndexRequest rpc_request;
         rpc_request.set_collection_name(collection_name);
@@ -877,7 +884,7 @@ MilvusClientImplV2::GetIndexState(const std::string& collection_name, const std:
 
 Status
 MilvusClientImplV2::GetIndexBuildProgress(const std::string& collection_name, const std::string& field_name,
-                                        IndexProgress& progress) {
+                                          IndexProgress& progress) {
     auto pre = [&collection_name, &field_name]() {
         proto::milvus::GetIndexBuildProgressRequest rpc_request;
         rpc_request.set_collection_name(collection_name);
@@ -907,7 +914,7 @@ MilvusClientImplV2::DropIndex(const std::string& collection_name, const std::str
 
 Status
 MilvusClientImplV2::ListIndexes(const std::string& collection_name, std::vector<std::string>& results,
-    std::vector<std::string> field_names) {
+                                std::vector<std::string> field_names) {
     auto pre = [&collection_name]() {
         proto::milvus::DescribeIndexRequest rpc_request;
         rpc_request.set_collection_name(collection_name);
@@ -919,8 +926,8 @@ MilvusClientImplV2::ListIndexes(const std::string& collection_name, std::vector<
         for (int i = 0; i < count; ++i) {
             auto& field_name = response.index_descriptions(i).field_name();
             auto& index_name = response.index_descriptions(i).index_name();
-            if (field_names.empty() || std::find(field_names.begin(), field_names.end(), field_name)
-                != field_names.end()) {
+            if (field_names.empty() ||
+                std::find(field_names.begin(), field_names.end(), field_name) != field_names.end()) {
                 results.push_back(field_name);
             }
         }
@@ -930,10 +937,9 @@ MilvusClientImplV2::ListIndexes(const std::string& collection_name, std::vector<
         pre, &MilvusConnection::DescribeIndex, post);
 }
 
-
 Status
 MilvusClientImplV2::Insert(const std::string& collection_name, const std::string& partition_name,
-                         const std::vector<FieldDataPtr>& fields, DmlResults& results) {
+                           const std::vector<FieldDataPtr>& fields, DmlResults& results) {
     // TODO(matrixji): add common validations check for fields
     // TODO(matrixji): add scheme based validations check for fields
     // auto validate = nullptr;
@@ -989,7 +995,7 @@ MilvusClientImplV2::Upsert(const std::string& collection_name, const std::string
 
 Status
 MilvusClientImplV2::Delete(const std::string& collection_name, const std::string& partition_name,
-                         const std::string& expression, DmlResults& results) {
+                           const std::string& expression, DmlResults& results) {
     auto pre = [&collection_name, &partition_name, &expression]() {
         proto::milvus::DeleteRequest rpc_request;
         rpc_request.set_collection_name(collection_name);
@@ -1177,7 +1183,7 @@ MilvusClientImplV2::Get(const GetArguments& arguments, QueryResults& results, in
         return status;
     }
 
-    std::string expr = PackPksExpr(collection_desc.Schema(), arguments.Ids());
+    std::string expr = packPksExpr(collection_desc.Schema(), arguments.Ids());
     if (expr.empty()) {
         return {StatusCode::INVALID_AGUMENT, "Failed to convert IDs to query expression"};
     }
@@ -1224,8 +1230,8 @@ MilvusClientImplV2::ListUsers(std::vector<std::string>& results, int timeout) {
         }
     };
 
-    return apiHandler<proto::milvus::ListCredUsersRequest, proto::milvus::ListCredUsersResponse>(pre,
-        &MilvusConnection::ListCredUsers, post, GrpcOpts{timeout});
+    return apiHandler<proto::milvus::ListCredUsersRequest, proto::milvus::ListCredUsersResponse>(
+        pre, &MilvusConnection::ListCredUsers, post, GrpcOpts{timeout});
 }
 
 Status
@@ -1251,8 +1257,8 @@ MilvusClientImplV2::DescribeUser(const std::string& username, UserResult& result
         }
     };
 
-    return apiHandler<proto::milvus::SelectUserRequest, proto::milvus::SelectUserResponse>(pre,
-        &MilvusConnection::SelectUser, post, GrpcOpts{timeout});
+    return apiHandler<proto::milvus::SelectUserRequest, proto::milvus::SelectUserResponse>(
+        pre, &MilvusConnection::SelectUser, post, GrpcOpts{timeout});
 }
 
 Status
@@ -1264,8 +1270,8 @@ MilvusClientImplV2::CreateUser(const std::string& username, const std::string& p
         return rpc_request;
     };
 
-    return apiHandler<proto::milvus::CreateCredentialRequest, proto::common::Status>(pre,
-        &MilvusConnection::CreateCredential, GrpcOpts{timeout});
+    return apiHandler<proto::milvus::CreateCredentialRequest, proto::common::Status>(
+        pre, &MilvusConnection::CreateCredential, GrpcOpts{timeout});
 }
 
 Status
@@ -1300,8 +1306,8 @@ MilvusClientImplV2::DropUser(const std::string& username, int timeout) {
         return rpc_request;
     };
 
-    return apiHandler<proto::milvus::DeleteCredentialRequest, proto::common::Status>(pre,
-        &MilvusConnection::DeleteCredential, GrpcOpts{timeout});
+    return apiHandler<proto::milvus::DeleteCredentialRequest, proto::common::Status>(
+        pre, &MilvusConnection::DeleteCredential, GrpcOpts{timeout});
 }
 
 Status
@@ -1314,7 +1320,7 @@ MilvusClientImplV2::CreateRole(const std::string& role_name, int timeout) {
     };
 
     return apiHandler<proto::milvus::CreateRoleRequest, proto::common::Status>(pre, &MilvusConnection::CreateRole,
-        GrpcOpts{timeout});
+                                                                               GrpcOpts{timeout});
 }
 
 Status
@@ -1326,7 +1332,7 @@ MilvusClientImplV2::DropRole(const std::string& role_name, int timeout) {
     };
 
     return apiHandler<proto::milvus::DropRoleRequest, proto::common::Status>(pre, &MilvusConnection::DropRole,
-        GrpcOpts{timeout});
+                                                                             GrpcOpts{timeout});
 }
 
 Status
@@ -1339,8 +1345,8 @@ MilvusClientImplV2::GrantRole(const std::string& username, const std::string& ro
         return rpc_request;
     };
 
-    return apiHandler<proto::milvus::OperateUserRoleRequest, proto::common::Status>(pre,
-        &MilvusConnection::OperateUserRole, GrpcOpts{timeout});
+    return apiHandler<proto::milvus::OperateUserRoleRequest, proto::common::Status>(
+        pre, &MilvusConnection::OperateUserRole, GrpcOpts{timeout});
 }
 
 Status
@@ -1531,8 +1537,8 @@ MilvusClientImplV2::AddPrivilegesToGroup(const std::string& group_name, const st
 }
 
 Status
-MilvusClientImplV2::RemovePrivilegesFromGroup(const std::string& group_name,
-                                              const std::vector<std::string>& privileges, int timeout) {
+MilvusClientImplV2::RemovePrivilegesFromGroup(const std::string& group_name, const std::vector<std::string>& privileges,
+                                              int timeout) {
     auto pre = [&group_name, &privileges]() {
         proto::milvus::OperatePrivilegeGroupRequest rpc_request;
         rpc_request.set_group_name(group_name);
@@ -1552,8 +1558,7 @@ MilvusClientImplV2::RemovePrivilegesFromGroup(const std::string& group_name,
 
 Status
 MilvusClientImplV2::GrantPrivilegeV2(const std::string& role_name, const std::string& privilege,
-                                     const std::string& collection_name, const std::string& db_name,
-                                     int timeout) {
+                                     const std::string& collection_name, const std::string& db_name, int timeout) {
     auto pre = [&role_name, &privilege, &collection_name, &db_name]() {
         proto::milvus::OperatePrivilegeV2Request rpc_request;
 
@@ -1579,8 +1584,7 @@ MilvusClientImplV2::GrantPrivilegeV2(const std::string& role_name, const std::st
 
 Status
 MilvusClientImplV2::RevokePrivilegeV2(const std::string& role_name, const std::string& privilege,
-                                      const std::string& collection_name, const std::string& db_name,
-                                      int timeout) {
+                                      const std::string& collection_name, const std::string& db_name, int timeout) {
     auto pre = [&role_name, &privilege, &collection_name, &db_name]() {
         proto::milvus::OperatePrivilegeV2Request rpc_request;
 
@@ -1592,7 +1596,7 @@ MilvusClientImplV2::RevokePrivilegeV2(const std::string& role_name, const std::s
         privilege_entity->set_name(privilege);
         rpc_request.set_collection_name(collection_name);
         if (!db_name.empty()) {
-                rpc_request.set_db_name(db_name);
+            rpc_request.set_db_name(db_name);
         }
 
         rpc_request.set_type(proto::milvus::OperatePrivilegeType::Revoke);
@@ -1694,13 +1698,10 @@ MilvusClientImplV2::DescribeResourceGroup(const std::string& resource_group, Res
         }
 
         resource_group_desc = ResourceGroupDesc(
-            rg.name(),
-            rg.capacity(),
-            rg.num_available_node(),
+            rg.name(), rg.capacity(), rg.num_available_node(),
             std::map<std::string, int32_t>(rg.num_loaded_replica().begin(), rg.num_loaded_replica().end()),
             std::map<std::string, int32_t>(rg.num_outgoing_node().begin(), rg.num_outgoing_node().end()),
-            std::map<std::string, int32_t>(rg.num_incoming_node().begin(), rg.num_incoming_node().end()),
-            config,
+            std::map<std::string, int32_t>(rg.num_incoming_node().begin(), rg.num_incoming_node().end()), config,
             nodes);
     };
 
@@ -2006,7 +2007,7 @@ MilvusClientImplV2::GetMetrics(const std::string& request, std::string& response
 
 Status
 MilvusClientImplV2::LoadBalance(int64_t src_node, const std::vector<int64_t>& dst_nodes,
-                              const std::vector<int64_t>& segments) {
+                                const std::vector<int64_t>& segments) {
     auto pre = [src_node, &dst_nodes, &segments] {
         proto::milvus::LoadBalanceRequest rpc_request;
         rpc_request.set_src_nodeid(src_node);
@@ -2023,8 +2024,9 @@ MilvusClientImplV2::LoadBalance(int64_t src_node, const std::vector<int64_t>& ds
                                                                                 nullptr);
 }
 
-Status MilvusClientImplV2::Compact(const std::string& collection_name, int64_t& compaction_id, bool is_clustering,
-                                   int timeout) {
+Status
+MilvusClientImplV2::Compact(const std::string& collection_name, int64_t& compaction_id, bool is_clustering,
+                            int timeout) {
     CollectionDesc collection_desc;
     auto status = DescribeCollection(collection_name, collection_desc);
     if (!status.IsOk()) {
@@ -2077,7 +2079,7 @@ MilvusClientImplV2::GetCompactionState(int64_t compaction_id, CompactionState& c
 
 Status
 MilvusClientImplV2::ManualCompaction(const std::string& collection_name, uint64_t travel_timestamp,
-                                   int64_t& compaction_id) {
+                                     int64_t& compaction_id) {
     CollectionDesc collection_desc;
     auto status = DescribeCollection(collection_name, collection_desc);
     if (!status.IsOk()) {
@@ -2142,7 +2144,7 @@ MilvusClientImplV2::CreateCredential(const std::string& username, const std::str
 
 Status
 MilvusClientImplV2::UpdateCredential(const std::string& username, const std::string& old_password,
-                                   const std::string& new_password) {
+                                     const std::string& new_password) {
     auto pre = [&username, &old_password, &new_password]() {
         proto::milvus::UpdateCredentialRequest rpc_request;
         rpc_request.set_username(username);
@@ -2191,7 +2193,7 @@ MilvusClientImplV2::ListCredUsers(std::vector<std::string>& users) {
 
 Status
 MilvusClientImplV2::WaitForStatus(const std::function<Status(Progress&)>& query_function,
-                                const ProgressMonitor& progress_monitor) {
+                                  const ProgressMonitor& progress_monitor) {
     // no need to check
     if (progress_monitor.CheckTimeout() == 0) {
         return Status::OK();

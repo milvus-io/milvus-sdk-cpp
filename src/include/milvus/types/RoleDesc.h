@@ -35,8 +35,10 @@ class RoleDesc {
     RoleDesc();
     RoleDesc(const std::string& role, const std::vector<Privilege>& privileges);
 
-    const std::string& GetRole() const;
-    const std::vector<Privilege>& GetPrivileges() const;
+    const std::string&
+    GetRole() const;
+    const std::vector<Privilege>&
+    GetPrivileges() const;
 
  private:
     std::string role_;
