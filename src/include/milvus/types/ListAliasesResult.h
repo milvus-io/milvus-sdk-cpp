@@ -16,51 +16,35 @@
 
 #pragma once
 
-#include <cstdint>
+#include <string>
 #include <vector>
-
-#include "IDArray.h"
 
 namespace milvus {
 
-/**
- * @brief Result returned by MilvusClientV2::Insert(), MilvusClientV2::Upsert() and MilvusClientV2::Delete()
- */
-class DmlResults {
+class ListAliasesResult {
  public:
-    /**
-     * @brief The id array for entities which are inserted or deleted.
-     */
-    const IDArray&
-    IdArray() const;
+    ListAliasesResult();
+    ListAliasesResult(const std::string& db_name, const std::string& collection_name,
+                      const std::vector<std::string>& aliases);
 
-    /**
-     * @brief Set the id array.
-     */
+    const std::string&
+    GetDbName() const;
+    const std::string&
+    GetCollectionName() const;
+    const std::vector<std::string>&
+    GetAliases() const;
+
     void
-    SetIdArray(const IDArray& id_array);
-
-    /**
-     * @brief Set the id array.
-     */
+    SetDbName(const std::string& db_name);
     void
-    SetIdArray(IDArray&& id_array);
-
-    /**
-     * @brief The operation timestamp marked by server side.
-     */
-    uint64_t
-    Timestamp() const;
-
-    /**
-     * @brief Set operation timestamp.
-     */
+    SetCollectionName(const std::string& collection_name);
     void
-    SetTimestamp(uint64_t timestamp);
+    SetAliases(const std::vector<std::string>& aliases);
 
  private:
-    IDArray id_array_{std::vector<int64_t>{}};
-    uint64_t timestamp_{0};
+    std::string db_name_{"default"};
+    std::string collection_name_;
+    std::vector<std::string> aliases_;
 };
 
 }  // namespace milvus

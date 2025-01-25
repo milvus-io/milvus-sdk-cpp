@@ -19,6 +19,8 @@
 #include <fstream>
 #include <memory>
 
+#include "MilvusInterceptor.h"
+#include "TypeUtils.h"
 #include "grpcpp/security/credentials.h"
 
 using grpc::Channel;
@@ -78,11 +80,24 @@ MilvusConnection::Connect(const ConnectParam& param) {
         credentials = ::grpc::InsecureChannelCredentials();
     }
 
-    channel_ = ::grpc::CreateCustomChannel(uri, credentials, args);
+    if (!param.Token().empty()) {
+        std::string authorization = Base64Encode(param.Token());
+        SetHeader("authorization", authorization);
+    } else if (!param.Username().empty() && !param.Password().empty()) {
+        std::string authorization = Base64Encode(param.Username() + ":" + param.Password());
+        SetHeader("authorization", authorization);
+    }
+
+    channel_ = CreateChannelWithHeaderInterceptor(uri, credentials, args, GetAllHeaders());
     auto connected = channel_->WaitForConnected(std::chrono::system_clock::now() +
                                                 std::chrono::milliseconds{param.ConnectTimeout()});
     if (connected) {
         stub_ = proto::milvus::MilvusService::NewStub(channel_);
+        SetHost(param.Host());
+        SetPort(param.Port());
+        SetUser(param.Username());
+        SetPassword(param.Password());
+        SetToken(param.Token());
         return Status::OK();
     }
 
@@ -160,6 +175,18 @@ MilvusConnection::ShowCollections(const proto::milvus::ShowCollectionsRequest& r
 }
 
 Status
+MilvusConnection::AlterCollection(const proto::milvus::AlterCollectionRequest& request, proto::common::Status& response,
+                                  const GrpcContextOptions& options) {
+    return grpcCall("AlterCollection", &Stub::AlterCollection, request, response, options);
+}
+
+Status
+MilvusConnection::AlterCollectionField(const proto::milvus::AlterCollectionFieldRequest& request,
+                                       proto::common::Status& response, const GrpcContextOptions& options) {
+    return grpcCall("AlterCollectionField", &Stub::AlterCollectionField, request, response, options);
+}
+
+Status
 MilvusConnection::CreatePartition(const proto::milvus::CreatePartitionRequest& request, proto::common::Status& response,
                                   const GrpcContextOptions& options) {
     return grpcCall("CreatePartition", &Stub::CreatePartition, request, response, options);
@@ -203,6 +230,12 @@ MilvusConnection::GetPartitionStatistics(const proto::milvus::GetPartitionStatis
 }
 
 Status
+MilvusConnection::GetLoadState(const proto::milvus::GetLoadStateRequest& request,
+                               proto::milvus::GetLoadStateResponse& response, const GrpcContextOptions& options) {
+    return grpcCall("GetLoadState", &Stub::GetLoadState, request, response, options);
+}
+
+Status
 MilvusConnection::CreateAlias(const proto::milvus::CreateAliasRequest& request, proto::common::Status& response,
                               const GrpcContextOptions& options) {
     return grpcCall("CreateAlias", &Stub::CreateAlias, request, response, options);
@@ -218,6 +251,49 @@ Status
 MilvusConnection::AlterAlias(const proto::milvus::AlterAliasRequest& request, proto::common::Status& response,
                              const GrpcContextOptions& options) {
     return grpcCall("AlterAlias", &Stub::AlterAlias, request, response, options);
+}
+
+Status
+MilvusConnection::ListAliases(const proto::milvus::ListAliasesRequest& request,
+                              proto::milvus::ListAliasesResponse& response, const GrpcContextOptions& options) {
+    return grpcCall("ListAliases", &Stub::ListAliases, request, response, options);
+}
+
+Status
+MilvusConnection::DescribeAlias(const proto::milvus::DescribeAliasRequest& request,
+                                proto::milvus::DescribeAliasResponse& response, const GrpcContextOptions& options) {
+    return grpcCall("DescribeAlias", &Stub::DescribeAlias, request, response, options);
+}
+
+Status
+MilvusConnection::CreateDatabase(const proto::milvus::CreateDatabaseRequest& request, proto::common::Status& response,
+                                 const GrpcContextOptions& options) {
+    return grpcCall("CreateDatabase", &Stub::CreateDatabase, request, response, options);
+}
+
+Status
+MilvusConnection::DropDatabase(const proto::milvus::DropDatabaseRequest& request, proto::common::Status& response,
+                               const GrpcContextOptions& options) {
+    return grpcCall("DropDatabase", &Stub::DropDatabase, request, response, options);
+}
+
+Status
+MilvusConnection::ListDatabases(const proto::milvus::ListDatabasesRequest& request,
+                                proto::milvus::ListDatabasesResponse& response, const GrpcContextOptions& options) {
+    return grpcCall("ListDatabases", &Stub::ListDatabases, request, response, options);
+}
+
+Status
+MilvusConnection::DescribeDatabase(const proto::milvus::DescribeDatabaseRequest& request,
+                                   proto::milvus::DescribeDatabaseResponse& response,
+                                   const GrpcContextOptions& options) {
+    return grpcCall("DescribeDatabase", &Stub::DescribeDatabase, request, response, options);
+}
+
+Status
+MilvusConnection::AlterDatabase(const proto::milvus::AlterDatabaseRequest& request, proto::common::Status& response,
+                                const GrpcContextOptions& options) {
+    return grpcCall("AlterDatabase", &Stub::AlterDatabase, request, response, options);
 }
 
 Status
@@ -261,6 +337,12 @@ Status
 MilvusConnection::Insert(const proto::milvus::InsertRequest& request, proto::milvus::MutationResult& response,
                          const GrpcContextOptions& options) {
     return grpcCall("Insert", &Stub::Insert, request, response, options);
+}
+
+Status
+MilvusConnection::Upsert(const proto::milvus::UpsertRequest& request, proto::milvus::MutationResult& response,
+                         const GrpcContextOptions& options) {
+    return grpcCall("Upsert", &Stub::Upsert, request, response, options);
 }
 
 Status
@@ -362,6 +444,190 @@ Status
 MilvusConnection::ListCredUsers(const proto::milvus::ListCredUsersRequest& request,
                                 proto::milvus::ListCredUsersResponse& response, const GrpcContextOptions& options) {
     return grpcCall("ListCredUsers", &Stub::ListCredUsers, request, response, options);
+}
+
+Status
+MilvusConnection::SelectUser(const proto::milvus::SelectUserRequest& request,
+                             proto::milvus::SelectUserResponse& response, const GrpcContextOptions& options) {
+    return grpcCall("SelectUser", &Stub::SelectUser, request, response, options);
+}
+
+Status
+MilvusConnection::CreateRole(const proto::milvus::CreateRoleRequest& request, proto::common::Status& response,
+                             const GrpcContextOptions& options) {
+    return grpcCall("CreateRole", &Stub::CreateRole, request, response, options);
+}
+
+Status
+MilvusConnection::DropRole(const proto::milvus::DropRoleRequest& request, proto::common::Status& response,
+                           const GrpcContextOptions& options) {
+    return grpcCall("DropRole", &Stub::DropRole, request, response, options);
+}
+
+Status
+MilvusConnection::OperateUserRole(const proto::milvus::OperateUserRoleRequest& request, proto::common::Status& response,
+                                  const GrpcContextOptions& options) {
+    return grpcCall("OperateUserRole", &Stub::OperateUserRole, request, response, options);
+}
+
+Status
+MilvusConnection::SelectGrant(const proto::milvus::SelectGrantRequest& request,
+                              proto::milvus::SelectGrantResponse& response, const GrpcContextOptions& options) {
+    return grpcCall("SelectGrant", &Stub::SelectGrant, request, response, options);
+}
+
+Status
+MilvusConnection::SelectRole(const proto::milvus::SelectRoleRequest& request,
+                             proto::milvus::SelectRoleResponse& response, const GrpcContextOptions& options) {
+    return grpcCall("SelectRole", &Stub::SelectRole, request, response, options);
+}
+
+Status
+MilvusConnection::OperatePrivilege(const proto::milvus::OperatePrivilegeRequest& request,
+                                   proto::common::Status& response, const GrpcContextOptions& options) {
+    return grpcCall("OperatePrivilege", &Stub::OperatePrivilege, request, response, options);
+}
+
+Status
+MilvusConnection::CreatePrivilegeGroup(const proto::milvus::CreatePrivilegeGroupRequest& request,
+                                       proto::common::Status& response, const GrpcContextOptions& options) {
+    return grpcCall("CreatePrivilegeGroup", &Stub::CreatePrivilegeGroup, request, response, options);
+}
+
+Status
+MilvusConnection::DropPrivilegeGroup(const proto::milvus::DropPrivilegeGroupRequest& request,
+                                     proto::common::Status& response, const GrpcContextOptions& options) {
+    return grpcCall("DropPrivilegeGroup", &Stub::DropPrivilegeGroup, request, response, options);
+}
+
+Status
+MilvusConnection::ListPrivilegeGroups(const proto::milvus::ListPrivilegeGroupsRequest& request,
+                                      proto::milvus::ListPrivilegeGroupsResponse& response,
+                                      const GrpcContextOptions& options) {
+    return grpcCall("ListPrivilegeGroups", &Stub::ListPrivilegeGroups, request, response, options);
+}
+
+Status
+MilvusConnection::OperatePrivilegeGroup(const proto::milvus::OperatePrivilegeGroupRequest& request,
+                                        proto::common::Status& response, const GrpcContextOptions& options) {
+    return grpcCall("OperatePrivilegeGroup", &Stub::OperatePrivilegeGroup, request, response, options);
+}
+
+Status
+MilvusConnection::OperatePrivilegeV2(const proto::milvus::OperatePrivilegeV2Request& request,
+                                     proto::common::Status& response, const GrpcContextOptions& options) {
+    return grpcCall("OperatePrivilegeV2", &Stub::OperatePrivilegeV2, request, response, options);
+}
+
+Status
+MilvusConnection::CreateResourceGroup(const proto::milvus::CreateResourceGroupRequest& request,
+                                      proto::common::Status& response, const GrpcContextOptions& options) {
+    return grpcCall("CreateResourceGroup", &Stub::CreateResourceGroup, request, response, options);
+}
+
+Status
+MilvusConnection::DropResourceGroup(const proto::milvus::DropResourceGroupRequest& request,
+                                    proto::common::Status& response, const GrpcContextOptions& options) {
+    return grpcCall("DropResourceGroup", &Stub::DropResourceGroup, request, response, options);
+}
+
+Status
+MilvusConnection::DescribeResourceGroup(const proto::milvus::DescribeResourceGroupRequest& request,
+                                        proto::milvus::DescribeResourceGroupResponse& response,
+                                        const GrpcContextOptions& options) {
+    return grpcCall("DescribeResourceGroup", &Stub::DescribeResourceGroup, request, response, options);
+}
+
+Status
+MilvusConnection::ListResourceGroups(const proto::milvus::ListResourceGroupsRequest& request,
+                                     proto::milvus::ListResourceGroupsResponse& response,
+                                     const GrpcContextOptions& options) {
+    return grpcCall("ListResourceGroups", &Stub::ListResourceGroups, request, response, options);
+}
+
+Status
+MilvusConnection::UpdateResourceGroups(const proto::milvus::UpdateResourceGroupsRequest& request,
+                                       proto::common::Status& response, const GrpcContextOptions& options) {
+    return grpcCall("UpdateResourceGroups", &Stub::UpdateResourceGroups, request, response, options);
+}
+
+void
+MilvusConnection::SetHeader(const std::string& key, const std::string& value) {
+    headers_[key] = value;
+}
+
+void
+MilvusConnection::RemoveHeader(const std::string& key) {
+    headers_.erase(key);
+}
+
+std::string
+MilvusConnection::GetHeader(const std::string& key) const {
+    auto it = headers_.find(key);
+    if (it != headers_.end()) {
+        return it->second;
+    }
+    return "";
+}
+
+std::vector<std::pair<std::string, std::string>>
+MilvusConnection::GetAllHeaders() const {
+    std::vector<std::pair<std::string, std::string>> header_vec;
+    header_vec.reserve(headers_.size());
+    for (const auto& pair : headers_) {
+        header_vec.emplace_back(pair.first, pair.second);
+    }
+    return header_vec;
+}
+
+const std::string&
+MilvusConnection::Host() const {
+    return host_;
+}
+
+void
+MilvusConnection::SetHost(const std::string& host) {
+    host_ = host;
+}
+
+uint16_t
+MilvusConnection::Port() const {
+    return port_;
+}
+
+void
+MilvusConnection::SetPort(uint16_t port) {
+    port_ = port;
+}
+
+const std::string&
+MilvusConnection::User() const {
+    return user_;
+}
+
+void
+MilvusConnection::SetUser(const std::string& user) {
+    user_ = user;
+}
+
+const std::string&
+MilvusConnection::Password() const {
+    return password_;
+}
+
+void
+MilvusConnection::SetPassword(const std::string& password) {
+    password_ = password;
+}
+
+const std::string&
+MilvusConnection::Token() const {
+    return token_;
+}
+
+void
+MilvusConnection::SetToken(const std::string& token) {
+    token_ = token;
 }
 
 }  // namespace milvus

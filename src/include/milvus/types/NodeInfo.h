@@ -16,52 +16,21 @@
 
 #pragma once
 
-#include <cstdint>
 #include <string>
-#include <unordered_map>
 
-namespace milvus {
-
-/**
- * @brief Collection statistics returned by MilvusClient::GetCollectionStats().
- */
-class CollectionStat {
+class NodeInfo {
  public:
-    /**
-     * @brief Construct a new Collection Stat object
-     */
-    CollectionStat();
+    NodeInfo(int64_t id, const std::string& addr, const std::string& host);
 
-    /**
-     * @brief Return row count of this collection.
-     *
-     */
-    uint64_t
-    RowCount() const;
-
-    /**
-     * @brief Set collection name
-     *
-     */
-    void
-    SetName(std::string name);
-
-    /**
-     * @brief Get collection name
-     *
-     */
+    int64_t
+    GetNodeId() const;
     const std::string&
-    Name() const;
-
-    /**
-     * @brief add key/value pair for collection statistics
-     */
-    void
-    Emplace(std::string key, std::string value);
+    GetAddress() const;
+    const std::string&
+    GetHostname() const;
 
  private:
-    std::string name_;
-    std::unordered_map<std::string, std::string> statistics_;
+    int64_t node_id_;
+    std::string address_;
+    std::string hostname_;
 };
-
-}  // namespace milvus

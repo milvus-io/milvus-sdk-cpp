@@ -16,51 +16,29 @@
 
 #pragma once
 
-#include <cstdint>
-#include <vector>
-
-#include "IDArray.h"
+#include <string>
 
 namespace milvus {
 
-/**
- * @brief Result returned by MilvusClientV2::Insert(), MilvusClientV2::Upsert() and MilvusClientV2::Delete()
- */
-class DmlResults {
+enum class LoadStateCode { NOT_EXIST = 0, NOT_LOAD = 1, LOADING = 2, LOADED = 3 };
+
+class LoadState {
  public:
-    /**
-     * @brief The id array for entities which are inserted or deleted.
-     */
-    const IDArray&
-    IdArray() const;
+    LoadState();
+    explicit LoadState(LoadStateCode code);
 
-    /**
-     * @brief Set the id array.
-     */
+    LoadStateCode
+    GetCode() const;
+    const std::string&
+    GetDesc() const;
     void
-    SetIdArray(const IDArray& id_array);
-
-    /**
-     * @brief Set the id array.
-     */
-    void
-    SetIdArray(IDArray&& id_array);
-
-    /**
-     * @brief The operation timestamp marked by server side.
-     */
-    uint64_t
-    Timestamp() const;
-
-    /**
-     * @brief Set operation timestamp.
-     */
-    void
-    SetTimestamp(uint64_t timestamp);
+    SetCode(LoadStateCode code);
 
  private:
-    IDArray id_array_{std::vector<int64_t>{}};
-    uint64_t timestamp_{0};
+    LoadStateCode code_;
+    std::string state_desc_;
+    void
+    updateStateDesc();
 };
 
 }  // namespace milvus

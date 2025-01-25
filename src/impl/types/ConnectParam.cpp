@@ -26,7 +26,7 @@ ConnectParam::ConnectParam(std::string host, uint16_t port) : host_(std::move(ho
 }
 
 ConnectParam::ConnectParam(std::string host, uint16_t port, std::string username, std::string password)
-    : host_(std::move(host)), port_(port) {
+    : host_(std::move(host)), port_(port), username_(username), password_(password) {
     SetAuthorizations(std::move(username), std::move(password));
 }
 
@@ -136,6 +136,38 @@ ConnectParam::Key() const {
 const std::string&
 ConnectParam::CaCert() const {
     return ca_cert_;
+}
+
+const std::string&
+ConnectParam::Username() const {
+    return username_;
+}
+
+void
+ConnectParam::SetUsername(const std::string& username) {
+    username_ = username;
+    SetAuthorizations(username_, password_);
+}
+
+const std::string&
+ConnectParam::Password() const {
+    return password_;
+}
+
+void
+ConnectParam::SetPassword(const std::string& password) {
+    password_ = password;
+    SetAuthorizations(username_, password_);
+}
+
+const std::string&
+ConnectParam::Token() const {
+    return token_;
+}
+
+void
+ConnectParam::SetToken(const std::string& token) {
+    token_ = token;
 }
 
 }  // namespace milvus

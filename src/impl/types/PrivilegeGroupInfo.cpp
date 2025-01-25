@@ -14,54 +14,36 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#pragma once
-
-#include <cstdint>
-#include <string>
-#include <unordered_map>
+#include "milvus/types/PrivilegeGroupInfo.h"
 
 namespace milvus {
 
-/**
- * @brief Collection statistics returned by MilvusClient::GetCollectionStats().
- */
-class CollectionStat {
- public:
-    /**
-     * @brief Construct a new Collection Stat object
-     */
-    CollectionStat();
+PrivilegeGroupInfo::PrivilegeGroupInfo(const std::string& group_name) : group_name_(group_name) {
+}
 
-    /**
-     * @brief Return row count of this collection.
-     *
-     */
-    uint64_t
-    RowCount() const;
+void
+PrivilegeGroupInfo::AddPrivilege(const std::string& privilege) {
+    privileges_.push_back(privilege);
+}
 
-    /**
-     * @brief Set collection name
-     *
-     */
-    void
-    SetName(std::string name);
+const std::string&
+PrivilegeGroupInfo::GroupName() const {
+    return group_name_;
+}
 
-    /**
-     * @brief Get collection name
-     *
-     */
-    const std::string&
-    Name() const;
+void
+PrivilegeGroupInfo::SetGroupName(const std::string& group_name) {
+    this->group_name_ = group_name;
+}
 
-    /**
-     * @brief add key/value pair for collection statistics
-     */
-    void
-    Emplace(std::string key, std::string value);
+const std::vector<std::string>&
+PrivilegeGroupInfo::Privileges() const {
+    return privileges_;
+}
 
- private:
-    std::string name_;
-    std::unordered_map<std::string, std::string> statistics_;
-};
+void
+PrivilegeGroupInfo::SetPrivileges(const std::vector<std::string>& privileges) {
+    this->privileges_ = privileges;
+}
 
 }  // namespace milvus

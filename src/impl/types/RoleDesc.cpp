@@ -14,54 +14,25 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#pragma once
-
-#include <cstdint>
-#include <string>
-#include <unordered_map>
+#include "milvus/types/RoleDesc.h"
 
 namespace milvus {
 
-/**
- * @brief Collection statistics returned by MilvusClient::GetCollectionStats().
- */
-class CollectionStat {
- public:
-    /**
-     * @brief Construct a new Collection Stat object
-     */
-    CollectionStat();
+RoleDesc::RoleDesc() {
+}
 
-    /**
-     * @brief Return row count of this collection.
-     *
-     */
-    uint64_t
-    RowCount() const;
+RoleDesc::RoleDesc(const std::string& role, const std::vector<Privilege>& privileges)
+    : role_(role), privileges_(privileges) {
+}
 
-    /**
-     * @brief Set collection name
-     *
-     */
-    void
-    SetName(std::string name);
+const std::string&
+RoleDesc::GetRole() const {
+    return role_;
+}
 
-    /**
-     * @brief Get collection name
-     *
-     */
-    const std::string&
-    Name() const;
-
-    /**
-     * @brief add key/value pair for collection statistics
-     */
-    void
-    Emplace(std::string key, std::string value);
-
- private:
-    std::string name_;
-    std::unordered_map<std::string, std::string> statistics_;
-};
+const std::vector<Privilege>&
+RoleDesc::GetPrivileges() const {
+    return privileges_;
+}
 
 }  // namespace milvus

@@ -14,54 +14,30 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#pragma once
-
-#include <cstdint>
-#include <string>
-#include <unordered_map>
+#include "milvus/types/UserResult.h"
 
 namespace milvus {
 
-/**
- * @brief Collection statistics returned by MilvusClient::GetCollectionStats().
- */
-class CollectionStat {
- public:
-    /**
-     * @brief Construct a new Collection Stat object
-     */
-    CollectionStat();
+UserResult::UserResult() = default;
 
-    /**
-     * @brief Return row count of this collection.
-     *
-     */
-    uint64_t
-    RowCount() const;
+void
+UserResult::SetUserName(const std::string& user_name) {
+    user_name_ = user_name;
+}
 
-    /**
-     * @brief Set collection name
-     *
-     */
-    void
-    SetName(std::string name);
+const std::string&
+UserResult::UserName() const {
+    return user_name_;
+}
 
-    /**
-     * @brief Get collection name
-     *
-     */
-    const std::string&
-    Name() const;
+void
+UserResult::AddRole(const std::string& role) {
+    roles_.emplace_back(role);
+}
 
-    /**
-     * @brief add key/value pair for collection statistics
-     */
-    void
-    Emplace(std::string key, std::string value);
-
- private:
-    std::string name_;
-    std::unordered_map<std::string, std::string> statistics_;
-};
+const std::vector<std::string>&
+UserResult::Roles() const {
+    return roles_;
+}
 
 }  // namespace milvus

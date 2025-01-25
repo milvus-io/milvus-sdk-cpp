@@ -24,7 +24,7 @@
 namespace milvus {
 
 /**
- * @brief Partition statistics returned by MilvusClient::GetPartitionStatistics().
+ * @brief Partition statistics returned by MilvusClient::GetPartitionStats().
  */
 class PartitionStat {
  public:

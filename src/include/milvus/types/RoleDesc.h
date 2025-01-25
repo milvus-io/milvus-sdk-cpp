@@ -16,51 +16,33 @@
 
 #pragma once
 
-#include <cstdint>
+#include <string>
 #include <vector>
-
-#include "IDArray.h"
 
 namespace milvus {
 
-/**
- * @brief Result returned by MilvusClientV2::Insert(), MilvusClientV2::Upsert() and MilvusClientV2::Delete()
- */
-class DmlResults {
+struct Privilege {
+    std::string object_type;
+    std::string object_name;
+    std::string db_name;
+    std::string role_name;
+    std::string privilege;
+    std::string grantor_name;
+};
+
+class RoleDesc {
  public:
-    /**
-     * @brief The id array for entities which are inserted or deleted.
-     */
-    const IDArray&
-    IdArray() const;
+    RoleDesc();
+    RoleDesc(const std::string& role, const std::vector<Privilege>& privileges);
 
-    /**
-     * @brief Set the id array.
-     */
-    void
-    SetIdArray(const IDArray& id_array);
-
-    /**
-     * @brief Set the id array.
-     */
-    void
-    SetIdArray(IDArray&& id_array);
-
-    /**
-     * @brief The operation timestamp marked by server side.
-     */
-    uint64_t
-    Timestamp() const;
-
-    /**
-     * @brief Set operation timestamp.
-     */
-    void
-    SetTimestamp(uint64_t timestamp);
+    const std::string&
+    GetRole() const;
+    const std::vector<Privilege>&
+    GetPrivileges() const;
 
  private:
-    IDArray id_array_{std::vector<int64_t>{}};
-    uint64_t timestamp_{0};
+    std::string role_;
+    std::vector<Privilege> privileges_;
 };
 
 }  // namespace milvus

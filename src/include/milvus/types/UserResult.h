@@ -16,51 +16,28 @@
 
 #pragma once
 
-#include <cstdint>
+#include <string>
 #include <vector>
-
-#include "IDArray.h"
 
 namespace milvus {
 
-/**
- * @brief Result returned by MilvusClientV2::Insert(), MilvusClientV2::Upsert() and MilvusClientV2::Delete()
- */
-class DmlResults {
+class UserResult {
  public:
-    /**
-     * @brief The id array for entities which are inserted or deleted.
-     */
-    const IDArray&
-    IdArray() const;
+    UserResult();
 
-    /**
-     * @brief Set the id array.
-     */
     void
-    SetIdArray(const IDArray& id_array);
+    SetUserName(const std::string& user_name);
+    const std::string&
+    UserName() const;
 
-    /**
-     * @brief Set the id array.
-     */
     void
-    SetIdArray(IDArray&& id_array);
-
-    /**
-     * @brief The operation timestamp marked by server side.
-     */
-    uint64_t
-    Timestamp() const;
-
-    /**
-     * @brief Set operation timestamp.
-     */
-    void
-    SetTimestamp(uint64_t timestamp);
+    AddRole(const std::string& role);
+    const std::vector<std::string>&
+    Roles() const;
 
  private:
-    IDArray id_array_{std::vector<int64_t>{}};
-    uint64_t timestamp_{0};
+    std::string user_name_;
+    std::vector<std::string> roles_;
 };
 
 }  // namespace milvus

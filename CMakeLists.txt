@@ -64,6 +64,8 @@ set_option_category("Thirdparty")
 define_option_string(MILVUS_WITH_GRPC           "Using gRPC from"       "module" "package" "module")
 define_option_string(MILVUS_WITH_ZLIB           "Using Zlib from"       "module" "package" "module")
 define_option_string(MILVUS_WITH_NLOHMANN_JSON  "nlohmann json from"    "module" "package" "module")
+define_option_string(MILVUS_WITH_CPP_HTTPLIB    "cpp-httplib from"      "module" "package" "module")
+define_option_string(MILVUS_WITH_BROTLI         "Using Brotli from"     "module" "package" "module")
 define_option_string(MILVUS_WITH_GTEST          "Using GTest from"      "module" "package" "module")
 
 
