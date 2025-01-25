@@ -16,6 +16,8 @@
 
 #pragma once
 
+#include <httplib.h>
+
 #include <memory>
 
 #include "Status.h"
