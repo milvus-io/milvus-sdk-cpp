@@ -53,8 +53,9 @@ class MilvusClientImplV2 : public MilvusClientV2 {
     ListCollections(std::vector<std::string>& results, int timeout) final;
 
     Status
-    LoadCollection(const std::string& collection_name, int replica_number,
-                   const ProgressMonitor& progress_monitor) final;
+    LoadCollection(const std::string& collection_name, int replica_number, bool refresh,
+                   const std::string& resource_groups, const std::vector<std::string>& load_fields,
+                   bool skip_load_dynamic_field, int timeout) final;
 
     Status
     ReleaseCollection(const std::string& collection_name) final;
@@ -277,9 +278,6 @@ class MilvusClientImplV2 : public MilvusClientV2 {
 
     Status
     UpdateResourceGroup(const std::string& resource_group, const ResourceGroupConfig& config, int timeout) final;
-
-    Status
-    CalcDistance(const CalcDistanceArguments& arguments, DistanceArray& results) final;
 
     Status
     Flush(const std::vector<std::string>& collection_names, const ProgressMonitor& progress_monitor) final;

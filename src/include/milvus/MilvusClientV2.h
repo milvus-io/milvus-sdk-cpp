@@ -127,24 +127,13 @@ class MilvusClientV2 {
     virtual Status
     DropCollection(const std::string& collection_name) = 0;
 
-    /**
-     * Load collection data into CPU memory of query node. \n
-     * If the timeout is specified, this api will call ShowCollections() to check collection's loading state,
-     * waiting until the collection completely loaded into query node.
-     *
-     * @param [in] collection_name name of the collection
-     * @param [in] replica_number the number of replicas, default 1
-     * @param [in] progress_monitor set timeout to wait loading progress complete, set to ProgressMonitor::NoWait() to
-     * return instantly, set to ProgressMonitor::Forever() to wait until finished.
-     * @return Status operation successfully or not
-     */
-
     virtual Status
     ListCollections(std::vector<std::string>& results, int timeout = 0) = 0;
 
     virtual Status
-    LoadCollection(const std::string& collection_name, int replica_number = 1,
-                   const ProgressMonitor& progress_monitor = ProgressMonitor::Forever()) = 0;
+    LoadCollection(const std::string& collection_name, int replica_number = 1, bool refresh = false,
+                   const std::string& resource_groups = "", const std::vector<std::string>& load_fields = {},
+                   bool skip_load_dynamic_field = false, int timeout = 0) = 0;
 
     /**
      * Release collection data from query node.
@@ -565,22 +554,6 @@ class MilvusClientV2 {
 
     virtual Status
     UpdateResourceGroup(const std::string& resource_group, const ResourceGroupConfig& config, int timeout = 0) = 0;
-
-    /**
-     * Calculate distance between two vector arrays.
-     *
-     * @param [in] arguments the input vectors can be float vectors or binary vectors, also can be an id array to ask
-     * server to retrieve vectors to calculate distance.
-     * @param [out] results 2-d array distances \n
-     *        std::vector<std::vector<int>> for "HAMMING" or std::vector<std::vector<float>> for others \n
-     *        Assume the vectors_left: L_1, L_2, L_3 \n
-     *        Assume the vectors_right: R_a, R_b \n
-     *        Distance between L_n and R_m we called "D_n_m" \n
-     *        The returned distances are arranged like this: [[D_1_a, D_1_b], [D_2_a, D_2_b], [D_3_a, D_3_b]]
-     * @return Status operation successfully or not
-     */
-    virtual Status
-    CalcDistance(const CalcDistanceArguments& arguments, DistanceArray& results) = 0;
 
     /**
      * Flush insert buffer into storage.  \n
