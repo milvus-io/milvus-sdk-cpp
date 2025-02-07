@@ -131,6 +131,17 @@ class MilvusClientV2 {
     ListCollections(std::vector<std::string>& results, int timeout = 0) = 0;
 
     virtual Status
+    GetLoadingProgress(const std::string& collection_name,
+    int& progress,
+                              const std::vector<std::string>& partition_names = {},
+                              int timeout = 0,
+                              bool is_refresh = false
+                              ) = 0;
+
+    virtual Status
+    WaitForLoadingCollection(const std::string& collection_name, int timeout = 0, bool is_refresh = false) = 0;
+
+    virtual Status
     LoadCollection(const std::string& collection_name, int replica_number = 1, bool refresh = false,
                    const std::string& resource_groups = "", const std::vector<std::string>& load_fields = {},
                    bool skip_load_dynamic_field = false, int timeout = 0) = 0;
@@ -236,21 +247,46 @@ class MilvusClientV2 {
     virtual Status
     HasPartition(const std::string& collection_name, const std::string& partition_name, bool& has) = 0;
 
-    /**
-     * Load specific partitions data of one collection into query nodes. \n
-     * If the timeout is specified, this api will call ShowPartitions() to check partition's loading state,
-     * waiting until the collection completely loaded into query node.
-     *
-     * @param [in] collection_name name of the collection
-     * @param [in] partition_names name array of the partitions
-     * @param [in] replica_number the number of replicas, default 1
-     * @param [in] progress_monitor set timeout to wait loading progress complete, set to
-     * ProgressMonitor::NoWait() to return instantly, set to ProgressMonitor::Forever() to wait until finished.
-     * @return Status operation successfully or not
-     */
-    virtual Status
-    LoadPartitions(const std::string& collection_name, const std::vector<std::string>& partition_names,
-                   int replica_number = 1, const ProgressMonitor& progress_monitor = ProgressMonitor::Forever()) = 0;
+//     /**
+//      * Load specific partitions data of one collection into query nodes. \n
+//      * If the timeout is specified, this api will call ShowPartitions() to check partition's loading state,
+//      * waiting until the collection completely loaded into query node.
+//      *
+//      * @param [in] collection_name name of the collection
+//      * @param [in] partition_names name array of the partitions
+//      * @param [in] replica_number the number of replicas, default 1
+//      * @param [in] progress_monitor set timeout to wait loading progress complete, set to
+//      * ProgressMonitor::NoWait() to return instantly, set to ProgressMonitor::Forever() to wait until finished.
+//      * @return Status operation successfully or not
+//      */
+//     virtual Status
+//     LoadPartitions(const std::string& collection_name, const std::vector<std::string>& partition_names,
+//                    int replica_number = 1, const ProgressMonitor& progress_monitor = ProgressMonitor::Forever()) = 0;
+
+
+//     virtual Status WaitForLoadingPartitions(const std::string& collection_name,
+//                                             const std::vector<std::string>& partition_names,
+//                                             int timeout = 0) = 0;
+
+//     virtual Status LoadPartitions(const std::string& collection_name,
+//                                   const std::vector<std::string>& partition_names,
+//                                   const std::string& resource_groups = "",
+//                                   const std::vector<std::string>& load_fields = {},
+//                                   bool skip_load_dynamic_field = false,
+//                                   int timeout = 0) = 0;
+
+    virtual Status WaitForLoadingPartitions(const std::string& collection_name,
+                                            const std::vector<std::string>& partition_names,
+                                            int timeout = 0) = 0;
+
+    virtual Status LoadPartitions(const std::string& collection_name,
+                                  const std::vector<std::string>& partition_names,
+                                  int replica_number = 1,
+                                  bool refresh = false,
+                                  const std::vector<std::string>& resource_groups = {},
+                                  const std::vector<std::string>& load_fields = {},
+                                  bool skip_load_dynamic_field = false,
+                                  int timeout = 0) = 0;
 
     /**
      * Release specific partitions data of one collection into query nodes.
@@ -260,7 +296,7 @@ class MilvusClientV2 {
      * @return Status operation successfully or not
      */
     virtual Status
-    ReleasePartitions(const std::string& collection_name, const std::vector<std::string>& partition_names) = 0;
+    ReleasePartitions(const std::string& collection_name, const std::vector<std::string>& partition_names, int timeout = 0) = 0;
 
     /**
      * Get partition statistics, currently only return row count.
@@ -281,6 +317,10 @@ class MilvusClientV2 {
     virtual Status
     GetLoadState(const std::string& collection_name, LoadState& state, const std::string& partition_name = "",
                  int timeout = 0) = 0;
+
+virtual Status
+GetLoadState(const std::string& collection_name, LoadState& state, const std::vector<std::string>& partition_names = {},
+             int timeout = 0) = 0;
 
     virtual Status
     RefreshLoad(const std::string& collection_name, int timeout = 0) = 0;

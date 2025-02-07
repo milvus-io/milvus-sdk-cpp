@@ -76,6 +76,11 @@ class MilvusConnection {
                   const GrpcContextOptions& options);
 
     Status
+    GetLoadingProgress(const proto::milvus::GetLoadingProgressRequest& request,
+                              proto::milvus::GetLoadingProgressResponse& response,
+                              const GrpcContextOptions& options);
+    
+    Status
     LoadCollection(const proto::milvus::LoadCollectionRequest& request, proto::common::Status& response,
                    const GrpcContextOptions& options);
 

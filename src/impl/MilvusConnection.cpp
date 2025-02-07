@@ -137,6 +137,14 @@ MilvusConnection::HasCollection(const proto::milvus::HasCollectionRequest& reque
 }
 
 Status
+MilvusConnection::GetLoadingProgress(const proto::milvus::GetLoadingProgressRequest& request,
+                                            proto::milvus::GetLoadingProgressResponse& response,
+                                            const GrpcContextOptions& options) {
+    return grpcCall("GetLoadingProgress", &Stub::GetLoadingProgress, request, response, options);
+}
+
+
+Status
 MilvusConnection::LoadCollection(const proto::milvus::LoadCollectionRequest& request, proto::common::Status& response,
                                  const GrpcContextOptions& options) {
     return grpcCall("LoadCollection", &Stub::LoadCollection, request, response, options);

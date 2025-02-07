@@ -148,6 +148,56 @@ MilvusClientImplV2::ListCollections(std::vector<std::string>& results, int timeo
         pre, &MilvusConnection::ShowCollections, post, GrpcOpts{timeout});
 }
 
+
+
+Status MilvusClientImplV2::GetLoadingProgress(const std::string& collection_name,
+                                              int& progress,
+                                              const std::vector<std::string>& partition_names,
+                                              int timeout,
+                                              bool is_refresh) {
+    auto pre = [&collection_name, &partition_names]() {
+        proto::milvus::GetLoadingProgressRequest request;
+        request.set_collection_name(collection_name);
+        for (const auto& partition_name : partition_names) {
+            request.add_partition_names(partition_name);
+        }
+        return request;
+    };
+
+    auto post = [&progress, is_refresh](const proto::milvus::GetLoadingProgressResponse& response) {
+        progress = is_refresh ? response.refresh_progress() : response.progress();
+    };
+
+    return apiHandler<proto::milvus::GetLoadingProgressRequest, proto::milvus::GetLoadingProgressResponse>(
+        pre, &MilvusConnection::GetLoadingProgress, post, GrpcOpts{timeout});
+}
+
+
+Status
+MilvusClientImplV2::WaitForLoadingCollection(const std::string& collection_name, int timeout, bool is_refresh) {
+    auto start_time = std::chrono::steady_clock::now();
+    auto timeout_duration = std::chrono::seconds(timeout);
+
+    while (true) {
+        if (timeout > 0) {
+            auto elapsed_time = std::chrono::steady_clock::now() - start_time;
+            if (elapsed_time >= timeout_duration) {
+                return Status{StatusCode::TIMEOUT, "Wait for loading collection timeout: " + collection_name};
+            }
+        }
+
+        milvus::LoadState load_state;
+        auto status = GetLoadState(collection_name, load_state, "", 0);
+        if (load_state.GetCode() == LoadStateCode::LOADED) {
+            return Status::OK();
+        }
+
+        std::this_thread::sleep_for(std::chrono::milliseconds(500));
+    }
+}
+
+
+
 Status
 MilvusClientImplV2::LoadCollection(const std::string& collection_name, int replica_number, bool refresh,
                                    const std::string& resource_groups, const std::vector<std::string>& load_fields,
@@ -172,8 +222,12 @@ MilvusClientImplV2::LoadCollection(const std::string& collection_name, int repli
         return rpc_request;
     };
 
+    auto wait_for_status = [this, &collection_name](const proto::common::Status& response_status) {
+        return WaitForLoadingCollection(collection_name, 0, true);
+    };
+
     return apiHandler<proto::milvus::LoadCollectionRequest, proto::common::Status>(
-        pre, &MilvusConnection::LoadCollection, GrpcOpts{timeout});
+        pre, &MilvusConnection::LoadCollection, wait_for_status, GrpcOpts{timeout});
 }
 
 Status
@@ -419,44 +473,115 @@ MilvusClientImplV2::HasPartition(const std::string& collection_name, const std::
         pre, &MilvusConnection::HasPartition, post);
 }
 
-Status
-MilvusClientImplV2::LoadPartitions(const std::string& collection_name, const std::vector<std::string>& partition_names,
-                                   int replica_number, const ProgressMonitor& progress_monitor) {
-    auto pre = [&collection_name, &partition_names, replica_number]() {
-        proto::milvus::LoadPartitionsRequest rpc_request;
 
+Status MilvusClientImplV2::WaitForLoadingPartitions(const std::string& collection_name,
+                                                   const std::vector<std::string>& partition_names,
+                                                   int timeout) {
+    auto start_time = std::chrono::steady_clock::now();
+    auto timeout_duration = std::chrono::seconds(timeout);
+
+    while (true) {
+        if (timeout > 0) {
+            auto elapsed_time = std::chrono::steady_clock::now() - start_time;
+            if (elapsed_time >= timeout_duration) {
+                return Status{StatusCode::TIMEOUT, "Wait for loading partitions timeout: " + collection_name};
+            }
+        }
+
+        milvus::LoadState load_state;
+        auto status = GetLoadState(collection_name, load_state, partition_names, 0);
+        if (load_state.GetCode() == LoadStateCode::LOADED) {
+            return Status::OK();
+        }
+
+        std::this_thread::sleep_for(std::chrono::milliseconds(500));
+    }
+}
+
+
+Status MilvusClientImplV2::LoadPartitions(const std::string& collection_name,
+                                          const std::vector<std::string>& partition_names,
+                                          int replica_number,
+                                          bool refresh,
+                                          const std::vector<std::string>& resource_groups,
+                                          const std::vector<std::string>& load_fields,
+                                          bool skip_load_dynamic_field,
+                                          int timeout) {
+    auto pre = [&collection_name, &partition_names, replica_number, refresh, resource_groups, load_fields, skip_load_dynamic_field]() {
+        proto::milvus::LoadPartitionsRequest rpc_request;
         rpc_request.set_collection_name(collection_name);
+        
         for (const auto& partition_name : partition_names) {
             rpc_request.add_partition_names(partition_name);
         }
+        
         rpc_request.set_replica_number(replica_number);
+        rpc_request.set_refresh(refresh);
+        
+        if (!resource_groups.empty()) {
+            for (const auto& group : resource_groups) {
+                rpc_request.add_resource_groups(group);
+            }
+        }
+
+        if (!load_fields.empty()) {
+            for (const auto& field : load_fields) {
+                rpc_request.add_load_fields(field);
+            }
+        }
+
+        rpc_request.set_skip_load_dynamic_field(skip_load_dynamic_field);
+
         return rpc_request;
     };
 
-    auto wait_for_status = [this, &collection_name, &partition_names, &progress_monitor](const proto::common::Status&) {
-        return WaitForStatus(
-            [&collection_name, &partition_names, this](Progress& progress) -> Status {
-                PartitionsInfo partitions_info;
-                auto status = ShowPartitions(collection_name, partition_names, partitions_info);
-                if (!status.IsOk()) {
-                    return status;
-                }
-                progress.total_ = partition_names.size();
-                progress.finished_ =
-                    std::count_if(partitions_info.begin(), partitions_info.end(),
-                                  [](const PartitionInfo& partition_info) { return partition_info.Loaded(); });
-
-                return status;
-            },
-            progress_monitor);
+    auto wait_for_status = [this, &collection_name, &partition_names](const proto::common::Status& response_status) {
+        return WaitForLoadingPartitions(collection_name, partition_names, 0);  // Timeout set to 0 for indefinite wait
     };
+
     return apiHandler<proto::milvus::LoadPartitionsRequest, proto::common::Status>(
-        nullptr, pre, &MilvusConnection::LoadPartitions, wait_for_status, nullptr);
+        pre, &MilvusConnection::LoadPartitions, wait_for_status, GrpcOpts{timeout});
 }
+
+
+// Status
+// MilvusClientImplV2::LoadPartitions(const std::string& collection_name, const std::vector<std::string>& partition_names,
+//                                    int replica_number, const ProgressMonitor& progress_monitor) {
+//     auto pre = [&collection_name, &partition_names, replica_number]() {
+//         proto::milvus::LoadPartitionsRequest rpc_request;
+
+//         rpc_request.set_collection_name(collection_name);
+//         for (const auto& partition_name : partition_names) {
+//             rpc_request.add_partition_names(partition_name);
+//         }
+//         rpc_request.set_replica_number(replica_number);
+//         return rpc_request;
+//     };
+
+//     auto wait_for_status = [this, &collection_name, &partition_names, &progress_monitor](const proto::common::Status&) {
+//         return WaitForStatus(
+//             [&collection_name, &partition_names, this](Progress& progress) -> Status {
+//                 PartitionsInfo partitions_info;
+//                 auto status = ShowPartitions(collection_name, partition_names, partitions_info);
+//                 if (!status.IsOk()) {
+//                     return status;
+//                 }
+//                 progress.total_ = partition_names.size();
+//                 progress.finished_ =
+//                     std::count_if(partitions_info.begin(), partitions_info.end(),
+//                                   [](const PartitionInfo& partition_info) { return partition_info.Loaded(); });
+
+//                 return status;
+//             },
+//             progress_monitor);
+//     };
+//     return apiHandler<proto::milvus::LoadPartitionsRequest, proto::common::Status>(
+//         nullptr, pre, &MilvusConnection::LoadPartitions, wait_for_status, nullptr);
+// }
 
 Status
 MilvusClientImplV2::ReleasePartitions(const std::string& collection_name,
-                                      const std::vector<std::string>& partition_names) {
+                                      const std::vector<std::string>& partition_names, int timeout) {
     auto pre = [&collection_name, &partition_names]() {
         proto::milvus::ReleasePartitionsRequest rpc_request;
 
@@ -468,7 +593,7 @@ MilvusClientImplV2::ReleasePartitions(const std::string& collection_name,
     };
 
     return apiHandler<proto::milvus::ReleasePartitionsRequest, proto::common::Status>(
-        pre, &MilvusConnection::ReleasePartitions);
+        pre, &MilvusConnection::ReleasePartitions, GrpcOpts{timeout});
 }
 
 Status
@@ -558,6 +683,30 @@ MilvusClientImplV2::GetLoadState(const std::string& collection_name, LoadState& 
     return apiHandler<proto::milvus::GetLoadStateRequest, proto::milvus::GetLoadStateResponse>(
         pre, &MilvusConnection::GetLoadState, post, GrpcOpts{timeout});
 }
+
+
+Status
+MilvusClientImplV2::GetLoadState(const std::string& collection_name, LoadState& state,
+                                const std::vector<std::string>& partition_names, int timeout) {
+    auto pre = [&collection_name, &partition_names]() {
+        proto::milvus::GetLoadStateRequest rpc_request;
+        rpc_request.set_collection_name(collection_name);
+        for (const auto& partition_name : partition_names) {
+            if (!partition_name.empty()) {
+                rpc_request.add_partition_names(partition_name);
+            }
+        }
+        return rpc_request;
+    };
+    
+    auto post = [&state](const proto::milvus::GetLoadStateResponse& response) {
+        state.SetCode(static_cast<LoadStateCode>(response.state()));
+    };
+    
+    return apiHandler<proto::milvus::GetLoadStateRequest, proto::milvus::GetLoadStateResponse>(
+        pre, &MilvusConnection::GetLoadState, post, GrpcOpts{timeout});
+}
+
 
 Status
 MilvusClientImplV2::RefreshLoad(const std::string& collection_name, int timeout) {
