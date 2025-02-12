@@ -138,11 +138,10 @@ MilvusConnection::HasCollection(const proto::milvus::HasCollectionRequest& reque
 
 Status
 MilvusConnection::GetLoadingProgress(const proto::milvus::GetLoadingProgressRequest& request,
-                                            proto::milvus::GetLoadingProgressResponse& response,
-                                            const GrpcContextOptions& options) {
+                                     proto::milvus::GetLoadingProgressResponse& response,
+                                     const GrpcContextOptions& options) {
     return grpcCall("GetLoadingProgress", &Stub::GetLoadingProgress, request, response, options);
 }
-
 
 Status
 MilvusConnection::LoadCollection(const proto::milvus::LoadCollectionRequest& request, proto::common::Status& response,
@@ -357,6 +356,12 @@ Status
 MilvusConnection::Delete(const proto::milvus::DeleteRequest& request, proto::milvus::MutationResult& response,
                          const GrpcContextOptions& options) {
     return grpcCall("Delete", &Stub::Delete, request, response, options);
+}
+
+Status
+MilvusConnection::HybridSearch(const proto::milvus::HybridSearchRequest& request,
+                               proto::milvus::SearchResults& response, const GrpcContextOptions& options) {
+    return grpcCall("HybridSearch", &Stub::HybridSearch, request, response, options);
 }
 
 Status

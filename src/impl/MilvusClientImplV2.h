@@ -53,12 +53,8 @@ class MilvusClientImplV2 : public MilvusClientV2 {
     ListCollections(std::vector<std::string>& results, int timeout) final;
 
     Status
-    GetLoadingProgress(const std::string& collection_name,
-    int& progress,
-                              const std::vector<std::string>& partition_names,
-                              int timeout,
-                              bool is_refresh
-                              ) final;
+    GetLoadingProgress(const std::string& collection_name, int& progress,
+                       const std::vector<std::string>& partition_names, int timeout, bool is_refresh) final;
 
     Status
     WaitForLoadingCollection(const std::string& collection_name, int timeout, bool is_refresh) final;
@@ -113,22 +109,18 @@ class MilvusClientImplV2 : public MilvusClientV2 {
     // LoadPartitions(const std::string& collection_name, const std::vector<std::string>& partition_names,
     //                int replica_number, const ProgressMonitor& progress_monitor) final;
 
-    Status WaitForLoadingPartitions(const std::string& collection_name,
-                                    const std::vector<std::string>& partition_names,
-                                    int timeout) final;
-
-    Status LoadPartitions(const std::string& collection_name,
-                          const std::vector<std::string>& partition_names,
-                          int replica_number,
-                          bool refresh,
-                          const std::vector<std::string>& resource_groups,
-                          const std::vector<std::string>& load_fields,
-                          bool skip_load_dynamic_field,
-                          int timeout) final;
-
+    Status
+    WaitForLoadingPartitions(const std::string& collection_name, const std::vector<std::string>& partition_names,
+                             int timeout) final;
 
     Status
-    ReleasePartitions(const std::string& collection_name, const std::vector<std::string>& partition_names, int timeout) final;
+    LoadPartitions(const std::string& collection_name, const std::vector<std::string>& partition_names,
+                   int replica_number, bool refresh, const std::vector<std::string>& resource_groups,
+                   const std::vector<std::string>& load_fields, bool skip_load_dynamic_field, int timeout) final;
+
+    Status
+    ReleasePartitions(const std::string& collection_name, const std::vector<std::string>& partition_names,
+                      int timeout) final;
 
     Status
     GetPartitionStats(const std::string& collection_name, const std::string& partition_name,
@@ -144,7 +136,7 @@ class MilvusClientImplV2 : public MilvusClientV2 {
 
     Status
     GetLoadState(const std::string& collection_name, LoadState& state, const std::vector<std::string>& partition_names,
-             int timeout) final;
+                 int timeout) final;
 
     Status
     RefreshLoad(const std::string& collection_name, int timeout) final;
@@ -216,6 +208,12 @@ class MilvusClientImplV2 : public MilvusClientV2 {
     Status
     Delete(const std::string& collection_name, const std::string& partition_name, const std::string& expression,
            DmlResults& results) final;
+
+    Status
+    HybridSearch(SearchResults& results, const std::string& collection_name, const std::vector<AnnSearchRequest>& reqs,
+                 const BaseRanker& ranker, int limit, const std::vector<std::string>& partition_names,
+                 const std::vector<std::string>& output_fields, int round_decimal,
+                 const std::vector<std::pair<std::string, std::string>>& params, int timeout) final;
 
     Status
     Search(const SearchArguments& arguments, SearchResults& results, int timeout) final;

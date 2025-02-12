@@ -77,9 +77,8 @@ class MilvusConnection {
 
     Status
     GetLoadingProgress(const proto::milvus::GetLoadingProgressRequest& request,
-                              proto::milvus::GetLoadingProgressResponse& response,
-                              const GrpcContextOptions& options);
-    
+                       proto::milvus::GetLoadingProgressResponse& response, const GrpcContextOptions& options);
+
     Status
     LoadCollection(const proto::milvus::LoadCollectionRequest& request, proto::common::Status& response,
                    const GrpcContextOptions& options);
@@ -220,6 +219,10 @@ class MilvusConnection {
     Status
     Delete(const proto::milvus::DeleteRequest& request, proto::milvus::MutationResult& response,
            const GrpcContextOptions& options);
+
+    Status
+    HybridSearch(const proto::milvus::HybridSearchRequest& request, proto::milvus::SearchResults& response,
+                 const GrpcContextOptions& options);
 
     Status
     Search(const proto::milvus::SearchRequest& request, proto::milvus::SearchResults& response,

@@ -16,7 +16,7 @@
 
 #include <gtest/gtest.h>
 
-#include "milvus/types/Constants.h"
+#include "milvus/types/Constant.h"
 #include "milvus/types/FieldSchema.h"
 
 class FieldSchemaTest : public ::testing::Test {};

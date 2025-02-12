@@ -19,7 +19,7 @@
 #include <string>
 #include <unordered_map>
 
-#include "Constants.h"
+#include "Constant.h"
 
 namespace milvus {
 

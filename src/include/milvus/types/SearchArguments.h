@@ -21,7 +21,7 @@
 #include <unordered_map>
 
 #include "../Status.h"
-#include "Constants.h"
+#include "Constant.h"
 #include "FieldData.h"
 #include "MetricType.h"
 
@@ -248,6 +248,42 @@ class SearchArguments {
     bool
     RangeSearch() const;
 
+    /**
+     * @brief Set group by field
+     */
+    Status
+    SetGroupByField(const std::string& field);
+
+    /**
+     * @brief Get group by field
+     */
+    const std::string&
+    GroupByField() const;
+
+    /**
+     * @brief Set group size
+     */
+    Status
+    SetGroupSize(int size);
+
+    /**
+     * @brief Get group size
+     */
+    int
+    GroupSize() const;
+
+    /**
+     * @brief Set strict group size
+     */
+    Status
+    SetStrictGroupSize(int strict);
+
+    /**
+     * @brief Get strict group size
+     */
+    int
+    StrictGroupSize() const;
+
  private:
     std::string collection_name_;
     std::set<std::string> partition_names_;
@@ -270,6 +306,10 @@ class SearchArguments {
     float range_filter_;
     bool range_search_{false};
     ::milvus::MetricType metric_type_{::milvus::MetricType::L2};
+
+    std::string group_by_field_;
+    int group_size_{0};
+    int strict_group_size_{0};
 };
 
 }  // namespace milvus

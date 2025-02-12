@@ -148,13 +148,9 @@ MilvusClientImplV2::ListCollections(std::vector<std::string>& results, int timeo
         pre, &MilvusConnection::ShowCollections, post, GrpcOpts{timeout});
 }
 
-
-
-Status MilvusClientImplV2::GetLoadingProgress(const std::string& collection_name,
-                                              int& progress,
-                                              const std::vector<std::string>& partition_names,
-                                              int timeout,
-                                              bool is_refresh) {
+Status
+MilvusClientImplV2::GetLoadingProgress(const std::string& collection_name, int& progress,
+                                       const std::vector<std::string>& partition_names, int timeout, bool is_refresh) {
     auto pre = [&collection_name, &partition_names]() {
         proto::milvus::GetLoadingProgressRequest request;
         request.set_collection_name(collection_name);
@@ -171,7 +167,6 @@ Status MilvusClientImplV2::GetLoadingProgress(const std::string& collection_name
     return apiHandler<proto::milvus::GetLoadingProgressRequest, proto::milvus::GetLoadingProgressResponse>(
         pre, &MilvusConnection::GetLoadingProgress, post, GrpcOpts{timeout});
 }
-
 
 Status
 MilvusClientImplV2::WaitForLoadingCollection(const std::string& collection_name, int timeout, bool is_refresh) {
@@ -195,8 +190,6 @@ MilvusClientImplV2::WaitForLoadingCollection(const std::string& collection_name,
         std::this_thread::sleep_for(std::chrono::milliseconds(500));
     }
 }
-
-
 
 Status
 MilvusClientImplV2::LoadCollection(const std::string& collection_name, int replica_number, bool refresh,
@@ -473,10 +466,9 @@ MilvusClientImplV2::HasPartition(const std::string& collection_name, const std::
         pre, &MilvusConnection::HasPartition, post);
 }
 
-
-Status MilvusClientImplV2::WaitForLoadingPartitions(const std::string& collection_name,
-                                                   const std::vector<std::string>& partition_names,
-                                                   int timeout) {
+Status
+MilvusClientImplV2::WaitForLoadingPartitions(const std::string& collection_name,
+                                             const std::vector<std::string>& partition_names, int timeout) {
     auto start_time = std::chrono::steady_clock::now();
     auto timeout_duration = std::chrono::seconds(timeout);
 
@@ -498,26 +490,23 @@ Status MilvusClientImplV2::WaitForLoadingPartitions(const std::string& collectio
     }
 }
 
-
-Status MilvusClientImplV2::LoadPartitions(const std::string& collection_name,
-                                          const std::vector<std::string>& partition_names,
-                                          int replica_number,
-                                          bool refresh,
-                                          const std::vector<std::string>& resource_groups,
-                                          const std::vector<std::string>& load_fields,
-                                          bool skip_load_dynamic_field,
-                                          int timeout) {
-    auto pre = [&collection_name, &partition_names, replica_number, refresh, resource_groups, load_fields, skip_load_dynamic_field]() {
+Status
+MilvusClientImplV2::LoadPartitions(const std::string& collection_name, const std::vector<std::string>& partition_names,
+                                   int replica_number, bool refresh, const std::vector<std::string>& resource_groups,
+                                   const std::vector<std::string>& load_fields, bool skip_load_dynamic_field,
+                                   int timeout) {
+    auto pre = [&collection_name, &partition_names, replica_number, refresh, resource_groups, load_fields,
+                skip_load_dynamic_field]() {
         proto::milvus::LoadPartitionsRequest rpc_request;
         rpc_request.set_collection_name(collection_name);
-        
+
         for (const auto& partition_name : partition_names) {
             rpc_request.add_partition_names(partition_name);
         }
-        
+
         rpc_request.set_replica_number(replica_number);
         rpc_request.set_refresh(refresh);
-        
+
         if (!resource_groups.empty()) {
             for (const auto& group : resource_groups) {
                 rpc_request.add_resource_groups(group);
@@ -542,42 +531,6 @@ Status MilvusClientImplV2::LoadPartitions(const std::string& collection_name,
     return apiHandler<proto::milvus::LoadPartitionsRequest, proto::common::Status>(
         pre, &MilvusConnection::LoadPartitions, wait_for_status, GrpcOpts{timeout});
 }
-
-
-// Status
-// MilvusClientImplV2::LoadPartitions(const std::string& collection_name, const std::vector<std::string>& partition_names,
-//                                    int replica_number, const ProgressMonitor& progress_monitor) {
-//     auto pre = [&collection_name, &partition_names, replica_number]() {
-//         proto::milvus::LoadPartitionsRequest rpc_request;
-
-//         rpc_request.set_collection_name(collection_name);
-//         for (const auto& partition_name : partition_names) {
-//             rpc_request.add_partition_names(partition_name);
-//         }
-//         rpc_request.set_replica_number(replica_number);
-//         return rpc_request;
-//     };
-
-//     auto wait_for_status = [this, &collection_name, &partition_names, &progress_monitor](const proto::common::Status&) {
-//         return WaitForStatus(
-//             [&collection_name, &partition_names, this](Progress& progress) -> Status {
-//                 PartitionsInfo partitions_info;
-//                 auto status = ShowPartitions(collection_name, partition_names, partitions_info);
-//                 if (!status.IsOk()) {
-//                     return status;
-//                 }
-//                 progress.total_ = partition_names.size();
-//                 progress.finished_ =
-//                     std::count_if(partitions_info.begin(), partitions_info.end(),
-//                                   [](const PartitionInfo& partition_info) { return partition_info.Loaded(); });
-
-//                 return status;
-//             },
-//             progress_monitor);
-//     };
-//     return apiHandler<proto::milvus::LoadPartitionsRequest, proto::common::Status>(
-//         nullptr, pre, &MilvusConnection::LoadPartitions, wait_for_status, nullptr);
-// }
 
 Status
 MilvusClientImplV2::ReleasePartitions(const std::string& collection_name,
@@ -684,10 +637,9 @@ MilvusClientImplV2::GetLoadState(const std::string& collection_name, LoadState& 
         pre, &MilvusConnection::GetLoadState, post, GrpcOpts{timeout});
 }
 
-
 Status
 MilvusClientImplV2::GetLoadState(const std::string& collection_name, LoadState& state,
-                                const std::vector<std::string>& partition_names, int timeout) {
+                                 const std::vector<std::string>& partition_names, int timeout) {
     auto pre = [&collection_name, &partition_names]() {
         proto::milvus::GetLoadStateRequest rpc_request;
         rpc_request.set_collection_name(collection_name);
@@ -698,15 +650,14 @@ MilvusClientImplV2::GetLoadState(const std::string& collection_name, LoadState& 
         }
         return rpc_request;
     };
-    
+
     auto post = [&state](const proto::milvus::GetLoadStateResponse& response) {
         state.SetCode(static_cast<LoadStateCode>(response.state()));
     };
-    
+
     return apiHandler<proto::milvus::GetLoadStateRequest, proto::milvus::GetLoadStateResponse>(
         pre, &MilvusConnection::GetLoadState, post, GrpcOpts{timeout});
 }
-
 
 Status
 MilvusClientImplV2::RefreshLoad(const std::string& collection_name, int timeout) {
@@ -1160,6 +1111,182 @@ MilvusClientImplV2::Delete(const std::string& collection_name, const std::string
 }
 
 Status
+MilvusClientImplV2::HybridSearch(SearchResults& results, const std::string& collection_name,
+                                 const std::vector<AnnSearchRequest>& reqs, const BaseRanker& ranker, int limit,
+                                 const std::vector<std::string>& partition_names,
+                                 const std::vector<std::string>& output_fields, int round_decimal,
+                                 const std::vector<std::pair<std::string, std::string>>& params, int timeout) {
+    auto validate = [&]() {
+        if (collection_name.empty()) {
+            return Status{StatusCode::INVALID_AGUMENT, "Collection name cannot be empty"};
+        }
+
+        if (reqs.empty()) {
+            return Status{StatusCode::INVALID_AGUMENT, "Search requests cannot be empty"};
+        }
+
+        if (limit <= 0) {
+            return Status{StatusCode::INVALID_AGUMENT, "Search limit must be positive"};
+        }
+
+        CollectionDesc collection_desc;
+        auto status = DescribeCollection(collection_name, collection_desc);
+        if (!status.IsOk()) {
+            return status;
+        }
+
+        auto anns_fields = collection_desc.Schema().AnnsFieldNames();
+        for (const auto& req : reqs) {
+            const auto& field_name = req.AnnsField();
+            if (anns_fields.find(field_name) == anns_fields.end()) {
+                return Status{StatusCode::INVALID_AGUMENT,
+                              std::string(field_name + " is not a valid anns field in collection " + collection_name)};
+            }
+        }
+
+        return Status::OK();
+    };
+
+    auto pre = [&]() {
+        proto::milvus::HybridSearchRequest hybrid_search_request;
+        hybrid_search_request.set_collection_name(collection_name);
+        for (const auto& partition_name : partition_names) {
+            hybrid_search_request.add_partition_names(partition_name);
+        }
+
+        for (const auto& req : reqs) {
+            proto::milvus::SearchRequest search_request;
+            search_request.set_collection_name(collection_name);
+            search_request.set_dsl_type(proto::common::DslType::BoolExprV1);
+            if (!req.Expr().empty()) {
+                search_request.set_dsl(req.Expr());
+            }
+            for (const auto& partition_name : partition_names) {
+                search_request.add_partition_names(partition_name);
+            }
+
+            // placeholders
+            proto::common::PlaceholderGroup placeholder_group;
+            auto& placeholder_value = *placeholder_group.add_placeholders();
+            placeholder_value.set_tag("$0");
+            auto target = req.TargetVectors();
+            if (target->Type() == DataType::BINARY_VECTOR) {
+                // bins
+                placeholder_value.set_type(proto::common::PlaceholderType::BinaryVector);
+                auto& bins_vec = dynamic_cast<BinaryVecFieldData&>(*target);
+                for (const auto& bins : bins_vec.Data()) {
+                    std::string placeholder_data(reinterpret_cast<const char*>(bins.data()), bins.size());
+                    placeholder_value.add_values(std::move(placeholder_data));
+                }
+            } else {
+                // floats
+                placeholder_value.set_type(proto::common::PlaceholderType::FloatVector);
+                auto& floats_vec = dynamic_cast<FloatVecFieldData&>(*target);
+                for (const auto& floats : floats_vec.Data()) {
+                    std::string placeholder_data(reinterpret_cast<const char*>(floats.data()),
+                                                 floats.size() * sizeof(float));
+                    placeholder_value.add_values(std::move(placeholder_data));
+                }
+            }
+            search_request.set_placeholder_group(std::move(placeholder_group.SerializeAsString()));
+
+            auto kv_pair = search_request.add_search_params();
+            kv_pair->set_key("anns_field");
+            kv_pair->set_value(req.AnnsField());
+
+            kv_pair = search_request.add_search_params();
+            kv_pair->set_key("topk");
+            kv_pair->set_value(std::to_string(req.Limit()));
+
+            for (const auto& param : req.Param()) {
+                auto* kv_pair = search_request.add_search_params();
+                kv_pair->set_key(param.first);
+                kv_pair->set_value(param.second);
+            }
+
+            kv_pair = search_request.add_search_params();
+            kv_pair->set_key(milvus::KeyParams());
+            nlohmann::json json = nlohmann::json::object();
+            kv_pair->set_value(json.dump());
+
+            hybrid_search_request.add_requests()->CopyFrom(search_request);
+        }
+
+        auto ranker_dict = ranker.Dict();
+
+        for (const auto& [key, value] : ranker_dict.items()) {
+            auto* kv_pair = hybrid_search_request.add_rank_params();
+            kv_pair->set_key(key);
+
+            if (value.is_object()) {
+                for (auto& item : value.items()) {
+                    std::string str = "{\"" + item.key() + "\":" + item.value().get<std::string>() + "}";
+                    kv_pair->set_value(str);
+                }
+            } else if (value.is_array()) {
+                kv_pair->set_value(value.dump());
+            } else {
+                kv_pair->set_value(value.get<std::string>());
+            }
+        }
+
+        auto* kv_pair = hybrid_search_request.add_rank_params();
+        kv_pair->set_key("limit");
+        kv_pair->set_value(std::to_string(limit));
+        kv_pair = hybrid_search_request.add_rank_params();
+        kv_pair->set_key("round_decimal");
+        kv_pair->set_value(std::to_string(round_decimal));
+        for (const auto& field : output_fields) {
+            hybrid_search_request.add_output_fields(field);
+        }
+        for (const auto& param : params) {
+            auto* kv_pair = hybrid_search_request.add_rank_params();
+            kv_pair->set_key(param.first);
+            kv_pair->set_value(param.second);
+        }
+
+        return hybrid_search_request;
+    };
+
+    auto post = [&results](const proto::milvus::SearchResults& response) {
+        auto& result_data = response.results();
+        const auto& ids = result_data.ids();
+        const auto& scores = result_data.scores();
+        const auto& fields_data = result_data.fields_data();
+        auto num_of_queries = result_data.num_queries();
+        std::vector<int> topks{};
+        topks.reserve(result_data.topks_size());
+        for (int i = 0; i < result_data.topks_size(); ++i) {
+            topks.emplace_back(result_data.topks(i));
+        }
+        std::vector<SingleResult> single_results;
+        single_results.reserve(num_of_queries);
+        int offset{0};
+        for (int i = 0; i < num_of_queries; ++i) {
+            std::vector<float> item_scores;
+            std::vector<FieldDataPtr> item_field_data;
+            auto item_topk = topks[i];
+            item_scores.reserve(item_topk);
+            for (int j = 0; j < item_topk; ++j) {
+                item_scores.emplace_back(scores.at(offset + j));
+            }
+            item_field_data.reserve(fields_data.size());
+            for (const auto& field_data : fields_data) {
+                item_field_data.emplace_back(std::move(milvus::CreateMilvusFieldData(field_data, offset, item_topk)));
+            }
+            single_results.emplace_back(std::move(CreateIDArray(ids, offset, item_topk)), std::move(item_scores),
+                                        std::move(item_field_data));
+            offset += item_topk;
+        }
+
+        results = std::move(SearchResults(std::move(single_results)));
+    };
+
+    return apiHandler<proto::milvus::HybridSearchRequest, proto::milvus::SearchResults>(
+        validate, pre, &MilvusConnection::HybridSearch, nullptr, post, GrpcOpts{timeout});
+}
+
+Status
 MilvusClientImplV2::Search(const SearchArguments& arguments, SearchResults& results, int timeout) {
     std::string anns_field;
     auto validate = [this, &arguments, &anns_field]() {
@@ -1234,6 +1361,24 @@ MilvusClientImplV2::Search(const SearchArguments& arguments, SearchResults& resu
         kv_pair = rpc_request.add_search_params();
         kv_pair->set_key("round_decimal");
         kv_pair->set_value(std::to_string(arguments.RoundDecimal()));
+
+        if (!arguments.GroupByField().empty()) {
+            kv_pair = rpc_request.add_search_params();
+            kv_pair->set_key("group_by_field");
+            kv_pair->set_value(arguments.GroupByField());
+        }
+
+        if (arguments.GroupSize() > 0) {
+            kv_pair = rpc_request.add_search_params();
+            kv_pair->set_key("group_size");
+            kv_pair->set_value(std::to_string(arguments.GroupSize()));
+        }
+
+        if (arguments.StrictGroupSize() > 0) {
+            kv_pair = rpc_request.add_search_params();
+            kv_pair->set_key("strict_group_size");
+            kv_pair->set_value(std::to_string(arguments.StrictGroupSize()));
+        }
 
         kv_pair = rpc_request.add_search_params();
         kv_pair->set_key(milvus::KeyParams());

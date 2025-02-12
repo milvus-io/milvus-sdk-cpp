@@ -17,7 +17,7 @@
 #include <gtest/gtest.h>
 
 #include "milvus/types/CollectionStat.h"
-#include "milvus/types/Constants.h"
+#include "milvus/types/Constant.h"
 
 class CollectionStatTest : public ::testing::Test {};
 
