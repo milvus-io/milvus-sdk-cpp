@@ -74,8 +74,7 @@ class MilvusClientImplV2 : public MilvusClientV2 {
     RenameCollection(const std::string& collection_name, const std::string& new_collection_name) final;
 
     Status
-    GetCollectionStats(const std::string& collection_name, CollectionStat& collection_stat,
-                       const ProgressMonitor& progress_monitor) final;
+    GetCollectionStats(const std::string& collection_name, CollectionStat& collection_stat) final;
 
     Status
     ShowCollections(const std::vector<std::string>& collection_names, CollectionsInfo& collections_info) final;
@@ -124,7 +123,7 @@ class MilvusClientImplV2 : public MilvusClientV2 {
 
     Status
     GetPartitionStats(const std::string& collection_name, const std::string& partition_name,
-                      PartitionStat& partition_stat, const ProgressMonitor& progress_monitor) final;
+                      PartitionStat& partition_stat) final;
 
     Status
     ShowPartitions(const std::string& collection_name, const std::vector<std::string>& partition_names,
@@ -180,8 +179,10 @@ class MilvusClientImplV2 : public MilvusClientV2 {
     DropDatabaseProperties(const std::string& db_name, const std::vector<std::string>& delete_keys, int timeout) final;
 
     Status
-    CreateIndex(const std::string& collection_name, const IndexDesc& index_desc,
-                const ProgressMonitor& progress_monitor) final;
+    WaitForCreatingIndex(const std::string& collection_name, const std::string& field_name, int timeout) final;
+
+    Status
+    CreateIndex(const std::string& collection_name, const IndexDesc& index_desc) final;
 
     Status
     DescribeIndex(const std::string& collection_name, const std::string& field_name, IndexDesc& index_desc) final;
@@ -310,7 +311,10 @@ class MilvusClientImplV2 : public MilvusClientV2 {
     UpdateResourceGroup(const std::string& resource_group, const ResourceGroupConfig& config, int timeout) final;
 
     Status
-    Flush(const std::vector<std::string>& collection_names, const ProgressMonitor& progress_monitor) final;
+    WaitForFlushing(const std::map<std::string, std::vector<int64_t>>& collection_segments, int timeout) final;
+
+    Status
+    Flush(const std::vector<std::string>& collection_names) final;
 
     Status
     GetFlushState(const std::vector<int64_t>& segments, bool& flushed) final;

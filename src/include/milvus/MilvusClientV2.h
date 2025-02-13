@@ -179,14 +179,11 @@ class MilvusClientV2 {
      * If the timeout is specified, this api will call Flush() and wait all segments persisted into storage.
      *
      * @param [in] collection_name name of the collection
-     * @param [in] progress_monitor set timeout to wait flush progress complete, set to ProgressMonitor::NoWait() to
-     * return instantly, set to ProgressMonitor::Forever() to wait until finished.
      * @param [out] collection_stat statistics of the collection
      * @return Status operation successfully or not
      */
     virtual Status
-    GetCollectionStats(const std::string& collection_name, CollectionStat& collection_stat,
-                       const ProgressMonitor& progress_monitor = ProgressMonitor::Forever()) = 0;
+    GetCollectionStats(const std::string& collection_name, CollectionStat& collection_stat) = 0;
 
     /**
      * If the collection_names is empty, list all collections brief information's. \n
@@ -273,15 +270,12 @@ class MilvusClientV2 {
      *
      * @param [in] collection_name name of the collection
      * @param [in] partition_name name of the partition
-     * @param [in] progress_monitor set timeout to wait flush progress complete, set to ProgressMonitor::NoWait() to
-     * return instantly, set to ProgressMonitor::Forever() to wait until finished.
      * @param [out] partition_stat statistics of the partition
      * @return Status operation successfully or not
      */
     virtual Status
     GetPartitionStats(const std::string& collection_name, const std::string& partition_name,
-                      PartitionStat& partition_stat,
-                      const ProgressMonitor& progress_monitor = ProgressMonitor::Forever()) = 0;
+                      PartitionStat& partition_stat) = 0;
 
     virtual Status
     GetLoadState(const std::string& collection_name, LoadState& state, const std::string& partition_name = "",
@@ -367,18 +361,18 @@ class MilvusClientV2 {
     DropDatabaseProperties(const std::string& db_name, const std::vector<std::string>& delete_keys,
                            int timeout = 0) = 0;
 
+    virtual Status
+    WaitForCreatingIndex(const std::string& collection_name, const std::string& field_name, int timeout = 0) = 0;
+
     /**
      * Create an index on a field. Currently only support index on vector field.
      *
      * @param [in] collection_name name of the collection
      * @param [in] index_desc the index descriptions and parameters
-     * @param [in] progress_monitor set timeout to wait index progress complete, set to ProgressMonitor::NoWait() to
-     * return instantly, set to ProgressMonitor::Forever() to wait until finished.
      * @return Status operation successfully or not
      */
     virtual Status
-    CreateIndex(const std::string& collection_name, const IndexDesc& index_desc,
-                const ProgressMonitor& progress_monitor = ProgressMonitor::Forever()) = 0;
+    CreateIndex(const std::string& collection_name, const IndexDesc& index_desc) = 0;
 
     /**
      * Get index descriptions and parameters.
@@ -573,6 +567,9 @@ class MilvusClientV2 {
     virtual Status
     UpdateResourceGroup(const std::string& resource_group, const ResourceGroupConfig& config, int timeout = 0) = 0;
 
+    virtual Status
+    WaitForFlushing(const std::map<std::string, std::vector<int64_t>>& collection_segments, int timeout = 0) = 0;
+
     /**
      * Flush insert buffer into storage.  \n
      * To make sure the buffer persisted successfully, it calls GetFlushState() to check related segments state.
@@ -583,8 +580,7 @@ class MilvusClientV2 {
      * @return Status operation successfully or not
      */
     virtual Status
-    Flush(const std::vector<std::string>& collection_names,
-          const ProgressMonitor& progress_monitor = ProgressMonitor::Forever()) = 0;
+    Flush(const std::vector<std::string>& collection_names) = 0;
 
     /**
      * Get flush state of specified segments.

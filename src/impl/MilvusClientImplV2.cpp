@@ -276,13 +276,10 @@ MilvusClientImplV2::RenameCollection(const std::string& collection_name, const s
 }
 
 Status
-MilvusClientImplV2::GetCollectionStats(const std::string& collection_name, CollectionStat& collection_stat,
-                                       const ProgressMonitor& progress_monitor) {
-    auto validate = [&collection_name, &progress_monitor, this]() {
+MilvusClientImplV2::GetCollectionStats(const std::string& collection_name, CollectionStat& collection_stat) {
+    auto validate = [&collection_name, this]() {
         Status ret;
-        if (progress_monitor.CheckTimeout() > 0) {
-            ret = Flush(std::vector<std::string>{collection_name}, progress_monitor);
-        }
+        ret = Flush(std::vector<std::string>{collection_name});
         return ret;
     };
 
@@ -551,13 +548,11 @@ MilvusClientImplV2::ReleasePartitions(const std::string& collection_name,
 
 Status
 MilvusClientImplV2::GetPartitionStats(const std::string& collection_name, const std::string& partition_name,
-                                      PartitionStat& partition_stat, const ProgressMonitor& progress_monitor) {
+                                      PartitionStat& partition_stat) {
     // do flush in validate stage if needed
-    auto validate = [&collection_name, &progress_monitor, this] {
+    auto validate = [&collection_name, this] {
         Status ret;
-        if (progress_monitor.CheckTimeout() > 0) {
-            ret = Flush(std::vector<std::string>{collection_name}, progress_monitor);
-        }
+        ret = Flush(std::vector<std::string>{collection_name});
         return ret;
     };
 
@@ -881,12 +876,41 @@ MilvusClientImplV2::DropDatabaseProperties(const std::string& db_name, const std
 }
 
 Status
-MilvusClientImplV2::CreateIndex(const std::string& collection_name, const IndexDesc& index_desc,
-                                const ProgressMonitor& progress_monitor) {
+MilvusClientImplV2::WaitForCreatingIndex(const std::string& collection_name, const std::string& field_name,
+                                         int timeout) {
+    auto start_time = std::chrono::steady_clock::now();
+    auto timeout_duration = std::chrono::seconds(timeout);
+    while (true) {
+        if (timeout > 0) {
+            auto elapsed_time = std::chrono::steady_clock::now() - start_time;
+            if (elapsed_time >= timeout_duration) {
+                return Status{StatusCode::TIMEOUT,
+                              "Wait for creating index timeout: " + collection_name + ":" + field_name};
+            }
+        }
+
+        IndexState index_state;
+        auto status = GetIndexState(collection_name, field_name, index_state);
+        if (!status.IsOk()) {
+            return status;
+        }
+
+        if (index_state.StateCode() == IndexStateCode::FINISHED || index_state.StateCode() == IndexStateCode::NONE) {
+            return Status{StatusCode::OK, "Wait for creating index finished " + index_state.FailedReason()};
+        } else if (index_state.StateCode() == IndexStateCode::FAILED) {
+            return Status{StatusCode::SERVER_FAILED, "Index creation failed: " + index_state.FailedReason()};
+        }
+
+        std::this_thread::sleep_for(std::chrono::milliseconds(500));
+    }
+}
+
+Status
+MilvusClientImplV2::CreateIndex(const std::string& collection_name, const IndexDesc& index_desc) {
     auto validate = [&index_desc] { return index_desc.Validate(); };
 
     // flush before create index
-    auto flush_status = Flush(std::vector<std::string>{collection_name}, progress_monitor);
+    auto flush_status = Flush(std::vector<std::string>{collection_name});
     if (!flush_status.IsOk()) {
         return flush_status;
     }
@@ -911,31 +935,10 @@ MilvusClientImplV2::CreateIndex(const std::string& collection_name, const IndexD
         return rpc_request;
     };
 
-    auto wait_for_status = [&collection_name, &index_desc, &progress_monitor, this](const proto::common::Status&) {
-        return WaitForStatus(
-            [&collection_name, &index_desc, this](Progress& progress) -> Status {
-                IndexState index_state;
-                auto status = GetIndexState(collection_name, index_desc.FieldName(), index_state);
-                if (!status.IsOk()) {
-                    return status;
-                }
-
-                progress.total_ = 100;
-
-                // if index finished, progress set to 100%
-                // else if index failed, return error status
-                // else if index is in progressing, continue to check
-                if (index_state.StateCode() == IndexStateCode::FINISHED ||
-                    index_state.StateCode() == IndexStateCode::NONE) {
-                    progress.finished_ = 100;
-                } else if (index_state.StateCode() == IndexStateCode::FAILED) {
-                    return Status{StatusCode::SERVER_FAILED, "index failed:" + index_state.FailedReason()};
-                }
-
-                return status;
-            },
-            progress_monitor);
+    auto wait_for_status = [&collection_name, &index_desc, this](const proto::common::Status&) {
+        return WaitForCreatingIndex(collection_name, index_desc.FieldName(), 0);
     };
+
     return apiHandler<proto::milvus::CreateIndexRequest, proto::common::Status>(
         validate, pre, &MilvusConnection::CreateIndex, wait_for_status, nullptr);
 }
@@ -2078,7 +2081,49 @@ MilvusClientImplV2::UpdateResourceGroup(const std::string& resource_group, const
 }
 
 Status
-MilvusClientImplV2::Flush(const std::vector<std::string>& collection_names, const ProgressMonitor& progress_monitor) {
+MilvusClientImplV2::WaitForFlushing(const std::map<std::string, std::vector<int64_t>>& collection_segments,
+                                    int timeout) {
+    auto start_time = std::chrono::steady_clock::now();
+    auto timeout_duration = std::chrono::seconds(timeout);
+
+    std::set<std::string> completed_collections;
+
+    while (completed_collections.size() < collection_segments.size()) {
+        if (timeout > 0) {
+            auto elapsed_time = std::chrono::steady_clock::now() - start_time;
+            if (elapsed_time >= timeout_duration) {
+                return Status{StatusCode::TIMEOUT, "Wait for flushing timeout"};
+            }
+        }
+
+        for (const auto& pair : collection_segments) {
+            const auto& collection_name = pair.first;
+
+            if (completed_collections.find(collection_name) != completed_collections.end()) {
+                continue;
+            }
+
+            bool flushed = false;
+            auto status = GetFlushState(pair.second, flushed);
+            if (!status.IsOk()) {
+                return status;
+            }
+
+            if (flushed) {
+                completed_collections.insert(collection_name);
+            }
+        }
+
+        if (completed_collections.size() < collection_segments.size()) {
+            std::this_thread::sleep_for(std::chrono::milliseconds(500));
+        }
+    }
+
+    return Status::OK();
+}
+
+Status
+MilvusClientImplV2::Flush(const std::vector<std::string>& collection_names) {
     auto pre = [&collection_names]() {
         proto::milvus::FlushRequest rpc_request;
         for (const auto& collection_name : collection_names) {
@@ -2087,50 +2132,22 @@ MilvusClientImplV2::Flush(const std::vector<std::string>& collection_names, cons
         return rpc_request;
     };
 
-    auto wait_for_status = [this, &progress_monitor](const proto::milvus::FlushResponse& response) {
-        std::map<std::string, std::vector<int64_t>> flush_segments;
+    auto wait_for_status = [this](const proto::milvus::FlushResponse& response) {
+        std::map<std::string, std::vector<int64_t>> collection_segments;
+
         for (const auto& iter : response.coll_segids()) {
             const auto& ids = iter.second.data();
-            std::vector<int64_t> seg_ids;
-            seg_ids.reserve(ids.size());
-            seg_ids.insert(seg_ids.end(), ids.begin(), ids.end());
-            flush_segments.insert(std::make_pair(iter.first, seg_ids));
+            std::vector<int64_t> segids;
+            segids.reserve(ids.size());
+            segids.insert(segids.end(), ids.begin(), ids.end());
+            collection_segments.emplace(iter.first, segids);
         }
 
-        // the segment_count is how many segments need to be flushed
-        // the finished_count is how many segments have been flushed
-        uint32_t segment_count = 0, finished_count = 0;
-        for (auto& pair : flush_segments) {
-            segment_count += pair.second.size();
-        }
-        if (segment_count == 0) {
+        if (collection_segments.empty()) {
             return Status::OK();
         }
 
-        return WaitForStatus(
-            [&segment_count, &flush_segments, &finished_count, this](Progress& p) -> Status {
-                p.total_ = segment_count;
-
-                // call GetFlushState() to check segment state
-                for (auto iter = flush_segments.begin(); iter != flush_segments.end();) {
-                    bool flushed = false;
-                    Status status = GetFlushState(iter->second, flushed);
-                    if (!status.IsOk()) {
-                        return status;
-                    }
-
-                    if (flushed) {
-                        finished_count += iter->second.size();
-                        flush_segments.erase(iter++);
-                    } else {
-                        iter++;
-                    }
-                }
-                p.finished_ = finished_count;
-
-                return Status::OK();
-            },
-            progress_monitor);
+        return WaitForFlushing(collection_segments, 0);
     };
 
     return apiHandler<proto::milvus::FlushRequest, proto::milvus::FlushResponse>(nullptr, pre, &MilvusConnection::Flush,
