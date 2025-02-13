@@ -173,6 +173,12 @@ class ConnectParam {
     void
     SetToken(const std::string& token);
 
+    const std::string&
+    DbName() const;
+
+    void
+    SetDbName(const std::string& db_name);
+
  private:
     std::string host_;
     uint16_t port_ = 0;
@@ -188,6 +194,7 @@ class ConnectParam {
     std::string username_;
     std::string password_;
     std::string token_;
+    std::string db_name_;
 };
 
 }  // namespace milvus

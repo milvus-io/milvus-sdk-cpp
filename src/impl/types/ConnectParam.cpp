@@ -170,4 +170,14 @@ ConnectParam::SetToken(const std::string& token) {
     token_ = token;
 }
 
+const std::string&
+ConnectParam::DbName() const {
+    return db_name_;
+}
+
+void
+ConnectParam::SetDbName(const std::string& db_name) {
+    db_name_ = db_name;
+}
+
 }  // namespace milvus

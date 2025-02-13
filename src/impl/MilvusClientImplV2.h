@@ -157,6 +157,9 @@ class MilvusClientImplV2 : public MilvusClientV2 {
     DescribeAlias(const std::string& alias, AliasDesc& alias_desc, int timeout) final;
 
     Status
+    UsingDatabase(const std::string& db_name) final;
+
+    Status
     CreateDatabase(const std::string& db_name, const std::vector<std::pair<std::string, std::string>>& properties,
                    int timeout) final;
 

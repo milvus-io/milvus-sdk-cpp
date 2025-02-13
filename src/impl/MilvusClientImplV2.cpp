@@ -749,6 +749,23 @@ MilvusClientImplV2::DescribeAlias(const std::string& alias, AliasDesc& alias_des
 }
 
 Status
+MilvusClientImplV2::UsingDatabase(const std::string& db_name) {
+    Disconnect();
+    milvus::ConnectParam connect_param(connection_->Host(), connection_->Port());
+    connect_param.SetDbName(db_name);
+    if (!connection_->Username().empty()) {
+        connect_param.SetUsername(connection_->Username());
+    }
+    if (!connection_->Password().empty()) {
+        connect_param.SetPassword(connection_->Password());
+    }
+    if (!connection_->Token().empty()) {
+        connect_param.SetToken(connection_->Token());
+    }
+    return Connect(connect_param);
+}
+
+Status
 MilvusClientImplV2::CreateDatabase(const std::string& db_name,
                                    const std::vector<std::pair<std::string, std::string>>& properties, int timeout) {
     auto pre = [&db_name, &properties]() {
@@ -1214,10 +1231,11 @@ MilvusClientImplV2::HybridSearch(SearchResults& results, const std::string& coll
 
         auto ranker_dict = ranker.Dict();
 
-        for (const auto& [key, value] : ranker_dict.items()) {
+        for (const auto& ranker_dict_item : ranker_dict.items()) {
             auto* kv_pair = hybrid_search_request.add_rank_params();
-            kv_pair->set_key(key);
+            kv_pair->set_key(ranker_dict_item.key());
 
+            auto value = ranker_dict_item.value();
             if (value.is_object()) {
                 for (auto& item : value.items()) {
                     std::string str = "{\"" + item.key() + "\":" + item.value().get<std::string>() + "}";
@@ -1579,6 +1597,9 @@ MilvusClientImplV2::UpdatePassword(const std::string& username, const std::strin
         if (reset_connection) {
             Disconnect();
             milvus::ConnectParam connect_param(connection_->Host(), connection_->Port(), username, new_password);
+            if (!connection_->DbName().empty()) {
+                connect_param.SetDbName(connection_->DbName());
+            }
             Connect(connect_param);
         }
         return status;

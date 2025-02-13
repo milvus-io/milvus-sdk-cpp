@@ -344,6 +344,9 @@ class MilvusClientV2 {
     DescribeAlias(const std::string& alias, AliasDesc& alias_desc, int timeout = 0) = 0;
 
     virtual Status
+    UsingDatabase(const std::string& db_name) = 0;
+
+    virtual Status
     CreateDatabase(const std::string& db_name, const std::vector<std::pair<std::string, std::string>>& properties = {},
                    int timeout = 0) = 0;
 

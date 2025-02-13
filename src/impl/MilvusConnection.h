@@ -378,10 +378,10 @@ class MilvusConnection {
     SetPort(uint16_t port);
 
     const std::string&
-    User() const;
+    Username() const;
 
     void
-    SetUser(const std::string& user);
+    SetUsername(const std::string& username);
 
     const std::string&
     Password() const;
@@ -395,6 +395,12 @@ class MilvusConnection {
     void
     SetToken(const std::string& token);
 
+    const std::string&
+    DbName() const;
+
+    void
+    SetDbName(const std::string& db_name);
+
  private:
     std::unique_ptr<proto::milvus::MilvusService::Stub> stub_;
     std::shared_ptr<grpc::Channel> channel_;
@@ -402,9 +408,10 @@ class MilvusConnection {
     std::unordered_map<std::string, std::string> headers_;
     std::string host_;
     uint16_t port_;
-    std::string user_;
+    std::string username_;
     std::string password_;
     std::string token_;
+    std::string db_name_;
 
     static Status
     StatusByProtoResponse(const proto::common::Status& status) {

@@ -88,6 +88,10 @@ MilvusConnection::Connect(const ConnectParam& param) {
         SetHeader("authorization", authorization);
     }
 
+    if (!param.DbName().empty()) {
+        SetHeader("dbname", param.DbName());
+    }
+
     channel_ = CreateChannelWithHeaderInterceptor(uri, credentials, args, GetAllHeaders());
     auto connected = channel_->WaitForConnected(std::chrono::system_clock::now() +
                                                 std::chrono::milliseconds{param.ConnectTimeout()});
@@ -95,9 +99,10 @@ MilvusConnection::Connect(const ConnectParam& param) {
         stub_ = proto::milvus::MilvusService::NewStub(channel_);
         SetHost(param.Host());
         SetPort(param.Port());
-        SetUser(param.Username());
-        SetPassword(param.Password());
-        SetToken(param.Token());
+        SetUsername(!param.Username().empty() ? param.Username() : Username());
+        SetPassword(!param.Password().empty() ? param.Password() : Password());
+        SetToken(!param.Token().empty() ? param.Token() : Token());
+        SetDbName(!param.DbName().empty() ? param.DbName() : DbName());
         return Status::OK();
     }
 
@@ -614,13 +619,13 @@ MilvusConnection::SetPort(uint16_t port) {
 }
 
 const std::string&
-MilvusConnection::User() const {
-    return user_;
+MilvusConnection::Username() const {
+    return username_;
 }
 
 void
-MilvusConnection::SetUser(const std::string& user) {
-    user_ = user;
+MilvusConnection::SetUsername(const std::string& username) {
+    username_ = username;
 }
 
 const std::string&
@@ -641,6 +646,16 @@ MilvusConnection::Token() const {
 void
 MilvusConnection::SetToken(const std::string& token) {
     token_ = token;
+}
+
+const std::string&
+MilvusConnection::DbName() const {
+    return db_name_;
+}
+
+void
+MilvusConnection::SetDbName(const std::string& db_name) {
+    db_name_ = db_name;
 }
 
 }  // namespace milvus
