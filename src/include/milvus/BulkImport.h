@@ -16,51 +16,28 @@
 
 #pragma once
 
-#include <cstdint>
-#include <vector>
+#include <httplib.h>
 
-#include "IDArray.h"
+#include <nlohmann/json.hpp>
+#include <string>
+#include <vector>
 
 namespace milvus {
 
-/**
- * @brief Result returned by MilvusClientV2::Insert(), MilvusClientV2::Upsert() and MilvusClientV2::Delete()
- */
-class DmlResults {
+class BulkImport {
  public:
-    /**
-     * @brief The id array for entities which are inserted or deleted.
-     */
-    const IDArray&
-    IdArray() const;
+    static nlohmann::json
+    CreateImportJobs(const std::string& url, const std::string& collection_name, const std::vector<std::string>& files,
+                     const std::string& db_name = "default", const std::string& api_key = "",
+                     const std::string& partition_name = "", const nlohmann::json& options = nlohmann::json{});
 
-    /**
-     * @brief Set the id array.
-     */
-    void
-    SetIdArray(const IDArray& id_array);
+    static nlohmann::json
+    ListImportJobs(const std::string& url, const std::string& collection_name, const std::string& db_name = "default",
+                   const std::string& api_key = "");
 
-    /**
-     * @brief Set the id array.
-     */
-    void
-    SetIdArray(IDArray&& id_array);
-
-    /**
-     * @brief The operation timestamp marked by server side.
-     */
-    uint64_t
-    Timestamp() const;
-
-    /**
-     * @brief Set operation timestamp.
-     */
-    void
-    SetTimestamp(uint64_t timestamp);
-
- private:
-    IDArray id_array_{std::vector<int64_t>{}};
-    uint64_t timestamp_{0};
+    static nlohmann::json
+    GetImportJobProgress(const std::string& url, const std::string& job_id, const std::string& db_name = "default",
+                         const std::string& api_key = "");
 };
 
 }  // namespace milvus

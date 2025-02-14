@@ -18,7 +18,7 @@
 #include <chrono>
 #include <cstdint>
 
-#include "Constants.h"
+#include "Constant.h"
 
 namespace milvus {
 

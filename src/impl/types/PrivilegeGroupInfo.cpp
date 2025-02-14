@@ -14,18 +14,36 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <gtest/gtest.h>
+#include "milvus/types/PrivilegeGroupInfo.h"
 
-#include "milvus/types/CollectionStat.h"
-#include "milvus/types/Constant.h"
+namespace milvus {
 
-class CollectionStatTest : public ::testing::Test {};
-
-TEST_F(CollectionStatTest, GeneralTesting) {
-    milvus::CollectionStat stat;
-    stat.SetName("test");
-    EXPECT_EQ(stat.Name(), "test");
-    EXPECT_EQ(stat.RowCount(), 0);
-    stat.Emplace(milvus::KeyRowCount(), "1000");
-    EXPECT_EQ(stat.RowCount(), 1000);
+PrivilegeGroupInfo::PrivilegeGroupInfo(const std::string& group_name) : group_name_(group_name) {
 }
+
+void
+PrivilegeGroupInfo::AddPrivilege(const std::string& privilege) {
+    privileges_.push_back(privilege);
+}
+
+const std::string&
+PrivilegeGroupInfo::GroupName() const {
+    return group_name_;
+}
+
+void
+PrivilegeGroupInfo::SetGroupName(const std::string& group_name) {
+    this->group_name_ = group_name;
+}
+
+const std::vector<std::string>&
+PrivilegeGroupInfo::Privileges() const {
+    return privileges_;
+}
+
+void
+PrivilegeGroupInfo::SetPrivileges(const std::vector<std::string>& privileges) {
+    this->privileges_ = privileges;
+}
+
+}  // namespace milvus

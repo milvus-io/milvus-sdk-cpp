@@ -14,18 +14,31 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <gtest/gtest.h>
+#pragma once
 
-#include "milvus/types/CollectionStat.h"
-#include "milvus/types/Constant.h"
+#include <string>
 
-class CollectionStatTest : public ::testing::Test {};
+namespace milvus {
 
-TEST_F(CollectionStatTest, GeneralTesting) {
-    milvus::CollectionStat stat;
-    stat.SetName("test");
-    EXPECT_EQ(stat.Name(), "test");
-    EXPECT_EQ(stat.RowCount(), 0);
-    stat.Emplace(milvus::KeyRowCount(), "1000");
-    EXPECT_EQ(stat.RowCount(), 1000);
-}
+enum class LoadStateCode { NOT_EXIST = 0, NOT_LOAD = 1, LOADING = 2, LOADED = 3 };
+
+class LoadState {
+ public:
+    LoadState();
+    explicit LoadState(LoadStateCode code);
+
+    LoadStateCode
+    GetCode() const;
+    const std::string&
+    GetDesc() const;
+    void
+    SetCode(LoadStateCode code);
+
+ private:
+    LoadStateCode code_;
+    std::string state_desc_;
+    void
+    updateStateDesc();
+};
+
+}  // namespace milvus

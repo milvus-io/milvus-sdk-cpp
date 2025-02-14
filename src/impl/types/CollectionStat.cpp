@@ -16,7 +16,7 @@
 
 #include "milvus/types/CollectionStat.h"
 
-#include "milvus/types/Constants.h"
+#include "milvus/types/Constant.h"
 
 namespace milvus {
 

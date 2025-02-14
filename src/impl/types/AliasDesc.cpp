@@ -14,54 +14,44 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#pragma once
-
-#include <cstdint>
-#include <string>
-#include <unordered_map>
+#include "milvus/types/AliasDesc.h"
 
 namespace milvus {
 
-/**
- * @brief Collection statistics returned by MilvusClient::GetCollectionStats().
- */
-class CollectionStat {
- public:
-    /**
-     * @brief Construct a new Collection Stat object
-     */
-    CollectionStat();
+AliasDesc::AliasDesc() = default;
 
-    /**
-     * @brief Return row count of this collection.
-     *
-     */
-    uint64_t
-    RowCount() const;
+AliasDesc::AliasDesc(const std::string& db_name, const std::string& alias, const std::string& collection_name)
+    : db_name_(db_name), alias_(alias), collection_name_(collection_name) {
+}
 
-    /**
-     * @brief Set collection name
-     *
-     */
-    void
-    SetName(std::string name);
+const std::string&
+AliasDesc::GetDbName() const {
+    return db_name_;
+}
 
-    /**
-     * @brief Get collection name
-     *
-     */
-    const std::string&
-    Name() const;
+const std::string&
+AliasDesc::GetAlias() const {
+    return alias_;
+}
 
-    /**
-     * @brief add key/value pair for collection statistics
-     */
-    void
-    Emplace(std::string key, std::string value);
+const std::string&
+AliasDesc::GetCollectionName() const {
+    return collection_name_;
+}
 
- private:
-    std::string name_;
-    std::unordered_map<std::string, std::string> statistics_;
-};
+void
+AliasDesc::SetDbName(const std::string& db_name) {
+    db_name_ = db_name;
+}
+
+void
+AliasDesc::SetAlias(const std::string& alias) {
+    alias_ = alias;
+}
+
+void
+AliasDesc::SetCollectionName(const std::string& collection_name) {
+    collection_name_ = collection_name;
+}
 
 }  // namespace milvus

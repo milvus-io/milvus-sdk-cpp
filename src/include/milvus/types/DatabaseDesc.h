@@ -17,50 +17,43 @@
 #pragma once
 
 #include <cstdint>
+#include <string>
+#include <utility>
 #include <vector>
-
-#include "IDArray.h"
 
 namespace milvus {
 
-/**
- * @brief Result returned by MilvusClientV2::Insert(), MilvusClientV2::Upsert() and MilvusClientV2::Delete()
- */
-class DmlResults {
+class DatabaseDesc {
  public:
-    /**
-     * @brief The id array for entities which are inserted or deleted.
-     */
-    const IDArray&
-    IdArray() const;
+    DatabaseDesc();
+    DatabaseDesc(const std::string& db_name, int64_t db_id, uint64_t created_timestamp,
+                 const std::vector<std::pair<std::string, std::string>>& properties);
 
-    /**
-     * @brief Set the id array.
-     */
-    void
-    SetIdArray(const IDArray& id_array);
-
-    /**
-     * @brief Set the id array.
-     */
-    void
-    SetIdArray(IDArray&& id_array);
-
-    /**
-     * @brief The operation timestamp marked by server side.
-     */
+    const std::string&
+    GetDbName() const;
+    int64_t
+    GetDbID() const;
     uint64_t
-    Timestamp() const;
+    GetCreatedTimestamp() const;
+    const std::vector<std::pair<std::string, std::string>>&
+    GetProperties() const;
 
-    /**
-     * @brief Set operation timestamp.
-     */
     void
-    SetTimestamp(uint64_t timestamp);
+    SetDbName(const std::string& db_name);
+    void
+    SetDbID(int64_t db_id);
+    void
+    SetCreatedTimestamp(uint64_t created_timestamp);
+    void
+    SetProperties(const std::vector<std::pair<std::string, std::string>>& properties);
+    void
+    AddProperty(const std::string& key, const std::string& value);
 
  private:
-    IDArray id_array_{std::vector<int64_t>{}};
-    uint64_t timestamp_{0};
+    std::string db_name_;
+    int64_t db_id_{0};
+    uint64_t created_timestamp_{0};
+    std::vector<std::pair<std::string, std::string>> properties_;
 };
 
 }  // namespace milvus

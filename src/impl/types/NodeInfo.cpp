@@ -14,18 +14,23 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <gtest/gtest.h>
+#include "milvus/types/NodeInfo.h"
 
-#include "milvus/types/CollectionStat.h"
-#include "milvus/types/Constant.h"
+NodeInfo::NodeInfo(int64_t id, const std::string& addr, const std::string& host)
+    : node_id_(id), address_(addr), hostname_(host) {
+}
 
-class CollectionStatTest : public ::testing::Test {};
+int64_t
+NodeInfo::GetNodeId() const {
+    return node_id_;
+}
 
-TEST_F(CollectionStatTest, GeneralTesting) {
-    milvus::CollectionStat stat;
-    stat.SetName("test");
-    EXPECT_EQ(stat.Name(), "test");
-    EXPECT_EQ(stat.RowCount(), 0);
-    stat.Emplace(milvus::KeyRowCount(), "1000");
-    EXPECT_EQ(stat.RowCount(), 1000);
+const std::string&
+NodeInfo::GetAddress() const {
+    return address_;
+}
+
+const std::string&
+NodeInfo::GetHostname() const {
+    return hostname_;
 }

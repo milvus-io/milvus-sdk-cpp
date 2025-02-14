@@ -19,12 +19,12 @@
 #include <string>
 #include <unordered_map>
 
-#include "Constants.h"
+#include "Constant.h"
 
 namespace milvus {
 
 /**
- * @brief Partition statistics returned by MilvusClient::GetPartitionStatistics().
+ * @brief Partition statistics returned by MilvusClient::GetPartitionStats().
  */
 class PartitionStat {
  public:

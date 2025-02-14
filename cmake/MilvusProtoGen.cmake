@@ -16,7 +16,8 @@
 
 include_guard(GLOBAL)
 
-set(PROTO_VERSION v2.3.5)
+# set(PROTO_VERSION v2.3.5)
+set(PROTO_VERSION v2.5.0)
 set(PROTO_URL https://github.com/milvus-io/milvus-proto/archive/refs/tags/${PROTO_VERSION}.tar.gz)
 
 
@@ -74,6 +75,7 @@ endfunction(add_proto_service target name)
 
 function(add_milvus_protos target)
     add_proto_source(${target} "schema")
+    add_proto_source(${target} "rg")
     add_proto_source(${target} "common")
     add_proto_source(${target} "msg")
     add_proto_source(${target} "feder")

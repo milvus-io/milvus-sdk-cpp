@@ -16,51 +16,46 @@
 
 #pragma once
 
-#include <cstdint>
+#include <map>
+#include <nlohmann/json.hpp>
+#include <string>
 #include <vector>
-
-#include "IDArray.h"
 
 namespace milvus {
 
-/**
- * @brief Result returned by MilvusClientV2::Insert(), MilvusClientV2::Upsert() and MilvusClientV2::Delete()
- */
-class DmlResults {
+class BaseRanker {
  public:
-    /**
-     * @brief The id array for entities which are inserted or deleted.
-     */
-    const IDArray&
-    IdArray() const;
+    virtual ~BaseRanker() = default;
+    virtual std::map<std::string, std::string>
+    GetParams() const = 0;
+    virtual std::string
+    GetStrategy() const = 0;
+    virtual nlohmann::json
+    Dict() const;
+};
 
-    /**
-     * @brief Set the id array.
-     */
-    void
-    SetIdArray(const IDArray& id_array);
-
-    /**
-     * @brief Set the id array.
-     */
-    void
-    SetIdArray(IDArray&& id_array);
-
-    /**
-     * @brief The operation timestamp marked by server side.
-     */
-    uint64_t
-    Timestamp() const;
-
-    /**
-     * @brief Set operation timestamp.
-     */
-    void
-    SetTimestamp(uint64_t timestamp);
+class RRFRanker : public BaseRanker {
+ public:
+    explicit RRFRanker(float k = 60.0);
+    std::map<std::string, std::string>
+    GetParams() const override;
+    std::string
+    GetStrategy() const override;
 
  private:
-    IDArray id_array_{std::vector<int64_t>{}};
-    uint64_t timestamp_{0};
+    float k_;
+};
+
+class WeightedRanker : public BaseRanker {
+ public:
+    explicit WeightedRanker(std::vector<float> weights);
+    std::map<std::string, std::string>
+    GetParams() const override;
+    std::string
+    GetStrategy() const override;
+
+ private:
+    std::vector<float> weights_;
 };
 
 }  // namespace milvus

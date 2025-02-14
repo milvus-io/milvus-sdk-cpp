@@ -14,18 +14,35 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <gtest/gtest.h>
+#pragma once
 
-#include "milvus/types/CollectionStat.h"
-#include "milvus/types/Constant.h"
+#include <string>
 
-class CollectionStatTest : public ::testing::Test {};
+namespace milvus {
 
-TEST_F(CollectionStatTest, GeneralTesting) {
-    milvus::CollectionStat stat;
-    stat.SetName("test");
-    EXPECT_EQ(stat.Name(), "test");
-    EXPECT_EQ(stat.RowCount(), 0);
-    stat.Emplace(milvus::KeyRowCount(), "1000");
-    EXPECT_EQ(stat.RowCount(), 1000);
-}
+class AliasDesc {
+ public:
+    AliasDesc();
+    AliasDesc(const std::string& db_name, const std::string& alias, const std::string& collection_name);
+
+    const std::string&
+    GetDbName() const;
+    const std::string&
+    GetAlias() const;
+    const std::string&
+    GetCollectionName() const;
+
+    void
+    SetDbName(const std::string& db_name);
+    void
+    SetAlias(const std::string& alias);
+    void
+    SetCollectionName(const std::string& collection_name);
+
+ private:
+    std::string db_name_{"default"};
+    std::string alias_;
+    std::string collection_name_;
+};
+
+}  // namespace milvus

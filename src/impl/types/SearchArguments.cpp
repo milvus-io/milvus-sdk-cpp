@@ -315,4 +315,37 @@ SearchArguments::RangeSearch() const {
     return range_search_;
 }
 
+Status
+SearchArguments::SetGroupByField(const std::string& field) {
+    group_by_field_ = field;
+    return Status::OK();
+}
+
+const std::string&
+SearchArguments::GroupByField() const {
+    return group_by_field_;
+}
+
+Status
+SearchArguments::SetGroupSize(int size) {
+    group_size_ = size;
+    return Status::OK();
+}
+
+int
+SearchArguments::GroupSize() const {
+    return group_size_;
+}
+
+Status
+SearchArguments::SetStrictGroupSize(int strict) {
+    strict_group_size_ = strict;
+    return Status::OK();
+}
+
+int
+SearchArguments::StrictGroupSize() const {
+    return strict_group_size_;
+}
+
 }  // namespace milvus

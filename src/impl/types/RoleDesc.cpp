@@ -14,18 +14,25 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <gtest/gtest.h>
+#include "milvus/types/RoleDesc.h"
 
-#include "milvus/types/CollectionStat.h"
-#include "milvus/types/Constant.h"
+namespace milvus {
 
-class CollectionStatTest : public ::testing::Test {};
-
-TEST_F(CollectionStatTest, GeneralTesting) {
-    milvus::CollectionStat stat;
-    stat.SetName("test");
-    EXPECT_EQ(stat.Name(), "test");
-    EXPECT_EQ(stat.RowCount(), 0);
-    stat.Emplace(milvus::KeyRowCount(), "1000");
-    EXPECT_EQ(stat.RowCount(), 1000);
+RoleDesc::RoleDesc() {
 }
+
+RoleDesc::RoleDesc(const std::string& role, const std::vector<Privilege>& privileges)
+    : role_(role), privileges_(privileges) {
+}
+
+const std::string&
+RoleDesc::GetRole() const {
+    return role_;
+}
+
+const std::vector<Privilege>&
+RoleDesc::GetPrivileges() const {
+    return privileges_;
+}
+
+}  // namespace milvus

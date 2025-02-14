@@ -14,18 +14,30 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <gtest/gtest.h>
+#include "milvus/types/UserResult.h"
 
-#include "milvus/types/CollectionStat.h"
-#include "milvus/types/Constant.h"
+namespace milvus {
 
-class CollectionStatTest : public ::testing::Test {};
+UserResult::UserResult() = default;
 
-TEST_F(CollectionStatTest, GeneralTesting) {
-    milvus::CollectionStat stat;
-    stat.SetName("test");
-    EXPECT_EQ(stat.Name(), "test");
-    EXPECT_EQ(stat.RowCount(), 0);
-    stat.Emplace(milvus::KeyRowCount(), "1000");
-    EXPECT_EQ(stat.RowCount(), 1000);
+void
+UserResult::SetUserName(const std::string& user_name) {
+    user_name_ = user_name;
 }
+
+const std::string&
+UserResult::UserName() const {
+    return user_name_;
+}
+
+void
+UserResult::AddRole(const std::string& role) {
+    roles_.emplace_back(role);
+}
+
+const std::vector<std::string>&
+UserResult::Roles() const {
+    return roles_;
+}
+
+}  // namespace milvus
