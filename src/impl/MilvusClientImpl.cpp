@@ -888,7 +888,7 @@ MilvusClientImpl::CalcDistance(const CalcDistanceArguments& arguments, DistanceA
         kv->set_key("metric");
         kv->set_value(arguments.MetricType());
 
-        return std::move(rpc_request);
+        return rpc_request;
     };
 
     auto post = [&arguments, &results](const proto::milvus::CalcDistanceResults& response) {

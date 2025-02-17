@@ -67,9 +67,9 @@ class IDArray {
     StrIDArray() const;
 
  private:
-    bool is_int_array_{true};
     std::vector<int64_t> int_id_array_;
     std::vector<std::string> str_id_array_;
+    bool is_int_array_{true};
 };
 
 }  // namespace milvus
