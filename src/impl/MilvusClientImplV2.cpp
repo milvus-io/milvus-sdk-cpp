@@ -130,22 +130,30 @@ MilvusClientImplV2::DropCollection(const std::string& collection_name) {
                                                                                    &MilvusConnection::DropCollection);
 }
 
-Status
-MilvusClientImplV2::ListCollections(std::vector<std::string>& results, int timeout) {
+ListCollectionsResp
+MilvusClientImplV2::ListCollections(const ListCollectionsReq& request) {
+
+    ListCollectionsResp res;
+
     auto pre = []() {
         proto::milvus::ShowCollectionsRequest rpc_request;
         return rpc_request;
     };
 
-    auto post = [&results](const proto::milvus::ShowCollectionsResponse& response) {
-        results.reserve(response.collection_names_size());
+    auto post = [&res](const proto::milvus::ShowCollectionsResponse& response) {
+        std::vector<std::string> tmp_results;
+        tmp_results.reserve(response.collection_names_size());
         for (int i = 0; i < response.collection_names_size(); i++) {
-            results.emplace_back(response.collection_names(i));
+            tmp_results.emplace_back(response.collection_names(i));
         }
+        res.set_collections(tmp_results);
     };
 
-    return apiHandler<proto::milvus::ShowCollectionsRequest, proto::milvus::ShowCollectionsResponse>(
-        pre, &MilvusConnection::ShowCollections, post, GrpcOpts{timeout});
+    auto status = apiHandler<proto::milvus::ShowCollectionsRequest, proto::milvus::ShowCollectionsResponse>(
+        pre, &MilvusConnection::ShowCollections, post, GrpcOpts{request.timeout()});
+    
+    res.SetStatus(status);
+    return res;
 }
 
 Status

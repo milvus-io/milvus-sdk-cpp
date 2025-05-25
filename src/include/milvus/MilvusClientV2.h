@@ -55,6 +55,8 @@
 #include "types/SearchResults.h"
 #include "types/SegmentInfo.h"
 #include "types/UserResult.h"
+#include "v2/request/ListCollectionsReq.h"
+#include "v2/response/ListCollectionsResp.h"
 
 /**
  *  @brief namespace milvus
@@ -129,8 +131,7 @@ class MilvusClientV2 {
     virtual Status
     DropCollection(const std::string& collection_name) = 0;
 
-    virtual Status
-    ListCollections(std::vector<std::string>& results, int timeout = 0) = 0;
+    virtual ListCollectionsResp ListCollections(const ListCollectionsReq& request) = 0;
 
     virtual Status
     GetLoadingProgress(const std::string& collection_name, int& progress,
