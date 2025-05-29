@@ -13,60 +13,20 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-#pragma once
 
-#include <memory>
-#include <string>
-#include <thread>
+#include "MilvusServerTest.h"
 
-#include "milvus/types/ConnectParam.h"
+#include <random>
 
 namespace milvus {
-
 namespace test {
 
-class PythonMilvusServer {
-    // enable auth
-    bool authorization_enabled_{false};
-
-    // if using tls
-    int tls_mode_{0};
-    std::string server_cert_;
-    std::string server_key_;
-    std::string ca_cert_;
-
-    // base data dir
-    std::string base_dir_{"/tmp/milvus_data"};
-
-    std::thread thread_;
-
-    int status_{0};
-    int pid_{0};
-
-    void
-    run();
-
- public:
-    ~PythonMilvusServer() noexcept;
-
-    void
-    SetAuthorizationEnabled(bool val);
-
-    void
-    SetTls(int mode, const std::string& server_cert, const std::string& server_key, const std::string& ca_cert);
-
-    void
-    Start();
-
-    void
-    Stop();
-
-    uint16_t
-    ListenPort() const;
-
-    std::shared_ptr<milvus::ConnectParam>
-    TestClientParam() const;
-};
+std::string
+RanName(const std::string& prefix) {
+    std::default_random_engine ran(time(nullptr));
+    std::uniform_int_distribution<int> int_gen(1000, 10000);
+    return prefix + std::to_string(int_gen(ran));
+}
 
 }  // namespace test
 }  // namespace milvus
