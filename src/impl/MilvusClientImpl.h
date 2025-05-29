@@ -134,9 +134,6 @@ class MilvusClientImpl : public MilvusClient {
     Query(const QueryArguments& arguments, QueryResults& results, int timeout) final;
 
     Status
-    CalcDistance(const CalcDistanceArguments& arguments, DistanceArray& results) final;
-
-    Status
     Flush(const std::vector<std::string>& collection_names, const ProgressMonitor& progress_monitor) final;
 
     Status

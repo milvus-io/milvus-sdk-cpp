@@ -20,47 +20,6 @@
 #include <utility>
 
 namespace milvus {
-namespace {
-
-struct Validation {
-    std::string param;
-    int64_t min;
-    int64_t max;
-    bool required;
-
-    Status
-    Validate(const SearchArguments&, std::unordered_map<std::string, int64_t> params) const {
-        auto it = params.find(param);
-        if (it != params.end()) {
-            auto value = it->second;
-            if (value < min || value > max) {
-                return {StatusCode::INVALID_AGUMENT, "invalid value: " + param + "=" + std::to_string(value) +
-                                                         ", requires [" + std::to_string(min) + ", " +
-                                                         std::to_string(max) + "]"};
-            }
-        }
-        return Status::OK();
-    }
-};
-
-Status
-validate(const SearchArguments& data, const std::unordered_map<std::string, int64_t>& params) {
-    auto status = Status::OK();
-    auto validations = {
-        Validation{"nprobe", 1, 65536, false},
-        Validation{"ef", 1, 32768, false},
-        Validation{"search_k", -1, 65536, false},
-    };
-
-    for (const auto& validation : validations) {
-        status = validation.Validate(data, params);
-        if (!status.IsOk()) {
-            return status;
-        }
-    }
-    return status;
-}
-}  // namespace
 
 const std::string&
 SearchArguments::CollectionName() const {
@@ -251,12 +210,7 @@ SearchArguments::RoundDecimal() const {
 
 Status
 SearchArguments::SetMetricType(::milvus::MetricType metric_type) {
-    if (((metric_type == MetricType::IP && metric_type_ == MetricType::L2) ||
-         (metric_type == MetricType::L2 && metric_type_ == MetricType::IP)) &&
-        range_search_) {
-        // switch radius and range_filter
-        std::swap(radius_, range_filter_);
-    }
+    // directly pass metric_type to server, no need to verify here
     metric_type_ = metric_type;
     return Status::OK();
 }
@@ -279,7 +233,8 @@ SearchArguments::ExtraParams() const {
 
 Status
 SearchArguments::Validate() const {
-    return validate(*this, extra_params_);
+    // in milvus 2.4+, no need to check index parameters, let the server to check it
+    return Status::OK();
 }
 
 float
@@ -293,20 +248,12 @@ SearchArguments::RangeFilter() const {
 }
 
 Status
-SearchArguments::SetRange(float from, float to) {
-    auto low = std::min(from, to);
-    auto high = std::max(from, to);
-    if (metric_type_ == MetricType::IP) {
-        radius_ = low;
-        range_filter_ = high;
-        range_search_ = true;
-    } else if (metric_type_ == MetricType::L2) {
-        radius_ = high;
-        range_filter_ = low;
-        range_search_ = true;
-    } else {
-        return {StatusCode::INVALID_AGUMENT, "Metric type is not supported"};
-    }
+SearchArguments::SetRange(float range_filter, float radius) {
+    // directly pass the radius/range_filter to let server validate, no need to verify here
+    radius_ = radius;
+    range_filter_ = range_filter;
+    range_search_ = true;
+
     return Status::OK();
 }
 

@@ -24,8 +24,8 @@ using testing::UnorderedElementsAreArray;
 
 class MilvusServerTestSearchWithBinaryVectors : public MilvusServerTest {
  protected:
-    std::string collection_name{"Foo"};
-    std::string partition_name{"Bar"};
+    std::string collection_name{milvus::test::RanName("Foo_")};
+    std::string partition_name{milvus::test::RanName("Bar_")};
 
     void
     createCollectionAndPartitions() {
@@ -87,7 +87,7 @@ TEST_F(MilvusServerTestSearchWithBinaryVectors, RegressionIssue194) {
     createCollectionAndPartitions();
     auto dml_results = insertRecords(fields);
 
-    milvus::IndexDesc index_desc("face", "", milvus::IndexType::BIN_FLAT, milvus::MetricType::HAMMING, 0);
+    milvus::IndexDesc index_desc("face", "", milvus::IndexType::BIN_FLAT, milvus::MetricType::HAMMING);
     auto status = client_->CreateIndex(collection_name, index_desc);
     EXPECT_EQ(status.Message(), "OK");
     EXPECT_TRUE(status.IsOk());
