@@ -25,11 +25,11 @@ enum class MetricType {
     INVALID,
     L2,
     IP,
+    COSINE,
     // The following values are for binary vectors
     HAMMING,
     JACCARD,
-    TANIMOTO,
-    SUBSTRUCTURE,
-    SUPERSTRUCTURE
+
+    // Note: in milvus 2.4+, TANIMOTO/SUBSTRUCTURE/SUPERSTRUCTURE have been deprecated
 };
 }  // namespace milvus

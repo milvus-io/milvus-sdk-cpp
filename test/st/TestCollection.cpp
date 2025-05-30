@@ -23,7 +23,8 @@ using MilvusServerTestCollection = MilvusServerTestWithParam<bool>;
 TEST_P(MilvusServerTestCollection, CreateAndDeleteCollection) {
     auto using_string_primary_key = GetParam();
 
-    milvus::CollectionSchema collection_schema("Foo");
+    std::string collection_name = milvus::test::RanName("Foo_");
+    milvus::CollectionSchema collection_schema(collection_name);
     if (using_string_primary_key) {
         collection_schema.AddField(
             // string as primary key, no auto-id
@@ -41,8 +42,8 @@ TEST_P(MilvusServerTestCollection, CreateAndDeleteCollection) {
     EXPECT_TRUE(status.IsOk());
 
     // create index needed after 2.2.0
-    milvus::IndexDesc index_desc("face", "", milvus::IndexType::FLAT, milvus::MetricType::L2, 0);
-    status = client_->CreateIndex("Foo", index_desc);
+    milvus::IndexDesc index_desc("face", "", milvus::IndexType::FLAT, milvus::MetricType::L2);
+    status = client_->CreateIndex(collection_name, index_desc);
     EXPECT_TRUE(status.IsOk());
 
     // test for https://github.com/milvus-io/milvus-sdk-cpp/issues/188
@@ -50,18 +51,25 @@ TEST_P(MilvusServerTestCollection, CreateAndDeleteCollection) {
     std::vector<milvus::CollectionInfo> collection_infos;
     status = client_->ShowCollections(names, collection_infos);
     EXPECT_TRUE(status.IsOk());
-    EXPECT_EQ(collection_infos.size(), 1);
-    EXPECT_EQ(collection_infos.front().MemoryPercentage(), 0);
-    EXPECT_EQ(collection_infos.front().Name(), "Foo");
+    EXPECT_GE(collection_infos.size(), 1);
+    bool has = false;
+    for (const milvus::CollectionInfo& info : collection_infos) {
+        if (info.Name() == collection_name) {
+            has = true;
+            EXPECT_EQ(info.MemoryPercentage(), 0);
+            break;
+        }
+    }
+    EXPECT_TRUE(has);
 
     // test for https://github.com/milvus-io/milvus-sdk-cpp/issues/246
     milvus::PartitionsInfo partitionsInfo{};
-    status = client_->ShowPartitions("Foo", std::vector<std::string>{}, partitionsInfo);
+    status = client_->ShowPartitions(collection_name, std::vector<std::string>{}, partitionsInfo);
     EXPECT_TRUE(status.IsOk());
 
-    names.emplace_back("Foo");
+    names.emplace_back(collection_name);
     collection_infos.clear();
-    status = client_->LoadCollection("Foo");
+    status = client_->LoadCollection(collection_name);
     EXPECT_TRUE(status.IsOk());
 
     status = client_->ShowCollections(names, collection_infos);
@@ -69,11 +77,14 @@ TEST_P(MilvusServerTestCollection, CreateAndDeleteCollection) {
     EXPECT_EQ(collection_infos.size(), 1);
     EXPECT_EQ(collection_infos.front().MemoryPercentage(), 100);
 
-    status = client_->RenameCollection("Foo", "Bar");
+    status = client_->RenameCollection(collection_name, "Bar");
     EXPECT_TRUE(status.IsOk());
 
     status = client_->DropCollection("Bar");
     EXPECT_TRUE(status.IsOk());
+    collection_infos.clear();
+    status = client_->ShowCollections(names, collection_infos);
+    EXPECT_TRUE(collection_infos.empty());
 }
 
 INSTANTIATE_TEST_SUITE_P(SystemTest, MilvusServerTestCollection, ::testing::Values(false, true));
