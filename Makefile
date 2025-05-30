@@ -53,7 +53,7 @@ st:
 
 coverage:
 	@echo "Run code coverage ..."
-	@(env bash $(PWD)/scripts/build.sh -u -s -c)
+	@(env bash $(PWD)/scripts/build.sh -u -c)
 	@(env bash $(PWD)/scripts/coverage.sh)
 
 documentation:

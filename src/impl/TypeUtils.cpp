@@ -337,20 +337,14 @@ MetricTypeCast(const std::string& type) {
     if (type == "IP") {
         return MetricType::IP;
     }
+    if (type == "COSINE") {
+        return MetricType::COSINE;
+    }
     if (type == "HAMMING") {
         return MetricType::HAMMING;
     }
     if (type == "JACCARD") {
         return MetricType::JACCARD;
-    }
-    if (type == "TANIMOTO") {
-        return MetricType::TANIMOTO;
-    }
-    if (type == "SUBSTRUCTURE") {
-        return MetricType::SUBSTRUCTURE;
-    }
-    if (type == "SUPERSTRUCTURE") {
-        return MetricType::SUPERSTRUCTURE;
     }
     return MetricType::INVALID;
 }
@@ -372,26 +366,47 @@ IndexTypeCast(const std::string& type) {
     if (type == "HNSW") {
         return IndexType::HNSW;
     }
-    if (type == "IVF_HNSW") {
-        return IndexType::IVF_HNSW;
+    if (type == "DISKANN") {
+        return IndexType::DISKANN;
     }
-    if (type == "RHNSW_FLAT") {
-        return IndexType::RHNSW_FLAT;
+    if (type == "AUTOINDEX") {
+        return IndexType::AUTOINDEX;
     }
-    if (type == "RHNSW_SQ") {
-        return IndexType::RHNSW_SQ;
+    if (type == "SCANN") {
+        return IndexType::SCANN;
     }
-    if (type == "RHNSW_PQ") {
-        return IndexType::RHNSW_PQ;
+    if (type == "GPU_IVF_FLAT") {
+        return IndexType::GPU_IVF_FLAT;
     }
-    if (type == "ANNOY") {
-        return IndexType::ANNOY;
+    if (type == "GPU_IVF_PQ") {
+        return IndexType::GPU_IVF_PQ;
+    }
+    if (type == "GPU_BRUTE_FORCE") {
+        return IndexType::GPU_BRUTE_FORCE;
+    }
+    if (type == "GPU_CAGRA") {
+        return IndexType::GPU_CAGRA;
     }
     if (type == "BIN_FLAT") {
         return IndexType::BIN_FLAT;
     }
     if (type == "BIN_IVF_FLAT") {
         return IndexType::BIN_IVF_FLAT;
+    }
+    if (type == "Trie") {
+        return IndexType::TRIE;
+    }
+    if (type == "STL_SORT") {
+        return IndexType::STL_SORT;
+    }
+    if (type == "INVERTED") {
+        return IndexType::INVERTED;
+    }
+    if (type == "SPARSE_INVERTED_INDEX") {
+        return IndexType::SPARSE_INVERTED_INDEX;
+    }
+    if (type == "SPARSE_WAND") {
+        return IndexType::SPARSE_WAND;
     }
     return IndexType::INVALID;
 }
@@ -855,16 +870,12 @@ to_string(milvus::MetricType metric_type) {
             return "L2";
         case milvus::MetricType::IP:
             return "IP";
+        case milvus::MetricType::COSINE:
+            return "COSINE";
         case milvus::MetricType::HAMMING:
             return "HAMMING";
         case milvus::MetricType::JACCARD:
             return "JACCARD";
-        case milvus::MetricType::TANIMOTO:
-            return "TANIMOTO";
-        case milvus::MetricType::SUBSTRUCTURE:
-            return "SUBSTRUCTURE";
-        case milvus::MetricType::SUPERSTRUCTURE:
-            return "SUPERSTRUCTURE";
         case milvus::MetricType::INVALID:
         default:
             return "INVALID";
@@ -883,20 +894,34 @@ to_string(milvus::IndexType index_type) {
             return "IVF_SQ8";
         case milvus::IndexType::HNSW:
             return "HNSW";
-        case milvus::IndexType::IVF_HNSW:
-            return "IVF_HNSW";
-        case milvus::IndexType::RHNSW_FLAT:
-            return "RHNSW_FLAT";
-        case milvus::IndexType::RHNSW_SQ:
-            return "RHNSW_SQ";
-        case milvus::IndexType::RHNSW_PQ:
-            return "RHNSW_PQ";
-        case milvus::IndexType::ANNOY:
-            return "ANNOY";
+        case milvus::IndexType::DISKANN:
+            return "DISKANN";
+        case milvus::IndexType::AUTOINDEX:
+            return "AUTOINDEX";
+        case milvus::IndexType::SCANN:
+            return "SCANN";
+        case milvus::IndexType::GPU_IVF_FLAT:
+            return "GPU_IVF_FLAT";
+        case milvus::IndexType::GPU_IVF_PQ:
+            return "GPU_IVF_PQ";
+        case milvus::IndexType::GPU_BRUTE_FORCE:
+            return "GPU_BRUTE_FORCE";
+        case milvus::IndexType::GPU_CAGRA:
+            return "GPU_CAGRA";
         case milvus::IndexType::BIN_FLAT:
             return "BIN_FLAT";
         case milvus::IndexType::BIN_IVF_FLAT:
             return "BIN_IVF_FLAT";
+        case milvus::IndexType::TRIE:
+            return "Trie";
+        case milvus::IndexType::STL_SORT:
+            return "STL_SORT";
+        case milvus::IndexType::INVERTED:
+            return "INVERTED";
+        case milvus::IndexType::SPARSE_INVERTED_INDEX:
+            return "SPARSE_INVERTED_INDEX";
+        case milvus::IndexType::SPARSE_WAND:
+            return "SPARSE_WAND";
         default:
             return "INVALID";
     }

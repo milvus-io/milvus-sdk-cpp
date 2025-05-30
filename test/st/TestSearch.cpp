@@ -24,8 +24,8 @@ using testing::UnorderedElementsAreArray;
 
 class MilvusServerTestSearch : public MilvusServerTest {
  protected:
-    std::string collection_name{"Foo"};
-    std::string partition_name{"Bar"};
+    std::string collection_name{milvus::test::RanName("Foo_")};
+    std::string partition_name{milvus::test::RanName("Bar_")};
 
     void
     createCollectionAndPartitions(bool create_flat_index) {
@@ -41,7 +41,7 @@ class MilvusServerTestSearch : public MilvusServerTest {
         EXPECT_TRUE(status.IsOk());
 
         if (create_flat_index) {
-            milvus::IndexDesc index_desc("face", "", milvus::IndexType::FLAT, milvus::MetricType::L2, 0);
+            milvus::IndexDesc index_desc("face", "", milvus::IndexType::FLAT, milvus::MetricType::L2);
             status = client_->CreateIndex(collection_name, index_desc);
             EXPECT_EQ(status.Message(), "OK");
             EXPECT_TRUE(status.IsOk());
@@ -265,7 +265,7 @@ TEST_F(MilvusServerTestSearch, SearchWithIVFIndex) {
     createCollectionAndPartitions(false);
     auto dml_results = insertRecords(fields);
 
-    milvus::IndexDesc index_desc("face", "", milvus::IndexType::IVF_FLAT, milvus::MetricType::L2, 0);
+    milvus::IndexDesc index_desc("face", "", milvus::IndexType::IVF_FLAT, milvus::MetricType::L2);
     index_desc.AddExtraParam("nlist", 1024);
     auto status = client_->CreateIndex(collection_name, index_desc);
     EXPECT_EQ(status.Message(), "OK");

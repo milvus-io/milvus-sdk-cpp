@@ -22,6 +22,7 @@
 #include <unordered_map>
 
 #include "../Status.h"
+#include "IndexState.h"
 #include "IndexType.h"
 #include "MetricType.h"
 
@@ -43,11 +44,10 @@ class IndexDesc {
      * @param field_name field name which the index belong to
      * @param index_name index name
      * @param index_type  index type see IndexType
-     * @param metric_type  metric type see MetricType
-     * @param index_id internal id of the index reserved for funture feature
+     * @param metric_type  metric type see MetricType, no need to set this for scalar field index
      */
     IndexDesc(std::string field_name, std::string index_name, milvus::IndexType index_type,
-              milvus::MetricType metric_type, int64_t index_id = 0);
+              milvus::MetricType metric_type = milvus::MetricType::INVALID);
 
     /**
      * @brief Filed name which the index belong to.
@@ -135,13 +135,50 @@ class IndexDesc {
     Status
     Validate() const;
 
+    Status
+    SetStateCode(const milvus::IndexStateCode& code);
+
+    milvus::IndexStateCode
+    StateCode() const;
+
+    Status
+    SetFailReason(const std::string& reason);
+
+    std::string
+    FailReason() const;
+
+    Status
+    SetIndexedRows(int64_t rows);
+
+    int64_t
+    IndexedRows() const;
+
+    Status
+    SetTotalRows(int64_t rows);
+
+    int64_t
+    TotalRows() const;
+
+    Status
+    SetPendingRows(int64_t rows);
+
+    int64_t
+    PendingRows() const;
+
  private:
     std::string field_name_;
     std::string index_name_;
-    int64_t index_id_{0};
     milvus::MetricType metric_type_{milvus::MetricType::INVALID};
     milvus::IndexType index_type_{milvus::IndexType::INVALID};
     std::unordered_map<std::string, int64_t> extra_params_;
+
+    // the following members are only for DescribeIndex
+    int64_t index_id_{0};
+    IndexStateCode state_code_{IndexStateCode::NONE};
+    std::string failed_reason_;
+    int64_t indexed_rows_{0};
+    int64_t total_rows_{0};
+    int64_t pending_rows_{0};
 };
 
 }  // namespace milvus

@@ -23,7 +23,6 @@
 #include "Status.h"
 #include "types/AliasDesc.h"
 #include "types/AnnSearchRequest.h"
-#include "types/CalcDistanceArguments.h"
 #include "types/CollectionDesc.h"
 #include "types/CollectionInfo.h"
 #include "types/CollectionSchema.h"

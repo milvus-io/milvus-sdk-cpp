@@ -235,11 +235,13 @@ class SearchArguments {
 
     /**
      * @brief Set range radius
-     * @param from range radius from
-     * @param to range radius to
+     * @param range_filter while radius sets the outer limit of the search, range_filter can be optionally used to
+     * define an inner boundary, creating a distance range within which vectors must fall to be considered matches.
+     * @param radius defines the outer boundary of your search space. Only vectors that are within this distance from
+     * the query vector are considered potential matches.
      */
     Status
-    SetRange(float from, float to);
+    SetRange(float range_filter, float radius);
 
     /**
      * @brief Get if do range search
@@ -305,7 +307,7 @@ class SearchArguments {
     float radius_;
     float range_filter_;
     bool range_search_{false};
-    ::milvus::MetricType metric_type_{::milvus::MetricType::L2};
+    ::milvus::MetricType metric_type_{::milvus::MetricType::INVALID};
 
     std::string group_by_field_;
     int group_size_{0};

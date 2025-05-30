@@ -434,15 +434,32 @@ TEST_F(TypeUtilsTest, CreateMilvusFieldDataWithRange) {
 }
 
 TEST_F(TypeUtilsTest, MetricTypeCastTest) {
-    for (const auto& name :
-         {"IP", "L2", "HAMMING", "SUBSTRUCTURE", "SUPERSTRUCTURE", "TANIMOTO", "JACCARD", "INVALID"}) {
+    for (const auto& name : {"IP", "L2", "HAMMING", "JACCARD", "INVALID"}) {
         EXPECT_EQ(std::to_string(milvus::MetricTypeCast(name)), name);
     }
 }
 
 TEST_F(TypeUtilsTest, IndexTypeCastTest) {
-    for (const auto& name : {"INVALID", "FLAT", "IVF_FLAT", "IVF_SQ8", "IVF_PQ", "HNSW", "IVF_HNSW", "RHNSW_FLAT",
-                             "RHNSW_SQ", "RHNSW_PQ", "ANNOY", "BIN_FLAT", "BIN_IVF_FLAT"}) {
+    for (const auto& name : {"INVALID",
+                             "FLAT",
+                             "IVF_FLAT",
+                             "IVF_SQ8",
+                             "IVF_PQ",
+                             "HNSW",
+                             "DISKANN",
+                             "AUTOINDEX",
+                             "SCANN",
+                             "GPU_IVF_FLAT",
+                             "GPU_IVF_PQ",
+                             "GPU_BRUTE_FORCE",
+                             "GPU_CAGRA",
+                             "BIN_FLAT",
+                             "BIN_IVF_FLAT",
+                             "Trie",
+                             "STL_SORT",
+                             "INVERTED",
+                             "SPARSE_INVERTED_INDEX",
+                             "SPARSE_WAND"}) {
         EXPECT_EQ(std::to_string(milvus::IndexTypeCast(name)), name);
     }
 }

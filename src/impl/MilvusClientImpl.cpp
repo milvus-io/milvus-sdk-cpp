@@ -217,14 +217,6 @@ MilvusClientImpl::RenameCollection(const std::string& collection_name, const std
 Status
 MilvusClientImpl::GetCollectionStatistics(const std::string& collection_name, CollectionStat& collection_stat,
                                           const ProgressMonitor& progress_monitor) {
-    auto validate = [&collection_name, &progress_monitor, this]() {
-        Status ret;
-        if (progress_monitor.CheckTimeout() > 0) {
-            ret = Flush(std::vector<std::string>{collection_name}, progress_monitor);
-        }
-        return ret;
-    };
-
     auto pre = [&collection_name]() {
         proto::milvus::GetCollectionStatisticsRequest rpc_request;
         rpc_request.set_collection_name(collection_name);
@@ -239,7 +231,7 @@ MilvusClientImpl::GetCollectionStatistics(const std::string& collection_name, Co
     };
 
     return apiHandler<proto::milvus::GetCollectionStatisticsRequest, proto::milvus::GetCollectionStatisticsResponse>(
-        validate, pre, &MilvusConnection::GetCollectionStatistics, nullptr, post);
+        pre, &MilvusConnection::GetCollectionStatistics, post);
 }
 
 Status
@@ -371,15 +363,6 @@ MilvusClientImpl::ReleasePartitions(const std::string& collection_name,
 Status
 MilvusClientImpl::GetPartitionStatistics(const std::string& collection_name, const std::string& partition_name,
                                          PartitionStat& partition_stat, const ProgressMonitor& progress_monitor) {
-    // do flush in validate stage if needed
-    auto validate = [&collection_name, &progress_monitor, this] {
-        Status ret;
-        if (progress_monitor.CheckTimeout() > 0) {
-            ret = Flush(std::vector<std::string>{collection_name}, progress_monitor);
-        }
-        return ret;
-    };
-
     auto pre = [&collection_name, &partition_name] {
         proto::milvus::GetPartitionStatisticsRequest rpc_request;
         rpc_request.set_collection_name(collection_name);
@@ -395,7 +378,7 @@ MilvusClientImpl::GetPartitionStatistics(const std::string& collection_name, con
     };
 
     return apiHandler<proto::milvus::GetPartitionStatisticsRequest, proto::milvus::GetPartitionStatisticsResponse>(
-        validate, pre, &MilvusConnection::GetPartitionStatistics, nullptr, post);
+        pre, &MilvusConnection::GetPartitionStatistics, post);
 }
 
 Status
@@ -476,16 +459,11 @@ MilvusClientImpl::CreateIndex(const std::string& collection_name, const IndexDes
                               const ProgressMonitor& progress_monitor) {
     auto validate = [&index_desc] { return index_desc.Validate(); };
 
-    // flush before create index
-    auto flush_status = Flush(std::vector<std::string>{collection_name}, progress_monitor);
-    if (!flush_status.IsOk()) {
-        return flush_status;
-    }
-
     auto pre = [&collection_name, &index_desc]() {
         proto::milvus::CreateIndexRequest rpc_request;
         rpc_request.set_collection_name(collection_name);
         rpc_request.set_field_name(index_desc.FieldName());
+        rpc_request.set_index_name(index_desc.IndexName());
 
         auto kv_pair = rpc_request.add_extra_params();
         kv_pair->set_key(milvus::KeyIndexType());
@@ -505,8 +483,8 @@ MilvusClientImpl::CreateIndex(const std::string& collection_name, const IndexDes
     auto wait_for_status = [&collection_name, &index_desc, &progress_monitor, this](const proto::common::Status&) {
         return WaitForStatus(
             [&collection_name, &index_desc, this](Progress& progress) -> Status {
-                IndexState index_state;
-                auto status = GetIndexState(collection_name, index_desc.FieldName(), index_state);
+                IndexDesc index_state;
+                auto status = DescribeIndex(collection_name, index_desc.FieldName(), index_state);
                 if (!status.IsOk()) {
                     return status;
                 }
@@ -520,7 +498,7 @@ MilvusClientImpl::CreateIndex(const std::string& collection_name, const IndexDes
                     index_state.StateCode() == IndexStateCode::NONE) {
                     progress.finished_ = 100;
                 } else if (index_state.StateCode() == IndexStateCode::FAILED) {
-                    return Status{StatusCode::SERVER_FAILED, "index failed:" + index_state.FailedReason()};
+                    return Status{StatusCode::SERVER_FAILED, "index failed:" + index_state.FailReason()};
                 }
 
                 return status;
@@ -541,17 +519,35 @@ MilvusClientImpl::DescribeIndex(const std::string& collection_name, const std::s
         return rpc_request;
     };
 
-    auto post = [&index_desc](const proto::milvus::DescribeIndexResponse& response) {
+    auto post = [&index_desc, &field_name](const proto::milvus::DescribeIndexResponse& response) {
         auto count = response.index_descriptions_size();
-        for (int i = 0; i < count; ++i) {
-            auto& field_name = response.index_descriptions(i).field_name();
-            auto& index_name = response.index_descriptions(i).index_name();
-            index_desc.SetFieldName(field_name);
-            index_desc.SetIndexName(index_name);
-            auto index_params_size = response.index_descriptions(i).params_size();
+        int poz = -1;
+        if (count == 1) {
+            poz = 0;
+        } else {
+            for (int i = 0; i < count; ++i) {
+                auto rpc_desc = response.index_descriptions(i);
+                if (field_name == rpc_desc.field_name()) {
+                    poz = i;
+                    break;
+                }
+            }
+        }
+
+        if (poz >= 0) {
+            auto rpc_desc = response.index_descriptions(poz);
+            index_desc.SetFieldName(rpc_desc.field_name());
+            index_desc.SetIndexName(rpc_desc.index_name());
+            index_desc.SetIndexId(rpc_desc.indexid());
+            index_desc.SetStateCode(IndexStateCast(rpc_desc.state()));
+            index_desc.SetFailReason(rpc_desc.index_state_fail_reason());
+            index_desc.SetIndexedRows(rpc_desc.indexed_rows());
+            index_desc.SetTotalRows(rpc_desc.total_rows());
+            index_desc.SetPendingRows(rpc_desc.pending_index_rows());
+            auto index_params_size = rpc_desc.params_size();
             for (int j = 0; j < index_params_size; ++j) {
-                const auto& key = response.index_descriptions(i).params(j).key();
-                const auto& value = response.index_descriptions(i).params(j).value();
+                const auto& key = rpc_desc.params(j).key();
+                const auto& value = rpc_desc.params(j).value();
                 if (key == milvus::KeyIndexType()) {
                     index_desc.SetIndexType(IndexTypeCast(value));
                 } else if (key == milvus::KeyMetricType()) {
@@ -605,11 +601,11 @@ MilvusClientImpl::GetIndexBuildProgress(const std::string& collection_name, cons
 }
 
 Status
-MilvusClientImpl::DropIndex(const std::string& collection_name, const std::string& field_name) {
-    auto pre = [&collection_name, &field_name]() {
+MilvusClientImpl::DropIndex(const std::string& collection_name, const std::string& index_name) {
+    auto pre = [&collection_name, &index_name]() {
         proto::milvus::DropIndexRequest rpc_request;
         rpc_request.set_collection_name(collection_name);
-        rpc_request.set_field_name(field_name);
+        rpc_request.set_index_name(index_name);
         return rpc_request;
     };
     return apiHandler<proto::milvus::DropIndexRequest, proto::common::Status>(pre, &MilvusConnection::DropIndex);
@@ -734,9 +730,12 @@ MilvusClientImpl::Search(const SearchArguments& arguments, SearchResults& result
         kv_pair->set_key("topk");
         kv_pair->set_value(std::to_string(arguments.TopK()));
 
-        kv_pair = rpc_request.add_search_params();
-        kv_pair->set_key(milvus::KeyMetricType());
-        kv_pair->set_value(std::to_string(arguments.MetricType()));
+        // set this value only when client specified, otherwise let server to get it from index parameters
+        if (arguments.MetricType() != MetricType::INVALID) {
+            kv_pair = rpc_request.add_search_params();
+            kv_pair->set_key(milvus::KeyMetricType());
+            kv_pair->set_value(std::to_string(arguments.MetricType()));
+        }
 
         kv_pair = rpc_request.add_search_params();
         kv_pair->set_key("round_decimal");
@@ -825,114 +824,6 @@ MilvusClientImpl::Query(const QueryArguments& arguments, QueryResults& results, 
     };
     return apiHandler<proto::milvus::QueryRequest, proto::milvus::QueryResults>(pre, &MilvusConnection::Query, post,
                                                                                 GrpcOpts{timeout});
-}
-
-Status
-MilvusClientImpl::CalcDistance(const CalcDistanceArguments& arguments, DistanceArray& results) {
-    auto validate = [&arguments]() { return arguments.Validate(); };
-
-    auto pre = [&arguments]() {
-        auto pass_arguments = [&arguments](proto::milvus::VectorsArray* rpc_vectors, FieldDataPtr&& arg_vectors,
-                                           bool is_left) {
-            if (IsVectorType(arg_vectors->Type())) {
-                auto data_array = rpc_vectors->mutable_data_array();
-
-                if (arg_vectors->Type() == DataType::FLOAT_VECTOR) {
-                    FloatVecFieldDataPtr data_ptr = std::static_pointer_cast<FloatVecFieldData>(arg_vectors);
-                    auto float_vectors = data_array->mutable_float_vector();
-                    auto mutable_data = float_vectors->mutable_data();
-                    auto& vectors = data_ptr->Data();
-                    for (auto& vector : vectors) {
-                        mutable_data->Add(vector.begin(), vector.end());
-                    }
-
-                    // suppose vectors is not empty, already checked by Validate()
-                    data_array->set_dim(static_cast<int>(vectors[0].size()));
-                } else {
-                    auto data_ptr = std::static_pointer_cast<BinaryVecFieldData>(arg_vectors);
-                    auto& str = *data_array->mutable_binary_vector();
-                    auto& vectors = data_ptr->Data();
-                    // user specify dimension(only for binary vectors), if not, get it from vectors
-                    auto dimensions = arguments.Dimension() > 0 ? arguments.Dimension() : (vectors.front().size() * 8);
-                    str.reserve(dimensions * vectors.size() / 8);
-                    for (auto& vector : vectors) {
-                        str.append(vector);
-                    }
-                    data_array->set_dim(static_cast<int>(dimensions));
-                }
-
-            } else if (arg_vectors->Type() == DataType::INT64) {
-                auto id_array = rpc_vectors->mutable_id_array();
-                id_array->set_collection_name(is_left ? arguments.LeftCollection() : arguments.RightCollection());
-                auto& partitions = is_left ? arguments.LeftPartitions() : arguments.RightPartitions();
-                for (auto& name : partitions) {
-                    id_array->add_partition_names(name);
-                }
-
-                auto ids = id_array->mutable_id_array();
-                auto long_ids = ids->mutable_int_id();
-                auto mutable_data = long_ids->mutable_data();
-                Int64FieldDataPtr data_ptr = std::static_pointer_cast<Int64FieldData>(arg_vectors);
-                auto& vector_ids = data_ptr->Data();
-                mutable_data->Add(vector_ids.begin(), vector_ids.end());
-            }
-        };
-
-        // set vectors data
-        proto::milvus::CalcDistanceRequest rpc_request;
-        pass_arguments(rpc_request.mutable_op_left(), arguments.LeftVectors(), true);
-        pass_arguments(rpc_request.mutable_op_right(), arguments.RightVectors(), false);
-
-        // set metric
-        auto kv = rpc_request.add_params();
-        kv->set_key("metric");
-        kv->set_value(arguments.MetricType());
-
-        return std::move(rpc_request);
-    };
-
-    auto post = [&arguments, &results](const proto::milvus::CalcDistanceResults& response) {
-        size_t left_count = arguments.LeftVectors()->Count();
-        size_t right_count = arguments.RightVectors()->Count();
-        if (response.has_int_dist()) {
-            auto& int_array = response.int_dist();
-            auto& distance_array = int_array.data();
-            const int32_t* distance_data = distance_array.data();
-            auto distance_count = int_array.data_size();
-            std::vector<std::vector<int32_t>> all_distances;
-
-            // for id array, suppose all the vectors are exist.
-            // if some vectors are missed(or deleted), the server will return error by the CalcDistance api.
-            if (distance_count == left_count * right_count) {
-                all_distances.reserve(left_count);
-                for (size_t i = 0; i < left_count; ++i) {
-                    std::vector<int32_t> distances(right_count);
-                    memcpy(distances.data(), distance_data + i * right_count, right_count * sizeof(int32_t));
-                    all_distances.emplace_back(std::move(distances));
-                }
-            }
-            results.SetIntDistance(std::move(all_distances));
-        } else {
-            auto& float_array = response.float_dist();
-            auto& distance_array = float_array.data();
-            const float* distance_data = distance_array.data();
-            auto distance_count = float_array.data_size();
-            std::vector<std::vector<float>> all_distances;
-
-            // suppose distance count is always equal to left_count * right_count
-            if (distance_count == left_count * right_count) {
-                all_distances.reserve(left_count);
-                for (size_t i = 0; i < left_count; ++i) {
-                    std::vector<float> distances(right_count);
-                    memcpy(distances.data(), distance_data + i * right_count, right_count * sizeof(float));
-                    all_distances.emplace_back(std::move(distances));
-                }
-            }
-            results.SetFloatDistance(std::move(all_distances));
-        }
-    };
-    return apiHandler<proto::milvus::CalcDistanceRequest, proto::milvus::CalcDistanceResults>(
-        validate, pre, &MilvusConnection::CalcDistance, post);
 }
 
 Status
