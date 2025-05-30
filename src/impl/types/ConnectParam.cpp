@@ -45,6 +45,16 @@ ConnectParam::Uri() const {
     return host_ + ":" + std::to_string(port_);
 }
 
+std::string
+ConnectParam::DatabaseName() const {
+    return database_name_;
+}
+
+void
+ConnectParam::SetDatabaseName(const std::string& dbname) {
+    database_name_ = dbname;
+}
+
 const std::string&
 ConnectParam::Authorizations() const {
     return authorizations_;

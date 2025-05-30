@@ -237,6 +237,7 @@ class MilvusConnection {
     std::unique_ptr<proto::milvus::MilvusService::Stub> stub_;
     std::shared_ptr<grpc::Channel> channel_;
     std::string authorization_value_{};
+    std::string database_name_{};
 
     static Status
     StatusByProtoResponse(const proto::common::Status& status) {
@@ -279,6 +280,9 @@ class MilvusConnection {
         if (!authorization_value_.empty()) {
             context.AddMetadata("authorization", authorization_value_);
             context.set_authority(authorization_value_);
+        }
+        if (!database_name_.empty()) {
+            context.AddMetadata("dbname", database_name_);
         }
 
         ::grpc::Status grpc_status = (stub_.get()->*func)(&context, request, &response);
