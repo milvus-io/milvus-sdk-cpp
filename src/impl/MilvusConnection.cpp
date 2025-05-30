@@ -62,6 +62,7 @@ MilvusConnection::~MilvusConnection() {
 Status
 MilvusConnection::Connect(const ConnectParam& param) {
     authorization_value_ = param.Authorizations();
+    database_name_ = param.DatabaseName();
     std::shared_ptr<grpc::ChannelCredentials> credentials{nullptr};
     auto uri = param.Uri();
 

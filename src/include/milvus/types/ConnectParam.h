@@ -55,6 +55,18 @@ class ConnectParam {
     Uri() const;
 
     /**
+     * @brief Get the target database name.
+     */
+    std::string
+    DatabaseName() const;
+
+    /**
+     * @brief Set the target database name.
+     */
+    void
+    SetDatabaseName(const std::string& dbname);
+
+    /**
      * @brief Authorizations header value for connecting to the milvus.
      * Authorizations() = base64('username:password')
      */
@@ -159,6 +171,7 @@ class ConnectParam {
     std::string host_;
     uint16_t port_ = 0;
     uint32_t connect_timeout_ = 5000;
+    std::string database_name_ = "default";
 
     bool tls_{false};
     std::string server_name_;
