@@ -49,8 +49,8 @@ class MilvusClientImplV2 : public MilvusClientV2 {
     Status
     DropCollection(const std::string& collection_name) final;
 
-    Status
-    ListCollections(std::vector<std::string>& results, int timeout) final;
+    ListCollectionsResp
+    ListCollections(const ListCollectionsReq& request) final;
 
     Status
     GetLoadingProgress(const std::string& collection_name, int& progress,
