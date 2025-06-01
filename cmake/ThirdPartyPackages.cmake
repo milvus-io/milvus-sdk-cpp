@@ -18,7 +18,7 @@ include_guard(GLOBAL)
 
 include(FetchContent)
 
-set(GRPC_VERSION 1.49.1)
+set(GRPC_VERSION 1.59.1)
 set(NLOHMANN_JSON_VERSION 3.11.3)
 set(GOOGLETEST_VERSION 1.12.1)
 set(CPP_HTTPLIB_VERSION 0.18.5)
