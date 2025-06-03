@@ -19,6 +19,7 @@
 #include <fstream>
 #include <memory>
 
+#include "MilvusInterceptor.h"
 #include "grpcpp/security/credentials.h"
 
 using grpc::Channel;
@@ -61,7 +62,8 @@ MilvusConnection::~MilvusConnection() {
 
 Status
 MilvusConnection::Connect(const ConnectParam& param) {
-    authorization_value_ = param.Authorizations();
+    param_ = param;
+
     std::shared_ptr<grpc::ChannelCredentials> credentials{nullptr};
     auto uri = param.Uri();
 
@@ -78,7 +80,13 @@ MilvusConnection::Connect(const ConnectParam& param) {
         credentials = ::grpc::InsecureChannelCredentials();
     }
 
-    channel_ = ::grpc::CreateCustomChannel(uri, credentials, args);
+    std::unordered_map<std::string, std::string> metadata;
+    metadata["authorization"] = param.Authorizations();
+    if (!param.DbName().empty()) {
+        metadata["dbname"] = param.DbName();
+    }
+
+    channel_ = CreateChannelWithHeaderInterceptor(uri, credentials, args, metadata);
     auto connected = channel_->WaitForConnected(std::chrono::system_clock::now() +
                                                 std::chrono::milliseconds{param.ConnectTimeout()});
     if (connected) {
@@ -95,6 +103,44 @@ MilvusConnection::Disconnect() {
     stub_.reset();
     channel_.reset();
     return Status::OK();
+}
+
+Status
+MilvusConnection::UsingDatabase(const std::string& db_name) {
+    Disconnect();
+    param_.SetDbName(db_name);
+    return Connect(param_);
+}
+
+Status
+MilvusConnection::CreateDatabase(const proto::milvus::CreateDatabaseRequest& request, proto::common::Status& response,
+                                 const GrpcContextOptions& options) {
+    return grpcCall("CreateDatabase", &Stub::CreateDatabase, request, response, options);
+}
+
+Status
+MilvusConnection::DropDatabase(const proto::milvus::DropDatabaseRequest& request, proto::common::Status& response,
+                               const GrpcContextOptions& options) {
+    return grpcCall("DropDatabase", &Stub::DropDatabase, request, response, options);
+}
+
+Status
+MilvusConnection::ListDatabases(const proto::milvus::ListDatabasesRequest& request,
+                                proto::milvus::ListDatabasesResponse& response, const GrpcContextOptions& options) {
+    return grpcCall("ListDatabases", &Stub::ListDatabases, request, response, options);
+}
+
+Status
+MilvusConnection::AlterDatabase(const proto::milvus::AlterDatabaseRequest& request, proto::common::Status& response,
+                                const GrpcContextOptions& options) {
+    return grpcCall("AlterDatabase", &Stub::AlterDatabase, request, response, options);
+}
+
+Status
+MilvusConnection::DescribeDatabase(const proto::milvus::DescribeDatabaseRequest& request,
+                                   proto::milvus::DescribeDatabaseResponse& response,
+                                   const GrpcContextOptions& options) {
+    return grpcCall("DescribeDatabase", &Stub::DescribeDatabase, request, response, options);
 }
 
 Status

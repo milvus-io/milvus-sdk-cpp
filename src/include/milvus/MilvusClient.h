@@ -300,6 +300,65 @@ class MilvusClient {
     AlterAlias(const std::string& collection_name, const std::string& alias) = 0;
 
     /**
+     * Switch connection to another database.
+     *
+     * @param [in] db_name name of the database
+     * @return Status operation successfully or not
+     */
+    virtual Status
+    UsingDatabase(const std::string& db_name) = 0;
+
+    /**
+     * Create a new database.
+     *
+     * @param [in] db_name name of the database
+     * @param [in] properties properties of the database, available keys of properties
+     *   are listed here: https://milvus.io/docs/manage_databases.md#Manage-database-properties
+     * @return Status operation successfully or not
+     */
+    virtual Status
+    CreateDatabase(const std::string& db_name, const std::unordered_map<std::string, std::string>& properties) = 0;
+
+    /**
+     * Drop a database.
+     *
+     * @param [in] db_name name of the database
+     * @return Status operation successfully or not
+     */
+    virtual Status
+    DropDatabase(const std::string& db_name) = 0;
+
+    /**
+     * Drop a database.
+     *
+     * @param [out] names a list of database names
+     * @return Status operation successfully or not
+     */
+    virtual Status
+    ListDatabases(std::vector<std::string>& names) = 0;
+
+    /**
+     * Alter a new database's properties.
+     *
+     * @param [in] db_name name of the database
+     * @param [in] properties properties of the database to be updated, available keys of properties
+     *   are listed here: https://milvus.io/docs/manage_databases.md#Manage-database-properties
+     * @return Status operation successfully or not
+     */
+    virtual Status
+    AlterDatabase(const std::string& db_name, const std::unordered_map<std::string, std::string>& properties) = 0;
+
+    /**
+     * Describe a database.
+     *
+     * @param [in] db_name name of the database
+     * @param [out] properties properties of the database
+     * @return Status operation successfully or not
+     */
+    virtual Status
+    DescribeDatabase(const std::string& db_name, std::unordered_map<std::string, std::string>& properties) = 0;
+
+    /**
      * Create an index on a field. Currently only support index on vector field.
      *
      * @param [in] collection_name name of the collection

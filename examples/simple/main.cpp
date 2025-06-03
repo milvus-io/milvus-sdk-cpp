@@ -36,10 +36,40 @@ main(int argc, char* argv[]) {
 
     auto client = milvus::MilvusClient::Create();
 
-    milvus::ConnectParam connect_param{"localhost", 19530};
+    milvus::ConnectParam connect_param{"localhost", 19530, "root", "Milvus"};
     auto status = client->Connect(connect_param);
     CheckStatus("Failed to connect milvus server:", status);
     std::cout << "Connect to milvus server." << std::endl;
+
+    std::vector<std::string> db_names;
+    status = client->ListDatabases(db_names);
+    CheckStatus("Failed to create database:", status);
+
+    const std::string my_db_name = "my_temp_db_for_test";
+    std::cout << "Databases: ";
+    for (const auto& name : db_names) {
+        std::cout << name << ",";
+    }
+    std::cout << std::endl;
+
+    status = client->DropDatabase(my_db_name);
+    CheckStatus("Failed to drop database:", status);
+    std::cout << "Drop database: " << my_db_name << std::endl;
+
+    std::unordered_map<std::string, std::string> props;
+    props.emplace("database.replica.number", "2");
+    status = client->CreateDatabase(my_db_name, props);
+    CheckStatus("Failed to create database:", status);
+    std::cout << "Database created: " << my_db_name << std::endl;
+
+    props.clear();
+    status = client->DescribeDatabase(my_db_name, props);
+    CheckStatus("Failed to describe database:", status);
+    std::cout << "database.replica.number = " << props["database.replica.number"] << std::endl;
+
+    status = client->UsingDatabase(my_db_name);
+    CheckStatus("Failed to switch database:", status);
+    std::cout << "Switch to database: " << my_db_name << std::endl;
 
     // drop the collection if it exists
     const std::string collection_name = "TEST";

@@ -103,6 +103,24 @@ class MilvusClientImpl : public MilvusClient {
     AlterAlias(const std::string& collection_name, const std::string& alias) final;
 
     Status
+    UsingDatabase(const std::string& db_name) final;
+
+    Status
+    CreateDatabase(const std::string& db_name, const std::unordered_map<std::string, std::string>& properties) final;
+
+    Status
+    DropDatabase(const std::string& db_name) final;
+
+    Status
+    ListDatabases(std::vector<std::string>& names) final;
+
+    Status
+    AlterDatabase(const std::string& db_name, const std::unordered_map<std::string, std::string>& properties) final;
+
+    Status
+    DescribeDatabase(const std::string& db_name, std::unordered_map<std::string, std::string>& properties) final;
+
+    Status
     CreateIndex(const std::string& collection_name, const IndexDesc& index_desc,
                 const ProgressMonitor& progress_monitor) final;
 

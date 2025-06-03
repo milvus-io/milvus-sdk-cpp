@@ -26,10 +26,20 @@ namespace milvus {
  */
 class ConnectParam {
  public:
+    ConnectParam() = default;
+
+    ConnectParam&
+    operator=(const ConnectParam&);
+
     /**
      * @brief Constructor
      */
     ConnectParam(std::string host, uint16_t port);
+
+    /**
+     * @brief Constructor
+     */
+    ConnectParam(std::string host, uint16_t port, const std::string& token);
 
     /**
      * @brief Constructor
@@ -155,9 +165,21 @@ class ConnectParam {
     const std::string&
     CaCert() const;
 
+    const std::string&
+    Username() const;
+
+    void
+    SetToken(const std::string& token);
+
+    const std::string&
+    DbName() const;
+
+    void
+    SetDbName(const std::string& db_name);
+
  private:
-    std::string host_;
-    uint16_t port_ = 0;
+    std::string host_ = "localhost";
+    uint16_t port_ = 19350;
     uint32_t connect_timeout_ = 5000;
 
     bool tls_{false};
@@ -167,6 +189,8 @@ class ConnectParam {
     std::string ca_cert_;
 
     std::string authorizations_;
+    std::string username_;
+    std::string db_name_ = "default";
 };
 
 }  // namespace milvus

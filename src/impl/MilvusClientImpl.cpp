@@ -455,6 +455,103 @@ MilvusClientImpl::AlterAlias(const std::string& collection_name, const std::stri
 }
 
 Status
+MilvusClientImpl::UsingDatabase(const std::string& db_name) {
+    if (connection_ != nullptr) {
+        return connection_->UsingDatabase(db_name);
+    }
+
+    return Status::OK();
+}
+
+Status
+MilvusClientImpl::CreateDatabase(const std::string& db_name,
+                                 const std::unordered_map<std::string, std::string>& properties) {
+    auto pre = [&db_name, &properties]() {
+        proto::milvus::CreateDatabaseRequest rpc_request;
+        rpc_request.set_db_name(db_name);
+
+        for (const auto& pair : properties) {
+            auto kv_pair = rpc_request.add_properties();
+            kv_pair->set_key(pair.first);
+            kv_pair->set_value(pair.second);
+        }
+
+        return rpc_request;
+    };
+
+    return apiHandler<proto::milvus::CreateDatabaseRequest, proto::common::Status>(pre,
+                                                                                   &MilvusConnection::CreateDatabase);
+}
+
+Status
+MilvusClientImpl::DropDatabase(const std::string& db_name) {
+    auto pre = [&db_name]() {
+        proto::milvus::DropDatabaseRequest rpc_request;
+        rpc_request.set_db_name(db_name);
+        return rpc_request;
+    };
+
+    return apiHandler<proto::milvus::DropDatabaseRequest, proto::common::Status>(pre, &MilvusConnection::DropDatabase);
+}
+
+Status
+MilvusClientImpl::ListDatabases(std::vector<std::string>& names) {
+    auto pre = []() {
+        proto::milvus::ListDatabasesRequest rpc_request;
+        return rpc_request;
+    };
+
+    auto post = [&names](const proto::milvus::ListDatabasesResponse& response) {
+        for (int i = 0; i < response.db_names_size(); i++) {
+            names.push_back(response.db_names(i));
+        }
+    };
+
+    return apiHandler<proto::milvus::ListDatabasesRequest, proto::milvus::ListDatabasesResponse>(
+        pre, &MilvusConnection::ListDatabases, post);
+}
+
+Status
+MilvusClientImpl::AlterDatabase(const std::string& db_name,
+                                const std::unordered_map<std::string, std::string>& properties) {
+    auto pre = [&db_name, &properties]() {
+        proto::milvus::AlterDatabaseRequest rpc_request;
+        rpc_request.set_db_name(db_name);
+
+        for (const auto& pair : properties) {
+            auto kv_pair = rpc_request.add_properties();
+            kv_pair->set_key(pair.first);
+            kv_pair->set_value(pair.second);
+        }
+
+        return rpc_request;
+    };
+
+    return apiHandler<proto::milvus::AlterDatabaseRequest, proto::common::Status>(pre,
+                                                                                  &MilvusConnection::AlterDatabase);
+}
+
+Status
+MilvusClientImpl::DescribeDatabase(const std::string& db_name,
+                                   std::unordered_map<std::string, std::string>& properties) {
+    auto pre = [&db_name]() {
+        proto::milvus::DescribeDatabaseRequest rpc_request;
+        rpc_request.set_db_name(db_name);
+        return rpc_request;
+    };
+
+    auto post = [&properties](const proto::milvus::DescribeDatabaseResponse& response) {
+        for (int i = 0; i < response.properties_size(); i++) {
+            const auto& prop = response.properties(i);
+            properties[prop.key()] = prop.value();
+        }
+    };
+
+    return apiHandler<proto::milvus::DescribeDatabaseRequest, proto::milvus::DescribeDatabaseResponse>(
+        pre, &MilvusConnection::DescribeDatabase, post);
+}
+
+Status
 MilvusClientImpl::CreateIndex(const std::string& collection_name, const IndexDesc& index_desc,
                               const ProgressMonitor& progress_monitor) {
     auto validate = [&index_desc] { return index_desc.Validate(); };
