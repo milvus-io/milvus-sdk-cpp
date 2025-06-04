@@ -338,7 +338,7 @@ class MilvusClient {
     ListDatabases(std::vector<std::string>& names) = 0;
 
     /**
-     * Alter a new database's properties.
+     * Alter a database's properties.
      *
      * @param [in] db_name name of the database
      * @param [in] properties properties of the database to be updated, available keys of properties
@@ -346,7 +346,19 @@ class MilvusClient {
      * @return Status operation successfully or not
      */
     virtual Status
-    AlterDatabase(const std::string& db_name, const std::unordered_map<std::string, std::string>& properties) = 0;
+    AlterDatabaseProperties(const std::string& db_name,
+                            const std::unordered_map<std::string, std::string>& properties) = 0;
+
+    /**
+     * Drop a database's properties.
+     *
+     * @param [in] db_name name of the database
+     * @param [in] properties properties of the database to be deleted, available keys of properties
+     *   are listed here: https://milvus.io/docs/manage_databases.md#Manage-database-properties
+     * @return Status operation successfully or not
+     */
+    virtual Status
+    DropDatabaseProperties(const std::string& db_name, const std::vector<std::string>& properties) = 0;
 
     /**
      * Describe a database.

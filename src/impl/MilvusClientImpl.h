@@ -115,7 +115,11 @@ class MilvusClientImpl : public MilvusClient {
     ListDatabases(std::vector<std::string>& names) final;
 
     Status
-    AlterDatabase(const std::string& db_name, const std::unordered_map<std::string, std::string>& properties) final;
+    AlterDatabaseProperties(const std::string& db_name,
+                            const std::unordered_map<std::string, std::string>& properties) final;
+
+    Status
+    DropDatabaseProperties(const std::string& db_name, const std::vector<std::string>& properties) final;
 
     Status
     DescribeDatabase(const std::string& db_name, std::unordered_map<std::string, std::string>& properties) final;
