@@ -21,6 +21,7 @@ include(FetchContent)
 set(GRPC_VERSION 1.49.1)
 set(NLOHMANN_JSON_VERSION 3.11.3)
 set(GOOGLETEST_VERSION 1.12.1)
+set(CPP_HTTPLIB_VERSION 0.18.5)
 Set(FETCHCONTENT_QUIET FALSE)
 
 # grpc
@@ -46,6 +47,15 @@ FetchContent_Declare(
     googletest
     GIT_REPOSITORY    https://github.com/google/googletest.git
     GIT_TAG           release-${GOOGLETEST_VERSION}
+    GIT_SHALLOW       TRUE
+    GIT_PROGRESS      TRUE
+)
+
+# cpp-httplib
+FetchContent_Declare(
+    cpp-httplib
+    GIT_REPOSITORY    https://github.com/yhirose/cpp-httplib.git
+    GIT_TAG           v${CPP_HTTPLIB_VERSION}
     GIT_SHALLOW       TRUE
     GIT_PROGRESS      TRUE
 )
@@ -86,5 +96,17 @@ else ()
     if (NOT nlohmann_json_POPULATED)
         FetchContent_Populate(nlohmann_json)
         add_subdirectory(${nlohmann_json_SOURCE_DIR} ${nlohmann_json_BINARY_DIR} EXCLUDE_FROM_ALL)
+    endif ()
+endif ()
+
+
+# cpp-httplib
+if ("${MILVUS_WITH_CPP_HTTPLIB}" STREQUAL "package")
+    find_package(cpp-httplib REQUIRED)
+else ()
+    if (NOT cpp-httplib_POPULATED)
+        FetchContent_Populate(cpp-httplib)
+        add_subdirectory(${cpp-httplib_SOURCE_DIR} ${cpp-httplib_BINARY_DIR} EXCLUDE_FROM_ALL)
+        include_directories(${cpp-httplib_SOURCE_DIR})
     endif ()
 endif ()

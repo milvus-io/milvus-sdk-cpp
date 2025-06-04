@@ -512,8 +512,8 @@ MilvusClientImpl::ListDatabases(std::vector<std::string>& names) {
 }
 
 Status
-MilvusClientImpl::AlterDatabase(const std::string& db_name,
-                                const std::unordered_map<std::string, std::string>& properties) {
+MilvusClientImpl::AlterDatabaseProperties(const std::string& db_name,
+                                          const std::unordered_map<std::string, std::string>& properties) {
     auto pre = [&db_name, &properties]() {
         proto::milvus::AlterDatabaseRequest rpc_request;
         rpc_request.set_db_name(db_name);
@@ -522,6 +522,23 @@ MilvusClientImpl::AlterDatabase(const std::string& db_name,
             auto kv_pair = rpc_request.add_properties();
             kv_pair->set_key(pair.first);
             kv_pair->set_value(pair.second);
+        }
+
+        return rpc_request;
+    };
+
+    return apiHandler<proto::milvus::AlterDatabaseRequest, proto::common::Status>(pre,
+                                                                                  &MilvusConnection::AlterDatabase);
+}
+
+Status
+MilvusClientImpl::DropDatabaseProperties(const std::string& db_name, const std::vector<std::string>& properties) {
+    auto pre = [&db_name, &properties]() {
+        proto::milvus::AlterDatabaseRequest rpc_request;
+        rpc_request.set_db_name(db_name);
+
+        for (const auto& name : properties) {
+            rpc_request.add_delete_keys(name);
         }
 
         return rpc_request;
