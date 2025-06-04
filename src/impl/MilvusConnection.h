@@ -61,6 +61,29 @@ class MilvusConnection {
     Disconnect();
 
     Status
+    UsingDatabase(const std::string& db_name);
+
+    Status
+    CreateDatabase(const proto::milvus::CreateDatabaseRequest& request, proto::common::Status& response,
+                   const GrpcContextOptions& options);
+
+    Status
+    DropDatabase(const proto::milvus::DropDatabaseRequest& request, proto::common::Status& response,
+                 const GrpcContextOptions& options);
+
+    Status
+    ListDatabases(const proto::milvus::ListDatabasesRequest& request, proto::milvus::ListDatabasesResponse& response,
+                  const GrpcContextOptions& options);
+
+    Status
+    AlterDatabase(const proto::milvus::AlterDatabaseRequest& request, proto::common::Status& response,
+                  const GrpcContextOptions& options);
+
+    Status
+    DescribeDatabase(const proto::milvus::DescribeDatabaseRequest& request,
+                     proto::milvus::DescribeDatabaseResponse& response, const GrpcContextOptions& options);
+
+    Status
     GetVersion(const proto::milvus::GetVersionRequest& request, proto::milvus::GetVersionResponse& response,
                const GrpcContextOptions& options);
     Status
@@ -236,7 +259,7 @@ class MilvusConnection {
  private:
     std::unique_ptr<proto::milvus::MilvusService::Stub> stub_;
     std::shared_ptr<grpc::Channel> channel_;
-    std::string authorization_value_{};
+    ConnectParam param_;
 
     static Status
     StatusByProtoResponse(const proto::common::Status& status) {
@@ -274,11 +297,6 @@ class MilvusConnection {
         if (options.timeout > 0) {
             auto deadline = std::chrono::system_clock::now() + std::chrono::milliseconds{options.timeout};
             context.set_deadline(deadline);
-        }
-
-        if (!authorization_value_.empty()) {
-            context.AddMetadata("authorization", authorization_value_);
-            context.set_authority(authorization_value_);
         }
 
         ::grpc::Status grpc_status = (stub_.get()->*func)(&context, request, &response);

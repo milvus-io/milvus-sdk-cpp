@@ -25,9 +25,32 @@ namespace milvus {
 ConnectParam::ConnectParam(std::string host, uint16_t port) : host_(std::move(host)), port_(port) {
 }
 
+ConnectParam::ConnectParam(std::string host, uint16_t port, const std::string& token)
+    : host_(std::move(host)), port_(port) {
+    SetToken(token);
+}
+
 ConnectParam::ConnectParam(std::string host, uint16_t port, std::string username, std::string password)
     : host_(std::move(host)), port_(port) {
     SetAuthorizations(std::move(username), std::move(password));
+}
+
+ConnectParam&
+ConnectParam::operator=(const ConnectParam& other) {
+    if (this != &other) {
+        host_ = other.host_;
+        port_ = other.port_;
+        connect_timeout_ = other.connect_timeout_;
+        tls_ = other.tls_;
+        server_name_ = other.server_name_;
+        cert_ = other.cert_;
+        key_ = other.key_;
+        ca_cert_ = other.ca_cert_;
+        authorizations_ = other.authorizations_;
+        username_ = other.username_;
+        db_name_ = other.db_name_;
+    }
+    return *this;
 }
 
 const std::string&
@@ -53,6 +76,7 @@ ConnectParam::Authorizations() const {
 void
 ConnectParam::SetAuthorizations(std::string username, std::string password) {
     authorizations_ = milvus::Base64Encode(std::move(username) + ':' + std::move(password));
+    username_ = username;
 }
 
 uint32_t
@@ -136,6 +160,27 @@ ConnectParam::Key() const {
 const std::string&
 ConnectParam::CaCert() const {
     return ca_cert_;
+}
+
+const std::string&
+ConnectParam::Username() const {
+    return username_;
+}
+
+void
+ConnectParam::SetToken(const std::string& token) {
+    authorizations_ = milvus::Base64Encode(token);
+    username_ = "";
+}
+
+const std::string&
+ConnectParam::DbName() const {
+    return db_name_;
+}
+
+void
+ConnectParam::SetDbName(const std::string& db_name) {
+    db_name_ = db_name;
 }
 
 }  // namespace milvus
