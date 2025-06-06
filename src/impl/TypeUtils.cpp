@@ -171,6 +171,25 @@ operator==(const proto::schema::FieldData& lhs, const VarCharFieldData& rhs) {
 }
 
 bool
+operator==(const proto::schema::FieldData& lhs, const JSONFieldData& rhs) {
+    if (lhs.field_name() != rhs.Name()) {
+        return false;
+    }
+    if (!lhs.has_scalars()) {
+        return false;
+    }
+    const auto& scalars = lhs.scalars();
+    if (!scalars.has_json_data()) {
+        return false;
+    }
+    const auto& scalars_data = scalars.json_data().data();
+    if (scalars_data.size() != rhs.Count()) {
+        return false;
+    }
+    return std::equal(scalars_data.begin(), scalars_data.end(), rhs.Data().begin());
+}
+
+bool
 operator==(const proto::schema::FieldData& lhs, const BinaryVecFieldData& rhs) {
     if (lhs.field_name() != rhs.Name()) {
         return false;
@@ -251,6 +270,8 @@ operator==(const proto::schema::FieldData& lhs, const Field& rhs) {
             return lhs == dynamic_cast<const DoubleFieldData&>(rhs);
         case DataType::VARCHAR:
             return lhs == dynamic_cast<const VarCharFieldData&>(rhs);
+        case DataType::JSON:
+            return lhs == dynamic_cast<const JSONFieldData&>(rhs);
         case DataType::BINARY_VECTOR:
             return lhs == dynamic_cast<const BinaryVecFieldData&>(rhs);
         case DataType::FLOAT_VECTOR:
@@ -292,6 +313,8 @@ DataTypeCast(DataType type) {
             return proto::schema::DataType::Double;
         case DataType::VARCHAR:
             return proto::schema::DataType::VarChar;
+        case DataType::JSON:
+            return proto::schema::DataType::JSON;
         case DataType::BINARY_VECTOR:
             return proto::schema::DataType::BinaryVector;
         case DataType::FLOAT_VECTOR:
@@ -320,6 +343,8 @@ DataTypeCast(proto::schema::DataType type) {
             return DataType::DOUBLE;
         case proto::schema::DataType::VarChar:
             return DataType::VARCHAR;
+        case proto::schema::DataType::JSON:
+            return DataType::JSON;
         case proto::schema::DataType::BinaryVector:
             return DataType::BINARY_VECTOR;
         case proto::schema::DataType::FloatVector:
@@ -513,6 +538,17 @@ CreateProtoFieldData(const VarCharFieldData& field) {
     return ret;
 }
 
+proto::schema::ScalarField*
+CreateProtoFieldData(const JSONFieldData& field) {
+    auto ret = new proto::schema::ScalarField{};
+    auto& data = field.Data();
+    auto& scalars_data = *(ret->mutable_json_data());
+    for (const auto& item : data) {
+        scalars_data.add_data(item.dump());
+    }
+    return ret;
+}
+
 proto::schema::FieldData
 CreateProtoFieldData(const Field& field) {
     proto::schema::FieldData field_data;
@@ -551,7 +587,11 @@ CreateProtoFieldData(const Field& field) {
         case DataType::VARCHAR:
             field_data.set_allocated_scalars(CreateProtoFieldData(dynamic_cast<const VarCharFieldData&>(field)));
             break;
+        case DataType::JSON:
+            field_data.set_allocated_scalars(CreateProtoFieldData(dynamic_cast<const JSONFieldData&>(field)));
+            break;
         default:
+            // TODO: should throw error here
             break;
     }
 
@@ -605,6 +645,15 @@ CreateMilvusFieldData(const milvus::proto::schema::FieldData& field_data, size_t
         case proto::schema::DataType::VarChar:
             return std::make_shared<VarCharFieldData>(
                 name, BuildFieldDataScalars<std::string>(field_data.scalars().string_data().data(), offset, count));
+
+        case proto::schema::DataType::JSON: {
+            std::vector<nlohmann::json> objects;
+            const auto& scalars_data = field_data.scalars().json_data().data();
+            for (const auto& s : scalars_data) {
+                objects.emplace_back(nlohmann::json::parse(s));
+            }
+            return std::make_shared<JSONFieldData>(name, BuildFieldDataScalars<nlohmann::json>(objects, offset, count));
+        }
         default:
             return nullptr;
     }
@@ -657,6 +706,15 @@ CreateMilvusFieldData(const milvus::proto::schema::FieldData& field_data) {
         case proto::schema::DataType::VarChar:
             return std::make_shared<VarCharFieldData>(
                 name, BuildFieldDataScalars<std::string>(field_data.scalars().string_data().data()));
+
+        case proto::schema::DataType::JSON: {
+            std::vector<nlohmann::json> objects;
+            const auto& scalars_data = field_data.scalars().json_data().data();
+            for (const auto& s : scalars_data) {
+                objects.emplace_back(nlohmann::json::parse(s));
+            }
+            return std::make_shared<JSONFieldData>(name, BuildFieldDataScalars<nlohmann::json>(objects));
+        }
         default:
             return nullptr;
     }

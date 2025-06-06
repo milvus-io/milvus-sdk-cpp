@@ -87,8 +87,8 @@ MilvusClientImpl::CreateCollection(const CollectionSchema& schema) {
             rpc_field->set_is_primary_key(field.IsPrimaryKey());
             rpc_field->set_autoid(field.AutoID());
 
-            proto::common::KeyValuePair* kv = rpc_field->add_type_params();
             for (auto& pair : field.TypeParams()) {
+                proto::common::KeyValuePair* kv = rpc_field->add_type_params();
                 kv->set_key(pair.first);
                 kv->set_value(pair.second);
             }
@@ -924,6 +924,18 @@ MilvusClientImpl::Query(const QueryArguments& arguments, QueryResults& results, 
 
         rpc_request.set_travel_timestamp(arguments.TravelTimestamp());
         rpc_request.set_guarantee_timestamp(arguments.GuaranteeTimestamp());
+
+        if (arguments.Limit() > 0) {
+            proto::common::KeyValuePair* pair = rpc_request.add_query_params();
+            pair->set_key("limit");
+            pair->set_value(std::to_string(arguments.Limit()));
+        }
+        if (arguments.Offset() > 0) {
+            proto::common::KeyValuePair* pair = rpc_request.add_query_params();
+            pair->set_key("offset");
+            pair->set_value(std::to_string(arguments.Offset()));
+        }
+
         return rpc_request;
     };
 

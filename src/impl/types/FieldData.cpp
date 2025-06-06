@@ -81,12 +81,15 @@ FieldData<T, Dt>::FieldData(std::string name) : Field(std::move(name), Dt) {
 }
 
 template <typename T, DataType Dt>
-FieldData<T, Dt>::FieldData(std::string name, const std::vector<T>& data) : Field(std::move(name), Dt), data_{data} {
+FieldData<T, Dt>::FieldData(std::string name, const std::vector<T>& data) : Field(std::move(name), Dt) {
+    // use "=" instead of constructor because the nlohmann::json constructor does special things
+    data_ = data;
 }
 
 template <typename T, DataType Dt>
-FieldData<T, Dt>::FieldData(std::string name, std::vector<T>&& data)
-    : Field(std::move(name), Dt), data_{std::move(data)} {
+FieldData<T, Dt>::FieldData(std::string name, std::vector<T>&& data) : Field(std::move(name), Dt) {
+    // use "=" instead of constructor because the nlohmann::json constructor does special things
+    data_ = std::move(data);
 }
 
 template <typename T, DataType Dt>
@@ -197,6 +200,7 @@ template class FieldData<int64_t, DataType::INT64>;
 template class FieldData<float, DataType::FLOAT>;
 template class FieldData<double, DataType::DOUBLE>;
 template class FieldData<std::string, DataType::VARCHAR>;
+template class FieldData<nlohmann::json, DataType::JSON>;
 template class FieldData<std::string, DataType::BINARY_VECTOR>;
 template class FieldData<std::vector<float>, DataType::FLOAT_VECTOR>;
 
