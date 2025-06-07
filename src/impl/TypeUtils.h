@@ -51,6 +51,9 @@ bool
 operator==(const proto::schema::FieldData& lhs, const VarCharFieldData& rhs);
 
 bool
+operator==(const proto::schema::FieldData& lhs, const JSONFieldData& rhs);
+
+bool
 operator==(const proto::schema::FieldData& lhs, const BinaryVecFieldData& rhs);
 
 bool
@@ -115,6 +118,9 @@ CreateProtoFieldData(const DoubleFieldData& field);
 
 proto::schema::ScalarField*
 CreateProtoFieldData(const VarCharFieldData& field);
+
+proto::schema::ScalarField*
+CreateProtoFieldData(const JSONFieldData& field);
 
 proto::schema::FieldData
 CreateProtoFieldData(const Field& field);

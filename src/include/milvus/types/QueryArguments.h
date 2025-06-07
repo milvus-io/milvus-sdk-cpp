@@ -109,6 +109,30 @@ class QueryArguments {
     Status
     SetGuaranteeTimestamp(uint64_t timestamp);
 
+    /**
+     * @brief Get limit value.
+     */
+    int64_t
+    Limit() const;
+
+    /**
+     * @brief Set limit value, only avaiable when expression is empty
+     */
+    Status
+    SetLimit(int64_t limit);
+
+    /**
+     * @brief Get offset value.
+     */
+    int64_t
+    Offset() const;
+
+    /**
+     * @brief Set offset value, only avaiable when expression is empty
+     */
+    Status
+    SetOffset(int64_t offset);
+
  private:
     std::string collection_name_;
     std::set<std::string> partition_names_;
@@ -119,6 +143,9 @@ class QueryArguments {
 
     uint64_t travel_timestamp_{0};
     uint64_t guarantee_timestamp_{0};
+
+    int64_t limit_{0};
+    int64_t offset_{0};
 };
 
 }  // namespace milvus

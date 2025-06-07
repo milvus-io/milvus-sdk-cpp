@@ -99,4 +99,26 @@ QueryArguments::SetGuaranteeTimestamp(uint64_t timestamp) {
     return Status::OK();
 }
 
+int64_t
+QueryArguments::Limit() const {
+    return limit_;
+}
+
+Status
+QueryArguments::SetLimit(int64_t limit) {
+    limit_ = limit;
+    return Status::OK();
+}
+
+int64_t
+QueryArguments::Offset() const {
+    return offset_;
+}
+
+Status
+QueryArguments::SetOffset(int64_t offset) {
+    offset_ = offset;
+    return Status::OK();
+}
+
 }  // namespace milvus

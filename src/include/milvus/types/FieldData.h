@@ -17,6 +17,7 @@
 #pragma once
 
 #include <memory>
+#include <nlohmann/json.hpp>
 #include <vector>
 
 #include "../Status.h"
@@ -231,6 +232,7 @@ using Int64FieldData = FieldData<int64_t, DataType::INT64>;
 using FloatFieldData = FieldData<float, DataType::FLOAT>;
 using DoubleFieldData = FieldData<double, DataType::DOUBLE>;
 using VarCharFieldData = FieldData<std::string, DataType::VARCHAR>;
+using JSONFieldData = FieldData<nlohmann::json, DataType::JSON>;
 using FloatVecFieldData = FieldData<std::vector<float>, DataType::FLOAT_VECTOR>;
 
 using BoolFieldDataPtr = std::shared_ptr<BoolFieldData>;
@@ -241,6 +243,7 @@ using Int64FieldDataPtr = std::shared_ptr<Int64FieldData>;
 using FloatFieldDataPtr = std::shared_ptr<FloatFieldData>;
 using DoubleFieldDataPtr = std::shared_ptr<DoubleFieldData>;
 using VarCharFieldDataPtr = std::shared_ptr<VarCharFieldData>;
+using JSONFieldDataPtr = std::shared_ptr<JSONFieldData>;
 using BinaryVecFieldDataPtr = std::shared_ptr<BinaryVecFieldData>;
 using FloatVecFieldDataPtr = std::shared_ptr<FloatVecFieldData>;
 
@@ -252,6 +255,7 @@ extern template class FieldData<int64_t, DataType::INT64>;
 extern template class FieldData<float, DataType::FLOAT>;
 extern template class FieldData<double, DataType::DOUBLE>;
 extern template class FieldData<std::string, DataType::VARCHAR>;
+extern template class FieldData<nlohmann::json, DataType::JSON>;
 extern template class FieldData<std::string, DataType::BINARY_VECTOR>;
 extern template class FieldData<std::vector<float>, DataType::FLOAT_VECTOR>;
 

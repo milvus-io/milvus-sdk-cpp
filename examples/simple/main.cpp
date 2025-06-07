@@ -15,20 +15,12 @@
 // limitations under the License.
 
 #include <iostream>
-#include <random>
 #include <string>
 #include <thread>
 
 #include "milvus/MilvusClient.h"
 #include "milvus/types/CollectionSchema.h"
-
-void
-CheckStatus(std::string&& prefix, const milvus::Status& status) {
-    if (!status.IsOk()) {
-        std::cout << prefix << " " << status.Message() << std::endl;
-        exit(1);
-    }
-}
+#include "util/ExampleUtils.h"
 
 int
 main(int argc, char* argv[]) {
@@ -45,7 +37,7 @@ main(int argc, char* argv[]) {
     status = client->ListDatabases(db_names);
     CheckStatus("Failed to create database:", status);
 
-    const std::string my_db_name = "my_temp_db_for_test";
+    const std::string my_db_name = "my_temp_db_for_cpp_test";
     std::cout << "Databases: ";
     for (const auto& name : db_names) {
         std::cout << name << ",";
@@ -72,7 +64,7 @@ main(int argc, char* argv[]) {
     std::cout << "Switch to database: " << my_db_name << std::endl;
 
     // drop the collection if it exists
-    const std::string collection_name = "TEST";
+    const std::string collection_name = "TEST_CPP_SIMPLE";
     status = client->DropCollection(collection_name);
 
     // create a collection
@@ -81,6 +73,8 @@ main(int argc, char* argv[]) {
     const std::string field_age = "user_age";
     const std::string field_face = "user_face";
     const uint32_t dimension = 128;
+
+    // collection schema, create collection
     milvus::CollectionSchema collection_schema(collection_name);
     collection_schema.AddField({field_id, milvus::DataType::INT64, "user id", true, false});
     milvus::FieldSchema varchar_scheam{field_name, milvus::DataType::VARCHAR, "user name"};
@@ -125,20 +119,11 @@ main(int argc, char* argv[]) {
     std::vector<int64_t> insert_ids;
     std::vector<std::string> insert_names;
     std::vector<int8_t> insert_ages;
-    std::vector<std::vector<float>> insert_vectors;
-    std::default_random_engine ran(time(nullptr));
-    std::uniform_int_distribution<int> int_gen(1, 100);
-    std::uniform_real_distribution<float> float_gen(0.0, 1.0);
+    std::vector<std::vector<float>> insert_vectors = GenerateFloatVectors(dimension, row_count);
     for (auto i = 0; i < row_count; ++i) {
         insert_ids.push_back(i);
         insert_names.push_back("user_" + std::to_string(i));
-        insert_ages.push_back(int_gen(ran));
-        std::vector<float> vector(dimension);
-
-        for (auto i = 0; i < dimension; ++i) {
-            vector[i] = float_gen(ran);
-        }
-        insert_vectors.emplace_back(vector);
+        insert_ages.push_back(static_cast<int8_t>(RandomeValue<int>(1, 100)));
     }
 
     std::vector<milvus::FieldDataPtr> fields_data{
@@ -199,9 +184,8 @@ main(int argc, char* argv[]) {
     // set to strong guarantee so that the search is executed after the inserted data is persisted
     s_arguments.SetGuaranteeTimestamp(milvus::GuaranteeStrongTs());
 
-    std::uniform_int_distribution<int64_t> int64_gen(0, row_count - 1);
-    int64_t q_number_1 = int64_gen(ran);
-    int64_t q_number_2 = int64_gen(ran);
+    auto q_number_1 = RandomeValue<int64_t>(0, row_count - 1);
+    auto q_number_2 = RandomeValue<int64_t>(0, row_count - 1);
     s_arguments.AddTargetVector(field_face, std::move(insert_vectors[q_number_1]));
     s_arguments.AddTargetVector(field_face, std::move(insert_vectors[q_number_2]));
     std::cout << "Searching the No." << q_number_1 << " and No." << q_number_2 << " with expression: " << filter_expr
