@@ -197,6 +197,7 @@ template class FieldData<int64_t, DataType::INT64>;
 template class FieldData<float, DataType::FLOAT>;
 template class FieldData<double, DataType::DOUBLE>;
 template class FieldData<std::string, DataType::VARCHAR>;
+template class FieldData<nlohmann::json, DataType::JSON>;
 template class FieldData<std::string, DataType::BINARY_VECTOR>;
 template class FieldData<std::vector<float>, DataType::FLOAT_VECTOR>;
 
