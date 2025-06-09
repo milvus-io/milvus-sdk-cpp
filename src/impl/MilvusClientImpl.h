@@ -122,7 +122,7 @@ class MilvusClientImpl : public MilvusClient {
     DropDatabaseProperties(const std::string& db_name, const std::vector<std::string>& properties) final;
 
     Status
-    DescribeDatabase(const std::string& db_name, std::unordered_map<std::string, std::string>& properties) final;
+    DescribeDatabase(const std::string& db_name, DatabaseDesc& db_desc) final;
 
     Status
     CreateIndex(const std::string& collection_name, const IndexDesc& index_desc,

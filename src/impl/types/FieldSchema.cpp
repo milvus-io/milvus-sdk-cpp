@@ -61,6 +61,22 @@ FieldSchema::SetDataType(DataType dt) {
     data_type_ = dt;
 }
 
+DataType
+FieldSchema::ElementType() const {
+    return element_type_;
+}
+
+void
+FieldSchema::SetElementType(DataType dt) {
+    element_type_ = dt;
+}
+
+FieldSchema&
+FieldSchema::WithElementType(DataType dt) {
+    SetElementType(dt);
+    return *this;
+}
+
 bool
 FieldSchema::IsPrimaryKey() const {
     return is_primary_key_;
@@ -137,6 +153,26 @@ FieldSchema::SetMaxLength(uint32_t length) {
 FieldSchema&
 FieldSchema::WithMaxLength(uint32_t length) {
     SetMaxLength(length);
+    return *this;
+}
+
+uint32_t
+FieldSchema::MaxCapacity() const {
+    auto iter = type_params_.find(FieldMaxCapacity());
+    if (iter != type_params_.end()) {
+        return std::strtol(iter->second.c_str(), nullptr, 10);
+    }
+    return 0;
+}
+
+void
+FieldSchema::SetMaxCapacity(uint32_t capacity) {
+    type_params_[FieldMaxCapacity()] = std::to_string(capacity);
+}
+
+FieldSchema&
+FieldSchema::WithMaxCapacity(uint32_t capacity) {
+    SetMaxCapacity(capacity);
     return *this;
 }
 

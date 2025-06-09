@@ -89,39 +89,6 @@ MetricTypeCast(const std::string& type);
 IndexType
 IndexTypeCast(const std::string& type);
 
-proto::schema::VectorField*
-CreateProtoFieldData(const BinaryVecFieldData& field);
-
-proto::schema::VectorField*
-CreateProtoFieldData(const FloatVecFieldData& field);
-
-proto::schema::ScalarField*
-CreateProtoFieldData(const BoolFieldData& field);
-
-proto::schema::ScalarField*
-CreateProtoFieldData(const Int8FieldData& field);
-
-proto::schema::ScalarField*
-CreateProtoFieldData(const Int16FieldData& field);
-
-proto::schema::ScalarField*
-CreateProtoFieldData(const Int32FieldData& field);
-
-proto::schema::ScalarField*
-CreateProtoFieldData(const Int64FieldData& field);
-
-proto::schema::ScalarField*
-CreateProtoFieldData(const FloatFieldData& field);
-
-proto::schema::ScalarField*
-CreateProtoFieldData(const DoubleFieldData& field);
-
-proto::schema::ScalarField*
-CreateProtoFieldData(const VarCharFieldData& field);
-
-proto::schema::ScalarField*
-CreateProtoFieldData(const JSONFieldData& field);
-
 proto::schema::FieldData
 CreateProtoFieldData(const Field& field);
 

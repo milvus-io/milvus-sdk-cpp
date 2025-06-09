@@ -24,6 +24,21 @@ class MilvusMockedService : public ::milvus::proto::milvus::MilvusService::Servi
  public:
     MOCK_METHOD3(GetVersion, ::grpc::Status(::grpc::ServerContext*, const ::milvus::proto::milvus::GetVersionRequest*,
                                             ::milvus::proto::milvus::GetVersionResponse*));
+    MOCK_METHOD3(CreateDatabase,
+                 ::grpc::Status(::grpc::ServerContext*, const ::milvus::proto::milvus::CreateDatabaseRequest*,
+                                ::milvus::proto::common::Status*));
+    MOCK_METHOD3(DropDatabase,
+                 ::grpc::Status(::grpc::ServerContext*, const ::milvus::proto::milvus::DropDatabaseRequest*,
+                                ::milvus::proto::common::Status*));
+    MOCK_METHOD3(ListDatabases,
+                 ::grpc::Status(::grpc::ServerContext*, const ::milvus::proto::milvus::ListDatabasesRequest*,
+                                ::milvus::proto::milvus::ListDatabasesResponse*));
+    MOCK_METHOD3(AlterDatabase,
+                 ::grpc::Status(::grpc::ServerContext*, const ::milvus::proto::milvus::AlterDatabaseRequest*,
+                                ::milvus::proto::common::Status*));
+    MOCK_METHOD3(DescribeDatabase,
+                 ::grpc::Status(::grpc::ServerContext*, const ::milvus::proto::milvus::DescribeDatabaseRequest*,
+                                ::milvus::proto::milvus::DescribeDatabaseResponse*));
     MOCK_METHOD3(CreateCollection,
                  ::grpc::Status(::grpc::ServerContext*, const ::milvus::proto::milvus::CreateCollectionRequest*,
                                 ::milvus::proto::common::Status*));

@@ -69,6 +69,14 @@ FieldMaxLength() {
 }
 
 /**
+ * @brief Max capacity field name for array field
+ */
+inline std::string
+FieldMaxCapacity() {
+    return "max_capacity";
+}
+
+/**
  * @brief Global definition for strong guarantee timestamp
  */
 inline uint64_t

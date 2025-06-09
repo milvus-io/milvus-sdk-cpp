@@ -27,6 +27,7 @@
 
 using ::milvus::FieldDataPtr;
 using ::milvus::StatusCode;
+using ::milvus::TestKv;
 using ::milvus::proto::milvus::DescribeCollectionRequest;
 using ::milvus::proto::milvus::DescribeCollectionResponse;
 using ::milvus::proto::milvus::SearchRequest;
@@ -38,20 +39,6 @@ using ::testing::AllOf;
 using ::testing::ElementsAre;
 using ::testing::Property;
 using ::testing::UnorderedElementsAre;
-
-namespace {
-struct TestKv {
-    TestKv(std::string key, std::string value) : key_(std::move(key)), value_(std::move(value)) {
-    }
-    std::string key_;
-    std::string value_;
-};
-
-bool
-operator==(const milvus::proto::common::KeyValuePair& lhs, const TestKv& rhs) {
-    return lhs.key() == rhs.key_ && lhs.value() == rhs.value_;
-}
-}  // namespace
 
 template <typename T>
 milvus::Status

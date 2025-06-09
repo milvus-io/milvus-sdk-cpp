@@ -54,10 +54,10 @@ main(int argc, char* argv[]) {
     CheckStatus("Failed to create database:", status);
     std::cout << "Database created: " << my_db_name << std::endl;
 
-    props.clear();
-    status = client->DescribeDatabase(my_db_name, props);
+    milvus::DatabaseDesc db_desc;
+    status = client->DescribeDatabase(my_db_name, db_desc);
     CheckStatus("Failed to describe database:", status);
-    std::cout << "database.replica.number = " << props["database.replica.number"] << std::endl;
+    std::cout << "database.replica.number = " << db_desc.Properties().at("database.replica.number") << std::endl;
 
     status = client->UsingDatabase(my_db_name);
     CheckStatus("Failed to switch database:", status);

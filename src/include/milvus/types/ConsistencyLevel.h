@@ -14,19 +14,20 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "MilvusMockedTest.h"
+#pragma once
 
-void
-milvus::MilvusMockedTest::SetUp() {
-    server_.Start();
-    client_ = milvus::MilvusClient::Create();
-}
+namespace milvus {
 
-void
-milvus::MilvusMockedTest::TearDown() {
-}
+/**
+ * @brief Consistency level for search/query
+ */
+enum class ConsistencyLevel {
+    NONE = -1,
 
-bool
-milvus::operator==(const milvus::proto::common::KeyValuePair& lhs, const TestKv& rhs) {
-    return lhs.key() == rhs.key_ && lhs.value() == rhs.value_;
-}
+    STRONG = 0,
+    // SESSION = 1,
+    BOUNDED = 2,
+    EVENTUALLY = 3,
+};
+
+}  // namespace milvus

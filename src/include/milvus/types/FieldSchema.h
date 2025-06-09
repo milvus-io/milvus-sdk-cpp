@@ -75,6 +75,24 @@ class FieldSchema {
     SetDataType(DataType dt);
 
     /**
+     * @brief Element type of array field.
+     */
+    DataType
+    ElementType() const;
+
+    /**
+     * @brief Set element type for array field.
+     */
+    void
+    SetElementType(DataType dt);
+
+    /**
+     * @brief Set element type for array field.
+     */
+    FieldSchema&
+    WithElementType(DataType dt);
+
+    /**
      * @brief The field is primary key or not.
      *
      * Each collection only has one primary key.
@@ -163,10 +181,29 @@ class FieldSchema {
     FieldSchema&
     WithMaxLength(uint32_t length);
 
+    /**
+     * @brief Get max length for a varchar field
+     */
+    uint32_t
+    MaxCapacity() const;
+
+    /**
+     * @brief Quickly set max capacity for an array field
+     */
+    void
+    SetMaxCapacity(uint32_t capacity);
+
+    /**
+     * @brief Quickly set max capacity for an array field
+     */
+    FieldSchema&
+    WithMaxCapacity(uint32_t capacity);
+
  private:
     std::string name_;
     std::string description_;
-    DataType data_type_{DataType::FLOAT};
+    DataType data_type_{DataType::UNKNOWN};
+    DataType element_type_{DataType::UNKNOWN};  // only for array field
     bool is_primary_key_ = false;
     bool auto_id_ = false;
     std::map<std::string, std::string> type_params_;
