@@ -69,3 +69,14 @@ TEST_F(FieldSchemaTest, TestForMaxLength) {
     EXPECT_EQ("300", schema.TypeParams().at(milvus::FieldMaxLength()));
     EXPECT_EQ(300, schema.MaxLength());
 }
+
+TEST_F(FieldSchemaTest, TestWithCapacity) {
+    auto schema = milvus::FieldSchema("array", milvus::DataType::ARRAY, "").WithMaxCapacity(100);
+    EXPECT_EQ(100, schema.MaxCapacity());
+    EXPECT_EQ("100", schema.TypeParams().at(milvus::FieldMaxCapacity()));
+}
+
+TEST_F(FieldSchemaTest, TestElementType) {
+    auto schema = milvus::FieldSchema("array", milvus::DataType::ARRAY, "").WithElementType(milvus::DataType::INT16);
+    EXPECT_EQ(milvus::DataType::INT16, schema.ElementType());
+}

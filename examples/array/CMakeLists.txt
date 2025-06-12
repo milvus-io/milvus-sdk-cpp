@@ -14,16 +14,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-cmake_minimum_required(VERSION 3.12)
-project(milvus_sdk_example LANGUAGES CXX C)
 
-set(CMAKE_CXX_STANDARD 14)
-set(CMAKE_CXX_STANDARD_REQUIRED on)
+add_executable(sdk_array
+        main.cpp
+        )
 
-message(STATUS "  CMAKE_SOURCE_DIR: ${CMAKE_SOURCE_DIR}")
-include_directories(${CMAKE_SOURCE_DIR}/src/include)
-include_directories(${CMAKE_SOURCE_DIR}/examples)
-
-add_subdirectory(simple)
-add_subdirectory(json)
-add_subdirectory(array)
+target_link_libraries(sdk_array
+        milvus_sdk
+        )

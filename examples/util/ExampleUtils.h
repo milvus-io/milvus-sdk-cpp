@@ -16,8 +16,10 @@
 
 #pragma once
 
+#include <algorithm>
 #include <iostream>
 #include <random>
+#include <type_traits>
 
 #include "milvus/Status.h"
 
@@ -56,11 +58,16 @@ std::vector<T>
 RandomeValues(T min, T max, int count) {
     std::random_device rd;
     std::mt19937 ran(rd());
-    std::uniform_int_distribution<T> ran_gen(min, max);
+    const auto is_float = std::is_same<T, float>::value || std::is_same<T, double>::value;
+    using REAL_GEN = std::uniform_real_distribution<float>;
+    using INT_GEN = std::uniform_int_distribution<int>;
+    typename std::conditional<is_float, REAL_GEN, INT_GEN>::type gen(min, max);
+
     std::vector<T> values(count);
     for (auto i = 0; i < count; ++i) {
-        values[i] = ran_gen(ran);
+        values[i] = static_cast<T>(gen(ran));
     }
+
     return std::move(values);
 }
 
@@ -69,4 +76,12 @@ T
 RandomeValue(T min, T max) {
     std::vector<T> values = RandomeValues(min, max, 1);
     return values[0];
+}
+
+std::vector<bool>
+RansomBools(int count) {
+    auto values = RandomeValues<int>(0, 100, count);
+    std::vector<bool> bools(count);
+    std::transform(values.begin(), values.end(), bools.begin(), [](int x) { return x % 2 == 1; });
+    return bools;
 }

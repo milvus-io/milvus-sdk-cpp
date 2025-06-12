@@ -35,6 +35,18 @@ TEST_F(IndexDescTest, GeneralTesting) {
     index_desc.SetIndexType(milvus::IndexType::IVF_FLAT);
     EXPECT_EQ(index_desc.IndexType(), milvus::IndexType::IVF_FLAT);
 
-    index_desc.SetMetricType(milvus::MetricType::L2);
-    EXPECT_EQ(index_desc.MetricType(), milvus::MetricType::L2);
+    index_desc.SetIndexedRows(5);
+    EXPECT_EQ(index_desc.IndexedRows(), 5);
+
+    index_desc.SetPendingRows(6);
+    EXPECT_EQ(index_desc.PendingRows(), 6);
+
+    index_desc.SetTotalRows(7);
+    EXPECT_EQ(index_desc.TotalRows(), 7);
+
+    index_desc.SetStateCode(milvus::IndexStateCode::IN_PROGRESS);
+    EXPECT_EQ(index_desc.StateCode(), milvus::IndexStateCode::IN_PROGRESS);
+
+    index_desc.SetFailReason("hello failed");
+    EXPECT_EQ(index_desc.FailReason(), "hello failed");
 }

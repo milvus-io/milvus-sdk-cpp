@@ -26,7 +26,7 @@
 #include "types/CompactionPlan.h"
 #include "types/CompactionState.h"
 #include "types/ConnectParam.h"
-#include "types/DistanceArray.h"
+#include "types/DatabaseDesc.h"
 #include "types/DmlResults.h"
 #include "types/FieldData.h"
 #include "types/HybridTimestamp.h"
@@ -364,11 +364,11 @@ class MilvusClient {
      * Describe a database.
      *
      * @param [in] db_name name of the database
-     * @param [out] properties properties of the database
+     * @param [out] db_desc information of the database
      * @return Status operation successfully or not
      */
     virtual Status
-    DescribeDatabase(const std::string& db_name, std::unordered_map<std::string, std::string>& properties) = 0;
+    DescribeDatabase(const std::string& db_name, DatabaseDesc& db_desc) = 0;
 
     /**
      * Create an index on a field. Currently only support index on vector field.

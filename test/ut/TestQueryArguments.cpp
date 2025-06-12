@@ -53,4 +53,9 @@ TEST_F(QueryArgumentsTest, GeneralTesting) {
     EXPECT_EQ(ts, arguments.TravelTimestamp());
     arguments.SetGuaranteeTimestamp(ts);
     EXPECT_EQ(ts, arguments.GuaranteeTimestamp());
+
+    arguments.SetLimit(88);
+    EXPECT_EQ(88, arguments.Limit());
+    arguments.SetOffset(99);
+    EXPECT_EQ(99, arguments.Offset());
 }

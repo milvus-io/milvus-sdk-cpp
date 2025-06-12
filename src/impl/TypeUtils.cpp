@@ -182,11 +182,17 @@ operator==(const proto::schema::FieldData& lhs, const JSONFieldData& rhs) {
     if (!scalars.has_json_data()) {
         return false;
     }
+
     const auto& scalars_data = scalars.json_data().data();
     if (scalars_data.size() != rhs.Count()) {
         return false;
     }
-    return std::equal(scalars_data.begin(), scalars_data.end(), rhs.Data().begin());
+
+    std::vector<nlohmann::json> jsons;
+    for (const auto& str : scalars_data) {
+        jsons.emplace_back(nlohmann::json::parse(str));
+    }
+    return std::equal(jsons.begin(), jsons.end(), rhs.Data().begin());
 }
 
 bool
@@ -315,6 +321,8 @@ DataTypeCast(DataType type) {
             return proto::schema::DataType::VarChar;
         case DataType::JSON:
             return proto::schema::DataType::JSON;
+        case DataType::ARRAY:
+            return proto::schema::DataType::Array;
         case DataType::BINARY_VECTOR:
             return proto::schema::DataType::BinaryVector;
         case DataType::FLOAT_VECTOR:
@@ -345,6 +353,8 @@ DataTypeCast(proto::schema::DataType type) {
             return DataType::VARCHAR;
         case proto::schema::DataType::JSON:
             return DataType::JSON;
+        case proto::schema::DataType::Array:
+            return DataType::ARRAY;
         case proto::schema::DataType::BinaryVector:
             return DataType::BINARY_VECTOR;
         case proto::schema::DataType::FloatVector:
@@ -531,10 +541,8 @@ proto::schema::ScalarField*
 CreateProtoFieldData(const VarCharFieldData& field) {
     auto ret = new proto::schema::ScalarField{};
     auto& data = field.Data();
-    auto& scalars_data = *(ret->mutable_string_data());
-    for (const auto& item : data) {
-        scalars_data.add_data(item);
-    }
+    auto& scalars_data = *(ret->mutable_string_data()->mutable_data());
+    scalars_data.Add(data.begin(), data.end());
     return ret;
 }
 
@@ -546,6 +554,102 @@ CreateProtoFieldData(const JSONFieldData& field) {
     for (const auto& item : data) {
         scalars_data.add_data(item.dump());
     }
+    return ret;
+}
+
+proto::schema::ScalarField*
+CreateProtoArrayFieldData(const Field& field) {
+    auto ret = new proto::schema::ScalarField{};
+    auto element_type = field.ElementType();
+    auto& array_data = *(ret->mutable_array_data());
+    array_data.set_element_type(DataTypeCast(element_type));
+
+    switch (element_type) {
+        case DataType::BOOL: {
+            const auto& arrayField = dynamic_cast<const ArrayBoolFieldData&>(field);
+            const auto& data = arrayField.Data();
+            for (const auto& row : data) {
+                auto& scalar_field = *(array_data.add_data());
+                auto& scalars_data = *(scalar_field.mutable_bool_data()->mutable_data());
+                scalars_data.Add(row.begin(), row.end());
+            }
+            break;
+        }
+        case DataType::INT8: {
+            const auto& arrayField = dynamic_cast<const ArrayInt8FieldData&>(field);
+            const auto& data = arrayField.Data();
+            for (const auto& row : data) {
+                auto& scalar_field = *(array_data.add_data());
+                auto& scalars_data = *(scalar_field.mutable_int_data()->mutable_data());
+                scalars_data.Add(row.begin(), row.end());
+            }
+            break;
+        }
+        case DataType::INT16: {
+            const auto& arrayField = dynamic_cast<const ArrayInt16FieldData&>(field);
+            const auto& data = arrayField.Data();
+            for (const auto& row : data) {
+                auto& scalar_field = *(array_data.add_data());
+                auto& scalars_data = *(scalar_field.mutable_int_data()->mutable_data());
+                scalars_data.Add(row.begin(), row.end());
+            }
+            break;
+        }
+        case DataType::INT32: {
+            const auto& arrayField = dynamic_cast<const ArrayInt32FieldData&>(field);
+            const auto& data = arrayField.Data();
+            for (const auto& row : data) {
+                auto& scalar_field = *(array_data.add_data());
+                auto& scalars_data = *(scalar_field.mutable_int_data()->mutable_data());
+                scalars_data.Add(row.begin(), row.end());
+            }
+            break;
+        }
+        case DataType::INT64: {
+            const auto& arrayField = dynamic_cast<const ArrayInt64FieldData&>(field);
+            const auto& data = arrayField.Data();
+            for (const auto& row : data) {
+                auto& scalar_field = *(array_data.add_data());
+                auto& scalars_data = *(scalar_field.mutable_long_data()->mutable_data());
+                scalars_data.Add(row.begin(), row.end());
+            }
+            break;
+        }
+        case DataType::FLOAT: {
+            const auto& arrayField = dynamic_cast<const ArrayFloatFieldData&>(field);
+            const auto& data = arrayField.Data();
+            for (const auto& row : data) {
+                auto& scalar_field = *(array_data.add_data());
+                auto& scalars_data = *(scalar_field.mutable_float_data()->mutable_data());
+                scalars_data.Add(row.begin(), row.end());
+            }
+            break;
+        }
+        case DataType::DOUBLE: {
+            const auto& arrayField = dynamic_cast<const ArrayDoubleFieldData&>(field);
+            const auto& data = arrayField.Data();
+            for (const auto& row : data) {
+                auto& scalar_field = *(array_data.add_data());
+                auto& scalars_data = *(scalar_field.mutable_double_data()->mutable_data());
+                scalars_data.Add(row.begin(), row.end());
+            }
+            break;
+        }
+        case DataType::VARCHAR: {
+            const auto& arrayField = dynamic_cast<const ArrayVarCharFieldData&>(field);
+            const auto& data = arrayField.Data();
+            for (const auto& row : data) {
+                auto& scalar_field = *(array_data.add_data());
+                auto& scalars_data = *(scalar_field.mutable_string_data()->mutable_data());
+                scalars_data.Add(row.begin(), row.end());
+            }
+            break;
+        }
+        default:
+            // TODO: should throw error here
+            break;
+    }
+
     return ret;
 }
 
@@ -590,12 +694,99 @@ CreateProtoFieldData(const Field& field) {
         case DataType::JSON:
             field_data.set_allocated_scalars(CreateProtoFieldData(dynamic_cast<const JSONFieldData&>(field)));
             break;
+        case DataType::ARRAY:
+            field_data.set_allocated_scalars(CreateProtoArrayFieldData(field));
+            break;
         default:
             // TODO: should throw error here
             break;
     }
 
     return field_data;
+}
+
+FieldDataPtr
+CreateMilvusArrayFieldData(const std::string& name, const milvus::proto::schema::ArrayArray& array_field, int offset,
+                           int count) {
+    const auto& scalars_data = array_field.data();
+    auto begin = scalars_data.begin();
+    if (offset < 0) {
+        offset = 0;
+    }
+    std::advance(begin, offset);
+    auto end = begin;
+    // avoid overflow
+    int arr_size = scalars_data.size();
+    if (offset < arr_size) {
+        if (offset + count > arr_size) {
+            count = arr_size - offset;
+        }
+        if (count > 0) {
+            std::advance(end, count);
+        }
+    }
+
+    proto::schema::DataType element_type = array_field.element_type();
+    switch (element_type) {
+        case proto::schema::DataType::Bool: {
+            std::vector<ArrayBoolFieldData::ElementT> arr;
+            for (; begin != end; begin++) {
+                arr.emplace_back(BuildFieldDataScalars<bool>((*begin).bool_data().data()));
+            }
+            return std::make_shared<ArrayBoolFieldData>(name, arr);
+        }
+        case proto::schema::DataType::Int8: {
+            std::vector<ArrayInt8FieldData::ElementT> arr;
+            for (; begin != end; begin++) {
+                arr.emplace_back(BuildFieldDataScalars<int8_t>((*begin).int_data().data()));
+            }
+            return std::make_shared<ArrayInt8FieldData>(name, arr);
+        }
+        case proto::schema::DataType::Int16: {
+            std::vector<ArrayInt16FieldData::ElementT> arr;
+            for (; begin != end; begin++) {
+                arr.emplace_back(BuildFieldDataScalars<int16_t>((*begin).int_data().data()));
+            }
+            return std::make_shared<ArrayInt16FieldData>(name, arr);
+        }
+        case proto::schema::DataType::Int32: {
+            std::vector<ArrayInt32FieldData::ElementT> arr;
+            for (; begin != end; begin++) {
+                arr.emplace_back(BuildFieldDataScalars<int32_t>((*begin).int_data().data()));
+            }
+            return std::make_shared<ArrayInt32FieldData>(name, arr);
+        }
+        case proto::schema::DataType::Int64: {
+            std::vector<ArrayInt64FieldData::ElementT> arr;
+            for (; begin != end; begin++) {
+                arr.emplace_back(BuildFieldDataScalars<int64_t>((*begin).long_data().data()));
+            }
+            return std::make_shared<ArrayInt64FieldData>(name, arr);
+        }
+        case proto::schema::DataType::Float: {
+            std::vector<ArrayFloatFieldData::ElementT> arr;
+            for (; begin != end; begin++) {
+                arr.emplace_back(BuildFieldDataScalars<float>((*begin).float_data().data()));
+            }
+            return std::make_shared<ArrayFloatFieldData>(name, arr);
+        }
+        case proto::schema::DataType::Double: {
+            std::vector<ArrayDoubleFieldData::ElementT> arr;
+            for (; begin != end; begin++) {
+                arr.emplace_back(BuildFieldDataScalars<double>((*begin).double_data().data()));
+            }
+            return std::make_shared<ArrayDoubleFieldData>(name, arr);
+        }
+        case proto::schema::DataType::VarChar: {
+            std::vector<ArrayVarCharFieldData::ElementT> arr;
+            for (; begin != end; begin++) {
+                arr.emplace_back(BuildFieldDataScalars<std::string>((*begin).string_data().data()));
+            }
+            return std::make_shared<ArrayVarCharFieldData>(name, arr);
+        }
+        default:
+            return nullptr;
+    }
 }
 
 FieldDataPtr
@@ -653,6 +844,10 @@ CreateMilvusFieldData(const milvus::proto::schema::FieldData& field_data, size_t
                 objects.emplace_back(nlohmann::json::parse(s));
             }
             return std::make_shared<JSONFieldData>(name, BuildFieldDataScalars<nlohmann::json>(objects, offset, count));
+        }
+
+        case proto::schema::DataType::Array: {
+            return CreateMilvusArrayFieldData(name, field_data.scalars().array_data(), offset, count);
         }
         default:
             return nullptr;
@@ -714,6 +909,11 @@ CreateMilvusFieldData(const milvus::proto::schema::FieldData& field_data) {
                 objects.emplace_back(nlohmann::json::parse(s));
             }
             return std::make_shared<JSONFieldData>(name, BuildFieldDataScalars<nlohmann::json>(objects));
+        }
+
+        case proto::schema::DataType::Array: {
+            const auto& scalars_data = field_data.scalars().array_data();
+            return CreateMilvusArrayFieldData(name, scalars_data, 0, scalars_data.data().size());
         }
         default:
             return nullptr;

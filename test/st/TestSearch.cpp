@@ -36,6 +36,7 @@ class MilvusServerTestSearch : public MilvusServerTest {
         collection_schema.AddField(
             milvus::FieldSchema("face", milvus::DataType::FLOAT_VECTOR, "face signature").WithDimension(4));
 
+        client_->DropCollection(collection_name);
         auto status = client_->CreateCollection(collection_schema);
         EXPECT_EQ(status.Message(), "OK");
         EXPECT_TRUE(status.IsOk());
@@ -97,6 +98,8 @@ TEST_F(MilvusServerTestSearch, SearchWithoutIndex) {
     arguments.SetExpression("id > 0");
     arguments.AddTargetVector("face", std::vector<float>{0.f, 0.f, 0.f, 0.f});
     arguments.AddTargetVector("face", std::vector<float>{1.f, 1.f, 1.f, 1.f});
+    arguments.SetGuaranteeTimestamp(milvus::GuaranteeStrongTs());
+
     milvus::SearchResults search_results{};
     auto status = client_->Search(arguments, search_results);
     EXPECT_EQ(status.Message(), "OK");
@@ -155,6 +158,8 @@ TEST_F(MilvusServerTestSearch, RangeSearch) {
     arguments.AddOutputField("name");
     arguments.AddTargetVector("face", std::vector<float>{0.f, 0.f, 0.f, 0.f});
     arguments.AddTargetVector("face", std::vector<float>{1.f, 1.f, 1.f, 1.f});
+    arguments.SetGuaranteeTimestamp(milvus::GuaranteeStrongTs());
+
     milvus::SearchResults search_results{};
     auto status = client_->Search(arguments, search_results);
     EXPECT_EQ(status.Message(), "OK");
@@ -218,6 +223,8 @@ TEST_F(MilvusServerTestSearch, SearchWithStringFilter) {
     arguments.SetExpression("name like \"To%\"");  // Tom match To%
     arguments.AddTargetVector("face", std::vector<float>{0.f, 0.f, 0.f, 0.f});
     arguments.AddTargetVector("face", std::vector<float>{1.f, 1.f, 1.f, 1.f});
+    arguments.SetGuaranteeTimestamp(milvus::GuaranteeStrongTs());
+
     milvus::SearchResults search_results{};
     auto status = client_->Search(arguments, search_results);
     EXPECT_EQ(status.Message(), "OK");
@@ -280,6 +287,8 @@ TEST_F(MilvusServerTestSearch, SearchWithIVFIndex) {
     arguments.AddExtraParam("nprobe", 10);
     arguments.AddTargetVector("face", std::vector<float>{0.f, 0.f, 0.f, 0.f});
     arguments.AddTargetVector("face", std::vector<float>{1.f, 1.f, 1.f, 1.f});
+    arguments.SetGuaranteeTimestamp(milvus::GuaranteeStrongTs());
+
     milvus::SearchResults search_results{};
     status = client_->Search(arguments, search_results);
     EXPECT_EQ(status.Message(), "OK");

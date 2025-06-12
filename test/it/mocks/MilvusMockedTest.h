@@ -34,6 +34,17 @@ class MilvusMockedTest : public ::testing::Test {
     void
     TearDown() override;
 };
+
+struct TestKv {
+    TestKv(std::string key, std::string value) : key_(std::move(key)), value_(std::move(value)) {
+    }
+    std::string key_;
+    std::string value_;
+};
+
+bool
+operator==(const milvus::proto::common::KeyValuePair& lhs, const TestKv& rhs);
+
 }  // namespace milvus
 
 using milvus::MilvusMockedTest;

@@ -87,6 +87,10 @@ MilvusClientImpl::CreateCollection(const CollectionSchema& schema) {
             rpc_field->set_is_primary_key(field.IsPrimaryKey());
             rpc_field->set_autoid(field.AutoID());
 
+            if (field.FieldDataType() == DataType::ARRAY) {
+                rpc_field->set_element_type(static_cast<proto::schema::DataType>(field.ElementType()));
+            }
+
             for (auto& pair : field.TypeParams()) {
                 proto::common::KeyValuePair* kv = rpc_field->add_type_params();
                 kv->set_key(pair.first);
@@ -549,19 +553,23 @@ MilvusClientImpl::DropDatabaseProperties(const std::string& db_name, const std::
 }
 
 Status
-MilvusClientImpl::DescribeDatabase(const std::string& db_name,
-                                   std::unordered_map<std::string, std::string>& properties) {
+MilvusClientImpl::DescribeDatabase(const std::string& db_name, DatabaseDesc& db_desc) {
     auto pre = [&db_name]() {
         proto::milvus::DescribeDatabaseRequest rpc_request;
         rpc_request.set_db_name(db_name);
         return rpc_request;
     };
 
-    auto post = [&properties](const proto::milvus::DescribeDatabaseResponse& response) {
+    auto post = [&db_desc](const proto::milvus::DescribeDatabaseResponse& response) {
+        db_desc.SetName(response.db_name());
+        db_desc.SetID(response.dbid());
+        db_desc.SetCreatedTime(response.created_timestamp());
+        std::unordered_map<std::string, std::string> properties;
         for (int i = 0; i < response.properties_size(); i++) {
             const auto& prop = response.properties(i);
             properties[prop.key()] = prop.value();
         }
+        db_desc.SetProperties(properties);
     };
 
     return apiHandler<proto::milvus::DescribeDatabaseRequest, proto::milvus::DescribeDatabaseResponse>(

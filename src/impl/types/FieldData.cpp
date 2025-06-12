@@ -59,6 +59,8 @@ AddElement(const T& element, std::vector<T>& array) {
 
 }  // namespace
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Field class
 const std::string&
 Field::Name() const {
     return name_;
@@ -69,9 +71,16 @@ Field::Type() const {
     return data_type_;
 }
 
+DataType
+Field::ElementType() const {
+    return element_type_;
+}
+
 Field::Field(std::string name, DataType data_type) : name_(std::move(name)), data_type_(data_type) {
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// FieldData class
 template <typename T, DataType Dt>
 FieldData<T, Dt>::FieldData() : Field("", Dt) {
 }
@@ -122,6 +131,47 @@ FieldData<T, Dt>::Data() {
     return data_;
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// ArrayFieldData class
+template <typename T, DataType Et>
+ArrayFieldData<T, Et>::ArrayFieldData() : FieldData<ArrayFieldData::ElementT, DataType::ARRAY>() {
+    this->element_type_ = Et;
+}
+
+template <typename T, DataType Et>
+ArrayFieldData<T, Et>::ArrayFieldData(std::string name)
+    : FieldData<ArrayFieldData::ElementT, DataType::ARRAY>(std::move(name)) {
+    this->element_type_ = Et;
+}
+
+template <typename T, DataType Et>
+ArrayFieldData<T, Et>::ArrayFieldData(std::string name, const std::vector<ArrayFieldData::ElementT>& data)
+    : FieldData<ArrayFieldData::ElementT, DataType::ARRAY>(std::move(name), data) {
+    this->element_type_ = Et;
+}
+
+template <typename T, DataType Et>
+ArrayFieldData<T, Et>::ArrayFieldData(std::string name, std::vector<ArrayFieldData::ElementT>&& data)
+    : FieldData<ArrayFieldData::ElementT, DataType::ARRAY>(std::move(name), data) {
+    this->element_type_ = Et;
+}
+
+template <typename T, DataType Et>
+StatusCode
+ArrayFieldData<T, Et>::Add(const ArrayFieldData::ElementT& element) {
+    this->data_.emplace_back(element);
+    return StatusCode::OK;
+}
+
+template <typename T, DataType Et>
+StatusCode
+ArrayFieldData<T, Et>::Add(ArrayFieldData::ElementT&& element) {
+    this->data_.emplace_back(element);
+    return StatusCode::OK;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// BinaryVecFieldData class
 BinaryVecFieldData::BinaryVecFieldData() : FieldData<std::string, DataType::BINARY_VECTOR>() {
 }
 
@@ -191,6 +241,7 @@ BinaryVecFieldData::CreateBinaryString(const std::vector<uint8_t>& data) {
     return std::string{data.begin(), data.end()};
 }
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // explicit declare FieldData
 template class FieldData<bool, DataType::BOOL>;
 template class FieldData<int8_t, DataType::INT8>;
@@ -203,5 +254,14 @@ template class FieldData<std::string, DataType::VARCHAR>;
 template class FieldData<nlohmann::json, DataType::JSON>;
 template class FieldData<std::string, DataType::BINARY_VECTOR>;
 template class FieldData<std::vector<float>, DataType::FLOAT_VECTOR>;
+
+template class ArrayFieldData<bool, DataType::BOOL>;
+template class ArrayFieldData<int8_t, DataType::INT8>;
+template class ArrayFieldData<int16_t, DataType::INT16>;
+template class ArrayFieldData<int32_t, DataType::INT32>;
+template class ArrayFieldData<int64_t, DataType::INT64>;
+template class ArrayFieldData<float, DataType::FLOAT>;
+template class ArrayFieldData<double, DataType::DOUBLE>;
+template class ArrayFieldData<std::string, DataType::VARCHAR>;
 
 }  // namespace milvus
