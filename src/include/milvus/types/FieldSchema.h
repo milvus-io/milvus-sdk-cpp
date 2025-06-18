@@ -121,6 +121,12 @@ class FieldSchema {
     void
     SetAutoID(bool auto_id);
 
+    bool
+	IsDynamic() const;
+
+    void
+	SetDynamic(bool is_dynamic);
+
     /**
      * @brief Extra key-value pair setting for this field
      *
@@ -206,6 +212,7 @@ class FieldSchema {
     DataType element_type_{DataType::UNKNOWN};  // only for array field
     bool is_primary_key_ = false;
     bool auto_id_ = false;
+    bool is_dynamic_ = false;
     std::map<std::string, std::string> type_params_;
 };
 }  // namespace milvus

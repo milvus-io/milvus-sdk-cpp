@@ -97,6 +97,16 @@ FieldSchema::SetAutoID(bool auto_id) {
     auto_id_ = auto_id;
 }
 
+bool
+FieldSchema::IsDynamic() const {
+    return is_dynamic_;
+}
+
+void
+FieldSchema::SetDynamic(bool is_dynamic) {
+    is_dynamic_ = is_dynamic;
+}
+
 const std::map<std::string, std::string>&
 FieldSchema::TypeParams() const {
     return type_params_;
