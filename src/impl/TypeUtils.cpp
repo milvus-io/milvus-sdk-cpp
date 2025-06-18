@@ -982,6 +982,7 @@ void
 ConvertCollectionSchema(const proto::schema::CollectionSchema& proto_schema, CollectionSchema& schema) {
     schema.SetName(proto_schema.name());
     schema.SetDescription(proto_schema.description());
+    schema.SetEnableDynamicField(proto_schema.enable_dynamic_field());
 
     for (int i = 0; i < proto_schema.fields_size(); ++i) {
         auto& proto_field = proto_schema.fields(i);

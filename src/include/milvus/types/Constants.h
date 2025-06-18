@@ -76,6 +76,11 @@ FieldMaxCapacity() {
     return "max_capacity";
 }
 
+inline std::string
+DynamicFieldName() {
+    return "$meta";
+}
+
 /**
  * @brief Global definition for strong guarantee timestamp
  */

@@ -22,8 +22,11 @@ namespace milvus {
 
 CollectionSchema::CollectionSchema() = default;
 
-CollectionSchema::CollectionSchema(std::string name, std::string desc, int32_t shard_num)
-    : name_(std::move(name)), description_(std::move(desc)), shard_num_(shard_num) {
+CollectionSchema::CollectionSchema(std::string name, std::string desc, int32_t shard_num, bool enable_dynamic_field)
+    : name_(std::move(name)),
+      description_(std::move(desc)),
+      shard_num_(shard_num),
+      enable_dynamic_field_(enable_dynamic_field) {
 }
 
 const std::string&
@@ -54,6 +57,16 @@ CollectionSchema::ShardsNum() const {
 void
 CollectionSchema::SetShardsNum(int32_t num) {
     shard_num_ = num;
+}
+
+bool
+CollectionSchema::EnableDynamicField() const {
+    return enable_dynamic_field_;
+}
+
+void
+CollectionSchema::SetEnableDynamicField(bool enable_dynamic_field) {
+    enable_dynamic_field_ = enable_dynamic_field;
 }
 
 const std::vector<FieldSchema>&
