@@ -16,6 +16,7 @@
 
 #include "MilvusClientImpl.h"
 
+#include <algorithm>
 #include <chrono>
 #include <nlohmann/json.hpp>
 #include <thread>
@@ -78,6 +79,7 @@ MilvusClientImpl::CreateCollection(const CollectionSchema& schema) {
         proto::schema::CollectionSchema rpc_collection;
         rpc_collection.set_name(schema.Name());
         rpc_collection.set_description(schema.Description());
+        rpc_collection.set_enable_dynamic_field(schema.EnableDynamicField());
 
         for (auto& field : schema.Fields()) {
             proto::schema::FieldSchema* rpc_field = rpc_collection.add_fields();
@@ -86,6 +88,7 @@ MilvusClientImpl::CreateCollection(const CollectionSchema& schema) {
             rpc_field->set_data_type(static_cast<proto::schema::DataType>(field.FieldDataType()));
             rpc_field->set_is_primary_key(field.IsPrimaryKey());
             rpc_field->set_autoid(field.AutoID());
+            rpc_field->set_is_dynamic(field.IsDynamic());
 
             if (field.FieldDataType() == DataType::ARRAY) {
                 rpc_field->set_element_type(static_cast<proto::schema::DataType>(field.ElementType()));
@@ -736,11 +739,32 @@ MilvusClientImpl::DropIndex(const std::string& collection_name, const std::strin
 Status
 MilvusClientImpl::Insert(const std::string& collection_name, const std::string& partition_name,
                          const std::vector<FieldDataPtr>& fields, DmlResults& results) {
-    // TODO(matrixji): add common validations check for fields
-    // TODO(matrixji): add scheme based validations check for fields
-    // auto validate = nullptr;
+    std::string dynamic_field;
+    auto validate = [this, &collection_name, &fields, &dynamic_field]() {
+        CollectionDesc collection_desc;
+        auto status = DescribeCollection(collection_name, collection_desc);
+        if (!status.IsOk()) {
+            return status;
+        }
 
-    auto pre = [&collection_name, &partition_name, &fields] {
+        auto enable_dynamic_field = collection_desc.Schema().EnableDynamicField();
+        if (!enable_dynamic_field) {
+            return Status::OK();
+        }
+
+        const auto& collection_fields = collection_desc.Schema().Fields();
+        for (const auto& field : fields) {
+            auto it = std::find_if(collection_fields.begin(), collection_fields.end(),
+                                   [&field](const FieldSchema& schema) { return schema.Name() == field->Name(); });
+            if (it == collection_fields.end()) {
+                dynamic_field = field->Name();
+                break;
+            }
+        }
+        return Status::OK();
+    };
+
+    auto pre = [&collection_name, &partition_name, &fields, &dynamic_field] {
         proto::milvus::InsertRequest rpc_request;
 
         auto* mutable_fields = rpc_request.mutable_fields_data();
@@ -748,7 +772,11 @@ MilvusClientImpl::Insert(const std::string& collection_name, const std::string& 
         rpc_request.set_partition_name(partition_name);
         rpc_request.set_num_rows((*fields.front()).Count());
         for (const auto& field : fields) {
-            mutable_fields->Add(std::move(CreateProtoFieldData(*field)));
+            proto::schema::FieldData data = CreateProtoFieldData(*field);
+            if (dynamic_field == field->Name()) {
+                data.set_is_dynamic(true);
+            }
+            mutable_fields->Add(data);
         }
         return rpc_request;
     };
@@ -759,8 +787,8 @@ MilvusClientImpl::Insert(const std::string& collection_name, const std::string& 
         results.SetTimestamp(response.timestamp());
     };
 
-    return apiHandler<proto::milvus::InsertRequest, proto::milvus::MutationResult>(pre, &MilvusConnection::Insert,
-                                                                                   post);
+    return apiHandler<proto::milvus::InsertRequest, proto::milvus::MutationResult>(validate, pre,
+                                                                                   &MilvusConnection::Insert, post);
 }
 
 Status
@@ -832,6 +860,7 @@ MilvusClientImpl::Search(const SearchArguments& arguments, SearchResults& result
                 std::string placeholder_data(reinterpret_cast<const char*>(bins.data()), bins.size());
                 placeholder_value.add_values(std::move(placeholder_data));
             }
+            rpc_request.set_nq(static_cast<int64_t>(bins_vec.Data().size()));
         } else {
             // floats
             placeholder_value.set_type(proto::common::PlaceholderType::FloatVector);
@@ -841,6 +870,7 @@ MilvusClientImpl::Search(const SearchArguments& arguments, SearchResults& result
                                              floats.size() * sizeof(float));
                 placeholder_value.add_values(std::move(placeholder_data));
             }
+            rpc_request.set_nq(static_cast<int64_t>(floats_vec.Data().size()));
         }
         rpc_request.set_placeholder_group(std::move(placeholder_group.SerializeAsString()));
 
@@ -901,8 +931,21 @@ MilvusClientImpl::Search(const SearchArguments& arguments, SearchResults& result
                 item_scores.emplace_back(scores.at(offset + j));
             }
             item_field_data.reserve(fields_data.size());
-            for (const auto& field_data : fields_data) {
-                item_field_data.emplace_back(std::move(milvus::CreateMilvusFieldData(field_data, offset, item_topk)));
+            for (auto field_data : fields_data) {
+                if (field_data.is_dynamic() && field_data.field_name() == "$meta") {
+                    std::string dynamic_field;
+                    for (const auto& item : result_data.output_fields()) {
+                        auto it = std::find_if(
+                            fields_data.begin(), fields_data.end(),
+                            [&item](const proto::schema::FieldData& data) { return data.field_name() == item; });
+                        if (it == fields_data.end()) {
+                            dynamic_field = item;
+                            break;
+                        }
+                    }
+                    field_data.set_field_name(dynamic_field);
+                }
+                item_field_data.emplace_back(std::move(CreateMilvusFieldData(field_data, offset, item_topk)));
             }
             single_results.emplace_back(std::move(CreateIDArray(ids, offset, item_topk)), std::move(item_scores),
                                         std::move(item_field_data));
@@ -950,7 +993,21 @@ MilvusClientImpl::Query(const QueryArguments& arguments, QueryResults& results, 
     auto post = [&results](const proto::milvus::QueryResults& response) {
         std::vector<milvus::FieldDataPtr> return_fields{};
         return_fields.reserve(response.fields_data_size());
-        for (const auto& field_data : response.fields_data()) {
+        const auto& fields_data = response.fields_data();
+        for (auto field_data : fields_data) {
+            if (field_data.is_dynamic() && field_data.field_name() == "$meta") {
+                std::string dynamic_field;
+                for (const auto& item : response.output_fields()) {
+                    auto it = std::find_if(
+                        fields_data.begin(), fields_data.end(),
+                        [&item](const proto::schema::FieldData& data) { return data.field_name() == item; });
+                    if (it == fields_data.end()) {
+                        dynamic_field = item;
+                        break;
+                    }
+                }
+                field_data.set_field_name(dynamic_field);
+            }
             return_fields.emplace_back(std::move(CreateMilvusFieldData(field_data)));
         }
 

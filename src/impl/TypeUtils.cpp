@@ -969,6 +969,7 @@ ConvertFieldSchema(const proto::schema::FieldSchema& proto_schema, FieldSchema& 
     field_schema.SetPrimaryKey(proto_schema.is_primary_key());
     field_schema.SetAutoID(proto_schema.autoid());
     field_schema.SetDataType(DataTypeCast(proto_schema.data_type()));
+    field_schema.SetDynamic(proto_schema.is_dynamic());
 
     std::map<std::string, std::string> params;
     for (int k = 0; k < proto_schema.type_params_size(); ++k) {
@@ -982,6 +983,7 @@ void
 ConvertCollectionSchema(const proto::schema::CollectionSchema& proto_schema, CollectionSchema& schema) {
     schema.SetName(proto_schema.name());
     schema.SetDescription(proto_schema.description());
+    schema.SetEnableDynamicField(proto_schema.enable_dynamic_field());
 
     for (int i = 0; i < proto_schema.fields_size(); ++i) {
         auto& proto_field = proto_schema.fields(i);
