@@ -1282,6 +1282,26 @@ MilvusClientImpl::ListCredUsers(std::vector<std::string>& users) {
 }
 
 Status
+MilvusClientImpl::GetLoadState(const std::string& collection_name, bool& is_loaded,
+                               const std::vector<std::string> partition_names, int timeout) {
+    auto pre = [&collection_name, &partition_names]() {
+        proto::milvus::GetLoadStateRequest rpc_request;
+        rpc_request.set_collection_name(collection_name);
+        for (const auto& partition_name : partition_names) {
+            rpc_request.add_partition_names(partition_name);
+        }
+        return rpc_request;
+    };
+
+    auto post = [&is_loaded](const proto::milvus::GetLoadStateResponse& response) {
+        is_loaded = response.state() == proto::common::LoadStateLoaded;
+    };
+
+    return apiHandler<proto::milvus::GetLoadStateRequest, proto::milvus::GetLoadStateResponse>(
+        pre, &MilvusConnection::GetLoadState, post, GrpcOpts{timeout});
+}
+
+Status
 MilvusClientImpl::WaitForStatus(const std::function<Status(Progress&)>& query_function,
                                 const ProgressMonitor& progress_monitor) {
     // no need to check

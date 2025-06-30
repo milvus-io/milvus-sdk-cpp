@@ -610,6 +610,17 @@ class MilvusClient {
      */
     virtual Status
     ListCredUsers(std::vector<std::string>& names) = 0;
+
+    /**
+     * GetLoadState
+     *
+     * @param [in] collection_name name of the collection
+     * @param [out] is_loaded whether the collection is loaded into memory
+     * @return Status operation successfully or not
+     */
+    virtual Status
+    GetLoadState(const std::string& collection_name, bool& is_loaded,
+                 const std::vector<std::string> partition_names = {}, int timeout = 0) = 0;
 };
 
 }  // namespace milvus
