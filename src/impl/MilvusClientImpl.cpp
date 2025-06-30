@@ -16,6 +16,7 @@
 
 #include "MilvusClientImpl.h"
 
+#include <algorithm>
 #include <chrono>
 #include <nlohmann/json.hpp>
 #include <thread>
@@ -78,6 +79,7 @@ MilvusClientImpl::CreateCollection(const CollectionSchema& schema) {
         proto::schema::CollectionSchema rpc_collection;
         rpc_collection.set_name(schema.Name());
         rpc_collection.set_description(schema.Description());
+        rpc_collection.set_enable_dynamic_field(schema.EnableDynamicField());
 
         for (auto& field : schema.Fields()) {
             proto::schema::FieldSchema* rpc_field = rpc_collection.add_fields();
@@ -736,11 +738,32 @@ MilvusClientImpl::DropIndex(const std::string& collection_name, const std::strin
 Status
 MilvusClientImpl::Insert(const std::string& collection_name, const std::string& partition_name,
                          const std::vector<FieldDataPtr>& fields, DmlResults& results) {
-    // TODO(matrixji): add common validations check for fields
-    // TODO(matrixji): add scheme based validations check for fields
-    // auto validate = nullptr;
+    bool enable_dynamic_field;
+    auto validate = [this, &collection_name, &fields, &enable_dynamic_field]() {
+        CollectionDesc collection_desc;
+        auto status = DescribeCollection(collection_name, collection_desc);
+        if (!status.IsOk()) {
+            return status;
+        }
 
-    auto pre = [&collection_name, &partition_name, &fields] {
+        enable_dynamic_field = collection_desc.Schema().EnableDynamicField();
+        const auto& collection_fields = collection_desc.Schema().Fields();
+
+        for (const auto& field : fields) {
+            auto it = std::find_if(collection_fields.begin(), collection_fields.end(),
+                                   [&field](const FieldSchema& schema) { return schema.Name() == field->Name(); });
+            if (it != collection_fields.end()) {
+                continue;
+            }
+
+            if (!enable_dynamic_field || field->Name() != DynamicFieldName()) {
+                return Status{StatusCode::INVALID_AGUMENT, std::string(field->Name() + " is not a valid anns field")};
+            }
+        }
+        return Status::OK();
+    };
+
+    auto pre = [&collection_name, &partition_name, &fields, &enable_dynamic_field] {
         proto::milvus::InsertRequest rpc_request;
 
         auto* mutable_fields = rpc_request.mutable_fields_data();
@@ -748,7 +771,11 @@ MilvusClientImpl::Insert(const std::string& collection_name, const std::string& 
         rpc_request.set_partition_name(partition_name);
         rpc_request.set_num_rows((*fields.front()).Count());
         for (const auto& field : fields) {
-            mutable_fields->Add(std::move(CreateProtoFieldData(*field)));
+            proto::schema::FieldData data = CreateProtoFieldData(*field);
+            if (enable_dynamic_field && field->Name() == DynamicFieldName()) {
+                data.set_is_dynamic(true);
+            }
+            mutable_fields->Add(std::move(data));
         }
         return rpc_request;
     };
@@ -759,8 +786,8 @@ MilvusClientImpl::Insert(const std::string& collection_name, const std::string& 
         results.SetTimestamp(response.timestamp());
     };
 
-    return apiHandler<proto::milvus::InsertRequest, proto::milvus::MutationResult>(pre, &MilvusConnection::Insert,
-                                                                                   post);
+    return apiHandler<proto::milvus::InsertRequest, proto::milvus::MutationResult>(validate, pre,
+                                                                                   &MilvusConnection::Insert, post);
 }
 
 Status
@@ -832,6 +859,7 @@ MilvusClientImpl::Search(const SearchArguments& arguments, SearchResults& result
                 std::string placeholder_data(reinterpret_cast<const char*>(bins.data()), bins.size());
                 placeholder_value.add_values(std::move(placeholder_data));
             }
+            rpc_request.set_nq(static_cast<int64_t>(bins_vec.Data().size()));
         } else {
             // floats
             placeholder_value.set_type(proto::common::PlaceholderType::FloatVector);
@@ -841,6 +869,7 @@ MilvusClientImpl::Search(const SearchArguments& arguments, SearchResults& result
                                              floats.size() * sizeof(float));
                 placeholder_value.add_values(std::move(placeholder_data));
             }
+            rpc_request.set_nq(static_cast<int64_t>(floats_vec.Data().size()));
         }
         rpc_request.set_placeholder_group(std::move(placeholder_group.SerializeAsString()));
 

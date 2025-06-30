@@ -23,6 +23,8 @@
 
 using ::milvus::FieldDataPtr;
 using ::milvus::StatusCode;
+using ::milvus::proto::milvus::DescribeCollectionRequest;
+using ::milvus::proto::milvus::DescribeCollectionResponse;
 using ::milvus::proto::milvus::InsertRequest;
 using ::milvus::proto::milvus::MutationResult;
 using ::milvus::proto::schema::BinaryVector;
@@ -78,6 +80,34 @@ TEST_F(MilvusMockedTest, InsertFoo) {
     client_->Connect(connect_param);
 
     std::vector<int64_t> ret_ids{1000, 10001, 1002, 1003};
+
+    EXPECT_CALL(service_, DescribeCollection(_, Property(&DescribeCollectionRequest::collection_name, collection), _))
+        .WillOnce(
+            [](::grpc::ServerContext*, const DescribeCollectionRequest* request, DescribeCollectionResponse* response) {
+                auto* proto_schema = response->mutable_schema();
+                proto_schema->set_enable_dynamic_field(false);
+                auto* field = proto_schema->add_fields();
+                field->set_name(bool_field_ptr->Name());
+                field = proto_schema->add_fields();
+                field->set_name(int8_field_ptr->Name());
+                field = proto_schema->add_fields();
+                field->set_name(int16_field_ptr->Name());
+                field = proto_schema->add_fields();
+                field->set_name(int32_field_ptr->Name());
+                field = proto_schema->add_fields();
+                field->set_name(int64_field_ptr->Name());
+                field = proto_schema->add_fields();
+                field->set_name(float_field_ptr->Name());
+                field = proto_schema->add_fields();
+                field->set_name(double_field_ptr->Name());
+                field = proto_schema->add_fields();
+                field->set_name(string_field_ptr->Name());
+                field = proto_schema->add_fields();
+                field->set_name(bins_field_ptr->Name());
+                field = proto_schema->add_fields();
+                field->set_name(floats_field_ptr->Name());
+                return ::grpc::Status{};
+            });
 
     EXPECT_CALL(service_,
                 Insert(_,

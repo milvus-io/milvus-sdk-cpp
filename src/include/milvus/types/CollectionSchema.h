@@ -38,7 +38,8 @@ class CollectionSchema {
     /**
      * @brief Constructor
      */
-    explicit CollectionSchema(std::string name, std::string desc = "", int32_t shard_num = 2);
+    explicit CollectionSchema(std::string name, std::string desc = "", int32_t shard_num = 2,
+                              bool enable_dynamic_field = false);
 
     /**
      * @brief Collection name, cannot be empty.
@@ -76,6 +77,12 @@ class CollectionSchema {
     void
     SetShardsNum(int32_t num);
 
+    bool
+    EnableDynamicField() const;
+
+    void
+    SetEnableDynamicField(bool enable_dynamic_field);
+
     /**
      * @brief Fields schema array.
      */
@@ -104,6 +111,7 @@ class CollectionSchema {
     std::string name_;
     std::string description_;
     int32_t shard_num_ = 2;
+    bool enable_dynamic_field_;
     std::vector<FieldSchema> fields_;
 };
 
