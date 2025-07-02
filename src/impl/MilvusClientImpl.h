@@ -195,6 +195,10 @@ class MilvusClientImpl : public MilvusClient {
     Status
     ListCredUsers(std::vector<std::string>& users) final;
 
+    Status
+    GetLoadState(const std::string& collection_name, bool& is_loaded, const std::vector<std::string> partition_names,
+                 int timeout) final;
+
  private:
     using GrpcOpts = MilvusConnection::GrpcContextOptions;
 

@@ -256,6 +256,10 @@ class MilvusConnection {
     ListCredUsers(const proto::milvus::ListCredUsersRequest& request, proto::milvus::ListCredUsersResponse& response,
                   const GrpcContextOptions& options);
 
+    Status
+    GetLoadState(const proto::milvus::GetLoadStateRequest& request, proto::milvus::GetLoadStateResponse& response,
+                 const GrpcContextOptions& options);
+
  private:
     std::unique_ptr<proto::milvus::MilvusService::Stub> stub_;
     std::shared_ptr<grpc::Channel> channel_;

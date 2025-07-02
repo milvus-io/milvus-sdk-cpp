@@ -410,4 +410,9 @@ MilvusConnection::ListCredUsers(const proto::milvus::ListCredUsersRequest& reque
     return grpcCall("ListCredUsers", &Stub::ListCredUsers, request, response, options);
 }
 
+Status
+MilvusConnection::GetLoadState(const proto::milvus::GetLoadStateRequest& request,
+                               proto::milvus::GetLoadStateResponse& response, const GrpcContextOptions& options) {
+    return grpcCall("GetLoadState", &Stub::GetLoadState, request, response, options);
+}
 }  // namespace milvus
