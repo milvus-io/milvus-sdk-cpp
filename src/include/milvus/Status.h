@@ -55,6 +55,8 @@ class Status {
      * @brief Constructor of Status
      */
     Status(StatusCode code, std::string msg);
+    Status(StatusCode code, std::string msg, int32_t rpc_err_code,
+           int32_t server_err_code, int32_t legacy_server_code);
     Status();
 
     /**
@@ -84,6 +86,10 @@ class Status {
  private:
     StatusCode code_{StatusCode::OK};
     std::string msg_{"OK"};
+
+    int32_t rpc_err_code_{0};       // rpc error code
+    int32_t server_err_code_{0};    // v2.3/v2.4 server returns this code
+    int32_t legacy_server_code_{0}; // to compatible with v2.2.x server
 };  // Status
 
 }  // namespace milvus

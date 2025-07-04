@@ -17,6 +17,7 @@
 #pragma once
 
 #include <cstdint>
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -29,6 +30,18 @@ namespace milvus {
  */
 class CollectionDesc {
  public:
+    /**
+     * @brief The database name which this collection belong to.
+     */
+    const std::string&
+    DatabaseName() const;
+
+    /**
+     * @brief Set database name.
+     */
+    void
+    SetDatabaseName(std::string name);
+
     /**
      * @brief Collection schema.
      */
@@ -89,11 +102,27 @@ class CollectionDesc {
     void
     SetCreatedTime(uint64_t ts);
 
+
+    /**
+     * @brief Timestamp when the collection is updated.
+     */
+    uint64_t
+    UpdateTime() const;
+
+    /**
+     * @brief Set timestamp when the collection is updated.
+     */
+    void
+    SetUpdateTime(uint64_t ts);
+
  private:
+    std::string db_name_;
     CollectionSchema schema_;
     int64_t collection_id_;
     std::vector<std::string> alias_;
     uint64_t created_utc_timestamp_ = 0;
+    uint64_t update_timestamp_ = 0;
 };
 
+using CollectionDescPtr = std::shared_ptr<CollectionDesc>;
 }  // namespace milvus

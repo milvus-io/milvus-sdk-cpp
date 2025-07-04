@@ -461,9 +461,10 @@ MilvusClientImpl::AlterAlias(const std::string& collection_name, const std::stri
 }
 
 Status
-MilvusClientImpl::UsingDatabase(const std::string& db_name) {
+MilvusClientImpl::UseDatabase(const std::string& db_name) {
+    cleanCollectionDescCache();
     if (connection_ != nullptr) {
-        return connection_->UsingDatabase(db_name);
+        return connection_->UseDatabase(db_name);
     }
 
     return Status::OK();
@@ -740,14 +741,14 @@ MilvusClientImpl::Insert(const std::string& collection_name, const std::string& 
                          const std::vector<FieldDataPtr>& fields, DmlResults& results) {
     bool enable_dynamic_field;
     auto validate = [this, &collection_name, &fields, &enable_dynamic_field]() {
-        CollectionDesc collection_desc;
-        auto status = DescribeCollection(collection_name, collection_desc);
+        CollectionDescPtr collection_desc;
+        auto status = getCollectionDesc(collection_name, false, collection_desc);
         if (!status.IsOk()) {
             return status;
         }
 
-        enable_dynamic_field = collection_desc.Schema().EnableDynamicField();
-        const auto& collection_fields = collection_desc.Schema().Fields();
+        enable_dynamic_field = collection_desc->Schema().EnableDynamicField();
+        const auto& collection_fields = collection_desc->Schema().Fields();
 
         for (const auto& field : fields) {
             auto it = std::find_if(collection_fields.begin(), collection_fields.end(),
@@ -788,6 +789,62 @@ MilvusClientImpl::Insert(const std::string& collection_name, const std::string& 
 
     return apiHandler<proto::milvus::InsertRequest, proto::milvus::MutationResult>(validate, pre,
                                                                                    &MilvusConnection::Insert, post);
+}
+
+Status
+MilvusClientImpl::Upsert(const std::string& collection_name, const std::string& partition_name,
+           const std::vector<FieldDataPtr>& fields, DmlResults& results) {
+    bool enable_dynamic_field;
+    auto validate = [this, &collection_name, &fields, &enable_dynamic_field]() {
+        CollectionDescPtr collection_desc;
+        auto status = getCollectionDesc(collection_name, false, collection_desc);
+        if (!status.IsOk()) {
+            return status;
+        }
+
+        enable_dynamic_field = collection_desc->Schema().EnableDynamicField();
+        const auto& collection_fields = collection_desc->Schema().Fields();
+
+        for (const auto& field : fields) {
+            auto it = std::find_if(collection_fields.begin(), collection_fields.end(),
+                                   [&field](const FieldSchema& schema) { return schema.Name() == field->Name(); });
+            if (it != collection_fields.end()) {
+                continue;
+            }
+
+            if (!enable_dynamic_field || field->Name() != DynamicFieldName()) {
+                return Status{StatusCode::INVALID_AGUMENT, std::string(field->Name() + " is not a valid anns field")};
+            }
+        }
+        return Status::OK();
+    };
+
+
+    auto pre = [&collection_name, &partition_name, &fields, &enable_dynamic_field] {
+        proto::milvus::UpsertRequest rpc_request;
+
+        auto* mutable_fields = rpc_request.mutable_fields_data();
+        rpc_request.set_collection_name(collection_name);
+        rpc_request.set_partition_name(partition_name);
+        rpc_request.set_num_rows((*fields.front()).Count());
+        for (const auto& field : fields) {
+            proto::schema::FieldData data = CreateProtoFieldData(*field);
+            if (enable_dynamic_field && field->Name() == DynamicFieldName()) {
+                data.set_is_dynamic(true);
+            }
+            mutable_fields->Add(std::move(data));
+        }
+        return rpc_request;
+    };
+
+    auto post = [&results](const proto::milvus::MutationResult& response) {
+        auto id_array = CreateIDArray(response.ids());
+        results.SetIdArray(std::move(id_array));
+        results.SetTimestamp(response.timestamp());
+    };
+
+    return apiHandler<proto::milvus::UpsertRequest, proto::milvus::MutationResult>(validate, pre,
+                                                                                   &MilvusConnection::Upsert, post);
 }
 
 Status
@@ -1341,6 +1398,40 @@ MilvusClientImpl::WaitForStatus(const std::function<Status(Progress&)>& query_fu
             return Status{StatusCode::TIMEOUT, "time out"};
         }
     }
+}
+
+Status
+MilvusClientImpl::getCollectionDesc(const std::string& collection_name, bool forceUpdate, CollectionDescPtr& descPtr) {
+    std::lock_guard<std::mutex> lock(collection_desc_cache_mtx_);
+
+    auto it = collection_desc_cache_.find(collection_name);
+    if (it != collection_desc_cache_.end()) {
+        if (it->second != nullptr && !forceUpdate) {
+            descPtr = it->second;
+            return Status::OK();
+        }
+    }
+
+    CollectionDesc desc;
+    auto status = DescribeCollection(collection_name, desc);
+    if (status.IsOk()) {
+        descPtr = std::make_shared<CollectionDesc>(desc);
+        collection_desc_cache_[collection_name] = descPtr;
+        return status;
+    }
+    return status;
+}
+
+void
+MilvusClientImpl::cleanCollectionDescCache() {
+    std::lock_guard<std::mutex> lock(collection_desc_cache_mtx_);
+    collection_desc_cache_.clear();
+}
+
+void
+MilvusClientImpl::removeCollectionDesc(const std::string& collection_name) {
+    std::lock_guard<std::mutex> lock(collection_desc_cache_mtx_);
+    collection_desc_cache_.erase(collection_name);
 }
 
 }  // namespace milvus

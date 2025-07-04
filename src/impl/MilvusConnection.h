@@ -61,7 +61,7 @@ class MilvusConnection {
     Disconnect();
 
     Status
-    UsingDatabase(const std::string& db_name);
+    UseDatabase(const std::string& db_name);
 
     Status
     CreateDatabase(const proto::milvus::CreateDatabaseRequest& request, proto::common::Status& response,
@@ -192,6 +192,10 @@ class MilvusConnection {
            const GrpcContextOptions& options);
 
     Status
+    Upsert(const proto::milvus::UpsertRequest& request, proto::milvus::MutationResult& response,
+           const GrpcContextOptions& options);
+
+    Status
     Delete(const proto::milvus::DeleteRequest& request, proto::milvus::MutationResult& response,
            const GrpcContextOptions& options);
 
@@ -267,8 +271,8 @@ class MilvusConnection {
 
     static Status
     StatusByProtoResponse(const proto::common::Status& status) {
-        if (status.code() != proto::common::ErrorCode::Success) {
-            return Status{StatusCode::SERVER_FAILED, status.reason()};
+        if (status.code() != 0 || status.error_code() != proto::common::ErrorCode::Success) {
+            return Status{StatusCode::SERVER_FAILED, status.reason(), 0, status.error_code(), status.code()};
         }
         return Status::OK();
     }
@@ -280,12 +284,11 @@ class MilvusConnection {
         return StatusByProtoResponse(status);
     }
 
-    static StatusCode
+    static Status
     StatusCodeFromGrpcStatus(const ::grpc::Status& grpc_status) {
-        if (grpc_status.error_code() == ::grpc::StatusCode::DEADLINE_EXCEEDED) {
-            return StatusCode::TIMEOUT;
-        }
-        return StatusCode::SERVER_FAILED;
+        StatusCode code = (grpc_status.error_code() == ::grpc::StatusCode::DEADLINE_EXCEEDED)
+                        ? StatusCode::TIMEOUT : StatusCode::SERVER_FAILED;
+        return Status{code, grpc_status.error_message(), grpc_status.error_code(), 0, 0};
     }
 
     template <typename Request, typename Response>
@@ -306,7 +309,7 @@ class MilvusConnection {
         ::grpc::Status grpc_status = (stub_.get()->*func)(&context, request, &response);
 
         if (!grpc_status.ok()) {
-            return {StatusCodeFromGrpcStatus(grpc_status), grpc_status.error_message()};
+            return StatusCodeFromGrpcStatus(grpc_status);
         }
 
         return StatusByProtoResponse(response);

@@ -59,7 +59,7 @@ main(int argc, char* argv[]) {
     CheckStatus("Failed to describe database:", status);
     std::cout << "database.replica.number = " << db_desc.Properties().at("database.replica.number") << std::endl;
 
-    status = client->UsingDatabase(my_db_name);
+    status = client->UseDatabase(my_db_name);
     CheckStatus("Failed to switch database:", status);
     std::cout << "Switch to database: " << my_db_name << std::endl;
 

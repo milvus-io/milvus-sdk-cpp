@@ -21,6 +21,12 @@ namespace milvus {
 Status::Status(StatusCode code, std::string msg) : code_(code), msg_(std::move(msg)) {
 }
 
+Status::Status(StatusCode code, std::string msg, int32_t rpc_err_code,
+               int32_t server_err_code, int32_t legacy_server_code)
+  : code_(code), msg_(std::move(msg)), rpc_err_code_(rpc_err_code), server_err_code_(server_err_code),
+    legacy_server_code_(legacy_server_code) {
+}
+
 Status::Status() = default;
 
 Status

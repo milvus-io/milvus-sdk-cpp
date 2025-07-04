@@ -16,7 +16,9 @@
 
 #pragma once
 
+#include <map>
 #include <memory>
+#include <mutex>
 
 #include "MilvusConnection.h"
 #include "milvus/MilvusClient.h"
@@ -103,7 +105,7 @@ class MilvusClientImpl : public MilvusClient {
     AlterAlias(const std::string& collection_name, const std::string& alias) final;
 
     Status
-    UsingDatabase(const std::string& db_name) final;
+    UseDatabase(const std::string& db_name) final;
 
     Status
     CreateDatabase(const std::string& db_name, const std::unordered_map<std::string, std::string>& properties) final;
@@ -143,6 +145,10 @@ class MilvusClientImpl : public MilvusClient {
 
     Status
     Insert(const std::string& collection_name, const std::string& partition_name,
+           const std::vector<FieldDataPtr>& fields, DmlResults& results) final;
+
+    Status
+    Upsert(const std::string& collection_name, const std::string& partition_name,
            const std::vector<FieldDataPtr>& fields, DmlResults& results) final;
 
     Status
@@ -235,6 +241,7 @@ class MilvusClientImpl : public MilvusClient {
 
         Request rpc_request = pre();
         Response rpc_response;
+        // TODO: do retry here
         auto status = std::bind(rpc, connection_.get(), std::placeholders::_1, std::placeholders::_2,
                                 std::placeholders::_3)(rpc_request, rpc_response, options);
         if (!status.IsOk()) {
@@ -299,8 +306,29 @@ class MilvusClientImpl : public MilvusClient {
                           std::function<void(const Response&)>{}, options);
     }
 
+    /**
+     * @brief return desc if it is existing, else call describeCollection() and cache it
+     */
+    Status
+    getCollectionDesc(const std::string& collection_name, bool forceUpdate, CollectionDescPtr& descPtr);
+
+    /**
+     * @brief clean desc of all the collections in the cache
+     */
+    void
+    cleanCollectionDescCache();
+
+    /**
+     * @brief remove a collections's desc from the cache
+     */
+    void
+    removeCollectionDesc(const std::string& collection_name);
+
  private:
     std::shared_ptr<MilvusConnection> connection_;
+
+    std::map<std::string, CollectionDescPtr> collection_desc_cache_;
+    std::mutex collection_desc_cache_mtx_;
 };
 
 }  // namespace milvus
