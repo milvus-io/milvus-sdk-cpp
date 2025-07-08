@@ -453,7 +453,6 @@ class MilvusClient {
     Upsert(const std::string& collection_name, const std::string& partition_name,
            const std::vector<FieldDataPtr>& fields, DmlResults& results) = 0;
 
-
     /**
      * Delete entities by filtering condition.
      *

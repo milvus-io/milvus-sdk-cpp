@@ -98,6 +98,11 @@ MilvusConnection::Connect(const ConnectParam& param) {
     return {StatusCode::NOT_CONNECTED, reason};
 }
 
+const ConnectParam&
+MilvusConnection::GetConnectParam() const {
+    return param_;
+}
+
 Status
 MilvusConnection::Disconnect() {
     stub_.reset();

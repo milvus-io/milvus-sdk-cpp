@@ -30,7 +30,7 @@ main(int argc, char* argv[]) {
 
     milvus::ConnectParam connect_param{"localhost", 19530, "root", "Milvus"};
     auto status = client->Connect(connect_param);
-    CheckStatus("Failed to connect milvus server:", status);
+    util::CheckStatus("Failed to connect milvus server:", status);
     std::cout << "Connect to milvus server." << std::endl;
 
     // drop the collection if it exists
@@ -51,25 +51,25 @@ main(int argc, char* argv[]) {
     collection_schema.AddField({field_json, milvus::DataType::JSON, "properties"});
 
     status = client->CreateCollection(collection_schema);
-    CheckStatus("Failed to create collection:", status);
+    util::CheckStatus("Failed to create collection:", status);
     std::cout << "Successfully create collection." << std::endl;
 
     // create index
     milvus::IndexDesc index_vector(field_vector, "", milvus::IndexType::FLAT, milvus::MetricType::COSINE);
     status = client->CreateIndex(collection_name, index_vector);
-    CheckStatus("Failed to create index on vector field:", status);
+    util::CheckStatus("Failed to create index on vector field:", status);
     std::cout << "Successfully create index." << std::endl;
 
     // tell server prepare to load collection
     status = client->LoadCollection(collection_name);
-    CheckStatus("Failed to load collection:", status);
+    util::CheckStatus("Failed to load collection:", status);
 
     // insert some rows
     const int64_t row_count = 10;
     std::vector<nlohmann::json> insert_jsons(row_count);
-    std::vector<std::vector<float>> insert_vectors = GenerateFloatVectors(dimension, row_count);
+    std::vector<std::vector<float>> insert_vectors = util::GenerateFloatVectors(dimension, row_count);
     for (auto i = 0; i < row_count; ++i) {
-        nlohmann::json obj = {{"age", RandomeValue<int>(1, 100)}, {"name", "user_" + std::to_string(i)}};
+        nlohmann::json obj = {{"age", util::RandomeValue<int>(1, 100)}, {"name", "user_" + std::to_string(i)}};
         insert_jsons[i] = obj;
     }
 
@@ -78,7 +78,7 @@ main(int argc, char* argv[]) {
         std::make_shared<milvus::FloatVecFieldData>(field_vector, insert_vectors)};
     milvus::DmlResults dml_results;
     status = client->Insert(collection_name, "", fields_data, dml_results);
-    CheckStatus("Failed to insert:", status);
+    util::CheckStatus("Failed to insert:", status);
     std::cout << "Successfully insert " << dml_results.IdArray().IntIDArray().size() << " rows." << std::endl;
 
     // query
@@ -87,10 +87,12 @@ main(int argc, char* argv[]) {
     q_arguments.AddOutputField(field_id);
     q_arguments.AddOutputField(field_json);
     q_arguments.SetLimit(5);
+    // set to strong level so that the query is executed after the inserted data is consumed by server
+    q_arguments.SetConsistencyLevel(milvus::ConsistencyLevel::STRONG);
 
     milvus::QueryResults query_resutls{};
     status = client->Query(q_arguments, query_resutls);
-    CheckStatus("Failed to query:", status);
+    util::CheckStatus("Failed to query:", status);
     std::cout << "Successfully query." << std::endl;
 
     for (auto& field_data : query_resutls.OutputFields()) {
@@ -104,15 +106,15 @@ main(int argc, char* argv[]) {
     s_arguments.AddOutputField(field_id);
     s_arguments.AddOutputField(field_json);
 
-    auto q_number_1 = RandomeValue<int64_t>(0, row_count - 1);
-    auto q_number_2 = RandomeValue<int64_t>(0, row_count - 1);
+    auto q_number_1 = util::RandomeValue<int64_t>(0, row_count - 1);
+    auto q_number_2 = util::RandomeValue<int64_t>(0, row_count - 1);
     s_arguments.AddTargetVector(field_vector, std::move(insert_vectors[q_number_1]));
     s_arguments.AddTargetVector(field_vector, std::move(insert_vectors[q_number_2]));
     std::cout << "Searching the No." << q_number_1 << " and No." << q_number_2 << std::endl;
 
     milvus::SearchResults search_results{};
     status = client->Search(s_arguments, search_results);
-    CheckStatus("Failed to search:", status);
+    util::CheckStatus("Failed to search:", status);
     std::cout << "Successfully search." << std::endl;
 
     for (auto& result : search_results.Results()) {
@@ -125,17 +127,11 @@ main(int argc, char* argv[]) {
 
         std::cout << "Result of one target vector:" << std::endl;
 
-        auto id_field = result.OutputField(field_id);
-        milvus::Int64FieldDataPtr id_field_ptr = std::static_pointer_cast<milvus::Int64FieldData>(id_field);
-        auto& id_data = id_field_ptr->Data();
-
-        auto json_field = result.OutputField(field_json);
-        milvus::JSONFieldDataPtr json_field_ptr = std::static_pointer_cast<milvus::JSONFieldData>(json_field);
-        auto& json_data = json_field_ptr->Data();
-
+        auto id_field = result.OutputField<milvus::Int64FieldData>(field_id);
+        auto json_field = result.OutputField<milvus::JSONFieldData>(field_json);
         for (size_t i = 0; i < ids.size(); ++i) {
-            std::cout << "\tID: " << ids[i] << "\tDistance: " << distances[i] << "\tID: " << id_data[i]
-                      << "\tJSON: " << json_data[i].dump() << std::endl;
+            std::cout << "\tID: " << ids[i] << "\tDistance: " << distances[i] << "\tID: " << id_field->Value(i)
+                      << "\tJSON: " << json_field->Value(i).dump() << std::endl;
         }
     }
 

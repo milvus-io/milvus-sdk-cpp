@@ -22,6 +22,17 @@
 namespace milvus {
 
 const std::string&
+SearchArguments::DatabaseName() const {
+    return db_name_;
+}
+
+Status
+SearchArguments::SetDatabaseName(const std::string& db_name) {
+    db_name_ = db_name;
+    return Status::OK();
+}
+
+const std::string&
 SearchArguments::CollectionName() const {
     return collection_name_;
 }
@@ -232,8 +243,26 @@ SearchArguments::ExtraParams() const {
 }
 
 Status
-SearchArguments::Validate() const {
+SearchArguments::Validate(std::string& anns_field) const {
     // in milvus 2.4+, no need to check index parameters, let the server to check it
+
+    auto float_vector_count = (float_vectors_ == nullptr) ? 0 : float_vectors_->Count();
+    auto binary_vector_count = (binary_vectors_ == nullptr) ? 0 : binary_vectors_->Count();
+    // no target vector is assigned, not able search
+    if (float_vector_count == 0 && binary_vector_count == 0) {
+        return Status{StatusCode::INVALID_AGUMENT, "no target vector is assigned"};
+    }
+    // all the target vectors must be the same type
+    if (float_vector_count > 0 && binary_vector_count > 0) {
+        return Status{StatusCode::INVALID_AGUMENT, "target vectors are not same type"};
+    }
+
+    // return anns_field name
+    if (float_vector_count > 0) {
+        anns_field = float_vectors_->Name();
+    } else if (binary_vector_count > 0) {
+        anns_field = binary_vectors_->Name();
+    }
     return Status::OK();
 }
 
@@ -260,6 +289,17 @@ SearchArguments::SetRange(float range_filter, float radius) {
 bool
 SearchArguments::RangeSearch() const {
     return range_search_;
+}
+
+ConsistencyLevel
+SearchArguments::GetConsistencyLevel() const {
+    return consistency_level_;
+}
+
+Status
+SearchArguments::SetConsistencyLevel(const ConsistencyLevel& level) {
+    consistency_level_ = level;
+    return Status::OK();
 }
 
 }  // namespace milvus

@@ -18,12 +18,14 @@
 
 #include "milvus.pb.h"
 #include "milvus/types/CollectionSchema.h"
+#include "milvus/types/ConsistencyLevel.h"
 #include "milvus/types/FieldData.h"
 #include "milvus/types/IDArray.h"
 #include "milvus/types/IndexState.h"
 #include "milvus/types/IndexType.h"
 #include "milvus/types/MetricType.h"
 #include "milvus/types/SegmentInfo.h"
+
 namespace milvus {
 
 bool
@@ -175,6 +177,11 @@ IsVectorType(DataType type);
 std::string
 Base64Encode(const std::string& val);
 
+proto::common::ConsistencyLevel
+ConsistencyLevelCast(const ConsistencyLevel& level);
+
+ConsistencyLevel
+ConsistencyLevelCast(const proto::common::ConsistencyLevel& level);
 }  // namespace milvus
 
 namespace std {

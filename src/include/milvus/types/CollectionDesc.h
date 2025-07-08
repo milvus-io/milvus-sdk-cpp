@@ -102,7 +102,6 @@ class CollectionDesc {
     void
     SetCreatedTime(uint64_t ts);
 
-
     /**
      * @brief Timestamp when the collection is updated.
      */

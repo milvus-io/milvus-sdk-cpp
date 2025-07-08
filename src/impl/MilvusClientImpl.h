@@ -21,6 +21,7 @@
 #include <mutex>
 
 #include "MilvusConnection.h"
+#include "common.pb.h"
 #include "milvus/MilvusClient.h"
 
 /**
@@ -241,7 +242,6 @@ class MilvusClientImpl : public MilvusClient {
 
         Request rpc_request = pre();
         Response rpc_response;
-        // TODO: do retry here
         auto status = std::bind(rpc, connection_.get(), std::placeholders::_1, std::placeholders::_2,
                                 std::placeholders::_3)(rpc_request, rpc_response, options);
         if (!status.IsOk()) {
@@ -253,7 +253,7 @@ class MilvusClientImpl : public MilvusClient {
             status = wait_for_status(rpc_response);
         }
 
-        if (status.IsOk() && post) {
+        if (post) {
             post(rpc_response);
         }
         return status;
@@ -325,8 +325,15 @@ class MilvusClientImpl : public MilvusClient {
     removeCollectionDesc(const std::string& collection_name);
 
  private:
+    std::string
+    currentDbName(const std::string& overwrite_db_name) const;
+
+ private:
     std::shared_ptr<MilvusConnection> connection_;
 
+    // cache of collection schemas
+    // this cache is db level, once useDatabase() is called, this cache will be cleaned
+    // so, it is fine to use collection name as key, no need to involve db name
     std::map<std::string, CollectionDescPtr> collection_desc_cache_;
     std::mutex collection_desc_cache_mtx_;
 };

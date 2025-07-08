@@ -42,15 +42,37 @@ class QueryResults {
 
     /**
      * @brief Get output field data by name.
+     * @deprecated replaced by OutputField()
      */
     FieldDataPtr
     GetFieldByName(const std::string& name);
+
+    /**
+     * @brief Get an output field by name
+     */
+    FieldDataPtr
+    OutputField(const std::string& name) const;
+
+    /**
+     * @brief Get an output field by name and cast to specific pointer
+     */
+    template <typename T>
+    std::shared_ptr<T>
+    OutputField(const std::string& name) const {
+        return std::dynamic_pointer_cast<T>(OutputField(name));
+    }
 
     /**
      * @brief Get all output fields data.
      */
     const std::vector<FieldDataPtr>&
     OutputFields() const;
+
+    /**
+     * @brief Quickly get the value of count(*), only works when you call query() with count(*).
+     */
+    int64_t
+    GetCountNumber() const;
 
  private:
     std::vector<FieldDataPtr> output_fields_;

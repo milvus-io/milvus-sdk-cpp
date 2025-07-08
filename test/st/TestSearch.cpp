@@ -98,7 +98,7 @@ TEST_F(MilvusServerTestSearch, SearchWithoutIndex) {
     arguments.SetExpression("id > 0");
     arguments.AddTargetVector("face", std::vector<float>{0.f, 0.f, 0.f, 0.f});
     arguments.AddTargetVector("face", std::vector<float>{1.f, 1.f, 1.f, 1.f});
-    arguments.SetGuaranteeTimestamp(milvus::GuaranteeStrongTs());
+    arguments.SetConsistencyLevel(milvus::ConsistencyLevel::STRONG);
 
     milvus::SearchResults search_results{};
     auto status = client_->Search(arguments, search_results);
@@ -158,7 +158,7 @@ TEST_F(MilvusServerTestSearch, RangeSearch) {
     arguments.AddOutputField("name");
     arguments.AddTargetVector("face", std::vector<float>{0.f, 0.f, 0.f, 0.f});
     arguments.AddTargetVector("face", std::vector<float>{1.f, 1.f, 1.f, 1.f});
-    arguments.SetGuaranteeTimestamp(milvus::GuaranteeStrongTs());
+    arguments.SetConsistencyLevel(milvus::ConsistencyLevel::SESSION);
 
     milvus::SearchResults search_results{};
     auto status = client_->Search(arguments, search_results);
@@ -223,7 +223,7 @@ TEST_F(MilvusServerTestSearch, SearchWithStringFilter) {
     arguments.SetExpression("name like \"To%\"");  // Tom match To%
     arguments.AddTargetVector("face", std::vector<float>{0.f, 0.f, 0.f, 0.f});
     arguments.AddTargetVector("face", std::vector<float>{1.f, 1.f, 1.f, 1.f});
-    arguments.SetGuaranteeTimestamp(milvus::GuaranteeStrongTs());
+    arguments.SetConsistencyLevel(milvus::ConsistencyLevel::STRONG);
 
     milvus::SearchResults search_results{};
     auto status = client_->Search(arguments, search_results);
@@ -287,7 +287,7 @@ TEST_F(MilvusServerTestSearch, SearchWithIVFIndex) {
     arguments.AddExtraParam("nprobe", 10);
     arguments.AddTargetVector("face", std::vector<float>{0.f, 0.f, 0.f, 0.f});
     arguments.AddTargetVector("face", std::vector<float>{1.f, 1.f, 1.f, 1.f});
-    arguments.SetGuaranteeTimestamp(milvus::GuaranteeStrongTs());
+    arguments.SetConsistencyLevel(milvus::ConsistencyLevel::STRONG);
 
     milvus::SearchResults search_results{};
     status = client_->Search(arguments, search_results);

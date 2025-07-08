@@ -30,7 +30,7 @@ main(int argc, char* argv[]) {
 
     milvus::ConnectParam connect_param{"localhost", 19530, "root", "Milvus"};
     auto status = client->Connect(connect_param);
-    CheckStatus("Failed to connect milvus server:", status);
+    util::CheckStatus("Failed to connect milvus server:", status);
     std::cout << "Connect to milvus server." << std::endl;
 
     // drop the collection if it exists
@@ -84,18 +84,18 @@ main(int argc, char* argv[]) {
                                    .WithMaxLength(1024));
 
     status = client->CreateCollection(collection_schema);
-    CheckStatus("Failed to create collection:", status);
+    util::CheckStatus("Failed to create collection:", status);
     std::cout << "Successfully create collection." << std::endl;
 
     // create index
     milvus::IndexDesc index_vector(field_vector, "", milvus::IndexType::FLAT, milvus::MetricType::COSINE);
     status = client->CreateIndex(collection_name, index_vector);
-    CheckStatus("Failed to create index on vector field:", status);
+    util::CheckStatus("Failed to create index on vector field:", status);
     std::cout << "Successfully create index." << std::endl;
 
     // tell server prepare to load collection
     status = client->LoadCollection(collection_name);
-    CheckStatus("Failed to load collection:", status);
+    util::CheckStatus("Failed to load collection:", status);
 
     // insert some rows
     milvus::VarCharFieldDataPtr id_field = std::make_shared<milvus::VarCharFieldData>(field_id);
@@ -114,18 +114,18 @@ main(int argc, char* argv[]) {
     const int64_t row_count = 10;
     for (auto i = 0; i < row_count; ++i) {
         id_field->Add("user_" + std::to_string(i));
-        vector_field->Add(GenerateFloatVector(dimension));
+        vector_field->Add(util::GenerateFloatVector(dimension));
 
-        auto cap = RandomeValue<int>(1, 10);
-        arr_bool_field->Add(RansomBools(cap));
-        arr_int8_field->Add(RandomeValues<int8_t>(0, 100, cap));
-        arr_int16_field->Add(RandomeValues<int16_t>(0, 1000, cap));
-        arr_int32_field->Add(RandomeValues<int32_t>(0, 10000, cap));
-        arr_int64_field->Add(RandomeValues<int64_t>(0, 100000, cap));
-        arr_float_field->Add(RandomeValues<float>(0.0, 1.0, cap));
-        arr_double_field->Add(RandomeValues<double>(0.0, 10.0, cap));
+        auto cap = util::RandomeValue<int>(1, 5);
+        arr_bool_field->Add(util::RansomBools(cap));
+        arr_int8_field->Add(util::RandomeValues<int8_t>(0, 100, cap));
+        arr_int16_field->Add(util::RandomeValues<int16_t>(0, 1000, cap));
+        arr_int32_field->Add(util::RandomeValues<int32_t>(0, 10000, cap));
+        arr_int64_field->Add(util::RandomeValues<int64_t>(0, 100000, cap));
+        arr_float_field->Add(util::RandomeValues<float>(0.0, 1.0, cap));
+        arr_double_field->Add(util::RandomeValues<double>(0.0, 10.0, cap));
 
-        auto values = RandomeValues<int>(0, 100, cap);
+        auto values = util::RandomeValues<int>(0, 100, cap);
         std::vector<std::string> varchars(cap);
         std::transform(values.begin(), values.end(), varchars.begin(),
                        [i](int x) { return "varchar_" + std::to_string(i * 10000 + x); });
@@ -137,7 +137,7 @@ main(int argc, char* argv[]) {
                                                   arr_double_field, arr_varchar_field};
     milvus::DmlResults dml_results;
     status = client->Insert(collection_name, "", fields_data, dml_results);
-    CheckStatus("Failed to insert:", status);
+    util::CheckStatus("Failed to insert:", status);
     std::cout << "Successfully insert " << dml_results.IdArray().StrIDArray().size() << " rows." << std::endl;
 
     // query
@@ -153,10 +153,12 @@ main(int argc, char* argv[]) {
     q_arguments.AddOutputField(field_array_double);
     q_arguments.AddOutputField(field_array_varchar);
     q_arguments.SetLimit(5);
+    // set to strong level so that the query is executed after the inserted data is consumed by server
+    q_arguments.SetConsistencyLevel(milvus::ConsistencyLevel::STRONG);
 
     milvus::QueryResults query_resutls{};
     status = client->Query(q_arguments, query_resutls);
-    CheckStatus("Failed to query:", status);
+    util::CheckStatus("Failed to query:", status);
     std::cout << "Successfully query." << std::endl;
 
     for (auto& field_data : query_resutls.OutputFields()) {
@@ -177,15 +179,15 @@ main(int argc, char* argv[]) {
     s_arguments.AddOutputField(field_array_double);
     s_arguments.AddOutputField(field_array_varchar);
 
-    auto q_number_1 = RandomeValue<int64_t>(0, row_count - 1);
-    auto q_number_2 = RandomeValue<int64_t>(0, row_count - 1);
+    auto q_number_1 = util::RandomeValue<int64_t>(0, row_count - 1);
+    auto q_number_2 = util::RandomeValue<int64_t>(0, row_count - 1);
     s_arguments.AddTargetVector(field_vector, std::move(vector_field->Data()[q_number_1]));
     s_arguments.AddTargetVector(field_vector, std::move(vector_field->Data()[q_number_2]));
     std::cout << "Searching the No." << q_number_1 << " and No." << q_number_2 << std::endl;
 
     milvus::SearchResults search_results{};
     status = client->Search(s_arguments, search_results);
-    CheckStatus("Failed to search:", status);
+    util::CheckStatus("Failed to search:", status);
     std::cout << "Successfully search." << std::endl;
 
     for (auto& result : search_results.Results()) {
@@ -198,31 +200,16 @@ main(int argc, char* argv[]) {
 
         std::cout << "Result of one target vector:" << std::endl;
 
-        auto id_field = result.OutputField(field_id);
-        milvus::VarCharFieldDataPtr id_field_ptr = std::static_pointer_cast<milvus::VarCharFieldData>(id_field);
-        auto& id_data = id_field_ptr->Data();
-
-        auto array_int16_field = result.OutputField(field_array_int16);
-        milvus::ArrayInt16FieldDataPtr arr_int16_field_ptr =
-            std::static_pointer_cast<milvus::ArrayInt16FieldData>(array_int16_field);
-        auto& arr_int16_data = arr_int16_field_ptr->Data();
-
-        auto array_varchar_field = result.OutputField(field_array_varchar);
-        milvus::ArrayVarCharFieldDataPtr arr_varchar_field_ptr =
-            std::static_pointer_cast<milvus::ArrayVarCharFieldData>(array_varchar_field);
-        auto& arr_varchar_data = arr_varchar_field_ptr->Data();
-
+        auto id_field = result.OutputField<milvus::VarCharFieldData>(field_id);
+        auto array_int16_field = result.OutputField<milvus::ArrayInt16FieldData>(field_array_int16);
+        auto array_varchar_field = result.OutputField<milvus::ArrayVarCharFieldData>(field_array_varchar);
         for (size_t i = 0; i < ids.size(); ++i) {
-            std::cout << "\tID: " << ids[i] << "\tDistance: " << distances[i] << "\tID: " << id_data[i];
+            std::cout << "\tID: " << ids[i] << "\tDistance: " << distances[i] << "\tID: " << id_field->Value(i);
             std::cout << "\tArrayInt16: ";
-            for (const int16_t& ele : arr_int16_data[i]) {
-                std::cout << ele << ", ";
-            }
+            util::PrintList<int16_t>(array_int16_field->Value(i));
 
             std::cout << "\tArrayVarchar: ";
-            for (const std::string& ele : arr_varchar_data[i]) {
-                std::cout << ele << ", ";
-            }
+            util::PrintList<std::string>(array_varchar_field->Value(i));
             std::cout << std::endl;
         }
     }

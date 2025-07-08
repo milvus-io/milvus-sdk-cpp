@@ -19,6 +19,17 @@
 namespace milvus {
 
 const std::string&
+QueryArguments::DatabaseName() const {
+    return db_name_;
+}
+
+Status
+QueryArguments::SetDatabaseName(const std::string& db_name) {
+    db_name_ = db_name;
+    return Status::OK();
+}
+
+const std::string&
 QueryArguments::CollectionName() const {
     return collection_name_;
 }
@@ -118,6 +129,17 @@ QueryArguments::Offset() const {
 Status
 QueryArguments::SetOffset(int64_t offset) {
     offset_ = offset;
+    return Status::OK();
+}
+
+ConsistencyLevel
+QueryArguments::GetConsistencyLevel() const {
+    return consistency_level_;
+}
+
+Status
+QueryArguments::SetConsistencyLevel(const ConsistencyLevel& level) {
+    consistency_level_ = level;
     return Status::OK();
 }
 
