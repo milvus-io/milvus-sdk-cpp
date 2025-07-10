@@ -306,7 +306,7 @@ class MilvusClient {
      * @return Status operation successfully or not
      */
     virtual Status
-    UsingDatabase(const std::string& db_name) = 0;
+    UseDatabase(const std::string& db_name) = 0;
 
     /**
      * Create a new database.
@@ -438,6 +438,19 @@ class MilvusClient {
      */
     virtual Status
     Insert(const std::string& collection_name, const std::string& partition_name,
+           const std::vector<FieldDataPtr>& fields, DmlResults& results) = 0;
+
+    /**
+     * Upsert entities into a collection.
+     *
+     * @param [in] collection_name name of the collection
+     * @param [in] partition_name name of the partition, optional(pass an empty string to skip)
+     * @param [in] fields upsedrt data
+     * @param [out] results upsedrt results
+     * @return Status operation successfully or not
+     */
+    virtual Status
+    Upsert(const std::string& collection_name, const std::string& partition_name,
            const std::vector<FieldDataPtr>& fields, DmlResults& results) = 0;
 
     /**

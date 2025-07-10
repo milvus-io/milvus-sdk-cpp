@@ -21,6 +21,8 @@
 #include <nlohmann/json.hpp>
 #include <thread>
 
+#include "DmlUtils.h"
+#include "GtsDict.h"
 #include "TypeUtils.h"
 #include "common.pb.h"
 #include "milvus.pb.h"
@@ -132,8 +134,17 @@ MilvusClientImpl::DropCollection(const std::string& collection_name) {
         return rpc_request;
     };
 
-    return apiHandler<proto::milvus::DropCollectionRequest, proto::common::Status>(pre,
-                                                                                   &MilvusConnection::DropCollection);
+    auto post = [this, &collection_name](const proto::common::Status& status) {
+        if (status.error_code() == proto::common::ErrorCode::Success && status.code() == 0) {
+            // TODO: if the parameters provides db_name in future, we need to set the correct
+            // db_name to RemoveCollectionTs()
+            GtsDict::GetInstance().RemoveCollectionTs(currentDbName(""), collection_name);
+            removeCollectionDesc(collection_name);
+        }
+    };
+
+    return apiHandler<proto::milvus::DropCollectionRequest, proto::common::Status>(
+        pre, &MilvusConnection::DropCollection, post);
 }
 
 Status
@@ -461,9 +472,10 @@ MilvusClientImpl::AlterAlias(const std::string& collection_name, const std::stri
 }
 
 Status
-MilvusClientImpl::UsingDatabase(const std::string& db_name) {
+MilvusClientImpl::UseDatabase(const std::string& db_name) {
+    cleanCollectionDescCache();
     if (connection_ != nullptr) {
-        return connection_->UsingDatabase(db_name);
+        return connection_->UseDatabase(db_name);
     }
 
     return Status::OK();
@@ -593,9 +605,12 @@ MilvusClientImpl::CreateIndex(const std::string& collection_name, const IndexDes
         kv_pair->set_key(milvus::KeyIndexType());
         kv_pair->set_value(std::to_string(index_desc.IndexType()));
 
-        kv_pair = rpc_request.add_extra_params();
-        kv_pair->set_key(milvus::KeyMetricType());
-        kv_pair->set_value(std::to_string(index_desc.MetricType()));
+        // for scalar fields, no metric type
+        if (index_desc.MetricType() != MetricType::INVALID) {
+            kv_pair = rpc_request.add_extra_params();
+            kv_pair->set_key(milvus::KeyMetricType());
+            kv_pair->set_value(std::to_string(index_desc.MetricType()));
+        }
 
         kv_pair = rpc_request.add_extra_params();
         kv_pair->set_key(milvus::KeyParams());
@@ -740,27 +755,25 @@ MilvusClientImpl::Insert(const std::string& collection_name, const std::string& 
                          const std::vector<FieldDataPtr>& fields, DmlResults& results) {
     bool enable_dynamic_field;
     auto validate = [this, &collection_name, &fields, &enable_dynamic_field]() {
-        CollectionDesc collection_desc;
-        auto status = DescribeCollection(collection_name, collection_desc);
+        CollectionDescPtr collection_desc;
+        auto status = getCollectionDesc(collection_name, false, collection_desc);
         if (!status.IsOk()) {
             return status;
         }
 
-        enable_dynamic_field = collection_desc.Schema().EnableDynamicField();
-        const auto& collection_fields = collection_desc.Schema().Fields();
-
-        for (const auto& field : fields) {
-            auto it = std::find_if(collection_fields.begin(), collection_fields.end(),
-                                   [&field](const FieldSchema& schema) { return schema.Name() == field->Name(); });
-            if (it != collection_fields.end()) {
-                continue;
+        // if the collection is already recreated, some schema might be changed, we need to update the
+        // collectionDesc cache and call CheckInsertInput() again.
+        status = CheckInsertInput(collection_desc, fields, false);
+        if (status.Code() == milvus::StatusCode::DATA_UNMATCH_SCHEMA) {
+            status = getCollectionDesc(collection_name, true, collection_desc);
+            if (!status.IsOk()) {
+                return status;
             }
 
-            if (!enable_dynamic_field || field->Name() != DynamicFieldName()) {
-                return Status{StatusCode::INVALID_AGUMENT, std::string(field->Name() + " is not a valid anns field")};
-            }
+            status = CheckInsertInput(collection_desc, fields, false);
         }
-        return Status::OK();
+
+        return status;
     };
 
     auto pre = [&collection_name, &partition_name, &fields, &enable_dynamic_field] {
@@ -780,14 +793,102 @@ MilvusClientImpl::Insert(const std::string& collection_name, const std::string& 
         return rpc_request;
     };
 
-    auto post = [&results](const proto::milvus::MutationResult& response) {
+    auto post = [this, &collection_name, &results](const proto::milvus::MutationResult& response) {
         auto id_array = CreateIDArray(response.ids());
         results.SetIdArray(std::move(id_array));
         results.SetTimestamp(response.timestamp());
+
+        // special for dml api: if the api failed, remove the schema cache of this collection
+        if (IsRealFailure(response.status())) {
+            removeCollectionDesc(collection_name);
+        } else {
+            // TODO: if the parameters provides db_name in future, we need to set the correct
+            // db_name to UpdateCollectionTs()
+            GtsDict::GetInstance().UpdateCollectionTs(currentDbName(""), collection_name, response.timestamp());
+        }
     };
 
-    return apiHandler<proto::milvus::InsertRequest, proto::milvus::MutationResult>(validate, pre,
-                                                                                   &MilvusConnection::Insert, post);
+    auto status = apiHandler<proto::milvus::InsertRequest, proto::milvus::MutationResult>(
+        validate, pre, &MilvusConnection::Insert, post);
+    // If there are multiple clients, the client_A repeatedly do insert, the client_B changes
+    // the collection schema. The server might return a special error code "SchemaMismatch".
+    // If the client_A gets this special error code, it needs to update the collectionDesc cache and
+    // call Insert() again.
+    if (status.LegacyServerCode() == static_cast<int32_t>(proto::common::ErrorCode::SchemaMismatch)) {
+        removeCollectionDesc(collection_name);
+        return Insert(collection_name, partition_name, fields, results);
+    }
+    return status;
+}
+
+Status
+MilvusClientImpl::Upsert(const std::string& collection_name, const std::string& partition_name,
+                         const std::vector<FieldDataPtr>& fields, DmlResults& results) {
+    bool enable_dynamic_field;
+    auto validate = [this, &collection_name, &fields, &enable_dynamic_field]() {
+        CollectionDescPtr collection_desc;
+        auto status = getCollectionDesc(collection_name, false, collection_desc);
+        if (!status.IsOk()) {
+            return status;
+        }
+
+        // if the collection is already recreated, some schema might be changed, we need to update the
+        // collectionDesc cache and call CheckInsertInput() again.
+        status = CheckInsertInput(collection_desc, fields, true);
+        if (status.Code() == milvus::StatusCode::DATA_UNMATCH_SCHEMA) {
+            status = getCollectionDesc(collection_name, true, collection_desc);
+            if (!status.IsOk()) {
+                return status;
+            }
+
+            status = CheckInsertInput(collection_desc, fields, true);
+        }
+        return status;
+    };
+
+    auto pre = [&collection_name, &partition_name, &fields, &enable_dynamic_field] {
+        proto::milvus::UpsertRequest rpc_request;
+
+        auto* mutable_fields = rpc_request.mutable_fields_data();
+        rpc_request.set_collection_name(collection_name);
+        rpc_request.set_partition_name(partition_name);
+        rpc_request.set_num_rows((*fields.front()).Count());
+        for (const auto& field : fields) {
+            proto::schema::FieldData data = CreateProtoFieldData(*field);
+            if (enable_dynamic_field && field->Name() == DynamicFieldName()) {
+                data.set_is_dynamic(true);
+            }
+            mutable_fields->Add(std::move(data));
+        }
+        return rpc_request;
+    };
+
+    auto post = [this, &collection_name, &results](const proto::milvus::MutationResult& response) {
+        auto id_array = CreateIDArray(response.ids());
+        results.SetIdArray(std::move(id_array));
+        results.SetTimestamp(response.timestamp());
+
+        // special for dml api: if the api failed, remove the schema cache of this collection
+        if (IsRealFailure(response.status())) {
+            removeCollectionDesc(collection_name);
+        } else {
+            // TODO: if the parameters provides db_name in future, we need to set the correct
+            // db_name to UpdateCollectionTs()
+            GtsDict::GetInstance().UpdateCollectionTs(currentDbName(""), collection_name, response.timestamp());
+        }
+    };
+
+    auto status = apiHandler<proto::milvus::UpsertRequest, proto::milvus::MutationResult>(
+        validate, pre, &MilvusConnection::Upsert, post);
+    // If there are multiple clients, the client_A repeatedly do insert, the client_B changes
+    // the collection schema. The server might return a special error code "SchemaMismatch".
+    // If the client_A gets this special error code, it needs to update the collectionDesc cache and
+    // call Upsert() again.
+    if (status.LegacyServerCode() == static_cast<int32_t>(proto::common::ErrorCode::SchemaMismatch)) {
+        removeCollectionDesc(collection_name);
+        return Upsert(collection_name, partition_name, fields, results);
+    }
+    return status;
 }
 
 Status
@@ -801,10 +902,16 @@ MilvusClientImpl::Delete(const std::string& collection_name, const std::string& 
         return rpc_request;
     };
 
-    auto post = [&results](const proto::milvus::MutationResult& response) {
+    auto post = [this, &results, &collection_name](const proto::milvus::MutationResult& response) {
         auto id_array = CreateIDArray(response.ids());
         results.SetIdArray(std::move(id_array));
         results.SetTimestamp(response.timestamp());
+
+        if (!IsRealFailure(response.status())) {
+            // TODO: if the parameters provides db_name in future, we need to set the correct
+            // db_name to UpdateCollectionTs()
+            GtsDict::GetInstance().UpdateCollectionTs(currentDbName(""), collection_name, response.timestamp());
+        }
     };
 
     return apiHandler<proto::milvus::DeleteRequest, proto::milvus::MutationResult>(pre, &MilvusConnection::Delete,
@@ -814,26 +921,14 @@ MilvusClientImpl::Delete(const std::string& collection_name, const std::string& 
 Status
 MilvusClientImpl::Search(const SearchArguments& arguments, SearchResults& results, int timeout) {
     std::string anns_field;
-    auto validate = [this, &arguments, &anns_field]() {
-        CollectionDesc collection_desc;
-        auto status = DescribeCollection(arguments.CollectionName(), collection_desc);
-        if (status.IsOk()) {
-            // check anns fields
-            auto& field_name = arguments.TargetVectors()->Name();
-            auto anns_fileds = collection_desc.Schema().AnnsFieldNames();
-            if (anns_fileds.find(field_name) != anns_fileds.end()) {
-                anns_field = field_name;
-            } else {
-                return Status{StatusCode::INVALID_AGUMENT, std::string(field_name + " is not a valid anns field")};
-            }
-            // basic check for extra params
-            status = arguments.Validate();
-        }
-        return status;
-    };
+    auto validate = [&arguments, &anns_field]() { return arguments.Validate(anns_field); };
 
-    auto pre = [&arguments, &anns_field]() {
+    auto pre = [this, &arguments, &anns_field]() {
         proto::milvus::SearchRequest rpc_request;
+        auto db_name = arguments.DatabaseName();
+        if (!db_name.empty()) {
+            rpc_request.set_db_name(db_name);
+        }
         rpc_request.set_collection_name(arguments.CollectionName());
         rpc_request.set_dsl_type(proto::common::DslType::BoolExprV1);
         if (!arguments.Expression().empty()) {
@@ -873,11 +968,13 @@ MilvusClientImpl::Search(const SearchArguments& arguments, SearchResults& result
         }
         rpc_request.set_placeholder_group(std::move(placeholder_group.SerializeAsString()));
 
-        auto kv_pair = rpc_request.add_search_params();
-        kv_pair->set_key("anns_field");
-        kv_pair->set_value(anns_field);
+        if (!anns_field.empty()) {
+            auto kv_pair = rpc_request.add_search_params();
+            kv_pair->set_key("anns_field");
+            kv_pair->set_value(anns_field);
+        }
 
-        kv_pair = rpc_request.add_search_params();
+        auto kv_pair = rpc_request.add_search_params();
         kv_pair->set_key("topk");
         kv_pair->set_value(std::to_string(arguments.TopK()));
 
@@ -902,8 +999,17 @@ MilvusClientImpl::Search(const SearchArguments& arguments, SearchResults& result
         }
         kv_pair->set_value(json.dump());
 
+        ConsistencyLevel level = arguments.GetConsistencyLevel();
+        uint64_t guarantee_ts = DeduceGuaranteeTimestamp(level, currentDbName(db_name), arguments.CollectionName());
+        rpc_request.set_guarantee_timestamp(guarantee_ts);
         rpc_request.set_travel_timestamp(arguments.TravelTimestamp());
-        rpc_request.set_guarantee_timestamp(arguments.GuaranteeTimestamp());
+
+        if (level == ConsistencyLevel::NONE) {
+            rpc_request.set_use_default_consistency(true);
+        } else {
+            rpc_request.set_consistency_level(ConsistencyLevelCast(arguments.GetConsistencyLevel()));
+        }
+
         return rpc_request;
     };
 
@@ -947,8 +1053,12 @@ MilvusClientImpl::Search(const SearchArguments& arguments, SearchResults& result
 
 Status
 MilvusClientImpl::Query(const QueryArguments& arguments, QueryResults& results, int timeout) {
-    auto pre = [&arguments]() {
+    auto pre = [this, &arguments]() {
         proto::milvus::QueryRequest rpc_request;
+        auto db_name = arguments.DatabaseName();
+        if (!db_name.empty()) {
+            rpc_request.set_db_name(db_name);
+        }
         rpc_request.set_collection_name(arguments.CollectionName());
         for (const auto& partition_name : arguments.PartitionNames()) {
             rpc_request.add_partition_names(partition_name);
@@ -959,8 +1069,16 @@ MilvusClientImpl::Query(const QueryArguments& arguments, QueryResults& results, 
             rpc_request.add_output_fields(field);
         }
 
+        ConsistencyLevel level = arguments.GetConsistencyLevel();
+        uint64_t guarantee_ts = DeduceGuaranteeTimestamp(level, currentDbName(db_name), arguments.CollectionName());
+        rpc_request.set_guarantee_timestamp(guarantee_ts);
         rpc_request.set_travel_timestamp(arguments.TravelTimestamp());
-        rpc_request.set_guarantee_timestamp(arguments.GuaranteeTimestamp());
+
+        if (level == ConsistencyLevel::NONE) {
+            rpc_request.set_use_default_consistency(true);
+        } else {
+            rpc_request.set_consistency_level(ConsistencyLevelCast(arguments.GetConsistencyLevel()));
+        }
 
         if (arguments.Limit() > 0) {
             proto::common::KeyValuePair* pair = rpc_request.add_query_params();
@@ -1341,6 +1459,58 @@ MilvusClientImpl::WaitForStatus(const std::function<Status(Progress&)>& query_fu
             return Status{StatusCode::TIMEOUT, "time out"};
         }
     }
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// internal used methods
+Status
+MilvusClientImpl::getCollectionDesc(const std::string& collection_name, bool forceUpdate, CollectionDescPtr& descPtr) {
+    // this lock locks the entire section, including the call of DescribeCollection()
+    // the reason is: describeCollection() could be limited by server-side(DDL request throttling is enabled)
+    // we don't intend to allow too many threads run into describeCollection() in this method
+    std::lock_guard<std::mutex> lock(collection_desc_cache_mtx_);
+    auto it = collection_desc_cache_.find(collection_name);
+    if (it != collection_desc_cache_.end()) {
+        if (it->second != nullptr && !forceUpdate) {
+            descPtr = it->second;
+            return Status::OK();
+        }
+    }
+
+    CollectionDesc desc;
+    auto status = DescribeCollection(collection_name, desc);
+    if (status.IsOk()) {
+        descPtr = std::make_shared<CollectionDesc>(desc);
+        collection_desc_cache_[collection_name] = descPtr;
+        return status;
+    }
+    return status;
+}
+
+void
+MilvusClientImpl::cleanCollectionDescCache() {
+    std::lock_guard<std::mutex> lock(collection_desc_cache_mtx_);
+    collection_desc_cache_.clear();
+}
+
+void
+MilvusClientImpl::removeCollectionDesc(const std::string& collection_name) {
+    std::lock_guard<std::mutex> lock(collection_desc_cache_mtx_);
+    collection_desc_cache_.erase(collection_name);
+}
+
+std::string
+MilvusClientImpl::currentDbName(const std::string& overwrite_db_name) const {
+    // if a db name is specified for rpc interface, use this name
+    if (!overwrite_db_name.empty()) {
+        return overwrite_db_name;
+    }
+    // no db name is specified, use the current db name used by this connection
+    if (connection_ != nullptr) {
+        const ConnectParam& param = connection_->GetConnectParam();
+        return param.DbName();
+    }
+    return "";
 }
 
 }  // namespace milvus

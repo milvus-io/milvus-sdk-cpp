@@ -16,9 +16,12 @@
 
 #pragma once
 
+#include <map>
 #include <memory>
+#include <mutex>
 
 #include "MilvusConnection.h"
+#include "common.pb.h"
 #include "milvus/MilvusClient.h"
 
 /**
@@ -103,7 +106,7 @@ class MilvusClientImpl : public MilvusClient {
     AlterAlias(const std::string& collection_name, const std::string& alias) final;
 
     Status
-    UsingDatabase(const std::string& db_name) final;
+    UseDatabase(const std::string& db_name) final;
 
     Status
     CreateDatabase(const std::string& db_name, const std::unordered_map<std::string, std::string>& properties) final;
@@ -143,6 +146,10 @@ class MilvusClientImpl : public MilvusClient {
 
     Status
     Insert(const std::string& collection_name, const std::string& partition_name,
+           const std::vector<FieldDataPtr>& fields, DmlResults& results) final;
+
+    Status
+    Upsert(const std::string& collection_name, const std::string& partition_name,
            const std::vector<FieldDataPtr>& fields, DmlResults& results) final;
 
     Status
@@ -246,7 +253,7 @@ class MilvusClientImpl : public MilvusClient {
             status = wait_for_status(rpc_response);
         }
 
-        if (status.IsOk() && post) {
+        if (post) {
             post(rpc_response);
         }
         return status;
@@ -299,8 +306,36 @@ class MilvusClientImpl : public MilvusClient {
                           std::function<void(const Response&)>{}, options);
     }
 
+    /**
+     * @brief return desc if it is existing, else call describeCollection() and cache it
+     */
+    Status
+    getCollectionDesc(const std::string& collection_name, bool forceUpdate, CollectionDescPtr& descPtr);
+
+    /**
+     * @brief clean desc of all the collections in the cache
+     */
+    void
+    cleanCollectionDescCache();
+
+    /**
+     * @brief remove a collections's desc from the cache
+     */
+    void
+    removeCollectionDesc(const std::string& collection_name);
+
+ private:
+    std::string
+    currentDbName(const std::string& overwrite_db_name) const;
+
  private:
     std::shared_ptr<MilvusConnection> connection_;
+
+    // cache of collection schemas
+    // this cache is db level, once useDatabase() is called, this cache will be cleaned
+    // so, it is fine to use collection name as key, no need to involve db name
+    std::map<std::string, CollectionDescPtr> collection_desc_cache_;
+    std::mutex collection_desc_cache_mtx_;
 };
 
 }  // namespace milvus

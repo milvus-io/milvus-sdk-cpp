@@ -671,3 +671,27 @@ TEST_F(TypeUtilsTest, TestB64EncodeGeneric) {
     EXPECT_EQ(milvus::Base64Encode("abcd"), "YWJjZA==");
     EXPECT_EQ(milvus::Base64Encode("abcde"), "YWJjZGU=");
 }
+
+TEST_F(TypeUtilsTest, ConsistencyLevelCast) {
+    auto proto_levels = std::vector<milvus::proto::common::ConsistencyLevel>{
+        milvus::proto::common::ConsistencyLevel::Strong,
+        milvus::proto::common::ConsistencyLevel::Session,
+        milvus::proto::common::ConsistencyLevel::Bounded,
+        milvus::proto::common::ConsistencyLevel::Eventually,
+    };
+    auto sdk_levels = std::vector<milvus::ConsistencyLevel>{
+        milvus::ConsistencyLevel::STRONG,
+        milvus::ConsistencyLevel::SESSION,
+        milvus::ConsistencyLevel::BOUNDED,
+        milvus::ConsistencyLevel::EVENTUALLY,
+    };
+
+    for (size_t i = 0; i < proto_levels.size(); ++i) {
+        auto sdk_level = milvus::ConsistencyLevelCast(proto_levels[i]);
+        EXPECT_EQ(sdk_levels[i], sdk_level);
+    }
+    for (size_t i = 0; i < sdk_levels.size(); ++i) {
+        auto proto_level = milvus::ConsistencyLevelCast(sdk_levels[i]);
+        EXPECT_EQ(proto_levels[i], proto_level);
+    }
+}

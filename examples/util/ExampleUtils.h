@@ -23,6 +23,7 @@
 
 #include "milvus/Status.h"
 
+namespace util {
 void
 CheckStatus(std::string&& prefix, const milvus::Status& status) {
     if (!status.IsOk()) {
@@ -85,3 +86,18 @@ RansomBools(int count) {
     std::transform(values.begin(), values.end(), bools.begin(), [](int x) { return x % 2 == 1; });
     return bools;
 }
+
+template <typename T>
+void
+PrintList(const std::vector<T>& list) {
+    std::cout << "[";
+    for (auto it = list.begin(); it != list.end(); ++it) {
+        std::cout << *it;
+        if (it != list.end()) {
+            std::cout << ",";
+        }
+    }
+    std::cout << "]";
+}
+
+}  // namespace util

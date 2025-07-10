@@ -98,6 +98,11 @@ MilvusConnection::Connect(const ConnectParam& param) {
     return {StatusCode::NOT_CONNECTED, reason};
 }
 
+const ConnectParam&
+MilvusConnection::GetConnectParam() const {
+    return param_;
+}
+
 Status
 MilvusConnection::Disconnect() {
     stub_.reset();
@@ -106,7 +111,7 @@ MilvusConnection::Disconnect() {
 }
 
 Status
-MilvusConnection::UsingDatabase(const std::string& db_name) {
+MilvusConnection::UseDatabase(const std::string& db_name) {
     Disconnect();
     param_.SetDbName(db_name);
     return Connect(param_);
@@ -307,6 +312,12 @@ Status
 MilvusConnection::Insert(const proto::milvus::InsertRequest& request, proto::milvus::MutationResult& response,
                          const GrpcContextOptions& options) {
     return grpcCall("Insert", &Stub::Insert, request, response, options);
+}
+
+Status
+MilvusConnection::Upsert(const proto::milvus::UpsertRequest& request, proto::milvus::MutationResult& response,
+                         const GrpcContextOptions& options) {
+    return grpcCall("Upsert", &Stub::Upsert, request, response, options);
 }
 
 Status

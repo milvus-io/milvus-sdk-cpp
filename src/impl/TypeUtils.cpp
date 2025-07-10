@@ -1119,6 +1119,34 @@ Base64Encode(const std::string& val) {
     return ret;
 }
 
+proto::common::ConsistencyLevel
+ConsistencyLevelCast(const ConsistencyLevel& level) {
+    switch (level) {
+        case ConsistencyLevel::STRONG:
+            return proto::common::ConsistencyLevel::Strong;
+        case ConsistencyLevel::SESSION:
+            return proto::common::ConsistencyLevel::Session;
+        case ConsistencyLevel::EVENTUALLY:
+            return proto::common::ConsistencyLevel::Eventually;
+        default:
+            return proto::common::ConsistencyLevel::Bounded;
+    }
+}
+
+ConsistencyLevel
+ConsistencyLevelCast(const proto::common::ConsistencyLevel& level) {
+    switch (level) {
+        case proto::common::ConsistencyLevel::Strong:
+            return ConsistencyLevel::STRONG;
+        case proto::common::ConsistencyLevel::Session:
+            return ConsistencyLevel::SESSION;
+        case proto::common::ConsistencyLevel::Eventually:
+            return ConsistencyLevel::EVENTUALLY;
+        default:
+            return ConsistencyLevel::BOUNDED;
+    }
+}
+
 }  // namespace milvus
 
 namespace std {

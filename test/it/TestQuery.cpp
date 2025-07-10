@@ -54,20 +54,21 @@ TEST_F(MilvusMockedTest, QueryFoo) {
     query_arguments.AddPartitionName("part1");
     query_arguments.AddPartitionName("part2");
     query_arguments.SetExpression("id > 100");
-    query_arguments.SetGuaranteeTimestamp(10000);
-    query_arguments.SetTravelTimestamp(20000);
+    query_arguments.SetConsistencyLevel(milvus::ConsistencyLevel::EVENTUALLY);
     query_arguments.AddOutputField("age");
     query_arguments.AddOutputField("score");
     query_arguments.AddOutputField("signature");
 
-    EXPECT_CALL(service_, Query(_,
-                                AllOf(Property(&QueryRequest::collection_name, "foo"),
-                                      Property(&QueryRequest::partition_names, ElementsAre("part1", "part2")),
-                                      Property(&QueryRequest::expr, "id > 100"),
-                                      Property(&QueryRequest::guarantee_timestamp, 10000),
-                                      Property(&QueryRequest::travel_timestamp, 20000),
-                                      Property(&QueryRequest::output_fields, ElementsAre("age", "score", "signature"))),
-                                _))
+    EXPECT_CALL(
+        service_,
+        Query(_,
+              AllOf(Property(&QueryRequest::collection_name, "foo"),
+                    Property(&QueryRequest::partition_names, ElementsAre("part1", "part2")),
+                    Property(&QueryRequest::expr, "id > 100"),
+                    Property(&QueryRequest::consistency_level, milvus::proto::common::ConsistencyLevel::Eventually),
+                    Property(&QueryRequest::guarantee_timestamp, milvus::GuaranteeEventuallyTs()),
+                    Property(&QueryRequest::output_fields, ElementsAre("age", "score", "signature"))),
+              _))
         .WillOnce([](::grpc::ServerContext*, const QueryRequest* request, QueryResults* response) {
             // ret: age
             auto& age = *response->add_fields_data();

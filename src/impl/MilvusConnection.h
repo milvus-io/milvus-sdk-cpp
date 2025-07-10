@@ -57,11 +57,14 @@ class MilvusConnection {
     Status
     Connect(const ConnectParam& param);
 
+    const ConnectParam&
+    GetConnectParam() const;
+
     Status
     Disconnect();
 
     Status
-    UsingDatabase(const std::string& db_name);
+    UseDatabase(const std::string& db_name);
 
     Status
     CreateDatabase(const proto::milvus::CreateDatabaseRequest& request, proto::common::Status& response,
@@ -192,6 +195,10 @@ class MilvusConnection {
            const GrpcContextOptions& options);
 
     Status
+    Upsert(const proto::milvus::UpsertRequest& request, proto::milvus::MutationResult& response,
+           const GrpcContextOptions& options);
+
+    Status
     Delete(const proto::milvus::DeleteRequest& request, proto::milvus::MutationResult& response,
            const GrpcContextOptions& options);
 
@@ -267,8 +274,8 @@ class MilvusConnection {
 
     static Status
     StatusByProtoResponse(const proto::common::Status& status) {
-        if (status.code() != proto::common::ErrorCode::Success) {
-            return Status{StatusCode::SERVER_FAILED, status.reason()};
+        if (status.code() != 0 || status.error_code() != proto::common::ErrorCode::Success) {
+            return Status{StatusCode::SERVER_FAILED, status.reason(), 0, status.code(), status.error_code()};
         }
         return Status::OK();
     }
@@ -280,12 +287,12 @@ class MilvusConnection {
         return StatusByProtoResponse(status);
     }
 
-    static StatusCode
+    static Status
     StatusCodeFromGrpcStatus(const ::grpc::Status& grpc_status) {
-        if (grpc_status.error_code() == ::grpc::StatusCode::DEADLINE_EXCEEDED) {
-            return StatusCode::TIMEOUT;
-        }
-        return StatusCode::SERVER_FAILED;
+        StatusCode code = (grpc_status.error_code() == ::grpc::StatusCode::DEADLINE_EXCEEDED)
+                              ? StatusCode::TIMEOUT
+                              : StatusCode::SERVER_FAILED;
+        return Status{code, grpc_status.error_message(), grpc_status.error_code(), 0, 0};
     }
 
     template <typename Request, typename Response>
@@ -305,10 +312,22 @@ class MilvusConnection {
 
         ::grpc::Status grpc_status = (stub_.get()->*func)(&context, request, &response);
 
+        // TODO: check the error codes and do retry here
+        // The following grpc error codes cannot be retried:
+        //   grpc::StatusCode::DEADLINE_EXCEEDED
+        //   grpc::StatusCode::PERMISSION_DENIED
+        //   grpc::StatusCode::UNAUTHENTICATED
+        //   grpc::StatusCode::INVALID_ARGUMENT
+        //   grpc::StatusCode::LREADY_EXISTS
+        //   grpc::StatusCode::RESOURCE_EXHAUSTED
+        //   grpc::StatusCode::UNIMPLEMENTED
         if (!grpc_status.ok()) {
-            return {StatusCodeFromGrpcStatus(grpc_status), grpc_status.error_message()};
+            return StatusCodeFromGrpcStatus(grpc_status);
         }
 
+        // Some milvus error codes can be retried:
+        //   response.status().error_code() == io.milvus.grpc.ErrorCode.RateLimit
+        //   or response.status()code() == 8 can be retried
         return StatusByProtoResponse(response);
     }
 };

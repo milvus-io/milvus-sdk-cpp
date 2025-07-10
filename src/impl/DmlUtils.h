@@ -16,18 +16,24 @@
 
 #pragma once
 
+#include "common.pb.h"
+#include "milvus/types/CollectionDesc.h"
+#include "milvus/types/ConsistencyLevel.h"
+#include "milvus/types/FieldData.h"
+#include "milvus/types/FieldSchema.h"
+
 namespace milvus {
 
-/**
- * @brief Consistency level for search/query
- */
-enum class ConsistencyLevel {
-    NONE = -1,
+bool
+IsInputField(const FieldSchema& field_schema, bool is_upsert);
 
-    STRONG = 0,
-    SESSION = 1,
-    BOUNDED = 2,
-    EVENTUALLY = 3,
-};
+Status
+CheckInsertInput(const CollectionDescPtr& collection_desc, const std::vector<FieldDataPtr>& fields, bool is_upsert);
+
+bool
+IsRealFailure(const proto::common::Status& status);
+
+uint64_t
+DeduceGuaranteeTimestamp(const ConsistencyLevel& level, const std::string& db_name, const std::string& collection_name);
 
 }  // namespace milvus

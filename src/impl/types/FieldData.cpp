@@ -16,6 +16,8 @@
 
 #include "milvus/types/FieldData.h"
 
+#include <stdexcept>
+
 namespace milvus {
 
 namespace {
@@ -129,6 +131,15 @@ template <typename T, DataType Dt>
 std::vector<T>&
 FieldData<T, Dt>::Data() {
     return data_;
+}
+
+template <typename T, DataType Dt>
+T
+FieldData<T, Dt>::Value(size_t i) {
+    if (i >= data_.size()) {
+        throw std::runtime_error("Index out of bounds!");
+    }
+    return data_[i];
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

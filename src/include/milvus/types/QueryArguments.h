@@ -21,6 +21,7 @@
 #include <string>
 
 #include "../Status.h"
+#include "ConsistencyLevel.h"
 
 namespace milvus {
 
@@ -29,6 +30,18 @@ namespace milvus {
  */
 class QueryArguments {
  public:
+    /**
+     * @brief Get the target db name
+     */
+    const std::string&
+    DatabaseName() const;
+
+    /**
+     * @brief Set target db name, default is empty, means use the db name of MilvusClient
+     */
+    Status
+    SetDatabaseName(const std::string& db_name);
+
     /**
      * @brief Get name of the target collection
      */
@@ -78,18 +91,21 @@ class QueryArguments {
 
     /**
      * @brief Get travel timestamp.
+     * @deprecated Deprecated in 2.4, replaced by ConsistencyLevel
      */
     uint64_t
     TravelTimestamp() const;
     /**
      * @brief  @brief Specify an absolute timestamp in a query to get results based on a data view at a specified point
      * in time. \n Default value is 0, server executes query on a full data view.
+     * @deprecated Deprecated in 2.4, replaced by ConsistencyLevel
      */
     Status
     SetTravelTimestamp(uint64_t timestamp);
 
     /**
      * @brief Get guarantee timestamp.
+     * @deprecated Deprecated in 2.4, replaced by ConsistencyLevel
      */
     uint64_t
     GuaranteeTimestamp() const;
@@ -105,6 +121,7 @@ class QueryArguments {
      * execute query after this operation is finished. \n
      *
      * Default value is 1, server executes search immediately.
+     * @deprecated Deprecated in 2.4, replaced by ConsistencyLevel
      */
     Status
     SetGuaranteeTimestamp(uint64_t timestamp);
@@ -133,7 +150,20 @@ class QueryArguments {
     Status
     SetOffset(int64_t offset);
 
+    /**
+     * @brief Get consistency level
+     */
+    ConsistencyLevel
+    GetConsistencyLevel() const;
+
+    /**
+     * @brief Set consistency level
+     */
+    Status
+    SetConsistencyLevel(const ConsistencyLevel& level);
+
  private:
+    std::string db_name_;
     std::string collection_name_;
     std::set<std::string> partition_names_;
     std::set<std::string> output_field_names_;
@@ -146,6 +176,9 @@ class QueryArguments {
 
     int64_t limit_{0};
     int64_t offset_{0};
+
+    // ConsistencyLevel::NONE means using collection's default level
+    ConsistencyLevel consistency_level_{ConsistencyLevel::NONE};
 };
 
 }  // namespace milvus

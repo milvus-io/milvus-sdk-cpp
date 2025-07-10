@@ -18,6 +18,16 @@
 
 namespace milvus {
 
+const std::string&
+CollectionDesc::DatabaseName() const {
+    return db_name_;
+}
+
+void
+CollectionDesc::SetDatabaseName(std::string name) {
+    db_name_ = name;
+}
+
 const CollectionSchema&
 CollectionDesc::Schema() const {
     return schema_;
@@ -66,6 +76,16 @@ CollectionDesc::CreatedTime() const {
 void
 CollectionDesc::SetCreatedTime(uint64_t ts) {
     created_utc_timestamp_ = ts;
+}
+
+uint64_t
+CollectionDesc::UpdateTime() const {
+    return update_timestamp_;
+}
+
+void
+CollectionDesc::SetUpdateTime(uint64_t ts) {
+    update_timestamp_ = ts;
 }
 
 }  // namespace milvus

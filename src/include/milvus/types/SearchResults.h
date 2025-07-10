@@ -57,6 +57,15 @@ struct SingleResult {
     FieldDataPtr
     OutputField(const std::string& name) const;
 
+    /**
+     * @brief Get an output field by name and cast to specific pointer
+     */
+    template <typename T>
+    std::shared_ptr<T>
+    OutputField(const std::string& name) const {
+        return std::dynamic_pointer_cast<T>(OutputField(name));
+    }
+
  private:
     IDArray ids_;
     std::vector<float> scores_;

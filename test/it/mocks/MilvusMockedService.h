@@ -108,6 +108,8 @@ class MilvusMockedService : public ::milvus::proto::milvus::MilvusService::Servi
                                            ::milvus::proto::common::Status*));
     MOCK_METHOD3(Insert, ::grpc::Status(::grpc::ServerContext*, const ::milvus::proto::milvus::InsertRequest*,
                                         ::milvus::proto::milvus::MutationResult*));
+    MOCK_METHOD3(Upsert, ::grpc::Status(::grpc::ServerContext*, const ::milvus::proto::milvus::UpsertRequest*,
+                                        ::milvus::proto::milvus::MutationResult*));
     MOCK_METHOD3(Delete, ::grpc::Status(::grpc::ServerContext*, const ::milvus::proto::milvus::DeleteRequest*,
                                         ::milvus::proto::milvus::MutationResult*));
     MOCK_METHOD3(Search, ::grpc::Status(::grpc::ServerContext*, const ::milvus::proto::milvus::SearchRequest*,

@@ -40,6 +40,9 @@ SingleResult::OutputFields() const {
 FieldDataPtr
 SingleResult::OutputField(const std::string& name) const {
     for (const auto& output_field : output_fields_) {
+        if (output_field == nullptr) {
+            continue;
+        }
         if (output_field->Name() == name) {
             return output_field;
         }

@@ -32,7 +32,7 @@ TEST_F(CollectionSchemaTest, GeneralTesting) {
     EXPECT_TRUE(schema.AddField(milvus::FieldSchema("bar", milvus::DataType::FLOAT_VECTOR, "bar")));
     EXPECT_FALSE(schema.AddField(milvus::FieldSchema("bar", milvus::DataType::FLOAT_VECTOR, "bar")));
 
-    EXPECT_EQ(schema.ShardsNum(), 2);
+    EXPECT_EQ(schema.ShardsNum(), 1);
     EXPECT_EQ(schema.Fields().size(), 2);
     EXPECT_EQ(schema.AnnsFieldNames().size(), 1);
     EXPECT_EQ(*schema.AnnsFieldNames().begin(), "bar");

@@ -110,7 +110,7 @@ class CollectionSchema {
  private:
     std::string name_;
     std::string description_;
-    int32_t shard_num_ = 2;
+    int32_t shard_num_ = 1;  // from v2.4, the default shard_num is 1(old version is 2)
     bool enable_dynamic_field_;
     std::vector<FieldSchema> fields_;
 };

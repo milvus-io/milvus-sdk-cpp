@@ -55,25 +55,12 @@ DoSearchVectors(testing::StrictMock<::milvus::MilvusMockedService>& service_,
     for (const auto& vec : vectors) {
         search_arguments.AddTargetVector("anns_dummy", vec);
     }
-    search_arguments.SetTravelTimestamp(10000);
-    search_arguments.SetGuaranteeTimestamp(milvus::GuaranteeStrongTs());
+    search_arguments.SetConsistencyLevel(milvus::ConsistencyLevel::STRONG);
     search_arguments.SetTopK(10);
     search_arguments.SetRoundDecimal(-1);
     search_arguments.SetMetricType(milvus::MetricType::IP);
 
     search_arguments.AddExtraParam("nprobe", 10);
-
-    EXPECT_CALL(service_, DescribeCollection(_, Property(&DescribeCollectionRequest::collection_name, "foo"), _))
-        .WillOnce([](::grpc::ServerContext*, const DescribeCollectionRequest*, DescribeCollectionResponse* response) {
-            response->set_collectionid(1000);
-            response->set_shards_num(2);
-            response->set_created_timestamp(10000);
-            auto* proto_schema = response->mutable_schema();
-            auto* field = proto_schema->add_fields();
-            field->set_data_type(DataType::FloatVector);
-            field->set_name("anns_dummy");
-            return ::grpc::Status{};
-        });
 
     EXPECT_CALL(
         service_,
@@ -81,7 +68,7 @@ DoSearchVectors(testing::StrictMock<::milvus::MilvusMockedService>& service_,
             _,
             AllOf(Property(&SearchRequest::collection_name, "foo"), Property(&SearchRequest::dsl, "dummy expression"),
                   Property(&SearchRequest::dsl_type, milvus::proto::common::DslType::BoolExprV1),
-                  Property(&SearchRequest::travel_timestamp, 10000),
+                  Property(&SearchRequest::consistency_level, milvus::proto::common::ConsistencyLevel::Strong),
                   Property(&SearchRequest::guarantee_timestamp, milvus::GuaranteeStrongTs()),
                   Property(&SearchRequest::partition_names, UnorderedElementsAre("part1", "part2")),
                   Property(&SearchRequest::output_fields, UnorderedElementsAre("f1", "f2")),
@@ -246,44 +233,4 @@ TEST_F(MilvusMockedTest, SearchWithoutConnect) {
 
     EXPECT_FALSE(status.IsOk());
     EXPECT_EQ(status.Code(), StatusCode::NOT_CONNECTED);
-}
-
-TEST_F(MilvusMockedTest, SearchWithMismatchedAnnsField) {
-    milvus::ConnectParam connect_param{"127.0.0.1", server_.ListenPort()};
-    client_->Connect(connect_param);
-
-    std::vector<std::vector<float>> floats_vec = {std::vector<float>{0.1f, 0.2f, 0.3f, 0.4f},
-                                                  std::vector<float>{0.2f, 0.3f, 0.4f, 0.5f}};
-
-    milvus::SearchArguments search_arguments{};
-    milvus::SearchResults search_results{};
-    search_arguments.SetCollectionName("foo");
-    search_arguments.AddPartitionName("part1");
-    search_arguments.AddPartitionName("part2");
-    search_arguments.AddOutputField("f1");
-    search_arguments.AddOutputField("f2");
-    search_arguments.SetExpression("dummy expression");
-    for (const auto& floats : floats_vec) {
-        search_arguments.AddTargetVector("anns_dummy", floats);
-    }
-    search_arguments.SetTravelTimestamp(10000);
-    search_arguments.SetGuaranteeTimestamp(10001);
-    search_arguments.SetTopK(10);
-    search_arguments.SetRoundDecimal(-1);
-
-    EXPECT_CALL(service_, DescribeCollection(_, Property(&DescribeCollectionRequest::collection_name, "foo"), _))
-        .WillOnce([](::grpc::ServerContext*, const DescribeCollectionRequest*, DescribeCollectionResponse* response) {
-            response->set_collectionid(1000);
-            response->set_shards_num(2);
-            response->set_created_timestamp(10000);
-            auto* proto_schema = response->mutable_schema();
-            auto* field = proto_schema->add_fields();
-            field->set_data_type(DataType::FloatVector);
-            field->set_name("anns_mismatch");
-            return ::grpc::Status{};
-        });
-
-    auto status = client_->Search(search_arguments, search_results);
-    EXPECT_FALSE(status.IsOk());
-    EXPECT_EQ(status.Code(), StatusCode::INVALID_AGUMENT);
 }
