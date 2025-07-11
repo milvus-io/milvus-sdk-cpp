@@ -76,122 +76,104 @@ SearchArguments::AddOutputField(std::string field_name) {
 }
 
 const std::string&
-SearchArguments::Expression() const {
+SearchArguments::Filter() const {
     return filter_expression_;
 }
 
 Status
-SearchArguments::SetExpression(std::string expression) {
-    filter_expression_ = std::move(expression);
+SearchArguments::SetFilter(std::string filter) {
+    filter_expression_ = std::move(filter);
     return Status::OK();
 }
 
 FieldDataPtr
 SearchArguments::TargetVectors() const {
-    if (binary_vectors_ != nullptr) {
-        return binary_vectors_;
-    } else if (float_vectors_ != nullptr) {
-        return float_vectors_;
-    }
-
-    return nullptr;
+    return target_vectors_;
 }
 
 Status
-SearchArguments::AddTargetVector(std::string field_name, const std::string& vector) {
-    return AddTargetVector(std::move(field_name), std::string{vector});
+SearchArguments::AddBinaryVector(std::string field_name, const std::vector<uint8_t>& vector) {
+    return AddBinaryVector(std::move(field_name), milvus::BinaryVecFieldData::CreateBinaryString(vector));
 }
 
 Status
-SearchArguments::AddTargetVector(std::string field_name, const std::vector<uint8_t>& vector) {
-    return AddTargetVector(std::move(field_name), milvus::BinaryVecFieldData::CreateBinaryString(vector));
-}
-
-Status
-SearchArguments::AddTargetVector(std::string field_name, std::string&& vector) {
-    if (float_vectors_ != nullptr) {
-        return {StatusCode::INVALID_AGUMENT, "Target vector must be float type!"};
+SearchArguments::AddBinaryVector(std::string field_name, const BinaryVecFieldData::ElementT& vector) {
+    auto status = verifyVectorType(DataType::BINARY_VECTOR);
+    if (!status.IsOk()) {
+        return status;
     }
 
-    if (nullptr == binary_vectors_) {
-        binary_vectors_ = std::make_shared<BinaryVecFieldData>(std::move(field_name));
+    BinaryVecFieldDataPtr vectors;
+    if (nullptr == target_vectors_) {
+        vectors = std::make_shared<BinaryVecFieldData>(std::move(field_name));
+        target_vectors_ = vectors;
+    } else {
+        vectors = std::static_pointer_cast<BinaryVecFieldData>(target_vectors_);
     }
 
-    auto code = binary_vectors_->Add(std::move(vector));
+    auto code = vectors->Add(vector);
     if (code != StatusCode::OK) {
-        return {code, "Failed to add vector"};
+        return {code, "Failed to add binary vector"};
     }
 
     return Status::OK();
 }
 
 Status
-SearchArguments::AddTargetVector(std::string field_name, const FloatVecFieldData::ElementT& vector) {
-    if (binary_vectors_ != nullptr) {
-        return {StatusCode::INVALID_AGUMENT, "Target vector must be binary type!"};
+SearchArguments::AddFloatVector(std::string field_name, const FloatVecFieldData::ElementT& vector) {
+    auto status = verifyVectorType(DataType::FLOAT_VECTOR);
+    if (!status.IsOk()) {
+        return status;
     }
 
-    if (nullptr == float_vectors_) {
-        float_vectors_ = std::make_shared<FloatVecFieldData>(std::move(field_name));
+    FloatVecFieldDataPtr vectors;
+    if (nullptr == target_vectors_) {
+        vectors = std::make_shared<FloatVecFieldData>(std::move(field_name));
+        target_vectors_ = vectors;
+    } else {
+        vectors = std::static_pointer_cast<FloatVecFieldData>(target_vectors_);
     }
 
-    auto code = float_vectors_->Add(vector);
+    auto code = vectors->Add(vector);
     if (code != StatusCode::OK) {
-        return {code, "Failed to add vector"};
+        return {code, "Failed to add float vector"};
     }
 
     return Status::OK();
 }
 
 Status
-SearchArguments::AddTargetVector(std::string field_name, FloatVecFieldData::ElementT&& vector) {
-    if (binary_vectors_ != nullptr) {
-        return {StatusCode::INVALID_AGUMENT, "Target vector must be binary type!"};
+SearchArguments::AddSparseVector(std::string field_name, const SparseFloatVecFieldData::ElementT& vector) {
+    auto status = verifyVectorType(DataType::SPARSE_FLOAT_VECTOR);
+    if (!status.IsOk()) {
+        return status;
     }
 
-    if (nullptr == float_vectors_) {
-        float_vectors_ = std::make_shared<FloatVecFieldData>(std::move(field_name));
+    SparseFloatVecFieldDataPtr vectors;
+    if (nullptr == target_vectors_) {
+        vectors = std::make_shared<SparseFloatVecFieldData>(std::move(field_name));
+        target_vectors_ = vectors;
+    } else {
+        vectors = std::static_pointer_cast<SparseFloatVecFieldData>(target_vectors_);
     }
 
-    auto code = float_vectors_->Add(std::move(vector));
+    auto code = vectors->Add(vector);
     if (code != StatusCode::OK) {
-        return {code, "Failed to add vector"};
+        return {code, "Failed to add sparse vector"};
     }
 
-    return Status::OK();
-}
-
-uint64_t
-SearchArguments::TravelTimestamp() const {
-    return travel_timestamp_;
-}
-
-Status
-SearchArguments::SetTravelTimestamp(uint64_t timestamp) {
-    travel_timestamp_ = timestamp;
-    return Status::OK();
-}
-
-uint64_t
-SearchArguments::GuaranteeTimestamp() const {
-    return guarantee_timestamp_;
-}
-
-Status
-SearchArguments::SetGuaranteeTimestamp(uint64_t timestamp) {
-    guarantee_timestamp_ = timestamp;
-    return Status::OK();
-}
-
-Status
-SearchArguments::SetTopK(int64_t topk) {
-    topk_ = topk;
     return Status::OK();
 }
 
 int64_t
-SearchArguments::TopK() const {
-    return topk_;
+SearchArguments::Limit() const {
+    return limit_;
+}
+
+Status
+SearchArguments::SetLimit(int64_t limit) {
+    limit_ = limit;
+    return Status::OK();
 }
 
 int64_t
@@ -245,24 +227,10 @@ SearchArguments::ExtraParams() const {
 Status
 SearchArguments::Validate(std::string& anns_field) const {
     // in milvus 2.4+, no need to check index parameters, let the server to check it
-
-    auto float_vector_count = (float_vectors_ == nullptr) ? 0 : float_vectors_->Count();
-    auto binary_vector_count = (binary_vectors_ == nullptr) ? 0 : binary_vectors_->Count();
-    // no target vector is assigned, not able search
-    if (float_vector_count == 0 && binary_vector_count == 0) {
+    if (target_vectors_ == nullptr || target_vectors_->Count() == 0) {
         return Status{StatusCode::INVALID_AGUMENT, "no target vector is assigned"};
     }
-    // all the target vectors must be the same type
-    if (float_vector_count > 0 && binary_vector_count > 0) {
-        return Status{StatusCode::INVALID_AGUMENT, "target vectors are not same type"};
-    }
-
-    // return anns_field name
-    if (float_vector_count > 0) {
-        anns_field = float_vectors_->Name();
-    } else if (binary_vector_count > 0) {
-        anns_field = binary_vectors_->Name();
-    }
+    anns_field = target_vectors_->Name();
     return Status::OK();
 }
 
@@ -301,5 +269,83 @@ SearchArguments::SetConsistencyLevel(const ConsistencyLevel& level) {
     consistency_level_ = level;
     return Status::OK();
 }
+
+Status
+SearchArguments::verifyVectorType(DataType data_type) const {
+    if (target_vectors_ != nullptr && target_vectors_->Type() != data_type) {
+        return {StatusCode::INVALID_AGUMENT, "Target vector must be the same type!"};
+    }
+    return Status::OK();
+}
+
+///////////////////////////////////////////////////////////////////////////////////////
+// deprecated methods
+const std::string&
+SearchArguments::Expression() const {
+    return Filter();
+}
+
+Status
+SearchArguments::SetExpression(std::string expression) {
+    return SetFilter(expression);
+}
+
+Status
+SearchArguments::AddTargetVector(std::string field_name, const std::string& vector) {
+    return AddBinaryVector(std::move(field_name), vector);
+}
+
+Status
+SearchArguments::AddTargetVector(std::string field_name, const std::vector<uint8_t>& vector) {
+    return AddBinaryVector(std::move(field_name), vector);
+}
+
+Status
+SearchArguments::AddTargetVector(std::string field_name, std::string&& vector) {
+    return AddBinaryVector(std::move(field_name), vector);
+}
+
+Status
+SearchArguments::AddTargetVector(std::string field_name, const FloatVecFieldData::ElementT& vector) {
+    return AddFloatVector(std::move(field_name), vector);
+}
+
+Status
+SearchArguments::AddTargetVector(std::string field_name, FloatVecFieldData::ElementT&& vector) {
+    return AddFloatVector(std::move(field_name), vector);
+}
+
+Status
+SearchArguments::SetTopK(int64_t topk) {
+    return SetLimit(topk);
+}
+
+int64_t
+SearchArguments::TopK() const {
+    return Limit();
+}
+
+uint64_t
+SearchArguments::TravelTimestamp() const {
+    return travel_timestamp_;
+}
+
+Status
+SearchArguments::SetTravelTimestamp(uint64_t timestamp) {
+    travel_timestamp_ = timestamp;
+    return Status::OK();
+}
+
+uint64_t
+SearchArguments::GuaranteeTimestamp() const {
+    return guarantee_timestamp_;
+}
+
+Status
+SearchArguments::SetGuaranteeTimestamp(uint64_t timestamp) {
+    guarantee_timestamp_ = timestamp;
+    return Status::OK();
+}
+///////////////////////////////////////////////////////////////////////////////////////
 
 }  // namespace milvus

@@ -85,7 +85,7 @@ main(int argc, char* argv[]) {
 
     status = client->CreateCollection(collection_schema);
     util::CheckStatus("Failed to create collection:", status);
-    std::cout << "Successfully create collection." << std::endl;
+    std::cout << "Successfully create collection " << collection_name << std::endl;
 
     // create index
     milvus::IndexDesc index_vector(field_vector, "", milvus::IndexType::FLAT, milvus::MetricType::COSINE);
@@ -168,7 +168,7 @@ main(int argc, char* argv[]) {
     // do search
     milvus::SearchArguments s_arguments{};
     s_arguments.SetCollectionName(collection_name);
-    s_arguments.SetTopK(3);
+    s_arguments.SetLimit(3);
     s_arguments.AddOutputField(field_id);
     s_arguments.AddOutputField(field_array_bool);
     s_arguments.AddOutputField(field_array_int8);
@@ -181,8 +181,8 @@ main(int argc, char* argv[]) {
 
     auto q_number_1 = util::RandomeValue<int64_t>(0, row_count - 1);
     auto q_number_2 = util::RandomeValue<int64_t>(0, row_count - 1);
-    s_arguments.AddTargetVector(field_vector, std::move(vector_field->Data()[q_number_1]));
-    s_arguments.AddTargetVector(field_vector, std::move(vector_field->Data()[q_number_2]));
+    s_arguments.AddFloatVector(field_vector, vector_field->Data()[q_number_1]);
+    s_arguments.AddFloatVector(field_vector, vector_field->Data()[q_number_2]);
     std::cout << "Searching the No." << q_number_1 << " and No." << q_number_2 << std::endl;
 
     milvus::SearchResults search_results{};
@@ -204,11 +204,11 @@ main(int argc, char* argv[]) {
         auto array_int16_field = result.OutputField<milvus::ArrayInt16FieldData>(field_array_int16);
         auto array_varchar_field = result.OutputField<milvus::ArrayVarCharFieldData>(field_array_varchar);
         for (size_t i = 0; i < ids.size(); ++i) {
-            std::cout << "\tID: " << ids[i] << "\tDistance: " << distances[i] << "\tID: " << id_field->Value(i);
-            std::cout << "\tArrayInt16: ";
+            std::cout << "\t" << id_field->Name() << ":" << ids[i] << "\tDistance: " << distances[i] << "\t";
+            std::cout << array_int16_field->Name();
             util::PrintList<int16_t>(array_int16_field->Value(i));
 
-            std::cout << "\tArrayVarchar: ";
+            std::cout << array_varchar_field->Name();
             util::PrintList<std::string>(array_varchar_field->Value(i));
             std::cout << std::endl;
         }

@@ -21,12 +21,12 @@
 #include <nlohmann/json.hpp>
 #include <thread>
 
-#include "DmlUtils.h"
-#include "GtsDict.h"
-#include "TypeUtils.h"
 #include "common.pb.h"
 #include "milvus.pb.h"
 #include "schema.pb.h"
+#include "utils/DmlUtils.h"
+#include "utils/GtsDict.h"
+#include "utils/TypeUtils.h"
 
 namespace milvus {
 
@@ -949,22 +949,31 @@ MilvusClientImpl::Search(const SearchArguments& arguments, SearchResults& result
         if (target->Type() == DataType::BINARY_VECTOR) {
             // bins
             placeholder_value.set_type(proto::common::PlaceholderType::BinaryVector);
-            auto& bins_vec = dynamic_cast<BinaryVecFieldData&>(*target);
-            for (const auto& bins : bins_vec.Data()) {
+            auto& vectors = dynamic_cast<BinaryVecFieldData&>(*target);
+            for (const auto& bins : vectors.Data()) {
                 std::string placeholder_data(reinterpret_cast<const char*>(bins.data()), bins.size());
                 placeholder_value.add_values(std::move(placeholder_data));
             }
-            rpc_request.set_nq(static_cast<int64_t>(bins_vec.Data().size()));
-        } else {
+            rpc_request.set_nq(static_cast<int64_t>(vectors.Count()));
+        } else if (target->Type() == DataType::FLOAT_VECTOR) {
             // floats
             placeholder_value.set_type(proto::common::PlaceholderType::FloatVector);
-            auto& floats_vec = dynamic_cast<FloatVecFieldData&>(*target);
-            for (const auto& floats : floats_vec.Data()) {
+            auto& vectors = dynamic_cast<FloatVecFieldData&>(*target);
+            for (const auto& floats : vectors.Data()) {
                 std::string placeholder_data(reinterpret_cast<const char*>(floats.data()),
                                              floats.size() * sizeof(float));
                 placeholder_value.add_values(std::move(placeholder_data));
             }
-            rpc_request.set_nq(static_cast<int64_t>(floats_vec.Data().size()));
+            rpc_request.set_nq(static_cast<int64_t>(vectors.Count()));
+        } else if (target->Type() == DataType::SPARSE_FLOAT_VECTOR) {
+            // sparse
+            placeholder_value.set_type(proto::common::PlaceholderType::SparseFloatVector);
+            auto& vectors = dynamic_cast<SparseFloatVecFieldData&>(*target);
+            for (const auto& sparse : vectors.Data()) {
+                std::string placeholder_data = EncodeSparseFloatVector(sparse);
+                placeholder_value.add_values(std::move(placeholder_data));
+            }
+            rpc_request.set_nq(static_cast<int64_t>(vectors.Count()));
         }
         rpc_request.set_placeholder_group(std::move(placeholder_group.SerializeAsString()));
 
@@ -1039,7 +1048,8 @@ MilvusClientImpl::Search(const SearchArguments& arguments, SearchResults& result
             for (const auto& field_data : fields_data) {
                 item_field_data.emplace_back(std::move(milvus::CreateMilvusFieldData(field_data, offset, item_topk)));
             }
-            single_results.emplace_back(std::move(CreateIDArray(ids, offset, item_topk)), std::move(item_scores),
+            single_results.emplace_back(result_data.primary_field_name(),
+                                        std::move(CreateIDArray(ids, offset, item_topk)), std::move(item_scores),
                                         std::move(item_field_data));
             offset += item_topk;
         }

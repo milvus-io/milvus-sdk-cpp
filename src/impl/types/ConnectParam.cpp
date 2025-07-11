@@ -18,7 +18,7 @@
 
 #include <string>
 
-#include "../TypeUtils.h"
+#include "../utils/TypeUtils.h"
 
 namespace milvus {
 

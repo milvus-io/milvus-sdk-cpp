@@ -31,7 +31,8 @@ struct SingleResult {
     /**
      * @brief Constructor
      */
-    SingleResult(IDArray&& ids, std::vector<float>&& scores, std::vector<FieldDataPtr>&& output_fields);
+    SingleResult(const std::string& pk_name, IDArray&& ids, std::vector<float>&& scores,
+                 std::vector<FieldDataPtr>&& output_fields);
 
     /**
      * @brief Distances/scores array of one target vector
@@ -44,6 +45,14 @@ struct SingleResult {
      */
     const IDArray&
     Ids() const;
+
+    /**
+     * @brief The primary key name
+     * Sometimes the caller of Search() doesn't know the pk name, the server returns this name
+     * so that you don't need to describe the collection again.
+     */
+    const std::string&
+    PrimaryKeyName() const;
 
     /**
      * @brief Output fields data
@@ -67,6 +76,7 @@ struct SingleResult {
     }
 
  private:
+    std::string pk_name_;  // the server tells primary key name so that you don't need to describe the collection
     IDArray ids_;
     std::vector<float> scores_;
     std::vector<FieldDataPtr> output_fields_;

@@ -18,8 +18,9 @@
 
 namespace milvus {
 
-SingleResult::SingleResult(IDArray&& ids, std::vector<float>&& scores, std::vector<FieldDataPtr>&& output_fields)
-    : ids_{std::move(ids)}, scores_{std::move(scores)}, output_fields_{std::move(output_fields)} {
+SingleResult::SingleResult(const std::string& pk_name, IDArray&& ids, std::vector<float>&& scores,
+                           std::vector<FieldDataPtr>&& output_fields)
+    : pk_name_(pk_name), ids_{std::move(ids)}, scores_{std::move(scores)}, output_fields_{std::move(output_fields)} {
 }
 
 const std::vector<float>&
@@ -30,6 +31,11 @@ SingleResult::Scores() const {
 const IDArray&
 SingleResult::Ids() const {
     return ids_;
+}
+
+const std::string&
+SingleResult::PrimaryKeyName() const {
+    return pk_name_;
 }
 
 const std::vector<FieldDataPtr>&

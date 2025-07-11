@@ -81,10 +81,64 @@ class QueryArguments {
      * @brief Get filter expression
      */
     const std::string&
+    Filter() const;
+
+    /**
+     * @brief Set filter expression
+     */
+    Status
+    SetFilter(std::string filter);
+
+    /**
+     * @brief Get limit value.
+     */
+    int64_t
+    Limit() const;
+
+    /**
+     * @brief Set limit value, only avaiable when expression is empty
+     */
+    Status
+    SetLimit(int64_t limit);
+
+    /**
+     * @brief Get offset value.
+     */
+    int64_t
+    Offset() const;
+
+    /**
+     * @brief Set offset value, only avaiable when expression is empty
+     */
+    Status
+    SetOffset(int64_t offset);
+
+    /**
+     * @brief Get consistency level
+     */
+    ConsistencyLevel
+    GetConsistencyLevel() const;
+
+    /**
+     * @brief Set consistency level
+     */
+    Status
+    SetConsistencyLevel(const ConsistencyLevel& level);
+
+    ///////////////////////////////////////////////////////////////////////////////////////
+    // deprecated methods
+    /**
+     * @brief Get filter expression
+     * Can be empty if Limit() is zero, else must be non-empty
+     * @deprecated replaced by Filter()
+     */
+    const std::string&
     Expression() const;
 
     /**
-     * @brief Set filter expression, the expression cannot be empty
+     * @brief Set filter expression
+     * Can be empty if Limit() is zero, else must be non-empty
+     * @deprecated replaced by SetFilter()
      */
     Status
     SetExpression(std::string expression);
@@ -125,43 +179,7 @@ class QueryArguments {
      */
     Status
     SetGuaranteeTimestamp(uint64_t timestamp);
-
-    /**
-     * @brief Get limit value.
-     */
-    int64_t
-    Limit() const;
-
-    /**
-     * @brief Set limit value, only avaiable when expression is empty
-     */
-    Status
-    SetLimit(int64_t limit);
-
-    /**
-     * @brief Get offset value.
-     */
-    int64_t
-    Offset() const;
-
-    /**
-     * @brief Set offset value, only avaiable when expression is empty
-     */
-    Status
-    SetOffset(int64_t offset);
-
-    /**
-     * @brief Get consistency level
-     */
-    ConsistencyLevel
-    GetConsistencyLevel() const;
-
-    /**
-     * @brief Set consistency level
-     */
-    Status
-    SetConsistencyLevel(const ConsistencyLevel& level);
-
+    ///////////////////////////////////////////////////////////////////////////////////////
  private:
     std::string db_name_;
     std::string collection_name_;

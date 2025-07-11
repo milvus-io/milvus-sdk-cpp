@@ -18,12 +18,16 @@
 
 #include <algorithm>
 #include <iostream>
+#include <map>
 #include <random>
 #include <type_traits>
 
 #include "milvus/Status.h"
 
 namespace util {
+using REAL_GEN = std::uniform_real_distribution<float>;
+using INT_GEN = std::uniform_int_distribution<int>;
+
 void
 CheckStatus(std::string&& prefix, const milvus::Status& status) {
     if (!status.IsOk()) {
@@ -36,7 +40,7 @@ std::vector<std::vector<float>>
 GenerateFloatVectors(int dimension, int count) {
     std::random_device rd;
     std::mt19937 ran(rd());
-    std::uniform_real_distribution<float> float_gen(0.0, 1.0);
+    REAL_GEN float_gen(0.0, 1.0);
     std::vector<std::vector<float>> vectors(count);
     for (auto i = 0; i < count; ++i) {
         std::vector<float> vector(dimension);
@@ -54,14 +58,62 @@ GenerateFloatVector(int dimension) {
     return vectors[0];
 }
 
+std::vector<std::map<uint32_t, float>>
+GenerateSparseVectors(int max_dim, int count) {
+    std::random_device rd;
+    std::mt19937 ran(rd());
+    INT_GEN int_gen(0, max_dim);
+    REAL_GEN float_gen(0.0, 1.0);
+    std::vector<std::map<uint32_t, float>> vectors(count);
+    for (auto i = 0; i < count; ++i) {
+        int dimension = int_gen(ran);
+        std::map<uint32_t, float> vector{};
+        for (auto d = 0; d < dimension; ++d) {
+            vector.insert(std::make_pair(int_gen(ran), float_gen(ran)));
+        }
+        vectors[i] = vector;
+    }
+    return std::move(vectors);
+}
+
+std::map<uint32_t, float>
+GenerateSparseVector(int max_dim) {
+    std::vector<std::map<uint32_t, float>> vectors = GenerateSparseVectors(max_dim, 1);
+    return vectors[0];
+}
+
+std::vector<std::vector<uint8_t>>
+GenerateBinaryVectors(int dimension, int count) {
+    if (dimension % 8 != 0) {
+        throw std::runtime_error("Binary vector dimension must be mod of 8!");
+    }
+    std::random_device rd;
+    std::mt19937 ran(rd());
+    INT_GEN int_gen(0, 256);
+    int byte_count = dimension / 8;
+    std::vector<std::vector<uint8_t>> vectors(count);
+    for (auto i = 0; i < count; ++i) {
+        std::vector<uint8_t> vector(byte_count);
+        for (auto d = 0; d < byte_count; ++d) {
+            vector[d] = int_gen(ran);
+        }
+        vectors[i] = vector;
+    }
+    return std::move(vectors);
+}
+
+std::vector<uint8_t>
+GenerateBinaryVector(int dimension) {
+    std::vector<std::vector<uint8_t>> vectors = GenerateBinaryVectors(dimension, 1);
+    return vectors[0];
+}
+
 template <typename T>
 std::vector<T>
 RandomeValues(T min, T max, int count) {
     std::random_device rd;
     std::mt19937 ran(rd());
     const auto is_float = std::is_same<T, float>::value || std::is_same<T, double>::value;
-    using REAL_GEN = std::uniform_real_distribution<float>;
-    using INT_GEN = std::uniform_int_distribution<int>;
     typename std::conditional<is_float, REAL_GEN, INT_GEN>::type gen(min, max);
 
     std::vector<T> values(count);
@@ -89,15 +141,32 @@ RansomBools(int count) {
 
 template <typename T>
 void
-PrintList(const std::vector<T>& list) {
+PrintList(const std::vector<T>& obj) {
     std::cout << "[";
-    for (auto it = list.begin(); it != list.end(); ++it) {
-        std::cout << *it;
-        if (it != list.end()) {
-            std::cout << ",";
+    auto it = obj.begin();
+    while (it != obj.end()) {
+        if (it != obj.begin()) {
+            std::cout << ", ";
         }
+        std::cout << *it;
+        ++it;
     }
     std::cout << "]";
+}
+
+template <typename K, typename V>
+void
+PrintMap(const std::map<K, V>& obj) {
+    std::cout << "{";
+    auto it = obj.begin();
+    while (it != obj.end()) {
+        if (it != obj.begin()) {
+            std::cout << ", ";
+        }
+        std::cout << it->first << ":" << it->second;
+        ++it;
+    }
+    std::cout << "}";
 }
 
 }  // namespace util

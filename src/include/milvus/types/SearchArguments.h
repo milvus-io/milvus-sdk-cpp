@@ -85,13 +85,13 @@ class SearchArguments {
      * @brief Get filter expression
      */
     const std::string&
-    Expression() const;
+    Filter() const;
 
     /**
      * @brief Set filter expression
      */
     Status
-    SetExpression(std::string expression);
+    SetFilter(std::string filter);
 
     /**
      * @brief Get target vectors
@@ -103,83 +103,37 @@ class SearchArguments {
      * @brief Add a binary vector to search
      */
     Status
-    AddTargetVector(std::string field_name, const std::string& vector);
-
-    /**
-     * @brief Add a binary vector to search with uint8_t vectors
-     */
-    Status
-    AddTargetVector(std::string field_name, const std::vector<uint8_t>& vector);
+    AddBinaryVector(std::string field_name, const std::vector<uint8_t>& vector);
 
     /**
      * @brief Add a binary vector to search
      */
     Status
-    AddTargetVector(std::string field_name, std::string&& vector);
+    AddBinaryVector(std::string field_name, const BinaryVecFieldData::ElementT& vector);
 
     /**
      * @brief Add a float vector to search
      */
     Status
-    AddTargetVector(std::string field_name, const FloatVecFieldData::ElementT& vector);
+    AddFloatVector(std::string field_name, const FloatVecFieldData::ElementT& vector);
 
     /**
-     * @brief Add a float vector to search
+     * @brief Add a sparse vector to search
      */
     Status
-    AddTargetVector(std::string field_name, FloatVecFieldData::ElementT&& vector);
+    AddSparseVector(std::string field_name, const SparseFloatVecFieldData::ElementT& vector);
 
     /**
-     * @brief Get travel timestamp.
-     * @deprecated Deprecated in 2.4, replaced by ConsistencyLevel
-     */
-    uint64_t
-    TravelTimestamp() const;
-
-    /**
-     * @brief Specify an absolute timestamp in a search to get results based on a data view at a specified point in
-     * time. \n
-     *
-     * Default value is 0, server executes search on a full data view.
-     * @deprecated Deprecated in 2.4, replaced by ConsistencyLevel
-     */
-    Status
-    SetTravelTimestamp(uint64_t timestamp);
-
-    /**
-     * @brief Get guarantee timestamp.
-     * @deprecated Deprecated in 2.4, replaced by ConsistencyLevel
-     */
-    uint64_t
-    GuaranteeTimestamp() const;
-
-    /**
-     * @brief Instructs server to see insert/delete operations performed before a provided timestamp. \n
-     * If no such timestamp is specified, the server will wait for the latest operation to finish and search. \n
-     *
-     * Note: The timestamp is not an absolute timestamp, it is a hybrid value combined by UTC time and internal flags.
-     * \n We call it TSO, for more information please refer to: \n
-     * https://github.com/milvus-io/milvus/blob/master/docs/design_docs/milvus_hybrid_ts_en.md.
-     * You can get a TSO from insert/delete results. Use an operation's TSO to set this parameter,
-     * the server will execute search after this operation is finished. \n
-     *
-     * Default value is 1, server executes search immediately.
-     * @deprecated Deprecated in 2.4, replaced by ConsistencyLevel
-     */
-    Status
-    SetGuaranteeTimestamp(uint64_t timestamp);
-
-    /**
-     * @brief Specify search limit, AKA topk
-     */
-    Status
-    SetTopK(int64_t topk);
-
-    /**
-     * @brief Get Top K
+     * @brief Get search limit(topk)
      */
     int64_t
-    TopK() const;
+    Limit() const;
+
+    /**
+     * @brief Set search limit(topk)
+     */
+    Status
+    SetLimit(int64_t limit);
 
     /**
      * @brief Get nprobe
@@ -285,6 +239,114 @@ class SearchArguments {
     Status
     SetConsistencyLevel(const ConsistencyLevel& level);
 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    // deprecated methods
+    /**
+     * @brief Get filter expression
+     * @deprecated replaced by Filter()
+     */
+    const std::string&
+    Expression() const;
+
+    /**
+     * @brief Set filter expression
+     * @deprecated replaced by SetFilter()
+     */
+    Status
+    SetExpression(std::string expression);
+
+    /**
+     * @brief Specify search limit, AKA topk
+     * @deprecated replaced by SetLimit()
+     */
+    Status
+    SetTopK(int64_t topk);
+
+    /**
+     * @brief Get Top K
+     * @deprecated replaced by Limit()
+     */
+    int64_t
+    TopK() const;
+
+    /**
+     * @brief Add a binary vector to search
+     * @deprecated replaced by AddBinaryVector
+     */
+    Status
+    AddTargetVector(std::string field_name, const std::string& vector);
+
+    /**
+     * @brief Add a binary vector to search with uint8_t vectors
+     * @deprecated replaced by AddBinaryVector
+     */
+    Status
+    AddTargetVector(std::string field_name, const std::vector<uint8_t>& vector);
+
+    /**
+     * @brief Add a binary vector to search
+     * @deprecated replaced by AddBinaryVector
+     */
+    Status
+    AddTargetVector(std::string field_name, std::string&& vector);
+
+    /**
+     * @brief Add a float vector to search
+     * @deprecated replaced by AddFloatVector
+     */
+    Status
+    AddTargetVector(std::string field_name, const FloatVecFieldData::ElementT& vector);
+
+    /**
+     * @brief Add a float vector to search
+     * @deprecated replaced by AddFloatVector
+     */
+    Status
+    AddTargetVector(std::string field_name, FloatVecFieldData::ElementT&& vector);
+
+    /**
+     * @brief Get travel timestamp.
+     * @deprecated Deprecated in 2.4, replaced by ConsistencyLevel
+     */
+    uint64_t
+    TravelTimestamp() const;
+
+    /**
+     * @brief Specify an absolute timestamp in a search to get results based on a data view at a specified point in
+     * time. \n
+     *
+     * Default value is 0, server executes search on a full data view.
+     * @deprecated Deprecated in 2.4, replaced by ConsistencyLevel
+     */
+    Status
+    SetTravelTimestamp(uint64_t timestamp);
+
+    /**
+     * @brief Get guarantee timestamp.
+     * @deprecated Deprecated in 2.4, replaced by ConsistencyLevel
+     */
+    uint64_t
+    GuaranteeTimestamp() const;
+
+    /**
+     * @brief Instructs server to see insert/delete operations performed before a provided timestamp. \n
+     * If no such timestamp is specified, the server will wait for the latest operation to finish and search. \n
+     *
+     * Note: The timestamp is not an absolute timestamp, it is a hybrid value combined by UTC time and internal flags.
+     * \n We call it TSO, for more information please refer to: \n
+     * https://github.com/milvus-io/milvus/blob/master/docs/design_docs/milvus_hybrid_ts_en.md.
+     * You can get a TSO from insert/delete results. Use an operation's TSO to set this parameter,
+     * the server will execute search after this operation is finished. \n
+     *
+     * Default value is 1, server executes search immediately.
+     * @deprecated Deprecated in 2.4, replaced by ConsistencyLevel
+     */
+    Status
+    SetGuaranteeTimestamp(uint64_t timestamp);
+    ///////////////////////////////////////////////////////////////////////////////////////
+ private:
+    Status verifyVectorType(DataType) const;
+
  private:
     std::string db_name_;
     std::string collection_name_;
@@ -293,8 +355,7 @@ class SearchArguments {
     std::set<std::string> output_field_names_;
     std::string filter_expression_;
 
-    BinaryVecFieldDataPtr binary_vectors_;
-    FloatVecFieldDataPtr float_vectors_;
+    FieldDataPtr target_vectors_;
 
     std::set<std::string> output_fields_;
     std::unordered_map<std::string, int64_t> extra_params_;
@@ -302,7 +363,7 @@ class SearchArguments {
     uint64_t travel_timestamp_{0};
     uint64_t guarantee_timestamp_{GuaranteeEventuallyTs()};
 
-    int64_t topk_{1};
+    int64_t limit_{1};
     int round_decimal_{-1};
 
     float radius_;

@@ -28,57 +28,6 @@
 
 namespace milvus {
 
-bool
-operator==(const proto::schema::FieldData& lhs, const BoolFieldData& rhs);
-
-bool
-operator==(const proto::schema::FieldData& lhs, const Int8FieldData& rhs);
-
-bool
-operator==(const proto::schema::FieldData& lhs, const Int16FieldData& rhs);
-
-bool
-operator==(const proto::schema::FieldData& lhs, const Int32FieldData& rhs);
-
-bool
-operator==(const proto::schema::FieldData& lhs, const Int64FieldData& rhs);
-
-bool
-operator==(const proto::schema::FieldData& lhs, const FloatFieldData& rhs);
-
-bool
-operator==(const proto::schema::FieldData& lhs, const DoubleFieldData& rhs);
-
-bool
-operator==(const proto::schema::FieldData& lhs, const VarCharFieldData& rhs);
-
-bool
-operator==(const proto::schema::FieldData& lhs, const JSONFieldData& rhs);
-
-bool
-operator==(const proto::schema::FieldData& lhs, const BinaryVecFieldData& rhs);
-
-bool
-operator==(const proto::schema::FieldData& lhs, const FloatVecFieldData& rhs);
-
-bool
-operator==(const proto::schema::FieldData& lhs, const proto::schema::FieldData& rhs);
-
-bool
-operator==(const proto::schema::FieldData& lhs, const Field& rhs);
-
-/**
- * @brief To test two SegmentInfo are equal
- */
-bool
-operator==(const SegmentInfo& lhs, const SegmentInfo& rhs);
-
-/**
- * @brief To test two QuerySegmentInfo are equal
- */
-bool
-operator==(const QuerySegmentInfo& lhs, const QuerySegmentInfo& rhs);
-
 proto::schema::DataType
 DataTypeCast(DataType type);
 
@@ -93,6 +42,9 @@ IndexTypeCast(const std::string& type);
 
 proto::schema::FieldData
 CreateProtoFieldData(const Field& field);
+
+std::string
+EncodeSparseFloatVector(const SparseFloatVecFieldData::ElementT& sparse);
 
 template <typename T, typename VectorData>
 std::vector<T>
@@ -186,5 +138,8 @@ ConsistencyLevelCast(const proto::common::ConsistencyLevel& level);
 
 namespace std {
 std::string to_string(milvus::IndexType);
+
 std::string to_string(milvus::MetricType);
+
+std::string to_string(milvus::DataType);
 }  // namespace std

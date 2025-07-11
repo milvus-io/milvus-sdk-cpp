@@ -18,7 +18,7 @@
 
 #include <nlohmann/json.hpp>
 
-#include "../TypeUtils.h"
+#include "../utils/TypeUtils.h"
 
 namespace milvus {
 

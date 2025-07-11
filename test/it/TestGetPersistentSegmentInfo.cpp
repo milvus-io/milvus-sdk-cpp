@@ -17,8 +17,9 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
-#include "TypeUtils.h"
 #include "mocks/MilvusMockedTest.h"
+#include "utils/CompareUtils.h"
+#include "utils/TypeUtils.h"
 
 using ::milvus::StatusCode;
 using ::milvus::proto::common::SegmentState;

@@ -18,7 +18,8 @@
 
 #include <vector>
 
-#include "TypeUtils.h"
+#include "utils/CompareUtils.h"
+#include "utils/TypeUtils.h"
 
 using milvus::CreateIDArray;
 using milvus::CreateMilvusFieldData;
