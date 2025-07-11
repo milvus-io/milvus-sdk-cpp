@@ -2,8 +2,8 @@ misc:
   - branch: &BRANCHES
       #  In this pull request, the changes are based on the master branch
       - &MASTER_BRANCH base=master
-      #  In this pull request, the changes are based on the 2.x(or 2.x.x) branch
-      - &2X_BRANCH base~=^2(\.\d+){1,2}$
+      #  In this pull request, the changes are based on the 2.x branch
+      - &2X_BRANCH base~=2\.\d
 
 pull_request_rules:
   - name: Add needs-dco label when DCO check failed
