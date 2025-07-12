@@ -24,14 +24,6 @@ jobs:
             version: 22.04
             image: ubuntu:22.04
             key: u2204
-          - distro: Fedora
-            version: 38
-            image: fedora:38
-            key: fc38
-          - distro: Fedora
-            version: 39
-            image: fedora:39
-            key: fc39
     steps:
       - name: Checkout
         uses: actions/checkout@v4

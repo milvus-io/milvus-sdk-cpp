@@ -38,10 +38,6 @@ pull_request_rules:
       - or: *BRANCHES
       - "status-success=Build and test AMD64 Ubuntu 20.04"
       - "status-success=Build and test AMD64 Ubuntu 22.04"
-      - "status-success=Build and test AMD64 Fedora 38"
-      - "status-success=Build and test AMD64 Fedora 39"
-      - "status-success=Build and test macOS 13"
-      - "status-success=Build and test windows"
     actions:
       label:
         add:
@@ -51,12 +47,8 @@ pull_request_rules:
     conditions:
       - or: *BRANCHES
       - or:
-        - "check-failure=Build and test AMD64 Ubuntu 20.04"
-        - "check-failure=Build and test AMD64 Ubuntu 22.04"
-        - "check-failure=Build and test AMD64 Fedora 38"
-        - "check-failure=Build and test AMD64 Fedora 39"
-        - "check-failure=Build and test macOS 13"
-        - "check-failure=Build and test windows"
+        - "status-success!=Build and test AMD64 Ubuntu 20.04"
+        - "status-success!=Build and test AMD64 Ubuntu 22.04"
     actions:
       label:
         remove:

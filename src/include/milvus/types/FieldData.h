@@ -42,7 +42,7 @@ class Field {
      * @brief Get elelemnt type for array field
      */
     DataType
-    ElementType() const;
+    ElementType();
 
     /**
      * @brief Total number of field elements
