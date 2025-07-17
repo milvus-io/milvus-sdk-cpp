@@ -19,6 +19,8 @@
 #include <nlohmann/json.hpp>
 #include <utility>
 
+#include "../utils/Constants.h"
+
 namespace milvus {
 
 const std::string&
@@ -108,6 +110,10 @@ SearchArguments::AddBinaryVector(std::string field_name, const BinaryVecFieldDat
         vectors = std::make_shared<BinaryVecFieldData>(std::move(field_name));
         target_vectors_ = vectors;
     } else {
+        if (field_name != target_vectors_->Name()) {
+            std::string msg = "The vector field name must be the same! Previous name is " + vectors->Name();
+            return {StatusCode::INVALID_AGUMENT, msg};
+        }
         vectors = std::static_pointer_cast<BinaryVecFieldData>(target_vectors_);
     }
 
@@ -131,6 +137,10 @@ SearchArguments::AddFloatVector(std::string field_name, const FloatVecFieldData:
         vectors = std::make_shared<FloatVecFieldData>(std::move(field_name));
         target_vectors_ = vectors;
     } else {
+        if (field_name != target_vectors_->Name()) {
+            std::string msg = "The vector field name must be the same! Previous name is " + vectors->Name();
+            return {StatusCode::INVALID_AGUMENT, msg};
+        }
         vectors = std::static_pointer_cast<FloatVecFieldData>(target_vectors_);
     }
 
@@ -154,6 +164,10 @@ SearchArguments::AddSparseVector(std::string field_name, const SparseFloatVecFie
         vectors = std::make_shared<SparseFloatVecFieldData>(std::move(field_name));
         target_vectors_ = vectors;
     } else {
+        if (field_name != target_vectors_->Name()) {
+            std::string msg = "The vector field name must be the same! Previous name is " + vectors->Name();
+            return {StatusCode::INVALID_AGUMENT, msg};
+        }
         vectors = std::static_pointer_cast<SparseFloatVecFieldData>(target_vectors_);
     }
 
@@ -163,6 +177,14 @@ SearchArguments::AddSparseVector(std::string field_name, const SparseFloatVecFie
     }
 
     return Status::OK();
+}
+
+std::string
+SearchArguments::AnnsField() const {
+    if (target_vectors_ != nullptr) {
+        return target_vectors_->Name();
+    }
+    return "";
 }
 
 int64_t
@@ -177,16 +199,17 @@ SearchArguments::SetLimit(int64_t limit) {
 }
 
 int64_t
-SearchArguments::Nprobe() const {
-    if (extra_params_.find("nprobe") != extra_params_.end()) {
-        return extra_params_.at("nprobe");
+SearchArguments::Offset() const {
+    auto it = extra_params_.find(KeyOffset());
+    if (it != extra_params_.end()) {
+        return std::stoll(it->second);
     }
-    return 1;
+    return 0;
 }
 
 Status
-SearchArguments::SetNprobe(int64_t nprobe) {
-    extra_params_["nprobe"] = nprobe;
+SearchArguments::SetOffset(int64_t offset) {
+    extra_params_[KeyOffset()] = std::to_string(offset);
     return Status::OK();
 }
 
@@ -214,49 +237,74 @@ SearchArguments::MetricType() const {
 }
 
 Status
-SearchArguments::AddExtraParam(std::string key, int64_t value) {
-    extra_params_[std::move(key)] = value;
+SearchArguments::AddExtraParam(const std::string& key, const std::string& value) {
+    extra_params_[key] = value;
+    static std::set<std::string> s_ambiguous = {KeyParams(),     KeyTopK(),         KeyAnnsField(),
+                                                KeyMetricType(), KeyRoundDecimal(), KeyIgnoreGrowing()};
+    if (s_ambiguous.find(key) != s_ambiguous.end()) {
+        return Status{StatusCode::INVALID_AGUMENT,
+                      "ambiguous parameter: not allow to set '" + key + "' in extra params"};
+    }
     return Status::OK();
 }
 
-std::string
+const std::unordered_map<std::string, std::string>&
 SearchArguments::ExtraParams() const {
-    return ::nlohmann::json(extra_params_).dump();
+    return extra_params_;
 }
 
 Status
-SearchArguments::Validate(std::string& anns_field) const {
+SearchArguments::Validate() const {
     // in milvus 2.4+, no need to check index parameters, let the server to check it
     if (target_vectors_ == nullptr || target_vectors_->Count() == 0) {
         return Status{StatusCode::INVALID_AGUMENT, "no target vector is assigned"};
     }
-    anns_field = target_vectors_->Name();
     return Status::OK();
 }
 
 float
 SearchArguments::Radius() const {
-    return radius_;
+    auto it = extra_params_.find(KeyRadius());
+    if (it != extra_params_.end()) {
+        return std::stof(it->second);
+    }
+    return 0;
+}
+
+Status
+SearchArguments::SetRadius(float value) {
+    extra_params_[KeyRadius()] = std::to_string(value);
+    return Status::OK();
 }
 
 float
 SearchArguments::RangeFilter() const {
-    return range_filter_;
+    auto it = extra_params_.find(KeyRangeFilter());
+    if (it != extra_params_.end()) {
+        return std::stof(it->second);
+    }
+    return 0;
+}
+
+Status
+SearchArguments::SetRangeFilter(float value) {
+    extra_params_[KeyRangeFilter()] = std::to_string(value);
+    return Status::OK();
 }
 
 Status
 SearchArguments::SetRange(float range_filter, float radius) {
     // directly pass the radius/range_filter to let server validate, no need to verify here
-    radius_ = radius;
-    range_filter_ = range_filter;
-    range_search_ = true;
+    auto status = SetRadius(radius);
+    if (!status.IsOk()) {
+        return status;
+    }
+    status = SetRangeFilter(range_filter);
+    if (!status.IsOk()) {
+        return status;
+    }
 
     return Status::OK();
-}
-
-bool
-SearchArguments::RangeSearch() const {
-    return range_search_;
 }
 
 ConsistencyLevel
@@ -267,6 +315,17 @@ SearchArguments::GetConsistencyLevel() const {
 Status
 SearchArguments::SetConsistencyLevel(const ConsistencyLevel& level) {
     consistency_level_ = level;
+    return Status::OK();
+}
+
+bool
+SearchArguments::IgnoreGrowing() const {
+    return ignore_growing_;
+}
+
+Status
+SearchArguments::SetIgnoreGrowing(bool ignore_growing) {
+    ignore_growing_ = ignore_growing;
     return Status::OK();
 }
 
@@ -325,6 +384,21 @@ SearchArguments::TopK() const {
     return Limit();
 }
 
+int64_t
+SearchArguments::Nprobe() const {
+    auto it = extra_params_.find(KeyNprobe());
+    if (it != extra_params_.end()) {
+        return std::stoll(it->second);
+    }
+    return 0;
+}
+
+Status
+SearchArguments::SetNprobe(int64_t nprobe) {
+    extra_params_[KeyNprobe()] = std::to_string(nprobe);
+    return Status::OK();
+}
+
 uint64_t
 SearchArguments::TravelTimestamp() const {
     return travel_timestamp_;
@@ -338,12 +412,11 @@ SearchArguments::SetTravelTimestamp(uint64_t timestamp) {
 
 uint64_t
 SearchArguments::GuaranteeTimestamp() const {
-    return guarantee_timestamp_;
+    return 0;
 }
 
 Status
 SearchArguments::SetGuaranteeTimestamp(uint64_t timestamp) {
-    guarantee_timestamp_ = timestamp;
     return Status::OK();
 }
 ///////////////////////////////////////////////////////////////////////////////////////

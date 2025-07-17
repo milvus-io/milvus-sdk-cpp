@@ -57,6 +57,7 @@ main(int argc, char* argv[]) {
 
     // create index
     milvus::IndexDesc index_vector(field_vector, "", milvus::IndexType::BIN_IVF_FLAT, milvus::MetricType::HAMMING);
+    index_vector.AddExtraParam(milvus::KeyNlist(), "5");
     status = client->CreateIndex(collection_name, index_vector);
     util::CheckStatus("Failed to create index on vector field:", status);
     std::cout << "Successfully create index." << std::endl;

@@ -58,10 +58,6 @@ TEST_F(MilvusMockedTest, DescribeIndexFoo) {
             kv->set_key(milvus::KeyMetricType());
             kv->set_value(std::to_string(milvus::MetricType::L2));
 
-            kv = index_desc_ptr->add_params();
-            kv->set_key(milvus::KeyParams());
-            kv->set_value(R"({"nlist": 1024})");
-
             return ::grpc::Status{};
         });
 

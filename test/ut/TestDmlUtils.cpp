@@ -19,6 +19,7 @@
 #include "milvus/types/Constants.h"
 #include "milvus/types/FieldData.h"
 #include "milvus/types/FieldSchema.h"
+#include "utils/Constants.h"
 #include "utils/DmlUtils.h"
 #include "utils/GtsDict.h"
 

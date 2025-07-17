@@ -33,21 +33,6 @@ main(int argc, char* argv[]) {
     util::CheckStatus("Failed to connect milvus server:", status);
     std::cout << "Connect to milvus server." << std::endl;
 
-    // create and use a new database
-    std::string db_name = "my_db";
-    std::vector<std::string> db_names;
-    status = client->ListDatabases(db_names);
-    auto it =
-        std::find_if(db_names.begin(), db_names.end(), [&db_name](const std::string& name) { return name == db_name; });
-    if (it == db_names.end()) {
-        std::unordered_map<std::string, std::string> props;
-        status = client->CreateDatabase(db_name, props);
-        util::CheckStatus("Failed to create database:", status);
-    }
-    status = client->UseDatabase(db_name);
-    util::CheckStatus("Failed to use database:", status);
-    std::cout << "Database created and used: " << db_name << std::endl;
-
     // drop the collection if it exists
     const std::string collection_name = "TEST_CPP_DML";
     status = client->DropCollection(collection_name);
@@ -136,7 +121,7 @@ main(int argc, char* argv[]) {
     std::string expr = field_id + " in [" + std::to_string(new_id_1) + "," + std::to_string(new_id_2) + "]";
     milvus::QueryArguments q_arguments{};
     q_arguments.SetCollectionName(collection_name);
-    q_arguments.SetExpression(expr);
+    q_arguments.SetFilter(expr);
     q_arguments.AddOutputField(field_id);
     q_arguments.AddOutputField(field_text);
     q_arguments.AddOutputField(field_vector);

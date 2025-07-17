@@ -553,7 +553,7 @@ TEST_F(TypeUtilsTest, CreateMilvusFieldDataWithRange_Array) {
 }
 
 TEST_F(TypeUtilsTest, MetricTypeCastTest) {
-    for (const auto& name : {"IP", "L2", "COSINE", "HAMMING", "JACCARD", "INVALID"}) {
+    for (const auto& name : {"IP", "L2", "COSINE", "HAMMING", "JACCARD", "DEFAULT"}) {
         EXPECT_EQ(std::to_string(milvus::MetricTypeCast(name)), name);
     }
 }

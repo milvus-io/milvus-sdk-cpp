@@ -87,15 +87,15 @@ IndexDesc::SetIndexType(milvus::IndexType index_type) {
     return Status::OK();
 }
 
-const std::string
-IndexDesc::ExtraParams() const {
-    return ::nlohmann::json(extra_params_).dump();
+Status
+IndexDesc::AddExtraParam(const std::string& key, const std::string& value) {
+    extra_params_[key] = value;
+    return Status::OK();
 }
 
-Status
-IndexDesc::AddExtraParam(std::string key, int64_t value) {
-    extra_params_[std::move(key)] = value;
-    return Status::OK();
+const std::unordered_map<std::string, std::string>&
+IndexDesc::ExtraParams() const {
+    return extra_params_;
 }
 
 Status
@@ -105,12 +105,6 @@ IndexDesc::ExtraParamsFromJson(std::string json) {
     } catch (const ::nlohmann::json::exception& e) {
         return {StatusCode::JSON_PARSE_ERROR, e.what()};
     }
-    return Status::OK();
-}
-
-Status
-IndexDesc::Validate() const {
-    // in milvus 2.4+, no need to check index parameters, let the server to check it
     return Status::OK();
 }
 

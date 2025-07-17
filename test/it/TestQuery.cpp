@@ -20,6 +20,7 @@
 
 #include "mocks/MilvusMockedTest.h"
 #include "utils/CompareUtils.h"
+#include "utils/Constants.h"
 #include "utils/TypeUtils.h"
 
 using ::milvus::FieldDataPtr;
@@ -54,7 +55,7 @@ TEST_F(MilvusMockedTest, QueryFoo) {
     query_arguments.SetCollectionName("foo");
     query_arguments.AddPartitionName("part1");
     query_arguments.AddPartitionName("part2");
-    query_arguments.SetExpression("id > 100");
+    query_arguments.SetFilter("id > 100");
     query_arguments.SetConsistencyLevel(milvus::ConsistencyLevel::EVENTUALLY);
     query_arguments.AddOutputField("age");
     query_arguments.AddOutputField("score");

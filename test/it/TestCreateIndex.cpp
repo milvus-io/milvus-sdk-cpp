@@ -42,7 +42,7 @@ TEST_F(MilvusMockedTest, TestCreateIndexInstantly) {
     auto metric_type = milvus::MetricType::L2;
 
     milvus::IndexDesc index_desc(field_name, "", index_type, metric_type);
-    index_desc.AddExtraParam("nlist", 1024);
+    index_desc.AddExtraParam("nlist", "1024");
     const auto progress_monitor = ::milvus::ProgressMonitor::NoWait();
 
     EXPECT_CALL(service_, CreateIndex(_,
@@ -66,7 +66,7 @@ TEST_F(MilvusMockedTest, TestCreateIndexWithProgress) {
     auto metric_type = milvus::MetricType::L2;
 
     milvus::IndexDesc index_desc(field_name, "", index_type, metric_type);
-    index_desc.AddExtraParam("nlist", 1024);
+    index_desc.AddExtraParam("nlist", "1024");
     auto progress_monitor = ::milvus::ProgressMonitor::Forever();
     progress_monitor.SetCheckInterval(10);
 
@@ -82,7 +82,6 @@ TEST_F(MilvusMockedTest, TestCreateIndexWithProgress) {
             }
             EXPECT_EQ(params[milvus::KeyIndexType()], std::to_string(index_type));
             EXPECT_EQ(params[milvus::KeyMetricType()], std::to_string(metric_type));
-            EXPECT_EQ(params[milvus::KeyParams()], "{\"nlist\":1024}");
 
             status->set_code(milvus::proto::common::ErrorCode::Success);
             return ::grpc::Status{};
@@ -120,7 +119,7 @@ TEST_F(MilvusMockedTest, TestCreateIndexFailed) {
     auto metric_type = milvus::MetricType::L2;
 
     milvus::IndexDesc index_desc(field_name, "", index_type, metric_type);
-    index_desc.AddExtraParam("nlist", 1024);
+    index_desc.AddExtraParam("nlist", "1024");
     auto progress_monitor = ::milvus::ProgressMonitor::Forever();
     progress_monitor.SetCheckInterval(10);
 

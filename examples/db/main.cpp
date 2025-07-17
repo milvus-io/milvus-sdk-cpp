@@ -32,8 +32,34 @@ main(int argc, char* argv[]) {
     util::CheckStatus("Failed to connect milvus server:", status);
     std::cout << "Connect to milvus server." << std::endl;
 
+    std::vector<std::string> db_names;
+    status = client->ListDatabases(db_names);
+    util::CheckStatus("Failed to create database:", status);
+
+    const std::string my_db_name = "my_temp_db_for_cpp_test";
+    std::cout << "Databases: ";
+    for (const auto& name : db_names) {
+        std::cout << name << ",";
+    }
+    std::cout << std::endl;
+
+    std::unordered_map<std::string, std::string> props;
+    props.emplace("database.replica.number", "2");
+    status = client->CreateDatabase(my_db_name, props);
+    util::CheckStatus("Failed to create database:", status);
+    std::cout << "Database created: " << my_db_name << std::endl;
+
+    milvus::DatabaseDesc db_desc;
+    status = client->DescribeDatabase(my_db_name, db_desc);
+    util::CheckStatus("Failed to describe database:", status);
+    std::cout << "database.replica.number = " << db_desc.Properties().at("database.replica.number") << std::endl;
+
+    status = client->UseDatabase(my_db_name);
+    util::CheckStatus("Failed to switch database:", status);
+    std::cout << "Switch to database: " << my_db_name << std::endl;
+
     // drop the collection if it exists
-    const std::string collection_name = "TEST_CPP_SIMPLE";
+    const std::string collection_name = "TEST_CPP_DB";
     status = client->DropCollection(collection_name);
 
     // create a collection
@@ -58,8 +84,7 @@ main(int argc, char* argv[]) {
     std::cout << "Successfully create collection " << collection_name << std::endl;
 
     // create index (required after 2.2.0)
-    milvus::IndexDesc index_vector(field_face, "", milvus::IndexType::IVF_FLAT, milvus::MetricType::COSINE);
-    index_vector.AddExtraParam(milvus::KeyNlist(), "100");
+    milvus::IndexDesc index_vector(field_face, "", milvus::IndexType::FLAT, milvus::MetricType::COSINE);
     status = client->CreateIndex(collection_name, index_vector);
     util::CheckStatus("Failed to create index on vector field:", status);
     std::cout << "Successfully create index." << std::endl;
@@ -129,8 +154,14 @@ main(int argc, char* argv[]) {
     }
 
     {
+        // now we switch back to the default database
+        status = client->UseDatabase("default");
+        util::CheckStatus("Failed to switch default database:", status);
+        std::cout << "Switch to the default database" << std::endl;
+
         // query the deleted item and anthor item
         milvus::QueryArguments q_arguments{};
+        q_arguments.SetDatabaseName(my_db_name);  // we still can do search with our db name
         q_arguments.SetCollectionName(collection_name);
         q_arguments.AddPartitionName(partition_name);
         q_arguments.SetFilter(field_id + " in [5, 10]");
@@ -149,12 +180,23 @@ main(int argc, char* argv[]) {
         for (auto& field_data : query_resutls.OutputFields()) {
             std::cout << "Field: " << field_data->Name() << " Count:" << field_data->Count() << std::endl;
         }
+
+        // now we switch back to our database, since some interface no db_name parameter
+        status = client->UseDatabase(my_db_name);
+        util::CheckStatus("Failed to switch database:", status);
+        std::cout << "Switch to database: " << my_db_name << std::endl;
     }
 
     {
+        // now we switch back to the default database
+        status = client->UseDatabase("default");
+        util::CheckStatus("Failed to switch default database:", status);
+        std::cout << "Switch to the default database" << std::endl;
+
         // do search
         // this collection has only one vector field, no need to set the AnnsField name
         milvus::SearchArguments s_arguments{};
+        s_arguments.SetDatabaseName(my_db_name);  // we still can do search with our db name
         s_arguments.SetCollectionName(collection_name);
         s_arguments.AddPartitionName(partition_name);
         s_arguments.SetLimit(10);
@@ -199,6 +241,11 @@ main(int argc, char* argv[]) {
                 }
             }
         }
+
+        // now we switch back to our database, since some interface no db_name parameter
+        status = client->UseDatabase(my_db_name);
+        util::CheckStatus("Failed to switch database:", status);
+        std::cout << "Switch to database: " << my_db_name << std::endl;
     }
 
     // release collection
@@ -232,6 +279,15 @@ main(int argc, char* argv[]) {
     status = client->DropCollection(collection_name);
     util::CheckStatus("Failed to drop collection:", status);
     std::cout << "Drop collection " << collection_name << std::endl;
+
+    // now we switch back to the default database, prepare to delete our empty database
+    status = client->UseDatabase(my_db_name);
+    util::CheckStatus("Failed to switch default database:", status);
+    std::cout << "Switch to default database" << std::endl;
+
+    status = client->DropDatabase(my_db_name);
+    util::CheckStatus("Failed to drop database:", status);
+    std::cout << "Drop database: " << my_db_name << std::endl;
 
     client->Disconnect();
     return 0;

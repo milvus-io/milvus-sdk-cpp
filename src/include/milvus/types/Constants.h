@@ -45,11 +45,29 @@ KeyMetricType() {
 }
 
 /**
- * @brief Global definition for metric type label
+ * @brief Global definition for round decimal of search results
  */
 inline std::string
-KeyParams() {
-    return "params";
+KeyRoundDecimal() {
+    return "round_decimal";
+}
+
+/**
+ * @brief Index parameter for IVF
+ */
+inline const std::string&
+KeyNlist() {
+    static std::string nlist = "nlist";
+    return nlist;
+}
+
+/**
+ * @brief Index parameter for IVF
+ */
+inline const std::string&
+KeyNprobe() {
+    static std::string nprobe = "nprobe";
+    return nprobe;
 }
 
 /**
@@ -79,36 +97,6 @@ FieldMaxCapacity() {
 inline std::string
 DynamicFieldName() {
     return "$meta";
-}
-
-/**
- * @brief Global definition for strong guarantee timestamp
- */
-inline uint64_t
-GuaranteeStrongTs() {
-    return 0;
-}
-
-/**
- * @brief Global definition for eventually guarantee timestamp
- */
-inline uint64_t
-GuaranteeEventuallyTs() {
-    return 1;
-}
-
-/**
- * @brief The logical bits in hybrid timestamp
- */
-constexpr size_t inline HybridTsLogicalBits() {
-    return 18;
-}
-
-/**
- * @brief The logical bits mask for hybrid timestamp
- */
-constexpr uint64_t inline HybridTsLogicalBitsMask() {
-    return (1 << HybridTsLogicalBits()) - 1;
 }
 
 }  // namespace milvus

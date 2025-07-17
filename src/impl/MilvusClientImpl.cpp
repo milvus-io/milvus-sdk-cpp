@@ -18,12 +18,14 @@
 
 #include <algorithm>
 #include <chrono>
+#include <cstdlib>
 #include <nlohmann/json.hpp>
 #include <thread>
 
 #include "common.pb.h"
 #include "milvus.pb.h"
 #include "schema.pb.h"
+#include "utils/Constants.h"
 #include "utils/DmlUtils.h"
 #include "utils/GtsDict.h"
 #include "utils/TypeUtils.h"
@@ -593,8 +595,6 @@ MilvusClientImpl::DescribeDatabase(const std::string& db_name, DatabaseDesc& db_
 Status
 MilvusClientImpl::CreateIndex(const std::string& collection_name, const IndexDesc& index_desc,
                               const ProgressMonitor& progress_monitor) {
-    auto validate = [&index_desc] { return index_desc.Validate(); };
-
     auto pre = [&collection_name, &index_desc]() {
         proto::milvus::CreateIndexRequest rpc_request;
         rpc_request.set_collection_name(collection_name);
@@ -606,7 +606,7 @@ MilvusClientImpl::CreateIndex(const std::string& collection_name, const IndexDes
         kv_pair->set_value(std::to_string(index_desc.IndexType()));
 
         // for scalar fields, no metric type
-        if (index_desc.MetricType() != MetricType::INVALID) {
+        if (index_desc.MetricType() != MetricType::DEFAULT) {
             kv_pair = rpc_request.add_extra_params();
             kv_pair->set_key(milvus::KeyMetricType());
             kv_pair->set_value(std::to_string(index_desc.MetricType()));
@@ -614,7 +614,8 @@ MilvusClientImpl::CreateIndex(const std::string& collection_name, const IndexDes
 
         kv_pair = rpc_request.add_extra_params();
         kv_pair->set_key(milvus::KeyParams());
-        kv_pair->set_value(index_desc.ExtraParams());
+        ::nlohmann::json json_obj(index_desc.ExtraParams());
+        kv_pair->set_value(json_obj.dump());
 
         return rpc_request;
     };
@@ -645,7 +646,7 @@ MilvusClientImpl::CreateIndex(const std::string& collection_name, const IndexDes
             progress_monitor);
     };
     return apiHandler<proto::milvus::CreateIndexRequest, proto::common::Status>(
-        validate, pre, &MilvusConnection::CreateIndex, wait_for_status, nullptr);
+        nullptr, pre, &MilvusConnection::CreateIndex, wait_for_status, nullptr);
 }
 
 Status
@@ -920,10 +921,9 @@ MilvusClientImpl::Delete(const std::string& collection_name, const std::string& 
 
 Status
 MilvusClientImpl::Search(const SearchArguments& arguments, SearchResults& results, int timeout) {
-    std::string anns_field;
-    auto validate = [&arguments, &anns_field]() { return arguments.Validate(anns_field); };
+    auto validate = [&arguments]() { return arguments.Validate(); };
 
-    auto pre = [this, &arguments, &anns_field]() {
+    auto pre = [this, &arguments]() {
         proto::milvus::SearchRequest rpc_request;
         auto db_name = arguments.DatabaseName();
         if (!db_name.empty()) {
@@ -931,8 +931,8 @@ MilvusClientImpl::Search(const SearchArguments& arguments, SearchResults& result
         }
         rpc_request.set_collection_name(arguments.CollectionName());
         rpc_request.set_dsl_type(proto::common::DslType::BoolExprV1);
-        if (!arguments.Expression().empty()) {
-            rpc_request.set_dsl(arguments.Expression());
+        if (!arguments.Filter().empty()) {
+            rpc_request.set_dsl(arguments.Filter());
         }
         for (const auto& partition_name : arguments.PartitionNames()) {
             rpc_request.add_partition_names(partition_name);
@@ -977,36 +977,69 @@ MilvusClientImpl::Search(const SearchArguments& arguments, SearchResults& result
         }
         rpc_request.set_placeholder_group(std::move(placeholder_group.SerializeAsString()));
 
+        // set anns field name, if the name is empty and the collection has only one vector field,
+        // milvus server will use the vector field name as anns name. If the collection has multiple
+        // vector fields, user needs to explicitly provide an anns field name.
+        auto anns_field = arguments.AnnsField();
         if (!anns_field.empty()) {
             auto kv_pair = rpc_request.add_search_params();
-            kv_pair->set_key("anns_field");
+            kv_pair->set_key(milvus::KeyAnnsField());
             kv_pair->set_value(anns_field);
         }
 
-        auto kv_pair = rpc_request.add_search_params();
-        kv_pair->set_key("topk");
-        kv_pair->set_value(std::to_string(arguments.TopK()));
+        // for history reason, query() requires "limit", search() requires "topk"
+        {
+            auto kv_pair = rpc_request.add_search_params();
+            kv_pair->set_key(milvus::KeyTopK());
+            kv_pair->set_value(std::to_string(arguments.Limit()));
+        }
 
         // set this value only when client specified, otherwise let server to get it from index parameters
-        if (arguments.MetricType() != MetricType::INVALID) {
-            kv_pair = rpc_request.add_search_params();
+        if (arguments.MetricType() != MetricType::DEFAULT) {
+            auto kv_pair = rpc_request.add_search_params();
             kv_pair->set_key(milvus::KeyMetricType());
             kv_pair->set_value(std::to_string(arguments.MetricType()));
         }
 
-        kv_pair = rpc_request.add_search_params();
-        kv_pair->set_key("round_decimal");
-        kv_pair->set_value(std::to_string(arguments.RoundDecimal()));
-
-        kv_pair = rpc_request.add_search_params();
-        kv_pair->set_key(milvus::KeyParams());
-        // merge extra params with range search
-        auto json = nlohmann::json::parse(arguments.ExtraParams());
-        if (arguments.RangeSearch()) {
-            json["range_filter"] = arguments.RangeFilter();
-            json["radius"] = arguments.Radius();
+        // round decimal
+        {
+            auto kv_pair = rpc_request.add_search_params();
+            kv_pair->set_key(KeyRoundDecimal());
+            kv_pair->set_value(std::to_string(arguments.RoundDecimal()));
         }
-        kv_pair->set_value(json.dump());
+
+        // ignore growing
+        {
+            auto kv_pair = rpc_request.add_search_params();
+            kv_pair->set_key(KeyIgnoreGrowing());
+            kv_pair->set_value(arguments.IgnoreGrowing() ? "true" : "false");
+        }
+
+        // offet/radius/range_filter/nprobe etc.
+        // in old milvus versions, all extra params are under "params"
+        // in new milvus versions, all extra params are in the top level
+        auto& params = arguments.ExtraParams();
+        nlohmann::json json_params;
+        for (auto& pair : params) {
+            auto kv_pair = rpc_request.add_search_params();
+            kv_pair->set_key(pair.first);
+            kv_pair->set_value(pair.second);
+
+            // for radius/range, the value should be a numeric instead a string in the JSON string
+            // for example:
+            //   '{"radius": "2.5", "range_filter": "0.5"}' is illegal in the server-side
+            //   '{"radius": 2.5, "range_filter": 0.5}' is ok
+            if (pair.first == KeyRadius() || pair.first == KeyRangeFilter()) {
+                json_params[pair.first] = atof(pair.second.c_str());
+            } else {
+                json_params[pair.first] = pair.second;
+            }
+        }
+        {
+            auto kv_pair = rpc_request.add_search_params();
+            kv_pair->set_key(KeyParams());
+            kv_pair->set_value(json_params.dump());
+        }
 
         ConsistencyLevel level = arguments.GetConsistencyLevel();
         uint64_t guarantee_ts = DeduceGuaranteeTimestamp(level, currentDbName(db_name), arguments.CollectionName());
@@ -1074,9 +1107,17 @@ MilvusClientImpl::Query(const QueryArguments& arguments, QueryResults& results, 
             rpc_request.add_partition_names(partition_name);
         }
 
-        rpc_request.set_expr(arguments.Expression());
+        rpc_request.set_expr(arguments.Filter());
         for (const auto& field : arguments.OutputFields()) {
             rpc_request.add_output_fields(field);
+        }
+
+        // limit/offet etc.
+        auto& params = arguments.ExtraParams();
+        for (auto& pair : params) {
+            auto kv_pair = rpc_request.add_query_params();
+            kv_pair->set_key(pair.first);
+            kv_pair->set_value(pair.second);
         }
 
         ConsistencyLevel level = arguments.GetConsistencyLevel();
@@ -1088,17 +1129,6 @@ MilvusClientImpl::Query(const QueryArguments& arguments, QueryResults& results, 
             rpc_request.set_use_default_consistency(true);
         } else {
             rpc_request.set_consistency_level(ConsistencyLevelCast(arguments.GetConsistencyLevel()));
-        }
-
-        if (arguments.Limit() > 0) {
-            proto::common::KeyValuePair* pair = rpc_request.add_query_params();
-            pair->set_key("limit");
-            pair->set_value(std::to_string(arguments.Limit()));
-        }
-        if (arguments.Offset() > 0) {
-            proto::common::KeyValuePair* pair = rpc_request.add_query_params();
-            pair->set_key("offset");
-            pair->set_value(std::to_string(arguments.Offset()));
         }
 
         return rpc_request;
