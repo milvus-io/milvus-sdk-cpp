@@ -67,7 +67,7 @@ main(int argc, char* argv[]) {
 
     status = client->CreateCollection(collection_schema);
     util::CheckStatus("Failed to create collection:", status);
-    std::cout << "Successfully create collection." << std::endl;
+    std::cout << "Successfully create collection " << collection_name << std::endl;
 
     // create index
     milvus::IndexDesc index_vector(field_vector, "", milvus::IndexType::AUTOINDEX, milvus::MetricType::L2);

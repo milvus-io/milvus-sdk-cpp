@@ -59,17 +59,17 @@ TEST_F(SearchArgumentsTest, VectorTesting) {
 
     {
         milvus::SearchArguments arguments;
-        auto status = arguments.AddTargetVector("dummy", binary_vector);
+        auto status = arguments.AddBinaryVector("dummy", binary_vector);
         EXPECT_TRUE(status.IsOk());
 
-        status = arguments.AddTargetVector("dummy", float_vector);
+        status = arguments.AddFloatVector("dummy", float_vector);
         EXPECT_FALSE(status.IsOk());
 
         std::vector<uint8_t> new_vector = {1, 2};
-        status = arguments.AddTargetVector("dummy", new_vector);
+        status = arguments.AddBinaryVector("dummy", new_vector);
         EXPECT_FALSE(status.IsOk());
 
-        status = arguments.AddTargetVector("dummy", std::vector<uint8_t>{});
+        status = arguments.AddBinaryVector("dummy", std::vector<uint8_t>{});
         EXPECT_FALSE(status.IsOk());
 
         auto target_vectors = arguments.TargetVectors();
@@ -77,7 +77,7 @@ TEST_F(SearchArgumentsTest, VectorTesting) {
         EXPECT_EQ(milvus::DataType::BINARY_VECTOR, target_vectors->Type());
         EXPECT_EQ(1, target_vectors->Count());
 
-        status = arguments.AddTargetVector("dummy", binary_string);
+        status = arguments.AddBinaryVector("dummy", binary_string);
         EXPECT_TRUE(status.IsOk());
 
         target_vectors = arguments.TargetVectors();
@@ -86,17 +86,17 @@ TEST_F(SearchArgumentsTest, VectorTesting) {
 
     {
         milvus::SearchArguments arguments;
-        auto status = arguments.AddTargetVector("dummy", float_vector);
+        auto status = arguments.AddFloatVector("dummy", float_vector);
         EXPECT_TRUE(status.IsOk());
 
-        status = arguments.AddTargetVector("dummy", binary_vector);
+        status = arguments.AddBinaryVector("dummy", binary_vector);
         EXPECT_FALSE(status.IsOk());
 
         std::vector<float> new_vector = {1.0, 2.0, 3.0};
-        status = arguments.AddTargetVector("dummy", new_vector);
+        status = arguments.AddFloatVector("dummy", new_vector);
         EXPECT_FALSE(status.IsOk());
 
-        status = arguments.AddTargetVector("dummy", std::vector<float>{});
+        status = arguments.AddFloatVector("dummy", std::vector<float>{});
         EXPECT_FALSE(status.IsOk());
 
         auto target_vectors = arguments.TargetVectors();
@@ -107,17 +107,17 @@ TEST_F(SearchArgumentsTest, VectorTesting) {
 
     {
         milvus::SearchArguments arguments;
-        auto status = arguments.AddTargetVector("dummy", std::vector<uint8_t>{1, 2, 3});
+        auto status = arguments.AddBinaryVector("dummy", std::vector<uint8_t>{1, 2, 3});
         EXPECT_TRUE(status.IsOk());
 
-        status = arguments.AddTargetVector("dummy", std::vector<float>{1.f, 2.f});
+        status = arguments.AddFloatVector("dummy", std::vector<float>{1.f, 2.f});
         EXPECT_FALSE(status.IsOk());
 
         std::vector<uint8_t> new_vector = {1, 2};
-        status = arguments.AddTargetVector("dummy", new_vector);
+        status = arguments.AddBinaryVector("dummy", new_vector);
         EXPECT_FALSE(status.IsOk());
 
-        status = arguments.AddTargetVector("dummy", std::vector<uint8_t>{});
+        status = arguments.AddBinaryVector("dummy", std::vector<uint8_t>{});
         EXPECT_FALSE(status.IsOk());
 
         auto target_vectors = arguments.TargetVectors();
@@ -128,17 +128,17 @@ TEST_F(SearchArgumentsTest, VectorTesting) {
 
     {
         milvus::SearchArguments arguments;
-        auto status = arguments.AddTargetVector("dummy", std::vector<float>{1.f, 2.f});
+        auto status = arguments.AddFloatVector("dummy", std::vector<float>{1.f, 2.f});
         EXPECT_TRUE(status.IsOk());
 
-        status = arguments.AddTargetVector("dummy", std::vector<uint8_t>{1, 2, 3});
+        status = arguments.AddBinaryVector("dummy", std::vector<uint8_t>{1, 2, 3});
         EXPECT_FALSE(status.IsOk());
 
         std::vector<float> new_vector = {1.0, 2.0, 3.0};
-        status = arguments.AddTargetVector("dummy", new_vector);
+        status = arguments.AddFloatVector("dummy", new_vector);
         EXPECT_FALSE(status.IsOk());
 
-        status = arguments.AddTargetVector("dummy", std::vector<float>{});
+        status = arguments.AddFloatVector("dummy", std::vector<float>{});
         EXPECT_FALSE(status.IsOk());
 
         auto target_vectors = arguments.TargetVectors();

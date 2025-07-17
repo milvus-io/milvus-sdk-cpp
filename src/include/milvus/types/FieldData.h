@@ -16,6 +16,7 @@
 
 #pragma once
 
+#include <map>
 #include <memory>
 #include <nlohmann/json.hpp>
 #include <vector>
@@ -271,24 +272,6 @@ class BinaryVecFieldData : public FieldData<std::string, DataType::BINARY_VECTOR
     CreateBinaryString(const std::vector<uint8_t>& data);
 };
 
-/**
- * @brief To test two FieldData are equal
- */
-template <typename T, DataType Dt>
-bool
-operator==(const FieldData<T, Dt>& lhs, const FieldData<T, Dt>& rhs) {
-    return lhs.Name() == rhs.Name() && lhs.Count() == rhs.Count() && lhs.Data() == rhs.Data();
-}
-
-/**
- * @brief To test two FieldData are equal
- */
-template <typename T, DataType Dt>
-bool
-operator==(const FieldData<T, Dt>& lhs, const Field& rhs) {
-    return lhs == dynamic_cast<const FieldData<T, Dt>&>(rhs);
-}
-
 using BoolFieldData = FieldData<bool, DataType::BOOL>;
 using Int8FieldData = FieldData<int8_t, DataType::INT8>;
 using Int16FieldData = FieldData<int16_t, DataType::INT16>;
@@ -299,6 +282,7 @@ using DoubleFieldData = FieldData<double, DataType::DOUBLE>;
 using VarCharFieldData = FieldData<std::string, DataType::VARCHAR>;
 using JSONFieldData = FieldData<nlohmann::json, DataType::JSON>;
 using FloatVecFieldData = FieldData<std::vector<float>, DataType::FLOAT_VECTOR>;
+using SparseFloatVecFieldData = FieldData<std::map<uint32_t, float>, DataType::SPARSE_FLOAT_VECTOR>;
 
 using ArrayBoolFieldData = ArrayFieldData<bool, DataType::BOOL>;
 using ArrayInt8FieldData = ArrayFieldData<int8_t, DataType::INT8>;
@@ -320,6 +304,7 @@ using VarCharFieldDataPtr = std::shared_ptr<VarCharFieldData>;
 using JSONFieldDataPtr = std::shared_ptr<JSONFieldData>;
 using BinaryVecFieldDataPtr = std::shared_ptr<BinaryVecFieldData>;
 using FloatVecFieldDataPtr = std::shared_ptr<FloatVecFieldData>;
+using SparseFloatVecFieldDataPtr = std::shared_ptr<SparseFloatVecFieldData>;
 
 using ArrayBoolFieldDataPtr = std::shared_ptr<ArrayBoolFieldData>;
 using ArrayInt8FieldDataPtr = std::shared_ptr<ArrayInt8FieldData>;
@@ -341,6 +326,7 @@ extern template class FieldData<std::string, DataType::VARCHAR>;
 extern template class FieldData<nlohmann::json, DataType::JSON>;
 extern template class FieldData<std::string, DataType::BINARY_VECTOR>;
 extern template class FieldData<std::vector<float>, DataType::FLOAT_VECTOR>;
+extern template class FieldData<std::map<uint32_t, float>, DataType::SPARSE_FLOAT_VECTOR>;
 
 extern template class ArrayFieldData<bool, DataType::BOOL>;
 extern template class ArrayFieldData<int8_t, DataType::INT8>;

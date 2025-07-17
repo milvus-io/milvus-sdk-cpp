@@ -265,6 +265,7 @@ template class FieldData<std::string, DataType::VARCHAR>;
 template class FieldData<nlohmann::json, DataType::JSON>;
 template class FieldData<std::string, DataType::BINARY_VECTOR>;
 template class FieldData<std::vector<float>, DataType::FLOAT_VECTOR>;
+template class FieldData<std::map<uint32_t, float>, DataType::SPARSE_FLOAT_VECTOR>;
 
 template class ArrayFieldData<bool, DataType::BOOL>;
 template class ArrayFieldData<int8_t, DataType::INT8>;

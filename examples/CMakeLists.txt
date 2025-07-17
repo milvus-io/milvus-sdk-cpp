@@ -24,7 +24,27 @@ message(STATUS "  CMAKE_SOURCE_DIR: ${CMAKE_SOURCE_DIR}")
 include_directories(${CMAKE_SOURCE_DIR}/src/include)
 include_directories(${CMAKE_SOURCE_DIR}/examples)
 
-add_subdirectory(array)
-add_subdirectory(dml)
-add_subdirectory(json)
-add_subdirectory(simple)
+aux_source_directory(${CMAKE_CURRENT_SOURCE_DIR}/array array_files)
+add_executable(sdk_array ${array_files})
+target_link_libraries(sdk_array milvus_sdk)
+
+aux_source_directory(${CMAKE_CURRENT_SOURCE_DIR}/dml dml_files)
+add_executable(sdk_dml ${dml_files})
+target_link_libraries(sdk_dml milvus_sdk)
+
+aux_source_directory(${CMAKE_CURRENT_SOURCE_DIR}/json json_files)
+add_executable(sdk_json ${json_files})
+target_link_libraries(sdk_json milvus_sdk)
+
+aux_source_directory(${CMAKE_CURRENT_SOURCE_DIR}/simple simple_files)
+add_executable(sdk_simple ${simple_files})
+target_link_libraries(sdk_simple milvus_sdk)
+
+aux_source_directory(${CMAKE_CURRENT_SOURCE_DIR}/vector_binary binary_files)
+add_executable(sdk_binary ${binary_files})
+target_link_libraries(sdk_binary milvus_sdk)
+
+aux_source_directory(${CMAKE_CURRENT_SOURCE_DIR}/vector_sparse sparse_files)
+add_executable(sdk_sparse ${sparse_files})
+target_link_libraries(sdk_sparse milvus_sdk)
+

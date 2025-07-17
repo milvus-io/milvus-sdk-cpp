@@ -96,8 +96,8 @@ TEST_F(MilvusServerTestSearch, SearchWithoutIndex) {
     arguments.AddOutputField("age");
     arguments.AddOutputField("name");
     arguments.SetExpression("id > 0");
-    arguments.AddTargetVector("face", std::vector<float>{0.f, 0.f, 0.f, 0.f});
-    arguments.AddTargetVector("face", std::vector<float>{1.f, 1.f, 1.f, 1.f});
+    arguments.AddFloatVector("face", std::vector<float>{0.f, 0.f, 0.f, 0.f});
+    arguments.AddFloatVector("face", std::vector<float>{1.f, 1.f, 1.f, 1.f});
     arguments.SetConsistencyLevel(milvus::ConsistencyLevel::STRONG);
 
     milvus::SearchResults search_results{};
@@ -156,8 +156,8 @@ TEST_F(MilvusServerTestSearch, RangeSearch) {
     arguments.SetTopK(10);
     arguments.AddOutputField("age");
     arguments.AddOutputField("name");
-    arguments.AddTargetVector("face", std::vector<float>{0.f, 0.f, 0.f, 0.f});
-    arguments.AddTargetVector("face", std::vector<float>{1.f, 1.f, 1.f, 1.f});
+    arguments.AddFloatVector("face", std::vector<float>{0.f, 0.f, 0.f, 0.f});
+    arguments.AddFloatVector("face", std::vector<float>{1.f, 1.f, 1.f, 1.f});
     arguments.SetConsistencyLevel(milvus::ConsistencyLevel::SESSION);
 
     milvus::SearchResults search_results{};
@@ -221,8 +221,8 @@ TEST_F(MilvusServerTestSearch, SearchWithStringFilter) {
     arguments.AddOutputField("age");
     arguments.AddOutputField("name");
     arguments.SetExpression("name like \"To%\"");  // Tom match To%
-    arguments.AddTargetVector("face", std::vector<float>{0.f, 0.f, 0.f, 0.f});
-    arguments.AddTargetVector("face", std::vector<float>{1.f, 1.f, 1.f, 1.f});
+    arguments.AddFloatVector("face", std::vector<float>{0.f, 0.f, 0.f, 0.f});
+    arguments.AddFloatVector("face", std::vector<float>{1.f, 1.f, 1.f, 1.f});
     arguments.SetConsistencyLevel(milvus::ConsistencyLevel::STRONG);
 
     milvus::SearchResults search_results{};
@@ -285,8 +285,8 @@ TEST_F(MilvusServerTestSearch, SearchWithIVFIndex) {
     arguments.SetTopK(10);
     arguments.SetMetricType(milvus::MetricType::L2);
     arguments.AddExtraParam("nprobe", 10);
-    arguments.AddTargetVector("face", std::vector<float>{0.f, 0.f, 0.f, 0.f});
-    arguments.AddTargetVector("face", std::vector<float>{1.f, 1.f, 1.f, 1.f});
+    arguments.AddFloatVector("face", std::vector<float>{0.f, 0.f, 0.f, 0.f});
+    arguments.AddFloatVector("face", std::vector<float>{1.f, 1.f, 1.f, 1.f});
     arguments.SetConsistencyLevel(milvus::ConsistencyLevel::STRONG);
 
     milvus::SearchResults search_results{};

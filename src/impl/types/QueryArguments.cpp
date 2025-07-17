@@ -74,39 +74,17 @@ QueryArguments::AddOutputField(std::string field_name) {
 }
 
 const std::string&
-QueryArguments::Expression() const {
+QueryArguments::Filter() const {
     return filter_expression_;
 }
 
 Status
-QueryArguments::SetExpression(std::string expression) {
-    if (expression.empty()) {
+QueryArguments::SetFilter(std::string filter) {
+    if (filter.empty()) {
         return {StatusCode::INVALID_AGUMENT, "Filter expression cannot be empty!"};
     }
 
-    filter_expression_ = std::move(expression);
-    return Status::OK();
-}
-
-uint64_t
-QueryArguments::TravelTimestamp() const {
-    return travel_timestamp_;
-}
-
-Status
-QueryArguments::SetTravelTimestamp(uint64_t timestamp) {
-    travel_timestamp_ = timestamp;
-    return Status::OK();
-}
-
-uint64_t
-QueryArguments::GuaranteeTimestamp() const {
-    return guarantee_timestamp_;
-}
-
-Status
-QueryArguments::SetGuaranteeTimestamp(uint64_t timestamp) {
-    guarantee_timestamp_ = timestamp;
+    filter_expression_ = std::move(filter);
     return Status::OK();
 }
 
@@ -142,5 +120,40 @@ QueryArguments::SetConsistencyLevel(const ConsistencyLevel& level) {
     consistency_level_ = level;
     return Status::OK();
 }
+
+/////////////////////////////////////////////////////////////////////////////////////////
+// deprecated methods
+const std::string&
+QueryArguments::Expression() const {
+    return Filter();
+}
+
+Status
+QueryArguments::SetExpression(std::string expression) {
+    return SetFilter(expression);
+}
+
+uint64_t
+QueryArguments::TravelTimestamp() const {
+    return travel_timestamp_;
+}
+
+Status
+QueryArguments::SetTravelTimestamp(uint64_t timestamp) {
+    travel_timestamp_ = timestamp;
+    return Status::OK();
+}
+
+uint64_t
+QueryArguments::GuaranteeTimestamp() const {
+    return guarantee_timestamp_;
+}
+
+Status
+QueryArguments::SetGuaranteeTimestamp(uint64_t timestamp) {
+    guarantee_timestamp_ = timestamp;
+    return Status::OK();
+}
+/////////////////////////////////////////////////////////////////////////////////////////
 
 }  // namespace milvus

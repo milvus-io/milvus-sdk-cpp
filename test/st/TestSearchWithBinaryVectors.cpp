@@ -98,8 +98,8 @@ TEST_F(MilvusServerTestSearchWithBinaryVectors, RegressionIssue194) {
     arguments.SetCollectionName(collection_name);
     arguments.SetTopK(10);
     arguments.SetMetricType(milvus::MetricType::HAMMING);
-    arguments.AddTargetVector("face", std::vector<uint8_t>{255, 255, 255, 255});
-    arguments.AddTargetVector("face", std::vector<uint8_t>{0, 0, 0, 0});
+    arguments.AddBinaryVector("face", std::vector<uint8_t>{255, 255, 255, 255});
+    arguments.AddBinaryVector("face", std::vector<uint8_t>{0, 0, 0, 0});
     milvus::SearchResults search_results{};
     status = client_->Search(arguments, search_results);
     EXPECT_EQ(status.Message(), "OK");

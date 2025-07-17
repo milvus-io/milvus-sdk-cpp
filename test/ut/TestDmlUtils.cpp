@@ -16,11 +16,11 @@
 
 #include <gmock/gmock.h>
 
-#include "DmlUtils.h"
-#include "GtsDict.h"
 #include "milvus/types/Constants.h"
 #include "milvus/types/FieldData.h"
 #include "milvus/types/FieldSchema.h"
+#include "utils/DmlUtils.h"
+#include "utils/GtsDict.h"
 
 class DmlUtilsTest : public ::testing::Test {};
 

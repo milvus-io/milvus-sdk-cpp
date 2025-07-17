@@ -18,288 +18,6 @@
 
 namespace milvus {
 
-bool
-operator==(const proto::schema::FieldData& lhs, const BoolFieldData& rhs) {
-    if (lhs.field_name() != rhs.Name()) {
-        return false;
-    }
-    if (!lhs.has_scalars()) {
-        return false;
-    }
-    const auto& scalars = lhs.scalars();
-    if (!scalars.has_bool_data()) {
-        return false;
-    }
-    const auto& scalars_data = scalars.bool_data().data();
-    if (scalars_data.size() != rhs.Count()) {
-        return false;
-    }
-    return std::equal(scalars_data.begin(), scalars_data.end(), rhs.Data().begin());
-}
-
-bool
-operator==(const proto::schema::FieldData& lhs, const Int8FieldData& rhs) {
-    if (lhs.field_name() != rhs.Name()) {
-        return false;
-    }
-    if (!lhs.has_scalars()) {
-        return false;
-    }
-    const auto& scalars = lhs.scalars();
-    if (!scalars.has_int_data()) {
-        return false;
-    }
-    const auto& scalars_data = scalars.int_data().data();
-    if (scalars_data.size() != rhs.Count()) {
-        return false;
-    }
-    return std::equal(scalars_data.begin(), scalars_data.end(), rhs.Data().begin());
-}
-
-bool
-operator==(const proto::schema::FieldData& lhs, const Int16FieldData& rhs) {
-    if (lhs.field_name() != rhs.Name()) {
-        return false;
-    }
-    if (!lhs.has_scalars()) {
-        return false;
-    }
-    const auto& scalars = lhs.scalars();
-    if (!scalars.has_int_data()) {
-        return false;
-    }
-    const auto& scalars_data = scalars.int_data().data();
-    if (scalars_data.size() != rhs.Count()) {
-        return false;
-    }
-    return std::equal(scalars_data.begin(), scalars_data.end(), rhs.Data().begin());
-}
-
-bool
-operator==(const proto::schema::FieldData& lhs, const Int32FieldData& rhs) {
-    if (lhs.field_name() != rhs.Name()) {
-        return false;
-    }
-    if (!lhs.has_scalars()) {
-        return false;
-    }
-    const auto& scalars = lhs.scalars();
-    if (!scalars.has_int_data()) {
-        return false;
-    }
-    const auto& scalars_data = scalars.int_data().data();
-    if (scalars_data.size() != rhs.Count()) {
-        return false;
-    }
-    return std::equal(scalars_data.begin(), scalars_data.end(), rhs.Data().begin());
-}
-
-bool
-operator==(const proto::schema::FieldData& lhs, const Int64FieldData& rhs) {
-    if (lhs.field_name() != rhs.Name()) {
-        return false;
-    }
-    if (!lhs.has_scalars()) {
-        return false;
-    }
-    const auto& scalars = lhs.scalars();
-    if (!scalars.has_long_data()) {
-        return false;
-    }
-    const auto& scalars_data = scalars.long_data().data();
-    if (scalars_data.size() != rhs.Count()) {
-        return false;
-    }
-    return std::equal(scalars_data.begin(), scalars_data.end(), rhs.Data().begin());
-}
-
-bool
-operator==(const proto::schema::FieldData& lhs, const FloatFieldData& rhs) {
-    if (lhs.field_name() != rhs.Name()) {
-        return false;
-    }
-    if (!lhs.has_scalars()) {
-        return false;
-    }
-    const auto& scalars = lhs.scalars();
-    if (!scalars.has_float_data()) {
-        return false;
-    }
-    const auto& scalars_data = scalars.float_data().data();
-    if (scalars_data.size() != rhs.Count()) {
-        return false;
-    }
-    return std::equal(scalars_data.begin(), scalars_data.end(), rhs.Data().begin());
-}
-
-bool
-operator==(const proto::schema::FieldData& lhs, const DoubleFieldData& rhs) {
-    if (lhs.field_name() != rhs.Name()) {
-        return false;
-    }
-    if (!lhs.has_scalars()) {
-        return false;
-    }
-    const auto& scalars = lhs.scalars();
-    if (!scalars.has_double_data()) {
-        return false;
-    }
-    const auto& scalars_data = scalars.double_data().data();
-    if (scalars_data.size() != rhs.Count()) {
-        return false;
-    }
-    return std::equal(scalars_data.begin(), scalars_data.end(), rhs.Data().begin());
-}
-
-bool
-operator==(const proto::schema::FieldData& lhs, const VarCharFieldData& rhs) {
-    if (lhs.field_name() != rhs.Name()) {
-        return false;
-    }
-    if (!lhs.has_scalars()) {
-        return false;
-    }
-    const auto& scalars = lhs.scalars();
-    if (!scalars.has_string_data()) {
-        return false;
-    }
-    const auto& scalars_data = scalars.string_data().data();
-    if (scalars_data.size() != rhs.Count()) {
-        return false;
-    }
-    return std::equal(scalars_data.begin(), scalars_data.end(), rhs.Data().begin());
-}
-
-bool
-operator==(const proto::schema::FieldData& lhs, const JSONFieldData& rhs) {
-    if (lhs.field_name() != rhs.Name()) {
-        return false;
-    }
-    if (!lhs.has_scalars()) {
-        return false;
-    }
-    const auto& scalars = lhs.scalars();
-    if (!scalars.has_json_data()) {
-        return false;
-    }
-
-    const auto& scalars_data = scalars.json_data().data();
-    if (scalars_data.size() != rhs.Count()) {
-        return false;
-    }
-
-    std::vector<nlohmann::json> jsons;
-    for (const auto& str : scalars_data) {
-        jsons.emplace_back(nlohmann::json::parse(str));
-    }
-    return std::equal(jsons.begin(), jsons.end(), rhs.Data().begin());
-}
-
-bool
-operator==(const proto::schema::FieldData& lhs, const BinaryVecFieldData& rhs) {
-    if (lhs.field_name() != rhs.Name()) {
-        return false;
-    }
-    if (!lhs.has_vectors()) {
-        return false;
-    }
-
-    const auto& vectors = lhs.vectors();
-    if (vectors.has_float_vector()) {
-        return false;
-    }
-
-    const auto& vectors_data = vectors.binary_vector();
-    auto it = vectors_data.begin();
-    const auto& strings = rhs.Data();
-    for (const auto& s : strings) {
-        for (const auto ch : s) {
-            if (it == vectors_data.end() || *it != ch) {
-                return false;
-            }
-            ++it;
-        }
-    }
-
-    return it == vectors_data.end();
-}
-
-bool
-operator==(const proto::schema::FieldData& lhs, const FloatVecFieldData& rhs) {
-    if (lhs.field_name() != rhs.Name()) {
-        return false;
-    }
-    if (!lhs.has_vectors()) {
-        return false;
-    }
-    size_t dim = 0;
-    if (rhs.Count() > 0) {
-        dim = rhs.Data().front().size();
-    }
-
-    const auto& vectors = lhs.vectors();
-    if (!vectors.has_float_vector()) {
-        return false;
-    }
-    const auto& vectors_data = vectors.float_vector().data();
-    if (vectors_data.size() != (rhs.Count() * dim)) {
-        return false;
-    }
-
-    auto it = vectors_data.begin();
-    for (const auto& item : rhs.Data()) {
-        if (!std::equal(item.begin(), item.end(), it)) {
-            return false;
-        }
-        std::advance(it, dim);
-    }
-    return true;
-}
-
-bool
-operator==(const proto::schema::FieldData& lhs, const Field& rhs) {
-    auto data_type = rhs.Type();
-    switch (data_type) {
-        case DataType::BOOL:
-            return lhs == dynamic_cast<const BoolFieldData&>(rhs);
-        case DataType::INT8:
-            return lhs == dynamic_cast<const Int8FieldData&>(rhs);
-        case DataType::INT16:
-            return lhs == dynamic_cast<const Int16FieldData&>(rhs);
-        case DataType::INT32:
-            return lhs == dynamic_cast<const Int32FieldData&>(rhs);
-        case DataType::INT64:
-            return lhs == dynamic_cast<const Int64FieldData&>(rhs);
-        case DataType::FLOAT:
-            return lhs == dynamic_cast<const FloatFieldData&>(rhs);
-        case DataType::DOUBLE:
-            return lhs == dynamic_cast<const DoubleFieldData&>(rhs);
-        case DataType::VARCHAR:
-            return lhs == dynamic_cast<const VarCharFieldData&>(rhs);
-        case DataType::JSON:
-            return lhs == dynamic_cast<const JSONFieldData&>(rhs);
-        case DataType::BINARY_VECTOR:
-            return lhs == dynamic_cast<const BinaryVecFieldData&>(rhs);
-        case DataType::FLOAT_VECTOR:
-            return lhs == dynamic_cast<const FloatVecFieldData&>(rhs);
-        default:
-            return false;
-    }
-}
-
-bool
-operator==(const SegmentInfo& lhs, const SegmentInfo& rhs) {
-    return lhs.CollectionID() == rhs.CollectionID() && lhs.PartitionID() == rhs.PartitionID() &&
-           lhs.RowCount() == rhs.RowCount() && lhs.SegmentID() == rhs.SegmentID() && lhs.State() == rhs.State();
-}
-
-bool
-operator==(const QuerySegmentInfo& lhs, const QuerySegmentInfo& rhs) {
-    return lhs.CollectionID() == rhs.CollectionID() && lhs.PartitionID() == rhs.PartitionID() &&
-           lhs.RowCount() == rhs.RowCount() && lhs.SegmentID() == rhs.SegmentID() && lhs.State() == rhs.State() &&
-           lhs.IndexName() == rhs.IndexName() && lhs.IndexID() == rhs.IndexID() && lhs.NodeID() == rhs.NodeID();
-}
-
 proto::schema::DataType
 DataTypeCast(DataType type) {
     switch (type) {
@@ -327,6 +45,8 @@ DataTypeCast(DataType type) {
             return proto::schema::DataType::BinaryVector;
         case DataType::FLOAT_VECTOR:
             return proto::schema::DataType::FloatVector;
+        case DataType::SPARSE_FLOAT_VECTOR:
+            return proto::schema::DataType::SparseFloatVector;
         default:
             return proto::schema::DataType::None;
     }
@@ -359,6 +79,8 @@ DataTypeCast(proto::schema::DataType type) {
             return DataType::BINARY_VECTOR;
         case proto::schema::DataType::FloatVector:
             return DataType::FLOAT_VECTOR;
+        case proto::schema::DataType::SparseFloatVector:
+            return DataType::SPARSE_FLOAT_VECTOR;
         default:
             return DataType::UNKNOWN;
     }
@@ -471,6 +193,81 @@ CreateProtoFieldData(const FloatVecFieldData& field) {
         vectors_data.Add(item.begin(), item.end());
     }
     ret->set_dim(static_cast<int>(dim));
+    return ret;
+}
+
+std::string
+EncodeSparseFloatVector(const SparseFloatVecFieldData::ElementT& sparse) {
+    // Milvus server requires sparse vector to be transferred in little endian.
+    // For each index-value pair, the first 4 bytes is a binary of unsigned int32,
+    // the next 4 bytes is a binary of float32.
+    // Each sparse is transfered with a binary of (8 * sparse.size()) bytes.
+    std::vector<uint8_t> bytes(8 * sparse.size());
+    int count = 0;
+    for (const auto& pair : sparse) {
+        int k = count * 8;
+        uint32_t index = pair.first;
+        bytes[k] = index & 0xFF;
+        bytes[k + 1] = (index >> 8) & 0xFF;
+        bytes[k + 2] = (index >> 16) & 0xFF;
+        bytes[k + 3] = (index >> 24) & 0xFF;
+
+        float value = pair.second;
+        std::memcpy(&bytes[k + 4], &value, sizeof(float));
+        count++;
+    }
+
+    return std::string{bytes.begin(), bytes.end()};
+}
+
+SparseFloatVecFieldData::ElementT
+DecodeSparseFloatVector(std::string& bytes) {
+    if (bytes.size() % 8 != 0) {
+        throw std::runtime_error("Unexpected binary string is received from server side!");
+    }
+
+    size_t count = bytes.size() / 8;
+    SparseFloatVecFieldData::ElementT sparse{};
+    for (size_t i = 0; i < count; i++) {
+        uint32_t index = 0;
+        std::memcpy(&index, &bytes[i * 8], sizeof(uint32_t));
+        float value = 0.0;
+        std::memcpy(&value, &bytes[i * 8 + 4], sizeof(float));
+        sparse.insert(std::make_pair(index, value));
+    }
+
+    return sparse;
+}
+
+std::vector<SparseFloatVecFieldData::ElementT>
+BuildFieldDataSparseVectors(const google::protobuf::RepeatedPtrField<std::string>& vector_data, size_t offset,
+                            size_t count) {
+    std::vector<SparseFloatVecFieldData::ElementT> data{};
+    data.reserve(count);
+    auto cursor = vector_data.begin();
+    std::advance(cursor, offset);
+    auto end = cursor;
+    std::advance(end, count);
+    while (cursor != end) {
+        std::string bytes = *cursor;
+        data.emplace_back(std::move(DecodeSparseFloatVector(bytes)));
+        cursor++;
+    }
+    return data;
+}
+
+proto::schema::VectorField*
+CreateProtoFieldData(const SparseFloatVecFieldData& field) {
+    auto ret = new proto::schema::VectorField{};
+    auto& data = field.Data();
+    auto& vectors_data = *(ret->mutable_sparse_float_vector()->mutable_contents());
+    vectors_data.Reserve(static_cast<int>(data.size()));
+    size_t max_dim = 0;
+    for (const auto& item : data) {
+        vectors_data.Add(EncodeSparseFloatVector(item));
+        max_dim = item.size() > max_dim ? item.size() : max_dim;
+    }
+    ret->set_dim(static_cast<int64_t>(max_dim));
     return ret;
 }
 
@@ -667,6 +464,9 @@ CreateProtoFieldData(const Field& field) {
         case DataType::FLOAT_VECTOR:
             field_data.set_allocated_vectors(CreateProtoFieldData(dynamic_cast<const FloatVecFieldData&>(field)));
             break;
+        case DataType::SPARSE_FLOAT_VECTOR:
+            field_data.set_allocated_vectors(CreateProtoFieldData(dynamic_cast<const SparseFloatVecFieldData&>(field)));
+            break;
         case DataType::BOOL:
             field_data.set_allocated_scalars(CreateProtoFieldData(dynamic_cast<const BoolFieldData&>(field)));
             break;
@@ -795,16 +595,21 @@ CreateMilvusFieldData(const milvus::proto::schema::FieldData& field_data, size_t
     const auto& name = field_data.field_name();
 
     switch (field_type) {
-        case proto::schema::DataType::BinaryVector:
-            return std::make_shared<BinaryVecFieldData>(
-                name, BuildFieldDataVectors<std::string>(field_data.vectors().dim() / 8,
-                                                         field_data.vectors().binary_vector(), offset, count));
-
-        case proto::schema::DataType::FloatVector:
-            return std::make_shared<FloatVecFieldData>(
-                name, BuildFieldDataVectors<std::vector<float>>(
-                          field_data.vectors().dim(), field_data.vectors().float_vector().data(), offset, count));
-
+        case proto::schema::DataType::BinaryVector: {
+            std::vector<BinaryVecFieldData::ElementT> vectors = BuildFieldDataVectors<std::string>(
+                field_data.vectors().dim() / 8, field_data.vectors().binary_vector(), offset, count);
+            return std::make_shared<BinaryVecFieldData>(name, std::move(vectors));
+        }
+        case proto::schema::DataType::FloatVector: {
+            std::vector<FloatVecFieldData::ElementT> vectors = BuildFieldDataVectors<std::vector<float>>(
+                field_data.vectors().dim(), field_data.vectors().float_vector().data(), offset, count);
+            return std::make_shared<FloatVecFieldData>(name, std::move(vectors));
+        }
+        case proto::schema::DataType::SparseFloatVector: {
+            std::vector<SparseFloatVecFieldData::ElementT> vectors =
+                BuildFieldDataSparseVectors(field_data.vectors().sparse_float_vector().contents(), offset, count);
+            return std::make_shared<SparseFloatVecFieldData>(name, std::move(vectors));
+        }
         case proto::schema::DataType::Bool:
             return std::make_shared<BoolFieldData>(
                 name, BuildFieldDataScalars<bool>(field_data.scalars().bool_data().data(), offset, count));
@@ -870,6 +675,11 @@ CreateMilvusFieldData(const milvus::proto::schema::FieldData& field_data) {
                 name, BuildFieldDataVectors<std::vector<float>>(field_data.vectors().dim(),
                                                                 field_data.vectors().float_vector().data()));
 
+        case proto::schema::DataType::SparseFloatVector: {
+            auto content = field_data.vectors().sparse_float_vector().contents();
+            return std::make_shared<SparseFloatVecFieldData>(name,
+                                                             BuildFieldDataSparseVectors(content, 0, content.size()));
+        }
         case proto::schema::DataType::Bool:
             return std::make_shared<BoolFieldData>(
                 name, BuildFieldDataScalars<bool>(field_data.scalars().bool_data().data()));
@@ -1213,4 +1023,29 @@ to_string(milvus::IndexType index_type) {
             return "INVALID";
     }
 }
+
+std::string
+to_string(milvus::DataType data_type) {
+    static const std::map<milvus::DataType, std::string> name_map = {
+        {milvus::DataType::BOOL, "BOOL"},
+        {milvus::DataType::INT8, "INT8"},
+        {milvus::DataType::INT16, "INT8"},
+        {milvus::DataType::INT32, "INT32"},
+        {milvus::DataType::INT64, "INT64"},
+        {milvus::DataType::FLOAT, "FLOAT"},
+        {milvus::DataType::DOUBLE, "DOUBLE"},
+        {milvus::DataType::VARCHAR, "VARCHAR"},
+        {milvus::DataType::JSON, "JSON"},
+        {milvus::DataType::ARRAY, "ARRAY"},
+        {milvus::DataType::BINARY_VECTOR, "BINARY_VECTOR"},
+        {milvus::DataType::FLOAT_VECTOR, "FLOAT_VECTOR"},
+        {milvus::DataType::SPARSE_FLOAT_VECTOR, "SPARSE_FLOAT_VECTOR"},
+    };
+    auto it = name_map.find(data_type);
+    if (it == name_map.end()) {
+        return "Unknow DataType";
+    }
+    return it->second;
+}
+
 }  // namespace std

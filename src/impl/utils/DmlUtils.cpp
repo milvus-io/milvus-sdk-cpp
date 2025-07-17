@@ -16,7 +16,7 @@
 
 #include "DmlUtils.h"
 
-#include "GtsDict.h"
+#include "../utils/GtsDict.h"
 #include "milvus/types/Constants.h"
 
 namespace milvus {

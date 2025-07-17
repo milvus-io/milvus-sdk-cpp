@@ -22,8 +22,9 @@
 #include <thread>
 #include <utility>
 
-#include "TypeUtils.h"
 #include "mocks/MilvusMockedTest.h"
+#include "utils/CompareUtils.h"
+#include "utils/TypeUtils.h"
 
 using ::milvus::FieldDataPtr;
 using ::milvus::StatusCode;

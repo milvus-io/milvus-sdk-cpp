@@ -86,7 +86,7 @@ main(int argc, char* argv[]) {
 
     status = client->CreateCollection(collection_schema);
     util::CheckStatus("Failed to create collection:", status);
-    std::cout << "Successfully create collection." << std::endl;
+    std::cout << "Successfully create collection " << collection_name << std::endl;
 
     // create index (required after 2.2.0)
     milvus::IndexDesc index_vector(field_face, "", milvus::IndexType::FLAT, milvus::MetricType::COSINE);
@@ -204,7 +204,7 @@ main(int argc, char* argv[]) {
         s_arguments.SetDatabaseName(my_db_name);  // we still can do search with our db name
         s_arguments.SetCollectionName(collection_name);
         s_arguments.AddPartitionName(partition_name);
-        s_arguments.SetTopK(10);
+        s_arguments.SetLimit(10);
         s_arguments.AddOutputField(field_name);
         s_arguments.AddOutputField(field_age);
         std::string filter_expr = field_age + " > 40";
@@ -214,8 +214,8 @@ main(int argc, char* argv[]) {
 
         auto q_number_1 = util::RandomeValue<int64_t>(0, row_count - 1);
         auto q_number_2 = util::RandomeValue<int64_t>(0, row_count - 1);
-        s_arguments.AddTargetVector(field_face, std::move(insert_vectors[q_number_1]));
-        s_arguments.AddTargetVector(field_face, std::move(insert_vectors[q_number_2]));
+        s_arguments.AddFloatVector(field_face, insert_vectors[q_number_1]);
+        s_arguments.AddFloatVector(field_face, insert_vectors[q_number_2]);
         std::cout << "Searching the No." << q_number_1 << " and No." << q_number_2
                   << " with expression: " << filter_expr << std::endl;
 
@@ -237,8 +237,9 @@ main(int argc, char* argv[]) {
             auto name_field = result.OutputField<milvus::VarCharFieldData>(field_name);
             auto age_field = result.OutputField<milvus::Int8FieldData>(field_age);
             for (size_t i = 0; i < ids.size(); ++i) {
-                std::cout << "\tID: " << ids[i] << "\tDistance: " << distances[i] << "\tName: " << name_field->Value(i)
-                          << "\tAge: " << static_cast<int>(age_field->Value(i)) << std::endl;
+                std::cout << "\t" << result.PrimaryKeyName() << ":" << ids[i] << "\tDistance: " << distances[i] << "\t"
+                          << name_field->Name() << ":" << name_field->Value(i) << "\t" << age_field->Name() << ":"
+                          << +(age_field->Value(i)) << std::endl;
                 // validate the age value
                 if (insert_ages[ids[i]] != age_field->Value(i)) {
                     std::cout << "ERROR! The returned value doesn't match the inserted value" << std::endl;

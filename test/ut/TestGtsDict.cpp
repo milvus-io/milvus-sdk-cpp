@@ -16,7 +16,7 @@
 
 #include <gmock/gmock.h>
 
-#include "GtsDict.h"
+#include "utils/GtsDict.h"
 
 class GtsDictTest : public ::testing::Test {};
 
