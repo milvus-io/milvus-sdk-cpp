@@ -213,15 +213,20 @@ SearchArguments::SetOffset(int64_t offset) {
     return Status::OK();
 }
 
+int
+SearchArguments::RoundDecimal() const {
+    return round_decimal_;
+}
+
 Status
 SearchArguments::SetRoundDecimal(int round_decimal) {
     round_decimal_ = round_decimal;
     return Status::OK();
 }
 
-int
-SearchArguments::RoundDecimal() const {
-    return round_decimal_;
+::milvus::MetricType
+SearchArguments::MetricType() const {
+    return metric_type_;
 }
 
 Status
@@ -229,11 +234,6 @@ SearchArguments::SetMetricType(::milvus::MetricType metric_type) {
     // directly pass metric_type to server, no need to verify here
     metric_type_ = metric_type;
     return Status::OK();
-}
-
-::milvus::MetricType
-SearchArguments::MetricType() const {
-    return metric_type_;
 }
 
 Status
@@ -251,15 +251,6 @@ SearchArguments::AddExtraParam(const std::string& key, const std::string& value)
 const std::unordered_map<std::string, std::string>&
 SearchArguments::ExtraParams() const {
     return extra_params_;
-}
-
-Status
-SearchArguments::Validate() const {
-    // in milvus 2.4+, no need to check index parameters, let the server to check it
-    if (target_vectors_ == nullptr || target_vectors_->Count() == 0) {
-        return Status{StatusCode::INVALID_AGUMENT, "no target vector is assigned"};
-    }
-    return Status::OK();
 }
 
 float
@@ -326,6 +317,15 @@ SearchArguments::IgnoreGrowing() const {
 Status
 SearchArguments::SetIgnoreGrowing(bool ignore_growing) {
     ignore_growing_ = ignore_growing;
+    return Status::OK();
+}
+
+Status
+SearchArguments::Validate() const {
+    // in milvus 2.4+, no need to check index parameters, let the server to check it
+    if (target_vectors_ == nullptr || target_vectors_->Count() == 0) {
+        return Status{StatusCode::INVALID_AGUMENT, "no target vector is assigned"};
+    }
     return Status::OK();
 }
 
@@ -401,12 +401,11 @@ SearchArguments::SetNprobe(int64_t nprobe) {
 
 uint64_t
 SearchArguments::TravelTimestamp() const {
-    return travel_timestamp_;
+    return 0;
 }
 
 Status
 SearchArguments::SetTravelTimestamp(uint64_t timestamp) {
-    travel_timestamp_ = timestamp;
     return Status::OK();
 }
 

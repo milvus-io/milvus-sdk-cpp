@@ -68,6 +68,12 @@ KeyParams() {
     return params;
 }
 
+inline const std::string&
+KeyStrategy() {
+    static std::string strategy = "strategy";
+    return strategy;
+}
+
 inline uint64_t
 GuaranteeStrongTs() {
     return 0;

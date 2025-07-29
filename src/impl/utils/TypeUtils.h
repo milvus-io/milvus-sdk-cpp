@@ -16,6 +16,8 @@
 
 #pragma once
 
+#include <unordered_map>
+
 #include "milvus.pb.h"
 #include "milvus/types/CollectionSchema.h"
 #include "milvus/types/ConsistencyLevel.h"
@@ -24,6 +26,7 @@
 #include "milvus/types/IndexState.h"
 #include "milvus/types/IndexType.h"
 #include "milvus/types/MetricType.h"
+#include "milvus/types/SearchResults.h"
 #include "milvus/types/SegmentInfo.h"
 
 namespace milvus {
@@ -134,6 +137,17 @@ ConsistencyLevelCast(const ConsistencyLevel& level);
 
 ConsistencyLevel
 ConsistencyLevelCast(const proto::common::ConsistencyLevel& level);
+
+void
+SetTargetVectors(const FieldDataPtr& vectors, milvus::proto::milvus::SearchRequest* rpc_request);
+
+void
+SetExtraParams(const std::unordered_map<std::string, std::string>& params,
+               milvus::proto::milvus::SearchRequest* rpc_request);
+
+void
+ConvertSearchResults(const proto::milvus::SearchResults& response, SearchResults& results);
+
 }  // namespace milvus
 
 namespace std {

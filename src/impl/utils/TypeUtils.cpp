@@ -16,6 +16,8 @@
 
 #include "TypeUtils.h"
 
+#include "./Constants.h"
+
 namespace milvus {
 
 proto::schema::DataType
@@ -955,6 +957,107 @@ ConsistencyLevelCast(const proto::common::ConsistencyLevel& level) {
         default:
             return ConsistencyLevel::BOUNDED;
     }
+}
+
+void
+SetTargetVectors(const FieldDataPtr& target, milvus::proto::milvus::SearchRequest* rpc_request) {
+    // placeholders
+    proto::common::PlaceholderGroup placeholder_group;
+    auto& placeholder_value = *placeholder_group.add_placeholders();
+    placeholder_value.set_tag("$0");
+    if (target->Type() == DataType::BINARY_VECTOR) {
+        // bins
+        placeholder_value.set_type(proto::common::PlaceholderType::BinaryVector);
+        auto& vectors = dynamic_cast<BinaryVecFieldData&>(*target);
+        for (const auto& bins : vectors.Data()) {
+            std::string placeholder_data(reinterpret_cast<const char*>(bins.data()), bins.size());
+            placeholder_value.add_values(std::move(placeholder_data));
+        }
+        rpc_request->set_nq(static_cast<int64_t>(vectors.Count()));
+    } else if (target->Type() == DataType::FLOAT_VECTOR) {
+        // floats
+        placeholder_value.set_type(proto::common::PlaceholderType::FloatVector);
+        auto& vectors = dynamic_cast<FloatVecFieldData&>(*target);
+        for (const auto& floats : vectors.Data()) {
+            std::string placeholder_data(reinterpret_cast<const char*>(floats.data()), floats.size() * sizeof(float));
+            placeholder_value.add_values(std::move(placeholder_data));
+        }
+        rpc_request->set_nq(static_cast<int64_t>(vectors.Count()));
+    } else if (target->Type() == DataType::SPARSE_FLOAT_VECTOR) {
+        // sparse
+        placeholder_value.set_type(proto::common::PlaceholderType::SparseFloatVector);
+        auto& vectors = dynamic_cast<SparseFloatVecFieldData&>(*target);
+        for (const auto& sparse : vectors.Data()) {
+            std::string placeholder_data = EncodeSparseFloatVector(sparse);
+            placeholder_value.add_values(std::move(placeholder_data));
+        }
+        rpc_request->set_nq(static_cast<int64_t>(vectors.Count()));
+    }
+    rpc_request->set_placeholder_group(std::move(placeholder_group.SerializeAsString()));
+}
+
+void
+SetExtraParams(const std::unordered_map<std::string, std::string>& params,
+               milvus::proto::milvus::SearchRequest* rpc_request) {
+    // offet/radius/range_filter/nprobe etc.
+    // in old milvus versions, all extra params are under "params"
+    // in new milvus versions, all extra params are in the top level
+    nlohmann::json json_params;
+    for (auto& pair : params) {
+        auto kv_pair = rpc_request->add_search_params();
+        kv_pair->set_key(pair.first);
+        kv_pair->set_value(pair.second);
+
+        // for radius/range, the value should be a numeric instead a string in the JSON string
+        // for example:
+        //   '{"radius": "2.5", "range_filter": "0.5"}' is illegal in the server-side
+        //   '{"radius": 2.5, "range_filter": 0.5}' is ok
+        if (pair.first == KeyRadius() || pair.first == KeyRangeFilter()) {
+            json_params[pair.first] = atof(pair.second.c_str());
+        } else {
+            json_params[pair.first] = pair.second;
+        }
+    }
+    {
+        auto kv_pair = rpc_request->add_search_params();
+        kv_pair->set_key(KeyParams());
+        kv_pair->set_value(json_params.dump());
+    }
+}
+
+void
+ConvertSearchResults(const proto::milvus::SearchResults& response, SearchResults& results) {
+    auto& result_data = response.results();
+    const auto& ids = result_data.ids();
+    const auto& scores = result_data.scores();
+    const auto& fields_data = result_data.fields_data();
+    auto num_of_queries = result_data.num_queries();
+    std::vector<int> topks{};
+    topks.reserve(result_data.topks_size());
+    for (int i = 0; i < result_data.topks_size(); ++i) {
+        topks.emplace_back(result_data.topks(i));
+    }
+    std::vector<SingleResult> single_results;
+    single_results.reserve(num_of_queries);
+    int offset{0};
+    for (int i = 0; i < num_of_queries; ++i) {
+        std::vector<float> item_scores;
+        std::vector<FieldDataPtr> item_field_data;
+        auto item_topk = topks[i];
+        item_scores.reserve(item_topk);
+        for (int j = 0; j < item_topk; ++j) {
+            item_scores.emplace_back(scores.at(offset + j));
+        }
+        item_field_data.reserve(fields_data.size());
+        for (const auto& field_data : fields_data) {
+            item_field_data.emplace_back(std::move(milvus::CreateMilvusFieldData(field_data, offset, item_topk)));
+        }
+        single_results.emplace_back(result_data.primary_field_name(), std::move(CreateIDArray(ids, offset, item_topk)),
+                                    std::move(item_scores), std::move(item_field_data));
+        offset += item_topk;
+    }
+
+    results = std::move(SearchResults(std::move(single_results)));
 }
 
 }  // namespace milvus

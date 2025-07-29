@@ -333,15 +333,15 @@ MilvusConnection::Search(const proto::milvus::SearchRequest& request, proto::mil
 }
 
 Status
-MilvusConnection::Query(const proto::milvus::QueryRequest& request, proto::milvus::QueryResults& response,
-                        const GrpcContextOptions& options) {
-    return grpcCall("Query", &Stub::Query, request, response, options);
+MilvusConnection::HybridSearch(const proto::milvus::HybridSearchRequest& request,
+                               proto::milvus::SearchResults& response, const GrpcContextOptions& options) {
+    return grpcCall("HybridSearch", &Stub::HybridSearch, request, response, options);
 }
 
 Status
-MilvusConnection::CalcDistance(const proto::milvus::CalcDistanceRequest& request,
-                               proto::milvus::CalcDistanceResults& response, const GrpcContextOptions& options) {
-    return grpcCall("CalcDistance", &Stub::CalcDistance, request, response, options);
+MilvusConnection::Query(const proto::milvus::QueryRequest& request, proto::milvus::QueryResults& response,
+                        const GrpcContextOptions& options) {
+    return grpcCall("Query", &Stub::Query, request, response, options);
 }
 
 Status

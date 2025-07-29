@@ -32,6 +32,12 @@ main(int argc, char* argv[]) {
     util::CheckStatus("Failed to connect milvus server:", status);
     std::cout << "Connect to milvus server." << std::endl;
 
+    // print the server version
+    std::string version;
+    status = client->GetVersion(version);
+    util::CheckStatus("Failed to get server version:", status);
+    std::cout << "The milvus server version is: " << version << std::endl;
+
     // drop the collection if it exists
     const std::string collection_name = "TEST_CPP_SIMPLE";
     status = client->DropCollection(collection_name);

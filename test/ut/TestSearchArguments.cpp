@@ -42,10 +42,6 @@ TEST_F(SearchArgumentsTest, GeneralTesting) {
     EXPECT_EQ(expression, arguments.Filter());
     EXPECT_TRUE(arguments.SetFilter(empty_name).IsOk());
 
-    uint64_t ts = 1000;
-    arguments.SetTravelTimestamp(ts);
-    EXPECT_EQ(ts, arguments.TravelTimestamp());
-
     auto status = arguments.AddOutputField("");
     EXPECT_FALSE(status.IsOk());
 }
