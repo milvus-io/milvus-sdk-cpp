@@ -38,15 +38,13 @@ TEST_F(SearchArgumentsTest, GeneralTesting) {
     EXPECT_TRUE(names.find(partition_name) != names.end());
 
     std::string expression = "expr";
-    arguments.SetExpression(expression);
-    EXPECT_EQ(expression, arguments.Expression());
-    EXPECT_TRUE(arguments.SetExpression(empty_name).IsOk());
+    arguments.SetFilter(expression);
+    EXPECT_EQ(expression, arguments.Filter());
+    EXPECT_TRUE(arguments.SetFilter(empty_name).IsOk());
 
     uint64_t ts = 1000;
     arguments.SetTravelTimestamp(ts);
     EXPECT_EQ(ts, arguments.TravelTimestamp());
-    arguments.SetGuaranteeTimestamp(ts);
-    EXPECT_EQ(ts, arguments.GuaranteeTimestamp());
 
     auto status = arguments.AddOutputField("");
     EXPECT_FALSE(status.IsOk());
@@ -150,7 +148,7 @@ TEST_F(SearchArgumentsTest, VectorTesting) {
 
 TEST_F(SearchArgumentsTest, Nprobe) {
     milvus::SearchArguments arguments;
-    arguments.AddExtraParam("nprobe", 10);
+    arguments.AddExtraParam("nprobe", "10");
     EXPECT_EQ(10, arguments.Nprobe());
 
     arguments.SetNprobe(20);
@@ -162,5 +160,4 @@ TEST_F(SearchArgumentsTest, RangeSearchParams) {
     arguments.SetRange(0.1, 0.2);
     EXPECT_NEAR(0.1, arguments.RangeFilter(), 0.00001);
     EXPECT_NEAR(0.2, arguments.Radius(), 0.00001);
-    EXPECT_TRUE(arguments.RangeSearch());
 }

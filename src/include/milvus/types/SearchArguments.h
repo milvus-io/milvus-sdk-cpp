@@ -124,6 +124,12 @@ class SearchArguments {
     AddSparseVector(std::string field_name, const SparseFloatVecFieldData::ElementT& vector);
 
     /**
+     * @brief Get anns field name
+     */
+    std::string
+    AnnsField() const;
+
+    /**
      * @brief Get search limit(topk)
      */
     int64_t
@@ -131,24 +137,27 @@ class SearchArguments {
 
     /**
      * @brief Set search limit(topk)
+     * Note: this value is stored in the ExtraParams
      */
     Status
     SetLimit(int64_t limit);
 
     /**
-     * @brief Get nprobe
+     * @brief Get offset value.
      */
     int64_t
-    Nprobe() const;
+    Offset() const;
 
     /**
-     * @brief Set nprobe
+     * @brief Set offset value
+     * Note: this value is stored in the ExtraParams
      */
     Status
-    SetNprobe(int64_t nlist);
+    SetOffset(int64_t offset);
 
     /**
      * @brief Specifies the decimal place of the returned results.
+     * Note: this value is stored in the ExtraParams
      */
     Status
     SetRoundDecimal(int round_decimal);
@@ -173,14 +182,16 @@ class SearchArguments {
 
     /**
      * @brief Add extra param
+     * Note: int v2.4, we redefine this method, old client code might be affected
      */
     Status
-    AddExtraParam(std::string key, int64_t value);
+    AddExtraParam(const std::string& key, const std::string& value);
 
     /**
      * @brief Get extra param
+     * Note: int v2.4, we redefine this method, old client code might be affected
      */
-    std::string
+    const std::unordered_map<std::string, std::string>&
     ExtraParams() const;
 
     /**
@@ -194,7 +205,7 @@ class SearchArguments {
      * The Validate() method is called before Search().
      */
     Status
-    Validate(std::string& anns_field) const;
+    Validate() const;
 
     /**
      * @brief Get range radius
@@ -204,11 +215,27 @@ class SearchArguments {
     Radius() const;
 
     /**
+     * @brief Set range radius
+     * Note: this value is stored in the ExtraParams
+     * @return
+     */
+    Status
+    SetRadius(float value);
+
+    /**
      * @brief Get range filter
      * @return
      */
     float
     RangeFilter() const;
+
+    /**
+     * @brief Set range filter
+     * Note: this value is stored in the ExtraParams
+     * @return
+     */
+    Status
+    SetRangeFilter(float value);
 
     /**
      * @brief Set range radius
@@ -221,13 +248,6 @@ class SearchArguments {
     SetRange(float range_filter, float radius);
 
     /**
-     * @brief Get if do range search
-     * @return
-     */
-    bool
-    RangeSearch() const;
-
-    /**
      * @brief Get consistency level
      */
     ConsistencyLevel
@@ -238,6 +258,18 @@ class SearchArguments {
      */
     Status
     SetConsistencyLevel(const ConsistencyLevel& level);
+
+    /**
+     * @brief Get ignore growing segments
+     */
+    bool
+    IgnoreGrowing() const;
+
+    /**
+     * @brief Set ignore growing segments
+     */
+    Status
+    SetIgnoreGrowing(bool ignore_growing);
 
     ///////////////////////////////////////////////////////////////////////////////////////
     // deprecated methods
@@ -268,6 +300,20 @@ class SearchArguments {
      */
     int64_t
     TopK() const;
+
+    /**
+     * @brief Get nprobe
+     * @deprecated replaced by ExtraParams()
+     */
+    int64_t
+    Nprobe() const;
+
+    /**
+     * @brief Set nprobe
+     * @deprecated replaced by SetExtraParams()
+     */
+    Status
+    SetNprobe(int64_t nlist);
 
     /**
      * @brief Add a binary vector to search
@@ -323,7 +369,7 @@ class SearchArguments {
 
     /**
      * @brief Get guarantee timestamp.
-     * @deprecated Deprecated in 2.4, replaced by ConsistencyLevel
+     * @deprecated Deprecated in 2.4, replaced by ConsistencyLevel, this value is not used anymore
      */
     uint64_t
     GuaranteeTimestamp() const;
@@ -350,7 +396,6 @@ class SearchArguments {
  private:
     std::string db_name_;
     std::string collection_name_;
-    std::string anns_field_;
     std::set<std::string> partition_names_;
     std::set<std::string> output_field_names_;
     std::string filter_expression_;
@@ -358,21 +403,19 @@ class SearchArguments {
     FieldDataPtr target_vectors_;
 
     std::set<std::string> output_fields_;
-    std::unordered_map<std::string, int64_t> extra_params_;
+    std::unordered_map<std::string, std::string> extra_params_;
 
     uint64_t travel_timestamp_{0};
-    uint64_t guarantee_timestamp_{GuaranteeEventuallyTs()};
 
-    int64_t limit_{1};
+    int64_t limit_{10};
     int round_decimal_{-1};
 
-    float radius_;
-    float range_filter_;
-    bool range_search_{false};
-    ::milvus::MetricType metric_type_{::milvus::MetricType::INVALID};
+    ::milvus::MetricType metric_type_{::milvus::MetricType::DEFAULT};
 
     // ConsistencyLevel::NONE means using collection's default level
     ConsistencyLevel consistency_level_{ConsistencyLevel::NONE};
+
+    bool ignore_growing_{false};
 };
 
 }  // namespace milvus

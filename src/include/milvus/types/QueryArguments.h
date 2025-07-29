@@ -19,6 +19,7 @@
 #include <cstdint>
 #include <set>
 #include <string>
+#include <unordered_map>
 
 #include "../Status.h"
 #include "ConsistencyLevel.h"
@@ -97,6 +98,7 @@ class QueryArguments {
 
     /**
      * @brief Set limit value, only avaiable when expression is empty
+     * Note: this value is stored in the ExtraParams
      */
     Status
     SetLimit(int64_t limit);
@@ -109,9 +111,22 @@ class QueryArguments {
 
     /**
      * @brief Set offset value, only avaiable when expression is empty
+     * Note: this value is stored in the ExtraParams
      */
     Status
     SetOffset(int64_t offset);
+
+    /**
+     * @brief Add extra param
+     */
+    Status
+    AddExtraParam(const std::string& key, const std::string& value);
+
+    /**
+     * @brief Get extra param
+     */
+    const std::unordered_map<std::string, std::string>&
+    ExtraParams() const;
 
     /**
      * @brief Get consistency level
@@ -159,7 +174,7 @@ class QueryArguments {
 
     /**
      * @brief Get guarantee timestamp.
-     * @deprecated Deprecated in 2.4, replaced by ConsistencyLevel
+     * @deprecated Deprecated in 2.4, replaced by ConsistencyLevel, this value is not used anymore
      */
     uint64_t
     GuaranteeTimestamp() const;
@@ -188,12 +203,9 @@ class QueryArguments {
     std::string filter_expression_;
 
     std::set<std::string> output_fields_;
+    std::unordered_map<std::string, std::string> extra_params_;
 
     uint64_t travel_timestamp_{0};
-    uint64_t guarantee_timestamp_{0};
-
-    int64_t limit_{0};
-    int64_t offset_{0};
 
     // ConsistencyLevel::NONE means using collection's default level
     ConsistencyLevel consistency_level_{ConsistencyLevel::NONE};

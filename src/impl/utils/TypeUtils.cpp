@@ -103,7 +103,7 @@ MetricTypeCast(const std::string& type) {
     if (type == "JACCARD") {
         return MetricType::JACCARD;
     }
-    return MetricType::INVALID;
+    return MetricType::DEFAULT;
 }
 
 IndexType
@@ -973,9 +973,8 @@ to_string(milvus::MetricType metric_type) {
             return "HAMMING";
         case milvus::MetricType::JACCARD:
             return "JACCARD";
-        case milvus::MetricType::INVALID:
         default:
-            return "INVALID";
+            return "DEFAULT";
     }
 }
 std::string

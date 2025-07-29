@@ -22,7 +22,8 @@ namespace milvus {
  * @brief Supported metric types.
  */
 enum class MetricType {
-    INVALID,
+    INVALID = 0,  // deprecated, replaced by DEFAULT
+    DEFAULT = 0,  // the server automatically determines metric type
     L2,
     IP,
     COSINE,

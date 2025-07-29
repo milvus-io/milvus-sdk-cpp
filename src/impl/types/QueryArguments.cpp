@@ -16,6 +16,8 @@
 
 #include "milvus/types/QueryArguments.h"
 
+#include "../utils/Constants.h"
+
 namespace milvus {
 
 const std::string&
@@ -90,24 +92,45 @@ QueryArguments::SetFilter(std::string filter) {
 
 int64_t
 QueryArguments::Limit() const {
-    return limit_;
+    // for history reason, query() requires "limit", search() requires "topk"
+    auto it = extra_params_.find(KeyLimit());
+    if (it != extra_params_.end()) {
+        return std::stoll(it->second);
+    }
+    return 0;
 }
 
 Status
 QueryArguments::SetLimit(int64_t limit) {
-    limit_ = limit;
+    // for history reason, query() requires "limit", search() requires "topk"
+    extra_params_[KeyLimit()] = std::to_string(limit);
     return Status::OK();
 }
 
 int64_t
 QueryArguments::Offset() const {
-    return offset_;
+    auto it = extra_params_.find(KeyOffset());
+    if (it != extra_params_.end()) {
+        return std::stoll(it->second);
+    }
+    return 0;
 }
 
 Status
 QueryArguments::SetOffset(int64_t offset) {
-    offset_ = offset;
+    extra_params_[KeyOffset()] = std::to_string(offset);
     return Status::OK();
+}
+
+Status
+QueryArguments::AddExtraParam(const std::string& key, const std::string& value) {
+    extra_params_[key] = value;
+    return Status::OK();
+}
+
+const std::unordered_map<std::string, std::string>&
+QueryArguments::ExtraParams() const {
+    return extra_params_;
 }
 
 ConsistencyLevel
@@ -146,12 +169,11 @@ QueryArguments::SetTravelTimestamp(uint64_t timestamp) {
 
 uint64_t
 QueryArguments::GuaranteeTimestamp() const {
-    return guarantee_timestamp_;
+    return 0;
 }
 
 Status
 QueryArguments::SetGuaranteeTimestamp(uint64_t timestamp) {
-    guarantee_timestamp_ = timestamp;
     return Status::OK();
 }
 /////////////////////////////////////////////////////////////////////////////////////////

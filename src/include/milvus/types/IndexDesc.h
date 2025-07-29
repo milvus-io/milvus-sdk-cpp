@@ -110,16 +110,18 @@ class IndexDesc {
     SetIndexType(milvus::IndexType index_type);
 
     /**
-     * @brief Parameters of the index.
-     */
-    const std::string
-    ExtraParams() const;
-
-    /**
-     * @brief Add param, current all param is a numberic value
+     * @brief Add extra param
+     * Note: int v2.4, we redefine this method, old client code might be affected
      */
     Status
-    AddExtraParam(std::string key, int64_t value);
+    AddExtraParam(const std::string& key, const std::string& value);
+
+    /**
+     * @brief Get extra param
+     * Note: int v2.4, we redefine this method, old client code might be affected
+     */
+    const std::unordered_map<std::string, std::string>&
+    ExtraParams() const;
 
     /**
      * @brief Construct a new Index Desc:: From Json object
@@ -127,13 +129,6 @@ class IndexDesc {
      */
     Status
     ExtraParamsFromJson(std::string json);
-
-    /**
-     * @brief Validate for create index
-     *
-     */
-    Status
-    Validate() const;
 
     Status
     SetStateCode(const milvus::IndexStateCode& code);
@@ -170,7 +165,7 @@ class IndexDesc {
     std::string index_name_;
     milvus::MetricType metric_type_{milvus::MetricType::INVALID};
     milvus::IndexType index_type_{milvus::IndexType::INVALID};
-    std::unordered_map<std::string, int64_t> extra_params_;
+    std::unordered_map<std::string, std::string> extra_params_;
 
     // the following members are only for DescribeIndex
     int64_t index_id_{0};

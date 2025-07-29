@@ -24,6 +24,7 @@
 
 #include "mocks/MilvusMockedTest.h"
 #include "utils/CompareUtils.h"
+#include "utils/Constants.h"
 #include "utils/TypeUtils.h"
 
 using ::milvus::FieldDataPtr;
@@ -52,16 +53,15 @@ DoSearchVectors(testing::StrictMock<::milvus::MilvusMockedService>& service_,
     search_arguments.AddPartitionName("part2");
     search_arguments.AddOutputField("f1");
     search_arguments.AddOutputField("f2");
-    search_arguments.SetExpression("dummy expression");
+    search_arguments.SetFilter("dummy expression");
     for (const auto& vec : vectors) {
         search_arguments.AddTargetVector("anns_dummy", vec);
     }
     search_arguments.SetConsistencyLevel(milvus::ConsistencyLevel::STRONG);
-    search_arguments.SetTopK(10);
-    search_arguments.SetRoundDecimal(-1);
+    search_arguments.SetLimit(10);
+    search_arguments.SetRoundDecimal(1);
     search_arguments.SetMetricType(milvus::MetricType::IP);
-
-    search_arguments.AddExtraParam("nprobe", 10);
+    search_arguments.AddExtraParam("nprobe", "10");
 
     EXPECT_CALL(
         service_,
@@ -74,22 +74,13 @@ DoSearchVectors(testing::StrictMock<::milvus::MilvusMockedService>& service_,
                   Property(&SearchRequest::partition_names, UnorderedElementsAre("part1", "part2")),
                   Property(&SearchRequest::output_fields, UnorderedElementsAre("f1", "f2")),
                   Property(&SearchRequest::search_params,
-                           UnorderedElementsAre(TestKv("anns_field", "anns_dummy"), TestKv("topk", "10"),
-                                                TestKv("metric_type", "IP"), TestKv("round_decimal", "-1"), _))),
+                           UnorderedElementsAre(
+                               TestKv(milvus::KeyAnnsField(), "anns_dummy"), TestKv(milvus::KeyTopK(), "10"),
+                               TestKv(milvus::KeyMetricType(), "IP"), TestKv(milvus::KeyRoundDecimal(), "1"),
+                               TestKv(milvus::KeyIgnoreGrowing(), "false"), TestKv(milvus::KeyNprobe(), "10"), _))),
             _))
         .WillOnce([&vectors, simulate_timeout](::grpc::ServerContext*, const SearchRequest* request,
                                                SearchResults* response) {
-            // check params
-            auto& search_params = request->search_params();
-            std::string extra_params_payload;
-            for (const auto& pair : search_params) {
-                if (pair.key() == "params") {
-                    extra_params_payload = pair.value();
-                }
-            }
-            auto json_params = nlohmann::json::parse(extra_params_payload);
-            EXPECT_EQ(json_params["nprobe"].get<int>(), 10);
-
             // check placeholder
             const auto& placeholder_group_payload = request->placeholder_group();
             milvus::proto::common::PlaceholderGroup placeholder_group;
