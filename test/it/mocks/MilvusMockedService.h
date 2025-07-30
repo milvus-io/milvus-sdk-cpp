@@ -121,9 +121,6 @@ class MilvusMockedService : public ::milvus::proto::milvus::MilvusService::Servi
     MOCK_METHOD3(GetFlushState,
                  ::grpc::Status(::grpc::ServerContext*, const ::milvus::proto::milvus::GetFlushStateRequest*,
                                 ::milvus::proto::milvus::GetFlushStateResponse*));
-    MOCK_METHOD3(CalcDistance,
-                 ::grpc::Status(::grpc::ServerContext*, const ::milvus::proto::milvus::CalcDistanceRequest*,
-                                ::milvus::proto::milvus::CalcDistanceResults*));
     MOCK_METHOD3(GetPersistentSegmentInfo,
                  ::grpc::Status(::grpc::ServerContext*, const ::milvus::proto::milvus::GetPersistentSegmentInfoRequest*,
                                 ::milvus::proto::milvus::GetPersistentSegmentInfoResponse*));

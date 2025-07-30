@@ -207,12 +207,12 @@ class MilvusConnection {
            const GrpcContextOptions& options);
 
     Status
-    Query(const proto::milvus::QueryRequest& request, proto::milvus::QueryResults& response,
-          const GrpcContextOptions& options);
+    HybridSearch(const proto::milvus::HybridSearchRequest& request, proto::milvus::SearchResults& response,
+                 const GrpcContextOptions& options);
 
     Status
-    CalcDistance(const proto::milvus::CalcDistanceRequest& request, proto::milvus::CalcDistanceResults& response,
-                 const GrpcContextOptions& options);
+    Query(const proto::milvus::QueryRequest& request, proto::milvus::QueryResults& response,
+          const GrpcContextOptions& options);
 
     Status
     GetFlushState(const proto::milvus::GetFlushStateRequest& request, proto::milvus::GetFlushStateResponse& response,

@@ -36,6 +36,10 @@ aux_source_directory(${CMAKE_CURRENT_SOURCE_DIR}/dml dml_files)
 add_executable(sdk_dml ${dml_files})
 target_link_libraries(sdk_dml milvus_sdk)
 
+aux_source_directory(${CMAKE_CURRENT_SOURCE_DIR}/hybrid_search hybrid_search_files)
+add_executable(sdk_hybrid_search ${hybrid_search_files})
+target_link_libraries(sdk_hybrid_search milvus_sdk)
+
 aux_source_directory(${CMAKE_CURRENT_SOURCE_DIR}/json json_files)
 add_executable(sdk_json ${json_files})
 target_link_libraries(sdk_json milvus_sdk)

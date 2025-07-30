@@ -30,6 +30,7 @@
 #include "types/DatabaseDesc.h"
 #include "types/DmlResults.h"
 #include "types/FieldData.h"
+#include "types/HybridSearchArguments.h"
 #include "types/IndexDesc.h"
 #include "types/IndexState.h"
 #include "types/PartitionInfo.h"
@@ -477,6 +478,17 @@ class MilvusClient {
      */
     virtual Status
     Search(const SearchArguments& arguments, SearchResults& results, int timeout = 0) = 0;
+
+    /**
+     * Hybrid search a collection based on the given parameters and return results.
+     *
+     * @param [in] arguments search arguments
+     * @param [out] results search results
+     * @param [in] timeout search timeout in milliseconds
+     * @return Status operation successfully or not
+     */
+    virtual Status
+    HybridSearch(const HybridSearchArguments& arguments, SearchResults& results, int timeout = 0) = 0;
 
     /**
      * Query with a set of criteria, and results in a list of records that match the query exactly.

@@ -160,6 +160,9 @@ class MilvusClientImpl : public MilvusClient {
     Search(const SearchArguments& arguments, SearchResults& results, int timeout) final;
 
     Status
+    HybridSearch(const HybridSearchArguments& arguments, SearchResults& results, int timeout) final;
+
+    Status
     Query(const QueryArguments& arguments, QueryResults& results, int timeout) final;
 
     Status

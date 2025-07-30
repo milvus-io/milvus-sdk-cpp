@@ -156,6 +156,12 @@ class SearchArguments {
     SetOffset(int64_t offset);
 
     /**
+     * @brief Get the decimal place of the returned results
+     */
+    int
+    RoundDecimal() const;
+
+    /**
      * @brief Specifies the decimal place of the returned results.
      * Note: this value is stored in the ExtraParams
      */
@@ -163,22 +169,16 @@ class SearchArguments {
     SetRoundDecimal(int round_decimal);
 
     /**
-     * @brief Get the decimal place of the returned results
+     * @brief Get the metric type
      */
-    int
-    RoundDecimal() const;
+    ::milvus::MetricType
+    MetricType() const;
 
     /**
      * @brief Specifies the metric type
      */
     Status
     SetMetricType(::milvus::MetricType metric_type);
-
-    /**
-     * @brief Get the metric type
-     */
-    ::milvus::MetricType
-    MetricType() const;
 
     /**
      * @brief Add extra param
@@ -193,19 +193,6 @@ class SearchArguments {
      */
     const std::unordered_map<std::string, std::string>&
     ExtraParams() const;
-
-    /**
-     * @brief Validate for search arguments and get name of the target anns field
-     * Note: in v2.4+, a collection can have one or more vector fields. If a collection has
-     * only one vector field, users can set an empty name in the AddTargetVector(),
-     * the server can know the vector field name.
-     * But if the collection has multiple vector fields, users need to provide a non-empty name
-     * in the AddTargetVector() method, and if users call AddTargetVector() mutiple times, he must
-     * ensure that the name is the same, otherwise the Validate() method will return an error.
-     * The Validate() method is called before Search().
-     */
-    Status
-    Validate() const;
 
     /**
      * @brief Get range radius
@@ -270,6 +257,19 @@ class SearchArguments {
      */
     Status
     SetIgnoreGrowing(bool ignore_growing);
+
+    /**
+     * @brief Validate for search arguments and get name of the target anns field
+     * Note: in v2.4+, a collection can have one or more vector fields. If a collection has
+     * only one vector field, users can set an empty name in the AddTargetVector(),
+     * the server can know the vector field name.
+     * But if the collection has multiple vector fields, users need to provide a non-empty name
+     * in the AddTargetVector() method, and if users call AddTargetVector() mutiple times, he must
+     * ensure that the name is the same, otherwise the Validate() method will return an error.
+     * The Validate() method is called before Search().
+     */
+    Status
+    Validate() const;
 
     ///////////////////////////////////////////////////////////////////////////////////////
     // deprecated methods
@@ -402,10 +402,7 @@ class SearchArguments {
 
     FieldDataPtr target_vectors_;
 
-    std::set<std::string> output_fields_;
     std::unordered_map<std::string, std::string> extra_params_;
-
-    uint64_t travel_timestamp_{0};
 
     int64_t limit_{10};
     int round_decimal_{-1};
