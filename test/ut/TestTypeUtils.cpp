@@ -287,7 +287,13 @@ TEST_F(TypeUtilsTest, JSONFieldNotEquals) {
     EXPECT_FALSE(proto_field == json_field);
 
     auto json_scalars = scalars->mutable_json_data();
-    json_scalars->add_data(values.at(0));
+    json_scalars->add_data(values.at(0).dump());
+    EXPECT_TRUE(proto_field == json_field);
+
+    nlohmann::json a1 = R"({"name":"aaa","age":18,"score":88})";
+    nlohmann::json a2 = R"({"name":"aaa","age":17,"score":77})";
+    json_field.Add(a1);
+    json_scalars->add_data(a2.dump());
     EXPECT_FALSE(proto_field == json_field);
 }
 

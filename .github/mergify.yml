@@ -36,12 +36,13 @@ pull_request_rules:
   - name: Test passed for code changed
     conditions:
       - or: *BRANCHES
-      - "status-success=Build and test AMD64 Ubuntu 20.04"
-      - "status-success=Build and test AMD64 Ubuntu 22.04"
-      - "status-success=Build and test AMD64 Fedora 38"
-      - "status-success=Build and test AMD64 Fedora 39"
-      - "status-success=Build and test macOS 13"
-      - "status-success=Build and test windows"
+      - and:
+        - "check-success=Build and test AMD64 Ubuntu 20.04"
+        - "check-success=Build and test AMD64 Ubuntu 22.04"
+        - "check-success=Build and test AMD64 Fedora 38"
+        - "check-success=Build and test AMD64 Fedora 39"
+        - "check-success=Build and test macOS 13"
+        - "check-success=Build and test windows"
     actions:
       label:
         add:
