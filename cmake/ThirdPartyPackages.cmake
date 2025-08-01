@@ -18,7 +18,8 @@ include_guard(GLOBAL)
 
 include(FetchContent)
 
-set(GRPC_VERSION 1.49.1)
+# milvus server v2.4.23 is using grpc v1.59.0
+set(GRPC_VERSION 1.59.0)
 set(NLOHMANN_JSON_VERSION 3.11.3)
 set(GOOGLETEST_VERSION 1.12.1)
 set(CPP_HTTPLIB_VERSION 0.18.5)

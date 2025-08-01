@@ -267,6 +267,16 @@ template class FieldData<std::string, DataType::BINARY_VECTOR>;
 template class FieldData<std::vector<float>, DataType::FLOAT_VECTOR>;
 template class FieldData<std::map<uint32_t, float>, DataType::SPARSE_FLOAT_VECTOR>;
 
+// declare these classes to avoid compile errors on MacOS
+template class FieldData<std::vector<bool>, DataType::ARRAY>;
+template class FieldData<std::vector<int8_t>, DataType::ARRAY>;
+template class FieldData<std::vector<int16_t>, DataType::ARRAY>;
+template class FieldData<std::vector<int32_t>, DataType::ARRAY>;
+template class FieldData<std::vector<int64_t>, DataType::ARRAY>;
+template class FieldData<std::vector<float>, DataType::ARRAY>;
+template class FieldData<std::vector<double>, DataType::ARRAY>;
+template class FieldData<std::vector<std::string>, DataType::ARRAY>;
+
 template class ArrayFieldData<bool, DataType::BOOL>;
 template class ArrayFieldData<int8_t, DataType::INT8>;
 template class ArrayFieldData<int16_t, DataType::INT16>;
