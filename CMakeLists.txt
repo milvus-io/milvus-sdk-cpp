@@ -75,6 +75,12 @@ set(BUILD_SCRIPTS_DIR ${PROJECT_SOURCE_DIR}/scripts)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 
+# This will set RPATH to all excutable TARGET
+# self-installed dynamic libraries will be correctly linked by excutable
+set(CMAKE_INSTALL_RPATH "/usr/lib" "${CMAKE_INSTALL_PREFIX}/lib" "${CMAKE_INSTALL_PREFIX}/lib64" )
+set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
+
+
 # load third packages and milvus-proto
 include(ThirdPartyPackages)
 include(MilvusProtoGen)
