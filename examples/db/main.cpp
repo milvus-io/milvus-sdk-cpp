@@ -18,8 +18,8 @@
 #include <string>
 #include <thread>
 
+#include "ExampleUtils.h"
 #include "milvus/MilvusClient.h"
-#include "util/ExampleUtils.h"
 
 int
 main(int argc, char* argv[]) {
