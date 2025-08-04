@@ -944,45 +944,44 @@ MilvusClientImpl::Search(const SearchArguments& arguments, SearchResults& result
         // set target vectors
         SetTargetVectors(arguments.TargetVectors(), &rpc_request);
 
+        auto setParamFunc = [&rpc_request](const std::string& key, const std::string& value) {
+            auto kv_pair = rpc_request.add_search_params();
+            kv_pair->set_key(key);
+            kv_pair->set_value(value);
+        };
+
         // set anns field name, if the name is empty and the collection has only one vector field,
         // milvus server will use the vector field name as anns name. If the collection has multiple
         // vector fields, user needs to explicitly provide an anns field name.
         auto anns_field = arguments.AnnsField();
         if (!anns_field.empty()) {
-            auto kv_pair = rpc_request.add_search_params();
-            kv_pair->set_key(milvus::KeyAnnsField());
-            kv_pair->set_value(anns_field);
+            setParamFunc(milvus::KeyAnnsField(), anns_field);
         }
 
         // for history reason, query() requires "limit", search() requires "topk"
-        {
-            auto kv_pair = rpc_request.add_search_params();
-            kv_pair->set_key(milvus::KeyTopK());
-            kv_pair->set_value(std::to_string(arguments.Limit()));
-        }
+        setParamFunc(milvus::KeyTopK(), std::to_string(arguments.Limit()));
 
         // set this value only when client specified, otherwise let server to get it from index parameters
         if (arguments.MetricType() != MetricType::DEFAULT) {
-            auto kv_pair = rpc_request.add_search_params();
-            kv_pair->set_key(milvus::KeyMetricType());
-            kv_pair->set_value(std::to_string(arguments.MetricType()));
+            setParamFunc(milvus::KeyMetricType(), std::to_string(arguments.MetricType()));
         }
+
+        // offset
+        setParamFunc(milvus::KeyOffset(), std::to_string(arguments.Offset()));
 
         // round decimal
-        {
-            auto kv_pair = rpc_request.add_search_params();
-            kv_pair->set_key(KeyRoundDecimal());
-            kv_pair->set_value(std::to_string(arguments.RoundDecimal()));
-        }
+        setParamFunc(milvus::KeyRoundDecimal(), std::to_string(arguments.RoundDecimal()));
 
         // ignore growing
-        {
-            auto kv_pair = rpc_request.add_search_params();
-            kv_pair->set_key(KeyIgnoreGrowing());
-            kv_pair->set_value(arguments.IgnoreGrowing() ? "true" : "false");
+        setParamFunc(milvus::KeyIgnoreGrowing(), arguments.IgnoreGrowing() ? "true" : "false");
+
+        // group by
+        auto group_by_field = arguments.GroupByField();
+        if (!group_by_field.empty()) {
+            setParamFunc(milvus::KeyGroupByField(), arguments.GroupByField());
         }
 
-        // extra params offet/radius/range_filter/nprobe etc.
+        // extra params radius/range_filter/nprobe etc.
         SetExtraParams(arguments.ExtraParams(), &rpc_request);
 
         // consistency level

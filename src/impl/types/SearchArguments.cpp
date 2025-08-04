@@ -200,16 +200,12 @@ SearchArguments::SetLimit(int64_t limit) {
 
 int64_t
 SearchArguments::Offset() const {
-    auto it = extra_params_.find(KeyOffset());
-    if (it != extra_params_.end()) {
-        return std::stoll(it->second);
-    }
-    return 0;
+    return offset_;
 }
 
 Status
 SearchArguments::SetOffset(int64_t offset) {
-    extra_params_[KeyOffset()] = std::to_string(offset);
+    offset_ = offset;
     return Status::OK();
 }
 
@@ -239,8 +235,9 @@ SearchArguments::SetMetricType(::milvus::MetricType metric_type) {
 Status
 SearchArguments::AddExtraParam(const std::string& key, const std::string& value) {
     extra_params_[key] = value;
-    static std::set<std::string> s_ambiguous = {KeyParams(),     KeyTopK(),         KeyAnnsField(),
-                                                KeyMetricType(), KeyRoundDecimal(), KeyIgnoreGrowing()};
+    static std::set<std::string> s_ambiguous = {KeyParams(),      KeyTopK(),         KeyAnnsField(),
+                                                KeyMetricType(),  KeyRoundDecimal(), KeyIgnoreGrowing(),
+                                                KeyGroupByField()};
     if (s_ambiguous.find(key) != s_ambiguous.end()) {
         return Status{StatusCode::INVALID_AGUMENT,
                       "ambiguous parameter: not allow to set '" + key + "' in extra params"};
@@ -317,6 +314,17 @@ SearchArguments::IgnoreGrowing() const {
 Status
 SearchArguments::SetIgnoreGrowing(bool ignore_growing) {
     ignore_growing_ = ignore_growing;
+    return Status::OK();
+}
+
+std::string
+SearchArguments::GroupByField() const {
+    return group_by_field_;
+}
+
+Status
+SearchArguments::SetGroupByField(const std::string& field_name) {
+    group_by_field_ = field_name;
     return Status::OK();
 }
 

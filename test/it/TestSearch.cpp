@@ -77,7 +77,8 @@ DoSearchVectors(testing::StrictMock<::milvus::MilvusMockedService>& service_,
                            UnorderedElementsAre(
                                TestKv(milvus::KeyAnnsField(), "anns_dummy"), TestKv(milvus::KeyTopK(), "10"),
                                TestKv(milvus::KeyMetricType(), "IP"), TestKv(milvus::KeyRoundDecimal(), "1"),
-                               TestKv(milvus::KeyIgnoreGrowing(), "false"), TestKv(milvus::KeyNprobe(), "10"), _))),
+                               TestKv(milvus::KeyIgnoreGrowing(), "false"), TestKv(milvus::KeyNprobe(), "10"),
+                               TestKv(milvus::KeyOffset(), "0"), _))),
             _))
         .WillOnce([&vectors, simulate_timeout](::grpc::ServerContext*, const SearchRequest* request,
                                                SearchResults* response) {
