@@ -63,6 +63,18 @@ KeyIgnoreGrowing() {
 }
 
 inline const std::string&
+KeyRoundDecimal() {
+    static std::string round_decimal = "round_decimal";
+    return round_decimal;
+}
+
+inline const std::string&
+KeyGroupByField() {
+    static std::string group_by_field = "group_by_field";
+    return group_by_field;
+}
+
+inline const std::string&
 KeyParams() {
     static std::string params = "params";
     return params;

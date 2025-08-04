@@ -122,6 +122,21 @@ QueryArguments::SetOffset(int64_t offset) {
     return Status::OK();
 }
 
+bool
+QueryArguments::IgnoreGrowing() const {
+    auto it = extra_params_.find(KeyIgnoreGrowing());
+    if (it != extra_params_.end()) {
+        return it->second == "true" ? true : false;
+    }
+    return false;
+}
+
+Status
+QueryArguments::SetIgnoreGrowing(bool ignore_growing) {
+    extra_params_[KeyIgnoreGrowing()] = ignore_growing ? "true" : "false";
+    return Status::OK();
+}
+
 Status
 QueryArguments::AddExtraParam(const std::string& key, const std::string& value) {
     extra_params_[key] = value;

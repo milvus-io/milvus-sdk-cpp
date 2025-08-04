@@ -14,7 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-cmake_minimum_required(VERSION 3.12)
+cmake_minimum_required(VERSION 3.5)
 project(milvus_sdk LANGUAGES CXX)
 
 set(CMAKE_POLICY_VERSION_MINIMUM 3.5)
@@ -94,10 +94,10 @@ if (MILVUS_BUILD_TEST)
     endif ()
     enable_testing()
     add_subdirectory(test)
+    add_subdirectory(examples)
 endif ()
 
 add_subdirectory(src)
-add_subdirectory(examples)
 
 #
 # make lint

@@ -259,6 +259,18 @@ class SearchArguments {
     SetIgnoreGrowing(bool ignore_growing);
 
     /**
+     * @brief Get group by field name
+     */
+    std::string
+    GroupByField() const;
+
+    /**
+     * @brief Set group by field name
+     */
+    Status
+    SetGroupByField(const std::string& field_name);
+
+    /**
      * @brief Validate for search arguments and get name of the target anns field
      * Note: in v2.4+, a collection can have one or more vector fields. If a collection has
      * only one vector field, users can set an empty name in the AddTargetVector(),
@@ -405,14 +417,16 @@ class SearchArguments {
     std::unordered_map<std::string, std::string> extra_params_;
 
     int64_t limit_{10};
+    int64_t offset_{0};
     int round_decimal_{-1};
+    bool ignore_growing_{false};
 
     ::milvus::MetricType metric_type_{::milvus::MetricType::DEFAULT};
 
     // ConsistencyLevel::NONE means using collection's default level
     ConsistencyLevel consistency_level_{ConsistencyLevel::NONE};
 
-    bool ignore_growing_{false};
+    std::string group_by_field_;
 };
 
 }  // namespace milvus

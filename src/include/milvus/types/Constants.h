@@ -23,33 +23,28 @@ namespace milvus {
 /**
  * @brief Global definition for row count label
  */
-inline std::string
+inline const std::string&
 KeyRowCount() {
-    return "row_count";
+    static std::string row_count = "row_count";
+    return row_count;
 }
 
 /**
  * @brief Global definition for index type label
  */
-inline std::string
+inline const std::string&
 KeyIndexType() {
-    return "index_type";
+    static std::string index_type = "index_type";
+    return index_type;
 }
 
 /**
  * @brief Global definition for metric type label
  */
-inline std::string
+inline const std::string&
 KeyMetricType() {
-    return "metric_type";
-}
-
-/**
- * @brief Global definition for round decimal of search results
- */
-inline std::string
-KeyRoundDecimal() {
-    return "round_decimal";
+    static std::string metric_type = "metric_type";
+    return metric_type;
 }
 
 /**
@@ -73,30 +68,37 @@ KeyNprobe() {
 /**
  * @brief Global definition for vector dimension label
  */
-inline std::string
+inline const std::string&
 FieldDim() {
-    return "dim";
+    static std::string dim = "dim";
+    return dim;
 }
 
 /**
  * @brief Max length field name for varchar field
  */
-inline std::string
+inline const std::string&
 FieldMaxLength() {
-    return "max_length";
+    static std::string max_length = "max_length";
+    return max_length;
 }
 
 /**
  * @brief Max capacity field name for array field
  */
-inline std::string
+inline const std::string&
 FieldMaxCapacity() {
-    return "max_capacity";
+    static std::string max_capacity = "max_capacity";
+    return max_capacity;
 }
 
-inline std::string
+/**
+ * @brief internal name of dynamic field in Milvus
+ */
+inline const std::string&
 DynamicFieldName() {
-    return "$meta";
+    static std::string meta = "$meta";
+    return meta;
 }
 
 }  // namespace milvus

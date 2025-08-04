@@ -117,6 +117,18 @@ class QueryArguments {
     SetOffset(int64_t offset);
 
     /**
+     * @brief Get ignore growing segments
+     */
+    bool
+    IgnoreGrowing() const;
+
+    /**
+     * @brief Set ignore growing segments
+     */
+    Status
+    SetIgnoreGrowing(bool ignore_growing);
+
+    /**
      * @brief Add extra param
      */
     Status
