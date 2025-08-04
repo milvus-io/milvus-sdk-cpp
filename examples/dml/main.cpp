@@ -20,7 +20,6 @@
 
 #include "ExampleUtils.h"
 #include "milvus/MilvusClient.h"
-#include "milvus/types/CollectionSchema.h"
 
 int
 main(int argc, char* argv[]) {
@@ -60,7 +59,7 @@ main(int argc, char* argv[]) {
     util::CheckStatus("Failed to create index on vector field:", status);
     milvus::IndexDesc index_text(field_text, "", milvus::IndexType::INVERTED);
     status = client->CreateIndex(collection_name, index_text);
-    util::CheckStatus("Failed to create index on vector field:", status);
+    util::CheckStatus("Failed to create index on varchar field:", status);
     std::cout << "Successfully create index." << std::endl;
 
     // load collection

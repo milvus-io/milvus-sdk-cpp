@@ -20,6 +20,7 @@
 #include <utility>
 
 #include "../utils/Constants.h"
+#include "../utils/TypeUtils.h"
 
 namespace milvus {
 
@@ -100,83 +101,29 @@ SearchArguments::AddBinaryVector(std::string field_name, const std::vector<uint8
 
 Status
 SearchArguments::AddBinaryVector(std::string field_name, const BinaryVecFieldData::ElementT& vector) {
-    auto status = verifyVectorType(DataType::BINARY_VECTOR);
-    if (!status.IsOk()) {
-        return status;
-    }
-
-    BinaryVecFieldDataPtr vectors;
-    if (nullptr == target_vectors_) {
-        vectors = std::make_shared<BinaryVecFieldData>(std::move(field_name));
-        target_vectors_ = vectors;
-    } else {
-        if (field_name != target_vectors_->Name()) {
-            std::string msg = "The vector field name must be the same! Previous name is " + vectors->Name();
-            return {StatusCode::INVALID_AGUMENT, msg};
-        }
-        vectors = std::static_pointer_cast<BinaryVecFieldData>(target_vectors_);
-    }
-
-    auto code = vectors->Add(vector);
-    if (code != StatusCode::OK) {
-        return {code, "Failed to add binary vector"};
-    }
-
-    return Status::OK();
+    return addVector<BinaryVecFieldData, BinaryVecFieldData::ElementT>(field_name, DataType::BINARY_VECTOR, vector);
 }
 
 Status
 SearchArguments::AddFloatVector(std::string field_name, const FloatVecFieldData::ElementT& vector) {
-    auto status = verifyVectorType(DataType::FLOAT_VECTOR);
-    if (!status.IsOk()) {
-        return status;
-    }
-
-    FloatVecFieldDataPtr vectors;
-    if (nullptr == target_vectors_) {
-        vectors = std::make_shared<FloatVecFieldData>(std::move(field_name));
-        target_vectors_ = vectors;
-    } else {
-        if (field_name != target_vectors_->Name()) {
-            std::string msg = "The vector field name must be the same! Previous name is " + vectors->Name();
-            return {StatusCode::INVALID_AGUMENT, msg};
-        }
-        vectors = std::static_pointer_cast<FloatVecFieldData>(target_vectors_);
-    }
-
-    auto code = vectors->Add(vector);
-    if (code != StatusCode::OK) {
-        return {code, "Failed to add float vector"};
-    }
-
-    return Status::OK();
+    return addVector<FloatVecFieldData, FloatVecFieldData::ElementT>(field_name, DataType::FLOAT_VECTOR, vector);
 }
 
 Status
 SearchArguments::AddSparseVector(std::string field_name, const SparseFloatVecFieldData::ElementT& vector) {
-    auto status = verifyVectorType(DataType::SPARSE_FLOAT_VECTOR);
-    if (!status.IsOk()) {
-        return status;
-    }
+    return addVector<SparseFloatVecFieldData, SparseFloatVecFieldData::ElementT>(field_name,
+                                                                                 DataType::SPARSE_FLOAT_VECTOR, vector);
+}
 
-    SparseFloatVecFieldDataPtr vectors;
-    if (nullptr == target_vectors_) {
-        vectors = std::make_shared<SparseFloatVecFieldData>(std::move(field_name));
-        target_vectors_ = vectors;
-    } else {
-        if (field_name != target_vectors_->Name()) {
-            std::string msg = "The vector field name must be the same! Previous name is " + vectors->Name();
-            return {StatusCode::INVALID_AGUMENT, msg};
-        }
-        vectors = std::static_pointer_cast<SparseFloatVecFieldData>(target_vectors_);
-    }
+Status
+SearchArguments::AddFloat16Vector(std::string field_name, const Float16VecFieldData::ElementT& vector) {
+    return addVector<Float16VecFieldData, Float16VecFieldData::ElementT>(field_name, DataType::FLOAT16_VECTOR, vector);
+}
 
-    auto code = vectors->Add(vector);
-    if (code != StatusCode::OK) {
-        return {code, "Failed to add sparse vector"};
-    }
-
-    return Status::OK();
+Status
+SearchArguments::AddBFloat16Vector(std::string field_name, const BFloat16VecFieldData::ElementT& vector) {
+    return addVector<BFloat16VecFieldData, BFloat16VecFieldData::ElementT>(field_name, DataType::BFLOAT16_VECTOR,
+                                                                           vector);
 }
 
 std::string
@@ -239,8 +186,7 @@ SearchArguments::AddExtraParam(const std::string& key, const std::string& value)
                                                 KeyMetricType(),  KeyRoundDecimal(), KeyIgnoreGrowing(),
                                                 KeyGroupByField()};
     if (s_ambiguous.find(key) != s_ambiguous.end()) {
-        return Status{StatusCode::INVALID_AGUMENT,
-                      "ambiguous parameter: not allow to set '" + key + "' in extra params"};
+        return {StatusCode::INVALID_AGUMENT, "ambiguous parameter: not allow to set '" + key + "' in extra params"};
     }
     return Status::OK();
 }
@@ -332,7 +278,7 @@ Status
 SearchArguments::Validate() const {
     // in milvus 2.4+, no need to check index parameters, let the server to check it
     if (target_vectors_ == nullptr || target_vectors_->Count() == 0) {
-        return Status{StatusCode::INVALID_AGUMENT, "no target vector is assigned"};
+        return {StatusCode::INVALID_AGUMENT, "no target vector is assigned"};
     }
     return Status::OK();
 }
@@ -342,6 +288,35 @@ SearchArguments::verifyVectorType(DataType data_type) const {
     if (target_vectors_ != nullptr && target_vectors_->Type() != data_type) {
         return {StatusCode::INVALID_AGUMENT, "Target vector must be the same type!"};
     }
+    return Status::OK();
+}
+
+template <typename T, typename V>
+Status
+SearchArguments::addVector(std::string field_name, DataType data_type, const V& vector) {
+    auto status = verifyVectorType(data_type);
+    if (!status.IsOk()) {
+        return status;
+    }
+
+    StatusCode code = StatusCode::OK;
+    if (nullptr == target_vectors_) {
+        std::shared_ptr<T> vectors = std::make_shared<T>(std::move(field_name));
+        target_vectors_ = vectors;
+        code = vectors->Add(vector);
+    } else {
+        if (field_name != target_vectors_->Name()) {
+            std::string msg = "The vector field name must be the same! Previous name is " + target_vectors_->Name();
+            return {StatusCode::INVALID_AGUMENT, msg};
+        }
+        std::shared_ptr<T> vectors = std::static_pointer_cast<T>(target_vectors_);
+        code = vectors->Add(vector);
+    }
+
+    if (code != StatusCode::OK) {
+        return {code, "Failed to add " + std::to_string(data_type)};
+    }
+
     return Status::OK();
 }
 

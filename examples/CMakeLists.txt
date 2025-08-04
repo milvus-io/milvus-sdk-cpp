@@ -40,6 +40,11 @@ add_executable(sdk_dml ${dml_files})
 target_include_directories(sdk_dml PRIVATE ${EXAMPLE_HEADERS})
 target_link_libraries(sdk_dml milvus_sdk)
 
+aux_source_directory(${CMAKE_CURRENT_SOURCE_DIR}/fp16 fp16_files)
+add_executable(sdk_fp16 ${fp16_files})
+target_include_directories(sdk_fp16 PRIVATE ${EXAMPLE_HEADERS})
+target_link_libraries(sdk_fp16 milvus_sdk)
+
 aux_source_directory(${CMAKE_CURRENT_SOURCE_DIR}/hybrid_search hybrid_search_files)
 add_executable(sdk_hybrid_search ${hybrid_search_files})
 target_include_directories(sdk_hybrid_search PRIVATE ${EXAMPLE_HEADERS})

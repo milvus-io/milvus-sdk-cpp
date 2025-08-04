@@ -49,49 +49,17 @@ CreateProtoFieldData(const Field& field);
 std::string
 EncodeSparseFloatVector(const SparseFloatVecFieldData::ElementT& sparse);
 
-template <typename T, typename VectorData>
-std::vector<T>
-BuildFieldDataVectors(int64_t dim_bytes, const VectorData& vector_data, size_t offset, size_t count) {
-    std::vector<T> data{};
-    data.reserve(count * dim_bytes);
-    auto cursor = vector_data.begin();
-    std::advance(cursor, offset * dim_bytes);
-    auto end = cursor;
-    std::advance(end, count * dim_bytes);
-    while (cursor != end) {
-        T item{};
-        item.reserve(dim_bytes);
-        std::copy_n(cursor, dim_bytes, std::back_inserter(item));
-        data.emplace_back(std::move(item));
-        std::advance(cursor, dim_bytes);
-    }
-    return data;
-}
-
-template <typename T, typename VectorData>
-std::vector<T>
-BuildFieldDataVectors(int64_t dim_bytes, const VectorData& vector_data) {
-    return BuildFieldDataVectors<T>(dim_bytes, vector_data, 0, vector_data.size() / dim_bytes);
-}
+template <typename T, typename V>
+std::vector<std::vector<T>>
+BuildFieldDataVectors(size_t out_len, size_t in_len, const V* vectors_data, size_t offset, size_t count);
 
 template <typename T, typename ScalarData>
 std::vector<T>
-BuildFieldDataScalars(const ScalarData& scalar_data, size_t offset, size_t count) {
-    std::vector<T> data{};
-    data.reserve(count);
-    auto begin = scalar_data.begin();
-    std::advance(begin, offset);
-    auto end = begin;
-    std::advance(end, count);
-    std::copy(begin, end, std::back_inserter(data));
-    return data;
-}
+BuildFieldDataScalars(const ScalarData& scalar_data, size_t offset, size_t count);
 
 template <typename T, typename ScalarData>
 std::vector<T>
-BuildFieldDataScalars(const ScalarData& scalar_data) {
-    return BuildFieldDataScalars<T>(scalar_data, 0, scalar_data.size());
-}
+BuildFieldDataScalars(const ScalarData& scalar_data);
 
 FieldDataPtr
 CreateMilvusFieldData(const proto::schema::FieldData& field_data, size_t offset, size_t count);

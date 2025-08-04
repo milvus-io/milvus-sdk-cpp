@@ -16,14 +16,32 @@
 
 #pragma once
 
-#include "../Status.h"
+#include <cstdint>
 
 namespace milvus {
 
-class BaseParam {
- public:
-    virtual Status
-    Verify() = 0;
-};
+/**
+ * @brief Convert a float32 value to a float16 value represented by uint16_t
+ */
+uint16_t
+F32toF16(float val);
+
+/**
+ * @brief Convert a float16 value to a float32 value
+ */
+float
+F16toF32(uint16_t val);
+
+/**
+ * @brief Convert a float32 value to a bfloat16 value represented by uint16_t
+ */
+uint16_t
+F32toBF16(float val);
+
+/**
+ * @brief Convert a bfloat16 value to a float32 value
+ */
+float
+BF16toF32(uint16_t val);
 
 }  // namespace milvus

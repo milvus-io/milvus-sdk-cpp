@@ -20,7 +20,6 @@
 
 #include "ExampleUtils.h"
 #include "milvus/MilvusClient.h"
-#include "milvus/types/CollectionSchema.h"
 
 int
 main(int argc, char* argv[]) {

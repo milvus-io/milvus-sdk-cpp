@@ -135,7 +135,7 @@ class FieldData : public Field {
     Data();
 
     virtual T
-    Value(size_t i);
+    Value(size_t i) const;
 
  protected:
     friend class BinaryVecFieldData;
@@ -283,6 +283,8 @@ using VarCharFieldData = FieldData<std::string, DataType::VARCHAR>;
 using JSONFieldData = FieldData<nlohmann::json, DataType::JSON>;
 using FloatVecFieldData = FieldData<std::vector<float>, DataType::FLOAT_VECTOR>;
 using SparseFloatVecFieldData = FieldData<std::map<uint32_t, float>, DataType::SPARSE_FLOAT_VECTOR>;
+using Float16VecFieldData = FieldData<std::vector<uint16_t>, DataType::FLOAT16_VECTOR>;
+using BFloat16VecFieldData = FieldData<std::vector<uint16_t>, DataType::BFLOAT16_VECTOR>;
 
 using ArrayBoolFieldData = ArrayFieldData<bool, DataType::BOOL>;
 using ArrayInt8FieldData = ArrayFieldData<int8_t, DataType::INT8>;
@@ -305,6 +307,8 @@ using JSONFieldDataPtr = std::shared_ptr<JSONFieldData>;
 using BinaryVecFieldDataPtr = std::shared_ptr<BinaryVecFieldData>;
 using FloatVecFieldDataPtr = std::shared_ptr<FloatVecFieldData>;
 using SparseFloatVecFieldDataPtr = std::shared_ptr<SparseFloatVecFieldData>;
+using Float16VecFieldDataPtr = std::shared_ptr<Float16VecFieldData>;
+using BFloat16VecFieldDataPtr = std::shared_ptr<BFloat16VecFieldData>;
 
 using ArrayBoolFieldDataPtr = std::shared_ptr<ArrayBoolFieldData>;
 using ArrayInt8FieldDataPtr = std::shared_ptr<ArrayInt8FieldData>;

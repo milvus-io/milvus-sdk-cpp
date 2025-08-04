@@ -23,6 +23,7 @@
 #include <type_traits>
 
 #include "milvus/Status.h"
+#include "milvus/utils/FP16.h"
 
 namespace util {
 using REAL_GEN = std::uniform_real_distribution<float>;
@@ -108,6 +109,56 @@ GenerateBinaryVector(int dimension) {
     return vectors[0];
 }
 
+std::vector<uint16_t>
+GenerateFloat16Vector(const std::vector<float>& src) {
+    std::vector<uint16_t> vector(src.size());
+    for (auto d = 0; d < src.size(); ++d) {
+        vector[d] = milvus::F32toF16(src[d]);
+    }
+    return std::move(vector);
+}
+
+std::vector<std::vector<uint16_t>>
+GenerateFloat16Vectors(int dimension, int count) {
+    std::vector<std::vector<uint16_t>> vectors(count);
+    for (auto i = 0; i < count; ++i) {
+        auto src = GenerateFloatVector(dimension);
+        vectors[i] = GenerateFloat16Vector(src);
+    }
+    return std::move(vectors);
+}
+
+std::vector<uint16_t>
+GenerateFloat16Vector(int dimension) {
+    std::vector<std::vector<uint16_t>> vectors = GenerateFloat16Vectors(dimension, 1);
+    return vectors[0];
+}
+
+std::vector<uint16_t>
+GenerateBFloat16Vector(const std::vector<float>& src) {
+    std::vector<uint16_t> vector(src.size());
+    for (auto d = 0; d < src.size(); ++d) {
+        vector[d] = milvus::F32toBF16(src[d]);
+    }
+    return std::move(vector);
+}
+
+std::vector<std::vector<uint16_t>>
+GenerateBFloat16Vectors(int dimension, int count) {
+    std::vector<std::vector<uint16_t>> vectors(count);
+    for (auto i = 0; i < count; ++i) {
+        auto src = GenerateFloatVector(dimension);
+        vectors[i] = GenerateBFloat16Vector(src);
+    }
+    return std::move(vectors);
+}
+
+std::vector<uint16_t>
+GenerateBFloat16Vector(int dimension) {
+    std::vector<std::vector<uint16_t>> vectors = GenerateBFloat16Vectors(dimension, 1);
+    return vectors[0];
+}
+
 template <typename T>
 std::vector<T>
 RandomeValues(T min, T max, int count) {
@@ -152,6 +203,15 @@ PrintList(const std::vector<T>& obj) {
         ++it;
     }
     std::cout << "]";
+}
+
+void
+PrintListF16AsF32(const std::vector<uint16_t>& f16_vec, bool is_fp16) {
+    std::vector<float> f32_vec;
+    f32_vec.reserve(f16_vec.size());
+    std::transform(f16_vec.begin(), f16_vec.end(), std::back_inserter(f32_vec),
+                   [&is_fp16](uint16_t val) { return is_fp16 ? milvus::F16toF32(val) : milvus::BF16toF32(val); });
+    PrintList(f32_vec);
 }
 
 template <typename K, typename V>

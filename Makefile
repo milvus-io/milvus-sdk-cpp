@@ -65,4 +65,4 @@ clean:
 	@echo "Cleaning"
 	rm -fr cmake_build/
 
-.PHONY: test clean package
+.PHONY: test clean
