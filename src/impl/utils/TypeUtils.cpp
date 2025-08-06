@@ -49,6 +49,10 @@ DataTypeCast(DataType type) {
             return proto::schema::DataType::FloatVector;
         case DataType::SPARSE_FLOAT_VECTOR:
             return proto::schema::DataType::SparseFloatVector;
+        case DataType::FLOAT16_VECTOR:
+            return proto::schema::DataType::Float16Vector;
+        case DataType::BFLOAT16_VECTOR:
+            return proto::schema::DataType::BFloat16Vector;
         default:
             return proto::schema::DataType::None;
     }
@@ -83,6 +87,10 @@ DataTypeCast(proto::schema::DataType type) {
             return DataType::FLOAT_VECTOR;
         case proto::schema::DataType::SparseFloatVector:
             return DataType::SPARSE_FLOAT_VECTOR;
+        case proto::schema::DataType::Float16Vector:
+            return DataType::FLOAT16_VECTOR;
+        case proto::schema::DataType::BFloat16Vector:
+            return DataType::BFLOAT16_VECTOR;
         default:
             return DataType::UNKNOWN;
     }
@@ -170,6 +178,8 @@ IndexTypeCast(const std::string& type) {
     return IndexType::INVALID;
 }
 
+////////////////////////////////////////////////////////////////////////////////////////
+// methods to convert SDK field types to proto field types
 proto::schema::VectorField*
 CreateProtoFieldData(const BinaryVecFieldData& field) {
     auto ret = new proto::schema::VectorField{};
@@ -222,42 +232,6 @@ EncodeSparseFloatVector(const SparseFloatVecFieldData::ElementT& sparse) {
     return std::string{bytes.begin(), bytes.end()};
 }
 
-SparseFloatVecFieldData::ElementT
-DecodeSparseFloatVector(std::string& bytes) {
-    if (bytes.size() % 8 != 0) {
-        throw std::runtime_error("Unexpected binary string is received from server side!");
-    }
-
-    size_t count = bytes.size() / 8;
-    SparseFloatVecFieldData::ElementT sparse{};
-    for (size_t i = 0; i < count; i++) {
-        uint32_t index = 0;
-        std::memcpy(&index, &bytes[i * 8], sizeof(uint32_t));
-        float value = 0.0;
-        std::memcpy(&value, &bytes[i * 8 + 4], sizeof(float));
-        sparse.insert(std::make_pair(index, value));
-    }
-
-    return sparse;
-}
-
-std::vector<SparseFloatVecFieldData::ElementT>
-BuildFieldDataSparseVectors(const google::protobuf::RepeatedPtrField<std::string>& vector_data, size_t offset,
-                            size_t count) {
-    std::vector<SparseFloatVecFieldData::ElementT> data{};
-    data.reserve(count);
-    auto cursor = vector_data.begin();
-    std::advance(cursor, offset);
-    auto end = cursor;
-    std::advance(end, count);
-    while (cursor != end) {
-        std::string bytes = *cursor;
-        data.emplace_back(std::move(DecodeSparseFloatVector(bytes)));
-        cursor++;
-    }
-    return data;
-}
-
 proto::schema::VectorField*
 CreateProtoFieldData(const SparseFloatVecFieldData& field) {
     auto ret = new proto::schema::VectorField{};
@@ -270,6 +244,36 @@ CreateProtoFieldData(const SparseFloatVecFieldData& field) {
         max_dim = item.size() > max_dim ? item.size() : max_dim;
     }
     ret->set_dim(static_cast<int64_t>(max_dim));
+    return ret;
+}
+
+proto::schema::VectorField*
+CreateProtoFieldData(const Float16VecFieldData& field) {
+    auto ret = new proto::schema::VectorField{};
+    auto& data = field.Data();
+    auto dim = data.front().size();
+    auto vec_bytes = dim * 2;
+    auto& vectors_data = *(ret->mutable_float16_vector());
+    vectors_data.resize(data.size() * vec_bytes);
+    for (size_t i = 0; i < data.size(); i++) {
+        std::memcpy(&vectors_data[i * vec_bytes], data[i].data(), vec_bytes);
+    }
+    ret->set_dim(static_cast<int>(dim));
+    return ret;
+}
+
+proto::schema::VectorField*
+CreateProtoFieldData(const BFloat16VecFieldData& field) {
+    auto ret = new proto::schema::VectorField{};
+    auto& data = field.Data();
+    auto dim = data.front().size();
+    auto vec_bytes = dim * 2;
+    auto& vectors_data = *(ret->mutable_bfloat16_vector());
+    vectors_data.resize(data.size() * vec_bytes);
+    for (size_t i = 0; i < data.size(); i++) {
+        std::memcpy(&vectors_data[i * vec_bytes], data[i].data(), vec_bytes);
+    }
+    ret->set_dim(static_cast<int>(dim));
     return ret;
 }
 
@@ -469,6 +473,12 @@ CreateProtoFieldData(const Field& field) {
         case DataType::SPARSE_FLOAT_VECTOR:
             field_data.set_allocated_vectors(CreateProtoFieldData(dynamic_cast<const SparseFloatVecFieldData&>(field)));
             break;
+        case DataType::FLOAT16_VECTOR:
+            field_data.set_allocated_vectors(CreateProtoFieldData(dynamic_cast<const Float16VecFieldData&>(field)));
+            break;
+        case DataType::BFLOAT16_VECTOR:
+            field_data.set_allocated_vectors(CreateProtoFieldData(dynamic_cast<const BFloat16VecFieldData&>(field)));
+            break;
         case DataType::BOOL:
             field_data.set_allocated_scalars(CreateProtoFieldData(dynamic_cast<const BoolFieldData&>(field)));
             break;
@@ -507,9 +517,80 @@ CreateProtoFieldData(const Field& field) {
     return field_data;
 }
 
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+// methods to convert proto field types to SDK field types
+template <typename T, typename V>
+std::vector<std::vector<T>>
+BuildFieldDataVectors(size_t out_len, size_t in_len, const V* vectors_data, size_t offset, size_t count) {
+    std::vector<std::vector<T>> data{};
+    data.reserve(count);
+    for (size_t i = offset; i < offset + count; i++) {
+        std::vector<T> item{};
+        item.resize(out_len);
+        std::memcpy(item.data(), vectors_data + i * in_len, in_len * sizeof(V));
+        data.emplace_back(std::move(item));
+    }
+    return data;
+}
+
+template <typename T, typename ScalarData>
+std::vector<T>
+BuildFieldDataScalars(const ScalarData& scalar_data, size_t offset, size_t count) {
+    std::vector<T> data{};
+    data.reserve(count);
+    auto begin = scalar_data.begin();
+    std::advance(begin, offset);
+    auto end = begin;
+    std::advance(end, count);
+    std::copy(begin, end, std::back_inserter(data));
+    return data;
+}
+
+template <typename T, typename ScalarData>
+std::vector<T>
+BuildFieldDataScalars(const ScalarData& scalar_data) {
+    return BuildFieldDataScalars<T>(scalar_data, 0, scalar_data.size());
+}
+
+SparseFloatVecFieldData::ElementT
+DecodeSparseFloatVector(std::string& bytes) {
+    if (bytes.size() % 8 != 0) {
+        throw std::runtime_error("Unexpected binary string is received from server side!");
+    }
+
+    size_t count = bytes.size() / 8;
+    SparseFloatVecFieldData::ElementT sparse{};
+    for (size_t i = 0; i < count; i++) {
+        uint32_t index = 0;
+        std::memcpy(&index, &bytes[i * 8], sizeof(uint32_t));
+        float value = 0.0;
+        std::memcpy(&value, &bytes[i * 8 + 4], sizeof(float));
+        sparse.insert(std::make_pair(index, value));
+    }
+
+    return sparse;
+}
+
+std::vector<SparseFloatVecFieldData::ElementT>
+BuildFieldDataSparseVectors(const google::protobuf::RepeatedPtrField<std::string>& vector_data, size_t offset,
+                            size_t count) {
+    std::vector<SparseFloatVecFieldData::ElementT> data{};
+    data.reserve(count);
+    auto cursor = vector_data.begin();
+    std::advance(cursor, offset);
+    auto end = cursor;
+    std::advance(end, count);
+    while (cursor != end) {
+        std::string bytes = *cursor;
+        data.emplace_back(std::move(DecodeSparseFloatVector(bytes)));
+        cursor++;
+    }
+    return data;
+}
+
 FieldDataPtr
-CreateMilvusArrayFieldData(const std::string& name, const milvus::proto::schema::ArrayArray& array_field, int offset,
-                           int count) {
+BuildMilvusArrayFieldData(const std::string& name, const milvus::proto::schema::ArrayArray& array_field, int offset,
+                          int count) {
     const auto& scalars_data = array_field.data();
     auto begin = scalars_data.begin();
     if (offset < 0) {
@@ -598,14 +679,30 @@ CreateMilvusFieldData(const milvus::proto::schema::FieldData& field_data, size_t
 
     switch (field_type) {
         case proto::schema::DataType::BinaryVector: {
-            std::vector<BinaryVecFieldData::ElementT> vectors = BuildFieldDataVectors<std::string>(
-                field_data.vectors().dim() / 8, field_data.vectors().binary_vector(), offset, count);
+            size_t len = field_data.vectors().dim() / 8;
+            std::vector<std::vector<uint8_t>> vectors = BuildFieldDataVectors<uint8_t, char>(
+                len, len, field_data.vectors().binary_vector().data(), offset, count);
             return std::make_shared<BinaryVecFieldData>(name, std::move(vectors));
         }
         case proto::schema::DataType::FloatVector: {
-            std::vector<FloatVecFieldData::ElementT> vectors = BuildFieldDataVectors<std::vector<float>>(
-                field_data.vectors().dim(), field_data.vectors().float_vector().data(), offset, count);
+            size_t len = field_data.vectors().dim();
+            std::vector<FloatVecFieldData::ElementT> vectors = BuildFieldDataVectors<float, float>(
+                len, len, field_data.vectors().float_vector().data().data(), offset, count);
             return std::make_shared<FloatVecFieldData>(name, std::move(vectors));
+        }
+        case proto::schema::DataType::Float16Vector: {
+            size_t out_len = field_data.vectors().dim();
+            size_t in_len = field_data.vectors().dim() * 2;
+            std::vector<Float16VecFieldData::ElementT> vectors = BuildFieldDataVectors<uint16_t, char>(
+                out_len, in_len, field_data.vectors().float16_vector().data(), offset, count);
+            return std::make_shared<Float16VecFieldData>(name, std::move(vectors));
+        }
+        case proto::schema::DataType::BFloat16Vector: {
+            size_t out_len = field_data.vectors().dim();
+            size_t in_len = field_data.vectors().dim() * 2;
+            std::vector<BFloat16VecFieldData::ElementT> vectors = BuildFieldDataVectors<uint16_t, char>(
+                out_len, in_len, field_data.vectors().bfloat16_vector().data(), offset, count);
+            return std::make_shared<BFloat16VecFieldData>(name, std::move(vectors));
         }
         case proto::schema::DataType::SparseFloatVector: {
             std::vector<SparseFloatVecFieldData::ElementT> vectors =
@@ -654,7 +751,7 @@ CreateMilvusFieldData(const milvus::proto::schema::FieldData& field_data, size_t
         }
 
         case proto::schema::DataType::Array: {
-            return CreateMilvusArrayFieldData(name, field_data.scalars().array_data(), offset, count);
+            return BuildMilvusArrayFieldData(name, field_data.scalars().array_data(), offset, count);
         }
         default:
             return nullptr;
@@ -667,15 +764,36 @@ CreateMilvusFieldData(const milvus::proto::schema::FieldData& field_data) {
     const auto& name = field_data.field_name();
 
     switch (field_type) {
-        case proto::schema::DataType::BinaryVector:
-            return std::make_shared<BinaryVecFieldData>(
-                name, BuildFieldDataVectors<std::string>(field_data.vectors().dim() / 8,
-                                                         field_data.vectors().binary_vector()));
-
-        case proto::schema::DataType::FloatVector:
-            return std::make_shared<FloatVecFieldData>(
-                name, BuildFieldDataVectors<std::vector<float>>(field_data.vectors().dim(),
-                                                                field_data.vectors().float_vector().data()));
+        case proto::schema::DataType::BinaryVector: {
+            size_t len = field_data.vectors().dim() / 8;
+            size_t count = field_data.vectors().binary_vector().size() / len;
+            std::vector<std::vector<uint8_t>> vectors =
+                BuildFieldDataVectors<uint8_t, char>(len, len, field_data.vectors().binary_vector().data(), 0, count);
+            return std::make_shared<BinaryVecFieldData>(name, std::move(vectors));
+        }
+        case proto::schema::DataType::FloatVector: {
+            size_t len = field_data.vectors().dim();
+            size_t count = field_data.vectors().float_vector().data().size() / len;
+            std::vector<FloatVecFieldData::ElementT> vectors = BuildFieldDataVectors<float, float>(
+                len, len, field_data.vectors().float_vector().data().data(), 0, count);
+            return std::make_shared<FloatVecFieldData>(name, std::move(vectors));
+        }
+        case proto::schema::DataType::Float16Vector: {
+            size_t out_len = field_data.vectors().dim();
+            size_t in_len = field_data.vectors().dim() * 2;
+            size_t count = field_data.vectors().float16_vector().size() / in_len;
+            std::vector<Float16VecFieldData::ElementT> vectors = BuildFieldDataVectors<uint16_t, char>(
+                out_len, in_len, field_data.vectors().float16_vector().data(), 0, count);
+            return std::make_shared<Float16VecFieldData>(name, std::move(vectors));
+        }
+        case proto::schema::DataType::BFloat16Vector: {
+            size_t out_len = field_data.vectors().dim();
+            size_t in_len = field_data.vectors().dim() * 2;
+            size_t count = field_data.vectors().bfloat16_vector().size() / in_len;
+            std::vector<BFloat16VecFieldData::ElementT> vectors = BuildFieldDataVectors<uint16_t, char>(
+                out_len, in_len, field_data.vectors().bfloat16_vector().data(), 0, count);
+            return std::make_shared<BFloat16VecFieldData>(name, std::move(vectors));
+        }
 
         case proto::schema::DataType::SparseFloatVector: {
             auto content = field_data.vectors().sparse_float_vector().contents();
@@ -725,13 +843,15 @@ CreateMilvusFieldData(const milvus::proto::schema::FieldData& field_data) {
 
         case proto::schema::DataType::Array: {
             const auto& scalars_data = field_data.scalars().array_data();
-            return CreateMilvusArrayFieldData(name, scalars_data, 0, scalars_data.data().size());
+            return BuildMilvusArrayFieldData(name, scalars_data, 0, scalars_data.data().size());
         }
         default:
             return nullptr;
     }
 }
 
+////////////////////////////////////////////////////////////////////////////////////////
+// methods for schema types converting
 IDArray
 CreateIDArray(const proto::schema::IDs& ids) {
     if (ids.has_int_id()) {
@@ -969,8 +1089,8 @@ SetTargetVectors(const FieldDataPtr& target, milvus::proto::milvus::SearchReques
         // bins
         placeholder_value.set_type(proto::common::PlaceholderType::BinaryVector);
         auto& vectors = dynamic_cast<BinaryVecFieldData&>(*target);
-        for (const auto& bins : vectors.Data()) {
-            std::string placeholder_data(reinterpret_cast<const char*>(bins.data()), bins.size());
+        for (const auto& vector : vectors.Data()) {
+            std::string placeholder_data(reinterpret_cast<const char*>(vector.data()), vector.size());
             placeholder_value.add_values(std::move(placeholder_data));
         }
         rpc_request->set_nq(static_cast<int64_t>(vectors.Count()));
@@ -978,8 +1098,8 @@ SetTargetVectors(const FieldDataPtr& target, milvus::proto::milvus::SearchReques
         // floats
         placeholder_value.set_type(proto::common::PlaceholderType::FloatVector);
         auto& vectors = dynamic_cast<FloatVecFieldData&>(*target);
-        for (const auto& floats : vectors.Data()) {
-            std::string placeholder_data(reinterpret_cast<const char*>(floats.data()), floats.size() * sizeof(float));
+        for (const auto& vector : vectors.Data()) {
+            std::string placeholder_data(reinterpret_cast<const char*>(vector.data()), vector.size() * sizeof(float));
             placeholder_value.add_values(std::move(placeholder_data));
         }
         rpc_request->set_nq(static_cast<int64_t>(vectors.Count()));
@@ -992,7 +1112,27 @@ SetTargetVectors(const FieldDataPtr& target, milvus::proto::milvus::SearchReques
             placeholder_value.add_values(std::move(placeholder_data));
         }
         rpc_request->set_nq(static_cast<int64_t>(vectors.Count()));
-    }
+    } else if (target->Type() == DataType::FLOAT16_VECTOR) {
+        // float16
+        placeholder_value.set_type(proto::common::PlaceholderType::Float16Vector);
+        auto& vectors = dynamic_cast<Float16VecFieldData&>(*target);
+        for (const auto& vector : vectors.Data()) {
+            std::string placeholder_data(reinterpret_cast<const char*>(vector.data()),
+                                         vector.size() * sizeof(uint16_t));
+            placeholder_value.add_values(std::move(placeholder_data));
+        }
+        rpc_request->set_nq(static_cast<int64_t>(vectors.Count()));
+    } else if (target->Type() == DataType::BFLOAT16_VECTOR) {
+        // float16
+        placeholder_value.set_type(proto::common::PlaceholderType::BFloat16Vector);
+        auto& vectors = dynamic_cast<BFloat16VecFieldData&>(*target);
+        for (const auto& vector : vectors.Data()) {
+            std::string placeholder_data(reinterpret_cast<const char*>(vector.data()),
+                                         vector.size() * sizeof(uint16_t));
+            placeholder_value.add_values(std::move(placeholder_data));
+        }
+        rpc_request->set_nq(static_cast<int64_t>(vectors.Count()));
+    }  // else throw an exception?
     rpc_request->set_placeholder_group(std::move(placeholder_group.SerializeAsString()));
 }
 
@@ -1141,6 +1281,8 @@ to_string(milvus::DataType data_type) {
         {milvus::DataType::ARRAY, "ARRAY"},
         {milvus::DataType::BINARY_VECTOR, "BINARY_VECTOR"},
         {milvus::DataType::FLOAT_VECTOR, "FLOAT_VECTOR"},
+        {milvus::DataType::FLOAT16_VECTOR, "FLOAT16_VECTOR"},
+        {milvus::DataType::BFLOAT16_VECTOR, "BFLOAT16_VECTOR"},
         {milvus::DataType::SPARSE_FLOAT_VECTOR, "SPARSE_FLOAT_VECTOR"},
     };
     auto it = name_map.find(data_type);

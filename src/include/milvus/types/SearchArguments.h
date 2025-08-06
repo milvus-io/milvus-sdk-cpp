@@ -124,6 +124,18 @@ class SearchArguments {
     AddSparseVector(std::string field_name, const SparseFloatVecFieldData::ElementT& vector);
 
     /**
+     * @brief Add a float16 vector to search
+     */
+    Status
+    AddFloat16Vector(std::string field_name, const Float16VecFieldData::ElementT& vector);
+
+    /**
+     * @brief Add a bfloat16 vector to search
+     */
+    Status
+    AddBFloat16Vector(std::string field_name, const BFloat16VecFieldData::ElementT& vector);
+
+    /**
      * @brief Get anns field name
      */
     std::string
@@ -404,6 +416,10 @@ class SearchArguments {
     ///////////////////////////////////////////////////////////////////////////////////////
  private:
     Status verifyVectorType(DataType) const;
+
+    template <typename T, typename V>
+    Status
+    addVector(std::string field_name, DataType data_type, const V& vector);
 
  private:
     std::string db_name_;

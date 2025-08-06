@@ -266,8 +266,10 @@ main(int argc, char* argv[]) {
     {
         // verify the row count should be 0
         // since the collection is not loaded, query(count(*)) cannot work.
-        // Note: call GetCollectionStatistics immediately after DropPartition could return non-zero value
-        // wait a few seconds to get the correct zero value.
+        // Note:
+        // 1. GetCollectionStatistics() only returns row number of sealed segments, and deleted items are not counted.
+        // 2. call GetCollectionStatistics immediately after DropPartition could return non-zero value,
+        //    wait a few seconds to get the correct zero value.
         std::this_thread::sleep_for(std::chrono::seconds(5));
         milvus::CollectionStat col_stat;
         status = client->GetCollectionStatistics(collection_name, col_stat);
