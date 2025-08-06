@@ -134,8 +134,8 @@ FieldData<T, Dt>::Data() {
 }
 
 template <typename T, DataType Dt>
-T
-FieldData<T, Dt>::Value(size_t i) {
+const T&
+FieldData<T, Dt>::Value(size_t i) const {
     if (i >= data_.size()) {
         throw std::runtime_error("Index out of bounds!");
     }

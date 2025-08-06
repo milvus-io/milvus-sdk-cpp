@@ -134,8 +134,8 @@ class FieldData : public Field {
     virtual std::vector<T>&
     Data();
 
-    virtual T
-    Value(size_t i);
+    virtual const T&
+    Value(size_t i) const;
 
  protected:
     friend class BinaryVecFieldData;
