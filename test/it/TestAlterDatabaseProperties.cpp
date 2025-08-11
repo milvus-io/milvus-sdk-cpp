@@ -46,7 +46,7 @@ TEST_F(MilvusMockedTest, AlterDatabasePropertiesSuccess) {
     EXPECT_TRUE(status.IsOk());
 }
 
-TEST_F(MilvusMockedTest, AlterDatabasePropertiesWithoutConnect) {
+TEST_F(UnconnectMilvusMockedTest, AlterDatabasePropertiesWithoutConnect) {
     std::unordered_map<std::string, std::string> properties{};
     auto status = client_->AlterDatabaseProperties("Foo", properties);
 
@@ -63,7 +63,7 @@ TEST_F(MilvusMockedTest, AlterDatabasePropertiesFailed) {
         .WillOnce([error_code](::grpc::ServerContext*, const AlterDatabaseRequest* request,
                                ::milvus::proto::common::Status* status) {
             status->set_code(error_code);
-            return ::grpc::Status{::grpc::StatusCode::UNKNOWN, ""};
+            return ::grpc::Status{};
         });
     std::unordered_map<std::string, std::string> properties{};
     auto status = client_->AlterDatabaseProperties("Foo", properties);

@@ -16,6 +16,8 @@
 
 #include "GtsDict.h"
 
+#include <chrono>
+
 namespace milvus {
 
 void
@@ -58,6 +60,14 @@ GtsDict::CleanAllCollectionTs() {
 std::string
 GtsDict::CombineName(const std::string& db_name, const std::string& collection_name) {
     return db_name.empty() ? "default_" + collection_name : db_name + "_" + collection_name;
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+int64_t
+GetNowMs() {
+    auto now = std::chrono::system_clock::now();
+    auto now_ms = std::chrono::time_point_cast<std::chrono::milliseconds>(now);
+    return now_ms.time_since_epoch().count();
 }
 
 }  // namespace milvus

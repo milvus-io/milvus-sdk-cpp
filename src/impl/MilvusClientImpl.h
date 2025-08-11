@@ -41,6 +41,12 @@ class MilvusClientImpl : public MilvusClient {
     Disconnect() final;
 
     Status
+    SetRpcDeadlineMs(uint64_t timeout_ms) final;
+
+    Status
+    SetRetryParam(const RetryParam& retry_param) final;
+
+    Status
     GetVersion(std::string& version) final;
 
     Status
@@ -157,13 +163,13 @@ class MilvusClientImpl : public MilvusClient {
            DmlResults& results) final;
 
     Status
-    Search(const SearchArguments& arguments, SearchResults& results, int timeout) final;
+    Search(const SearchArguments& arguments, SearchResults& results) final;
 
     Status
-    HybridSearch(const HybridSearchArguments& arguments, SearchResults& results, int timeout) final;
+    HybridSearch(const HybridSearchArguments& arguments, SearchResults& results) final;
 
     Status
-    Query(const QueryArguments& arguments, QueryResults& results, int timeout) final;
+    Query(const QueryArguments& arguments, QueryResults& results) final;
 
     Status
     Flush(const std::vector<std::string>& collection_names, const ProgressMonitor& progress_monitor) final;
@@ -206,8 +212,8 @@ class MilvusClientImpl : public MilvusClient {
     ListCredUsers(std::vector<std::string>& users) final;
 
     Status
-    GetLoadState(const std::string& collection_name, bool& is_loaded, const std::vector<std::string> partition_names,
-                 int timeout) final;
+    GetLoadState(const std::string& collection_name, bool& is_loaded,
+                 const std::vector<std::string> partition_names) final;
 
  private:
     using GrpcOpts = MilvusConnection::GrpcContextOptions;
@@ -223,6 +229,12 @@ class MilvusClientImpl : public MilvusClient {
     WaitForStatus(const std::function<Status(Progress&)>& query_function, const ProgressMonitor& progress_monitor);
 
     /**
+     * @brief retry loop
+     */
+    Status
+    retry(std::function<Status(void)> caller);
+
+    /**
      * @brief template for public api call
      *        validate -> pre -> rpc -> wait_for_status -> post
      */
@@ -230,10 +242,9 @@ class MilvusClientImpl : public MilvusClient {
     Status
     apiHandler(const std::function<Status(void)>& validate, std::function<Request(void)> pre,
                Status (MilvusConnection::*rpc)(const Request&, Response&, const GrpcOpts&),
-               std::function<Status(const Response&)> wait_for_status, std::function<void(const Response&)> post,
-               const GrpcOpts& options = GrpcOpts{}) {
+               std::function<Status(const Response&)> wait_for_status, std::function<void(const Response&)> post) {
         if (connection_ == nullptr) {
-            return {StatusCode::NOT_CONNECTED, "Connection is not ready!"};
+            return {StatusCode::NOT_CONNECTED, "Connection is not created!"};
         }
 
         if (validate) {
@@ -245,8 +256,12 @@ class MilvusClientImpl : public MilvusClient {
 
         Request rpc_request = pre();
         Response rpc_response;
-        auto status = std::bind(rpc, connection_.get(), std::placeholders::_1, std::placeholders::_2,
-                                std::placeholders::_3)(rpc_request, rpc_response, options);
+        // the timeout value can be changed by MilvusClient::SetRpcDeadlineMs()
+        uint64_t timeout = connection_->GetConnectParam().RpcDeadlineMs();
+        auto rpc_opts = timeout > 0 ? GrpcOpts{timeout} : GrpcOpts{};
+        auto func = std::bind(rpc, connection_.get(), rpc_request, std::placeholders::_1, rpc_opts);
+        auto caller = [&func, &rpc_response]() { return func(rpc_response); };
+        auto status = retry(caller);
         if (!status.IsOk()) {
             // response's status already checked in connection class
             return status;
@@ -269,8 +284,8 @@ class MilvusClientImpl : public MilvusClient {
     Status
     apiHandler(std::function<Status(void)> validate, std::function<Request(void)> pre,
                Status (MilvusConnection::*rpc)(const Request&, Response&, const GrpcOpts&),
-               std::function<void(const Response&)> post, const GrpcOpts& options = GrpcOpts{}) {
-        return apiHandler(validate, pre, rpc, std::function<Status(const Response&)>{}, post, options);
+               std::function<void(const Response&)> post) {
+        return apiHandler(validate, pre, rpc, std::function<Status(const Response&)>{}, post);
     }
 
     /**
@@ -279,10 +294,9 @@ class MilvusClientImpl : public MilvusClient {
     template <typename Request, typename Response>
     Status
     apiHandler(std::function<Status(void)> validate, std::function<Request(void)> pre,
-               Status (MilvusConnection::*rpc)(const Request&, Response&, const GrpcOpts&),
-               const GrpcOpts& options = GrpcOpts{}) {
+               Status (MilvusConnection::*rpc)(const Request&, Response&, const GrpcOpts&)) {
         return apiHandler(validate, pre, rpc, std::function<Status(const Response&)>{},
-                          std::function<void(const Response&)>{}, options);
+                          std::function<void(const Response&)>{});
     }
 
     /**
@@ -292,9 +306,8 @@ class MilvusClientImpl : public MilvusClient {
     Status
     apiHandler(std::function<Request(void)> pre,
                Status (MilvusConnection::*rpc)(const Request&, Response&, const GrpcOpts&),
-               std::function<void(const Response&)> post, const GrpcOpts& options = GrpcOpts{}) {
-        return apiHandler(std::function<Status(void)>{}, pre, rpc, std::function<Status(const Response&)>{}, post,
-                          options);
+               std::function<void(const Response&)> post) {
+        return apiHandler(std::function<Status(void)>{}, pre, rpc, std::function<Status(const Response&)>{}, post);
     }
 
     /**
@@ -303,10 +316,9 @@ class MilvusClientImpl : public MilvusClient {
     template <typename Request, typename Response>
     Status
     apiHandler(std::function<Request(void)> pre,
-               Status (MilvusConnection::*rpc)(const Request&, Response&, const GrpcOpts&),
-               const GrpcOpts& options = GrpcOpts{}) {
+               Status (MilvusConnection::*rpc)(const Request&, Response&, const GrpcOpts&)) {
         return apiHandler(std::function<Status(void)>{}, pre, rpc, std::function<Status(const Response&)>{},
-                          std::function<void(const Response&)>{}, options);
+                          std::function<void(const Response&)>{});
     }
 
     /**
@@ -333,6 +345,7 @@ class MilvusClientImpl : public MilvusClient {
 
  private:
     std::shared_ptr<MilvusConnection> connection_;
+    RetryParam retry_param_;
 
     // cache of collection schemas
     // this cache is db level, once useDatabase() is called, this cache will be cleaned

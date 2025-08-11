@@ -38,6 +38,7 @@
 #include "types/ProgressMonitor.h"
 #include "types/QueryArguments.h"
 #include "types/QueryResults.h"
+#include "types/RetryParam.h"
 #include "types/SearchArguments.h"
 #include "types/SearchResults.h"
 #include "types/SegmentInfo.h"
@@ -76,6 +77,21 @@ class MilvusClient {
      */
     virtual Status
     Disconnect() = 0;
+
+    /**
+     * Change timeout value in milliseconds for each RPC call.
+     *
+     */
+    virtual Status
+    SetRpcDeadlineMs(uint64_t timeout_ms) = 0;
+
+    /**
+     * Reset retry rules for each RPC call.
+     *
+     *  @param [in] retry_param retry rules
+     */
+    virtual Status
+    SetRetryParam(const RetryParam& retry_param) = 0;
 
     /**
      * Get milvus server version
@@ -473,33 +489,30 @@ class MilvusClient {
      *
      * @param [in] arguments search arguments
      * @param [out] results search results
-     * @param [in] timeout search timeout in milliseconds
      * @return Status operation successfully or not
      */
     virtual Status
-    Search(const SearchArguments& arguments, SearchResults& results, int timeout = 0) = 0;
+    Search(const SearchArguments& arguments, SearchResults& results) = 0;
 
     /**
      * Hybrid search a collection based on the given parameters and return results.
      *
      * @param [in] arguments search arguments
      * @param [out] results search results
-     * @param [in] timeout search timeout in milliseconds
      * @return Status operation successfully or not
      */
     virtual Status
-    HybridSearch(const HybridSearchArguments& arguments, SearchResults& results, int timeout = 0) = 0;
+    HybridSearch(const HybridSearchArguments& arguments, SearchResults& results) = 0;
 
     /**
      * Query with a set of criteria, and results in a list of records that match the query exactly.
      *
      * @param [in] arguments query arguments
      * @param [out] results query results
-     * @param [in] timeout search timeout in milliseconds
      * @return Status operation successfully or not
      */
     virtual Status
-    Query(const QueryArguments& arguments, QueryResults& results, int timeout = 0) = 0;
+    Query(const QueryArguments& arguments, QueryResults& results) = 0;
 
     /**
      * Flush insert buffer into storage.  \n
@@ -640,12 +653,13 @@ class MilvusClient {
      * GetLoadState
      *
      * @param [in] collection_name name of the collection
+     * @param [in] partition_names name array of the partitions
      * @param [out] is_loaded whether the collection is loaded into memory
      * @return Status operation successfully or not
      */
     virtual Status
     GetLoadState(const std::string& collection_name, bool& is_loaded,
-                 const std::vector<std::string> partition_names = {}, int timeout = 0) = 0;
+                 const std::vector<std::string> partition_names = {}) = 0;
 };
 
 }  // namespace milvus

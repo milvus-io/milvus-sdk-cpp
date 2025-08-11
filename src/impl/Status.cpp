@@ -53,6 +53,11 @@ Status::Message() const {
 }
 
 int32_t
+Status::RpcErrCode() const {
+    return rpc_err_code_;
+}
+
+int32_t
 Status::ServerCode() const {
     return server_err_code_;
 }

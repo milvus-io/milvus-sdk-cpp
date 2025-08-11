@@ -60,7 +60,7 @@ TEST_F(MilvusMockedTest, CreatePartitionFooFailed) {
         .WillOnce([error_code](::grpc::ServerContext*, const CreatePartitionRequest* request,
                                ::milvus::proto::common::Status* status) {
             status->set_code(error_code);
-            return ::grpc::Status{::grpc::StatusCode::UNKNOWN, ""};
+            return ::grpc::Status{};
         });
     auto status = client_->CreatePartition(collection, partition);
 

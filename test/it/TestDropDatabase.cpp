@@ -36,7 +36,7 @@ TEST_F(MilvusMockedTest, DropDatabaseSuccess) {
     EXPECT_TRUE(status.IsOk());
 }
 
-TEST_F(MilvusMockedTest, DropDatabaseWithoutConnect) {
+TEST_F(UnconnectMilvusMockedTest, DropDatabaseWithoutConnect) {
     auto status = client_->DropDatabase("Foo");
 
     EXPECT_FALSE(status.IsOk());
@@ -52,7 +52,7 @@ TEST_F(MilvusMockedTest, DropDatabaseFailed) {
         .WillOnce([error_code](::grpc::ServerContext*, const DropDatabaseRequest* request,
                                ::milvus::proto::common::Status* status) {
             status->set_code(error_code);
-            return ::grpc::Status{::grpc::StatusCode::UNKNOWN, ""};
+            return ::grpc::Status{};
         });
     auto status = client_->DropDatabase("Foo");
 

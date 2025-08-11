@@ -42,11 +42,11 @@ class MilvusConnection {
      */
     struct GrpcContextOptions {
         /** timeout in milliseconds */
-        int timeout{0};
+        uint64_t timeout{0};
 
         // constructors
         GrpcContextOptions() = default;
-        explicit GrpcContextOptions(int timeout_) : timeout{timeout_} {
+        explicit GrpcContextOptions(uint64_t timeout_) : timeout{timeout_} {
         }
     };
 
@@ -57,8 +57,8 @@ class MilvusConnection {
     Status
     Connect(const ConnectParam& param);
 
-    const ConnectParam&
-    GetConnectParam() const;
+    ConnectParam&
+    GetConnectParam();
 
     Status
     Disconnect();
@@ -289,9 +289,12 @@ class MilvusConnection {
 
     static Status
     StatusCodeFromGrpcStatus(const ::grpc::Status& grpc_status) {
-        StatusCode code = (grpc_status.error_code() == ::grpc::StatusCode::DEADLINE_EXCEEDED)
-                              ? StatusCode::TIMEOUT
-                              : StatusCode::SERVER_FAILED;
+        if (grpc_status.ok()) {
+            return Status::OK();
+        }
+
+        StatusCode code = (grpc_status.error_code() == ::grpc::StatusCode::DEADLINE_EXCEEDED) ? StatusCode::TIMEOUT
+                                                                                              : StatusCode::RPC_FAILED;
         return Status{code, grpc_status.error_message(), grpc_status.error_code(), 0, 0};
     }
 

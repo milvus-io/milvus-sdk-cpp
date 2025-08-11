@@ -55,9 +55,7 @@ TEST_F(MilvusMockedTest, DeleteFoo) {
     EXPECT_THAT(results.IdArray().IntIDArray(), ElementsAreArray(ret_ids));
 }
 
-TEST_F(MilvusMockedTest, DeleteWithoutConnect) {
-    milvus::ConnectParam connect_param{"127.0.0.1", server_.ListenPort()};
-
+TEST_F(UnconnectMilvusMockedTest, DeleteWithoutConnect) {
     milvus::DmlResults results;
     auto status = client_->Delete("collection", "partition", "dummy expr", results);
 

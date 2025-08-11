@@ -136,9 +136,7 @@ TEST_F(MilvusMockedTest, InsertFoo) {
     EXPECT_THAT(results.IdArray().IntIDArray(), ElementsAreArray(ret_ids));
 }
 
-TEST_F(MilvusMockedTest, InsertWithoutConnect) {
-    milvus::ConnectParam connect_param{"127.0.0.1", server_.ListenPort()};
-
+TEST_F(UnconnectMilvusMockedTest, InsertWithoutConnect) {
     milvus::DmlResults results;
     auto status = client_->Insert(collection, partition, fields, results);
 

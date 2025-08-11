@@ -37,7 +37,7 @@ TEST_F(MilvusMockedTest, CreateDatabaseSuccess) {
     EXPECT_TRUE(status.IsOk());
 }
 
-TEST_F(MilvusMockedTest, CreateDatabaseWithoutConnect) {
+TEST_F(UnconnectMilvusMockedTest, CreateDatabaseWithoutConnect) {
     std::unordered_map<std::string, std::string> properties{};
     auto status = client_->CreateDatabase("Foo", properties);
 
@@ -54,7 +54,7 @@ TEST_F(MilvusMockedTest, CreateDatabaseFailed) {
         .WillOnce([error_code](::grpc::ServerContext*, const CreateDatabaseRequest* request,
                                ::milvus::proto::common::Status* status) {
             status->set_code(error_code);
-            return ::grpc::Status{::grpc::StatusCode::UNKNOWN, ""};
+            return ::grpc::Status{};
         });
     std::unordered_map<std::string, std::string> properties{};
     auto status = client_->CreateDatabase("Foo", properties);

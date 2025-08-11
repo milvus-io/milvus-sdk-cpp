@@ -45,9 +45,7 @@ TEST_F(MilvusMockedTest, CreateAliasFoo) {
     EXPECT_TRUE(status.IsOk());
 }
 
-TEST_F(MilvusMockedTest, CreateAliasFooWithoutConnect) {
-    milvus::ConnectParam connect_param{"127.0.0.1", server_.ListenPort()};
-
+TEST_F(UnconnectMilvusMockedTest, CreateAliasFooWithoutConnect) {
     const std::string collection_name = "test";
     const std::string alias = "alias";
 
@@ -76,7 +74,7 @@ TEST_F(MilvusMockedTest, CreateAliasFooFailed) {
     auto status = client_->CreateAlias(collection_name, alias);
 
     EXPECT_FALSE(status.IsOk());
-    EXPECT_EQ(status.Code(), StatusCode::SERVER_FAILED);
+    EXPECT_EQ(status.Code(), StatusCode::RPC_FAILED);
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -96,9 +94,7 @@ TEST_F(MilvusMockedTest, DropAliasFoo) {
     EXPECT_TRUE(status.IsOk());
 }
 
-TEST_F(MilvusMockedTest, DropAliasFooWithoutConnect) {
-    milvus::ConnectParam connect_param{"127.0.0.1", server_.ListenPort()};
-
+TEST_F(UnconnectMilvusMockedTest, DropAliasFooWithoutConnect) {
     const std::string alias = "alias";
 
     auto status = client_->DropAlias(alias);
@@ -121,7 +117,7 @@ TEST_F(MilvusMockedTest, DropAliasFooFailed) {
     auto status = client_->DropAlias(alias);
 
     EXPECT_FALSE(status.IsOk());
-    EXPECT_EQ(status.Code(), StatusCode::SERVER_FAILED);
+    EXPECT_EQ(status.Code(), StatusCode::RPC_FAILED);
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -145,9 +141,7 @@ TEST_F(MilvusMockedTest, AlterAliasFoo) {
     EXPECT_TRUE(status.IsOk());
 }
 
-TEST_F(MilvusMockedTest, AlterAliasFooWithoutConnect) {
-    milvus::ConnectParam connect_param{"127.0.0.1", server_.ListenPort()};
-
+TEST_F(UnconnectMilvusMockedTest, AlterAliasFooWithoutConnect) {
     const std::string collection_name = "test";
     const std::string alias = "alias";
 
@@ -176,5 +170,5 @@ TEST_F(MilvusMockedTest, AlterAliasFooFailed) {
     auto status = client_->AlterAlias(collection_name, alias);
 
     EXPECT_FALSE(status.IsOk());
-    EXPECT_EQ(status.Code(), StatusCode::SERVER_FAILED);
+    EXPECT_EQ(status.Code(), StatusCode::RPC_FAILED);
 }

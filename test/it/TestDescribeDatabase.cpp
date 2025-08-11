@@ -57,7 +57,7 @@ TEST_F(MilvusMockedTest, DescribeDatabaseSuccess) {
     EXPECT_EQ(props.at("replicas"), "2");
 }
 
-TEST_F(MilvusMockedTest, DescribeDatabaseWithoutConnect) {
+TEST_F(UnconnectMilvusMockedTest, DescribeDatabaseWithoutConnect) {
     milvus::DatabaseDesc desc;
     auto status = client_->DescribeDatabase("test", desc);
 
@@ -73,12 +73,12 @@ TEST_F(MilvusMockedTest, DescribeDatabaseFailed) {
 
     EXPECT_CALL(service_, DescribeDatabase(_, Property(&DescribeDatabaseRequest::db_name, db_name), _))
         .WillOnce([](::grpc::ServerContext*, const DescribeDatabaseRequest*, DescribeDatabaseResponse*) {
-            return ::grpc::Status{::grpc::StatusCode::UNKNOWN, ""};
+            return ::grpc::Status{::grpc::StatusCode::UNIMPLEMENTED, ""};
         });
 
     milvus::DatabaseDesc desc;
     auto status = client_->DescribeDatabase(db_name, desc);
 
     EXPECT_FALSE(status.IsOk());
-    EXPECT_EQ(status.Code(), StatusCode::SERVER_FAILED);
+    EXPECT_EQ(status.Code(), StatusCode::RPC_FAILED);
 }

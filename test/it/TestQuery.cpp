@@ -134,9 +134,7 @@ TEST_F(MilvusMockedTest, QueryFoo) {
                 ElementsAre(std::vector<float>{0.1f, 0.2f, 0.3f}, std::vector<float>{0.4f, 0.5f, 0.6f}));
 }
 
-TEST_F(MilvusMockedTest, QueryWithoutConnect) {
-    milvus::ConnectParam connect_param{"127.0.0.1", server_.ListenPort()};
-
+TEST_F(UnconnectMilvusMockedTest, QueryWithoutConnect) {
     milvus::QueryArguments query_arguments{};
     milvus::QueryResults query_results{};
 

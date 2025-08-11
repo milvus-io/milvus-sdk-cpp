@@ -29,8 +29,7 @@ using ::testing::_;
 using ::testing::ElementsAre;
 using ::testing::Property;
 
-TEST_F(MilvusMockedTest, GetQuerySegmentInfoWithoutConnection) {
-    milvus::ConnectParam connect_param{"127.0.0.1", server_.ListenPort()};
+TEST_F(UnconnectMilvusMockedTest, GetQuerySegmentInfoWithoutConnection) {
     std::string collection = "foo";
     milvus::QuerySegmentsInfo segments_info;
     auto status = client_->GetQuerySegmentInfo(collection, segments_info);

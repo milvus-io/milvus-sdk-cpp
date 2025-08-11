@@ -49,10 +49,10 @@ jobs:
             version: 38
             image: fedora:38
             key: fc38
-          # - distro: Fedora
-          #   version: 39
-          #   image: fedora:39
-          #   key: fc39
+          - distro: Fedora
+            version: 39
+            image: fedora:39
+            key: fc39
     env:
       CCACHE_DIR: ${{ github.workspace }}/.ccache
       CCACHE_COMPILERCHECK: content

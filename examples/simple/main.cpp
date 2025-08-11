@@ -32,6 +32,9 @@ main(int argc, char* argv[]) {
     util::CheckStatus("Failed to connect milvus server:", status);
     std::cout << "Connect to milvus server." << std::endl;
 
+    // set timeout value for each rpc call
+    client->SetRpcDeadlineMs(1000);
+
     // print the server version
     std::string version;
     status = client->GetVersion(version);
