@@ -16,8 +16,12 @@
 
 #include "MilvusConnection.h"
 
+#include <chrono>
+#include <ctime>
 #include <fstream>
+#include <iomanip>
 #include <memory>
+#include <sstream>
 
 #include "MilvusInterceptor.h"
 #include "grpcpp/security/credentials.h"
@@ -70,6 +74,9 @@ MilvusConnection::Connect(const ConnectParam& param) {
     ::grpc::ChannelArguments args;
     args.SetMaxSendMessageSize(-1);     // max send message size: 2GB
     args.SetMaxReceiveMessageSize(-1);  // max receive message size: 2GB
+    args.SetInt(GRPC_ARG_KEEPALIVE_TIME_MS, param.KeepaliveTimeMs());
+    args.SetInt(GRPC_ARG_KEEPALIVE_TIMEOUT_MS, param.KeepaliveTimeoutMs());
+    args.SetInt(GRPC_ARG_KEEPALIVE_PERMIT_WITHOUT_CALLS, param.KeepaliveWithoutCalls() ? 1 : 0);
 
     if (param.TlsEnabled()) {
         if (!param.ServerName().empty()) {
@@ -89,17 +96,44 @@ MilvusConnection::Connect(const ConnectParam& param) {
     channel_ = CreateChannelWithHeaderInterceptor(uri, credentials, args, metadata);
     auto connected = channel_->WaitForConnected(std::chrono::system_clock::now() +
                                                 std::chrono::milliseconds{param.ConnectTimeout()});
-    if (connected) {
-        stub_ = proto::milvus::MilvusService::NewStub(channel_);
-        return Status::OK();
+    if (!connected) {
+        std::string reason = "Failed to create grpc channel to the uri: " + uri;
+        return {StatusCode::NOT_CONNECTED, reason};
     }
 
-    std::string reason = "Failed to connect uri: " + uri;
-    return {StatusCode::NOT_CONNECTED, reason};
+    stub_ = proto::milvus::MilvusService::NewStub(channel_);
+
+    // grpc channel has been create, now we call the proto::milvus::MilvusClient::Connect() interface
+    // to send some basic information of client to the server, including the sdk type, version, etc.
+    proto::milvus::ConnectRequest rpc_request;
+    auto client_info = rpc_request.mutable_client_info();
+    client_info->set_sdk_type("CPP");
+    client_info->set_user(param.Username());
+    client_info->set_sdk_version("2.4.0");  // TODO: automatically get this version
+    client_info->set_host(param.Host());
+
+    auto now = std::chrono::system_clock::now();
+    std::time_t now_time = std::chrono::system_clock::to_time_t(now);
+    std::tm* local_time = std::localtime(&now_time);
+    std::stringstream ss;
+    ss << std::put_time(local_time, "%Y-%m-%d %H:%M:%S");
+    client_info->set_local_time(ss.str());
+
+    // the defalut value of ConnectTimeout is 10 seconds, means if the server could not return response
+    // in 10 seconds, the MilvusClient will return an error
+    ::grpc::ClientContext context;
+    if (param.ConnectTimeout() > 0) {
+        auto deadline = now + std::chrono::milliseconds{param.ConnectTimeout()};
+        context.set_deadline(deadline);
+    }
+
+    proto::milvus::ConnectResponse rpc_response;
+    auto grpc_status = stub_->Connect(&context, rpc_request, &rpc_response);
+    return StatusCodeFromGrpcStatus(grpc_status);
 }
 
-const ConnectParam&
-MilvusConnection::GetConnectParam() const {
+ConnectParam&
+MilvusConnection::GetConnectParam() {
     return param_;
 }
 

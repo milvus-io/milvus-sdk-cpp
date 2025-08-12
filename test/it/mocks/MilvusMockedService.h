@@ -24,6 +24,8 @@ class MilvusMockedService : public ::milvus::proto::milvus::MilvusService::Servi
  public:
     MOCK_METHOD3(GetVersion, ::grpc::Status(::grpc::ServerContext*, const ::milvus::proto::milvus::GetVersionRequest*,
                                             ::milvus::proto::milvus::GetVersionResponse*));
+    MOCK_METHOD3(Connect, ::grpc::Status(::grpc::ServerContext*, const ::milvus::proto::milvus::ConnectRequest*,
+                                         ::milvus::proto::milvus::ConnectResponse*));
     MOCK_METHOD3(CreateDatabase,
                  ::grpc::Status(::grpc::ServerContext*, const ::milvus::proto::milvus::CreateDatabaseRequest*,
                                 ::milvus::proto::common::Status*));

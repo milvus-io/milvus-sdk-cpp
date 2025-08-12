@@ -22,7 +22,7 @@
 #include "milvus/MilvusClient.h"
 
 namespace milvus {
-class MilvusMockedTest : public ::testing::Test {
+class UnconnectMilvusMockedTest : public ::testing::Test {
  protected:
     testing::StrictMock<::milvus::MilvusMockedService> service_{};
     ::milvus::MilvusMockedServer server_{service_};
@@ -33,6 +33,11 @@ class MilvusMockedTest : public ::testing::Test {
 
     void
     TearDown() override;
+};
+
+class ConnectMilvusMockedTest : public UnconnectMilvusMockedTest {
+    void
+    SetUp() override;
 };
 
 struct TestKv {
@@ -47,4 +52,5 @@ operator==(const milvus::proto::common::KeyValuePair& lhs, const TestKv& rhs);
 
 }  // namespace milvus
 
-using milvus::MilvusMockedTest;
+using UnconnectMilvusMockedTest = milvus::UnconnectMilvusMockedTest;
+using MilvusMockedTest = milvus::ConnectMilvusMockedTest;

@@ -62,6 +62,24 @@ MilvusClientImpl::Disconnect() {
 }
 
 Status
+MilvusClientImpl::SetRpcDeadlineMs(uint64_t timeout_ms) {
+    if (connection_ == nullptr) {
+        return {StatusCode::NOT_CONNECTED, "Connection is not created!"};
+    }
+    connection_->GetConnectParam().SetRpcDeadlineMs(timeout_ms);
+    return Status::OK();
+}
+
+Status
+MilvusClientImpl::SetRetryParam(const RetryParam& retry_param) {
+    if (connection_ == nullptr) {
+        return {StatusCode::NOT_CONNECTED, "Connection is not created!"};
+    }
+    retry_param_ = retry_param;
+    return Status::OK();
+}
+
+Status
 MilvusClientImpl::GetVersion(std::string& version) {
     auto pre = []() {
         proto::milvus::GetVersionRequest rpc_request;
@@ -920,7 +938,7 @@ MilvusClientImpl::Delete(const std::string& collection_name, const std::string& 
 }
 
 Status
-MilvusClientImpl::Search(const SearchArguments& arguments, SearchResults& results, int timeout) {
+MilvusClientImpl::Search(const SearchArguments& arguments, SearchResults& results) {
     auto validate = [&arguments]() { return arguments.Validate(); };
 
     auto pre = [this, &arguments]() {
@@ -1002,11 +1020,11 @@ MilvusClientImpl::Search(const SearchArguments& arguments, SearchResults& result
     auto post = [&results](const proto::milvus::SearchResults& response) { ConvertSearchResults(response, results); };
 
     return apiHandler<proto::milvus::SearchRequest, proto::milvus::SearchResults>(
-        validate, pre, &MilvusConnection::Search, nullptr, post, GrpcOpts{timeout});
+        validate, pre, &MilvusConnection::Search, nullptr, post);
 }
 
 Status
-MilvusClientImpl::HybridSearch(const HybridSearchArguments& arguments, SearchResults& results, int timeout) {
+MilvusClientImpl::HybridSearch(const HybridSearchArguments& arguments, SearchResults& results) {
     auto validate = [&arguments]() { return arguments.Validate(); };
 
     auto pre = [this, &arguments]() {
@@ -1086,11 +1104,11 @@ MilvusClientImpl::HybridSearch(const HybridSearchArguments& arguments, SearchRes
     auto post = [&results](const proto::milvus::SearchResults& response) { ConvertSearchResults(response, results); };
 
     return apiHandler<proto::milvus::HybridSearchRequest, proto::milvus::SearchResults>(
-        validate, pre, &MilvusConnection::HybridSearch, nullptr, post, GrpcOpts{timeout});
+        validate, pre, &MilvusConnection::HybridSearch, nullptr, post);
 }
 
 Status
-MilvusClientImpl::Query(const QueryArguments& arguments, QueryResults& results, int timeout) {
+MilvusClientImpl::Query(const QueryArguments& arguments, QueryResults& results) {
     auto pre = [this, &arguments]() {
         proto::milvus::QueryRequest rpc_request;
         auto db_name = arguments.DatabaseName();
@@ -1138,8 +1156,7 @@ MilvusClientImpl::Query(const QueryArguments& arguments, QueryResults& results, 
 
         results = std::move(QueryResults(std::move(return_fields)));
     };
-    return apiHandler<proto::milvus::QueryRequest, proto::milvus::QueryResults>(pre, &MilvusConnection::Query, post,
-                                                                                GrpcOpts{timeout});
+    return apiHandler<proto::milvus::QueryRequest, proto::milvus::QueryResults>(pre, &MilvusConnection::Query, post);
 }
 
 Status
@@ -1436,7 +1453,7 @@ MilvusClientImpl::ListCredUsers(std::vector<std::string>& users) {
 
 Status
 MilvusClientImpl::GetLoadState(const std::string& collection_name, bool& is_loaded,
-                               const std::vector<std::string> partition_names, int timeout) {
+                               const std::vector<std::string> partition_names) {
     auto pre = [&collection_name, &partition_names]() {
         proto::milvus::GetLoadStateRequest rpc_request;
         rpc_request.set_collection_name(collection_name);
@@ -1451,7 +1468,7 @@ MilvusClientImpl::GetLoadState(const std::string& collection_name, bool& is_load
     };
 
     return apiHandler<proto::milvus::GetLoadStateRequest, proto::milvus::GetLoadStateResponse>(
-        pre, &MilvusConnection::GetLoadState, post, GrpcOpts{timeout});
+        pre, &MilvusConnection::GetLoadState, post);
 }
 
 Status
@@ -1498,6 +1515,83 @@ MilvusClientImpl::WaitForStatus(const std::function<Status(Progress&)>& query_fu
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // internal used methods
+Status
+MilvusClientImpl::retry(std::function<Status(void)> caller) {
+    auto max_retry_times = retry_param_.MaxRetryTimes();
+    // no retry, call the method
+    if (max_retry_times <= 1) {
+        return caller();
+    }
+
+    auto begin = GetNowMs();
+    auto max_timeout_ms = retry_param_.MaxRetryTimeoutMs();
+    auto is_timeout = [&begin, &max_timeout_ms]() {
+        auto current = GetNowMs();
+        auto cost = (current - begin);
+        if (max_timeout_ms > 0 && cost >= max_timeout_ms) {
+            return true;
+        }
+        return false;
+    };
+
+    auto retry_interval_ms = retry_param_.InitialBackOffMs();
+    for (auto k = 1; k <= max_retry_times; k++) {
+        auto status = caller();
+        if (status.IsOk()) {
+            return status;
+        }
+
+        // the following rpc error codes cannot be retried
+        auto rpc_code = status.RpcErrCode();
+        if (rpc_code == ::grpc::StatusCode::DEADLINE_EXCEEDED || rpc_code == ::grpc::StatusCode::PERMISSION_DENIED ||
+            rpc_code == ::grpc::StatusCode::UNAUTHENTICATED || rpc_code == ::grpc::StatusCode::INVALID_ARGUMENT ||
+            rpc_code == ::grpc::StatusCode::ALREADY_EXISTS || rpc_code == ::grpc::StatusCode::RESOURCE_EXHAUSTED ||
+            rpc_code == ::grpc::StatusCode::UNIMPLEMENTED) {
+            std::string msg = "Encounter rpc error that cannot be retried, reason: " + status.Message();
+            auto code =
+                (rpc_code == ::grpc::StatusCode::DEADLINE_EXCEEDED) ? StatusCode::TIMEOUT : StatusCode::RPC_FAILED;
+            return Status{code, msg, rpc_code, status.ServerCode(), status.LegacyServerCode()};
+        }
+
+        // for server-side returned error, only retry for rate limit
+        // error codes of v2.2, LegacyServerCode value is 49
+        // error codes of v2.3, rate limit error value is 8
+        if (retry_param_.RetryOnRateLimit() &&
+            (status.LegacyServerCode() == static_cast<int32_t>(proto::common::ErrorCode::RateLimit) ||
+             status.ServerCode() == 8)) {
+            // can be retried
+        } else if (!status.IsOk()) {
+            // server-side error cannot be retried, exit retry, return the error
+            return status;
+        }
+
+        if (k >= max_retry_times) {
+            // finish retry loop
+            std::string msg = std::to_string(max_retry_times) + " retry times, stop retry";
+            return Status{StatusCode::TIMEOUT, msg, rpc_code, status.ServerCode(), status.LegacyServerCode()};
+        } else {
+            // sleep for interval
+            // TODO: print log
+            std::this_thread::sleep_for(std::chrono::milliseconds(retry_interval_ms));
+            // reset the next interval value
+            retry_interval_ms = retry_interval_ms * retry_param_.BackOffMultiplier();
+            if (retry_interval_ms > retry_param_.MaxBackOffMs()) {
+                retry_interval_ms = retry_param_.MaxBackOffMs();
+            }
+        }
+
+        if (is_timeout()) {
+            std::string msg = "Retry timeout: " + std::to_string(max_timeout_ms) +
+                              " max_retry: " + std::to_string(max_retry_times) + " retries: " + std::to_string(k + 1) +
+                              " reason: " + status.Message();
+            return Status{StatusCode::TIMEOUT, msg, rpc_code, status.ServerCode(), status.LegacyServerCode()};
+        }
+    }
+
+    // theorectically this line will not be hit
+    return Status::OK();
+}
+
 Status
 MilvusClientImpl::getCollectionDesc(const std::string& collection_name, bool forceUpdate, CollectionDescPtr& descPtr) {
     // this lock locks the entire section, including the call of DescribeCollection()

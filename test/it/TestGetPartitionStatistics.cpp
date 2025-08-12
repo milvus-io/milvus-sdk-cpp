@@ -29,8 +29,7 @@ using ::testing::AllOf;
 using ::testing::ElementsAre;
 using ::testing::Property;
 
-TEST_F(MilvusMockedTest, GetPartitionStatisticsWithoutConnection) {
-    milvus::ConnectParam connect_param{"127.0.0.1", server_.ListenPort()};
+TEST_F(UnconnectMilvusMockedTest, GetPartitionStatisticsWithoutConnection) {
     std::string collection = "Foo";
     std::string partition = "Bar";
 

@@ -47,9 +47,7 @@ TEST_F(MilvusMockedTest, LoadBalanceFoo) {
     EXPECT_TRUE(status.IsOk());
 }
 
-TEST_F(MilvusMockedTest, LoadBalanceWithoutConnect) {
-    milvus::ConnectParam connect_param{"127.0.0.1", server_.ListenPort()};
-
+TEST_F(UnconnectMilvusMockedTest, LoadBalanceWithoutConnect) {
     int64_t src_node = 1000;
     std::vector<int64_t> dst_nodes = {2000, 2001, 2002};
     std::vector<int64_t> segments = {3000, 3001, 3002};

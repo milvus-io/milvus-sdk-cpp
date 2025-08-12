@@ -84,6 +84,13 @@ class Status {
     Message() const;
 
     /**
+     * @brief The error code from gRPC lib, which are listed here:
+     *      https://grpc.github.io/grpc/cpp/md_doc_statuscodes.html
+     */
+    int32_t
+    RpcErrCode() const;
+
+    /**
      * @brief The server-side error code of milvus v2.4 and later versions
      */
     int32_t

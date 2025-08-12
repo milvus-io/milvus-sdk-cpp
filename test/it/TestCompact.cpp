@@ -70,9 +70,7 @@ TEST_F(MilvusMockedTest, GetCompactionStateFoo) {
     EXPECT_EQ(state.State(), ::milvus::CompactionStateCode::COMPLETED);
 }
 
-TEST_F(MilvusMockedTest, GetCompactionStateFooConnect) {
-    milvus::ConnectParam connect_param{"127.0.0.1", server_.ListenPort()};
-
+TEST_F(UnconnectMilvusMockedTest, GetCompactionStateFooWithoutConnect) {
     const int64_t compaction_id = 1;
     ::milvus::CompactionState state;
     auto status = client_->GetCompactionState(compaction_id, state);
@@ -96,7 +94,7 @@ TEST_F(MilvusMockedTest, GetCompactionStateFooFailed) {
     auto status = client_->GetCompactionState(compaction_id, state);
 
     EXPECT_FALSE(status.IsOk());
-    EXPECT_EQ(status.Code(), StatusCode::SERVER_FAILED);
+    EXPECT_EQ(status.Code(), StatusCode::RPC_FAILED);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -132,9 +130,7 @@ TEST_F(MilvusMockedTest, ManualCompactionFoo) {
     EXPECT_EQ(returned_compaction_id, compaction_id);
 }
 
-TEST_F(MilvusMockedTest, ManualCompactionFooWithoutConnect) {
-    milvus::ConnectParam connect_param{"127.0.0.1", server_.ListenPort()};
-
+TEST_F(UnconnectMilvusMockedTest, ManualCompactionFooWithoutConnect) {
     const std::string collection_name = "test";
     const uint64_t travel_ts = 100;
     int64_t returned_compaction_id = 0;
@@ -161,7 +157,7 @@ TEST_F(MilvusMockedTest, ManualCompactionFooFailed) {
     auto status = client_->ManualCompaction(collection_name, travel_ts, returned_compaction_id);
 
     EXPECT_FALSE(status.IsOk());
-    EXPECT_EQ(status.Code(), StatusCode::SERVER_FAILED);
+    EXPECT_EQ(status.Code(), StatusCode::RPC_FAILED);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -193,9 +189,7 @@ TEST_F(MilvusMockedTest, GetCompactionPlansFoo) {
     EXPECT_THAT(plans[0].SourceSegments(), ElementsAreArray(sources));
 }
 
-TEST_F(MilvusMockedTest, GetCompactionPlansFooConnect) {
-    milvus::ConnectParam connect_param{"127.0.0.1", server_.ListenPort()};
-
+TEST_F(UnconnectMilvusMockedTest, GetCompactionPlansFooConnect) {
     const int64_t compaction_id = 1;
     ::milvus::CompactionPlans plans;
     auto status = client_->GetCompactionPlans(compaction_id, plans);
@@ -220,5 +214,5 @@ TEST_F(MilvusMockedTest, GetCompactionPlansFooFailed) {
     auto status = client_->GetCompactionPlans(compaction_id, plans);
 
     EXPECT_FALSE(status.IsOk());
-    EXPECT_EQ(status.Code(), StatusCode::SERVER_FAILED);
+    EXPECT_EQ(status.Code(), StatusCode::RPC_FAILED);
 }

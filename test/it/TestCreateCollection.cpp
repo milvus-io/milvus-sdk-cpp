@@ -45,9 +45,7 @@ TEST_F(MilvusMockedTest, CreateCollectionFoo) {
     EXPECT_TRUE(status.IsOk());
 }
 
-TEST_F(MilvusMockedTest, CreateCollectionFooWithoutConnect) {
-    milvus::ConnectParam connect_param{"127.0.0.1", server_.ListenPort()};
-
+TEST_F(UnconnectMilvusMockedTest, CreateCollectionFooWithoutConnect) {
     milvus::CollectionSchema collection_schema("Foo");
     milvus::proto::milvus::CreateCollectionRequest rpc_request;
     rpc_request.set_collection_name("Foo");
@@ -71,7 +69,7 @@ TEST_F(MilvusMockedTest, CreateCollectionFooFailed) {
         .WillOnce([error_code](::grpc::ServerContext*, const CreateCollectionRequest* request,
                                ::milvus::proto::common::Status* status) {
             status->set_code(error_code);
-            return ::grpc::Status{::grpc::StatusCode::UNKNOWN, ""};
+            return ::grpc::Status{};
         });
     auto status = client_->CreateCollection(collection_schema);
 

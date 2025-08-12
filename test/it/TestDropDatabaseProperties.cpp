@@ -43,7 +43,7 @@ TEST_F(MilvusMockedTest, DropDatabasePropertiesSuccess) {
     EXPECT_TRUE(status.IsOk());
 }
 
-TEST_F(MilvusMockedTest, DropDatabasePropertiesWithoutConnect) {
+TEST_F(UnconnectMilvusMockedTest, DropDatabasePropertiesWithoutConnect) {
     std::vector<std::string> keys{"replicas"};
     auto status = client_->DropDatabaseProperties("Foo", keys);
 
@@ -60,7 +60,7 @@ TEST_F(MilvusMockedTest, DropDatabasePropertiesFailed) {
         .WillOnce([error_code](::grpc::ServerContext*, const AlterDatabaseRequest* request,
                                ::milvus::proto::common::Status* status) {
             status->set_code(error_code);
-            return ::grpc::Status{::grpc::StatusCode::UNKNOWN, ""};
+            return ::grpc::Status{};
         });
     std::vector<std::string> keys{"replicas"};
     auto status = client_->DropDatabaseProperties("Foo", keys);

@@ -16,30 +16,59 @@
 
 #include <gtest/gtest.h>
 
+#include <thread>
+
 #include "mocks/MilvusMockedTest.h"
 
 using ::milvus::StatusCode;
+using ::milvus::proto::milvus::ConnectRequest;
+using ::milvus::proto::milvus::ConnectResponse;
 using ::milvus::proto::milvus::HasCollectionRequest;
+
 using ::testing::_;
+using ::testing::AllOf;
 using ::testing::Property;
 
-TEST_F(MilvusMockedTest, ConnectSuccessful) {
+milvus::Status
+DoConnect(testing::StrictMock<::milvus::MilvusMockedService>& service_,
+          std::shared_ptr<::milvus::MilvusClient>& client_, const milvus::ConnectParam& param,
+          uint64_t simulate_timeout = 0) {
+    EXPECT_CALL(service_, Connect(_, _, _))
+        .WillOnce([&simulate_timeout](::grpc::ServerContext*, const ConnectRequest*, ConnectResponse* response) {
+            // sleep if timeout
+            if (simulate_timeout > 0) {
+                std::this_thread::sleep_for(std::chrono::milliseconds{simulate_timeout});
+            }
+            return ::grpc::Status{};
+        });
+
+    return client_->Connect(param);
+}
+
+TEST_F(UnconnectMilvusMockedTest, ConnectSuccessful) {
     milvus::ConnectParam connect_param{"127.0.0.1", server_.ListenPort()};
-    auto status = client_->Connect(connect_param);
+    connect_param.SetConnectTimeout(100);
+    auto status = DoConnect(service_, client_, connect_param, 10);
     EXPECT_TRUE(status.IsOk());
 }
 
-TEST_F(MilvusMockedTest, ConnectFailed) {
+TEST_F(UnconnectMilvusMockedTest, ConnectFailed) {
     auto port = server_.ListenPort();
     milvus::ConnectParam connect_param{"127.0.0.1", ++port};
-    connect_param.SetConnectTimeout(200);
     auto status = client_->Connect(connect_param);
     EXPECT_FALSE(status.IsOk());
 }
 
-TEST_F(MilvusMockedTest, ConnectWithUsername) {
+TEST_F(UnconnectMilvusMockedTest, ConnectTimeout) {
+    milvus::ConnectParam connect_param{"127.0.0.1", server_.ListenPort()};
+    connect_param.SetConnectTimeout(10);
+    auto status = DoConnect(service_, client_, connect_param, 100);
+    EXPECT_FALSE(status.IsOk());
+}
+
+TEST_F(UnconnectMilvusMockedTest, ConnectWithUsername) {
     milvus::ConnectParam connect_param{"127.0.0.1", server_.ListenPort(), "username", "password"};
-    auto status = client_->Connect(connect_param);
+    auto status = DoConnect(service_, client_, connect_param, 10);
 
     EXPECT_EQ(connect_param.Authorizations(), "dXNlcm5hbWU6cGFzc3dvcmQ=");
 

@@ -81,4 +81,7 @@ class GtsDict {
     std::mutex gts_dict_mtx_;
 };
 
+int64_t
+GetNowMs();
+
 }  // namespace milvus

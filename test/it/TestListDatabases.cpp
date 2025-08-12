@@ -41,7 +41,7 @@ TEST_F(MilvusMockedTest, ListDatabasesSuccess) {
     EXPECT_EQ(names.at(0), "Foo");
 }
 
-TEST_F(MilvusMockedTest, ListDatabasesWithoutConnect) {
+TEST_F(UnconnectMilvusMockedTest, ListDatabasesWithoutConnect) {
     std::vector<std::string> names;
     auto status = client_->ListDatabases(names);
 

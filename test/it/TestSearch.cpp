@@ -46,7 +46,7 @@ template <typename T>
 milvus::Status
 DoSearchVectors(testing::StrictMock<::milvus::MilvusMockedService>& service_,
                 std::shared_ptr<::milvus::MilvusClient>& client_, std::vector<T> vectors,
-                milvus::SearchResults& search_results, int simulate_timeout = 0, int search_timeout = 0) {
+                milvus::SearchResults& search_results, uint64_t simulate_timeout = 0, uint64_t search_timeout = 0) {
     milvus::SearchArguments search_arguments{};
     search_arguments.SetCollectionName("foo");
     search_arguments.AddPartitionName("part1");
@@ -140,7 +140,8 @@ DoSearchVectors(testing::StrictMock<::milvus::MilvusMockedService>& service_,
             return ::grpc::Status{};
         });
 
-    return client_->Search(search_arguments, search_results, search_timeout);
+    client_->SetRpcDeadlineMs(search_timeout);
+    return client_->Search(search_arguments, search_results);
 }
 
 template <typename T>
@@ -216,9 +217,7 @@ TEST_F(MilvusMockedTest, SearchFooWithTimeoutOk) {
     EXPECT_GE(duration, 500);
 }
 
-TEST_F(MilvusMockedTest, SearchWithoutConnect) {
-    milvus::ConnectParam connect_param{"127.0.0.1", server_.ListenPort()};
-
+TEST_F(UnconnectMilvusMockedTest, SearchWithoutConnect) {
     milvus::SearchArguments search_arguments{};
     milvus::SearchResults search_results{};
 
