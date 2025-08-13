@@ -103,7 +103,7 @@ class SearchArguments {
      * @brief Add a binary vector to search
      */
     Status
-    AddBinaryVector(std::string field_name, const std::vector<uint8_t>& vector);
+    AddBinaryVector(std::string field_name, const std::string& vector);
 
     /**
      * @brief Add a binary vector to search

@@ -106,7 +106,7 @@ main(int argc, char* argv[]) {
     auto id_field_data = query_resutls.OutputField<milvus::VarCharFieldData>(field_id);
     auto text_field_data = query_resutls.OutputField<milvus::VarCharFieldData>(field_text);
     auto vetor_field_data = query_resutls.OutputField<milvus::BinaryVecFieldData>(field_vector);
-    auto binary_vector_data = vetor_field_data->DataAsUnsignedChars();
+    auto binary_vector_data = vetor_field_data->Data();
     for (size_t i = 0; i < id_field_data->Count(); ++i) {
         std::cout << "\t" << id_field_data->Name() << ":" << id_field_data->Value(i) << "\t" << text_field_data->Name()
                   << ":" << text_field_data->Value(i) << "\t" << vetor_field_data->Name() << ":";
@@ -150,7 +150,7 @@ main(int argc, char* argv[]) {
 
         auto text_field = result.OutputField<milvus::VarCharFieldData>(field_text);
         auto vector_field = result.OutputField<milvus::BinaryVecFieldData>(field_vector);
-        auto binary_data = vector_field->DataAsUnsignedChars();
+        auto binary_data = vector_field->Data();
         for (size_t i = 0; i < ids.size(); ++i) {
             std::cout << "\t" << result.PrimaryKeyName() << ":" << ids[i] << "\tDistance: " << distances[i] << "\t"
                       << text_field->Name() << ":" << text_field->Value(i) << "\t" << vector_field->Name() << ":";

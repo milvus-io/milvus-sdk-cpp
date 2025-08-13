@@ -211,7 +211,7 @@ operator==(const proto::schema::FieldData& lhs, const BinaryVecFieldData& rhs) {
 
     const auto& vectors_data = vectors.binary_vector();
     auto it = vectors_data.begin();
-    const auto& strings = rhs.Data();
+    const auto& strings = rhs.DataAsString();
     for (const auto& s : strings) {
         for (const auto ch : s) {
             if (it == vectors_data.end() || *it != ch) {

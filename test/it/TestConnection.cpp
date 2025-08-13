@@ -55,6 +55,7 @@ TEST_F(UnconnectMilvusMockedTest, ConnectSuccessful) {
 TEST_F(UnconnectMilvusMockedTest, ConnectFailed) {
     auto port = server_.ListenPort();
     milvus::ConnectParam connect_param{"127.0.0.1", ++port};
+    connect_param.SetConnectTimeout(10);
     auto status = client_->Connect(connect_param);
     EXPECT_FALSE(status.IsOk());
 }
