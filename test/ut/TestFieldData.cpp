@@ -17,8 +17,22 @@
 #include <gtest/gtest.h>
 
 #include "milvus/types/FieldData.h"
+#include "milvus/utils/FP16.h"
 
 class FieldDataTest : public ::testing::Test {};
+
+namespace {
+std::vector<uint16_t>
+ToF16Vector(const std::vector<float>& vector, bool is_bf16) {
+    std::vector<uint16_t> ret;
+    ret.reserve(vector.size());
+    for (auto f : vector) {
+        ret.push_back(is_bf16 ? milvus::F32toBF16(f) : milvus::F32toF16(f));
+    }
+    return std::move(ret);
+}
+
+}  // namespace
 
 TEST_F(FieldDataTest, ScalarFields) {
     std::string name = "dummy";
@@ -35,8 +49,9 @@ TEST_F(FieldDataTest, ScalarFields) {
         EXPECT_EQ(data.Data().at(1), false);
 
         std::vector<bool> values = {true, false};
-        milvus::BoolFieldData cp{name, values};
-        EXPECT_EQ(cp.Data().size(), 2);
+        milvus::BoolFieldDataPtr cp = std::make_shared<milvus::BoolFieldData>(name, values);
+        EXPECT_EQ(cp->Data().size(), 2);
+        EXPECT_EQ(cp->Value(1), false);
     }
 
     {
@@ -51,8 +66,9 @@ TEST_F(FieldDataTest, ScalarFields) {
         EXPECT_EQ(data.Data().at(1), 2);
 
         std::vector<int8_t> values = {1, 2};
-        milvus::Int8FieldData cp{name, values};
-        EXPECT_EQ(cp.Data().size(), 2);
+        milvus::Int8FieldDataPtr cp = std::make_shared<milvus::Int8FieldData>(name, values);
+        EXPECT_EQ(cp->Data().size(), 2);
+        EXPECT_EQ(cp->Value(1), 2);
     }
 
     {
@@ -67,8 +83,9 @@ TEST_F(FieldDataTest, ScalarFields) {
         EXPECT_EQ(data.Data().at(1), 2);
 
         std::vector<int16_t> values = {1, 2};
-        milvus::Int16FieldData cp{name, values};
-        EXPECT_EQ(cp.Data().size(), 2);
+        milvus::Int16FieldDataPtr cp = std::make_shared<milvus::Int16FieldData>(name, values);
+        EXPECT_EQ(cp->Data().size(), 2);
+        EXPECT_EQ(cp->Value(1), 2);
     }
 
     {
@@ -83,8 +100,9 @@ TEST_F(FieldDataTest, ScalarFields) {
         EXPECT_EQ(data.Data().at(1), 2);
 
         std::vector<int32_t> values = {1, 2};
-        milvus::Int32FieldData cp{name, values};
-        EXPECT_EQ(cp.Data().size(), 2);
+        milvus::Int32FieldDataPtr cp = std::make_shared<milvus::Int32FieldData>(name, values);
+        EXPECT_EQ(cp->Data().size(), 2);
+        EXPECT_EQ(cp->Value(1), 2);
     }
 
     {
@@ -99,8 +117,9 @@ TEST_F(FieldDataTest, ScalarFields) {
         EXPECT_EQ(data.Data().at(1), 2);
 
         std::vector<int64_t> values = {1, 2};
-        milvus::Int64FieldData cp{name, values};
-        EXPECT_EQ(cp.Data().size(), 2);
+        milvus::Int64FieldDataPtr cp = std::make_shared<milvus::Int64FieldData>(name, values);
+        EXPECT_EQ(cp->Data().size(), 2);
+        EXPECT_EQ(cp->Value(1), 2);
     }
 
     {
@@ -115,8 +134,9 @@ TEST_F(FieldDataTest, ScalarFields) {
         EXPECT_FLOAT_EQ(data.Data().at(1), 2.2);
 
         std::vector<float> values = {1.0, 2.0};
-        milvus::FloatFieldData cp{name, values};
-        EXPECT_EQ(cp.Data().size(), 2);
+        milvus::FloatFieldDataPtr cp = std::make_shared<milvus::FloatFieldData>(name, values);
+        EXPECT_EQ(cp->Data().size(), 2);
+        EXPECT_EQ(cp->Value(1), 2.0);
     }
 
     {
@@ -131,8 +151,9 @@ TEST_F(FieldDataTest, ScalarFields) {
         EXPECT_DOUBLE_EQ(data.Data().at(1), 2.2);
 
         std::vector<double> values = {1.0, 2.0};
-        milvus::DoubleFieldData cp{name, values};
-        EXPECT_EQ(cp.Data().size(), 2);
+        milvus::DoubleFieldDataPtr cp = std::make_shared<milvus::DoubleFieldData>(name, values);
+        EXPECT_EQ(cp->Data().size(), 2);
+        EXPECT_EQ(cp->Value(1), 2.0);
     }
 
     {
@@ -146,9 +167,10 @@ TEST_F(FieldDataTest, ScalarFields) {
         EXPECT_EQ(data.Data().at(0), "a");
         EXPECT_EQ(data.Data().at(1), "b");
 
-        std::vector<std::string> values = {"a", "b"};
-        milvus::VarCharFieldData cp{name, values};
-        EXPECT_EQ(cp.Data().size(), 2);
+        std::vector<std::string> values = {"aa", "bb"};
+        milvus::VarCharFieldDataPtr cp = std::make_shared<milvus::VarCharFieldData>(name, values);
+        EXPECT_EQ(cp->Data().size(), 2);
+        EXPECT_EQ(cp->Value(1), "bb");
     }
 
     {
@@ -165,33 +187,9 @@ TEST_F(FieldDataTest, ScalarFields) {
         EXPECT_EQ(data.Data().at(1), j2);
 
         std::vector<nlohmann::json> values = {j1, j2};
-        milvus::JSONFieldData cp{name, values};
-        EXPECT_EQ(cp.Data().size(), 2);
-    }
-
-    {
-        milvus::BinaryVecFieldData data{name};
-        std::vector<uint8_t> element_1 = {1, 2};
-        std::vector<uint8_t> element_2 = {3, 4};
-        data.Add(element_1);
-        data.Add(element_2);
-        std::vector<uint8_t> element_3 = {5};
-        EXPECT_EQ(data.Add(element_3), milvus::StatusCode::DIMENSION_NOT_EQUAL);
-        std::vector<uint8_t> element_4;
-        EXPECT_EQ(data.Add(element_4), milvus::StatusCode::VECTOR_IS_EMPTY);
-        EXPECT_EQ(data.Name(), name);
-        EXPECT_EQ(data.Type(), milvus::DataType::BINARY_VECTOR);
-        EXPECT_EQ(data.Count(), 2);
-        EXPECT_EQ(data.Data().size(), 2);
-        EXPECT_EQ(data.DataAsUnsignedChars().size(), 2);
-        EXPECT_FLOAT_EQ(data.Data().at(0).size(), element_1.size());
-        EXPECT_FLOAT_EQ(data.Data().at(1).size(), element_2.size());
-        EXPECT_FLOAT_EQ(data.DataAsUnsignedChars().at(0).size(), element_1.size());
-        EXPECT_FLOAT_EQ(data.DataAsUnsignedChars().at(1).size(), element_2.size());
-
-        std::vector<std::vector<uint8_t>> values = {element_1, element_2};
-        milvus::BinaryVecFieldData cp{name, values};
-        EXPECT_EQ(cp.Data().size(), 2);
+        milvus::JSONFieldDataPtr cp = std::make_shared<milvus::JSONFieldData>(name, values);
+        EXPECT_EQ(cp->Data().size(), 2);
+        EXPECT_EQ(cp->Value(1), j2);
     }
 }
 
@@ -212,12 +210,44 @@ TEST_F(FieldDataTest, VectorFields) {
         EXPECT_EQ(data.Add(element_4), milvus::StatusCode::VECTOR_IS_EMPTY);
         EXPECT_EQ(data.Count(), 2);
         EXPECT_EQ(data.Data().size(), 2);
-        EXPECT_FLOAT_EQ(data.Data().at(0).size(), element_1.size());
-        EXPECT_FLOAT_EQ(data.Data().at(1).size(), element_2.size());
+        EXPECT_EQ(data.Data().at(0).size(), element_1.size());
+        EXPECT_EQ(data.Data().at(1).size(), element_2.size());
+        EXPECT_FLOAT_EQ(data.Data().at(0).at(0), element_1.at(0));
+        EXPECT_FLOAT_EQ(data.Data().at(0).at(1), element_1.at(1));
+        EXPECT_FLOAT_EQ(data.Data().at(1).at(0), element_2.at(0));
+        EXPECT_FLOAT_EQ(data.Data().at(1).at(1), element_2.at(1));
 
         std::vector<std::vector<float>> values = {element_1, element_2};
-        milvus::FloatVecFieldData cp{name, values};
-        EXPECT_EQ(cp.Data().size(), 2);
+        milvus::FloatVecFieldDataPtr cp = std::make_shared<milvus::FloatVecFieldData>(name, values);
+        EXPECT_EQ(cp->Data().size(), 2);
+        EXPECT_EQ(cp->Value(1), element_2);
+    }
+
+    {
+        milvus::BinaryVecFieldData data{name};
+        std::vector<uint8_t> element_1 = {1, 2};
+        std::vector<uint8_t> element_2 = {3, 4};
+        data.Add(element_1);
+        data.Add(element_2);
+        std::vector<uint8_t> element_3 = {5};
+        EXPECT_EQ(data.Add(element_3), milvus::StatusCode::DIMENSION_NOT_EQUAL);
+        std::vector<uint8_t> element_4;
+        EXPECT_EQ(data.Add(element_4), milvus::StatusCode::VECTOR_IS_EMPTY);
+        EXPECT_EQ(data.Name(), name);
+        EXPECT_EQ(data.Type(), milvus::DataType::BINARY_VECTOR);
+        EXPECT_EQ(data.Count(), 2);
+        EXPECT_EQ(data.Data().size(), 2);
+        EXPECT_EQ(data.Data().at(0).size(), element_1.size());
+        EXPECT_EQ(data.Data().at(1).size(), element_2.size());
+        EXPECT_EQ(data.Data().at(0).at(0), element_1.at(0));
+        EXPECT_EQ(data.Data().at(0).at(1), element_1.at(1));
+        EXPECT_EQ(data.Data().at(1).at(0), element_2.at(0));
+        EXPECT_EQ(data.Data().at(1).at(1), element_2.at(1));
+
+        std::vector<std::vector<uint8_t>> values = {element_1, element_2};
+        milvus::BinaryVecFieldDataPtr cp = std::make_shared<milvus::BinaryVecFieldData>(name, values);
+        EXPECT_EQ(cp->Data().size(), 2);
+        EXPECT_EQ(cp->Value(1), element_2);
     }
 
     {
@@ -225,15 +255,95 @@ TEST_F(FieldDataTest, VectorFields) {
         milvus::BinaryVecFieldData data{name, elements};
         EXPECT_EQ(data.Name(), name);
         EXPECT_EQ(data.Type(), milvus::DataType::BINARY_VECTOR);
+        EXPECT_EQ(data.Count(), 2);
+        EXPECT_EQ(data.Data().size(), 2);
+        EXPECT_EQ(data.DataAsString().at(0), elements.at(0));
+        EXPECT_EQ(data.DataAsString().at(1), elements.at(1));
         std::vector<std::vector<uint8_t>> expected{{1, 2}, {3, 4}};
-        EXPECT_EQ(data.DataAsUnsignedChars(), expected);
+        EXPECT_EQ(data.Data(), expected);
 
         const std::string element_1{'\x00', '\x00'};
-        auto status = data.Add(element_1);
-        std::cout << (int)status << std::endl;
+        auto status = data.AddAsString(element_1);
         EXPECT_EQ(status, milvus::StatusCode::OK);
         expected = std::vector<std::vector<uint8_t>>{{1, 2}, {3, 4}, {0, 0}};
-        EXPECT_EQ(data.DataAsUnsignedChars(), expected);
+        EXPECT_EQ(data.Data(), expected);
+    }
+
+    {
+        milvus::Float16VecFieldData data{name};
+        EXPECT_EQ(data.Name(), name);
+        EXPECT_EQ(data.Type(), milvus::DataType::FLOAT16_VECTOR);
+        std::vector<float> origin_1 = {1.0, 2.0};
+        std::vector<float> origin_2 = {3.0, 4.0};
+        std::vector<uint16_t> element_1 = ToF16Vector(origin_1, false);
+        std::vector<uint16_t> element_2 = ToF16Vector(origin_2, false);
+        data.Add(element_1);
+        data.Add(element_2);
+        std::vector<float> element_3 = {5.0};
+        EXPECT_EQ(data.Add(ToF16Vector(element_3, false)), milvus::StatusCode::DIMENSION_NOT_EQUAL);
+        std::vector<float> element_4;
+        EXPECT_EQ(data.Add(ToF16Vector(element_4, false)), milvus::StatusCode::VECTOR_IS_EMPTY);
+        EXPECT_EQ(data.Count(), 2);
+        EXPECT_EQ(data.Data().size(), 2);
+        EXPECT_EQ(data.Data().at(0).size(), element_1.size());
+        EXPECT_EQ(data.Data().at(1).size(), element_2.size());
+        EXPECT_FLOAT_EQ(milvus::F16toF32(data.Data().at(0).at(0)), origin_1.at(0));
+        EXPECT_FLOAT_EQ(milvus::F16toF32(data.Data().at(0).at(1)), origin_1.at(1));
+        EXPECT_FLOAT_EQ(milvus::F16toF32(data.Data().at(1).at(0)), origin_2.at(0));
+        EXPECT_FLOAT_EQ(milvus::F16toF32(data.Data().at(1).at(1)), origin_2.at(1));
+
+        std::vector<std::vector<uint16_t>> values = {element_1, element_2};
+        milvus::Float16VecFieldDataPtr cp = std::make_shared<milvus::Float16VecFieldData>(name, values);
+        EXPECT_EQ(cp->Data().size(), 2);
+        EXPECT_EQ(cp->Value(1), element_2);
+    }
+
+    {
+        milvus::BFloat16VecFieldData data{name};
+        EXPECT_EQ(data.Name(), name);
+        EXPECT_EQ(data.Type(), milvus::DataType::BFLOAT16_VECTOR);
+        std::vector<float> origin_1 = {1.0, 2.0};
+        std::vector<float> origin_2 = {3.0, 4.0};
+        std::vector<uint16_t> element_1 = ToF16Vector(origin_1, true);
+        std::vector<uint16_t> element_2 = ToF16Vector(origin_2, true);
+        data.Add(element_1);
+        data.Add(element_2);
+        std::vector<float> element_3 = {5.0};
+        EXPECT_EQ(data.Add(ToF16Vector(element_3, true)), milvus::StatusCode::DIMENSION_NOT_EQUAL);
+        std::vector<float> element_4;
+        EXPECT_EQ(data.Add(ToF16Vector(element_4, true)), milvus::StatusCode::VECTOR_IS_EMPTY);
+        EXPECT_EQ(data.Count(), 2);
+        EXPECT_EQ(data.Data().size(), 2);
+        EXPECT_EQ(data.Data().at(0).size(), element_1.size());
+        EXPECT_EQ(data.Data().at(1).size(), element_2.size());
+        EXPECT_FLOAT_EQ(milvus::BF16toF32(data.Data().at(0).at(0)), origin_1.at(0));
+        EXPECT_FLOAT_EQ(milvus::BF16toF32(data.Data().at(0).at(1)), origin_1.at(1));
+        EXPECT_FLOAT_EQ(milvus::BF16toF32(data.Data().at(1).at(0)), origin_2.at(0));
+        EXPECT_FLOAT_EQ(milvus::BF16toF32(data.Data().at(1).at(1)), origin_2.at(1));
+
+        std::vector<std::vector<uint16_t>> values = {element_1, element_2};
+        milvus::BFloat16VecFieldDataPtr cp = std::make_shared<milvus::BFloat16VecFieldData>(name, values);
+        EXPECT_EQ(cp->Data().size(), 2);
+        EXPECT_EQ(cp->Value(1), element_2);
+    }
+
+    {
+        milvus::SparseFloatVecFieldData data{name};
+        EXPECT_EQ(data.Name(), name);
+        EXPECT_EQ(data.Type(), milvus::DataType::SPARSE_FLOAT_VECTOR);
+        std::map<uint32_t, float> element_1 = {{1, 0.4}, {5, 0.5}};
+        std::map<uint32_t, float> element_2 = {{8, 0.1}, {100, 1.0}};
+        data.Add(element_1);
+        data.Add(element_2);
+        EXPECT_EQ(data.Count(), 2);
+        EXPECT_EQ(data.Data().size(), 2);
+        EXPECT_EQ(data.Data().at(0), element_1);
+        EXPECT_EQ(data.Data().at(1), element_2);
+
+        std::vector<std::map<uint32_t, float>> values = {element_1, element_2};
+        milvus::SparseFloatVecFieldDataPtr cp = std::make_shared<milvus::SparseFloatVecFieldData>(name, values);
+        EXPECT_EQ(cp->Data().size(), 2);
+        EXPECT_EQ(cp->Value(1), element_2);
     }
 }
 

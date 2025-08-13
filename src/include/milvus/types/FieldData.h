@@ -128,12 +128,6 @@ class FieldData : public Field {
     virtual const std::vector<T>&
     Data() const;
 
-    /**
-     * @brief Field elements array
-     */
-    virtual std::vector<T>&
-    Data();
-
     virtual T
     Value(size_t i) const;
 
@@ -195,13 +189,8 @@ class ArrayFieldData : public FieldData<std::vector<T>, DataType::ARRAY> {
     Add(ArrayFieldData::ElementT&& element) override;
 };
 
-class BinaryVecFieldData : public FieldData<std::string, DataType::BINARY_VECTOR> {
+class BinaryVecFieldData : public FieldData<std::vector<uint8_t>, DataType::BINARY_VECTOR> {
  public:
-    /**
-     * @brief Constructor
-     */
-    BinaryVecFieldData();
-
     /**
      * @brief Constructor
      */
@@ -210,66 +199,64 @@ class BinaryVecFieldData : public FieldData<std::string, DataType::BINARY_VECTOR
     /**
      * @brief Constructor
      */
-    BinaryVecFieldData(std::string name, const std::vector<std::string>& data);
+    BinaryVecFieldData(std::string name, const std::vector<std::vector<uint8_t>>& data);
 
     /**
      * @brief Constructor
+     */
+    BinaryVecFieldData(std::string name, std::vector<std::vector<uint8_t>>&& data);
+
+    /**
+     * @brief Extra constructor
+     */
+    BinaryVecFieldData(std::string name, const std::vector<std::string>& data);
+
+    /**
+     * @brief Extra constructor
      */
     BinaryVecFieldData(std::string name, std::vector<std::string>&& data);
 
     /**
-     * @brief Constructor
+     * @brief Extra method to get field elements array
      */
-    BinaryVecFieldData(std::string name, const std::vector<std::vector<uint8_t>>& data);
+    std::vector<std::string>
+    DataAsString() const;
 
     /**
-     * @brief Field elements array
-     */
-    const std::vector<std::string>&
-    Data() const override;
-
-    /**
-     * @brief Field elements array
-     */
-    std::vector<std::string>&
-    Data() override;
-
-    /**
-     * @brief Data export as uint8_t's vector
-     */
-    std::vector<std::vector<uint8_t>>
-    DataAsUnsignedChars() const;
-
-    /**
-     * @brief Add element to field data
+     * @brief Extra method to add element to field data
      */
     StatusCode
-    Add(const std::string& element) override;
+    AddAsString(const std::string& element);
 
     /**
-     * @brief Add element to field data
-     */
-
-    StatusCode
-    Add(std::string&& element) override;
-
-    /**
-     * @brief Add element to field data
+     * @brief Extra method to add element to field data
      */
     StatusCode
-    Add(const std::vector<uint8_t>& element);
+    AddAsString(std::string&& element);
 
     /**
-     * @brief Create binary vector strings from uint8_t vectors
+     * @brief Convert binary vectors to strings
      */
     static std::vector<std::string>
-    CreateBinaryStrings(const std::vector<std::vector<uint8_t>>& data);
+    ToBinaryStrings(const std::vector<std::vector<uint8_t>>& data);
 
     /**
-     * @brief Create binary vector string from uint8_t vector
+     * @brief Convert binary vector to string
      */
     static std::string
-    CreateBinaryString(const std::vector<uint8_t>& data);
+    ToBinaryString(const std::vector<uint8_t>& data);
+
+    /**
+     * @brief Convert strings to binary vectors
+     */
+    static std::vector<std::vector<uint8_t>>
+    ToUnsignedChars(const std::vector<std::string>& data);
+
+    /**
+     * @brief Convert string to binary vector
+     */
+    static std::vector<uint8_t>
+    ToUnsignedChars(const std::string& data);
 };
 
 using BoolFieldData = FieldData<bool, DataType::BOOL>;
@@ -328,9 +315,11 @@ extern template class FieldData<float, DataType::FLOAT>;
 extern template class FieldData<double, DataType::DOUBLE>;
 extern template class FieldData<std::string, DataType::VARCHAR>;
 extern template class FieldData<nlohmann::json, DataType::JSON>;
-extern template class FieldData<std::string, DataType::BINARY_VECTOR>;
+extern template class FieldData<std::vector<uint8_t>, DataType::BINARY_VECTOR>;
 extern template class FieldData<std::vector<float>, DataType::FLOAT_VECTOR>;
 extern template class FieldData<std::map<uint32_t, float>, DataType::SPARSE_FLOAT_VECTOR>;
+extern template class FieldData<std::vector<uint16_t>, DataType::FLOAT16_VECTOR>;
+extern template class FieldData<std::vector<uint16_t>, DataType::BFLOAT16_VECTOR>;
 
 extern template class ArrayFieldData<bool, DataType::BOOL>;
 extern template class ArrayFieldData<int8_t, DataType::INT8>;

@@ -95,8 +95,8 @@ SearchArguments::TargetVectors() const {
 }
 
 Status
-SearchArguments::AddBinaryVector(std::string field_name, const std::vector<uint8_t>& vector) {
-    return AddBinaryVector(std::move(field_name), milvus::BinaryVecFieldData::CreateBinaryString(vector));
+SearchArguments::AddBinaryVector(std::string field_name, const std::string& vector) {
+    return AddBinaryVector(std::move(field_name), BinaryVecFieldData::ToUnsignedChars(vector));
 }
 
 Status
