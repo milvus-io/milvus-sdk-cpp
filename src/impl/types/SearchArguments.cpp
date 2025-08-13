@@ -20,7 +20,9 @@
 #include <utility>
 
 #include "../utils/Constants.h"
+#include "../utils/DmlUtils.h"
 #include "../utils/TypeUtils.h"
+#include "milvus/utils/FP16.h"
 
 namespace milvus {
 
@@ -116,14 +118,44 @@ SearchArguments::AddSparseVector(std::string field_name, const SparseFloatVecFie
 }
 
 Status
+SearchArguments::AddSparseVector(std::string field_name, const nlohmann::json& vector) {
+    std::map<uint32_t, float> pairs;
+    auto status = ParseSparseFloatVector(vector, field_name, pairs);
+    if (!status.IsOk()) {
+        return status;
+    }
+    return AddSparseVector(field_name, pairs);
+}
+
+Status
 SearchArguments::AddFloat16Vector(std::string field_name, const Float16VecFieldData::ElementT& vector) {
     return addVector<Float16VecFieldData, Float16VecFieldData::ElementT>(field_name, DataType::FLOAT16_VECTOR, vector);
+}
+
+Status
+SearchArguments::AddFloat16Vector(std::string field_name, const std::vector<float>& vector) {
+    std::vector<uint16_t> binary;
+    binary.reserve(vector.size());
+    for (auto val : vector) {
+        binary.push_back(F32toF16(val));
+    }
+    return AddFloat16Vector(field_name, binary);
 }
 
 Status
 SearchArguments::AddBFloat16Vector(std::string field_name, const BFloat16VecFieldData::ElementT& vector) {
     return addVector<BFloat16VecFieldData, BFloat16VecFieldData::ElementT>(field_name, DataType::BFLOAT16_VECTOR,
                                                                            vector);
+}
+
+Status
+SearchArguments::AddBFloat16Vector(std::string field_name, const std::vector<float>& vector) {
+    std::vector<uint16_t> binary;
+    binary.reserve(vector.size());
+    for (auto val : vector) {
+        binary.push_back(F32toBF16(val));
+    }
+    return AddBFloat16Vector(field_name, binary);
 }
 
 std::string

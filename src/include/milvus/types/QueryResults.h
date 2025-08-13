@@ -69,10 +69,22 @@ class QueryResults {
     OutputFields() const;
 
     /**
-     * @brief Quickly get the value of count(*), only works when you call query() with count(*).
+     * @brief Get all output rows.
      */
-    int64_t
-    GetCountNumber() const;
+    Status
+    OutputRows(std::vector<nlohmann::json>& rows) const;
+
+    /**
+     * @brief Get row data. Throw exception if the i is out of bound.
+     */
+    Status
+    OutputRow(int i, nlohmann::json& row) const;
+
+    /**
+     * @brief Get row count of the result. Return the value of count(*) when you query with count(*).
+     */
+    uint64_t
+    GetRowCount() const;
 
  private:
     std::vector<FieldDataPtr> output_fields_;

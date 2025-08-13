@@ -101,4 +101,16 @@ DynamicFieldName() {
     return meta;
 }
 
+inline const std::string&
+SparseIndicesKey() {
+    static std::string indices = "indices";
+    return indices;
+}
+
+inline const std::string&
+SparseValuesKey() {
+    static std::string values = "values";
+    return values;
+}
+
 }  // namespace milvus

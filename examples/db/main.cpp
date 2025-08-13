@@ -109,7 +109,7 @@ main(int argc, char* argv[]) {
     status = client->LoadCollection(collection_name);
     util::CheckStatus("Failed to load collection:", status);
 
-    // insert some rows
+    // insert data by column-based
     const int64_t row_count = 1000;
     std::vector<int64_t> insert_ids;
     std::vector<std::string> insert_names;
@@ -129,7 +129,7 @@ main(int argc, char* argv[]) {
     milvus::DmlResults dml_results;
     status = client->Insert(collection_name, partition_name, fields_data, dml_results);
     util::CheckStatus("Failed to insert:", status);
-    std::cout << "Successfully insert " << dml_results.IdArray().IntIDArray().size() << " rows." << std::endl;
+    std::cout << "Successfully insert " << dml_results.InsertCount() << " rows." << std::endl;
 
     // delete the item whose primary key is 5
     milvus::DmlResults del_res;
@@ -150,7 +150,7 @@ main(int argc, char* argv[]) {
         status = client->Query(q_count, count_resutl);
         util::CheckStatus("Failed to query count(*):", status);
         std::cout << "Successfully query count(*) on partition." << std::endl;
-        std::cout << "partition count(*) = " << count_resutl.GetCountNumber() << std::endl;
+        std::cout << "partition count(*) = " << count_resutl.GetRowCount() << std::endl;
     }
 
     {

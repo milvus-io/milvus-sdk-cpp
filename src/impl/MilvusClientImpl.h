@@ -32,7 +32,7 @@ namespace milvus {
 class MilvusClientImpl : public MilvusClient {
  public:
     MilvusClientImpl() = default;
-    virtual ~MilvusClientImpl();
+    ~MilvusClientImpl() override;
 
     Status
     Connect(const ConnectParam& connect_param) final;
@@ -155,8 +155,16 @@ class MilvusClientImpl : public MilvusClient {
            const std::vector<FieldDataPtr>& fields, DmlResults& results) final;
 
     Status
+    Insert(const std::string& collection_name, const std::string& partition_name,
+           const std::vector<nlohmann::json>& rows, DmlResults& results) final;
+
+    Status
     Upsert(const std::string& collection_name, const std::string& partition_name,
            const std::vector<FieldDataPtr>& fields, DmlResults& results) final;
+
+    Status
+    Upsert(const std::string& collection_name, const std::string& partition_name,
+           const std::vector<nlohmann::json>& rows, DmlResults& results) final;
 
     Status
     Delete(const std::string& collection_name, const std::string& partition_name, const std::string& expression,

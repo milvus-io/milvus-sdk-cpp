@@ -65,20 +65,18 @@ main(int argc, char* argv[]) {
 
     // insert some rows
     const int64_t row_count = 10;
-    std::vector<nlohmann::json> insert_jsons(row_count);
-    std::vector<std::vector<float>> insert_vectors = util::GenerateFloatVectors(dimension, row_count);
+    std::vector<nlohmann::json> rows;
     for (auto i = 0; i < row_count; ++i) {
-        nlohmann::json obj = {{"age", util::RandomeValue<int>(1, 100)}, {"name", "user_" + std::to_string(i)}};
-        insert_jsons[i] = obj;
+        nlohmann::json row;
+        row[field_json] = {{"age", util::RandomeValue<int>(1, 100)}, {"name", "user_" + std::to_string(i)}};
+        row[field_vector] = util::GenerateFloatVector(dimension);
+        rows.emplace_back(row);
     }
 
-    std::vector<milvus::FieldDataPtr> fields_data{
-        std::make_shared<milvus::JSONFieldData>(field_json, insert_jsons),
-        std::make_shared<milvus::FloatVecFieldData>(field_vector, insert_vectors)};
     milvus::DmlResults dml_results;
-    status = client->Insert(collection_name, "", fields_data, dml_results);
+    status = client->Insert(collection_name, "", rows, dml_results);
     util::CheckStatus("Failed to insert:", status);
-    std::cout << "Successfully insert " << dml_results.IdArray().IntIDArray().size() << " rows." << std::endl;
+    std::cout << "Successfully insert " << dml_results.InsertCount() << " rows." << std::endl;
 
     // query
     milvus::QueryArguments q_arguments{};
@@ -94,8 +92,12 @@ main(int argc, char* argv[]) {
     util::CheckStatus("Failed to query:", status);
     std::cout << "Successfully query." << std::endl;
 
-    for (auto& field_data : query_resutls.OutputFields()) {
-        std::cout << "Field: " << field_data->Name() << " Count:" << field_data->Count() << std::endl;
+    std::vector<nlohmann::json> output_rows;
+    status = query_resutls.OutputRows(output_rows);
+    util::CheckStatus("Failed to get output rows:", status);
+    std::cout << "Query results:" << std::endl;
+    for (const auto& row : output_rows) {
+        std::cout << "\t" << row << std::endl;
     }
 
     // do search
@@ -107,8 +109,8 @@ main(int argc, char* argv[]) {
 
     auto q_number_1 = util::RandomeValue<int64_t>(0, row_count - 1);
     auto q_number_2 = util::RandomeValue<int64_t>(0, row_count - 1);
-    s_arguments.AddFloatVector(field_vector, insert_vectors[q_number_1]);
-    s_arguments.AddFloatVector(field_vector, insert_vectors[q_number_2]);
+    s_arguments.AddFloatVector(field_vector, rows[q_number_1][field_vector]);
+    s_arguments.AddFloatVector(field_vector, rows[q_number_2][field_vector]);
     std::cout << "Searching the No." << q_number_1 << " and No." << q_number_2 << std::endl;
 
     milvus::SearchResults search_results{};
@@ -117,20 +119,12 @@ main(int argc, char* argv[]) {
     std::cout << "Successfully search." << std::endl;
 
     for (auto& result : search_results.Results()) {
-        auto& ids = result.Ids().IntIDArray();
-        auto& distances = result.Scores();
-        if (ids.size() != distances.size()) {
-            std::cout << "Illegal result!" << std::endl;
-            continue;
-        }
-
         std::cout << "Result of one target vector:" << std::endl;
-
-        auto id_field = result.OutputField<milvus::Int64FieldData>(field_id);
-        auto json_field = result.OutputField<milvus::JSONFieldData>(field_json);
-        for (size_t i = 0; i < id_field->Count(); ++i) {
-            std::cout << "\t" << result.PrimaryKeyName() << ":" << id_field->Value(i) << "\tDistance: " << distances[i]
-                      << "\t" << json_field->Name() << ":" << json_field->Value(i).dump() << std::endl;
+        std::vector<nlohmann::json> output_rows;
+        status = result.OutputRows(output_rows);
+        util::CheckStatus("Failed to get output rows:", status);
+        for (const auto& row : output_rows) {
+            std::cout << "\t" << row << std::endl;
         }
     }
 

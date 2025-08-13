@@ -73,24 +73,20 @@ main(int argc, char* argv[]) {
 
     // insert some rows
     const int64_t row_count = 1000;
-    std::vector<int64_t> insert_ids;
-    std::vector<std::string> insert_texts;
-    auto dense_vectors = util::GenerateFloatVectors(dimension, row_count);
-    auto sparse_vectors = util::GenerateSparseVectors(10, row_count);
+    std::vector<nlohmann::json> rows;
     for (auto i = 0; i < row_count; ++i) {
-        insert_ids.push_back(i);
-        insert_texts.push_back("text_" + std::to_string(i));
+        nlohmann::json row;
+        row[field_id] = i;
+        row[field_text] = "text_" + std::to_string(i);
+        row[field_dense] = util::GenerateFloatVector(dimension);
+        row[field_sparse] = util::GenerateSparseVectorInJson(50, false);
+        rows.emplace_back(row);
     }
 
-    std::vector<milvus::FieldDataPtr> fields_data{
-        std::make_shared<milvus::Int64FieldData>(field_id, insert_ids),
-        std::make_shared<milvus::VarCharFieldData>(field_text, insert_texts),
-        std::make_shared<milvus::FloatVecFieldData>(field_dense, dense_vectors),
-        std::make_shared<milvus::SparseFloatVecFieldData>(field_sparse, sparse_vectors)};
     milvus::DmlResults dml_results;
-    status = client->Insert(collection_name, "", fields_data, dml_results);
+    status = client->Insert(collection_name, "", rows, dml_results);
     util::CheckStatus("Failed to insert:", status);
-    std::cout << "Successfully insert " << dml_results.IdArray().IntIDArray().size() << " rows." << std::endl;
+    std::cout << "Successfully insert " << dml_results.InsertCount() << " rows." << std::endl;
 
     {
         // verify the row count of the partition is 999 by query(count(*))
@@ -104,7 +100,7 @@ main(int argc, char* argv[]) {
         status = client->Query(q_count, count_resutl);
         util::CheckStatus("Failed to query count(*):", status);
         std::cout << "Successfully query count(*)." << std::endl;
-        std::cout << "count(*) = " << count_resutl.GetCountNumber() << std::endl;
+        std::cout << "count(*) = " << count_resutl.GetRowCount() << std::endl;
     }
 
     {
@@ -113,6 +109,7 @@ main(int argc, char* argv[]) {
         s_arguments.SetCollectionName(collection_name);
         s_arguments.SetLimit(10);
         s_arguments.AddOutputField(field_text);
+        s_arguments.AddOutputField(field_sparse);
         // set to BOUNDED level to accept data inconsistence within a time window(default is 5 seconds)
         s_arguments.SetConsistencyLevel(milvus::ConsistencyLevel::BOUNDED);
 
@@ -128,12 +125,12 @@ main(int argc, char* argv[]) {
         auto sub_req2 = std::make_shared<milvus::SubSearchRequest>();
         sub_req2->SetLimit(15);
         sub_req2->SetFilter(field_id + " < 100");
-        status = sub_req2->AddSparseVector(field_sparse, util::GenerateSparseVector(5));
+        status = sub_req2->AddSparseVector(field_sparse, util::GenerateSparseVector(50));
         util::CheckStatus("Failed to add vector to SubSearchRequest:", status);
         s_arguments.AddSubRequest(sub_req2);
 
         // define reranker
-        auto reranker = std::make_shared<milvus::RRFRerank>();
+        auto reranker = std::make_shared<milvus::WeightedRerank>(std::vector<float>{0.2, 0.8});
         s_arguments.SetRerank(reranker);
 
         milvus::SearchResults search_results{};
@@ -142,19 +139,12 @@ main(int argc, char* argv[]) {
         std::cout << "Successfully search." << std::endl;
 
         for (auto& result : search_results.Results()) {
-            auto& ids = result.Ids().IntIDArray();
-            auto& distances = result.Scores();
-            if (ids.size() != distances.size()) {
-                std::cout << "Illegal result!" << std::endl;
-                continue;
-            }
-
             std::cout << "Result of one target vector:" << std::endl;
-
-            auto text_field = result.OutputField<milvus::VarCharFieldData>(field_text);
-            for (size_t i = 0; i < ids.size(); ++i) {
-                std::cout << "\t" << result.PrimaryKeyName() << ":" << ids[i] << "\tDistance: " << distances[i] << "\t"
-                          << text_field->Name() << ":" << text_field->Value(i) << std::endl;
+            std::vector<nlohmann::json> output_rows;
+            status = result.OutputRows(output_rows);
+            util::CheckStatus("Failed to get output rows:", status);
+            for (const auto& row : output_rows) {
+                std::cout << "\t" << row << std::endl;
             }
         }
     }

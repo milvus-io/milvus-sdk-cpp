@@ -97,119 +97,99 @@ main(int argc, char* argv[]) {
     util::CheckStatus("Failed to load collection:", status);
 
     // insert some rows
-    milvus::VarCharFieldDataPtr id_field = std::make_shared<milvus::VarCharFieldData>(field_id);
-    milvus::FloatVecFieldDataPtr vector_field = std::make_shared<milvus::FloatVecFieldData>(field_vector);
-    milvus::ArrayBoolFieldDataPtr arr_bool_field = std::make_shared<milvus::ArrayBoolFieldData>(field_array_bool);
-    milvus::ArrayInt8FieldDataPtr arr_int8_field = std::make_shared<milvus::ArrayInt8FieldData>(field_array_int8);
-    milvus::ArrayInt16FieldDataPtr arr_int16_field = std::make_shared<milvus::ArrayInt16FieldData>(field_array_int16);
-    milvus::ArrayInt32FieldDataPtr arr_int32_field = std::make_shared<milvus::ArrayInt32FieldData>(field_array_int32);
-    milvus::ArrayInt64FieldDataPtr arr_int64_field = std::make_shared<milvus::ArrayInt64FieldData>(field_array_int64);
-    milvus::ArrayFloatFieldDataPtr arr_float_field = std::make_shared<milvus::ArrayFloatFieldData>(field_array_float);
-    milvus::ArrayDoubleFieldDataPtr arr_double_field =
-        std::make_shared<milvus::ArrayDoubleFieldData>(field_array_double);
-    milvus::ArrayVarCharFieldDataPtr arr_varchar_field =
-        std::make_shared<milvus::ArrayVarCharFieldData>(field_array_varchar);
-
     const int64_t row_count = 10;
+    std::vector<nlohmann::json> rows;
     for (auto i = 0; i < row_count; ++i) {
-        id_field->Add("user_" + std::to_string(i));
-        vector_field->Add(util::GenerateFloatVector(dimension));
-
         auto cap = util::RandomeValue<int>(1, 5);
-        arr_bool_field->Add(util::RansomBools(cap));
-        arr_int8_field->Add(util::RandomeValues<int8_t>(0, 100, cap));
-        arr_int16_field->Add(util::RandomeValues<int16_t>(0, 1000, cap));
-        arr_int32_field->Add(util::RandomeValues<int32_t>(0, 10000, cap));
-        arr_int64_field->Add(util::RandomeValues<int64_t>(0, 100000, cap));
-        arr_float_field->Add(util::RandomeValues<float>(0.0, 1.0, cap));
-        arr_double_field->Add(util::RandomeValues<double>(0.0, 10.0, cap));
-
-        auto values = util::RandomeValues<int>(0, 100, cap);
+        nlohmann::json row;
+        row[field_id] = "user_" + std::to_string(i);
+        row[field_vector] = util::GenerateFloatVector(dimension);
+        row[field_array_bool] = util::RansomBools(cap);
+        row[field_array_int8] = util::RandomeValues<int8_t>(0, 100, cap);
+        row[field_array_int16] = util::RandomeValues<int16_t>(0, 1000, cap);
+        row[field_array_int32] = util::RandomeValues<int32_t>(0, 10000, cap);
+        row[field_array_int64] = util::RandomeValues<int64_t>(0, 100000, cap);
+        row[field_array_float] = util::RandomeValues<float>(0.0, 1.0, cap);
+        row[field_array_double] = util::RandomeValues<double>(0.0, 10.0, cap);
         std::vector<std::string> varchars(cap);
+        auto values = util::RandomeValues<int>(0, 100, cap);
         std::transform(values.begin(), values.end(), varchars.begin(),
                        [i](int x) { return "varchar_" + std::to_string(i * 10000 + x); });
-        arr_varchar_field->Add(varchars);
+        row[field_array_varchar] = varchars;
+        rows.emplace_back(row);
     }
 
-    std::vector<milvus::FieldDataPtr> fields_data{id_field,         vector_field,     arr_bool_field,  arr_int8_field,
-                                                  arr_int16_field,  arr_int32_field,  arr_int64_field, arr_float_field,
-                                                  arr_double_field, arr_varchar_field};
     milvus::DmlResults dml_results;
-    status = client->Insert(collection_name, "", fields_data, dml_results);
+    status = client->Insert(collection_name, "", rows, dml_results);
     util::CheckStatus("Failed to insert:", status);
     std::cout << "Successfully insert " << dml_results.IdArray().StrIDArray().size() << " rows." << std::endl;
 
-    // query
-    milvus::QueryArguments q_arguments{};
-    q_arguments.SetCollectionName(collection_name);
-    q_arguments.AddOutputField(field_id);
-    q_arguments.AddOutputField(field_array_bool);
-    q_arguments.AddOutputField(field_array_int8);
-    q_arguments.AddOutputField(field_array_int16);
-    q_arguments.AddOutputField(field_array_int32);
-    q_arguments.AddOutputField(field_array_int64);
-    q_arguments.AddOutputField(field_array_float);
-    q_arguments.AddOutputField(field_array_double);
-    q_arguments.AddOutputField(field_array_varchar);
-    q_arguments.SetLimit(5);
-    // set to strong level so that the query is executed after the inserted data is consumed by server
-    q_arguments.SetConsistencyLevel(milvus::ConsistencyLevel::STRONG);
+    {
+        // query some items wihtout filtering
+        milvus::QueryArguments q_arguments{};
+        q_arguments.SetCollectionName(collection_name);
+        q_arguments.AddOutputField(field_id);
+        q_arguments.AddOutputField(field_array_bool);
+        q_arguments.AddOutputField(field_array_int8);
+        q_arguments.AddOutputField(field_array_int16);
+        q_arguments.AddOutputField(field_array_int32);
+        q_arguments.AddOutputField(field_array_int64);
+        q_arguments.AddOutputField(field_array_float);
+        q_arguments.AddOutputField(field_array_double);
+        q_arguments.AddOutputField(field_array_varchar);
+        q_arguments.SetLimit(5);
+        // set to strong level so that the query is executed after the inserted data is consumed by server
+        q_arguments.SetConsistencyLevel(milvus::ConsistencyLevel::STRONG);
 
-    milvus::QueryResults query_resutls{};
-    status = client->Query(q_arguments, query_resutls);
-    util::CheckStatus("Failed to query:", status);
-    std::cout << "Successfully query." << std::endl;
+        milvus::QueryResults query_resutls{};
+        status = client->Query(q_arguments, query_resutls);
+        util::CheckStatus("Failed to query:", status);
+        std::cout << "Successfully query." << std::endl;
 
-    for (auto& field_data : query_resutls.OutputFields()) {
-        std::cout << "Field: " << field_data->Name() << " Count:" << field_data->Count() << std::endl;
+        std::vector<nlohmann::json> output_rows;
+        status = query_resutls.OutputRows(output_rows);
+        util::CheckStatus("Failed to get output rows:", status);
+        std::cout << "Query results:" << std::endl;
+        for (const auto& row : output_rows) {
+            std::cout << "\t" << row << std::endl;
+        }
     }
 
-    // do search
-    milvus::SearchArguments s_arguments{};
-    s_arguments.SetCollectionName(collection_name);
-    s_arguments.SetLimit(3);
-    s_arguments.AddOutputField(field_id);
-    s_arguments.AddOutputField(field_array_bool);
-    s_arguments.AddOutputField(field_array_int8);
-    s_arguments.AddOutputField(field_array_int16);
-    s_arguments.AddOutputField(field_array_int32);
-    s_arguments.AddOutputField(field_array_int64);
-    s_arguments.AddOutputField(field_array_float);
-    s_arguments.AddOutputField(field_array_double);
-    s_arguments.AddOutputField(field_array_varchar);
+    {
+        // do search
+        milvus::SearchArguments s_arguments{};
+        s_arguments.SetCollectionName(collection_name);
+        s_arguments.SetLimit(3);
+        s_arguments.AddOutputField(field_id);
+        s_arguments.AddOutputField(field_array_bool);
+        s_arguments.AddOutputField(field_array_int8);
+        s_arguments.AddOutputField(field_array_int16);
+        s_arguments.AddOutputField(field_array_int32);
+        s_arguments.AddOutputField(field_array_int64);
+        s_arguments.AddOutputField(field_array_float);
+        s_arguments.AddOutputField(field_array_double);
+        s_arguments.AddOutputField(field_array_varchar);
 
-    auto q_number_1 = util::RandomeValue<int64_t>(0, row_count - 1);
-    auto q_number_2 = util::RandomeValue<int64_t>(0, row_count - 1);
-    s_arguments.AddFloatVector(field_vector, vector_field->Data()[q_number_1]);
-    s_arguments.AddFloatVector(field_vector, vector_field->Data()[q_number_2]);
-    std::cout << "Searching the No." << q_number_1 << " and No." << q_number_2 << std::endl;
+        auto q_number_1 = util::RandomeValue<int64_t>(0, row_count - 1);
+        auto q_number_2 = util::RandomeValue<int64_t>(0, row_count - 1);
+        s_arguments.AddFloatVector(field_vector, rows[q_number_1][field_vector]);
+        s_arguments.AddFloatVector(field_vector, rows[q_number_2][field_vector]);
+        std::cout << "Searching the No." << q_number_1 << " and No." << q_number_2 << std::endl;
 
-    milvus::SearchResults search_results{};
-    status = client->Search(s_arguments, search_results);
-    util::CheckStatus("Failed to search:", status);
-    std::cout << "Successfully search." << std::endl;
+        milvus::SearchResults search_results{};
+        status = client->Search(s_arguments, search_results);
+        util::CheckStatus("Failed to search:", status);
+        std::cout << "Successfully search." << std::endl;
 
-    for (auto& result : search_results.Results()) {
-        auto& ids = result.Ids().StrIDArray();
-        auto& distances = result.Scores();
-        if (ids.size() != distances.size()) {
-            std::cout << "Illegal result!" << std::endl;
-            continue;
-        }
-
-        std::cout << "Result of one target vector:" << std::endl;
-
-        auto id_field = result.OutputField<milvus::VarCharFieldData>(field_id);
-        auto array_int16_field = result.OutputField<milvus::ArrayInt16FieldData>(field_array_int16);
-        auto array_varchar_field = result.OutputField<milvus::ArrayVarCharFieldData>(field_array_varchar);
-        for (size_t i = 0; i < ids.size(); ++i) {
-            std::cout << "\t" << id_field->Name() << ":" << ids[i] << "\tDistance: " << distances[i] << "\t";
-            std::cout << array_int16_field->Name();
-            util::PrintList<int16_t>(array_int16_field->Value(i));
-
-            std::cout << array_varchar_field->Name();
-            util::PrintList<std::string>(array_varchar_field->Value(i));
-            std::cout << std::endl;
+        for (auto& result : search_results.Results()) {
+            std::cout << "Result of one target vector:" << std::endl;
+            std::vector<nlohmann::json> output_rows;
+            status = result.OutputRows(output_rows);
+            util::CheckStatus("Failed to get output rows:", status);
+            std::cout << "Result of one target vector:" << std::endl;
+            for (const auto& row : output_rows) {
+                std::cout << "\t" << row << std::endl;
+            }
         }
     }
 

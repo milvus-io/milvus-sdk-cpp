@@ -791,7 +791,7 @@ MilvusClientImpl::Insert(const std::string& collection_name, const std::string& 
 
             status = CheckInsertInput(collection_desc, fields, false);
         }
-
+        enable_dynamic_field = collection_desc->Schema().EnableDynamicField();
         return status;
     };
 
@@ -816,6 +816,7 @@ MilvusClientImpl::Insert(const std::string& collection_name, const std::string& 
         auto id_array = CreateIDArray(response.ids());
         results.SetIdArray(std::move(id_array));
         results.SetTimestamp(response.timestamp());
+        results.SetInsertCount(static_cast<uint64_t>(response.insert_cnt()));
 
         // special for dml api: if the api failed, remove the schema cache of this collection
         if (IsRealFailure(response.status())) {
@@ -836,6 +837,62 @@ MilvusClientImpl::Insert(const std::string& collection_name, const std::string& 
     if (status.LegacyServerCode() == static_cast<int32_t>(proto::common::ErrorCode::SchemaMismatch)) {
         removeCollectionDesc(collection_name);
         return Insert(collection_name, partition_name, fields, results);
+    }
+    return status;
+}
+
+Status
+MilvusClientImpl::Insert(const std::string& collection_name, const std::string& partition_name,
+                         const std::vector<nlohmann::json>& rows, DmlResults& results) {
+    std::vector<proto::schema::FieldData> rpc_fields;
+    auto validate = [this, &collection_name, &rows, &rpc_fields]() {
+        CollectionDescPtr collection_desc;
+        auto status = getCollectionDesc(collection_name, false, collection_desc);
+        if (!status.IsOk()) {
+            return status;
+        }
+        return CheckAndSetRowData(rows, collection_desc->Schema(), false, rpc_fields);
+    };
+
+    auto pre = [&collection_name, &partition_name, &rows, &rpc_fields] {
+        proto::milvus::InsertRequest rpc_request;
+
+        auto* mutable_fields = rpc_request.mutable_fields_data();
+        rpc_request.set_collection_name(collection_name);
+        rpc_request.set_partition_name(partition_name);
+        rpc_request.set_num_rows(static_cast<uint32_t>(rows.size()));
+        for (auto& field : rpc_fields) {
+            mutable_fields->Add(std::move(field));
+        }
+
+        return rpc_request;
+    };
+
+    auto post = [this, &collection_name, &results](const proto::milvus::MutationResult& response) {
+        auto id_array = CreateIDArray(response.ids());
+        results.SetIdArray(std::move(id_array));
+        results.SetTimestamp(response.timestamp());
+        results.SetInsertCount(static_cast<uint64_t>(response.insert_cnt()));
+
+        // special for dml api: if the api failed, remove the schema cache of this collection
+        if (IsRealFailure(response.status())) {
+            removeCollectionDesc(collection_name);
+        } else {
+            // TODO: if the parameters provides db_name in future, we need to set the correct
+            // db_name to UpdateCollectionTs()
+            GtsDict::GetInstance().UpdateCollectionTs(currentDbName(""), collection_name, response.timestamp());
+        }
+    };
+
+    auto status = apiHandler<proto::milvus::InsertRequest, proto::milvus::MutationResult>(
+        validate, pre, &MilvusConnection::Insert, post);
+    // If there are multiple clients, the client_A repeatedly do insert, the client_B changes
+    // the collection schema. The server might return a special error code "SchemaMismatch".
+    // If the client_A gets this special error code, it needs to update the collectionDesc cache and
+    // call Insert() again.
+    if (status.LegacyServerCode() == static_cast<int32_t>(proto::common::ErrorCode::SchemaMismatch)) {
+        removeCollectionDesc(collection_name);
+        return Insert(collection_name, partition_name, rows, results);
     }
     return status;
 }
@@ -862,6 +919,7 @@ MilvusClientImpl::Upsert(const std::string& collection_name, const std::string& 
 
             status = CheckInsertInput(collection_desc, fields, true);
         }
+        enable_dynamic_field = collection_desc->Schema().EnableDynamicField();
         return status;
     };
 
@@ -886,6 +944,7 @@ MilvusClientImpl::Upsert(const std::string& collection_name, const std::string& 
         auto id_array = CreateIDArray(response.ids());
         results.SetIdArray(std::move(id_array));
         results.SetTimestamp(response.timestamp());
+        results.SetUpsertCount(static_cast<uint64_t>(response.upsert_cnt()));
 
         // special for dml api: if the api failed, remove the schema cache of this collection
         if (IsRealFailure(response.status())) {
@@ -911,6 +970,61 @@ MilvusClientImpl::Upsert(const std::string& collection_name, const std::string& 
 }
 
 Status
+MilvusClientImpl::Upsert(const std::string& collection_name, const std::string& partition_name,
+                         const std::vector<nlohmann::json>& rows, DmlResults& results) {
+    std::vector<proto::schema::FieldData> rpc_fields;
+    auto validate = [this, &collection_name, &rows, &rpc_fields]() {
+        CollectionDescPtr collection_desc;
+        auto status = getCollectionDesc(collection_name, false, collection_desc);
+        if (!status.IsOk()) {
+            return status;
+        }
+        return CheckAndSetRowData(rows, collection_desc->Schema(), true, rpc_fields);
+    };
+
+    auto pre = [&collection_name, &partition_name, &rows, &rpc_fields] {
+        proto::milvus::UpsertRequest rpc_request;
+
+        auto* mutable_fields = rpc_request.mutable_fields_data();
+        rpc_request.set_collection_name(collection_name);
+        rpc_request.set_partition_name(partition_name);
+        rpc_request.set_num_rows(static_cast<uint32_t>(rows.size()));
+        for (auto& field : rpc_fields) {
+            mutable_fields->Add(std::move(field));
+        }
+        return rpc_request;
+    };
+
+    auto post = [this, &collection_name, &results](const proto::milvus::MutationResult& response) {
+        auto id_array = CreateIDArray(response.ids());
+        results.SetIdArray(std::move(id_array));
+        results.SetTimestamp(response.timestamp());
+        results.SetUpsertCount(static_cast<uint64_t>(response.upsert_cnt()));
+
+        // special for dml api: if the api failed, remove the schema cache of this collection
+        if (IsRealFailure(response.status())) {
+            removeCollectionDesc(collection_name);
+        } else {
+            // TODO: if the parameters provides db_name in future, we need to set the correct
+            // db_name to UpdateCollectionTs()
+            GtsDict::GetInstance().UpdateCollectionTs(currentDbName(""), collection_name, response.timestamp());
+        }
+    };
+
+    auto status = apiHandler<proto::milvus::UpsertRequest, proto::milvus::MutationResult>(
+        validate, pre, &MilvusConnection::Upsert, post);
+    // If there are multiple clients, the client_A repeatedly do insert, the client_B changes
+    // the collection schema. The server might return a special error code "SchemaMismatch".
+    // If the client_A gets this special error code, it needs to update the collectionDesc cache and
+    // call Upsert() again.
+    if (status.LegacyServerCode() == static_cast<int32_t>(proto::common::ErrorCode::SchemaMismatch)) {
+        removeCollectionDesc(collection_name);
+        return Upsert(collection_name, partition_name, rows, results);
+    }
+    return status;
+}
+
+Status
 MilvusClientImpl::Delete(const std::string& collection_name, const std::string& partition_name,
                          const std::string& expression, DmlResults& results) {
     auto pre = [&collection_name, &partition_name, &expression]() {
@@ -925,6 +1039,7 @@ MilvusClientImpl::Delete(const std::string& collection_name, const std::string& 
         auto id_array = CreateIDArray(response.ids());
         results.SetIdArray(std::move(id_array));
         results.SetTimestamp(response.timestamp());
+        results.SetDeleteCount(static_cast<uint64_t>(response.delete_cnt()));
 
         if (!IsRealFailure(response.status())) {
             // TODO: if the parameters provides db_name in future, we need to set the correct

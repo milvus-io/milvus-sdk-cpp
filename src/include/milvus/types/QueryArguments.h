@@ -32,37 +32,37 @@ namespace milvus {
 class QueryArguments {
  public:
     /**
-     * @brief Get the target db name
+     * @brief Get the target db name.
      */
     const std::string&
     DatabaseName() const;
 
     /**
-     * @brief Set target db name, default is empty, means use the db name of MilvusClient
+     * @brief Set target db name, default is empty, means use the db name of MilvusClient.
      */
     Status
     SetDatabaseName(const std::string& db_name);
 
     /**
-     * @brief Get name of the target collection
+     * @brief Get name of the target collection.
      */
     const std::string&
     CollectionName() const;
 
     /**
-     * @brief Set name of this collection, cannot be empty
+     * @brief Set name of this collection, cannot be empty.
      */
     Status
     SetCollectionName(std::string collection_name);
 
     /**
-     * @brief Get partition names
+     * @brief Get partition names.
      */
     const std::set<std::string>&
     PartitionNames() const;
 
     /**
-     * @brief Specify partition name to control query scope, the name cannot be empty
+     * @brief Specify partition name to control query scope, the name cannot be empty.
      */
     Status
     AddPartitionName(std::string partition_name);
@@ -73,19 +73,19 @@ class QueryArguments {
     const std::set<std::string>&
     OutputFields() const;
     /**
-     * @brief Specify output field names to return field data, the name cannot be empty
+     * @brief Specify output field names to return field data, the name cannot be empty.
      */
     Status
     AddOutputField(std::string field_name);
 
     /**
-     * @brief Get filter expression
+     * @brief Get filter expression.
      */
     const std::string&
     Filter() const;
 
     /**
-     * @brief Set filter expression
+     * @brief Set filter expression.
      */
     Status
     SetFilter(std::string filter);
@@ -97,7 +97,7 @@ class QueryArguments {
     Limit() const;
 
     /**
-     * @brief Set limit value, only avaiable when expression is empty
+     * @brief Set limit value, only avaiable when expression is empty. \n
      * Note: this value is stored in the ExtraParams
      */
     Status
@@ -110,44 +110,44 @@ class QueryArguments {
     Offset() const;
 
     /**
-     * @brief Set offset value, only avaiable when expression is empty
+     * @brief Set offset value, only avaiable when expression is empty. \n
      * Note: this value is stored in the ExtraParams
      */
     Status
     SetOffset(int64_t offset);
 
     /**
-     * @brief Get ignore growing segments
+     * @brief Get ignore growing segments.
      */
     bool
     IgnoreGrowing() const;
 
     /**
-     * @brief Set ignore growing segments
+     * @brief Set ignore growing segments.
      */
     Status
     SetIgnoreGrowing(bool ignore_growing);
 
     /**
-     * @brief Add extra param
+     * @brief Add extra param.
      */
     Status
     AddExtraParam(const std::string& key, const std::string& value);
 
     /**
-     * @brief Get extra param
+     * @brief Get extra param.
      */
     const std::unordered_map<std::string, std::string>&
     ExtraParams() const;
 
     /**
-     * @brief Get consistency level
+     * @brief Get consistency level.
      */
     ConsistencyLevel
     GetConsistencyLevel() const;
 
     /**
-     * @brief Set consistency level
+     * @brief Set consistency level.
      */
     Status
     SetConsistencyLevel(const ConsistencyLevel& level);
@@ -155,7 +155,7 @@ class QueryArguments {
     ///////////////////////////////////////////////////////////////////////////////////////
     // deprecated methods
     /**
-     * @brief Get filter expression
+     * @brief Get filter expression. \n
      * Can be empty if Limit() is zero, else must be non-empty
      * @deprecated replaced by Filter()
      */
@@ -163,7 +163,7 @@ class QueryArguments {
     Expression() const;
 
     /**
-     * @brief Set filter expression
+     * @brief Set filter expression. \n
      * Can be empty if Limit() is zero, else must be non-empty
      * @deprecated replaced by SetFilter()
      */
@@ -177,8 +177,9 @@ class QueryArguments {
     uint64_t
     TravelTimestamp() const;
     /**
-     * @brief  @brief Specify an absolute timestamp in a query to get results based on a data view at a specified point
-     * in time. \n Default value is 0, server executes query on a full data view.
+     * @brief Specify an absolute timestamp in a query to get results based on a data view at a specified point
+     * in time. \n
+     * Default value is 0, server executes query on a full data view.
      * @deprecated Deprecated in 2.4, replaced by ConsistencyLevel
      */
     Status

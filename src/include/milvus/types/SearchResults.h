@@ -75,6 +75,28 @@ struct SingleResult {
         return std::dynamic_pointer_cast<T>(OutputField(name));
     }
 
+    /**
+     * @brief Get all output rows.
+     */
+    Status
+    OutputRows(std::vector<nlohmann::json>& rows) const;
+
+    /**
+     * @brief Get row data. Throw exception if the i is out of bound.
+     */
+    Status
+    OutputRow(int i, nlohmann::json& row) const;
+
+    /**
+     * @brief Get row count of the result.
+     */
+    uint64_t
+    GetRowCount() const;
+
+ private:
+    Status
+    setPkAndScore(int i, nlohmann::json& row) const;
+
  private:
     std::string pk_name_;  // the server tells primary key name so that you don't need to describe the collection
     IDArray ids_;
