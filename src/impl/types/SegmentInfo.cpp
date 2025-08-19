@@ -53,11 +53,12 @@ SegmentInfo::State() const {
 }
 
 QuerySegmentInfo::QuerySegmentInfo(int64_t collection_id, int64_t partition_id, int64_t segment_id, int64_t row_count,
-                                   SegmentState state, std::string index_name, int64_t index_id, int64_t node_id)
+                                   SegmentState state, std::string index_name, int64_t index_id,
+                                   const std::vector<int64_t>& node_ids)
     : SegmentInfo(collection_id, partition_id, segment_id, row_count, state),
       index_name_{std::move(index_name)},
       index_id_{index_id},
-      node_id_{node_id} {
+      node_ids_{node_ids} {
 }
 
 std::string
@@ -72,7 +73,15 @@ QuerySegmentInfo::IndexID() const {
 
 int64_t
 QuerySegmentInfo::NodeID() const {
-    return node_id_;
+    if (node_ids_.empty()) {
+        return 0;
+    }
+    return node_ids_.at(0);
+}
+
+const std::vector<int64_t>&
+QuerySegmentInfo::NodeIDs() const {
+    return node_ids_;
 }
 
 }  // namespace milvus

@@ -114,7 +114,7 @@ FieldSchema::SetTypeParams(std::map<std::string, std::string>&& params) {
 
 uint32_t
 FieldSchema::Dimension() const {
-    auto iter = type_params_.find(FieldDim());
+    auto iter = type_params_.find(DIM);
     if (iter != type_params_.end()) {
         return std::strtol(iter->second.c_str(), nullptr, 10);
     }
@@ -126,7 +126,7 @@ FieldSchema::SetDimension(uint32_t dimension) {
     if (dimension == 0) {
         return false;
     }
-    type_params_[FieldDim()] = std::to_string(dimension);
+    type_params_[DIM] = std::to_string(dimension);
     return true;
 }
 
@@ -138,7 +138,7 @@ FieldSchema::WithDimension(uint32_t dimension) {
 
 uint32_t
 FieldSchema::MaxLength() const {
-    auto iter = type_params_.find(FieldMaxLength());
+    auto iter = type_params_.find(MAX_LENGTH);
     if (iter != type_params_.end()) {
         return std::strtol(iter->second.c_str(), nullptr, 10);
     }
@@ -147,7 +147,7 @@ FieldSchema::MaxLength() const {
 
 void
 FieldSchema::SetMaxLength(uint32_t length) {
-    type_params_[FieldMaxLength()] = std::to_string(length);
+    type_params_[MAX_LENGTH] = std::to_string(length);
 }
 
 FieldSchema&
@@ -158,7 +158,7 @@ FieldSchema::WithMaxLength(uint32_t length) {
 
 uint32_t
 FieldSchema::MaxCapacity() const {
-    auto iter = type_params_.find(FieldMaxCapacity());
+    auto iter = type_params_.find(MAX_CAPACITY);
     if (iter != type_params_.end()) {
         return std::strtol(iter->second.c_str(), nullptr, 10);
     }
@@ -167,7 +167,7 @@ FieldSchema::MaxCapacity() const {
 
 void
 FieldSchema::SetMaxCapacity(uint32_t capacity) {
-    type_params_[FieldMaxCapacity()] = std::to_string(capacity);
+    type_params_[MAX_CAPACITY] = std::to_string(capacity);
 }
 
 FieldSchema&

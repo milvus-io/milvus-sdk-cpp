@@ -267,6 +267,10 @@ class MilvusConnection {
     GetLoadState(const proto::milvus::GetLoadStateRequest& request, proto::milvus::GetLoadStateResponse& response,
                  const GrpcContextOptions& options);
 
+    Status
+    GetLoadingProgress(const proto::milvus::GetLoadingProgressRequest,
+                       proto::milvus::GetLoadingProgressResponse& response, const GrpcContextOptions& options);
+
  private:
     std::unique_ptr<proto::milvus::MilvusService::Stub> stub_;
     std::shared_ptr<grpc::Channel> channel_;

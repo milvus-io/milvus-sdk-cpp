@@ -20,80 +20,18 @@
 
 namespace milvus {
 
-inline const std::string&
-KeyTopK() {
-    static std::string topk = "topk";
-    return topk;
-}
-
-inline const std::string&
-KeyLimit() {
-    static std::string limit = "limit";
-    return limit;
-}
-
-inline const std::string&
-KeyOffset() {
-    static std::string offset = "offset";
-    return offset;
-}
-
-inline const std::string&
-KeyAnnsField() {
-    static std::string anns_field = "anns_field";
-    return anns_field;
-}
-
-inline const std::string&
-KeyRadius() {
-    static std::string radius = "radius";
-    return radius;
-}
-
-inline const std::string&
-KeyRangeFilter() {
-    static std::string range_filter = "range_filter";
-    return range_filter;
-}
-
-inline const std::string&
-KeyIgnoreGrowing() {
-    static std::string ignore_growing = "ignore_growing";
-    return ignore_growing;
-}
-
-inline const std::string&
-KeyRoundDecimal() {
-    static std::string round_decimal = "round_decimal";
-    return round_decimal;
-}
-
-inline const std::string&
-KeyGroupByField() {
-    static std::string group_by_field = "group_by_field";
-    return group_by_field;
-}
-
-inline const std::string&
-KeyParams() {
-    static std::string params = "params";
-    return params;
-}
-
-inline const std::string&
-KeyStrategy() {
-    static std::string strategy = "strategy";
-    return strategy;
-}
-
-inline uint64_t
-GuaranteeStrongTs() {
-    return 0;
-}
-
-inline uint64_t
-GuaranteeEventuallyTs() {
-    return 1;
-}
+// const names for internal common usage
+extern const char* ROW_COUNT;
+extern const char* TOPK;
+extern const char* LIMIT;
+extern const char* OFFSET;
+extern const char* ANNS_FIELD;
+extern const char* RADIUS;
+extern const char* RANGE_FILTER;
+extern const char* IGNORE_GROWING;
+extern const char* ROUND_DECIMAL;
+extern const char* GROUPBY_FIELD;
+extern const char* PARAMS;
+extern const char* STRATEGY;
 
 }  // namespace milvus

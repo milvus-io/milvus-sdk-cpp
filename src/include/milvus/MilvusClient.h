@@ -56,7 +56,7 @@ class MilvusClient {
     virtual ~MilvusClient() = default;
 
     /**
-     * Create a MilvusClient instance.
+     * @brief Crate a MilvusClient instance.
      *
      * @return std::shared_ptr<MilvusClient>
      */
@@ -64,7 +64,7 @@ class MilvusClient {
     Create();
 
     /**
-     * Connect to Milvus server.
+     * @brief Connect to Milvus server.
      *
      * @param [in] connect_param server address and port
      * @return Status operation successfully or not
@@ -73,7 +73,7 @@ class MilvusClient {
     Connect(const ConnectParam& connect_param) = 0;
 
     /**
-     * Break connections between client and server.
+     * @brief Break connections between client and server.
      *
      * @return Status operation successfully or not
      */
@@ -81,14 +81,14 @@ class MilvusClient {
     Disconnect() = 0;
 
     /**
-     * Change timeout value in milliseconds for each RPC call.
+     * @brief Change timeout value in milliseconds for each RPC call.
      *
      */
     virtual Status
     SetRpcDeadlineMs(uint64_t timeout_ms) = 0;
 
     /**
-     * Reset retry rules for each RPC call.
+     * @brief Reset retry rules for each RPC call.
      *
      *  @param [in] retry_param retry rules
      */
@@ -96,7 +96,7 @@ class MilvusClient {
     SetRetryParam(const RetryParam& retry_param) = 0;
 
     /**
-     * Get milvus server version
+     * @brief Get milvus server version.
      *
      * @param [out] version version string
      * @return Status operation successfully or not
@@ -106,7 +106,7 @@ class MilvusClient {
     GetVersion(std::string& version) = 0;
 
     /**
-     * Create a collection with schema.
+     * @brief Create a collection with schema.
      *
      * @param [in] schema schema of the collection
      * @return Status operation successfully or not
@@ -115,7 +115,7 @@ class MilvusClient {
     CreateCollection(const CollectionSchema& schema) = 0;
 
     /**
-     * Check existence of a collection.
+     * @brief Check existence of a collection.
      *
      * @param [in] collection_name name of the collection
      * @param [out] has true: collection exists, false: collection doesn't exist
@@ -125,7 +125,7 @@ class MilvusClient {
     HasCollection(const std::string& collection_name, bool& has) = 0;
 
     /**
-     * Drop a collection, with all its partitions, index and segments.
+     * @brief Drop a collection, with all its partitions, index and segments.
      *
      * @param [in] collection_name name of the collection
      * @return Status operation successfully or not
@@ -134,8 +134,8 @@ class MilvusClient {
     DropCollection(const std::string& collection_name) = 0;
 
     /**
-     * Load collection data into CPU memory of query node. \n
-     * If the timeout is specified, this api will call ShowCollections() to check collection's loading state,
+     * @brief Load collection data into CPU memory of query node.
+     * This api will check collection's loading progress,
      * waiting until the collection completely loaded into query node.
      *
      * @param [in] collection_name name of the collection
@@ -149,7 +149,7 @@ class MilvusClient {
                    const ProgressMonitor& progress_monitor = ProgressMonitor::Forever()) = 0;
 
     /**
-     * Release collection data from query node.
+     * @brief Release collection data from query node.
      *
      * @param [in] collection_name name of the collection
      * @return Status operation successfully or not
@@ -158,7 +158,7 @@ class MilvusClient {
     ReleaseCollection(const std::string& collection_name) = 0;
 
     /**
-     * Get collection description, including its schema.
+     * @brief Get collection description, including its schema.
      *
      * @param [in] collection_name name of the collection
      * @param [out] collection_desc collection's description
@@ -168,7 +168,7 @@ class MilvusClient {
     DescribeCollection(const std::string& collection_name, CollectionDesc& collection_desc) = 0;
 
     /**
-     * RenameCollection rename a collection.
+     * @brief RenameCollection rename a collection.
      *
      * @param [in] collection_name name of the collection
      * @param [in] new_collection_name new name of the collection
@@ -178,7 +178,7 @@ class MilvusClient {
     RenameCollection(const std::string& collection_name, const std::string& new_collection_name) = 0;
 
     /**
-     * Get collection statistics, currently only return row count. \n
+     * @brief Get collection statistics, currently only return row count.
      * If the timeout is specified, this api will call Flush() and wait all segments persisted into storage.
      *
      * @param [in] collection_name name of the collection
@@ -192,8 +192,9 @@ class MilvusClient {
                             const ProgressMonitor& progress_monitor = ProgressMonitor::Forever()) = 0;
 
     /**
-     * If the collection_names is empty, list all collections brief information's. \n
+     * @brief If the collection_names is empty, list all collections brief information's.
      * If the collection_names is specified, return the specified collection's loading process state.
+     * @deprecated In v2.4, the parameter collection_names is no longer work, use the ListCollections() instead.
      *
      * @param [in] collection_names name array of collections
      * @param [out] collections_info brief information's of the collections
@@ -203,7 +204,17 @@ class MilvusClient {
     ShowCollections(const std::vector<std::string>& collection_names, CollectionsInfo& collections_info) = 0;
 
     /**
-     * Create a partition in a collection.
+     * @brief List all collections brief information's.
+     *
+     * @param [out] collections_info brief information's of the collections
+     * @param [in] only_show_loaded set to true only show in-memory collections, otherwise show all collections.
+     * @return Status operation successfully or not
+     */
+    virtual Status
+    ListCollections(CollectionsInfo& collections_info, bool only_show_loaded = false) = 0;
+
+    /**
+     * @brief Create a partition in a collection.
      *
      * @param [in] collection_name name of the collection
      * @param [in] partition_name name of the partition
@@ -213,7 +224,7 @@ class MilvusClient {
     CreatePartition(const std::string& collection_name, const std::string& partition_name) = 0;
 
     /**
-     * Drop a partition, with its index and segments.
+     * @brief Drop a partition, with its index and segments.
      *
      * @param [in] collection_name name of the collection
      * @param [in] partition_name name of the partition
@@ -223,7 +234,7 @@ class MilvusClient {
     DropPartition(const std::string& collection_name, const std::string& partition_name) = 0;
 
     /**
-     * Check existence of a partition.
+     * @brief Check existence of a partition.
      *
      * @param [in] collection_name name of the collection
      * @param [in] partition_name name of the partition
@@ -234,9 +245,9 @@ class MilvusClient {
     HasPartition(const std::string& collection_name, const std::string& partition_name, bool& has) = 0;
 
     /**
-     * Load specific partitions data of one collection into query nodes. \n
-     * If the timeout is specified, this api will call ShowPartitions() to check partition's loading state,
-     * waiting until the collection completely loaded into query node.
+     * @brief Load specific partitions data of one collection into query nodes.
+     * This api will check partition's loading progress,
+     * waiting until all the partitions completely loaded into query node.
      *
      * @param [in] collection_name name of the collection
      * @param [in] partition_names name array of the partitions
@@ -250,7 +261,7 @@ class MilvusClient {
                    int replica_number = 1, const ProgressMonitor& progress_monitor = ProgressMonitor::Forever()) = 0;
 
     /**
-     * Release specific partitions data of one collection into query nodes.
+     * @brief Release specific partitions data of one collection into query nodes.
      *
      * @param [in] collection_name name of the collection
      * @param [in] partition_names name array of the partitions
@@ -260,8 +271,8 @@ class MilvusClient {
     ReleasePartitions(const std::string& collection_name, const std::vector<std::string>& partition_names) = 0;
 
     /**
-     * Get partition statistics, currently only return row count.
-     * If the timeout is specified, this api will call Flush() and wait all segments persisted into storage. \n
+     * @brief Get partition statistics, currently only return row count.
+     * If the timeout is specified, this api will call Flush() and wait all segments persisted into storage.
      *
      * @param [in] collection_name name of the collection
      * @param [in] partition_name name of the partition
@@ -276,8 +287,9 @@ class MilvusClient {
                            const ProgressMonitor& progress_monitor = ProgressMonitor::Forever()) = 0;
 
     /**
-     * If the partition_names is empty, list all partitions brief information's. \n
+     * @brief If the partition_names is empty, list all partitions brief information's.
      * If the partition_names is specified, return the specified partition's loading process state.
+     * @deprecated In v2.4, the parameter partition_names is no longer work, use the ListPartitions() instead.
      *
      * @param [in] collection_name name of the collection
      * @param [in] partition_names name array of the partitions
@@ -289,7 +301,19 @@ class MilvusClient {
                    PartitionsInfo& partitions_info) = 0;
 
     /**
-     * Create an alias for a collection. Alias can be used in search or query to replace the collection name. \n
+     * @brief If the partition_names is empty, list all partitions brief information's.
+     *
+     * @param [in] collection_name name of the collection
+     * @param [out] partitions_info brief information's of the partitions
+     * @param [in] only_show_loaded set to ture only show in-memory partitions, otherwise show all partitions.
+     * @return Status operation successfully or not
+     */
+    virtual Status
+    ListPartitions(const std::string& collection_name, PartitionsInfo& partitions_info,
+                   bool only_show_loaded = false) = 0;
+
+    /**
+     * @brief Create an alias for a collection. Alias can be used in search or query to replace the collection name.
      * For more information: https://wiki.lfaidata.foundation/display/MIL/MEP+10+--+Support+Collection+Alias
      *
      * @param [in] collection_name name of the collection
@@ -300,7 +324,7 @@ class MilvusClient {
     CreateAlias(const std::string& collection_name, const std::string& alias) = 0;
 
     /**
-     * Drop an alias.
+     * @brief Drop an alias.
      *
      * @param [in] alias alias of the partitions
      * @return Status operation successfully or not
@@ -309,7 +333,7 @@ class MilvusClient {
     DropAlias(const std::string& alias) = 0;
 
     /**
-     * Change an alias from a collection to another.
+     * @brief Change an alias from a collection to another.
      *
      * @param [in] collection_name name of the collection
      * @param [in] alias alias of the partitions
@@ -319,7 +343,7 @@ class MilvusClient {
     AlterAlias(const std::string& collection_name, const std::string& alias) = 0;
 
     /**
-     * Switch connection to another database.
+     * @brief Switch connection to another database.
      *
      * @param [in] db_name name of the database
      * @return Status operation successfully or not
@@ -328,7 +352,7 @@ class MilvusClient {
     UseDatabase(const std::string& db_name) = 0;
 
     /**
-     * Create a new database.
+     * @brief Create a new database.
      *
      * @param [in] db_name name of the database
      * @param [in] properties properties of the database, available keys of properties
@@ -339,7 +363,7 @@ class MilvusClient {
     CreateDatabase(const std::string& db_name, const std::unordered_map<std::string, std::string>& properties) = 0;
 
     /**
-     * Drop a database.
+     * @brief Drop a database.
      *
      * @param [in] db_name name of the database
      * @return Status operation successfully or not
@@ -348,7 +372,7 @@ class MilvusClient {
     DropDatabase(const std::string& db_name) = 0;
 
     /**
-     * Drop a database.
+     * @brief Drop a database.
      *
      * @param [out] names a list of database names
      * @return Status operation successfully or not
@@ -357,7 +381,7 @@ class MilvusClient {
     ListDatabases(std::vector<std::string>& names) = 0;
 
     /**
-     * Alter a database's properties.
+     * @brief Alter a database's properties.
      *
      * @param [in] db_name name of the database
      * @param [in] properties properties of the database to be updated, available keys of properties
@@ -369,7 +393,7 @@ class MilvusClient {
                             const std::unordered_map<std::string, std::string>& properties) = 0;
 
     /**
-     * Drop a database's properties.
+     * @brief Drop a database's properties.
      *
      * @param [in] db_name name of the database
      * @param [in] properties properties of the database to be deleted, available keys of properties
@@ -380,7 +404,7 @@ class MilvusClient {
     DropDatabaseProperties(const std::string& db_name, const std::vector<std::string>& properties) = 0;
 
     /**
-     * Describe a database.
+     * @brief Describe a database.
      *
      * @param [in] db_name name of the database
      * @param [out] db_desc information of the database
@@ -390,7 +414,7 @@ class MilvusClient {
     DescribeDatabase(const std::string& db_name, DatabaseDesc& db_desc) = 0;
 
     /**
-     * Create an index on a field. Currently only support index on vector field.
+     * @brief Create an index on a field. Currently only support index on vector field.
      *
      * @param [in] collection_name name of the collection
      * @param [in] index_desc the index descriptions and parameters
@@ -403,7 +427,7 @@ class MilvusClient {
                 const ProgressMonitor& progress_monitor = ProgressMonitor::Forever()) = 0;
 
     /**
-     * Get index descriptions and parameters.
+     * @brief Get index descriptions and parameters.
      *
      * @param [in] collection_name name of the collection
      * @param [in] field_name name of the field
@@ -414,7 +438,7 @@ class MilvusClient {
     DescribeIndex(const std::string& collection_name, const std::string& field_name, IndexDesc& index_desc) = 0;
 
     /**
-     * Get state of an index. From the state client can know whether the index has finished or in-progress.
+     * @brief Get state of an index. From the state client can know whether the index has finished or in-progress.
      *
      * @param [in] collection_name name of the collection
      * @param [in] field_name name of the field
@@ -425,7 +449,7 @@ class MilvusClient {
     GetIndexState(const std::string& collection_name, const std::string& field_name, IndexState& state) = 0;
 
     /**
-     * Get progress of an index. From the progress client can how many rows have been indexed.
+     * @brief Get progress of an index. From the progress client can how many rows have been indexed.
      *
      * @param [in] collection_name name of the collection
      * @param [in] field_name name of the field
@@ -437,7 +461,7 @@ class MilvusClient {
                           IndexProgress& progress) = 0;
 
     /**
-     * Drop index of a field.
+     * @brief Drop index of a field.
      *
      * @param [in] collection_name name of the collection
      * @param [in] field_name name of the field
@@ -447,7 +471,7 @@ class MilvusClient {
     DropIndex(const std::string& collection_name, const std::string& field_name) = 0;
 
     /**
-     * Insert entities into a collection.
+     * @brief Insert data into a collection by column-based.
      *
      * @param [in] collection_name name of the collection
      * @param [in] partition_name name of the partition, optional(pass an empty string to skip)
@@ -460,7 +484,7 @@ class MilvusClient {
            const std::vector<FieldDataPtr>& fields, DmlResults& results) = 0;
 
     /**
-     * Insert rows into a collection.
+     * @brief Insert data into a collection by row-based.
      *
      * @param [in] collection_name name of the collection
      * @param [in] partition_name name of the partition, optional(pass an empty string to skip)
@@ -473,7 +497,7 @@ class MilvusClient {
            const std::vector<nlohmann::json>& rows, DmlResults& results) = 0;
 
     /**
-     * Upsert entities into a collection.
+     * @brief Upsert entities into a collection.
      *
      * @param [in] collection_name name of the collection
      * @param [in] partition_name name of the partition, optional(pass an empty string to skip)
@@ -486,7 +510,7 @@ class MilvusClient {
            const std::vector<FieldDataPtr>& fields, DmlResults& results) = 0;
 
     /**
-     * Upsert rows into a collection.
+     * @brief Upsert rows into a collection.
      *
      * @param [in] collection_name name of the collection
      * @param [in] partition_name name of the partition, optional(pass an empty string to skip)
@@ -499,7 +523,7 @@ class MilvusClient {
            const std::vector<nlohmann::json>& rows, DmlResults& results) = 0;
 
     /**
-     * Delete entities by filtering condition.
+     * @brief Delete entities by filtering condition.
      *
      * @param [in] collection_name name of the collection
      * @param [in] partition_name name of the partition, optional(pass an empty string to skip)
@@ -513,7 +537,7 @@ class MilvusClient {
            DmlResults& results) = 0;
 
     /**
-     * Search a collection based on the given parameters and return results.
+     * @brief Search a collection based on the given parameters and return results.
      *
      * @param [in] arguments search arguments
      * @param [out] results search results
@@ -523,7 +547,7 @@ class MilvusClient {
     Search(const SearchArguments& arguments, SearchResults& results) = 0;
 
     /**
-     * Hybrid search a collection based on the given parameters and return results.
+     * @brief Hybrid search a collection based on the given parameters and return results.
      *
      * @param [in] arguments search arguments
      * @param [out] results search results
@@ -533,7 +557,7 @@ class MilvusClient {
     HybridSearch(const HybridSearchArguments& arguments, SearchResults& results) = 0;
 
     /**
-     * Query with a set of criteria, and results in a list of records that match the query exactly.
+     * @brief Query with a set of criteria, and results in a list of records that match the query exactly.
      *
      * @param [in] arguments query arguments
      * @param [out] results query results
@@ -543,7 +567,7 @@ class MilvusClient {
     Query(const QueryArguments& arguments, QueryResults& results) = 0;
 
     /**
-     * Flush insert buffer into storage.  \n
+     * @brief Flush insert buffer into storage.
      * To make sure the buffer persisted successfully, it calls GetFlushState() to check related segments state.
      *
      * @param [in] collection_names specify target collection names, if this array is empty, will flush all collections
@@ -556,7 +580,7 @@ class MilvusClient {
           const ProgressMonitor& progress_monitor = ProgressMonitor::Forever()) = 0;
 
     /**
-     * Get flush state of specified segments.
+     * @brief Get flush state of specified segments.
      *
      * @param [in] segments id array of segments
      * @param [out] flushed true: all the segments has been flushed, false: still in flush progress
@@ -566,7 +590,7 @@ class MilvusClient {
     GetFlushState(const std::vector<int64_t>& segments, bool& flushed) = 0;
 
     /**
-     * Retrieve information of persistent segments from data nodes.
+     * @brief Retrieve information of persistent segments from data nodes.
      *
      * @param [in] collection_name name of the collection
      * @param [out] segments_info information array for persistent segments
@@ -576,7 +600,7 @@ class MilvusClient {
     GetPersistentSegmentInfo(const std::string& collection_name, SegmentsInfo& segments_info) = 0;
 
     /**
-     * Retrieve information of segments from query nodes.
+     * @brief Retrieve information of segments from query nodes.
      *
      * @param [in] collection_name name of the collection
      * @param [out] segments_info information array for segments
@@ -586,7 +610,7 @@ class MilvusClient {
     GetQuerySegmentInfo(const std::string& collection_name, QuerySegmentsInfo& segments_info) = 0;
 
     /**
-     * Get server runtime statistics.
+     * @brief Get server runtime statistics.
      *
      * @param [in] request request in json format
      * @param [out] response response in json format
@@ -597,7 +621,7 @@ class MilvusClient {
     GetMetrics(const std::string& request, std::string& response, std::string& component_name) = 0;
 
     /**
-     * Rebalanced sealed segments from one query node to others.
+     * @brief Rebalanced sealed segments from one query node to others.
      *
      * @param [in] src_node the source query node id
      * @param [in] dst_nodes the destiny query nodes id array
@@ -608,7 +632,7 @@ class MilvusClient {
     LoadBalance(int64_t src_node, const std::vector<int64_t>& dst_nodes, const std::vector<int64_t>& segments) = 0;
 
     /**
-     * Get compaction action state.
+     * @brief Get compaction action state.
      *
      * @param [in] compaction_id the compaction action id
      * @param [out] compaction_state state of the compaction action
@@ -618,7 +642,7 @@ class MilvusClient {
     GetCompactionState(int64_t compaction_id, CompactionState& compaction_state) = 0;
 
     /**
-     * Manually trigger a compaction action.
+     * @brief Manually trigger a compaction action.
      *
      * @param [in] collection_name name of the collection
      * @param [in] travel_timestamp specify a timestamp to compact on a data view at a specified point in time.
@@ -629,7 +653,7 @@ class MilvusClient {
     ManualCompaction(const std::string& collection_name, uint64_t travel_timestamp, int64_t& compaction_id) = 0;
 
     /**
-     * Get plans of a compaction action.
+     * @brief Get plans of a compaction action.
      *
      * @param [in] compaction_id the compaction action id
      * @param [out] plans compaction plan array
@@ -639,7 +663,7 @@ class MilvusClient {
     GetCompactionPlans(int64_t compaction_id, CompactionPlans& plans) = 0;
 
     /**
-     * Create Credential
+     * @brief Create Credential.
      *
      * @param [in] username the username for created
      * @param [in] password the password for the user to be created
@@ -649,7 +673,7 @@ class MilvusClient {
     CreateCredential(const std::string& username, const std::string& password) = 0;
 
     /**
-     * Update Credential
+     * @brief Update Credential.
      *
      * @param [in] username the username for updated
      * @param [in] old_password the old password for the user
@@ -660,7 +684,7 @@ class MilvusClient {
     UpdateCredential(const std::string& username, const std::string& old_password, const std::string& new_password) = 0;
 
     /**
-     * Delete Credential
+     * @brief Delete Credential.
      *
      * @param [in] username the username to be deleted
      * @return Status operation successfully or not
@@ -669,7 +693,7 @@ class MilvusClient {
     DeleteCredential(const std::string& username) = 0;
 
     /**
-     * List Users
+     * @brief List Users
      *
      * @param [out] the usernames
      * @return Status operation successfully or not
@@ -678,7 +702,7 @@ class MilvusClient {
     ListCredUsers(std::vector<std::string>& names) = 0;
 
     /**
-     * GetLoadState
+     * @brief Get load state of collection or partitions.
      *
      * @param [in] collection_name name of the collection
      * @param [in] partition_names name array of the partitions
@@ -689,5 +713,7 @@ class MilvusClient {
     GetLoadState(const std::string& collection_name, bool& is_loaded,
                  const std::vector<std::string> partition_names = {}) = 0;
 };
+
+using MilvusClientPtr = std::shared_ptr<MilvusClient>;
 
 }  // namespace milvus

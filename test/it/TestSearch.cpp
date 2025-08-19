@@ -44,9 +44,9 @@ using ::testing::UnorderedElementsAre;
 
 template <typename T>
 milvus::Status
-DoSearchVectors(testing::StrictMock<::milvus::MilvusMockedService>& service_,
-                std::shared_ptr<::milvus::MilvusClient>& client_, std::vector<T> vectors,
-                milvus::SearchResults& search_results, uint64_t simulate_timeout = 0, uint64_t search_timeout = 0) {
+DoSearchVectors(testing::StrictMock<milvus::MilvusMockedService>& service_, milvus::MilvusClientPtr& client_,
+                std::vector<T> vectors, milvus::SearchResults& search_results, uint64_t simulate_timeout = 0,
+                uint64_t search_timeout = 0) {
     milvus::SearchArguments search_arguments{};
     search_arguments.SetCollectionName("foo");
     search_arguments.AddPartitionName("part1");
@@ -74,11 +74,10 @@ DoSearchVectors(testing::StrictMock<::milvus::MilvusMockedService>& service_,
                   Property(&SearchRequest::partition_names, UnorderedElementsAre("part1", "part2")),
                   Property(&SearchRequest::output_fields, UnorderedElementsAre("f1", "f2")),
                   Property(&SearchRequest::search_params,
-                           UnorderedElementsAre(
-                               TestKv(milvus::KeyAnnsField(), "anns_dummy"), TestKv(milvus::KeyTopK(), "10"),
-                               TestKv(milvus::KeyMetricType(), "IP"), TestKv(milvus::KeyRoundDecimal(), "1"),
-                               TestKv(milvus::KeyIgnoreGrowing(), "false"), TestKv(milvus::KeyNprobe(), "10"),
-                               TestKv(milvus::KeyOffset(), "0"), _))),
+                           UnorderedElementsAre(TestKv(milvus::ANNS_FIELD, "anns_dummy"), TestKv(milvus::TOPK, "10"),
+                                                TestKv(milvus::METRIC_TYPE, "IP"), TestKv(milvus::ROUND_DECIMAL, "1"),
+                                                TestKv(milvus::IGNORE_GROWING, "false"), TestKv(milvus::NPROBE, "10"),
+                                                TestKv(milvus::OFFSET, "0"), _))),
             _))
         .WillOnce([&vectors, simulate_timeout](::grpc::ServerContext*, const SearchRequest* request,
                                                SearchResults* response) {
@@ -146,8 +145,8 @@ DoSearchVectors(testing::StrictMock<::milvus::MilvusMockedService>& service_,
 
 template <typename T>
 void
-TestSearchVectors(testing::StrictMock<::milvus::MilvusMockedService>& service_,
-                  std::shared_ptr<::milvus::MilvusClient>& client_, std::vector<T> vectors) {
+TestSearchVectors(testing::StrictMock<milvus::MilvusMockedService>& service_, milvus::MilvusClientPtr& client_,
+                  std::vector<T> vectors) {
     milvus::SearchResults search_results{};
 
     auto status = DoSearchVectors<T>(service_, client_, vectors, search_results);

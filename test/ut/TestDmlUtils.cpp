@@ -100,8 +100,7 @@ TEST_F(DmlUtilsTest, CheckInsertInputTest) {
 
     {
         // enable_dynamic_field is false, the dynamic field data is not json type, both insert and upsert are wrong
-        auto dynamic_data =
-            std::make_shared<milvus::Int64FieldData>(milvus::DynamicFieldName(), std::vector<int64_t>{1, 2});
+        auto dynamic_data = std::make_shared<milvus::Int64FieldData>(milvus::DYNAMIC_FIELD, std::vector<int64_t>{1, 2});
         std::vector<milvus::FieldDataPtr> temp_fields = fields;
         temp_fields.emplace_back(dynamic_data);
 
@@ -115,7 +114,7 @@ TEST_F(DmlUtilsTest, CheckInsertInputTest) {
     {
         // enable_dynamic_field is false, the dynamic field data is json type, both insert and upsert are wrong
         auto dynamic_data = std::make_shared<milvus::JSONFieldData>(
-            milvus::DynamicFieldName(), std::vector<nlohmann::json>{{"age", 50}, {"age", 100}});
+            milvus::DYNAMIC_FIELD, std::vector<nlohmann::json>{{"age", 50}, {"age", 100}});
         std::vector<milvus::FieldDataPtr> temp_fields = fields;
         temp_fields.emplace_back(dynamic_data);
 
@@ -129,8 +128,7 @@ TEST_F(DmlUtilsTest, CheckInsertInputTest) {
     desc->SetSchema(std::move(createSchemaFunc(false, true)));
     {
         // enable_dynamic_field is true, the dynamic field data is not json type, both insert and upsert are wrong
-        auto dummy_data =
-            std::make_shared<milvus::Int64FieldData>(milvus::DynamicFieldName(), std::vector<int64_t>{1, 2});
+        auto dummy_data = std::make_shared<milvus::Int64FieldData>(milvus::DYNAMIC_FIELD, std::vector<int64_t>{1, 2});
         std::vector<milvus::FieldDataPtr> temp_fields = fields;
         temp_fields.emplace_back(dummy_data);
 
@@ -144,7 +142,7 @@ TEST_F(DmlUtilsTest, CheckInsertInputTest) {
     {
         // enable_dynamic_field is true, the dynamic field data is json type, both insert and upsert are ok
         auto dummy_data = std::make_shared<milvus::JSONFieldData>(
-            milvus::DynamicFieldName(), std::vector<nlohmann::json>{{"age", 50}, {"age", 100}});
+            milvus::DYNAMIC_FIELD, std::vector<nlohmann::json>{{"age", 50}, {"age", 100}});
         std::vector<milvus::FieldDataPtr> temp_fields = fields;
         temp_fields.emplace_back(std::make_shared<milvus::Int64FieldData>("pk", std::vector<int64_t>{1, 2}));
         temp_fields.emplace_back(dummy_data);

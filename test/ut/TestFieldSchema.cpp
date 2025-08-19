@@ -49,31 +49,31 @@ TEST_F(FieldSchemaTest, GeneralTesting) {
     EXPECT_EQ(auto_id, schema.AutoID());
 
     auto& type_params = schema.TypeParams();
-    EXPECT_TRUE(type_params.find(milvus::FieldDim()) != type_params.end());
-    EXPECT_EQ("256", type_params.at(milvus::FieldDim()));
+    EXPECT_TRUE(type_params.find(milvus::DIM) != type_params.end());
+    EXPECT_EQ("256", type_params.at(milvus::DIM));
 }
 
 TEST_F(FieldSchemaTest, TestWithDimention) {
     EXPECT_EQ("1024", milvus::FieldSchema("vectors", milvus::DataType::FLOAT_VECTOR, "")
                           .WithDimension(1024)
                           .TypeParams()
-                          .at(milvus::FieldDim()));
+                          .at(milvus::DIM));
 }
 
 TEST_F(FieldSchemaTest, TestForMaxLength) {
     auto schema = milvus::FieldSchema("name", milvus::DataType::VARCHAR, "");
     EXPECT_EQ(0, schema.MaxLength());
     schema = milvus::FieldSchema("name", milvus::DataType::VARCHAR, "").WithMaxLength(200);
-    EXPECT_EQ("200", schema.TypeParams().at(milvus::FieldMaxLength()));
+    EXPECT_EQ("200", schema.TypeParams().at(milvus::MAX_LENGTH));
     schema.SetMaxLength(300);
-    EXPECT_EQ("300", schema.TypeParams().at(milvus::FieldMaxLength()));
+    EXPECT_EQ("300", schema.TypeParams().at(milvus::MAX_LENGTH));
     EXPECT_EQ(300, schema.MaxLength());
 }
 
 TEST_F(FieldSchemaTest, TestWithCapacity) {
     auto schema = milvus::FieldSchema("array", milvus::DataType::ARRAY, "").WithMaxCapacity(100);
     EXPECT_EQ(100, schema.MaxCapacity());
-    EXPECT_EQ("100", schema.TypeParams().at(milvus::FieldMaxCapacity()));
+    EXPECT_EQ("100", schema.TypeParams().at(milvus::MAX_CAPACITY));
 }
 
 TEST_F(FieldSchemaTest, TestElementType) {

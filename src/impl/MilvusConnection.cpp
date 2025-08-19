@@ -460,4 +460,12 @@ MilvusConnection::GetLoadState(const proto::milvus::GetLoadStateRequest& request
                                proto::milvus::GetLoadStateResponse& response, const GrpcContextOptions& options) {
     return grpcCall("GetLoadState", &Stub::GetLoadState, request, response, options);
 }
+
+Status
+MilvusConnection::GetLoadingProgress(const proto::milvus::GetLoadingProgressRequest request,
+                                     proto::milvus::GetLoadingProgressResponse& response,
+                                     const GrpcContextOptions& options) {
+    return grpcCall("GetLoadingProgress", &Stub::GetLoadingProgress, request, response, options);
+}
+
 }  // namespace milvus

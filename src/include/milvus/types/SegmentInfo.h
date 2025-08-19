@@ -97,7 +97,8 @@ class QuerySegmentInfo : public SegmentInfo {
      * @brief Constructor
      */
     QuerySegmentInfo(int64_t collection_id, int64_t partition_id, int64_t segment_id, int64_t row_count,
-                     SegmentState state, std::string index_name, int64_t index_id, int64_t node_id);
+                     SegmentState state, std::string index_name, int64_t index_id,
+                     const std::vector<int64_t>& node_ids);
 
     /**
      * @brief Index name of the segment.
@@ -113,14 +114,22 @@ class QuerySegmentInfo : public SegmentInfo {
 
     /**
      * @brief Node id of the segment.
+     * @deprecated in v2.4, a segment can be loaded into multiple nodes, use the NodeIDs() instead.
+     * This method will return the first node id in from id list.
      */
     int64_t
     NodeID() const;
 
+    /**
+     * @brief Node id list of the segment.
+     */
+    const std::vector<int64_t>&
+    NodeIDs() const;
+
  private:
     std::string index_name_;
     int64_t index_id_{0};
-    int64_t node_id_{0};
+    std::vector<int64_t> node_ids_;
 };
 
 /**

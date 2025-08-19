@@ -180,17 +180,9 @@ MilvusClientImpl::LoadCollection(const std::string& collection_name, int replica
     auto wait_for_status = [this, &collection_name, &progress_monitor](const proto::common::Status&) {
         return WaitForStatus(
             [&collection_name, this](Progress& progress) -> Status {
-                CollectionsInfo collections_info;
-                auto collection_names = std::vector<std::string>{collection_name};
-                auto status = ShowCollections(collection_names, collections_info);
-                if (!status.IsOk()) {
-                    return status;
-                }
-                progress.total_ = collections_info.size();
-                progress.finished_ = std::count_if(
-                    collections_info.begin(), collections_info.end(),
-                    [](const CollectionInfo& collection_info) { return collection_info.MemoryPercentage() >= 100; });
-                return status;
+                progress.total_ = 100;
+                std::vector<std::string> partition_names;
+                return getLoadingProgress(collection_name, partition_names, progress.finished_);
             },
             progress_monitor);
     };
@@ -273,28 +265,23 @@ MilvusClientImpl::GetCollectionStatistics(const std::string& collection_name, Co
 
 Status
 MilvusClientImpl::ShowCollections(const std::vector<std::string>& collection_names, CollectionsInfo& collections_info) {
-    auto pre = [&collection_names]() {
-        proto::milvus::ShowCollectionsRequest rpc_request;
+    return ListCollections(collections_info, false);
+}
 
-        if (collection_names.empty()) {
-            rpc_request.set_type(proto::milvus::ShowType::All);
-        } else {
-            rpc_request.set_type(proto::milvus::ShowType::InMemory);
-            for (auto& collection_name : collection_names) {
-                rpc_request.add_collection_names(collection_name);
-            }
-        }
+Status
+MilvusClientImpl::ListCollections(CollectionsInfo& collections_info, bool only_show_loaded) {
+    auto pre = [&only_show_loaded]() {
+        proto::milvus::ShowCollectionsRequest rpc_request;
+        auto show_type = only_show_loaded ? proto::milvus::ShowType::InMemory : proto::milvus::ShowType::All;
+        rpc_request.set_type(show_type);
         return rpc_request;
     };
 
     auto post = [&collections_info](const proto::milvus::ShowCollectionsResponse& response) {
+        collections_info.clear();
         for (int i = 0; i < response.collection_ids_size(); i++) {
-            auto inmemory_percentage = 0;
-            if (response.inmemory_percentages_size() > i) {
-                inmemory_percentage = response.inmemory_percentages(i);
-            }
             collections_info.emplace_back(response.collection_names(i), response.collection_ids(i),
-                                          response.created_utc_timestamps(i), inmemory_percentage);
+                                          response.created_utc_timestamps(i));
         }
     };
     return apiHandler<proto::milvus::ShowCollectionsRequest, proto::milvus::ShowCollectionsResponse>(
@@ -362,17 +349,8 @@ MilvusClientImpl::LoadPartitions(const std::string& collection_name, const std::
     auto wait_for_status = [this, &collection_name, &partition_names, &progress_monitor](const proto::common::Status&) {
         return WaitForStatus(
             [&collection_name, &partition_names, this](Progress& progress) -> Status {
-                PartitionsInfo partitions_info;
-                auto status = ShowPartitions(collection_name, partition_names, partitions_info);
-                if (!status.IsOk()) {
-                    return status;
-                }
-                progress.total_ = partition_names.size();
-                progress.finished_ =
-                    std::count_if(partitions_info.begin(), partitions_info.end(),
-                                  [](const PartitionInfo& partition_info) { return partition_info.Loaded(); });
-
-                return status;
+                progress.total_ = 100;
+                return getLoadingProgress(collection_name, partition_names, progress.finished_);
             },
             progress_monitor);
     };
@@ -421,34 +399,27 @@ MilvusClientImpl::GetPartitionStatistics(const std::string& collection_name, con
 Status
 MilvusClientImpl::ShowPartitions(const std::string& collection_name, const std::vector<std::string>& partition_names,
                                  PartitionsInfo& partitions_info) {
-    auto pre = [&collection_name, &partition_names] {
+    return ListPartitions(collection_name, partitions_info, false);
+}
+
+Status
+MilvusClientImpl::ListPartitions(const std::string& collection_name, PartitionsInfo& partitions_info,
+                                 bool only_show_loaded) {
+    auto pre = [&collection_name, &only_show_loaded] {
         proto::milvus::ShowPartitionsRequest rpc_request;
         rpc_request.set_collection_name(collection_name);
-        if (partition_names.empty()) {
-            rpc_request.set_type(proto::milvus::ShowType::All);
-        } else {
-            rpc_request.set_type(proto::milvus::ShowType::InMemory);
-        }
-
-        for (const auto& partition_name : partition_names) {
-            rpc_request.add_partition_names(partition_name);
-        }
-
+        auto show_type = only_show_loaded ? proto::milvus::ShowType::InMemory : proto::milvus::ShowType::All;
+        rpc_request.set_type(show_type);
         return rpc_request;
     };
 
     auto post = [&partitions_info](const proto::milvus::ShowPartitionsResponse& response) {
         auto count = response.partition_names_size();
-        if (count > 0) {
-            partitions_info.reserve(count);
-        }
+        partitions_info.clear();
+        partitions_info.reserve(count);
         for (int i = 0; i < count; ++i) {
-            int inmemory_percentage = 0;
-            if (response.inmemory_percentages_size() > i) {
-                inmemory_percentage = response.inmemory_percentages(i);
-            }
             partitions_info.emplace_back(response.partition_names(i), response.partitionids(i),
-                                         response.created_timestamps(i), inmemory_percentage);
+                                         response.created_timestamps(i));
         }
     };
 
@@ -620,18 +591,18 @@ MilvusClientImpl::CreateIndex(const std::string& collection_name, const IndexDes
         rpc_request.set_index_name(index_desc.IndexName());
 
         auto kv_pair = rpc_request.add_extra_params();
-        kv_pair->set_key(milvus::KeyIndexType());
+        kv_pair->set_key(milvus::INDEX_TYPE);
         kv_pair->set_value(std::to_string(index_desc.IndexType()));
 
         // for scalar fields, no metric type
         if (index_desc.MetricType() != MetricType::DEFAULT) {
             kv_pair = rpc_request.add_extra_params();
-            kv_pair->set_key(milvus::KeyMetricType());
+            kv_pair->set_key(milvus::METRIC_TYPE);
             kv_pair->set_value(std::to_string(index_desc.MetricType()));
         }
 
         kv_pair = rpc_request.add_extra_params();
-        kv_pair->set_key(milvus::KeyParams());
+        kv_pair->set_key(milvus::PARAMS);
         ::nlohmann::json json_obj(index_desc.ExtraParams());
         kv_pair->set_value(json_obj.dump());
 
@@ -706,11 +677,11 @@ MilvusClientImpl::DescribeIndex(const std::string& collection_name, const std::s
             for (int j = 0; j < index_params_size; ++j) {
                 const auto& key = rpc_desc.params(j).key();
                 const auto& value = rpc_desc.params(j).value();
-                if (key == milvus::KeyIndexType()) {
+                if (key == milvus::INDEX_TYPE) {
                     index_desc.SetIndexType(IndexTypeCast(value));
-                } else if (key == milvus::KeyMetricType()) {
+                } else if (key == milvus::METRIC_TYPE) {
                     index_desc.SetMetricType(MetricTypeCast(value));
-                } else if (key == milvus::KeyParams()) {
+                } else if (key == milvus::PARAMS) {
                     index_desc.ExtraParamsFromJson(value);
                 }
             }
@@ -804,7 +775,7 @@ MilvusClientImpl::Insert(const std::string& collection_name, const std::string& 
         rpc_request.set_num_rows((*fields.front()).Count());
         for (const auto& field : fields) {
             proto::schema::FieldData data = CreateProtoFieldData(*field);
-            if (enable_dynamic_field && field->Name() == DynamicFieldName()) {
+            if (enable_dynamic_field && field->Name() == DYNAMIC_FIELD) {
                 data.set_is_dynamic(true);
             }
             mutable_fields->Add(std::move(data));
@@ -932,7 +903,7 @@ MilvusClientImpl::Upsert(const std::string& collection_name, const std::string& 
         rpc_request.set_num_rows((*fields.front()).Count());
         for (const auto& field : fields) {
             proto::schema::FieldData data = CreateProtoFieldData(*field);
-            if (enable_dynamic_field && field->Name() == DynamicFieldName()) {
+            if (enable_dynamic_field && field->Name() == DYNAMIC_FIELD) {
                 data.set_is_dynamic(true);
             }
             mutable_fields->Add(std::move(data));
@@ -1088,30 +1059,30 @@ MilvusClientImpl::Search(const SearchArguments& arguments, SearchResults& result
         // vector fields, user needs to explicitly provide an anns field name.
         auto anns_field = arguments.AnnsField();
         if (!anns_field.empty()) {
-            setParamFunc(milvus::KeyAnnsField(), anns_field);
+            setParamFunc(milvus::ANNS_FIELD, anns_field);
         }
 
         // for history reason, query() requires "limit", search() requires "topk"
-        setParamFunc(milvus::KeyTopK(), std::to_string(arguments.Limit()));
+        setParamFunc(milvus::TOPK, std::to_string(arguments.Limit()));
 
         // set this value only when client specified, otherwise let server to get it from index parameters
         if (arguments.MetricType() != MetricType::DEFAULT) {
-            setParamFunc(milvus::KeyMetricType(), std::to_string(arguments.MetricType()));
+            setParamFunc(milvus::METRIC_TYPE, std::to_string(arguments.MetricType()));
         }
 
         // offset
-        setParamFunc(milvus::KeyOffset(), std::to_string(arguments.Offset()));
+        setParamFunc(milvus::OFFSET, std::to_string(arguments.Offset()));
 
         // round decimal
-        setParamFunc(milvus::KeyRoundDecimal(), std::to_string(arguments.RoundDecimal()));
+        setParamFunc(milvus::ROUND_DECIMAL, std::to_string(arguments.RoundDecimal()));
 
         // ignore growing
-        setParamFunc(milvus::KeyIgnoreGrowing(), arguments.IgnoreGrowing() ? "true" : "false");
+        setParamFunc(milvus::IGNORE_GROWING, arguments.IgnoreGrowing() ? "true" : "false");
 
         // group by
         auto group_by_field = arguments.GroupByField();
         if (!group_by_field.empty()) {
-            setParamFunc(milvus::KeyGroupByField(), arguments.GroupByField());
+            setParamFunc(milvus::GROUPBY_FIELD, arguments.GroupByField());
         }
 
         // extra params radius/range_filter/nprobe etc.
@@ -1167,21 +1138,21 @@ MilvusClientImpl::HybridSearch(const HybridSearchArguments& arguments, SearchRes
             auto anns_field = sub_request->AnnsField();
             if (!anns_field.empty()) {
                 auto kv_pair = search_req->add_search_params();
-                kv_pair->set_key(milvus::KeyAnnsField());
+                kv_pair->set_key(milvus::ANNS_FIELD);
                 kv_pair->set_value(anns_field);
             }
 
             // for history reason, query() requires "limit", search() requires "topk"
             {
                 auto kv_pair = search_req->add_search_params();
-                kv_pair->set_key(milvus::KeyTopK());
+                kv_pair->set_key(milvus::TOPK);
                 kv_pair->set_value(std::to_string(sub_request->Limit()));
             }
 
             // set this value only when client specified, otherwise let server to get it from index parameters
             if (sub_request->MetricType() != MetricType::DEFAULT) {
                 auto kv_pair = search_req->add_search_params();
-                kv_pair->set_key(milvus::KeyMetricType());
+                kv_pair->set_key(milvus::METRIC_TYPE);
                 kv_pair->set_value(std::to_string(sub_request->MetricType()));
             }
 
@@ -1192,9 +1163,9 @@ MilvusClientImpl::HybridSearch(const HybridSearchArguments& arguments, SearchRes
         // set rerank/limit/offset/round decimal
         auto reranker = arguments.Rerank();
         auto params = reranker->Params();
-        params[KeyLimit()] = std::to_string(arguments.Limit());  // hybrid search is new interface, requires "limit"
-        params[KeyOffset()] = std::to_string(arguments.Offset());
-        params[KeyRoundDecimal()] = std::to_string(arguments.RoundDecimal());
+        params[LIMIT] = std::to_string(arguments.Limit());  // hybrid search is new interface, requires "limit"
+        params[OFFSET] = std::to_string(arguments.Offset());
+        params[ROUND_DECIMAL] = std::to_string(arguments.RoundDecimal());
 
         for (auto& pair : params) {
             auto kv_pair = rpc_request.add_rank_params();
@@ -1379,9 +1350,12 @@ MilvusClientImpl::GetQuerySegmentInfo(const std::string& collection_name, QueryS
 
     auto post = [&segments_info](const proto::milvus::GetQuerySegmentInfoResponse& response) {
         for (const auto& info : response.infos()) {
+            std::vector<int64_t> ids;
+            for (auto id : info.nodeids()) {
+                ids.push_back(id);
+            }
             segments_info.emplace_back(info.collectionid(), info.partitionid(), info.segmentid(), info.num_rows(),
-                                       milvus::SegmentStateCast(info.state()), info.index_name(), info.indexid(),
-                                       info.nodeid());
+                                       milvus::SegmentStateCast(info.state()), info.index_name(), info.indexid(), ids);
         }
     };
     return apiHandler<proto::milvus::GetQuerySegmentInfoRequest, proto::milvus::GetQuerySegmentInfoResponse>(
@@ -1584,6 +1558,24 @@ MilvusClientImpl::GetLoadState(const std::string& collection_name, bool& is_load
 
     return apiHandler<proto::milvus::GetLoadStateRequest, proto::milvus::GetLoadStateResponse>(
         pre, &MilvusConnection::GetLoadState, post);
+}
+
+Status
+MilvusClientImpl::getLoadingProgress(const std::string& collection_name, const std::vector<std::string> partition_names,
+                                     uint32_t& progress) {
+    proto::milvus::GetLoadingProgressRequest progress_req;
+    progress_req.set_collection_name(collection_name);
+    for (const auto& partition_name : partition_names) {
+        progress_req.add_partition_names(partition_name);
+    }
+    proto::milvus::GetLoadingProgressResponse progress_resp;
+    uint64_t timeout = connection_->GetConnectParam().RpcDeadlineMs();
+    auto status = connection_->GetLoadingProgress(progress_req, progress_resp, GrpcOpts{timeout});
+    if (!status.IsOk()) {
+        return status;
+    }
+    progress = static_cast<uint32_t>(progress_resp.progress());
+    return Status::OK();
 }
 
 Status

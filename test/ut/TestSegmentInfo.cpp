@@ -37,10 +37,10 @@ TEST_F(SegmentInfoTest, GeneralTesting) {
 
     std::string index_name = "IVF_FLAT";
     int64_t index_id = 5;
-    int64_t node_id = 6;
+    std::vector<int64_t> node_ids{5, 6, 9};
     milvus::QuerySegmentInfo query_info(collection_id, partition_id, segment_id, row_count, state, index_name, index_id,
-                                        node_id);
+                                        node_ids);
     EXPECT_EQ(index_name, query_info.IndexName());
     EXPECT_EQ(index_id, query_info.IndexID());
-    EXPECT_EQ(node_id, query_info.NodeID());
+    EXPECT_EQ(node_ids, query_info.NodeIDs());
 }

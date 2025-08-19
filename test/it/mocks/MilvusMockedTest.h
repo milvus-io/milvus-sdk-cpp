@@ -26,7 +26,7 @@ class UnconnectMilvusMockedTest : public ::testing::Test {
  protected:
     testing::StrictMock<::milvus::MilvusMockedService> service_{};
     ::milvus::MilvusMockedServer server_{service_};
-    std::shared_ptr<::milvus::MilvusClient> client_;
+    MilvusClientPtr client_;
 
     void
     SetUp() override;

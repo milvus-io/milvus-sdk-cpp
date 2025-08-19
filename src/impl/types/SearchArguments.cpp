@@ -214,9 +214,8 @@ SearchArguments::SetMetricType(::milvus::MetricType metric_type) {
 Status
 SearchArguments::AddExtraParam(const std::string& key, const std::string& value) {
     extra_params_[key] = value;
-    static std::set<std::string> s_ambiguous = {KeyParams(),      KeyTopK(),         KeyAnnsField(),
-                                                KeyMetricType(),  KeyRoundDecimal(), KeyIgnoreGrowing(),
-                                                KeyGroupByField()};
+    static std::set<std::string> s_ambiguous = {PARAMS,        TOPK,           ANNS_FIELD,   METRIC_TYPE,
+                                                ROUND_DECIMAL, IGNORE_GROWING, GROUPBY_FIELD};
     if (s_ambiguous.find(key) != s_ambiguous.end()) {
         return {StatusCode::INVALID_AGUMENT, "ambiguous parameter: not allow to set '" + key + "' in extra params"};
     }
@@ -230,7 +229,7 @@ SearchArguments::ExtraParams() const {
 
 float
 SearchArguments::Radius() const {
-    auto it = extra_params_.find(KeyRadius());
+    auto it = extra_params_.find(RADIUS);
     if (it != extra_params_.end()) {
         return std::stof(it->second);
     }
@@ -239,13 +238,13 @@ SearchArguments::Radius() const {
 
 Status
 SearchArguments::SetRadius(float value) {
-    extra_params_[KeyRadius()] = std::to_string(value);
+    extra_params_[RADIUS] = std::to_string(value);
     return Status::OK();
 }
 
 float
 SearchArguments::RangeFilter() const {
-    auto it = extra_params_.find(KeyRangeFilter());
+    auto it = extra_params_.find(RANGE_FILTER);
     if (it != extra_params_.end()) {
         return std::stof(it->second);
     }
@@ -254,7 +253,7 @@ SearchArguments::RangeFilter() const {
 
 Status
 SearchArguments::SetRangeFilter(float value) {
-    extra_params_[KeyRangeFilter()] = std::to_string(value);
+    extra_params_[RANGE_FILTER] = std::to_string(value);
     return Status::OK();
 }
 
@@ -401,7 +400,7 @@ SearchArguments::TopK() const {
 
 int64_t
 SearchArguments::Nprobe() const {
-    auto it = extra_params_.find(KeyNprobe());
+    auto it = extra_params_.find(NPROBE);
     if (it != extra_params_.end()) {
         return std::stoll(it->second);
     }
@@ -410,7 +409,7 @@ SearchArguments::Nprobe() const {
 
 Status
 SearchArguments::SetNprobe(int64_t nprobe) {
-    extra_params_[KeyNprobe()] = std::to_string(nprobe);
+    extra_params_[NPROBE] = std::to_string(nprobe);
     return Status::OK();
 }
 

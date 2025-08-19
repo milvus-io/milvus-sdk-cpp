@@ -111,13 +111,13 @@ Function::Params() const {
 // RRFRerank
 RRFRerank::RRFRerank() {
     function_type_ = FunctionType::RERANK;
-    params_[KeyStrategy()] = "rrf";
+    params_[STRATEGY] = "rrf";
     SetK(60);
 }
 
 RRFRerank::RRFRerank(int k) {
     function_type_ = FunctionType::RERANK;
-    params_[KeyStrategy()] = "rrf";
+    params_[STRATEGY] = "rrf";
     SetK(k);
 }
 
@@ -134,7 +134,7 @@ RRFRerank::SetK(int k) {
     nlohmann::json json_params;
     json_params["k"] = k;
 
-    AddParam(KeyParams(), json_params.dump());
+    AddParam(PARAMS, json_params.dump());
     return Status::OK();
 }
 
@@ -142,7 +142,7 @@ RRFRerank::SetK(int k) {
 // WeightedRerank
 WeightedRerank::WeightedRerank(const std::vector<float>& weights) {
     function_type_ = FunctionType::RERANK;
-    params_[KeyStrategy()] = "weighted";
+    params_[STRATEGY] = "weighted";
     SetWeights(weights);
 }
 
@@ -159,7 +159,7 @@ WeightedRerank::SetWeights(const std::vector<float>& weights) {
     nlohmann::json json_params;
     json_params["weights"] = weights;
 
-    AddParam(KeyParams(), json_params.dump());
+    AddParam(PARAMS, json_params.dump());
     return Status::OK();
 }
 
