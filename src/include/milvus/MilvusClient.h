@@ -53,6 +53,8 @@ namespace milvus {
  */
 class MilvusClient {
  public:
+    virtual ~MilvusClient() = default;
+
     /**
      * Create a MilvusClient instance.
      *
@@ -458,6 +460,19 @@ class MilvusClient {
            const std::vector<FieldDataPtr>& fields, DmlResults& results) = 0;
 
     /**
+     * Insert rows into a collection.
+     *
+     * @param [in] collection_name name of the collection
+     * @param [in] partition_name name of the partition, optional(pass an empty string to skip)
+     * @param [in] rows insert rows
+     * @param [out] results insert results
+     * @return Status operation successfully or not
+     */
+    virtual Status
+    Insert(const std::string& collection_name, const std::string& partition_name,
+           const std::vector<nlohmann::json>& rows, DmlResults& results) = 0;
+
+    /**
      * Upsert entities into a collection.
      *
      * @param [in] collection_name name of the collection
@@ -469,6 +484,19 @@ class MilvusClient {
     virtual Status
     Upsert(const std::string& collection_name, const std::string& partition_name,
            const std::vector<FieldDataPtr>& fields, DmlResults& results) = 0;
+
+    /**
+     * Upsert rows into a collection.
+     *
+     * @param [in] collection_name name of the collection
+     * @param [in] partition_name name of the partition, optional(pass an empty string to skip)
+     * @param [in] fields upsedrt rows
+     * @param [out] results upsedrt results
+     * @return Status operation successfully or not
+     */
+    virtual Status
+    Upsert(const std::string& collection_name, const std::string& partition_name,
+           const std::vector<nlohmann::json>& rows, DmlResults& results) = 0;
 
     /**
      * Delete entities by filtering condition.

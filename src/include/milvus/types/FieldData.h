@@ -27,6 +27,8 @@
 namespace milvus {
 class Field {
  public:
+    virtual ~Field() = default;
+
     /**
      * @brief Get field name
      */
@@ -132,7 +134,6 @@ class FieldData : public Field {
     Value(size_t i) const;
 
  protected:
-    friend class BinaryVecFieldData;
     std::vector<T> data_;
 };
 
@@ -191,6 +192,11 @@ class ArrayFieldData : public FieldData<std::vector<T>, DataType::ARRAY> {
 
 class BinaryVecFieldData : public FieldData<std::vector<uint8_t>, DataType::BINARY_VECTOR> {
  public:
+    /**
+     * @brief Field element type
+     */
+    using ElementT = std::vector<uint8_t>;
+
     /**
      * @brief Constructor
      */

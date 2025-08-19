@@ -21,6 +21,7 @@
 #include "milvus/types/ConsistencyLevel.h"
 #include "milvus/types/FieldData.h"
 #include "milvus/types/FieldSchema.h"
+#include "schema.pb.h"
 
 namespace milvus {
 
@@ -35,5 +36,39 @@ IsRealFailure(const proto::common::Status& status);
 
 uint64_t
 DeduceGuaranteeTimestamp(const ConsistencyLevel& level, const std::string& db_name, const std::string& collection_name);
+
+Status
+CheckAndSetBinaryVector(const nlohmann::json& obj, const FieldSchema& fs, proto::schema::VectorField* vf);
+
+Status
+CheckAndSetFloatVector(const nlohmann::json& obj, const FieldSchema& fs, proto::schema::VectorField* vf);
+
+Status
+ParseSparseFloatVector(const nlohmann::json& obj, const std::string& field_name, std::map<uint32_t, float>& pairs);
+
+Status
+CheckAndSetSparseFloatVector(const nlohmann::json& obj, const FieldSchema& fs, proto::schema::VectorField* vf);
+
+Status
+CheckAndSetFloat16Vector(const nlohmann::json& obj, const FieldSchema& fs, proto::schema::VectorField* vf);
+
+Status
+CheckAndSetArray(const nlohmann::json& obj, const FieldSchema& fs, proto::schema::ArrayArray* aa);
+
+Status
+CheckAndSetScalar(const nlohmann::json& obj, const FieldSchema& fs, proto::schema::ScalarField* sf, bool is_array);
+
+Status
+CheckAndSetFieldValue(const nlohmann::json& obj, const FieldSchema& fs, proto::schema::FieldData& fd);
+
+Status
+CheckAndSetRowData(const std::vector<nlohmann::json>& rows, const CollectionSchema& schema, bool is_upsert,
+                   std::vector<proto::schema::FieldData>& rpc_fields);
+
+Status
+GetRowsFromFieldsData(const std::vector<FieldDataPtr>& fields, std::vector<nlohmann::json>& rows);
+
+Status
+GetRowFromFieldsData(const std::vector<FieldDataPtr>& fields, size_t i, nlohmann::json& row);
 
 }  // namespace milvus

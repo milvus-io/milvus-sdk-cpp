@@ -58,9 +58,48 @@ class DmlResults {
     void
     SetTimestamp(uint64_t timestamp);
 
+    /**
+     * @brief The number of inserted rows.
+     */
+    uint64_t
+    InsertCount() const;
+
+    /**
+     * @brief Set number of inserted rows.
+     */
+    void
+    SetInsertCount(uint64_t count);
+
+    /**
+     * @brief The number of deleted rows.
+     */
+    uint64_t
+    DeleteCount() const;
+
+    /**
+     * @brief Set number of deleted rows.
+     */
+    void
+    SetDeleteCount(uint64_t count);
+
+    /**
+     * @brief The number of upserted rows.
+     */
+    uint64_t
+    UpsertCount() const;
+
+    /**
+     * @brief Set number of upserted rows.
+     */
+    void
+    SetUpsertCount(uint64_t count);
+
  private:
     IDArray id_array_{std::vector<int64_t>{}};
     uint64_t timestamp_{0};
+    uint64_t insert_cnt_{0};
+    uint64_t delete_cnt_{0};
+    uint64_t upsert_cnt_{0};
 };
 
 }  // namespace milvus

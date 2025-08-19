@@ -142,7 +142,7 @@ RRFRerank::SetK(int k) {
 // WeightedRerank
 WeightedRerank::WeightedRerank(const std::vector<float>& weights) {
     function_type_ = FunctionType::RERANK;
-    params_[KeyStrategy()] = "weights";
+    params_[KeyStrategy()] = "weighted";
     SetWeights(weights);
 }
 

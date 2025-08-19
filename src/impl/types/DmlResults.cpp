@@ -43,4 +43,34 @@ DmlResults::SetTimestamp(uint64_t timestamp) {
     timestamp_ = timestamp;
 }
 
+uint64_t
+DmlResults::InsertCount() const {
+    return insert_cnt_;
+}
+
+void
+DmlResults::SetInsertCount(uint64_t count) {
+    insert_cnt_ = count;
+}
+
+uint64_t
+DmlResults::DeleteCount() const {
+    return delete_cnt_;
+}
+
+void
+DmlResults::SetDeleteCount(uint64_t count) {
+    delete_cnt_ = count;
+}
+
+uint64_t
+DmlResults::UpsertCount() const {
+    return upsert_cnt_;
+}
+
+void
+DmlResults::SetUpsertCount(uint64_t count) {
+    upsert_cnt_ = count;
+}
+
 }  // namespace milvus

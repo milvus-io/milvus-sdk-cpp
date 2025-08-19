@@ -558,6 +558,9 @@ DecodeSparseFloatVector(std::string& bytes) {
         throw std::runtime_error("Unexpected binary string is received from server side!");
     }
 
+    // indices are uint32_t type but the protobuf only has int32/int64, so we use int32 to store
+    // the binary of uint32_t as both of them are 4 bits width.
+    // value type is float 4 bits width, each pair of index/value is 8 bits, the binary length is N * 8 bits.
     size_t count = bytes.size() / 8;
     SparseFloatVecFieldData::ElementT sparse{};
     for (size_t i = 0; i < count; i++) {
@@ -901,6 +904,7 @@ ConvertFieldSchema(const proto::schema::FieldSchema& proto_schema, FieldSchema& 
     field_schema.SetPrimaryKey(proto_schema.is_primary_key());
     field_schema.SetAutoID(proto_schema.autoid());
     field_schema.SetDataType(DataTypeCast(proto_schema.data_type()));
+    field_schema.SetElementType(DataTypeCast(proto_schema.element_type()));
 
     std::map<std::string, std::string> params;
     for (int k = 0; k < proto_schema.type_params_size(); ++k) {

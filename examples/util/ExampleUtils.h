@@ -23,7 +23,9 @@
 #include <type_traits>
 
 #include "milvus/Status.h"
+#include "milvus/types/Constants.h"
 #include "milvus/utils/FP16.h"
+#include "nlohmann/json.hpp"
 
 namespace util {
 using REAL_GEN = std::uniform_real_distribution<float>;
@@ -67,9 +69,9 @@ GenerateSparseVectors(int max_dim, int count) {
     REAL_GEN float_gen(0.0, 1.0);
     std::vector<std::map<uint32_t, float>> vectors(count);
     for (auto i = 0; i < count; ++i) {
-        int dimension = int_gen(ran);
+        int pair_count = int_gen(ran) % 10;
         std::map<uint32_t, float> vector{};
-        for (auto d = 0; d < dimension; ++d) {
+        for (auto d = 0; d < pair_count; ++d) {
             vector.insert(std::make_pair(int_gen(ran), float_gen(ran)));
         }
         vectors[i] = vector;
@@ -81,6 +83,31 @@ std::map<uint32_t, float>
 GenerateSparseVector(int max_dim) {
     std::vector<std::map<uint32_t, float>> vectors = GenerateSparseVectors(max_dim, 1);
     return vectors[0];
+}
+
+nlohmann::json
+GenerateSparseVectorInJson(int max_dim, bool key_value_pattern) {
+    std::map<uint32_t, float> sparse = GenerateSparseVector(max_dim);
+
+    // support two patterns of sparse
+    // 1. a json dict like {"1": 0.1, "5": 0.2, "8": 0.15}
+    // 2. a json dict like {"indices": [1, 5, 8], "values": [0.1, 0.2, 0.15]}
+    nlohmann::json obj = nlohmann::json::object();
+    if (key_value_pattern) {
+        for (const auto& pair : sparse) {
+            obj[std::to_string(pair.first)] = pair.second;
+        }
+    } else {
+        std::vector<uint32_t> indices;
+        std::vector<float> values;
+        for (const auto& pair : sparse) {
+            indices.push_back(pair.first);
+            values.push_back(pair.second);
+        }
+        obj[milvus::SparseIndicesKey()] = indices;
+        obj[milvus::SparseValuesKey()] = values;
+    }
+    return obj;
 }
 
 std::vector<std::vector<uint8_t>>
@@ -188,45 +215,6 @@ RansomBools(int count) {
     std::vector<bool> bools(count);
     std::transform(values.begin(), values.end(), bools.begin(), [](int x) { return x % 2 == 1; });
     return bools;
-}
-
-template <typename T>
-void
-PrintList(const std::vector<T>& obj) {
-    std::cout << "[";
-    auto it = obj.begin();
-    while (it != obj.end()) {
-        if (it != obj.begin()) {
-            std::cout << ", ";
-        }
-        std::cout << *it;
-        ++it;
-    }
-    std::cout << "]";
-}
-
-void
-PrintListF16AsF32(const std::vector<uint16_t>& f16_vec, bool is_fp16) {
-    std::vector<float> f32_vec;
-    f32_vec.reserve(f16_vec.size());
-    std::transform(f16_vec.begin(), f16_vec.end(), std::back_inserter(f32_vec),
-                   [&is_fp16](uint16_t val) { return is_fp16 ? milvus::F16toF32(val) : milvus::BF16toF32(val); });
-    PrintList(f32_vec);
-}
-
-template <typename K, typename V>
-void
-PrintMap(const std::map<K, V>& obj) {
-    std::cout << "{";
-    auto it = obj.begin();
-    while (it != obj.end()) {
-        if (it != obj.begin()) {
-            std::cout << ", ";
-        }
-        std::cout << it->first << ":" << it->second;
-        ++it;
-    }
-    std::cout << "}";
 }
 
 }  // namespace util

@@ -67,45 +67,60 @@ main(int argc, char* argv[]) {
     util::CheckStatus("Failed to load collection:", status);
     std::cout << "Successfully load collection." << std::endl;
 
-    // insert some rows
-    const int64_t row_count = 100;
-    std::vector<std::vector<float>> insert_vectors = util::GenerateFloatVectors(dimension, row_count);
-    std::vector<std::string> insert_texts(row_count);
-    for (auto i = 0; i < row_count; ++i) {
-        insert_texts[i] = "hello world " + std::to_string(i);
+    {
+        // insert somes rows by column-based
+        auto texts = std::vector<std::string>{"column-based-1", "column-based-2"};
+        auto vectors = util::GenerateFloatVectors(dimension, 2);
+        std::vector<milvus::FieldDataPtr> fields_data{
+            std::make_shared<milvus::VarCharFieldData>(field_text, texts),
+            std::make_shared<milvus::FloatVecFieldData>(field_vector, vectors)};
+        milvus::DmlResults dml_results;
+        status = client->Insert(collection_name, "", fields_data, dml_results);
+        util::CheckStatus("Failed to insert:", status);
+        std::cout << "Successfully insert " << dml_results.InsertCount() << " rows by column-based." << std::endl;
     }
 
-    std::vector<milvus::FieldDataPtr> fields_data{
-        std::make_shared<milvus::VarCharFieldData>(field_text, insert_texts),
-        std::make_shared<milvus::FloatVecFieldData>(field_vector, insert_vectors),
-    };
+    // insert some rows
+    const int64_t row_count = 100;
+    std::vector<nlohmann::json> rows;
+    for (auto i = 0; i < row_count; ++i) {
+        nlohmann::json row;
+        row[field_text] = "hello world " + std::to_string(i);
+        row[field_vector] = util::GenerateFloatVector(dimension);
+        rows.emplace_back(row);
+    }
+
     milvus::DmlResults dml_results;
-    status = client->Insert(collection_name, "", fields_data, dml_results);
+    status = client->Insert(collection_name, "", rows, dml_results);
     util::CheckStatus("Failed to insert:", status);
-    std::cout << "Successfully insert " << dml_results.IdArray().IntIDArray().size() << " rows." << std::endl;
+    std::cout << "Successfully insert " << dml_results.InsertCount() << " rows by row-based." << std::endl;
     const auto& ids = dml_results.IdArray().IntIDArray();
 
-    // upsert one row
+    // upsert some rows
     int64_t update_id_1 = ids[1];
     int64_t update_id_2 = ids[ids.size() - 1];
-    std::vector<int64_t> update_ids = {update_id_1, update_id_2};
-    std::vector<std::string> update_texts = {
-        "this row is updated from " + std::to_string(update_id_1),
-        "this row is updated from " + std::to_string(update_id_2),
-    };
-
+    std::vector<nlohmann::json> upsert_rows;
     std::vector<float> dummy_vector(dimension);
     for (auto d = 0; d < dimension; ++d) {
         dummy_vector[d] = 0.88;
     }
-    std::vector<std::vector<float>> update_vectors = {dummy_vector, dummy_vector};
-    std::vector<milvus::FieldDataPtr> update_data{
-        std::make_shared<milvus::Int64FieldData>(field_id, update_ids),
-        std::make_shared<milvus::VarCharFieldData>(field_text, update_texts),
-        std::make_shared<milvus::FloatVecFieldData>(field_vector, update_vectors),
-    };
+    {
+        nlohmann::json row;
+        row[field_id] = update_id_1;
+        row[field_text] = "this row is updated from " + std::to_string(update_id_1);
+        row[field_vector] = dummy_vector;
+        upsert_rows.emplace_back(row);
+    }
+    {
+        nlohmann::json row;
+        row[field_id] = update_id_2;
+        row[field_text] = "this row is updated from " + std::to_string(update_id_2);
+        row[field_vector] = dummy_vector;
+        upsert_rows.emplace_back(row);
+    }
+
     milvus::DmlResults update_results;
-    status = client->Upsert(collection_name, "", update_data, update_results);
+    status = client->Upsert(collection_name, "", upsert_rows, update_results);
     util::CheckStatus("Failed to upsert:", status);
     std::cout << "Successfully upsert." << std::endl;
     // if the primary key is auto-id, upsert() will delete the old id and create a new id,
@@ -133,16 +148,12 @@ main(int argc, char* argv[]) {
     status = client->Query(q_arguments, query_resutls);
     util::CheckStatus("Failed to query:", status);
     std::cout << "Successfully query." << std::endl;
-
-    auto id_field_data = query_resutls.OutputField<milvus::Int64FieldData>(field_id);
-    auto text_field_data = query_resutls.OutputField<milvus::VarCharFieldData>(field_text);
-    auto vetor_field_data = query_resutls.OutputField<milvus::FloatVecFieldData>(field_vector);
-
-    for (size_t i = 0; i < id_field_data->Count(); ++i) {
-        std::cout << field_id << ":" << id_field_data->Value(i) << "\t" << field_text << ":"
-                  << text_field_data->Value(i) << "\t" << field_vector << ":";
-        util::PrintList(vetor_field_data->Value(i));
-        std::cout << std::endl;
+    std::cout << "Query results:" << std::endl;
+    for (auto i = 0; i < query_resutls.GetRowCount(); i++) {
+        nlohmann::json output_row;
+        status = query_resutls.OutputRow(i, output_row);
+        util::CheckStatus("Failed to get output row:", status);
+        std::cout << "\t" << output_row << std::endl;
     }
 
     // delete the two items
@@ -158,9 +169,7 @@ main(int argc, char* argv[]) {
     status = client->Query(q_arguments, query_resutls);
     util::CheckStatus("Failed to query:", status);
     std::cout << "Successfully query again with the same expression." << std::endl;
-
-    id_field_data = query_resutls.OutputField<milvus::Int64FieldData>(field_id);
-    std::cout << "Query result count: " << std::to_string(id_field_data->Count()) << std::endl;
+    std::cout << "Query result count: " << std::to_string(query_resutls.GetRowCount()) << std::endl;
 
     // get the numer of rows after delete, must be 100 - 2 = 98
     // no data changed after the last query, we can use EVENTUALLY level to ignore
@@ -174,7 +183,7 @@ main(int argc, char* argv[]) {
     status = client->Query(q_count, count_resutl);
     util::CheckStatus("Failed to query count(*):", status);
     std::cout << "Successfully query count(*)." << std::endl;
-    std::cout << "count(*) = " << count_resutl.GetCountNumber() << std::endl;
+    std::cout << "count(*) = " << count_resutl.GetRowCount() << std::endl;
 
     client->Disconnect();
     return 0;

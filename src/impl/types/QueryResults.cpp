@@ -16,6 +16,8 @@
 
 #include "milvus/types/QueryResults.h"
 
+#include "../utils/DmlUtils.h"
+
 namespace milvus {
 
 QueryResults::QueryResults() = default;
@@ -52,14 +54,29 @@ QueryResults::OutputFields() const {
     return output_fields_;
 }
 
-int64_t
-QueryResults::GetCountNumber() const {
-    auto data = OutputField<milvus::Int64FieldData>("count(*)");
-    if (data == nullptr || data->Count() == 0) {
-        return 0;
-    }
+Status
+QueryResults::OutputRows(std::vector<nlohmann::json>& rows) const {
+    return GetRowsFromFieldsData(output_fields_, rows);
+}
 
-    return data->Value(0);
+Status
+QueryResults::OutputRow(int i, nlohmann::json& row) const {
+    return GetRowFromFieldsData(output_fields_, i, row);
+}
+
+uint64_t
+QueryResults::GetRowCount() const {
+    auto data = OutputField<milvus::Int64FieldData>("count(*)");
+    if (data != nullptr && data->Count() > 0) {
+        return static_cast<uint64_t>(data->Value(0));
+    }
+    for (const auto& output_field : output_fields_) {
+        if (output_field == nullptr) {
+            continue;
+        }
+        return output_field->Count();
+    }
+    return 0;
 }
 
 }  // namespace milvus

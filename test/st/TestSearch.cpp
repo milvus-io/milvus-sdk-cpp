@@ -60,6 +60,7 @@ class MilvusServerTestSearch : public MilvusServerTest {
         EXPECT_EQ(status.Message(), "OK");
         EXPECT_TRUE(status.IsOk());
         EXPECT_EQ(dml_results.IdArray().IntIDArray().size(), fields.front()->Count());
+        EXPECT_EQ(dml_results.InsertCount(), fields.front()->Count());
         return dml_results;
     }
 

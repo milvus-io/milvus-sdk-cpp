@@ -65,29 +65,45 @@ main(int argc, char* argv[]) {
     status = client->LoadCollection(collection_name);
     util::CheckStatus("Failed to load collection:", status);
 
-    // insert some rows
-    const int64_t row_count = 10;
-    std::vector<std::string> ids(row_count);
-    auto insert_vectors = util::GenerateBinaryVectors(dimension, row_count);
-    std::vector<std::string> texts(row_count);
-    for (auto i = 0; i < row_count; ++i) {
-        ids[i] = "primary_key_" + std::to_string(i);
-        texts[i] = "this is text_" + std::to_string(i);
+    {
+        // insert some rows by column-based
+        auto ids = std::vector<std::string>{"primary_key_10000", "primary_key_10001"};
+        auto texts = std::vector<std::string>{"column-based-1", "column-based-2"};
+        auto vectors = util::GenerateBinaryVectors(dimension, 2);
+        std::vector<milvus::FieldDataPtr> fields_data{
+            std::make_shared<milvus::VarCharFieldData>(field_id, ids),
+            std::make_shared<milvus::VarCharFieldData>(field_text, texts),
+            std::make_shared<milvus::BinaryVecFieldData>(field_vector, vectors)};
+        milvus::DmlResults dml_results;
+        status = client->Insert(collection_name, "", fields_data, dml_results);
+        util::CheckStatus("Failed to insert:", status);
+        std::cout << "Successfully insert " << dml_results.InsertCount() << " rows by column-based." << std::endl;
     }
 
-    std::vector<milvus::FieldDataPtr> fields_data{
-        std::make_shared<milvus::VarCharFieldData>(field_id, ids),
-        std::make_shared<milvus::BinaryVecFieldData>(field_vector, insert_vectors),
-        std::make_shared<milvus::VarCharFieldData>(field_text, texts)};
-    milvus::DmlResults dml_results;
-    status = client->Insert(collection_name, "", fields_data, dml_results);
-    util::CheckStatus("Failed to insert:", status);
-    std::cout << "Successfully insert " << dml_results.IdArray().IntIDArray().size() << " rows." << std::endl;
+    const int64_t row_count = 10;
+    std::vector<nlohmann::json> rows;
+    {
+        // insert some rows
+        for (auto i = 0; i < row_count; ++i) {
+            nlohmann::json row;
+            row[field_id] = "primary_key_" + std::to_string(i);
+            row[field_text] = "this is text_" + std::to_string(i);
+            row[field_vector] = util::GenerateBinaryVector(dimension);
+            rows.emplace_back(row);
+        }
+
+        milvus::DmlResults dml_results;
+        status = client->Insert(collection_name, "", rows, dml_results);
+        util::CheckStatus("Failed to insert:", status);
+        std::cout << "Successfully insert " << dml_results.InsertCount() << " rows by row-based." << std::endl;
+    }
 
     // query
     auto q_number_1 = util::RandomeValue<int64_t>(0, row_count - 1);
     auto q_number_2 = util::RandomeValue<int64_t>(0, row_count - 1);
-    std::string filter = field_id + " in [\"" + ids[q_number_1] + "\", \"" + ids[q_number_2] + "\"]";
+    auto q_id_1 = rows[q_number_1][field_id].get<std::string>();
+    auto q_id_2 = rows[q_number_2][field_id].get<std::string>();
+    std::string filter = field_id + " in [\"" + q_id_1 + "\", \"" + q_id_2 + "\"]";
     std::cout << "Query with filter expression: " << filter << std::endl;
 
     milvus::QueryArguments q_arguments{};
@@ -103,35 +119,28 @@ main(int argc, char* argv[]) {
     util::CheckStatus("Failed to query:", status);
     std::cout << "Successfully query." << std::endl;
 
-    auto id_field_data = query_resutls.OutputField<milvus::VarCharFieldData>(field_id);
-    auto text_field_data = query_resutls.OutputField<milvus::VarCharFieldData>(field_text);
-    auto vetor_field_data = query_resutls.OutputField<milvus::BinaryVecFieldData>(field_vector);
-    auto binary_vector_data = vetor_field_data->Data();
-    for (size_t i = 0; i < id_field_data->Count(); ++i) {
-        std::cout << "\t" << id_field_data->Name() << ":" << id_field_data->Value(i) << "\t" << text_field_data->Name()
-                  << ":" << text_field_data->Value(i) << "\t" << vetor_field_data->Name() << ":";
-        util::PrintList(binary_vector_data[i]);
-        std::cout << std::endl;
+    std::vector<nlohmann::json> output_rows;
+    status = query_resutls.OutputRows(output_rows);
+    util::CheckStatus("Failed to get output rows:", status);
+    std::cout << "Query results:" << std::endl;
+    for (const auto& row : output_rows) {
+        std::cout << "\t" << row << std::endl;
     }
 
     // do search
-    std::cout << "Search with filter expression: " << filter << std::endl;
+    auto q_vector_1 = rows[q_number_1][field_vector];
+    auto q_vector_2 = rows[q_number_2][field_vector];
     milvus::SearchArguments s_arguments{};
     s_arguments.SetCollectionName(collection_name);
-    s_arguments.SetFilter(filter);
     s_arguments.SetLimit(3);
     s_arguments.AddOutputField(field_vector);
     s_arguments.AddOutputField(field_text);
-    s_arguments.AddBinaryVector(field_vector, insert_vectors[q_number_1]);
-    s_arguments.AddBinaryVector(field_vector, insert_vectors[q_number_2]);
+    s_arguments.AddBinaryVector(field_vector, q_vector_1.get<std::vector<uint8_t>>());
+    s_arguments.AddBinaryVector(field_vector, q_vector_2.get<std::vector<uint8_t>>());
     s_arguments.SetConsistencyLevel(milvus::ConsistencyLevel::BOUNDED);
 
-    std::cout << "Searching the ID." << q_number_1 << " binary vector: ";
-    util::PrintList(insert_vectors[q_number_1]);
-    std::cout << std::endl;
-    std::cout << "Searching the ID." << q_number_2 << " binary vector: ";
-    util::PrintList(insert_vectors[q_number_2]);
-    std::cout << std::endl;
+    std::cout << "Searching the ID." << q_number_1 << " binary vector: " << q_vector_1 << std::endl;
+    std::cout << "Searching the ID." << q_number_2 << " binary vector: " << q_vector_2 << std::endl;
 
     milvus::SearchResults search_results{};
     status = client->Search(s_arguments, search_results);
@@ -139,23 +148,12 @@ main(int argc, char* argv[]) {
     std::cout << "Successfully search." << std::endl;
 
     for (auto& result : search_results.Results()) {
-        auto& ids = result.Ids().StrIDArray();
-        auto& distances = result.Scores();
-        if (ids.size() != distances.size()) {
-            std::cout << "Illegal result!" << std::endl;
-            continue;
-        }
-
         std::cout << "Result of one target vector:" << std::endl;
-
-        auto text_field = result.OutputField<milvus::VarCharFieldData>(field_text);
-        auto vector_field = result.OutputField<milvus::BinaryVecFieldData>(field_vector);
-        auto binary_data = vector_field->Data();
-        for (size_t i = 0; i < ids.size(); ++i) {
-            std::cout << "\t" << result.PrimaryKeyName() << ":" << ids[i] << "\tDistance: " << distances[i] << "\t"
-                      << text_field->Name() << ":" << text_field->Value(i) << "\t" << vector_field->Name() << ":";
-            util::PrintList(binary_data[i]);
-            std::cout << std::endl;
+        std::vector<nlohmann::json> output_rows;
+        status = result.OutputRows(output_rows);
+        util::CheckStatus("Failed to get output rows:", status);
+        for (const auto& row : output_rows) {
+            std::cout << "\t" << row << std::endl;
         }
     }
 

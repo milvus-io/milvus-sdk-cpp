@@ -16,6 +16,8 @@
 
 #include "milvus/types/SearchResults.h"
 
+#include "../utils/DmlUtils.h"
+
 namespace milvus {
 
 SingleResult::SingleResult(const std::string& pk_name, IDArray&& ids, std::vector<float>&& scores,
@@ -56,6 +58,65 @@ SingleResult::OutputField(const std::string& name) const {
     return nullptr;
 }
 
+Status
+SingleResult::setPkAndScore(int i, nlohmann::json& row) const {
+    if (ids_.IsIntegerID()) {
+        if (static_cast<size_t>(i) > ids_.IntIDArray().size()) {
+            return Status{StatusCode::INVALID_AGUMENT, "out of bound"};
+        }
+        row[pk_name_] = ids_.IntIDArray().at(i);
+    } else {
+        if (static_cast<size_t>(i) > ids_.StrIDArray().size()) {
+            return Status{StatusCode::INVALID_AGUMENT, "out of bound"};
+        }
+        row[pk_name_] = ids_.StrIDArray().at(i);
+    }
+
+    if (static_cast<size_t>(i) > scores_.size()) {
+        return Status{StatusCode::INVALID_AGUMENT, "out of bound"};
+    }
+    row["score"] = scores_.at(i);
+    return Status::OK();
+}
+
+Status
+SingleResult::OutputRows(std::vector<nlohmann::json>& rows) const {
+    auto status = GetRowsFromFieldsData(output_fields_, rows);
+    if (!status.IsOk()) {
+        return status;
+    }
+
+    for (auto k = 0; k < rows.size(); k++) {
+        status = setPkAndScore(static_cast<int>(k), rows[k]);
+        if (!status.IsOk()) {
+            return status;
+        }
+    }
+    return Status::OK();
+}
+
+Status
+SingleResult::OutputRow(int i, nlohmann::json& row) const {
+    auto status = GetRowFromFieldsData(output_fields_, i, row);
+    if (!status.IsOk()) {
+        return status;
+    }
+
+    return setPkAndScore(i, row);
+}
+
+uint64_t
+SingleResult::GetRowCount() const {
+    for (const auto& output_field : output_fields_) {
+        if (output_field == nullptr) {
+            continue;
+        }
+        return output_field->Count();
+    }
+    return 0;
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////
 SearchResults::SearchResults() = default;
 
 SearchResults::SearchResults(std::vector<SingleResult>&& results) {
