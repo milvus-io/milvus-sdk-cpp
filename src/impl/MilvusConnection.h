@@ -277,30 +277,14 @@ class MilvusConnection {
     ConnectParam param_;
 
     static Status
-    StatusByProtoResponse(const proto::common::Status& status) {
-        if (status.code() != 0 || status.error_code() != proto::common::ErrorCode::Success) {
-            return Status{StatusCode::SERVER_FAILED, status.reason(), 0, status.code(), status.error_code()};
-        }
-        return Status::OK();
-    }
+    StatusByProtoResponse(const proto::common::Status& status);
 
     template <typename Response>
     static Status
-    StatusByProtoResponse(const Response& response) {
-        const auto& status = response.status();
-        return StatusByProtoResponse(status);
-    }
+    StatusByProtoResponse(const Response& response);
 
     static Status
-    StatusCodeFromGrpcStatus(const ::grpc::Status& grpc_status) {
-        if (grpc_status.ok()) {
-            return Status::OK();
-        }
-
-        StatusCode code = (grpc_status.error_code() == ::grpc::StatusCode::DEADLINE_EXCEEDED) ? StatusCode::TIMEOUT
-                                                                                              : StatusCode::RPC_FAILED;
-        return Status{code, grpc_status.error_message(), grpc_status.error_code(), 0, 0};
-    }
+    StatusCodeFromGrpcStatus(const ::grpc::Status& grpc_status);
 
     template <typename Request, typename Response>
     Status

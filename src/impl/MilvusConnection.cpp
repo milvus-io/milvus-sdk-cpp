@@ -66,6 +66,33 @@ MilvusConnection::~MilvusConnection() {
 }
 
 Status
+MilvusConnection::StatusByProtoResponse(const proto::common::Status& status) {
+    auto legacy_code = status.error_code();  // compile warning at this line since proto deprecates this method
+    if (status.code() != 0 || legacy_code != proto::common::ErrorCode::Success) {
+        return Status{StatusCode::SERVER_FAILED, status.reason(), 0, status.code(), legacy_code};
+    }
+    return Status::OK();
+}
+
+template <typename Response>
+Status
+MilvusConnection::StatusByProtoResponse(const Response& response) {
+    const proto::common::Status& status = response.status();
+    return StatusByProtoResponse(status);
+}
+
+Status
+MilvusConnection::StatusCodeFromGrpcStatus(const ::grpc::Status& grpc_status) {
+    if (grpc_status.ok()) {
+        return Status::OK();
+    }
+
+    StatusCode code = (grpc_status.error_code() == ::grpc::StatusCode::DEADLINE_EXCEEDED) ? StatusCode::TIMEOUT
+                                                                                          : StatusCode::RPC_FAILED;
+    return Status{code, grpc_status.error_message(), grpc_status.error_code(), 0, 0};
+}
+
+Status
 MilvusConnection::Connect(const ConnectParam& param) {
     param_ = param;
 

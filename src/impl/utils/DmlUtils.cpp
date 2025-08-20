@@ -119,8 +119,9 @@ bool
 IsRealFailure(const proto::common::Status& status) {
     // error_code() is legacy code, deprecated in v2.4, code() is new code returned by higher version milvus
     // both error_code() == RateLimit or code() == 8 means rate limit error
-    return ((status.error_code() != proto::common::ErrorCode::RateLimit) &&
-            (status.error_code() != proto::common::ErrorCode::Success)) ||
+    auto legacy_code = status.error_code();  // compile warning at this line since proto deprecates this method
+    return ((legacy_code != proto::common::ErrorCode::RateLimit) &&
+            (legacy_code != proto::common::ErrorCode::Success)) ||
            (status.code() != 0 && status.code() != 8);
 }
 
