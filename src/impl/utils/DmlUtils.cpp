@@ -19,8 +19,8 @@
 #include <limits>
 #include <set>
 
-#include "../utils/GtsDict.h"
-#include "../utils/TypeUtils.h"
+#include "./GtsDict.h"
+#include "./TypeUtils.h"
 #include "milvus/types/Constants.h"
 #include "milvus/utils/FP16.h"
 
@@ -34,7 +34,7 @@ IsInputField(const FieldSchema& field_schema, bool is_upsert) {
         return is_upsert;
     }
     // dynamic field is optional, not required by force
-    if (field_schema.Name() == DynamicFieldName()) {
+    if (field_schema.Name() == DYNAMIC_FIELD) {
         return false;
     }
     return true;
@@ -76,7 +76,7 @@ CheckInsertInput(const CollectionDescPtr& collection_desc, const std::vector<Fie
             // accept it
             continue;
         }
-        if (field->Name() == DynamicFieldName()) {
+        if (field->Name() == DYNAMIC_FIELD) {
             // if dynamic field is not JSON type, no need to update collection schema cache
             if (field->Type() != DataType::JSON) {
                 return Status{StatusCode::INVALID_AGUMENT, "Require JSON data for dynamic field: " + field->Name()};
@@ -228,9 +228,9 @@ ParseSparseFloatVector(const nlohmann::json& obj, const std::string& field_name,
     // parse indices/values from json
     std::vector<uint32_t> indices_vec;
     std::vector<float> values_vec;
-    if (obj.contains(SparseIndicesKey()) && obj.contains(SparseValuesKey())) {
-        const auto& indices = obj[SparseIndicesKey()];
-        const auto& values = obj[SparseValuesKey()];
+    if (obj.contains(SPARSE_INDICES) && obj.contains(SPARSE_VALUES)) {
+        const auto& indices = obj[SPARSE_INDICES];
+        const auto& values = obj[SPARSE_VALUES];
         if (!indices.is_array() || !values.is_array()) {
             std::string err_msg = "Sparse indices or values must be array for field: " + field_name;
             return Status{StatusCode::INVALID_AGUMENT, err_msg};

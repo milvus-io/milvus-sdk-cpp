@@ -79,6 +79,9 @@ class MilvusClientImpl : public MilvusClient {
     ShowCollections(const std::vector<std::string>& collection_names, CollectionsInfo& collections_info) final;
 
     Status
+    ListCollections(CollectionsInfo& collections_info, bool only_show_loaded) final;
+
+    Status
     CreatePartition(const std::string& collection_name, const std::string& partition_name) final;
 
     Status
@@ -101,6 +104,9 @@ class MilvusClientImpl : public MilvusClient {
     Status
     ShowPartitions(const std::string& collection_name, const std::vector<std::string>& partition_names,
                    PartitionsInfo& partitions_info) final;
+
+    Status
+    ListPartitions(const std::string& collection_name, PartitionsInfo& partitions_info, bool only_show_loaded) final;
 
     Status
     CreateAlias(const std::string& collection_name, const std::string& alias) final;
@@ -224,6 +230,12 @@ class MilvusClientImpl : public MilvusClient {
                  const std::vector<std::string> partition_names) final;
 
  private:
+    // This interface is not exposed to users
+    Status
+    getLoadingProgress(const std::string& collection_name, const std::vector<std::string> partition_names,
+                       uint32_t& progress);
+
+ private:
     using GrpcOpts = MilvusConnection::GrpcContextOptions;
 
     /**
@@ -266,8 +278,7 @@ class MilvusClientImpl : public MilvusClient {
         Response rpc_response;
         // the timeout value can be changed by MilvusClient::SetRpcDeadlineMs()
         uint64_t timeout = connection_->GetConnectParam().RpcDeadlineMs();
-        auto rpc_opts = timeout > 0 ? GrpcOpts{timeout} : GrpcOpts{};
-        auto func = std::bind(rpc, connection_.get(), rpc_request, std::placeholders::_1, rpc_opts);
+        auto func = std::bind(rpc, connection_.get(), rpc_request, std::placeholders::_1, GrpcOpts{timeout});
         auto caller = [&func, &rpc_response]() { return func(rpc_response); };
         auto status = retry(caller);
         if (!status.IsOk()) {

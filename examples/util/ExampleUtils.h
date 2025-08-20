@@ -104,8 +104,8 @@ GenerateSparseVectorInJson(int max_dim, bool key_value_pattern) {
             indices.push_back(pair.first);
             values.push_back(pair.second);
         }
-        obj[milvus::SparseIndicesKey()] = indices;
-        obj[milvus::SparseValuesKey()] = values;
+        obj[milvus::SPARSE_INDICES] = indices;
+        obj[milvus::SPARSE_VALUES] = values;
     }
     return obj;
 }

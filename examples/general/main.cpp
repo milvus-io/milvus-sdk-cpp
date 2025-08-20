@@ -42,7 +42,7 @@ main(int argc, char* argv[]) {
     std::cout << "The milvus server version is: " << version << std::endl;
 
     // drop the collection if it exists
-    const std::string collection_name = "TEST_CPP_SIMPLE";
+    const std::string collection_name = "TEST_CPP_GENERAL";
     status = client->DropCollection(collection_name);
 
     // create a collection
@@ -68,7 +68,7 @@ main(int argc, char* argv[]) {
 
     // create index (required after 2.2.0)
     milvus::IndexDesc index_vector(field_face, "", milvus::IndexType::IVF_FLAT, milvus::MetricType::COSINE);
-    index_vector.AddExtraParam(milvus::KeyNlist(), "100");
+    index_vector.AddExtraParam(milvus::NLIST, "100");
     status = client->CreateIndex(collection_name, index_vector);
     util::CheckStatus("Failed to create index on vector field:", status);
     std::cout << "Successfully create index." << std::endl;
@@ -92,6 +92,24 @@ main(int argc, char* argv[]) {
     // tell server prepare to load collection
     status = client->LoadCollection(collection_name);
     util::CheckStatus("Failed to load collection:", status);
+
+    // list collections
+    milvus::CollectionsInfo collections_info;
+    status = client->ListCollections(collections_info);
+    util::CheckStatus("Failed to list collections:", status);
+    std::cout << "\nCollections:" << std::endl;
+    for (auto& info : collections_info) {
+        std::cout << "\t" << info.Name() << std::endl;
+    }
+
+    // list partitions of the collection
+    milvus::PartitionsInfo partitions_info;
+    status = client->ListPartitions(collection_name, partitions_info);
+    util::CheckStatus("Failed to list partitions:", status);
+    std::cout << "\nPartitions of " << collection_name << ":" << std::endl;
+    for (auto& info : partitions_info) {
+        std::cout << "\t" << info.Name() << std::endl;
+    }
 
     // prepare original data
     const int64_t row_count = 1000;
@@ -204,6 +222,7 @@ main(int argc, char* argv[]) {
         s_arguments.SetCollectionName(collection_name);
         s_arguments.AddPartitionName(partition_name);
         s_arguments.SetLimit(5);
+        s_arguments.AddExtraParam(milvus::NPROBE, "10");
         s_arguments.AddOutputField(field_name);
         s_arguments.AddOutputField(field_age);
         std::string filter_expr = field_age + " > 40";

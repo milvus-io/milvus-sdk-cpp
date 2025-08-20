@@ -80,8 +80,8 @@ TEST_F(MilvusMockedTest, TestCreateIndexWithProgress) {
             for (const auto& pair : req->extra_params()) {
                 params.emplace(pair.key(), pair.value());
             }
-            EXPECT_EQ(params[milvus::KeyIndexType()], std::to_string(index_type));
-            EXPECT_EQ(params[milvus::KeyMetricType()], std::to_string(metric_type));
+            EXPECT_EQ(params[milvus::INDEX_TYPE], std::to_string(index_type));
+            EXPECT_EQ(params[milvus::METRIC_TYPE], std::to_string(metric_type));
 
             status->set_code(milvus::proto::common::ErrorCode::Success);
             return ::grpc::Status{};

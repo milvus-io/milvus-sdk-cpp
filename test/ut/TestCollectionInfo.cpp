@@ -24,17 +24,14 @@ TEST_F(CollectionInfoTest, GeneralTesting) {
     std::string name = "test";
     int64_t id = 1;
     uint64_t created_ts = 100;
-    uint64_t in_memory_percent = 50;
 
-    milvus::CollectionInfo info(name, id, created_ts, in_memory_percent);
+    milvus::CollectionInfo info(name, id, created_ts);
     EXPECT_EQ(name, info.Name());
     EXPECT_EQ(id, info.ID());
     EXPECT_EQ(created_ts, info.CreatedTime());
-    EXPECT_EQ(in_memory_percent, info.MemoryPercentage());
 
     milvus::CollectionInfo info_bar;
     EXPECT_EQ("", info_bar.Name());
     EXPECT_EQ(0, info_bar.ID());
     EXPECT_EQ(0, info_bar.CreatedTime());
-    EXPECT_EQ(0, info_bar.MemoryPercentage());
 }

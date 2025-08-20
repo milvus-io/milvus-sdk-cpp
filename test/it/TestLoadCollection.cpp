@@ -19,9 +19,9 @@
 #include "mocks/MilvusMockedTest.h"
 
 using ::milvus::StatusCode;
+using ::milvus::proto::milvus::GetLoadingProgressRequest;
+using ::milvus::proto::milvus::GetLoadingProgressResponse;
 using ::milvus::proto::milvus::LoadCollectionRequest;
-using ::milvus::proto::milvus::ShowCollectionsRequest;
-using ::milvus::proto::milvus::ShowCollectionsResponse;
 using ::testing::_;
 using ::testing::AllOf;
 using ::testing::Property;
@@ -64,16 +64,13 @@ TEST_F(MilvusMockedTest, LoadCollectionFooWithProgress) {
         });
 
     int called_times{0};
-    EXPECT_CALL(service_, ShowCollections(_, _, _))
+    EXPECT_CALL(service_, GetLoadingProgress(_, _, _))
         .Times(10)
-        .WillRepeatedly([&](::grpc::ServerContext*, const ShowCollectionsRequest*, ShowCollectionsResponse* response) {
-            response->add_collection_ids(1);
-            response->add_collection_names("dummy");
-            response->add_created_utc_timestamps(10000);
-            // TODO: deprecated
-            response->add_inmemory_percentages((++called_times) * 10);
-            return ::grpc::Status{};
-        });
+        .WillRepeatedly(
+            [&](::grpc::ServerContext*, const GetLoadingProgressRequest*, GetLoadingProgressResponse* response) {
+                response->set_progress((++called_times) * 10);
+                return ::grpc::Status{};
+            });
 
     auto status = client_->LoadCollection(collection_name, 2, progress_monitor);
     EXPECT_TRUE(status.IsOk());

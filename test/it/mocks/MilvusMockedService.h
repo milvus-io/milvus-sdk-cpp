@@ -159,6 +159,12 @@ class MilvusMockedService : public ::milvus::proto::milvus::MilvusService::Servi
     MOCK_METHOD3(ListCredUsers,
                  ::grpc::Status(::grpc::ServerContext*, const ::milvus::proto::milvus::ListCredUsersRequest*,
                                 ::milvus::proto::milvus::ListCredUsersResponse*));
+    MOCK_METHOD3(GetLoadState,
+                 ::grpc::Status(::grpc::ServerContext*, const ::milvus::proto::milvus::GetLoadStateRequest*,
+                                ::milvus::proto::milvus::GetLoadStateResponse*));
+    MOCK_METHOD3(GetLoadingProgress,
+                 ::grpc::Status(::grpc::ServerContext*, const ::milvus::proto::milvus::GetLoadingProgressRequest*,
+                                ::milvus::proto::milvus::GetLoadingProgressResponse*));
 };
 
 }  // namespace milvus

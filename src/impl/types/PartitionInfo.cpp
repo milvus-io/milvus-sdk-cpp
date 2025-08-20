@@ -17,11 +17,8 @@
 #include "milvus/types/PartitionInfo.h"
 
 namespace milvus {
-PartitionInfo::PartitionInfo(std::string name, int64_t id, uint64_t created_utc_timestamp, int64_t in_memory_percentage)
-    : name_(std::move(name)),
-      id_(id),
-      created_utc_timestamp_(created_utc_timestamp),
-      in_memory_percentage_(in_memory_percentage) {
+PartitionInfo::PartitionInfo(std::string name, int64_t id, uint64_t created_utc_timestamp)
+    : name_(std::move(name)), id_(id), created_utc_timestamp_(created_utc_timestamp) {
 }
 
 std::string

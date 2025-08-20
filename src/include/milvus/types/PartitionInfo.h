@@ -24,14 +24,14 @@ namespace milvus {
 
 /**
  * @brief Partition runtime information including create timestamp and loading percentage, returned by
- * MilvusClient::ShowPartitions().
+ * MilvusClient::ListPartitions().
  */
 class PartitionInfo {
  public:
     /**
      * @brief Constructor
      */
-    PartitionInfo(std::string name, int64_t id, uint64_t created_utc_timestamp = 0, int64_t in_memory_percentage = 0);
+    PartitionInfo(std::string name, int64_t id, uint64_t created_utc_timestamp = 0);
 
     /**
      * @brief Get name of this partition.
@@ -53,12 +53,14 @@ class PartitionInfo {
 
     /**
      * @brief Get partition loading percentage.
+     * @deprecated This method always returns 0, use GetLoadState to get the load state instead.
      */
     int64_t
     InMemoryPercentage() const;
 
     /**
      * @brief Indicated whether the partition has been loaded completed.
+     * @deprecated This method always returns false, use GetLoadState to get the load state instead.
      */
     bool
     Loaded() const;

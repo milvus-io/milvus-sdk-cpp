@@ -20,97 +20,82 @@
 
 namespace milvus {
 
+// const names for external common usage
+extern const char* INDEX_TYPE;
+extern const char* METRIC_TYPE;
+extern const char* NLIST;
+extern const char* NPROBE;
+extern const char* DIM;
+extern const char* MAX_LENGTH;
+extern const char* MAX_CAPACITY;
+extern const char* DYNAMIC_FIELD;
+extern const char* SPARSE_INDICES;
+extern const char* SPARSE_VALUES;
+
+/////////////////////////////////////////////////////////////////////////////////
+// the following methods are reserved to compatible with old client code
 /**
  * @brief Global definition for row count label
  */
-inline const std::string&
+inline std::string
 KeyRowCount() {
-    static std::string row_count = "row_count";
-    return row_count;
+    return "row_count";
 }
 
 /**
  * @brief Global definition for index type label
  */
-inline const std::string&
+inline std::string
 KeyIndexType() {
-    static std::string index_type = "index_type";
-    return index_type;
+    return INDEX_TYPE;
 }
 
 /**
  * @brief Global definition for metric type label
  */
-inline const std::string&
+inline std::string
 KeyMetricType() {
-    static std::string metric_type = "metric_type";
-    return metric_type;
+    return METRIC_TYPE;
 }
 
 /**
- * @brief Index parameter for IVF
+ * @brief Global definition for metric type label
  */
-inline const std::string&
-KeyNlist() {
-    static std::string nlist = "nlist";
-    return nlist;
-}
-
-/**
- * @brief Index parameter for IVF
- */
-inline const std::string&
-KeyNprobe() {
-    static std::string nprobe = "nprobe";
-    return nprobe;
+inline std::string
+KeyParams() {
+    return "params";
 }
 
 /**
  * @brief Global definition for vector dimension label
  */
-inline const std::string&
+inline std::string
 FieldDim() {
-    static std::string dim = "dim";
-    return dim;
+    return DIM;
 }
 
 /**
  * @brief Max length field name for varchar field
  */
-inline const std::string&
+inline std::string
 FieldMaxLength() {
-    static std::string max_length = "max_length";
-    return max_length;
+    return MAX_LENGTH;
 }
 
 /**
- * @brief Max capacity field name for array field
+ * @brief Global definition for strong guarantee timestamp
  */
-inline const std::string&
-FieldMaxCapacity() {
-    static std::string max_capacity = "max_capacity";
-    return max_capacity;
+inline uint64_t
+GuaranteeStrongTs() {
+    return 0;
 }
 
 /**
- * @brief internal name of dynamic field in Milvus
+ * @brief Global definition for eventually guarantee timestamp
  */
-inline const std::string&
-DynamicFieldName() {
-    static std::string meta = "$meta";
-    return meta;
-}
-
-inline const std::string&
-SparseIndicesKey() {
-    static std::string indices = "indices";
-    return indices;
-}
-
-inline const std::string&
-SparseValuesKey() {
-    static std::string values = "values";
-    return values;
+inline uint64_t
+GuaranteeEventuallyTs() {
+    return 1;
 }
 
 }  // namespace milvus

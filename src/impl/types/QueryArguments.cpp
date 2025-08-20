@@ -93,7 +93,7 @@ QueryArguments::SetFilter(std::string filter) {
 int64_t
 QueryArguments::Limit() const {
     // for history reason, query() requires "limit", search() requires "topk"
-    auto it = extra_params_.find(KeyLimit());
+    auto it = extra_params_.find(LIMIT);
     if (it != extra_params_.end()) {
         return std::stoll(it->second);
     }
@@ -103,13 +103,13 @@ QueryArguments::Limit() const {
 Status
 QueryArguments::SetLimit(int64_t limit) {
     // for history reason, query() requires "limit", search() requires "topk"
-    extra_params_[KeyLimit()] = std::to_string(limit);
+    extra_params_[LIMIT] = std::to_string(limit);
     return Status::OK();
 }
 
 int64_t
 QueryArguments::Offset() const {
-    auto it = extra_params_.find(KeyOffset());
+    auto it = extra_params_.find(OFFSET);
     if (it != extra_params_.end()) {
         return std::stoll(it->second);
     }
@@ -118,13 +118,13 @@ QueryArguments::Offset() const {
 
 Status
 QueryArguments::SetOffset(int64_t offset) {
-    extra_params_[KeyOffset()] = std::to_string(offset);
+    extra_params_[OFFSET] = std::to_string(offset);
     return Status::OK();
 }
 
 bool
 QueryArguments::IgnoreGrowing() const {
-    auto it = extra_params_.find(KeyIgnoreGrowing());
+    auto it = extra_params_.find(IGNORE_GROWING);
     if (it != extra_params_.end()) {
         return it->second == "true" ? true : false;
     }
@@ -133,7 +133,7 @@ QueryArguments::IgnoreGrowing() const {
 
 Status
 QueryArguments::SetIgnoreGrowing(bool ignore_growing) {
-    extra_params_[KeyIgnoreGrowing()] = ignore_growing ? "true" : "false";
+    extra_params_[IGNORE_GROWING] = ignore_growing ? "true" : "false";
     return Status::OK();
 }
 

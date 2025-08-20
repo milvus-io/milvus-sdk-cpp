@@ -1156,7 +1156,7 @@ SetExtraParams(const std::unordered_map<std::string, std::string>& params,
         // for example:
         //   '{"radius": "2.5", "range_filter": "0.5"}' is illegal in the server-side
         //   '{"radius": 2.5, "range_filter": 0.5}' is ok
-        if (pair.first == KeyRadius() || pair.first == KeyRangeFilter()) {
+        if (pair.first == RADIUS || pair.first == RANGE_FILTER) {
             json_params[pair.first] = atof(pair.second.c_str());
         } else {
             json_params[pair.first] = pair.second;
@@ -1164,7 +1164,7 @@ SetExtraParams(const std::unordered_map<std::string, std::string>& params,
     }
     {
         auto kv_pair = rpc_request->add_search_params();
-        kv_pair->set_key(KeyParams());
+        kv_pair->set_key(PARAMS);
         kv_pair->set_value(json_params.dump());
     }
 }

@@ -16,10 +16,12 @@
 
 #include "milvus/types/PartitionStat.h"
 
+#include "../utils/Constants.h"
+
 namespace milvus {
 uint64_t
 PartitionStat::RowCount() const {
-    const auto iter = statistics_.find(KeyRowCount());
+    const auto iter = statistics_.find(ROW_COUNT);
     if (iter == statistics_.end()) {
         // TODO: throw exception or log
         return 0;

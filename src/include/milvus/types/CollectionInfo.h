@@ -24,7 +24,7 @@ namespace milvus {
 
 /**
  * @brief Collection runtime information including create timestamp and loading percentage, returned by
- * MilvusClient::ShowCollections().
+ * MilvusClient::ListCollections().
  */
 class CollectionInfo {
  public:
@@ -36,7 +36,7 @@ class CollectionInfo {
     /**
      * @brief Constructor
      */
-    CollectionInfo(std::string collection_name, int64_t collection_id, uint64_t create_time, uint64_t load_percentage);
+    CollectionInfo(std::string collection_name, int64_t collection_id, uint64_t create_time);
 
     /**
      * @brief Name of the collection.
@@ -58,6 +58,7 @@ class CollectionInfo {
 
     /**
      * @brief Loading percentage of the collection.
+     * @deprecated This method always returns 0, use GetLoadState to get the progress instead.
      */
     uint64_t
     MemoryPercentage() const;

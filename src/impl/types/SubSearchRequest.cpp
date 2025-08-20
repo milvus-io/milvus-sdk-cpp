@@ -159,8 +159,7 @@ SubSearchRequest::SetMetricType(::milvus::MetricType metric_type) {
 Status
 SubSearchRequest::AddExtraParam(const std::string& key, const std::string& value) {
     extra_params_[key] = value;
-    static std::set<std::string> s_ambiguous = {KeyParams(),     KeyTopK(),         KeyAnnsField(),
-                                                KeyMetricType(), KeyRoundDecimal(), KeyIgnoreGrowing()};
+    static std::set<std::string> s_ambiguous = {PARAMS, TOPK, ANNS_FIELD, METRIC_TYPE, ROUND_DECIMAL, IGNORE_GROWING};
     if (s_ambiguous.find(key) != s_ambiguous.end()) {
         return Status{StatusCode::INVALID_AGUMENT,
                       "ambiguous parameter: not allow to set '" + key + "' in extra params"};
@@ -184,7 +183,7 @@ SubSearchRequest::Validate() const {
 
 float
 SubSearchRequest::Radius() const {
-    auto it = extra_params_.find(KeyRadius());
+    auto it = extra_params_.find(RADIUS);
     if (it != extra_params_.end()) {
         return std::stof(it->second);
     }
@@ -193,13 +192,13 @@ SubSearchRequest::Radius() const {
 
 Status
 SubSearchRequest::SetRadius(float value) {
-    extra_params_[KeyRadius()] = std::to_string(value);
+    extra_params_[RADIUS] = std::to_string(value);
     return Status::OK();
 }
 
 float
 SubSearchRequest::RangeFilter() const {
-    auto it = extra_params_.find(KeyRangeFilter());
+    auto it = extra_params_.find(RANGE_FILTER);
     if (it != extra_params_.end()) {
         return std::stof(it->second);
     }
@@ -208,7 +207,7 @@ SubSearchRequest::RangeFilter() const {
 
 Status
 SubSearchRequest::SetRangeFilter(float value) {
-    extra_params_[KeyRangeFilter()] = std::to_string(value);
+    extra_params_[RANGE_FILTER] = std::to_string(value);
     return Status::OK();
 }
 
