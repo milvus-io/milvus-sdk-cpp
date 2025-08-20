@@ -11,4 +11,7 @@ logs/
 build/
 code_coverage/
 
+# this file is auto-generated
+src/impl/version.h
+
 

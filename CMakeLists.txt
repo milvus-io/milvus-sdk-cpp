@@ -53,9 +53,7 @@ define_option(MILVUS_BUILD_COVERAGE "Build with coverage" OFF)
 define_option_string(MILVUS_SDK_VERSION
     "Version for sdk"
     "2.0.0")
-define_option_string(MILVUS_SDK_RELEASE
-    "Release number for sdk"
-    "1")
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/src/impl/version.h.in ${CMAKE_CURRENT_SOURCE_DIR}/src/impl/version.h @ONLY)
 
 set_option_category("Thirdparty")
 # use thirdparty from:

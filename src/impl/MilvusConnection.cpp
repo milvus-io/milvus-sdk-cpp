@@ -25,6 +25,7 @@
 
 #include "MilvusInterceptor.h"
 #include "grpcpp/security/credentials.h"
+#include "version.h"
 
 using grpc::Channel;
 using grpc::ClientContext;
@@ -109,7 +110,7 @@ MilvusConnection::Connect(const ConnectParam& param) {
     auto client_info = rpc_request.mutable_client_info();
     client_info->set_sdk_type("CPP");
     client_info->set_user(param.Username());
-    client_info->set_sdk_version("2.4.0");  // TODO: automatically get this version
+    client_info->set_sdk_version(MILVUS_SDK_VERSION);
     client_info->set_host(param.Host());
 
     auto now = std::chrono::system_clock::now();
