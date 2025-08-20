@@ -156,6 +156,7 @@ MilvusClientImpl::DropCollection(const std::string& collection_name) {
 
     auto post = [this, &collection_name](const proto::common::Status& status) {
         if (status.error_code() == proto::common::ErrorCode::Success && status.code() == 0) {
+            // compile warning at this line since proto deprecates this method error_code()
             // TODO: if the parameters provides db_name in future, we need to set the correct
             // db_name to RemoveCollectionTs()
             GtsDict::GetInstance().RemoveCollectionTs(currentDbName(""), collection_name);
@@ -409,7 +410,7 @@ MilvusClientImpl::ListPartitions(const std::string& collection_name, PartitionsI
         proto::milvus::ShowPartitionsRequest rpc_request;
         rpc_request.set_collection_name(collection_name);
         auto show_type = only_show_loaded ? proto::milvus::ShowType::InMemory : proto::milvus::ShowType::All;
-        rpc_request.set_type(show_type);
+        rpc_request.set_type(show_type);  // compile warning at this line since proto deprecates this method set_type()
         return rpc_request;
     };
 
