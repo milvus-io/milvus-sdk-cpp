@@ -569,8 +569,8 @@ CheckAndSetRowData(const std::vector<nlohmann::json>& rows, const CollectionSche
         }
     }
 
-    for (const auto& n : name_fields) {
-        rpc_fields.emplace_back(n.second);
+    for (auto& n : name_fields) {
+        rpc_fields.emplace_back(std::move(n.second));
     }
 
     return Status::OK();
@@ -743,7 +743,7 @@ GetRowsFromFieldsData(const std::vector<FieldDataPtr>& fields, std::vector<nlohm
         for (auto& getter : getters) {
             row[getter.first] = getter.second(i);
         }
-        rows.emplace_back(row);
+        rows.emplace_back(std::move(row));
     }
     return Status::OK();
 }

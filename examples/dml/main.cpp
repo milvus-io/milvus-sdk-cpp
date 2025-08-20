@@ -87,7 +87,7 @@ main(int argc, char* argv[]) {
         nlohmann::json row;
         row[field_text] = "hello world " + std::to_string(i);
         row[field_vector] = util::GenerateFloatVector(dimension);
-        rows.emplace_back(row);
+        rows.emplace_back(std::move(row));
     }
 
     milvus::DmlResults dml_results;
@@ -109,14 +109,14 @@ main(int argc, char* argv[]) {
         row[field_id] = update_id_1;
         row[field_text] = "this row is updated from " + std::to_string(update_id_1);
         row[field_vector] = dummy_vector;
-        upsert_rows.emplace_back(row);
+        upsert_rows.emplace_back(std::move(row));
     }
     {
         nlohmann::json row;
         row[field_id] = update_id_2;
         row[field_text] = "this row is updated from " + std::to_string(update_id_2);
         row[field_vector] = dummy_vector;
-        upsert_rows.emplace_back(row);
+        upsert_rows.emplace_back(std::move(row));
     }
 
     milvus::DmlResults update_results;

@@ -79,7 +79,7 @@ TEST_F(MilvusServerTestSearchWithBinaryVectors, RegressionIssue194) {
     std::vector<std::vector<uint8_t>> faces{};
     for (auto i = test_count; i > 0; --i) {
         ages.emplace_back(age_gen(rng));
-        faces.emplace_back(std::vector<uint8_t>{face_gen(rng), face_gen(rng), face_gen(rng), face_gen(rng)});
+        faces.emplace_back(std::move(std::vector<uint8_t>{face_gen(rng), face_gen(rng), face_gen(rng), face_gen(rng)}));
     }
 
     std::vector<milvus::FieldDataPtr> fields{std::make_shared<milvus::Int16FieldData>("age", ages),

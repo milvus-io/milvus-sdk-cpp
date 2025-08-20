@@ -290,6 +290,26 @@ MilvusClientImpl::ListCollections(CollectionsInfo& collections_info, bool only_s
 }
 
 Status
+MilvusClientImpl::GetLoadState(const std::string& collection_name, bool& is_loaded,
+                               const std::vector<std::string> partition_names) {
+    auto pre = [&collection_name, &partition_names]() {
+        proto::milvus::GetLoadStateRequest rpc_request;
+        rpc_request.set_collection_name(collection_name);
+        for (const auto& partition_name : partition_names) {
+            rpc_request.add_partition_names(partition_name);
+        }
+        return rpc_request;
+    };
+
+    auto post = [&is_loaded](const proto::milvus::GetLoadStateResponse& response) {
+        is_loaded = response.state() == proto::common::LoadStateLoaded;
+    };
+
+    return apiHandler<proto::milvus::GetLoadStateRequest, proto::milvus::GetLoadStateResponse>(
+        pre, &MilvusConnection::GetLoadState, post);
+}
+
+Status
 MilvusClientImpl::CreatePartition(const std::string& collection_name, const std::string& partition_name) {
     auto pre = [&collection_name, &partition_name]() {
         proto::milvus::CreatePartitionRequest rpc_request;
@@ -461,6 +481,42 @@ MilvusClientImpl::AlterAlias(const std::string& collection_name, const std::stri
     };
 
     return apiHandler<proto::milvus::AlterAliasRequest, proto::common::Status>(pre, &MilvusConnection::AlterAlias);
+}
+
+Status
+MilvusClientImpl::DescribeAlias(const std::string& alias_name, AliasDesc& desc) {
+    auto pre = [&alias_name]() {
+        proto::milvus::DescribeAliasRequest rpc_request;
+        rpc_request.set_alias(alias_name);
+        return rpc_request;
+    };
+
+    auto post = [&desc](const proto::milvus::DescribeAliasResponse& response) {
+        desc.SetName(response.alias());
+        desc.SetDatabaseName(response.db_name());
+        desc.SetCollectionName(response.collection());
+    };
+
+    return apiHandler<proto::milvus::DescribeAliasRequest, proto::milvus::DescribeAliasResponse>(
+        pre, &MilvusConnection::DescribeAlias, post);
+}
+
+Status
+MilvusClientImpl::ListAliases(const std::string& collection_name, std::vector<AliasDesc>& descs) {
+    auto pre = [&collection_name]() {
+        proto::milvus::ListAliasesRequest rpc_request;
+        rpc_request.set_collection_name(collection_name);
+        return rpc_request;
+    };
+
+    auto post = [&descs](const proto::milvus::ListAliasesResponse& response) {
+        for (auto i = 0; i < response.aliases_size(); i++) {
+            descs.emplace_back(response.aliases(i), response.db_name(), response.collection_name());
+        }
+    };
+
+    return apiHandler<proto::milvus::ListAliasesRequest, proto::milvus::ListAliasesResponse>(
+        pre, &MilvusConnection::ListAliases, post);
 }
 
 Status
@@ -1539,26 +1595,6 @@ MilvusClientImpl::ListCredUsers(std::vector<std::string>& users) {
 
     return apiHandler<proto::milvus::ListCredUsersRequest, proto::milvus::ListCredUsersResponse>(
         pre, &MilvusConnection::ListCredUsers, post);
-}
-
-Status
-MilvusClientImpl::GetLoadState(const std::string& collection_name, bool& is_loaded,
-                               const std::vector<std::string> partition_names) {
-    auto pre = [&collection_name, &partition_names]() {
-        proto::milvus::GetLoadStateRequest rpc_request;
-        rpc_request.set_collection_name(collection_name);
-        for (const auto& partition_name : partition_names) {
-            rpc_request.add_partition_names(partition_name);
-        }
-        return rpc_request;
-    };
-
-    auto post = [&is_loaded](const proto::milvus::GetLoadStateResponse& response) {
-        is_loaded = response.state() == proto::common::LoadStateLoaded;
-    };
-
-    return apiHandler<proto::milvus::GetLoadStateRequest, proto::milvus::GetLoadStateResponse>(
-        pre, &MilvusConnection::GetLoadState, post);
 }
 
 Status

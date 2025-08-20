@@ -89,7 +89,7 @@ main(int argc, char* argv[]) {
             row[field_id] = "primary_key_" + std::to_string(i);
             row[field_text] = "this is text_" + std::to_string(i);
             row[field_vector] = util::GenerateBinaryVector(dimension);
-            rows.emplace_back(row);
+            rows.emplace_back(std::move(row));
         }
 
         milvus::DmlResults dml_results;

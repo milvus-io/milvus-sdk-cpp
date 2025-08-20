@@ -80,7 +80,7 @@ main(int argc, char* argv[]) {
         row[field_text] = "text_" + std::to_string(i);
         row[field_dense] = util::GenerateFloatVector(dimension);
         row[field_sparse] = util::GenerateSparseVectorInJson(50, false);
-        rows.emplace_back(row);
+        rows.emplace_back(std::move(row));
     }
 
     milvus::DmlResults dml_results;

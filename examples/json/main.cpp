@@ -70,7 +70,7 @@ main(int argc, char* argv[]) {
         nlohmann::json row;
         row[field_json] = {{"age", util::RandomeValue<int>(1, 100)}, {"name", "user_" + std::to_string(i)}};
         row[field_vector] = util::GenerateFloatVector(dimension);
-        rows.emplace_back(row);
+        rows.emplace_back(std::move(row));
     }
 
     milvus::DmlResults dml_results;

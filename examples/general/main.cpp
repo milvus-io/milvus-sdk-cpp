@@ -121,7 +121,7 @@ main(int argc, char* argv[]) {
         insert_ids.push_back(i);
         insert_names.push_back("user_" + std::to_string(i));
         insert_ages.push_back(static_cast<int8_t>(util::RandomeValue<int>(1, 100)));
-        insert_vectors.emplace_back(util::GenerateFloatVector(dimension));
+        insert_vectors.emplace_back(std::move(util::GenerateFloatVector(dimension)));
     }
 
     const uint64_t column_based_count = 500;
@@ -151,7 +151,7 @@ main(int argc, char* argv[]) {
             row[field_name] = insert_names[i];
             row[field_age] = insert_ages[i];
             row[field_face] = insert_vectors[i];
-            rows.emplace_back(row);
+            rows.emplace_back(std::move(row));
 
             // insert batch by batch, batch size is 80
             if (rows.size() >= 80 || (i >= insert_ids.size() - 1)) {

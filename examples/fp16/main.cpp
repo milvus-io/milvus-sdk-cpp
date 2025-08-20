@@ -74,7 +74,7 @@ main(int argc, char* argv[]) {
         row[field_text] = "hello world " + std::to_string(i);
         row[field_vec_fp16] = util::GenerateFloatVector(dimension);
         row[field_vec_bf16] = util::GenerateFloatVector(dimension);
-        rows.emplace_back(row);
+        rows.emplace_back(std::move(row));
     }
 
     milvus::DmlResults dml_results;

@@ -617,56 +617,56 @@ BuildMilvusArrayFieldData(const std::string& name, const milvus::proto::schema::
         case proto::schema::DataType::Bool: {
             std::vector<ArrayBoolFieldData::ElementT> arr;
             for (; begin != end; begin++) {
-                arr.emplace_back(BuildFieldDataScalars<bool>((*begin).bool_data().data()));
+                arr.emplace_back(std::move(BuildFieldDataScalars<bool>((*begin).bool_data().data())));
             }
             return std::make_shared<ArrayBoolFieldData>(name, arr);
         }
         case proto::schema::DataType::Int8: {
             std::vector<ArrayInt8FieldData::ElementT> arr;
             for (; begin != end; begin++) {
-                arr.emplace_back(BuildFieldDataScalars<int8_t>((*begin).int_data().data()));
+                arr.emplace_back(std::move(BuildFieldDataScalars<int8_t>((*begin).int_data().data())));
             }
             return std::make_shared<ArrayInt8FieldData>(name, arr);
         }
         case proto::schema::DataType::Int16: {
             std::vector<ArrayInt16FieldData::ElementT> arr;
             for (; begin != end; begin++) {
-                arr.emplace_back(BuildFieldDataScalars<int16_t>((*begin).int_data().data()));
+                arr.emplace_back(std::move(BuildFieldDataScalars<int16_t>((*begin).int_data().data())));
             }
             return std::make_shared<ArrayInt16FieldData>(name, arr);
         }
         case proto::schema::DataType::Int32: {
             std::vector<ArrayInt32FieldData::ElementT> arr;
             for (; begin != end; begin++) {
-                arr.emplace_back(BuildFieldDataScalars<int32_t>((*begin).int_data().data()));
+                arr.emplace_back(std::move(BuildFieldDataScalars<int32_t>((*begin).int_data().data())));
             }
             return std::make_shared<ArrayInt32FieldData>(name, arr);
         }
         case proto::schema::DataType::Int64: {
             std::vector<ArrayInt64FieldData::ElementT> arr;
             for (; begin != end; begin++) {
-                arr.emplace_back(BuildFieldDataScalars<int64_t>((*begin).long_data().data()));
+                arr.emplace_back(std::move(BuildFieldDataScalars<int64_t>((*begin).long_data().data())));
             }
             return std::make_shared<ArrayInt64FieldData>(name, arr);
         }
         case proto::schema::DataType::Float: {
             std::vector<ArrayFloatFieldData::ElementT> arr;
             for (; begin != end; begin++) {
-                arr.emplace_back(BuildFieldDataScalars<float>((*begin).float_data().data()));
+                arr.emplace_back(std::move(BuildFieldDataScalars<float>((*begin).float_data().data())));
             }
             return std::make_shared<ArrayFloatFieldData>(name, arr);
         }
         case proto::schema::DataType::Double: {
             std::vector<ArrayDoubleFieldData::ElementT> arr;
             for (; begin != end; begin++) {
-                arr.emplace_back(BuildFieldDataScalars<double>((*begin).double_data().data()));
+                arr.emplace_back(std::move(BuildFieldDataScalars<double>((*begin).double_data().data())));
             }
             return std::make_shared<ArrayDoubleFieldData>(name, arr);
         }
         case proto::schema::DataType::VarChar: {
             std::vector<ArrayVarCharFieldData::ElementT> arr;
             for (; begin != end; begin++) {
-                arr.emplace_back(BuildFieldDataScalars<std::string>((*begin).string_data().data()));
+                arr.emplace_back(std::move(BuildFieldDataScalars<std::string>((*begin).string_data().data())));
             }
             return std::make_shared<ArrayVarCharFieldData>(name, arr);
         }
@@ -748,7 +748,7 @@ CreateMilvusFieldData(const milvus::proto::schema::FieldData& field_data, size_t
             std::vector<nlohmann::json> objects;
             const auto& scalars_data = field_data.scalars().json_data().data();
             for (const auto& s : scalars_data) {
-                objects.emplace_back(nlohmann::json::parse(s));
+                objects.emplace_back(std::move(nlohmann::json::parse(s)));
             }
             return std::make_shared<JSONFieldData>(name, BuildFieldDataScalars<nlohmann::json>(objects, offset, count));
         }
@@ -839,7 +839,7 @@ CreateMilvusFieldData(const milvus::proto::schema::FieldData& field_data) {
             std::vector<nlohmann::json> objects;
             const auto& scalars_data = field_data.scalars().json_data().data();
             for (const auto& s : scalars_data) {
-                objects.emplace_back(nlohmann::json::parse(s));
+                objects.emplace_back(std::move(nlohmann::json::parse(s)));
             }
             return std::make_shared<JSONFieldData>(name, BuildFieldDataScalars<nlohmann::json>(objects));
         }
@@ -1179,7 +1179,7 @@ ConvertSearchResults(const proto::milvus::SearchResults& response, SearchResults
     std::vector<int> topks{};
     topks.reserve(result_data.topks_size());
     for (int i = 0; i < result_data.topks_size(); ++i) {
-        topks.emplace_back(result_data.topks(i));
+        topks.push_back(result_data.topks(i));
     }
     std::vector<SingleResult> single_results;
     single_results.reserve(num_of_queries);
@@ -1190,7 +1190,7 @@ ConvertSearchResults(const proto::milvus::SearchResults& response, SearchResults
         auto item_topk = topks[i];
         item_scores.reserve(item_topk);
         for (int j = 0; j < item_topk; ++j) {
-            item_scores.emplace_back(scores.at(offset + j));
+            item_scores.push_back(scores.at(offset + j));
         }
         item_field_data.reserve(fields_data.size());
         for (const auto& field_data : fields_data) {

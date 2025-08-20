@@ -127,6 +127,14 @@ class MilvusConnection {
                     proto::milvus::ShowCollectionsResponse& response, const GrpcContextOptions& options);
 
     Status
+    GetLoadState(const proto::milvus::GetLoadStateRequest& request, proto::milvus::GetLoadStateResponse& response,
+                 const GrpcContextOptions& options);
+
+    Status
+    GetLoadingProgress(const proto::milvus::GetLoadingProgressRequest,
+                       proto::milvus::GetLoadingProgressResponse& response, const GrpcContextOptions& options);
+
+    Status
     CreatePartition(const proto::milvus::CreatePartitionRequest& request, proto::common::Status& response,
                     const GrpcContextOptions& options);
 
@@ -165,6 +173,14 @@ class MilvusConnection {
     Status
     AlterAlias(const proto::milvus::AlterAliasRequest& request, proto::common::Status& response,
                const GrpcContextOptions& options);
+
+    Status
+    DescribeAlias(const proto::milvus::DescribeAliasRequest& request, proto::milvus::DescribeAliasResponse& response,
+                  const GrpcContextOptions& options);
+
+    Status
+    ListAliases(const proto::milvus::ListAliasesRequest& request, proto::milvus::ListAliasesResponse& response,
+                const GrpcContextOptions& options);
 
     Status
     CreateIndex(const proto::milvus::CreateIndexRequest& request, proto::common::Status& response,
@@ -262,14 +278,6 @@ class MilvusConnection {
     Status
     ListCredUsers(const proto::milvus::ListCredUsersRequest& request, proto::milvus::ListCredUsersResponse& response,
                   const GrpcContextOptions& options);
-
-    Status
-    GetLoadState(const proto::milvus::GetLoadStateRequest& request, proto::milvus::GetLoadStateResponse& response,
-                 const GrpcContextOptions& options);
-
-    Status
-    GetLoadingProgress(const proto::milvus::GetLoadingProgressRequest,
-                       proto::milvus::GetLoadingProgressResponse& response, const GrpcContextOptions& options);
 
  private:
     std::unique_ptr<proto::milvus::MilvusService::Stub> stub_;

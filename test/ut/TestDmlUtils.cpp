@@ -69,7 +69,7 @@ TEST_F(DmlUtilsTest, CheckInsertInputTest) {
 
         // auto-id is true, primary key field is provided, insert is wrong, upsert is ok
         std::vector<milvus::FieldDataPtr> temp_fields = fields;
-        temp_fields.emplace_back(std::make_shared<milvus::Int64FieldData>("pk", std::vector<int64_t>{1, 2}));
+        temp_fields.emplace_back(std::move(std::make_shared<milvus::Int64FieldData>("pk", std::vector<int64_t>{1, 2})));
 
         status = milvus::CheckInsertInput(desc, temp_fields, false);
         EXPECT_EQ(status.Code(), milvus::StatusCode::DATA_UNMATCH_SCHEMA);
@@ -89,7 +89,7 @@ TEST_F(DmlUtilsTest, CheckInsertInputTest) {
 
         // auto-id is false, primary key field is provided, insert is ok, upsert is ok
         std::vector<milvus::FieldDataPtr> temp_fields = fields;
-        temp_fields.emplace_back(std::make_shared<milvus::Int64FieldData>("pk", std::vector<int64_t>{1, 2}));
+        temp_fields.emplace_back(std::move(std::make_shared<milvus::Int64FieldData>("pk", std::vector<int64_t>{1, 2})));
 
         status = milvus::CheckInsertInput(desc, temp_fields, false);
         EXPECT_EQ(status.Code(), milvus::StatusCode::OK);
@@ -102,7 +102,7 @@ TEST_F(DmlUtilsTest, CheckInsertInputTest) {
         // enable_dynamic_field is false, the dynamic field data is not json type, both insert and upsert are wrong
         auto dynamic_data = std::make_shared<milvus::Int64FieldData>(milvus::DYNAMIC_FIELD, std::vector<int64_t>{1, 2});
         std::vector<milvus::FieldDataPtr> temp_fields = fields;
-        temp_fields.emplace_back(dynamic_data);
+        temp_fields.emplace_back(std::move(dynamic_data));
 
         auto status = milvus::CheckInsertInput(desc, temp_fields, false);
         EXPECT_EQ(status.Code(), milvus::StatusCode::INVALID_AGUMENT);
@@ -116,7 +116,7 @@ TEST_F(DmlUtilsTest, CheckInsertInputTest) {
         auto dynamic_data = std::make_shared<milvus::JSONFieldData>(
             milvus::DYNAMIC_FIELD, std::vector<nlohmann::json>{{"age", 50}, {"age", 100}});
         std::vector<milvus::FieldDataPtr> temp_fields = fields;
-        temp_fields.emplace_back(dynamic_data);
+        temp_fields.emplace_back(std::move(dynamic_data));
 
         auto status = milvus::CheckInsertInput(desc, temp_fields, false);
         EXPECT_EQ(status.Code(), milvus::StatusCode::DATA_UNMATCH_SCHEMA);
@@ -130,7 +130,7 @@ TEST_F(DmlUtilsTest, CheckInsertInputTest) {
         // enable_dynamic_field is true, the dynamic field data is not json type, both insert and upsert are wrong
         auto dummy_data = std::make_shared<milvus::Int64FieldData>(milvus::DYNAMIC_FIELD, std::vector<int64_t>{1, 2});
         std::vector<milvus::FieldDataPtr> temp_fields = fields;
-        temp_fields.emplace_back(dummy_data);
+        temp_fields.emplace_back(std::move(dummy_data));
 
         auto status = milvus::CheckInsertInput(desc, temp_fields, false);
         EXPECT_EQ(status.Code(), milvus::StatusCode::INVALID_AGUMENT);
@@ -144,8 +144,8 @@ TEST_F(DmlUtilsTest, CheckInsertInputTest) {
         auto dummy_data = std::make_shared<milvus::JSONFieldData>(
             milvus::DYNAMIC_FIELD, std::vector<nlohmann::json>{{"age", 50}, {"age", 100}});
         std::vector<milvus::FieldDataPtr> temp_fields = fields;
-        temp_fields.emplace_back(std::make_shared<milvus::Int64FieldData>("pk", std::vector<int64_t>{1, 2}));
-        temp_fields.emplace_back(dummy_data);
+        temp_fields.emplace_back(std::move(std::make_shared<milvus::Int64FieldData>("pk", std::vector<int64_t>{1, 2})));
+        temp_fields.emplace_back(std::move(dummy_data));
 
         auto status = milvus::CheckInsertInput(desc, temp_fields, false);
         EXPECT_EQ(status.Code(), milvus::StatusCode::OK);

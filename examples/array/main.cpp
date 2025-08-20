@@ -116,7 +116,7 @@ main(int argc, char* argv[]) {
         std::transform(values.begin(), values.end(), varchars.begin(),
                        [i](int x) { return "varchar_" + std::to_string(i * 10000 + x); });
         row[field_array_varchar] = varchars;
-        rows.emplace_back(row);
+        rows.emplace_back(std::move(row));
     }
 
     milvus::DmlResults dml_results;
