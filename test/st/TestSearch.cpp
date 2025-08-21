@@ -262,8 +262,8 @@ TEST_F(MilvusServerTestSearch, SearchWithIVFIndex) {
     std::vector<std::string> names{};
     for (auto i = test_count; i > 0; --i) {
         ages.emplace_back(age_gen(rng));
-        names.emplace_back(std::string("name_") + std::to_string(i));
-        faces.emplace_back(std::vector<float>{face_gen(rng), face_gen(rng), face_gen(rng), face_gen(rng)});
+        names.emplace_back(std::move(std::string("name_") + std::to_string(i)));
+        faces.emplace_back(std::move(std::vector<float>{face_gen(rng), face_gen(rng), face_gen(rng), face_gen(rng)}));
     }
 
     std::vector<milvus::FieldDataPtr> fields{std::make_shared<milvus::Int16FieldData>("age", ages),

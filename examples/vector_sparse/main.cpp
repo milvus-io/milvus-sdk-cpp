@@ -85,7 +85,7 @@ main(int argc, char* argv[]) {
             row[field_id] = i;
             row[field_text] = "this is text_" + std::to_string(i);
             row[field_vector] = util::GenerateSparseVectorInJson(100, true);
-            rows.emplace_back(row);
+            rows.emplace_back(std::move(row));
         }
 
         milvus::DmlResults dml_results;

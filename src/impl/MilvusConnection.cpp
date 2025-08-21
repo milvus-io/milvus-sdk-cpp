@@ -273,6 +273,19 @@ MilvusConnection::ShowCollections(const proto::milvus::ShowCollectionsRequest& r
 }
 
 Status
+MilvusConnection::GetLoadState(const proto::milvus::GetLoadStateRequest& request,
+                               proto::milvus::GetLoadStateResponse& response, const GrpcContextOptions& options) {
+    return grpcCall("GetLoadState", &Stub::GetLoadState, request, response, options);
+}
+
+Status
+MilvusConnection::GetLoadingProgress(const proto::milvus::GetLoadingProgressRequest request,
+                                     proto::milvus::GetLoadingProgressResponse& response,
+                                     const GrpcContextOptions& options) {
+    return grpcCall("GetLoadingProgress", &Stub::GetLoadingProgress, request, response, options);
+}
+
+Status
 MilvusConnection::CreatePartition(const proto::milvus::CreatePartitionRequest& request, proto::common::Status& response,
                                   const GrpcContextOptions& options) {
     return grpcCall("CreatePartition", &Stub::CreatePartition, request, response, options);
@@ -331,6 +344,18 @@ Status
 MilvusConnection::AlterAlias(const proto::milvus::AlterAliasRequest& request, proto::common::Status& response,
                              const GrpcContextOptions& options) {
     return grpcCall("AlterAlias", &Stub::AlterAlias, request, response, options);
+}
+
+Status
+MilvusConnection::DescribeAlias(const proto::milvus::DescribeAliasRequest& request,
+                                proto::milvus::DescribeAliasResponse& response, const GrpcContextOptions& options) {
+    return grpcCall("DescribeAlias", &Stub::DescribeAlias, request, response, options);
+}
+
+Status
+MilvusConnection::ListAliases(const proto::milvus::ListAliasesRequest& request,
+                              proto::milvus::ListAliasesResponse& response, const GrpcContextOptions& options) {
+    return grpcCall("ListAliases", &Stub::ListAliases, request, response, options);
 }
 
 Status
@@ -481,19 +506,6 @@ Status
 MilvusConnection::ListCredUsers(const proto::milvus::ListCredUsersRequest& request,
                                 proto::milvus::ListCredUsersResponse& response, const GrpcContextOptions& options) {
     return grpcCall("ListCredUsers", &Stub::ListCredUsers, request, response, options);
-}
-
-Status
-MilvusConnection::GetLoadState(const proto::milvus::GetLoadStateRequest& request,
-                               proto::milvus::GetLoadStateResponse& response, const GrpcContextOptions& options) {
-    return grpcCall("GetLoadState", &Stub::GetLoadState, request, response, options);
-}
-
-Status
-MilvusConnection::GetLoadingProgress(const proto::milvus::GetLoadingProgressRequest request,
-                                     proto::milvus::GetLoadingProgressResponse& response,
-                                     const GrpcContextOptions& options) {
-    return grpcCall("GetLoadingProgress", &Stub::GetLoadingProgress, request, response, options);
 }
 
 }  // namespace milvus

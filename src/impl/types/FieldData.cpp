@@ -231,7 +231,7 @@ BinaryVecFieldData::ToBinaryStrings(const std::vector<std::vector<uint8_t>>& dat
     std::vector<std::string> ret;
     ret.reserve(data.size());
     for (const auto& item : data) {
-        ret.emplace_back(ToBinaryString(item));
+        ret.emplace_back(std::move(ToBinaryString(item)));
     }
     return std::move(ret);
 }

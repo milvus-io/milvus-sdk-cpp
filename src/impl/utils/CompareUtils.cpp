@@ -190,7 +190,7 @@ operator==(const proto::schema::FieldData& lhs, const JSONFieldData& rhs) {
 
     std::vector<nlohmann::json> jsons;
     for (const auto& str : scalars_data) {
-        jsons.emplace_back(nlohmann::json::parse(str));
+        jsons.emplace_back(std::move(nlohmann::json::parse(str)));
     }
     return std::equal(jsons.begin(), jsons.end(), rhs.Data().begin());
 }

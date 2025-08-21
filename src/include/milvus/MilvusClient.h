@@ -19,6 +19,7 @@
 #include <memory>
 
 #include "Status.h"
+#include "types/AliasDesc.h"
 #include "types/CollectionDesc.h"
 #include "types/CollectionInfo.h"
 #include "types/CollectionSchema.h"
@@ -214,6 +215,18 @@ class MilvusClient {
     ListCollections(CollectionsInfo& collections_info, bool only_show_loaded = false) = 0;
 
     /**
+     * @brief Get load state of collection or partitions.
+     *
+     * @param [in] collection_name name of the collection
+     * @param [in] partition_names name array of the partitions
+     * @param [out] is_loaded whether the collection is loaded into memory
+     * @return Status operation successfully or not
+     */
+    virtual Status
+    GetLoadState(const std::string& collection_name, bool& is_loaded,
+                 const std::vector<std::string> partition_names = {}) = 0;
+
+    /**
      * @brief Create a partition in a collection.
      *
      * @param [in] collection_name name of the collection
@@ -341,6 +354,25 @@ class MilvusClient {
      */
     virtual Status
     AlterAlias(const std::string& collection_name, const std::string& alias) = 0;
+
+    /**
+     * @brief Describe an alias.
+     *
+     * @param [in] alias_name name of the alias
+     * @return Status operation successfully or not
+     */
+    virtual Status
+    DescribeAlias(const std::string& alias_name, AliasDesc& desc) = 0;
+
+    /**
+     * @brief List all aliases of a collection.
+     *
+     * @param [in] collection_name name of the collection
+     * @param [out] descs a list of aliases
+     * @return Status operation successfully or not
+     */
+    virtual Status
+    ListAliases(const std::string& collection_name, std::vector<AliasDesc>& descs) = 0;
 
     /**
      * @brief Switch connection to another database.
@@ -700,18 +732,6 @@ class MilvusClient {
      */
     virtual Status
     ListCredUsers(std::vector<std::string>& names) = 0;
-
-    /**
-     * @brief Get load state of collection or partitions.
-     *
-     * @param [in] collection_name name of the collection
-     * @param [in] partition_names name array of the partitions
-     * @param [out] is_loaded whether the collection is loaded into memory
-     * @return Status operation successfully or not
-     */
-    virtual Status
-    GetLoadState(const std::string& collection_name, bool& is_loaded,
-                 const std::vector<std::string> partition_names = {}) = 0;
 };
 
 using MilvusClientPtr = std::shared_ptr<MilvusClient>;

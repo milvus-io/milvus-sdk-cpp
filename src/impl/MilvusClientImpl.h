@@ -82,6 +82,10 @@ class MilvusClientImpl : public MilvusClient {
     ListCollections(CollectionsInfo& collections_info, bool only_show_loaded) final;
 
     Status
+    GetLoadState(const std::string& collection_name, bool& is_loaded,
+                 const std::vector<std::string> partition_names) final;
+
+    Status
     CreatePartition(const std::string& collection_name, const std::string& partition_name) final;
 
     Status
@@ -116,6 +120,12 @@ class MilvusClientImpl : public MilvusClient {
 
     Status
     AlterAlias(const std::string& collection_name, const std::string& alias) final;
+
+    Status
+    DescribeAlias(const std::string& alias_name, AliasDesc& desc) final;
+
+    Status
+    ListAliases(const std::string& collection_name, std::vector<AliasDesc>& descs) final;
 
     Status
     UseDatabase(const std::string& db_name) final;
@@ -224,10 +234,6 @@ class MilvusClientImpl : public MilvusClient {
 
     Status
     ListCredUsers(std::vector<std::string>& users) final;
-
-    Status
-    GetLoadState(const std::string& collection_name, bool& is_loaded,
-                 const std::vector<std::string> partition_names) final;
 
  private:
     // This interface is not exposed to users
