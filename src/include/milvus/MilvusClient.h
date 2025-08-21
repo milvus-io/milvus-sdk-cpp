@@ -248,6 +248,39 @@ class MilvusClient {
                  const std::vector<std::string> partition_names = {}) = 0;
 
     /**
+     * @brief Alter a collection's properties.
+     *
+     * @param [in] collection_name name of the collection
+     * @param [in] properties properties to be altered
+     * @return Status operation successfully or not
+     */
+    virtual Status
+    AlterCollectionProperties(const std::string& collection_name,
+                              const std::unordered_map<std::string, std::string>& properties) = 0;
+
+    /**
+     * @brief Drop a collection's properties.
+     *
+     * @param [in] collection_name name of the collection
+     * @param [in] property_keys keys of the properties
+     * @return Status operation successfully or not
+     */
+    virtual Status
+    DropCollectionProperties(const std::string& collection_name, const std::set<std::string>& property_keys) = 0;
+
+    /**
+     * @brief Alter a field's properties.
+     *
+     * @param [in] collection_name name of the collection
+     * @param [in] field_name name of the field
+     * @param [in] properties properties to be altered
+     * @return Status operation successfully or not
+     */
+    virtual Status
+    AlterCollectionField(const std::string& collection_name, const std::string& field_name,
+                         const std::unordered_map<std::string, std::string>& properties) = 0;
+
+    /**
      * @brief Create a partition in a collection.
      *
      * @param [in] collection_name name of the collection
@@ -403,6 +436,16 @@ class MilvusClient {
      */
     virtual Status
     UseDatabase(const std::string& db_name) = 0;
+
+    /**
+     * @brief Get current used database name.
+     * This API is useful in multi-database scenarios.
+     *
+     * @param [out] db_name name of the current used database
+     * @return Status operation successfully or not
+     */
+    virtual Status
+    CurrentUsedDatabase(std::string& db_name) = 0;
 
     /**
      * @brief Create a new database.

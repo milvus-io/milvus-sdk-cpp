@@ -31,6 +31,12 @@ extern const char* MAX_CAPACITY;
 extern const char* DYNAMIC_FIELD;
 extern const char* SPARSE_INDICES;
 extern const char* SPARSE_VALUES;
+extern const char* MMAP_ENABLED;
+extern const char* COLLECTION_TTL_SECONDS;
+extern const char* COLLECTION_REPLICA_NUMBER;
+extern const char* COLLECTION_RESOURCE_GROUPS;
+extern const char* DATABASE_REPLICA_NUMBER;
+extern const char* DATABASE_RESOURCE_GROUPS;
 
 /////////////////////////////////////////////////////////////////////////////////
 // the following methods are reserved to compatible with old client code
