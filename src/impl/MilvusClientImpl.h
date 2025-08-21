@@ -50,6 +50,12 @@ class MilvusClientImpl : public MilvusClient {
     GetVersion(std::string& version) final;
 
     Status
+    GetServerVersion(std::string& version) final;
+
+    Status
+    GetSDKVersion(std::string& version) final;
+
+    Status
     CreateCollection(const CollectionSchema& schema) final;
 
     Status

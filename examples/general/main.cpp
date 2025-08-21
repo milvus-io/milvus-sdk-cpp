@@ -37,9 +37,13 @@ main(int argc, char* argv[]) {
 
     // print the server version
     std::string version;
-    status = client->GetVersion(version);
+    status = client->GetServerVersion(version);
     util::CheckStatus("Failed to get server version:", status);
     std::cout << "The milvus server version is: " << version << std::endl;
+
+    // print the SDK version
+    client->GetSDKVersion(version);
+    std::cout << "The CPP SDK version is: " << version << std::endl;
 
     // drop the collection if it exists
     const std::string collection_name = "TEST_CPP_GENERAL";

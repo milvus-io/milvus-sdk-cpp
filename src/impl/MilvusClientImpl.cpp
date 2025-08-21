@@ -81,6 +81,11 @@ MilvusClientImpl::SetRetryParam(const RetryParam& retry_param) {
 
 Status
 MilvusClientImpl::GetVersion(std::string& version) {
+    return GetServerVersion(version);
+}
+
+Status
+MilvusClientImpl::GetServerVersion(std::string& version) {
     auto pre = []() {
         proto::milvus::GetVersionRequest rpc_request;
         return rpc_request;
@@ -90,6 +95,12 @@ MilvusClientImpl::GetVersion(std::string& version) {
 
     return apiHandler<proto::milvus::GetVersionRequest, proto::milvus::GetVersionResponse>(
         pre, &MilvusConnection::GetVersion, post);
+}
+
+Status
+MilvusClientImpl::GetSDKVersion(std::string& version) {
+    version = GetBuildVersion();
+    return Status::OK();
 }
 
 Status

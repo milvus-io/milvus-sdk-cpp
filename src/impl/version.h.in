@@ -15,3 +15,4 @@
 // limitations under the License.
 
 #cmakedefine MILVUS_SDK_VERSION "@MILVUS_SDK_VERSION@"
+#cmakedefine CMAKE_BUILD_TYPE "@CMAKE_BUILD_TYPE@"

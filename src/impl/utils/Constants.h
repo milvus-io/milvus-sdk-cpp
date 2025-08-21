@@ -34,4 +34,7 @@ extern const char* GROUPBY_FIELD;
 extern const char* PARAMS;
 extern const char* STRATEGY;
 
+std::string
+GetBuildVersion();
+
 }  // namespace milvus

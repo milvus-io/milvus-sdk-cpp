@@ -35,7 +35,7 @@ TEST_F(MilvusMockedTest, GetVersionFoo) {
             return ::grpc::Status{};
         });
     std::string version;
-    auto status = client_->GetVersion(version);
+    auto status = client_->GetServerVersion(version);
 
     EXPECT_TRUE(status.IsOk());
     EXPECT_EQ(version, "2.0.0");
