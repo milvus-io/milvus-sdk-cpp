@@ -16,6 +16,7 @@
 
 #include "Constants.h"
 
+#include "../version.h"
 #include "milvus/types/Constants.h"
 
 namespace milvus {
@@ -44,4 +45,10 @@ const char* MAX_CAPACITY = "max_capacity";
 const char* DYNAMIC_FIELD = "$meta";
 const char* SPARSE_INDICES = "indices";
 const char* SPARSE_VALUES = "values";
+
+std::string
+GetBuildVersion() {
+    return std::string(MILVUS_SDK_VERSION) + "-" + std::string(CMAKE_BUILD_TYPE);
+}
+
 }  // namespace milvus

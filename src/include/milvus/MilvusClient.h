@@ -98,6 +98,7 @@ class MilvusClient {
 
     /**
      * @brief Get milvus server version.
+     * @deprecated replaced by GetServerVersion()
      *
      * @param [out] version version string
      * @return Status operation successfully or not
@@ -105,6 +106,26 @@ class MilvusClient {
      */
     virtual Status
     GetVersion(std::string& version) = 0;
+
+    /**
+     * @brief Get milvus server version.
+     *
+     * @param [out] version version string
+     * @return Status operation successfully or not
+     *
+     */
+    virtual Status
+    GetServerVersion(std::string& version) = 0;
+
+    /**
+     * @brief Get SDK version.
+     *
+     * @param [out] version version string
+     * @return Status operation successfully or not
+     *
+     */
+    virtual Status
+    GetSDKVersion(std::string& version) = 0;
 
     /**
      * @brief Create a collection with schema.
