@@ -20,6 +20,20 @@
 
 namespace milvus {
 
+// const names for external common usage
+extern const char* INDEX_TYPE;
+extern const char* METRIC_TYPE;
+extern const char* NLIST;
+extern const char* NPROBE;
+extern const char* DIM;
+extern const char* MAX_LENGTH;
+extern const char* MAX_CAPACITY;
+extern const char* DYNAMIC_FIELD;
+extern const char* SPARSE_INDICES;
+extern const char* SPARSE_VALUES;
+
+/////////////////////////////////////////////////////////////////////////////////
+// the following methods are reserved to compatible with old client code
 /**
  * @brief Global definition for row count label
  */
@@ -33,7 +47,7 @@ KeyRowCount() {
  */
 inline std::string
 KeyIndexType() {
-    return "index_type";
+    return INDEX_TYPE;
 }
 
 /**
@@ -41,7 +55,7 @@ KeyIndexType() {
  */
 inline std::string
 KeyMetricType() {
-    return "metric_type";
+    return METRIC_TYPE;
 }
 
 /**
@@ -57,7 +71,7 @@ KeyParams() {
  */
 inline std::string
 FieldDim() {
-    return "dim";
+    return DIM;
 }
 
 /**
@@ -65,7 +79,7 @@ FieldDim() {
  */
 inline std::string
 FieldMaxLength() {
-    return "max_length";
+    return MAX_LENGTH;
 }
 
 /**
@@ -82,20 +96,6 @@ GuaranteeStrongTs() {
 inline uint64_t
 GuaranteeEventuallyTs() {
     return 1;
-}
-
-/**
- * @brief The logical bits in hybrid timestamp
- */
-constexpr size_t inline HybridTsLogicalBits() {
-    return 18;
-}
-
-/**
- * @brief The logical bits mask for hybrid timestamp
- */
-constexpr uint64_t inline HybridTsLogicalBitsMask() {
-    return (1 << HybridTsLogicalBits()) - 1;
 }
 
 }  // namespace milvus

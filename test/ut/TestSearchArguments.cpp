@@ -38,15 +38,9 @@ TEST_F(SearchArgumentsTest, GeneralTesting) {
     EXPECT_TRUE(names.find(partition_name) != names.end());
 
     std::string expression = "expr";
-    arguments.SetExpression(expression);
-    EXPECT_EQ(expression, arguments.Expression());
-    EXPECT_TRUE(arguments.SetExpression(empty_name).IsOk());
-
-    uint64_t ts = 1000;
-    arguments.SetTravelTimestamp(ts);
-    EXPECT_EQ(ts, arguments.TravelTimestamp());
-    arguments.SetGuaranteeTimestamp(ts);
-    EXPECT_EQ(ts, arguments.GuaranteeTimestamp());
+    arguments.SetFilter(expression);
+    EXPECT_EQ(expression, arguments.Filter());
+    EXPECT_TRUE(arguments.SetFilter(empty_name).IsOk());
 
     auto status = arguments.AddOutputField("");
     EXPECT_FALSE(status.IsOk());
@@ -59,17 +53,17 @@ TEST_F(SearchArgumentsTest, VectorTesting) {
 
     {
         milvus::SearchArguments arguments;
-        auto status = arguments.AddTargetVector("dummy", binary_vector);
+        auto status = arguments.AddBinaryVector("dummy", binary_vector);
         EXPECT_TRUE(status.IsOk());
 
-        status = arguments.AddTargetVector("dummy", float_vector);
+        status = arguments.AddFloatVector("dummy", float_vector);
         EXPECT_FALSE(status.IsOk());
 
         std::vector<uint8_t> new_vector = {1, 2};
-        status = arguments.AddTargetVector("dummy", new_vector);
+        status = arguments.AddBinaryVector("dummy", new_vector);
         EXPECT_FALSE(status.IsOk());
 
-        status = arguments.AddTargetVector("dummy", std::vector<uint8_t>{});
+        status = arguments.AddBinaryVector("dummy", std::vector<uint8_t>{});
         EXPECT_FALSE(status.IsOk());
 
         auto target_vectors = arguments.TargetVectors();
@@ -77,7 +71,7 @@ TEST_F(SearchArgumentsTest, VectorTesting) {
         EXPECT_EQ(milvus::DataType::BINARY_VECTOR, target_vectors->Type());
         EXPECT_EQ(1, target_vectors->Count());
 
-        status = arguments.AddTargetVector("dummy", binary_string);
+        status = arguments.AddBinaryVector("dummy", binary_string);
         EXPECT_TRUE(status.IsOk());
 
         target_vectors = arguments.TargetVectors();
@@ -86,17 +80,17 @@ TEST_F(SearchArgumentsTest, VectorTesting) {
 
     {
         milvus::SearchArguments arguments;
-        auto status = arguments.AddTargetVector("dummy", float_vector);
+        auto status = arguments.AddFloatVector("dummy", float_vector);
         EXPECT_TRUE(status.IsOk());
 
-        status = arguments.AddTargetVector("dummy", binary_vector);
+        status = arguments.AddBinaryVector("dummy", binary_vector);
         EXPECT_FALSE(status.IsOk());
 
         std::vector<float> new_vector = {1.0, 2.0, 3.0};
-        status = arguments.AddTargetVector("dummy", new_vector);
+        status = arguments.AddFloatVector("dummy", new_vector);
         EXPECT_FALSE(status.IsOk());
 
-        status = arguments.AddTargetVector("dummy", std::vector<float>{});
+        status = arguments.AddFloatVector("dummy", std::vector<float>{});
         EXPECT_FALSE(status.IsOk());
 
         auto target_vectors = arguments.TargetVectors();
@@ -107,17 +101,17 @@ TEST_F(SearchArgumentsTest, VectorTesting) {
 
     {
         milvus::SearchArguments arguments;
-        auto status = arguments.AddTargetVector("dummy", std::vector<uint8_t>{1, 2, 3});
+        auto status = arguments.AddBinaryVector("dummy", std::vector<uint8_t>{1, 2, 3});
         EXPECT_TRUE(status.IsOk());
 
-        status = arguments.AddTargetVector("dummy", std::vector<float>{1.f, 2.f});
+        status = arguments.AddFloatVector("dummy", std::vector<float>{1.f, 2.f});
         EXPECT_FALSE(status.IsOk());
 
         std::vector<uint8_t> new_vector = {1, 2};
-        status = arguments.AddTargetVector("dummy", new_vector);
+        status = arguments.AddBinaryVector("dummy", new_vector);
         EXPECT_FALSE(status.IsOk());
 
-        status = arguments.AddTargetVector("dummy", std::vector<uint8_t>{});
+        status = arguments.AddBinaryVector("dummy", std::vector<uint8_t>{});
         EXPECT_FALSE(status.IsOk());
 
         auto target_vectors = arguments.TargetVectors();
@@ -128,17 +122,17 @@ TEST_F(SearchArgumentsTest, VectorTesting) {
 
     {
         milvus::SearchArguments arguments;
-        auto status = arguments.AddTargetVector("dummy", std::vector<float>{1.f, 2.f});
+        auto status = arguments.AddFloatVector("dummy", std::vector<float>{1.f, 2.f});
         EXPECT_TRUE(status.IsOk());
 
-        status = arguments.AddTargetVector("dummy", std::vector<uint8_t>{1, 2, 3});
+        status = arguments.AddBinaryVector("dummy", std::vector<uint8_t>{1, 2, 3});
         EXPECT_FALSE(status.IsOk());
 
         std::vector<float> new_vector = {1.0, 2.0, 3.0};
-        status = arguments.AddTargetVector("dummy", new_vector);
+        status = arguments.AddFloatVector("dummy", new_vector);
         EXPECT_FALSE(status.IsOk());
 
-        status = arguments.AddTargetVector("dummy", std::vector<float>{});
+        status = arguments.AddFloatVector("dummy", std::vector<float>{});
         EXPECT_FALSE(status.IsOk());
 
         auto target_vectors = arguments.TargetVectors();
@@ -148,32 +142,9 @@ TEST_F(SearchArgumentsTest, VectorTesting) {
     }
 }
 
-TEST_F(SearchArgumentsTest, ValidateTesting) {
-    {
-        milvus::SearchArguments arguments;
-        arguments.AddExtraParam("nprobe", 0);
-        auto status = arguments.Validate();
-        EXPECT_FALSE(status.IsOk());
-    }
-
-    {
-        milvus::SearchArguments arguments;
-        arguments.AddExtraParam("nprobe", 1000000);
-        auto status = arguments.Validate();
-        EXPECT_FALSE(status.IsOk());
-    }
-
-    {
-        milvus::SearchArguments arguments;
-        arguments.AddExtraParam("nprobe", 10);
-        auto status = arguments.Validate();
-        EXPECT_TRUE(status.IsOk());
-    }
-}
-
 TEST_F(SearchArgumentsTest, Nprobe) {
     milvus::SearchArguments arguments;
-    arguments.AddExtraParam("nprobe", 10);
+    arguments.AddExtraParam("nprobe", "10");
     EXPECT_EQ(10, arguments.Nprobe());
 
     arguments.SetNprobe(20);
@@ -182,12 +153,7 @@ TEST_F(SearchArgumentsTest, Nprobe) {
 
 TEST_F(SearchArgumentsTest, RangeSearchParams) {
     milvus::SearchArguments arguments;
-    arguments.SetMetricType(milvus::MetricType::IP);
     arguments.SetRange(0.1, 0.2);
-    EXPECT_NEAR(0.1, arguments.Radius(), 0.00001);
-    EXPECT_NEAR(0.2, arguments.RangeFilter(), 0.00001);
-
-    arguments.SetMetricType(milvus::MetricType::L2);
-    EXPECT_NEAR(0.2, arguments.Radius(), 0.00001);
     EXPECT_NEAR(0.1, arguments.RangeFilter(), 0.00001);
+    EXPECT_NEAR(0.2, arguments.Radius(), 0.00001);
 }

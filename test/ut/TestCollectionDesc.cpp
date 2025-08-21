@@ -34,4 +34,10 @@ TEST_F(CollectionDescTest, GeneralTesting) {
 
     desc.SetCreatedTime(10000);
     EXPECT_EQ(desc.CreatedTime(), 10000);
+
+    desc.SetDatabaseName("db");
+    EXPECT_EQ(desc.DatabaseName(), "db");
+
+    desc.SetUpdateTime(888);
+    EXPECT_EQ(desc.UpdateTime(), 888);
 }

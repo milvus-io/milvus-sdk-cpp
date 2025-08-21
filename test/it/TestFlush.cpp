@@ -30,7 +30,7 @@ using ::testing::_;
 using ::testing::ElementsAreArray;
 using ::testing::Property;
 
-TEST_F(MilvusMockedTest, FlushWithoutConnect) {
+TEST_F(UnconnectMilvusMockedTest, FlushWithoutConnect) {
     const std::vector<std::string> collections{"c1", "c2"};
     const auto progress_monitor = ::milvus::ProgressMonitor::NoWait();
     auto status = client_->Flush(collections, progress_monitor);

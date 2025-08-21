@@ -14,9 +14,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-cmake_minimum_required(VERSION 3.12)
+cmake_minimum_required(VERSION 3.5)
 project(milvus_sdk LANGUAGES CXX)
 
+set(CMAKE_POLICY_VERSION_MINIMUM 3.5)
 set(CMAKE_VERBOSE_MAKEFILE OFF)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_CXX_STANDARD 14)
@@ -52,9 +53,7 @@ define_option(MILVUS_BUILD_COVERAGE "Build with coverage" OFF)
 define_option_string(MILVUS_SDK_VERSION
     "Version for sdk"
     "2.0.0")
-define_option_string(MILVUS_SDK_RELEASE
-    "Release number for sdk"
-    "1")
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/src/impl/version.h.in ${CMAKE_CURRENT_SOURCE_DIR}/src/impl/version.h @ONLY)
 
 set_option_category("Thirdparty")
 # use thirdparty from:
@@ -64,6 +63,7 @@ set_option_category("Thirdparty")
 define_option_string(MILVUS_WITH_GRPC           "Using gRPC from"       "module" "package" "module")
 define_option_string(MILVUS_WITH_ZLIB           "Using Zlib from"       "module" "package" "module")
 define_option_string(MILVUS_WITH_NLOHMANN_JSON  "nlohmann json from"    "module" "package" "module")
+define_option_string(MILVUS_WITH_CPP_HTTPLIB    "cpp-httplib from"      "module" "package" "module")
 define_option_string(MILVUS_WITH_GTEST          "Using GTest from"      "module" "package" "module")
 
 
@@ -71,6 +71,12 @@ set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED on)
 set(BUILD_SCRIPTS_DIR ${PROJECT_SOURCE_DIR}/scripts)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
+
+# This will set RPATH to all excutable TARGET
+# self-installed dynamic libraries will be correctly linked by excutable
+set(CMAKE_INSTALL_RPATH "/usr/lib" "${CMAKE_INSTALL_PREFIX}/lib" "${CMAKE_INSTALL_PREFIX}/lib64" )
+set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 
 
 # load third packages and milvus-proto
@@ -86,10 +92,10 @@ if (MILVUS_BUILD_TEST)
     endif ()
     enable_testing()
     add_subdirectory(test)
+    add_subdirectory(examples)
 endif ()
 
 add_subdirectory(src)
-add_subdirectory(examples)
 
 #
 # make lint

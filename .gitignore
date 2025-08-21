@@ -1,6 +1,8 @@
 cmake_build/
+cmake-build-debug/
 build/
 .vscode/
+.idea/
 .cache/
 
 logs/
@@ -8,5 +10,8 @@ logs/
 logs/
 build/
 code_coverage/
+
+# this file is auto-generated
+src/impl/version.h
 
 

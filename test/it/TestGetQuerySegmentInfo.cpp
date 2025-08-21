@@ -17,8 +17,9 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
-#include "TypeUtils.h"
 #include "mocks/MilvusMockedTest.h"
+#include "utils/CompareUtils.h"
+#include "utils/TypeUtils.h"
 
 using ::milvus::StatusCode;
 using ::milvus::proto::common::SegmentState;
@@ -28,8 +29,7 @@ using ::testing::_;
 using ::testing::ElementsAre;
 using ::testing::Property;
 
-TEST_F(MilvusMockedTest, GetQuerySegmentInfoWithoutConnection) {
-    milvus::ConnectParam connect_param{"127.0.0.1", server_.ListenPort()};
+TEST_F(UnconnectMilvusMockedTest, GetQuerySegmentInfoWithoutConnection) {
     std::string collection = "foo";
     milvus::QuerySegmentsInfo segments_info;
     auto status = client_->GetQuerySegmentInfo(collection, segments_info);
@@ -46,8 +46,8 @@ TEST_F(MilvusMockedTest, GetQuerySegmentInfoFoo) {
     milvus::QuerySegmentsInfo segments_info;
 
     milvus::QuerySegmentsInfo segments_info_expected = {
-        milvus::QuerySegmentInfo{1, 1, 1, 1, milvus::SegmentState::FLUSHED, "foo", 1, 1},
-        milvus::QuerySegmentInfo{2, 3, 4, 5, milvus::SegmentState::DROPPED, "bar", 6, 7}};
+        milvus::QuerySegmentInfo{1, 1, 1, 1, milvus::SegmentState::FLUSHED, "foo", 1, std::vector<int64_t>{1}},
+        milvus::QuerySegmentInfo{2, 3, 4, 5, milvus::SegmentState::DROPPED, "bar", 6, std::vector<int64_t>{7}}};
 
     EXPECT_CALL(service_, GetQuerySegmentInfo(_, Property(&GetQuerySegmentInfoRequest::collectionname, collection), _))
         .WillOnce([&segments_info_expected](::grpc::ServerContext*, const GetQuerySegmentInfoRequest*,
@@ -61,8 +61,9 @@ TEST_F(MilvusMockedTest, GetQuerySegmentInfoFoo) {
                 info->set_state(milvus::SegmentStateCast(info_exp.State()));
                 info->set_index_name(info_exp.IndexName());
                 info->set_indexid(info_exp.IndexID());
-                // TODO: nodeid deprecated
-                info->set_nodeid(info_exp.NodeID());
+                for (auto id : info_exp.NodeIDs()) {
+                    info->add_nodeids(id);
+                }
             }
             return ::grpc::Status{};
         });

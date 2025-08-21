@@ -29,16 +29,16 @@ TEST_F(MilvusMockedTest, DropIndexFoo) {
     client_->Connect(connect_param);
 
     const std::string collection_name{"Foo"};
-    const std::string field_name{"Bar"};
+    const std::string index_name{"Bar"};
 
     EXPECT_CALL(service_, DropIndex(_,
                                     AllOf(Property(&DropIndexRequest::collection_name, collection_name),
-                                          Property(&DropIndexRequest::field_name, field_name)),
+                                          Property(&DropIndexRequest::index_name, index_name)),
                                     _))
         .WillOnce([](::grpc::ServerContext*, const DropIndexRequest*, ::milvus::proto::common::Status*) {
             return ::grpc::Status{};
         });
-    auto status = client_->DropIndex(collection_name, field_name);
+    auto status = client_->DropIndex(collection_name, index_name);
     EXPECT_TRUE(status.IsOk());
 }
 
@@ -47,19 +47,19 @@ TEST_F(MilvusMockedTest, DropIndexFooFailed) {
     client_->Connect(connect_param);
 
     const std::string collection_name{"Foo"};
-    const std::string field_name{"Bar"};
+    const std::string index_name{"Bar"};
 
     auto error_code = milvus::proto::common::ErrorCode::UnexpectedError;
     EXPECT_CALL(service_, DropIndex(_,
                                     AllOf(Property(&DropIndexRequest::collection_name, collection_name),
-                                          Property(&DropIndexRequest::field_name, field_name)),
+                                          Property(&DropIndexRequest::index_name, index_name)),
                                     _))
         .WillOnce([error_code](::grpc::ServerContext*, const DropIndexRequest* request,
                                ::milvus::proto::common::Status* status) {
             status->set_code(error_code);
-            return ::grpc::Status{::grpc::StatusCode::UNKNOWN, ""};
+            return ::grpc::Status{};
         });
-    auto status = client_->DropIndex(collection_name, field_name);
+    auto status = client_->DropIndex(collection_name, index_name);
     EXPECT_FALSE(status.IsOk());
     EXPECT_EQ(status.Code(), StatusCode::SERVER_FAILED);
 }

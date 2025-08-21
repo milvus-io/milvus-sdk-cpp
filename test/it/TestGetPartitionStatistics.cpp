@@ -29,8 +29,7 @@ using ::testing::AllOf;
 using ::testing::ElementsAre;
 using ::testing::Property;
 
-TEST_F(MilvusMockedTest, GetPartitionStatisticsWithoutConnection) {
-    milvus::ConnectParam connect_param{"127.0.0.1", server_.ListenPort()};
+TEST_F(UnconnectMilvusMockedTest, GetPartitionStatisticsWithoutConnection) {
     std::string collection = "Foo";
     std::string partition = "Bar";
 
@@ -63,57 +62,6 @@ TEST_F(MilvusMockedTest, GetPartitionStatisticsInstantly) {
     milvus::PartitionStat partition_stat;
     auto status =
         client_->GetPartitionStatistics(collection, partition, partition_stat, milvus::ProgressMonitor::NoWait());
-
-    EXPECT_TRUE(status.IsOk());
-    EXPECT_EQ(partition_stat.RowCount(), 1000);
-}
-
-TEST_F(MilvusMockedTest, GetPartitionStatisticsWithFlushFailure) {
-    milvus::ConnectParam connect_param{"127.0.0.1", server_.ListenPort()};
-    client_->Connect(connect_param);
-
-    std::string collection = "Foo";
-    std::string partition = "Bar";
-
-    EXPECT_CALL(service_, Flush(_, AllOf(Property(&FlushRequest::collection_names, ElementsAre(collection))), _))
-        .WillOnce([](::grpc::ServerContext*, const FlushRequest*, FlushResponse* response) {
-            response->mutable_status()->set_code(::milvus::proto::common::ErrorCode::UnexpectedError);
-            return ::grpc::Status{};
-        });
-
-    milvus::PartitionStat partition_stat;
-    auto status = client_->GetPartitionStatistics(collection, partition, partition_stat, milvus::ProgressMonitor{1});
-
-    EXPECT_FALSE(status.IsOk());
-    EXPECT_EQ(status.Code(), milvus::StatusCode::SERVER_FAILED);
-}
-
-TEST_F(MilvusMockedTest, GetPartitionStatisticsWithFlushInstantly) {
-    milvus::ConnectParam connect_param{"127.0.0.1", server_.ListenPort()};
-    client_->Connect(connect_param);
-
-    std::string collection = "Foo";
-    std::string partition = "Bar";
-
-    EXPECT_CALL(service_, Flush(_, AllOf(Property(&FlushRequest::collection_names, ElementsAre(collection))), _))
-        .WillOnce(
-            [](::grpc::ServerContext*, const FlushRequest*, FlushResponse* response) { return ::grpc::Status{}; });
-
-    EXPECT_CALL(service_,
-                GetPartitionStatistics(_,
-                                       AllOf(Property(&GetPartitionStatisticsRequest::collection_name, collection),
-                                             Property(&GetPartitionStatisticsRequest::partition_name, partition)),
-                                       _))
-        .WillOnce(
-            [](::grpc::ServerContext*, const GetPartitionStatisticsRequest*, GetPartitionStatisticsResponse* response) {
-                auto* stats = response->add_stats();
-                stats->set_key("row_count");
-                stats->set_value("1000");
-                return ::grpc::Status{};
-            });
-
-    milvus::PartitionStat partition_stat;
-    auto status = client_->GetPartitionStatistics(collection, partition, partition_stat, milvus::ProgressMonitor{1});
 
     EXPECT_TRUE(status.IsOk());
     EXPECT_EQ(partition_stat.RowCount(), 1000);

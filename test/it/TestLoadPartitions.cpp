@@ -21,10 +21,9 @@
 #include "mocks/MilvusMockedTest.h"
 
 using ::milvus::StatusCode;
+using ::milvus::proto::milvus::GetLoadingProgressRequest;
+using ::milvus::proto::milvus::GetLoadingProgressResponse;
 using ::milvus::proto::milvus::LoadPartitionsRequest;
-using ::milvus::proto::milvus::ShowPartitionsRequest;
-using ::milvus::proto::milvus::ShowPartitionsResponse;
-using ::milvus::proto::milvus::ShowType;
 using ::testing::_;
 using ::testing::ElementsAreArray;
 using ::testing::Property;
@@ -64,7 +63,6 @@ TEST_F(MilvusMockedTest, LoadPartitionsFailure) {
                 LoadPartitions(_,
                                AllOf(Property(&LoadPartitionsRequest::collection_name, collection),
                                      Property(&LoadPartitionsRequest::replica_number, 1),
-
                                      Property(&LoadPartitionsRequest::partition_names_size, partitions.size())),
                                _))
         .WillOnce([](::grpc::ServerContext*, const LoadPartitionsRequest*, milvus::proto::common::Status* response) {
@@ -93,51 +91,30 @@ TEST_F(MilvusMockedTest, LoadPartitionsWithQueryStatusSuccess) {
                 LoadPartitions(_,
                                AllOf(Property(&LoadPartitionsRequest::collection_name, collection),
                                      Property(&LoadPartitionsRequest::replica_number, 2),
-
                                      Property(&LoadPartitionsRequest::partition_names_size, partitions.size())),
                                _))
         .WillOnce([](::grpc::ServerContext*, const LoadPartitionsRequest*, milvus::proto::common::Status*) {
             return ::grpc::Status{};
         });
 
-    int show_partitions_called = 0;
+    int get_progress_called = 0;
     EXPECT_CALL(service_,
-                ShowPartitions(_,
-                               AllOf(Property(&ShowPartitionsRequest::collection_name, collection),
-
-                                     Property(&ShowPartitionsRequest::partition_names_size, partitions.size())),
-                               _))
+                GetLoadingProgress(_,
+                                   AllOf(Property(&GetLoadingProgressRequest::collection_name, collection),
+                                         Property(&GetLoadingProgressRequest::partition_names_size, partitions.size())),
+                                   _))
         .Times(10)
-        .WillRepeatedly([&show_partitions_called, &partitions](::grpc::ServerContext*, const ShowPartitionsRequest*,
-                                                               ShowPartitionsResponse* response) {
-            ++show_partitions_called;
-            int index = 0;
-            for (const auto& partition : partitions) {
-                ++index;
-                response->add_partition_names(partition);
-                response->add_partitionids(0);
-                response->add_created_timestamps(0);
-
-                // time 0: 10%, 20%, 30%, 40%, 50%      -->{0, 5}
-                // time 1: 20%, 40%, 60%, 80%, 100%     -->{1, 5}
-                // time 2: 30%, 60%, 90%, 100%, 100%    -->{2, 5}
-                // time 3: 40%, 80%, 100%, 100%, 100%   -->{3, 5}
-                // time 4: 50%, 100%, 100%, 100%, 100%  -->{4, 5}
-                // time 5: 60%, 100%, 100%, 100%, 100%  -->{4, 5}
-                // time 6: 70%, 100%, 100%, 100%, 100%  -->{4, 5}
-                // time 7: 80%, 100%, 100%, 100%, 100%  -->{4, 5}
-                // time 8: 90%, 100%, 100%, 100%, 100%  -->{4, 5}
-                // time 9: 100%, 100%, 100%, 100%, 100% -->{5, 5}
-                // TODO: deprecated
-                response->add_inmemory_percentages(std::min(index * 10 * show_partitions_called, 100));
-            }
+        .WillRepeatedly([&get_progress_called](::grpc::ServerContext*, const GetLoadingProgressRequest*,
+                                               GetLoadingProgressResponse* response) {
+            ++get_progress_called;
+            response->set_progress(get_progress_called * 10);
             return ::grpc::Status{};
         });
 
     auto status = client_->LoadPartitions(collection, partitions, 2, progress_monitor);
 
-    std::vector<milvus::Progress> progresses_expected{{0, 5}, {1, 5}, {2, 5}, {3, 5}, {4, 5},
-                                                      {4, 5}, {4, 5}, {4, 5}, {4, 5}, {5, 5}};
+    std::vector<milvus::Progress> progresses_expected{{10, 100}, {20, 100}, {30, 100}, {40, 100}, {50, 100},
+                                                      {60, 100}, {70, 100}, {80, 100}, {90, 100}, {100, 100}};
 
     EXPECT_THAT(progresses, ElementsAreArray(progresses_expected));
     EXPECT_TRUE(status.IsOk());
@@ -156,7 +133,6 @@ TEST_F(MilvusMockedTest, LoadPartitionsWithQueryStatusOomFailure) {
                 LoadPartitions(_,
                                AllOf(Property(&LoadPartitionsRequest::collection_name, collection),
                                      Property(&LoadPartitionsRequest::replica_number, 2),
-
                                      Property(&LoadPartitionsRequest::partition_names_size, partitions.size())),
                                _))
         .WillOnce([](::grpc::ServerContext*, const LoadPartitionsRequest*, milvus::proto::common::Status*) {
@@ -164,24 +140,16 @@ TEST_F(MilvusMockedTest, LoadPartitionsWithQueryStatusOomFailure) {
         });
 
     EXPECT_CALL(service_,
-                ShowPartitions(_,
-                               AllOf(Property(&ShowPartitionsRequest::collection_name, collection),
-
-                                     Property(&ShowPartitionsRequest::partition_names_size, partitions.size())),
-                               _))
+                GetLoadingProgress(_,
+                                   AllOf(Property(&GetLoadingProgressRequest::collection_name, collection),
+                                         Property(&GetLoadingProgressRequest::partition_names_size, partitions.size())),
+                                   _))
         .Times(1)
-        .WillRepeatedly(
-            [&partitions](::grpc::ServerContext*, const ShowPartitionsRequest*, ShowPartitionsResponse* response) {
-                for (const auto& partition : partitions) {
-                    response->add_partition_names(partition);
-                    response->add_partitionids(0);
-                    response->add_created_timestamps(0);
-                    // TODO: deprecated
-                    response->add_inmemory_percentages(10);
-                }
-                response->mutable_status()->set_code(::milvus::proto::common::ErrorCode::OutOfMemory);
-                return ::grpc::Status{};
-            });
+        .WillRepeatedly([&partitions](::grpc::ServerContext*, const GetLoadingProgressRequest*,
+                                      GetLoadingProgressResponse* response) {
+            response->mutable_status()->set_code(::milvus::proto::common::ErrorCode::OutOfMemory);
+            return ::grpc::Status{};
+        });
 
     auto status = client_->LoadPartitions(collection, partitions, 2, progress_monitor);
 
@@ -202,7 +170,6 @@ TEST_F(MilvusMockedTest, LoadPartitionsWithQueryStatusTimeout) {
                 LoadPartitions(_,
                                AllOf(Property(&LoadPartitionsRequest::collection_name, collection),
                                      Property(&LoadPartitionsRequest::replica_number, 2),
-
                                      Property(&LoadPartitionsRequest::partition_names_size, partitions.size())),
                                _))
         .WillOnce([](::grpc::ServerContext*, const LoadPartitionsRequest*, milvus::proto::common::Status*) {
@@ -210,23 +177,16 @@ TEST_F(MilvusMockedTest, LoadPartitionsWithQueryStatusTimeout) {
         });
 
     EXPECT_CALL(service_,
-                ShowPartitions(_,
-                               AllOf(Property(&ShowPartitionsRequest::collection_name, collection),
-
-                                     Property(&ShowPartitionsRequest::partition_names_size, partitions.size())),
-                               _))
+                GetLoadingProgress(_,
+                                   AllOf(Property(&GetLoadingProgressRequest::collection_name, collection),
+                                         Property(&GetLoadingProgressRequest::partition_names_size, partitions.size())),
+                                   _))
         .Times(10)
-        .WillRepeatedly(
-            [&partitions](::grpc::ServerContext*, const ShowPartitionsRequest*, ShowPartitionsResponse* response) {
-                for (const auto& partition : partitions) {
-                    response->add_partition_names(partition);
-                    response->add_partitionids(0);
-                    response->add_created_timestamps(0);
-                    // TODO: deprecated
-                    response->add_inmemory_percentages(0);
-                }
-                return ::grpc::Status{};
-            });
+        .WillRepeatedly([&partitions](::grpc::ServerContext*, const GetLoadingProgressRequest*,
+                                      GetLoadingProgressResponse* response) {
+            response->set_progress(0);
+            return ::grpc::Status{};
+        });
 
     auto started = std::chrono::steady_clock::now();
     auto status = client_->LoadPartitions(collection, partitions, 2, progress_monitor);

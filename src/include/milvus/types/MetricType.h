@@ -22,14 +22,15 @@ namespace milvus {
  * @brief Supported metric types.
  */
 enum class MetricType {
-    INVALID,
+    INVALID = 0,  // deprecated, replaced by DEFAULT
+    DEFAULT = 0,  // the server automatically determines metric type
     L2,
     IP,
+    COSINE,
     // The following values are for binary vectors
     HAMMING,
     JACCARD,
-    TANIMOTO,
-    SUBSTRUCTURE,
-    SUPERSTRUCTURE
+
+    // Note: in milvus 2.4+, TANIMOTO/SUBSTRUCTURE/SUPERSTRUCTURE have been deprecated
 };
 }  // namespace milvus

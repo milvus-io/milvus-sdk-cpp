@@ -22,10 +22,7 @@
 #include <string>
 #include <thread>
 
-#include "PythonMilvusServer.h"
 #include "milvus/MilvusClient.h"
-
-extern std::shared_ptr<milvus::ConnectParam> s_connectParam;
 
 namespace milvus {
 namespace test {
@@ -36,8 +33,9 @@ class MilvusServerTest : public ::testing::Test {
 
     void
     SetUp() override {
+        milvus::ConnectParam connect_param{"localhost", 19530};
         client_ = milvus::MilvusClient::Create();
-        client_->Connect(*s_connectParam);
+        client_->Connect(connect_param);
     }
 
     void
@@ -53,8 +51,9 @@ class MilvusServerTestWithParam : public ::testing::TestWithParam<T> {
 
     void
     SetUp() override {
+        milvus::ConnectParam connect_param{"localhost", 19530};
         client_ = milvus::MilvusClient::Create();
-        client_->Connect(*s_connectParam);
+        client_->Connect(connect_param);
     }
 
     void
@@ -62,5 +61,9 @@ class MilvusServerTestWithParam : public ::testing::TestWithParam<T> {
         client_->Disconnect();
     }
 };
+
+std::string
+RanName(const std::string& prefix);
+
 }  // namespace test
 }  // namespace milvus

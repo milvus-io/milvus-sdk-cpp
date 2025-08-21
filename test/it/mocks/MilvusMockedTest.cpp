@@ -16,12 +16,34 @@
 
 #include "MilvusMockedTest.h"
 
+using ::milvus::StatusCode;
+using ::milvus::proto::milvus::ConnectRequest;
+using ::milvus::proto::milvus::ConnectResponse;
+
+using ::testing::_;
+using ::testing::AllOf;
+using ::testing::Property;
+
 void
-milvus::MilvusMockedTest::SetUp() {
+milvus::UnconnectMilvusMockedTest::SetUp() {
     server_.Start();
     client_ = milvus::MilvusClient::Create();
 }
 
 void
-milvus::MilvusMockedTest::TearDown() {
+milvus::UnconnectMilvusMockedTest::TearDown() {
+}
+
+void
+milvus::ConnectMilvusMockedTest::SetUp() {
+    UnconnectMilvusMockedTest::SetUp();
+
+    EXPECT_CALL(service_, Connect(_, _, _))
+        .WillOnce(
+            [](::grpc::ServerContext*, const ConnectRequest*, ConnectResponse* response) { return ::grpc::Status{}; });
+}
+
+bool
+milvus::operator==(const milvus::proto::common::KeyValuePair& lhs, const TestKv& rhs) {
+    return lhs.key() == rhs.key_ && lhs.value() == rhs.value_;
 }

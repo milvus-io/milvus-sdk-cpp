@@ -16,10 +16,16 @@
 
 #include "MilvusConnection.h"
 
+#include <chrono>
+#include <ctime>
 #include <fstream>
+#include <iomanip>
 #include <memory>
+#include <sstream>
 
+#include "MilvusInterceptor.h"
 #include "grpcpp/security/credentials.h"
+#include "utils/Constants.h"
 
 using grpc::Channel;
 using grpc::ClientContext;
@@ -60,14 +66,45 @@ MilvusConnection::~MilvusConnection() {
 }
 
 Status
+MilvusConnection::StatusByProtoResponse(const proto::common::Status& status) {
+    auto legacy_code = status.error_code();  // compile warning at this line since proto deprecates this method
+    if (status.code() != 0 || legacy_code != proto::common::ErrorCode::Success) {
+        return Status{StatusCode::SERVER_FAILED, status.reason(), 0, status.code(), legacy_code};
+    }
+    return Status::OK();
+}
+
+template <typename Response>
+Status
+MilvusConnection::StatusByProtoResponse(const Response& response) {
+    const proto::common::Status& status = response.status();
+    return StatusByProtoResponse(status);
+}
+
+Status
+MilvusConnection::StatusCodeFromGrpcStatus(const ::grpc::Status& grpc_status) {
+    if (grpc_status.ok()) {
+        return Status::OK();
+    }
+
+    StatusCode code = (grpc_status.error_code() == ::grpc::StatusCode::DEADLINE_EXCEEDED) ? StatusCode::TIMEOUT
+                                                                                          : StatusCode::RPC_FAILED;
+    return Status{code, grpc_status.error_message(), grpc_status.error_code(), 0, 0};
+}
+
+Status
 MilvusConnection::Connect(const ConnectParam& param) {
-    authorization_value_ = param.Authorizations();
+    param_ = param;
+
     std::shared_ptr<grpc::ChannelCredentials> credentials{nullptr};
     auto uri = param.Uri();
 
     ::grpc::ChannelArguments args;
     args.SetMaxSendMessageSize(-1);     // max send message size: 2GB
     args.SetMaxReceiveMessageSize(-1);  // max receive message size: 2GB
+    args.SetInt(GRPC_ARG_KEEPALIVE_TIME_MS, param.KeepaliveTimeMs());
+    args.SetInt(GRPC_ARG_KEEPALIVE_TIMEOUT_MS, param.KeepaliveTimeoutMs());
+    args.SetInt(GRPC_ARG_KEEPALIVE_PERMIT_WITHOUT_CALLS, param.KeepaliveWithoutCalls() ? 1 : 0);
 
     if (param.TlsEnabled()) {
         if (!param.ServerName().empty()) {
@@ -78,16 +115,54 @@ MilvusConnection::Connect(const ConnectParam& param) {
         credentials = ::grpc::InsecureChannelCredentials();
     }
 
-    channel_ = ::grpc::CreateCustomChannel(uri, credentials, args);
-    auto connected = channel_->WaitForConnected(std::chrono::system_clock::now() +
-                                                std::chrono::milliseconds{param.ConnectTimeout()});
-    if (connected) {
-        stub_ = proto::milvus::MilvusService::NewStub(channel_);
-        return Status::OK();
+    std::unordered_map<std::string, std::string> metadata;
+    metadata["authorization"] = param.Authorizations();
+    if (!param.DbName().empty()) {
+        metadata["dbname"] = param.DbName();
     }
 
-    std::string reason = "Failed to connect uri: " + uri;
-    return {StatusCode::NOT_CONNECTED, reason};
+    channel_ = CreateChannelWithHeaderInterceptor(uri, credentials, args, metadata);
+    auto connected = channel_->WaitForConnected(std::chrono::system_clock::now() +
+                                                std::chrono::milliseconds{param.ConnectTimeout()});
+    if (!connected) {
+        std::string reason = "Failed to create grpc channel to the uri: " + uri;
+        return {StatusCode::NOT_CONNECTED, reason};
+    }
+
+    stub_ = proto::milvus::MilvusService::NewStub(channel_);
+
+    // grpc channel has been create, now we call the proto::milvus::MilvusClient::Connect() interface
+    // to send some basic information of client to the server, including the sdk type, version, etc.
+    proto::milvus::ConnectRequest rpc_request;
+    auto client_info = rpc_request.mutable_client_info();
+    client_info->set_sdk_type("CPP");
+    client_info->set_user(param.Username());
+    client_info->set_sdk_version(GetBuildVersion());
+    client_info->set_host(param.Host());
+
+    auto now = std::chrono::system_clock::now();
+    std::time_t now_time = std::chrono::system_clock::to_time_t(now);
+    std::tm* local_time = std::localtime(&now_time);
+    std::stringstream ss;
+    ss << std::put_time(local_time, "%Y-%m-%d %H:%M:%S");
+    client_info->set_local_time(ss.str());
+
+    // the defalut value of ConnectTimeout is 10 seconds, means if the server could not return response
+    // in 10 seconds, the MilvusClient will return an error
+    ::grpc::ClientContext context;
+    if (param.ConnectTimeout() > 0) {
+        auto deadline = now + std::chrono::milliseconds{param.ConnectTimeout()};
+        context.set_deadline(deadline);
+    }
+
+    proto::milvus::ConnectResponse rpc_response;
+    auto grpc_status = stub_->Connect(&context, rpc_request, &rpc_response);
+    return StatusCodeFromGrpcStatus(grpc_status);
+}
+
+ConnectParam&
+MilvusConnection::GetConnectParam() {
+    return param_;
 }
 
 Status
@@ -95,6 +170,44 @@ MilvusConnection::Disconnect() {
     stub_.reset();
     channel_.reset();
     return Status::OK();
+}
+
+Status
+MilvusConnection::UseDatabase(const std::string& db_name) {
+    Disconnect();
+    param_.SetDbName(db_name);
+    return Connect(param_);
+}
+
+Status
+MilvusConnection::CreateDatabase(const proto::milvus::CreateDatabaseRequest& request, proto::common::Status& response,
+                                 const GrpcContextOptions& options) {
+    return grpcCall("CreateDatabase", &Stub::CreateDatabase, request, response, options);
+}
+
+Status
+MilvusConnection::DropDatabase(const proto::milvus::DropDatabaseRequest& request, proto::common::Status& response,
+                               const GrpcContextOptions& options) {
+    return grpcCall("DropDatabase", &Stub::DropDatabase, request, response, options);
+}
+
+Status
+MilvusConnection::ListDatabases(const proto::milvus::ListDatabasesRequest& request,
+                                proto::milvus::ListDatabasesResponse& response, const GrpcContextOptions& options) {
+    return grpcCall("ListDatabases", &Stub::ListDatabases, request, response, options);
+}
+
+Status
+MilvusConnection::AlterDatabase(const proto::milvus::AlterDatabaseRequest& request, proto::common::Status& response,
+                                const GrpcContextOptions& options) {
+    return grpcCall("AlterDatabase", &Stub::AlterDatabase, request, response, options);
+}
+
+Status
+MilvusConnection::DescribeDatabase(const proto::milvus::DescribeDatabaseRequest& request,
+                                   proto::milvus::DescribeDatabaseResponse& response,
+                                   const GrpcContextOptions& options) {
+    return grpcCall("DescribeDatabase", &Stub::DescribeDatabase, request, response, options);
 }
 
 Status
@@ -160,6 +273,19 @@ MilvusConnection::ShowCollections(const proto::milvus::ShowCollectionsRequest& r
 }
 
 Status
+MilvusConnection::GetLoadState(const proto::milvus::GetLoadStateRequest& request,
+                               proto::milvus::GetLoadStateResponse& response, const GrpcContextOptions& options) {
+    return grpcCall("GetLoadState", &Stub::GetLoadState, request, response, options);
+}
+
+Status
+MilvusConnection::GetLoadingProgress(const proto::milvus::GetLoadingProgressRequest request,
+                                     proto::milvus::GetLoadingProgressResponse& response,
+                                     const GrpcContextOptions& options) {
+    return grpcCall("GetLoadingProgress", &Stub::GetLoadingProgress, request, response, options);
+}
+
+Status
 MilvusConnection::CreatePartition(const proto::milvus::CreatePartitionRequest& request, proto::common::Status& response,
                                   const GrpcContextOptions& options) {
     return grpcCall("CreatePartition", &Stub::CreatePartition, request, response, options);
@@ -221,6 +347,18 @@ MilvusConnection::AlterAlias(const proto::milvus::AlterAliasRequest& request, pr
 }
 
 Status
+MilvusConnection::DescribeAlias(const proto::milvus::DescribeAliasRequest& request,
+                                proto::milvus::DescribeAliasResponse& response, const GrpcContextOptions& options) {
+    return grpcCall("DescribeAlias", &Stub::DescribeAlias, request, response, options);
+}
+
+Status
+MilvusConnection::ListAliases(const proto::milvus::ListAliasesRequest& request,
+                              proto::milvus::ListAliasesResponse& response, const GrpcContextOptions& options) {
+    return grpcCall("ListAliases", &Stub::ListAliases, request, response, options);
+}
+
+Status
 MilvusConnection::CreateIndex(const proto::milvus::CreateIndexRequest& request, proto::common::Status& response,
                               const GrpcContextOptions& options) {
     return grpcCall("CreateIndex", &Stub::CreateIndex, request, response, options);
@@ -264,6 +402,12 @@ MilvusConnection::Insert(const proto::milvus::InsertRequest& request, proto::mil
 }
 
 Status
+MilvusConnection::Upsert(const proto::milvus::UpsertRequest& request, proto::milvus::MutationResult& response,
+                         const GrpcContextOptions& options) {
+    return grpcCall("Upsert", &Stub::Upsert, request, response, options);
+}
+
+Status
 MilvusConnection::Delete(const proto::milvus::DeleteRequest& request, proto::milvus::MutationResult& response,
                          const GrpcContextOptions& options) {
     return grpcCall("Delete", &Stub::Delete, request, response, options);
@@ -276,15 +420,15 @@ MilvusConnection::Search(const proto::milvus::SearchRequest& request, proto::mil
 }
 
 Status
-MilvusConnection::Query(const proto::milvus::QueryRequest& request, proto::milvus::QueryResults& response,
-                        const GrpcContextOptions& options) {
-    return grpcCall("Query", &Stub::Query, request, response, options);
+MilvusConnection::HybridSearch(const proto::milvus::HybridSearchRequest& request,
+                               proto::milvus::SearchResults& response, const GrpcContextOptions& options) {
+    return grpcCall("HybridSearch", &Stub::HybridSearch, request, response, options);
 }
 
 Status
-MilvusConnection::CalcDistance(const proto::milvus::CalcDistanceRequest& request,
-                               proto::milvus::CalcDistanceResults& response, const GrpcContextOptions& options) {
-    return grpcCall("CalcDistance", &Stub::CalcDistance, request, response, options);
+MilvusConnection::Query(const proto::milvus::QueryRequest& request, proto::milvus::QueryResults& response,
+                        const GrpcContextOptions& options) {
+    return grpcCall("Query", &Stub::Query, request, response, options);
 }
 
 Status

@@ -62,11 +62,11 @@ to automatic format all c++ source code
 
 
 ## Run tests, and add testing code
-Milvus C++ SDK using googletest as a test framework. You could run `make test` to run all tests.
+Milvus C++ SDK using googletest as a test framework. You could run `make test` to run unit testing and integration testing.
 
 If you add some new code, you'd better add related testing code together.
 We have below test scopes:
-- Test code under `test/ut`: the code could run without any Milvus server. 
+- Test code under `test/ut`: the code could run without any Milvus server, which we called unit testing. 
 - Test code under `test/it`: the code needs to run with a mocked server, which we called integration testing.
 - Test code under `test/st`: the code needs to run with a real Milvus server, which we called that acceptance testing.
 
@@ -77,6 +77,20 @@ The acceptance/system tests are not included by default. You cloud using the bel
 
 The acceptance/system tests will startup container by docker, and using jq to capture the output from docker inspect,
 so you need to install docker and jq tools for running them.
+
+
+## Try the examples
+Once the `make test` is done, you will see some executable examples under the path `./cmake_build/examples`.
+- `./cmake_build/examples/sdk_general`: a general example to show the basic usage.
+- `./cmake_build/examples/sdk_array`: example to show the usage of Array field.
+- `./cmake_build/examples/sdk_json`: example to show the usage of JSON field.
+- `./cmake_build/examples/sdk_fp16`: example to show the usage of Float16Vector/BFloat16Vector field.
+- `./cmake_build/examples/sdk_vector_binary`: example to show the usage of BinaryVector field.
+- `./cmake_build/examples/sdk_vector_sparse`: example to show the usage of SparseVector field.
+- `./cmake_build/examples/sdk_db`: example to show the usage of databases.
+- `./cmake_build/examples/sdk_dml`: example to show the usage of dml interfaces.
+- `./cmake_build/examples/sdk_hybrid_search`: example to show the usage of hybrid search interface.
+
 
 ## Run code coverage
 Milvus C++ SDK using **lcov** tool to generate code coverage report. You could run `make coverage`, this command will:

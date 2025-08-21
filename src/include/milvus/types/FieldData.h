@@ -16,7 +16,9 @@
 
 #pragma once
 
+#include <map>
 #include <memory>
+#include <nlohmann/json.hpp>
 #include <vector>
 
 #include "../Status.h"
@@ -25,16 +27,25 @@
 namespace milvus {
 class Field {
  public:
+    virtual ~Field() = default;
+
     /**
      * @brief Get field name
      */
     const std::string&
     Name() const;
+
     /**
      * @brief Get field data type
      */
     DataType
     Type() const;
+
+    /**
+     * @brief Get elelemnt type for array field
+     */
+    DataType
+    ElementType() const;
 
     /**
      * @brief Total number of field elements
@@ -45,9 +56,10 @@ class Field {
  protected:
     Field(std::string name, DataType data_type);
 
- private:
+ protected:
     std::string name_;
-    DataType data_type_;
+    DataType data_type_{DataType::UNKNOWN};
+    DataType element_type_{DataType::UNKNOWN};  // only for array field
 };
 
 using FieldDataPtr = std::shared_ptr<Field>;
@@ -61,7 +73,8 @@ using FieldDataPtr = std::shared_ptr<Field>;
  *  Int64FieldData for 64-bits integer scalar field \n
  *  FloatFieldData for float scalar field \n
  *  DoubleFieldData for double scalar field \n
- *  VarCharFieldData for string scalar field (not supported in 2.0, reserved) \n
+ *  VarCharFieldData for string scalar field \n
+ *  JSONFieldData for json scalar field (supportted in 2.4) \n
  *  BinaryVecFieldData for float vector scalar field \n
  *  FloatVecFieldData for binary vector scalar field \n
  */
@@ -117,23 +130,72 @@ class FieldData : public Field {
     virtual const std::vector<T>&
     Data() const;
 
-    /**
-     * @brief Field elements array
-     */
-    virtual std::vector<T>&
-    Data();
+    virtual T
+    Value(size_t i) const;
 
- private:
-    friend class BinaryVecFieldData;
+ protected:
     std::vector<T> data_;
 };
 
-class BinaryVecFieldData : public FieldData<std::string, DataType::BINARY_VECTOR> {
+/**
+ * @brief Template class represents column-based data of an array field(supportted in 2.4). \n
+ *  Available inheritance classes: \n
+ *  ArrayBoolFieldData for boolean array field \n
+ *  ArrayInt8FieldData for 8-bits integer array field \n
+ *  ArrayInt16FieldData for 16-bits integer array field \n
+ *  ArrayInt32FieldData for 32-bits integer array field \n
+ *  ArrayInt64FieldData for 64-bits integer array field \n
+ *  ArrayFloatFieldDataPtr for float array field \n
+ *  ArrayDoubleFieldData for double array field \n
+ *  ArrayVarCharFieldData for string array field \n
+ */
+template <typename T, DataType Et>
+class ArrayFieldData : public FieldData<std::vector<T>, DataType::ARRAY> {
  public:
+    /**
+     * @brief Field element type
+     */
+    using ElementT = std::vector<T>;
+
     /**
      * @brief Constructor
      */
-    BinaryVecFieldData();
+    ArrayFieldData();
+
+    /**
+     * @brief Constructor
+     */
+    explicit ArrayFieldData(std::string name);
+
+    /**
+     * @brief Constructor
+     */
+    ArrayFieldData(std::string name, const std::vector<ArrayFieldData::ElementT>& data);
+
+    /**
+     * @brief Constructor
+     */
+    ArrayFieldData(std::string name, std::vector<ArrayFieldData::ElementT>&& data);
+
+    /**
+     * @brief Add element to field data
+     */
+    StatusCode
+    Add(const ArrayFieldData::ElementT& element) override;
+
+    /**
+     * @brief Add element to field data
+     */
+    StatusCode
+    Add(ArrayFieldData::ElementT&& element) override;
+};
+
+class BinaryVecFieldData : public FieldData<std::vector<uint8_t>, DataType::BINARY_VECTOR> {
+ public:
+    /**
+     * @brief Field element type
+     */
+    using ElementT = std::vector<uint8_t>;
 
     /**
      * @brief Constructor
@@ -143,85 +205,65 @@ class BinaryVecFieldData : public FieldData<std::string, DataType::BINARY_VECTOR
     /**
      * @brief Constructor
      */
-    BinaryVecFieldData(std::string name, const std::vector<std::string>& data);
+    BinaryVecFieldData(std::string name, const std::vector<std::vector<uint8_t>>& data);
 
     /**
      * @brief Constructor
+     */
+    BinaryVecFieldData(std::string name, std::vector<std::vector<uint8_t>>&& data);
+
+    /**
+     * @brief Extra constructor
+     */
+    BinaryVecFieldData(std::string name, const std::vector<std::string>& data);
+
+    /**
+     * @brief Extra constructor
      */
     BinaryVecFieldData(std::string name, std::vector<std::string>&& data);
 
     /**
-     * @brief Constructor
+     * @brief Extra method to get field elements array
      */
-    BinaryVecFieldData(std::string name, const std::vector<std::vector<uint8_t>>& data);
+    std::vector<std::string>
+    DataAsString() const;
 
     /**
-     * @brief Field elements array
-     */
-    const std::vector<std::string>&
-    Data() const override;
-
-    /**
-     * @brief Field elements array
-     */
-    std::vector<std::string>&
-    Data() override;
-
-    /**
-     * @brief Data export as uint8_t's vector
-     */
-    std::vector<std::vector<uint8_t>>
-    DataAsUnsignedChars() const;
-
-    /**
-     * @brief Add element to field data
+     * @brief Extra method to add element to field data
      */
     StatusCode
-    Add(const std::string& element) override;
+    AddAsString(const std::string& element);
 
     /**
-     * @brief Add element to field data
-     */
-
-    StatusCode
-    Add(std::string&& element) override;
-
-    /**
-     * @brief Add element to field data
+     * @brief Extra method to add element to field data
      */
     StatusCode
-    Add(const std::vector<uint8_t>& element);
+    AddAsString(std::string&& element);
 
     /**
-     * @brief Create binary vector strings from uint8_t vectors
+     * @brief Convert binary vectors to strings
      */
     static std::vector<std::string>
-    CreateBinaryStrings(const std::vector<std::vector<uint8_t>>& data);
+    ToBinaryStrings(const std::vector<std::vector<uint8_t>>& data);
 
     /**
-     * @brief Create binary vector string from uint8_t vector
+     * @brief Convert binary vector to string
      */
     static std::string
-    CreateBinaryString(const std::vector<uint8_t>& data);
+    ToBinaryString(const std::vector<uint8_t>& data);
+
+    /**
+     * @brief Convert strings to binary vectors
+     */
+    static std::vector<std::vector<uint8_t>>
+    ToUnsignedChars(const std::vector<std::string>& data);
+
+    /**
+     * @brief Convert string to binary vector
+     */
+    static std::vector<uint8_t>
+    ToUnsignedChars(const std::string& data);
 };
-
-/**
- * @brief To test two FieldData are equal
- */
-template <typename T, DataType Dt>
-bool
-operator==(const FieldData<T, Dt>& lhs, const FieldData<T, Dt>& rhs) {
-    return lhs.Name() == rhs.Name() && lhs.Count() == rhs.Count() && lhs.Data() == rhs.Data();
-}
-
-/**
- * @brief To test two FieldData are equal
- */
-template <typename T, DataType Dt>
-bool
-operator==(const FieldData<T, Dt>& lhs, const Field& rhs) {
-    return lhs == dynamic_cast<const FieldData<T, Dt>&>(rhs);
-}
 
 using BoolFieldData = FieldData<bool, DataType::BOOL>;
 using Int8FieldData = FieldData<int8_t, DataType::INT8>;
@@ -231,7 +273,20 @@ using Int64FieldData = FieldData<int64_t, DataType::INT64>;
 using FloatFieldData = FieldData<float, DataType::FLOAT>;
 using DoubleFieldData = FieldData<double, DataType::DOUBLE>;
 using VarCharFieldData = FieldData<std::string, DataType::VARCHAR>;
+using JSONFieldData = FieldData<nlohmann::json, DataType::JSON>;
 using FloatVecFieldData = FieldData<std::vector<float>, DataType::FLOAT_VECTOR>;
+using SparseFloatVecFieldData = FieldData<std::map<uint32_t, float>, DataType::SPARSE_FLOAT_VECTOR>;
+using Float16VecFieldData = FieldData<std::vector<uint16_t>, DataType::FLOAT16_VECTOR>;
+using BFloat16VecFieldData = FieldData<std::vector<uint16_t>, DataType::BFLOAT16_VECTOR>;
+
+using ArrayBoolFieldData = ArrayFieldData<bool, DataType::BOOL>;
+using ArrayInt8FieldData = ArrayFieldData<int8_t, DataType::INT8>;
+using ArrayInt16FieldData = ArrayFieldData<int16_t, DataType::INT16>;
+using ArrayInt32FieldData = ArrayFieldData<int32_t, DataType::INT32>;
+using ArrayInt64FieldData = ArrayFieldData<int64_t, DataType::INT64>;
+using ArrayFloatFieldData = ArrayFieldData<float, DataType::FLOAT>;
+using ArrayDoubleFieldData = ArrayFieldData<double, DataType::DOUBLE>;
+using ArrayVarCharFieldData = ArrayFieldData<std::string, DataType::VARCHAR>;
 
 using BoolFieldDataPtr = std::shared_ptr<BoolFieldData>;
 using Int8FieldDataPtr = std::shared_ptr<Int8FieldData>;
@@ -241,8 +296,21 @@ using Int64FieldDataPtr = std::shared_ptr<Int64FieldData>;
 using FloatFieldDataPtr = std::shared_ptr<FloatFieldData>;
 using DoubleFieldDataPtr = std::shared_ptr<DoubleFieldData>;
 using VarCharFieldDataPtr = std::shared_ptr<VarCharFieldData>;
+using JSONFieldDataPtr = std::shared_ptr<JSONFieldData>;
 using BinaryVecFieldDataPtr = std::shared_ptr<BinaryVecFieldData>;
 using FloatVecFieldDataPtr = std::shared_ptr<FloatVecFieldData>;
+using SparseFloatVecFieldDataPtr = std::shared_ptr<SparseFloatVecFieldData>;
+using Float16VecFieldDataPtr = std::shared_ptr<Float16VecFieldData>;
+using BFloat16VecFieldDataPtr = std::shared_ptr<BFloat16VecFieldData>;
+
+using ArrayBoolFieldDataPtr = std::shared_ptr<ArrayBoolFieldData>;
+using ArrayInt8FieldDataPtr = std::shared_ptr<ArrayInt8FieldData>;
+using ArrayInt16FieldDataPtr = std::shared_ptr<ArrayInt16FieldData>;
+using ArrayInt32FieldDataPtr = std::shared_ptr<ArrayInt32FieldData>;
+using ArrayInt64FieldDataPtr = std::shared_ptr<ArrayInt64FieldData>;
+using ArrayFloatFieldDataPtr = std::shared_ptr<ArrayFloatFieldData>;
+using ArrayDoubleFieldDataPtr = std::shared_ptr<ArrayDoubleFieldData>;
+using ArrayVarCharFieldDataPtr = std::shared_ptr<ArrayVarCharFieldData>;
 
 extern template class FieldData<bool, DataType::BOOL>;
 extern template class FieldData<int8_t, DataType::INT8>;
@@ -252,7 +320,20 @@ extern template class FieldData<int64_t, DataType::INT64>;
 extern template class FieldData<float, DataType::FLOAT>;
 extern template class FieldData<double, DataType::DOUBLE>;
 extern template class FieldData<std::string, DataType::VARCHAR>;
-extern template class FieldData<std::string, DataType::BINARY_VECTOR>;
+extern template class FieldData<nlohmann::json, DataType::JSON>;
+extern template class FieldData<std::vector<uint8_t>, DataType::BINARY_VECTOR>;
 extern template class FieldData<std::vector<float>, DataType::FLOAT_VECTOR>;
+extern template class FieldData<std::map<uint32_t, float>, DataType::SPARSE_FLOAT_VECTOR>;
+extern template class FieldData<std::vector<uint16_t>, DataType::FLOAT16_VECTOR>;
+extern template class FieldData<std::vector<uint16_t>, DataType::BFLOAT16_VECTOR>;
+
+extern template class ArrayFieldData<bool, DataType::BOOL>;
+extern template class ArrayFieldData<int8_t, DataType::INT8>;
+extern template class ArrayFieldData<int16_t, DataType::INT16>;
+extern template class ArrayFieldData<int32_t, DataType::INT32>;
+extern template class ArrayFieldData<int64_t, DataType::INT64>;
+extern template class ArrayFieldData<float, DataType::FLOAT>;
+extern template class ArrayFieldData<double, DataType::DOUBLE>;
+extern template class ArrayFieldData<std::string, DataType::VARCHAR>;
 
 }  // namespace milvus

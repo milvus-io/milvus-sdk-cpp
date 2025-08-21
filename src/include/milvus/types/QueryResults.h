@@ -42,15 +42,49 @@ class QueryResults {
 
     /**
      * @brief Get output field data by name.
+     * @deprecated replaced by OutputField()
      */
     FieldDataPtr
     GetFieldByName(const std::string& name);
+
+    /**
+     * @brief Get an output field by name
+     */
+    FieldDataPtr
+    OutputField(const std::string& name) const;
+
+    /**
+     * @brief Get an output field by name and cast to specific pointer
+     */
+    template <typename T>
+    std::shared_ptr<T>
+    OutputField(const std::string& name) const {
+        return std::dynamic_pointer_cast<T>(OutputField(name));
+    }
 
     /**
      * @brief Get all output fields data.
      */
     const std::vector<FieldDataPtr>&
     OutputFields() const;
+
+    /**
+     * @brief Get all output rows.
+     */
+    Status
+    OutputRows(std::vector<nlohmann::json>& rows) const;
+
+    /**
+     * @brief Get row data. Throw exception if the i is out of bound.
+     */
+    Status
+    OutputRow(int i, nlohmann::json& row) const;
+
+    /**
+     * @brief Get row count of the result. Return the value of count(*) when you query with count(*).
+     */
+    uint64_t
+    GetRowCount() const;
 
  private:
     std::vector<FieldDataPtr> output_fields_;

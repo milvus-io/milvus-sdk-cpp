@@ -35,50 +35,18 @@ TEST_F(IndexDescTest, GeneralTesting) {
     index_desc.SetIndexType(milvus::IndexType::IVF_FLAT);
     EXPECT_EQ(index_desc.IndexType(), milvus::IndexType::IVF_FLAT);
 
-    index_desc.SetMetricType(milvus::MetricType::L2);
-    EXPECT_EQ(index_desc.MetricType(), milvus::MetricType::L2);
-}
+    index_desc.SetIndexedRows(5);
+    EXPECT_EQ(index_desc.IndexedRows(), 5);
 
-TEST_F(IndexDescTest, ValidationTestingPossitive) {
-    for (const auto& test_data : {
-             std::make_tuple(milvus::IndexType::IVF_FLAT, milvus::MetricType::L2, R"({"nlist": 1024})"),
-             std::make_tuple(milvus::IndexType::IVF_SQ8, milvus::MetricType::L2, R"({"nlist": 1024})"),
-             std::make_tuple(milvus::IndexType::IVF_PQ, milvus::MetricType::L2, R"({"nlist": 1024, "m": 8})"),
-             std::make_tuple(milvus::IndexType::IVF_PQ, milvus::MetricType::L2,
-                             R"({"nlist": 1024, "m": 8, "nbits": 12})"),
-             std::make_tuple(milvus::IndexType::HNSW, milvus::MetricType::L2, R"({"M": 4, "efConstruction": 12})"),
-             std::make_tuple(milvus::IndexType::IVF_HNSW, milvus::MetricType::L2,
-                             R"({"nlist": 1024, "M": 4, "efConstruction": 12})"),
-             std::make_tuple(milvus::IndexType::RHNSW_PQ, milvus::MetricType::L2,
-                             R"({"PQM": 32, "M": 4, "efConstruction": 12})"),
-             std::make_tuple(milvus::IndexType::ANNOY, milvus::MetricType::L2, R"({"n_trees": 12})"),
-             std::make_tuple(milvus::IndexType::BIN_IVF_FLAT, milvus::MetricType::JACCARD, ""),
-             std::make_tuple(milvus::IndexType::BIN_IVF_FLAT, milvus::MetricType::TANIMOTO, ""),
-             std::make_tuple(milvus::IndexType::BIN_IVF_FLAT, milvus::MetricType::HAMMING, ""),
-             std::make_tuple(milvus::IndexType::BIN_FLAT, milvus::MetricType::SUBSTRUCTURE, ""),
-             std::make_tuple(milvus::IndexType::BIN_FLAT, milvus::MetricType::SUPERSTRUCTURE, ""),
-         }) {
-        milvus::IndexDesc index_desc{"foo", "index", std::get<0>(test_data), std::get<1>(test_data), 0};
-        index_desc.ExtraParamsFromJson(std::get<2>(test_data));
-        auto status = index_desc.Validate();
-        EXPECT_TRUE(status.IsOk());
-        EXPECT_EQ(status.Message(), "OK");
-    }
-}
+    index_desc.SetPendingRows(6);
+    EXPECT_EQ(index_desc.PendingRows(), 6);
 
-TEST_F(IndexDescTest, ValidationTestingNegative) {
-    for (const auto& test_data : {
-             std::make_tuple(milvus::IndexType::IVF_FLAT, milvus::MetricType::JACCARD, R"({"nlist": 1024})"),
-             std::make_tuple(milvus::IndexType::BIN_IVF_FLAT, milvus::MetricType::SUBSTRUCTURE, R"({"nlist": 1024})"),
-             std::make_tuple(milvus::IndexType::IVF_FLAT, milvus::MetricType::IP, R"({"nlist": 0})"),
-             std::make_tuple(milvus::IndexType::IVF_FLAT, milvus::MetricType::IP, R"({"nlist": "1024"})"),
-             std::make_tuple(milvus::IndexType::IVF_FLAT, milvus::MetricType::IP, R"({"nlist": 65537})"),
-             std::make_tuple(milvus::IndexType::ANNOY, milvus::MetricType::IP, R"({"nlist": 65537})"),
-             std::make_tuple(milvus::IndexType::BIN_IVF_FLAT, milvus::MetricType::IP, R"({"nlist": 1024})"),
-         }) {
-        milvus::IndexDesc index_desc{"foo", "index", std::get<0>(test_data), std::get<1>(test_data), 0};
-        index_desc.ExtraParamsFromJson(std::get<2>(test_data));
-        auto status = index_desc.Validate();
-        EXPECT_FALSE(status.IsOk());
-    }
+    index_desc.SetTotalRows(7);
+    EXPECT_EQ(index_desc.TotalRows(), 7);
+
+    index_desc.SetStateCode(milvus::IndexStateCode::IN_PROGRESS);
+    EXPECT_EQ(index_desc.StateCode(), milvus::IndexStateCode::IN_PROGRESS);
+
+    index_desc.SetFailReason("hello failed");
+    EXPECT_EQ(index_desc.FailReason(), "hello failed");
 }

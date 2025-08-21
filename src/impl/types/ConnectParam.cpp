@@ -18,16 +18,46 @@
 
 #include <string>
 
-#include "../TypeUtils.h"
+#include "../utils/TypeUtils.h"
 
 namespace milvus {
 
 ConnectParam::ConnectParam(std::string host, uint16_t port) : host_(std::move(host)), port_(port) {
 }
 
+ConnectParam::ConnectParam(std::string host, uint16_t port, const std::string& token)
+    : host_(std::move(host)), port_(port) {
+    SetToken(token);
+}
+
 ConnectParam::ConnectParam(std::string host, uint16_t port, std::string username, std::string password)
     : host_(std::move(host)), port_(port) {
     SetAuthorizations(std::move(username), std::move(password));
+}
+
+ConnectParam&
+ConnectParam::operator=(const ConnectParam& other) {
+    if (this != &other) {
+        host_ = other.host_;
+        port_ = other.port_;
+
+        connect_timeout_ms_ = other.connect_timeout_ms_;
+        keepalive_time_ms_ = other.keepalive_time_ms_;
+        keepalive_timeout_ms_ = other.keepalive_timeout_ms_;
+        keepalive_without_calls_ = other.keepalive_without_calls_;
+        rpc_deadline_ms_ = other.rpc_deadline_ms_;
+
+        tls_ = other.tls_;
+        server_name_ = other.server_name_;
+        cert_ = other.cert_;
+        key_ = other.key_;
+        ca_cert_ = other.ca_cert_;
+
+        authorizations_ = other.authorizations_;
+        username_ = other.username_;
+        db_name_ = other.db_name_;
+    }
+    return *this;
 }
 
 const std::string&
@@ -53,16 +83,93 @@ ConnectParam::Authorizations() const {
 void
 ConnectParam::SetAuthorizations(std::string username, std::string password) {
     authorizations_ = milvus::Base64Encode(std::move(username) + ':' + std::move(password));
+    username_ = username;
 }
 
-uint32_t
+ConnectParam&
+ConnectParam::WithAuthorizations(std::string username, std::string password) {
+    SetAuthorizations(username, password);
+    return *this;
+}
+
+uint64_t
 ConnectParam::ConnectTimeout() const {
-    return connect_timeout_;
+    return connect_timeout_ms_;
 }
 
 void
-ConnectParam::SetConnectTimeout(uint32_t timeout) {
-    connect_timeout_ = timeout;
+ConnectParam::SetConnectTimeout(uint64_t connect_timeout_ms) {
+    connect_timeout_ms_ = connect_timeout_ms;
+}
+
+ConnectParam&
+ConnectParam::WithConnectTimeout(uint64_t connect_timeout_ms) {
+    SetConnectTimeout(connect_timeout_ms);
+    return *this;
+}
+
+uint64_t
+ConnectParam::KeepaliveTimeMs() const {
+    return keepalive_time_ms_;
+}
+
+void
+ConnectParam::SetKeepaliveTimeMs(uint64_t keepalive_time_ms) {
+    keepalive_time_ms_ = keepalive_time_ms;
+}
+
+ConnectParam&
+ConnectParam::WithKeepaliveTimeMs(uint64_t keepalive_time_ms) {
+    SetKeepaliveTimeMs(keepalive_time_ms);
+    return *this;
+}
+
+uint64_t
+ConnectParam::KeepaliveTimeoutMs() const {
+    return keepalive_timeout_ms_;
+}
+
+void
+ConnectParam::SetKeepaliveTimeoutMs(uint64_t keepalive_timeout_ms) {
+    keepalive_timeout_ms_ = keepalive_timeout_ms;
+}
+
+ConnectParam&
+ConnectParam::WithKeepaliveTimeoutMs(uint64_t keepalive_timeout_ms) {
+    SetKeepaliveTimeoutMs(keepalive_timeout_ms);
+    return *this;
+}
+
+bool
+ConnectParam::KeepaliveWithoutCalls() const {
+    return keepalive_without_calls_;
+}
+
+void
+ConnectParam::SetKeepaliveWithoutCalls(bool keepalive_without_calls) {
+    keepalive_without_calls_ = keepalive_without_calls;
+}
+
+ConnectParam&
+ConnectParam::WithKeepaliveWithoutCalls(bool keepalive_without_calls) {
+    SetKeepaliveWithoutCalls(keepalive_without_calls);
+    return *this;
+}
+
+uint64_t
+ConnectParam::RpcDeadlineMs() const {
+    return rpc_deadline_ms_;
+}
+
+void
+ConnectParam::SetRpcDeadlineMs(uint64_t rpc_deadline_ms) {
+    rpc_deadline_ms_ = rpc_deadline_ms;
+}
+
+ConnectParam&
+ConnectParam::WithRpcDeadlineMs(uint64_t rpc_deadline_ms) {
+    SetRpcDeadlineMs(rpc_deadline_ms);
+    return *this;
 }
 
 ConnectParam&
@@ -136,6 +243,39 @@ ConnectParam::Key() const {
 const std::string&
 ConnectParam::CaCert() const {
     return ca_cert_;
+}
+
+const std::string&
+ConnectParam::Username() const {
+    return username_;
+}
+
+void
+ConnectParam::SetToken(const std::string& token) {
+    authorizations_ = milvus::Base64Encode(token);
+    username_ = "";
+}
+
+ConnectParam&
+ConnectParam::WithToken(const std::string& token) {
+    SetToken(token);
+    return *this;
+}
+
+const std::string&
+ConnectParam::DbName() const {
+    return db_name_;
+}
+
+void
+ConnectParam::SetDbName(const std::string& db_name) {
+    db_name_ = db_name;
+}
+
+ConnectParam&
+ConnectParam::WithDbName(const std::string& db_name) {
+    SetDbName(db_name);
+    return *this;
 }
 
 }  // namespace milvus

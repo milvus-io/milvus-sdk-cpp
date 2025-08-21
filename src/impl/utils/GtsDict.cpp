@@ -1,0 +1,73 @@
+// Licensed to the LF AI & Data foundation under one
+// or more contributor license agreements. See the NOTICE file
+// distributed with this work for additional information
+// regarding copyright ownership. The ASF licenses this file
+// to you under the Apache License, Version 2.0 (the
+// "License"); you may not use this file except in compliance
+// with the License. You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+#include "GtsDict.h"
+
+#include <chrono>
+
+namespace milvus {
+
+void
+GtsDict::UpdateCollectionTs(const std::string& db_name, const std::string& collection_name, uint64_t ts) {
+    std::string key = std::move(CombineName(db_name, collection_name));
+    std::lock_guard<std::mutex> lock(gts_dict_mtx_);
+    auto it = gts_dict_.find(key);
+    if (it != gts_dict_.end() && it->second >= ts) {
+        return;
+    }
+    gts_dict_[key] = ts;
+}
+
+bool
+GtsDict::GetCollectionTs(const std::string& db_name, const std::string& collection_name, uint64_t& ts) {
+    std::string key = std::move(CombineName(db_name, collection_name));
+    std::lock_guard<std::mutex> lock(gts_dict_mtx_);
+    auto it = gts_dict_.find(key);
+    if (it != gts_dict_.end()) {
+        ts = it->second;
+        return true;
+    }
+
+    return false;
+}
+
+void
+GtsDict::RemoveCollectionTs(const std::string& db_name, const std::string& collection_name) {
+    std::string key = std::move(CombineName(db_name, collection_name));
+    std::lock_guard<std::mutex> lock(gts_dict_mtx_);
+    gts_dict_.erase(key);
+}
+
+void
+GtsDict::CleanAllCollectionTs() {
+    std::lock_guard<std::mutex> lock(gts_dict_mtx_);
+    gts_dict_.clear();
+}
+
+std::string
+GtsDict::CombineName(const std::string& db_name, const std::string& collection_name) {
+    return db_name.empty() ? "default_" + collection_name : db_name + "_" + collection_name;
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+int64_t
+GetNowMs() {
+    auto now = std::chrono::system_clock::now();
+    auto now_ms = std::chrono::time_point_cast<std::chrono::milliseconds>(now);
+    return now_ms.time_since_epoch().count();
+}
+
+}  // namespace milvus

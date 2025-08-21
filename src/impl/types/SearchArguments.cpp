@@ -19,48 +19,23 @@
 #include <nlohmann/json.hpp>
 #include <utility>
 
+#include "../utils/Constants.h"
+#include "../utils/DmlUtils.h"
+#include "../utils/TypeUtils.h"
+#include "milvus/utils/FP16.h"
+
 namespace milvus {
-namespace {
 
-struct Validation {
-    std::string param;
-    int64_t min;
-    int64_t max;
-    bool required;
-
-    Status
-    Validate(const SearchArguments&, std::unordered_map<std::string, int64_t> params) const {
-        auto it = params.find(param);
-        if (it != params.end()) {
-            auto value = it->second;
-            if (value < min || value > max) {
-                return {StatusCode::INVALID_AGUMENT, "invalid value: " + param + "=" + std::to_string(value) +
-                                                         ", requires [" + std::to_string(min) + ", " +
-                                                         std::to_string(max) + "]"};
-            }
-        }
-        return Status::OK();
-    }
-};
+const std::string&
+SearchArguments::DatabaseName() const {
+    return db_name_;
+}
 
 Status
-validate(const SearchArguments& data, const std::unordered_map<std::string, int64_t>& params) {
-    auto status = Status::OK();
-    auto validations = {
-        Validation{"nprobe", 1, 65536, false},
-        Validation{"ef", 1, 32768, false},
-        Validation{"search_k", -1, 65536, false},
-    };
-
-    for (const auto& validation : validations) {
-        status = validation.Validate(data, params);
-        if (!status.IsOk()) {
-            return status;
-        }
-    }
-    return status;
+SearchArguments::SetDatabaseName(const std::string& db_name) {
+    db_name_ = db_name;
+    return Status::OK();
 }
-}  // namespace
 
 const std::string&
 SearchArguments::CollectionName() const {
@@ -106,141 +81,110 @@ SearchArguments::AddOutputField(std::string field_name) {
 }
 
 const std::string&
-SearchArguments::Expression() const {
+SearchArguments::Filter() const {
     return filter_expression_;
 }
 
 Status
-SearchArguments::SetExpression(std::string expression) {
-    filter_expression_ = std::move(expression);
+SearchArguments::SetFilter(std::string filter) {
+    filter_expression_ = std::move(filter);
     return Status::OK();
 }
 
 FieldDataPtr
 SearchArguments::TargetVectors() const {
-    if (binary_vectors_ != nullptr) {
-        return binary_vectors_;
-    } else if (float_vectors_ != nullptr) {
-        return float_vectors_;
-    }
-
-    return nullptr;
+    return target_vectors_;
 }
 
 Status
-SearchArguments::AddTargetVector(std::string field_name, const std::string& vector) {
-    return AddTargetVector(std::move(field_name), std::string{vector});
+SearchArguments::AddBinaryVector(std::string field_name, const std::string& vector) {
+    return AddBinaryVector(std::move(field_name), BinaryVecFieldData::ToUnsignedChars(vector));
 }
 
 Status
-SearchArguments::AddTargetVector(std::string field_name, const std::vector<uint8_t>& vector) {
-    return AddTargetVector(std::move(field_name), milvus::BinaryVecFieldData::CreateBinaryString(vector));
+SearchArguments::AddBinaryVector(std::string field_name, const BinaryVecFieldData::ElementT& vector) {
+    return addVector<BinaryVecFieldData, BinaryVecFieldData::ElementT>(field_name, DataType::BINARY_VECTOR, vector);
 }
 
 Status
-SearchArguments::AddTargetVector(std::string field_name, std::string&& vector) {
-    if (float_vectors_ != nullptr) {
-        return {StatusCode::INVALID_AGUMENT, "Target vector must be float type!"};
-    }
-
-    if (nullptr == binary_vectors_) {
-        binary_vectors_ = std::make_shared<BinaryVecFieldData>(std::move(field_name));
-    }
-
-    auto code = binary_vectors_->Add(std::move(vector));
-    if (code != StatusCode::OK) {
-        return {code, "Failed to add vector"};
-    }
-
-    return Status::OK();
+SearchArguments::AddFloatVector(std::string field_name, const FloatVecFieldData::ElementT& vector) {
+    return addVector<FloatVecFieldData, FloatVecFieldData::ElementT>(field_name, DataType::FLOAT_VECTOR, vector);
 }
 
 Status
-SearchArguments::AddTargetVector(std::string field_name, const FloatVecFieldData::ElementT& vector) {
-    if (binary_vectors_ != nullptr) {
-        return {StatusCode::INVALID_AGUMENT, "Target vector must be binary type!"};
-    }
-
-    if (nullptr == float_vectors_) {
-        float_vectors_ = std::make_shared<FloatVecFieldData>(std::move(field_name));
-    }
-
-    auto code = float_vectors_->Add(vector);
-    if (code != StatusCode::OK) {
-        return {code, "Failed to add vector"};
-    }
-
-    return Status::OK();
+SearchArguments::AddSparseVector(std::string field_name, const SparseFloatVecFieldData::ElementT& vector) {
+    return addVector<SparseFloatVecFieldData, SparseFloatVecFieldData::ElementT>(field_name,
+                                                                                 DataType::SPARSE_FLOAT_VECTOR, vector);
 }
 
 Status
-SearchArguments::AddTargetVector(std::string field_name, FloatVecFieldData::ElementT&& vector) {
-    if (binary_vectors_ != nullptr) {
-        return {StatusCode::INVALID_AGUMENT, "Target vector must be binary type!"};
+SearchArguments::AddSparseVector(std::string field_name, const nlohmann::json& vector) {
+    std::map<uint32_t, float> pairs;
+    auto status = ParseSparseFloatVector(vector, field_name, pairs);
+    if (!status.IsOk()) {
+        return status;
     }
-
-    if (nullptr == float_vectors_) {
-        float_vectors_ = std::make_shared<FloatVecFieldData>(std::move(field_name));
-    }
-
-    auto code = float_vectors_->Add(std::move(vector));
-    if (code != StatusCode::OK) {
-        return {code, "Failed to add vector"};
-    }
-
-    return Status::OK();
-}
-
-uint64_t
-SearchArguments::TravelTimestamp() const {
-    return travel_timestamp_;
+    return AddSparseVector(field_name, pairs);
 }
 
 Status
-SearchArguments::SetTravelTimestamp(uint64_t timestamp) {
-    travel_timestamp_ = timestamp;
-    return Status::OK();
-}
-
-uint64_t
-SearchArguments::GuaranteeTimestamp() const {
-    return guarantee_timestamp_;
+SearchArguments::AddFloat16Vector(std::string field_name, const Float16VecFieldData::ElementT& vector) {
+    return addVector<Float16VecFieldData, Float16VecFieldData::ElementT>(field_name, DataType::FLOAT16_VECTOR, vector);
 }
 
 Status
-SearchArguments::SetGuaranteeTimestamp(uint64_t timestamp) {
-    guarantee_timestamp_ = timestamp;
-    return Status::OK();
+SearchArguments::AddFloat16Vector(std::string field_name, const std::vector<float>& vector) {
+    std::vector<uint16_t> binary;
+    binary.reserve(vector.size());
+    for (auto val : vector) {
+        binary.push_back(F32toF16(val));
+    }
+    return AddFloat16Vector(field_name, binary);
 }
 
 Status
-SearchArguments::SetTopK(int64_t topk) {
-    topk_ = topk;
+SearchArguments::AddBFloat16Vector(std::string field_name, const BFloat16VecFieldData::ElementT& vector) {
+    return addVector<BFloat16VecFieldData, BFloat16VecFieldData::ElementT>(field_name, DataType::BFLOAT16_VECTOR,
+                                                                           vector);
+}
+
+Status
+SearchArguments::AddBFloat16Vector(std::string field_name, const std::vector<float>& vector) {
+    std::vector<uint16_t> binary;
+    binary.reserve(vector.size());
+    for (auto val : vector) {
+        binary.push_back(F32toBF16(val));
+    }
+    return AddBFloat16Vector(field_name, binary);
+}
+
+std::string
+SearchArguments::AnnsField() const {
+    if (target_vectors_ != nullptr) {
+        return target_vectors_->Name();
+    }
+    return "";
+}
+
+int64_t
+SearchArguments::Limit() const {
+    return limit_;
+}
+
+Status
+SearchArguments::SetLimit(int64_t limit) {
+    limit_ = limit;
     return Status::OK();
 }
 
 int64_t
-SearchArguments::TopK() const {
-    return topk_;
-}
-
-int64_t
-SearchArguments::Nprobe() const {
-    if (extra_params_.find("nprobe") != extra_params_.end()) {
-        return extra_params_.at("nprobe");
-    }
-    return 1;
+SearchArguments::Offset() const {
+    return offset_;
 }
 
 Status
-SearchArguments::SetNprobe(int64_t nprobe) {
-    extra_params_["nprobe"] = nprobe;
-    return Status::OK();
-}
-
-Status
-SearchArguments::SetRoundDecimal(int round_decimal) {
-    round_decimal_ = round_decimal;
+SearchArguments::SetOffset(int64_t offset) {
+    offset_ = offset;
     return Status::OK();
 }
 
@@ -250,14 +194,8 @@ SearchArguments::RoundDecimal() const {
 }
 
 Status
-SearchArguments::SetMetricType(::milvus::MetricType metric_type) {
-    if (((metric_type == MetricType::IP && metric_type_ == MetricType::L2) ||
-         (metric_type == MetricType::L2 && metric_type_ == MetricType::IP)) &&
-        range_search_) {
-        // switch radius and range_filter
-        std::swap(radius_, range_filter_);
-    }
-    metric_type_ = metric_type;
+SearchArguments::SetRoundDecimal(int round_decimal) {
+    round_decimal_ = round_decimal;
     return Status::OK();
 }
 
@@ -267,52 +205,233 @@ SearchArguments::MetricType() const {
 }
 
 Status
-SearchArguments::AddExtraParam(std::string key, int64_t value) {
-    extra_params_[std::move(key)] = value;
+SearchArguments::SetMetricType(::milvus::MetricType metric_type) {
+    // directly pass metric_type to server, no need to verify here
+    metric_type_ = metric_type;
     return Status::OK();
 }
 
-std::string
-SearchArguments::ExtraParams() const {
-    return ::nlohmann::json(extra_params_).dump();
-}
-
 Status
-SearchArguments::Validate() const {
-    return validate(*this, extra_params_);
-}
-
-float
-SearchArguments::Radius() const {
-    return radius_;
-}
-
-float
-SearchArguments::RangeFilter() const {
-    return range_filter_;
-}
-
-Status
-SearchArguments::SetRange(float from, float to) {
-    auto low = std::min(from, to);
-    auto high = std::max(from, to);
-    if (metric_type_ == MetricType::IP) {
-        radius_ = low;
-        range_filter_ = high;
-        range_search_ = true;
-    } else if (metric_type_ == MetricType::L2) {
-        radius_ = high;
-        range_filter_ = low;
-        range_search_ = true;
-    } else {
-        return {StatusCode::INVALID_AGUMENT, "Metric type is not supported"};
+SearchArguments::AddExtraParam(const std::string& key, const std::string& value) {
+    extra_params_[key] = value;
+    static std::set<std::string> s_ambiguous = {PARAMS,        TOPK,           ANNS_FIELD,   METRIC_TYPE,
+                                                ROUND_DECIMAL, IGNORE_GROWING, GROUPBY_FIELD};
+    if (s_ambiguous.find(key) != s_ambiguous.end()) {
+        return {StatusCode::INVALID_AGUMENT, "ambiguous parameter: not allow to set '" + key + "' in extra params"};
     }
     return Status::OK();
 }
 
-bool
-SearchArguments::RangeSearch() const {
-    return range_search_;
+const std::unordered_map<std::string, std::string>&
+SearchArguments::ExtraParams() const {
+    return extra_params_;
 }
+
+float
+SearchArguments::Radius() const {
+    auto it = extra_params_.find(RADIUS);
+    if (it != extra_params_.end()) {
+        return std::stof(it->second);
+    }
+    return 0;
+}
+
+Status
+SearchArguments::SetRadius(float value) {
+    extra_params_[RADIUS] = std::to_string(value);
+    return Status::OK();
+}
+
+float
+SearchArguments::RangeFilter() const {
+    auto it = extra_params_.find(RANGE_FILTER);
+    if (it != extra_params_.end()) {
+        return std::stof(it->second);
+    }
+    return 0;
+}
+
+Status
+SearchArguments::SetRangeFilter(float value) {
+    extra_params_[RANGE_FILTER] = std::to_string(value);
+    return Status::OK();
+}
+
+Status
+SearchArguments::SetRange(float range_filter, float radius) {
+    // directly pass the radius/range_filter to let server validate, no need to verify here
+    auto status = SetRadius(radius);
+    if (!status.IsOk()) {
+        return status;
+    }
+    status = SetRangeFilter(range_filter);
+    if (!status.IsOk()) {
+        return status;
+    }
+
+    return Status::OK();
+}
+
+ConsistencyLevel
+SearchArguments::GetConsistencyLevel() const {
+    return consistency_level_;
+}
+
+Status
+SearchArguments::SetConsistencyLevel(const ConsistencyLevel& level) {
+    consistency_level_ = level;
+    return Status::OK();
+}
+
+bool
+SearchArguments::IgnoreGrowing() const {
+    return ignore_growing_;
+}
+
+Status
+SearchArguments::SetIgnoreGrowing(bool ignore_growing) {
+    ignore_growing_ = ignore_growing;
+    return Status::OK();
+}
+
+std::string
+SearchArguments::GroupByField() const {
+    return group_by_field_;
+}
+
+Status
+SearchArguments::SetGroupByField(const std::string& field_name) {
+    group_by_field_ = field_name;
+    return Status::OK();
+}
+
+Status
+SearchArguments::Validate() const {
+    // in milvus 2.4+, no need to check index parameters, let the server to check it
+    if (target_vectors_ == nullptr || target_vectors_->Count() == 0) {
+        return {StatusCode::INVALID_AGUMENT, "no target vector is assigned"};
+    }
+    return Status::OK();
+}
+
+Status
+SearchArguments::verifyVectorType(DataType data_type) const {
+    if (target_vectors_ != nullptr && target_vectors_->Type() != data_type) {
+        return {StatusCode::INVALID_AGUMENT, "Target vector must be the same type!"};
+    }
+    return Status::OK();
+}
+
+template <typename T, typename V>
+Status
+SearchArguments::addVector(std::string field_name, DataType data_type, const V& vector) {
+    auto status = verifyVectorType(data_type);
+    if (!status.IsOk()) {
+        return status;
+    }
+
+    StatusCode code = StatusCode::OK;
+    if (nullptr == target_vectors_) {
+        std::shared_ptr<T> vectors = std::make_shared<T>(std::move(field_name));
+        target_vectors_ = vectors;
+        code = vectors->Add(vector);
+    } else {
+        if (field_name != target_vectors_->Name()) {
+            std::string msg = "The vector field name must be the same! Previous name is " + target_vectors_->Name();
+            return {StatusCode::INVALID_AGUMENT, msg};
+        }
+        std::shared_ptr<T> vectors = std::static_pointer_cast<T>(target_vectors_);
+        code = vectors->Add(vector);
+    }
+
+    if (code != StatusCode::OK) {
+        return {code, "Failed to add " + std::to_string(data_type)};
+    }
+
+    return Status::OK();
+}
+
+///////////////////////////////////////////////////////////////////////////////////////
+// deprecated methods
+const std::string&
+SearchArguments::Expression() const {
+    return Filter();
+}
+
+Status
+SearchArguments::SetExpression(std::string expression) {
+    return SetFilter(expression);
+}
+
+Status
+SearchArguments::AddTargetVector(std::string field_name, const std::string& vector) {
+    return AddBinaryVector(std::move(field_name), vector);
+}
+
+Status
+SearchArguments::AddTargetVector(std::string field_name, const std::vector<uint8_t>& vector) {
+    return AddBinaryVector(std::move(field_name), vector);
+}
+
+Status
+SearchArguments::AddTargetVector(std::string field_name, std::string&& vector) {
+    return AddBinaryVector(std::move(field_name), vector);
+}
+
+Status
+SearchArguments::AddTargetVector(std::string field_name, const FloatVecFieldData::ElementT& vector) {
+    return AddFloatVector(std::move(field_name), vector);
+}
+
+Status
+SearchArguments::AddTargetVector(std::string field_name, FloatVecFieldData::ElementT&& vector) {
+    return AddFloatVector(std::move(field_name), vector);
+}
+
+Status
+SearchArguments::SetTopK(int64_t topk) {
+    return SetLimit(topk);
+}
+
+int64_t
+SearchArguments::TopK() const {
+    return Limit();
+}
+
+int64_t
+SearchArguments::Nprobe() const {
+    auto it = extra_params_.find(NPROBE);
+    if (it != extra_params_.end()) {
+        return std::stoll(it->second);
+    }
+    return 0;
+}
+
+Status
+SearchArguments::SetNprobe(int64_t nprobe) {
+    extra_params_[NPROBE] = std::to_string(nprobe);
+    return Status::OK();
+}
+
+uint64_t
+SearchArguments::TravelTimestamp() const {
+    return 0;
+}
+
+Status
+SearchArguments::SetTravelTimestamp(uint64_t timestamp) {
+    return Status::OK();
+}
+
+uint64_t
+SearchArguments::GuaranteeTimestamp() const {
+    return 0;
+}
+
+Status
+SearchArguments::SetGuaranteeTimestamp(uint64_t timestamp) {
+    return Status::OK();
+}
+///////////////////////////////////////////////////////////////////////////////////////
 
 }  // namespace milvus

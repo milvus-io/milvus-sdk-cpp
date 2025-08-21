@@ -26,9 +26,7 @@ using ::testing::_;
 using ::testing::ElementsAreArray;
 using ::testing::Property;
 
-TEST_F(MilvusMockedTest, ReleasePartitionsNotConnected) {
-    milvus::ConnectParam connect_param{"127.0.0.1", server_.ListenPort()};
-
+TEST_F(UnconnectMilvusMockedTest, ReleasePartitionsNotConnected) {
     const std::string collection{"Foo"};
     const std::vector<std::string> partitions{"part1", "part2"};
 

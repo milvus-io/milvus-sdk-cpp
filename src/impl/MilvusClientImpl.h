@@ -16,9 +16,12 @@
 
 #pragma once
 
+#include <map>
 #include <memory>
+#include <mutex>
 
 #include "MilvusConnection.h"
+#include "common.pb.h"
 #include "milvus/MilvusClient.h"
 
 /**
@@ -29,7 +32,7 @@ namespace milvus {
 class MilvusClientImpl : public MilvusClient {
  public:
     MilvusClientImpl() = default;
-    virtual ~MilvusClientImpl();
+    ~MilvusClientImpl() override;
 
     Status
     Connect(const ConnectParam& connect_param) final;
@@ -38,7 +41,19 @@ class MilvusClientImpl : public MilvusClient {
     Disconnect() final;
 
     Status
+    SetRpcDeadlineMs(uint64_t timeout_ms) final;
+
+    Status
+    SetRetryParam(const RetryParam& retry_param) final;
+
+    Status
     GetVersion(std::string& version) final;
+
+    Status
+    GetServerVersion(std::string& version) final;
+
+    Status
+    GetSDKVersion(std::string& version) final;
 
     Status
     CreateCollection(const CollectionSchema& schema) final;
@@ -70,6 +85,13 @@ class MilvusClientImpl : public MilvusClient {
     ShowCollections(const std::vector<std::string>& collection_names, CollectionsInfo& collections_info) final;
 
     Status
+    ListCollections(CollectionsInfo& collections_info, bool only_show_loaded) final;
+
+    Status
+    GetLoadState(const std::string& collection_name, bool& is_loaded,
+                 const std::vector<std::string> partition_names) final;
+
+    Status
     CreatePartition(const std::string& collection_name, const std::string& partition_name) final;
 
     Status
@@ -94,6 +116,9 @@ class MilvusClientImpl : public MilvusClient {
                    PartitionsInfo& partitions_info) final;
 
     Status
+    ListPartitions(const std::string& collection_name, PartitionsInfo& partitions_info, bool only_show_loaded) final;
+
+    Status
     CreateAlias(const std::string& collection_name, const std::string& alias) final;
 
     Status
@@ -101,6 +126,34 @@ class MilvusClientImpl : public MilvusClient {
 
     Status
     AlterAlias(const std::string& collection_name, const std::string& alias) final;
+
+    Status
+    DescribeAlias(const std::string& alias_name, AliasDesc& desc) final;
+
+    Status
+    ListAliases(const std::string& collection_name, std::vector<AliasDesc>& descs) final;
+
+    Status
+    UseDatabase(const std::string& db_name) final;
+
+    Status
+    CreateDatabase(const std::string& db_name, const std::unordered_map<std::string, std::string>& properties) final;
+
+    Status
+    DropDatabase(const std::string& db_name) final;
+
+    Status
+    ListDatabases(std::vector<std::string>& names) final;
+
+    Status
+    AlterDatabaseProperties(const std::string& db_name,
+                            const std::unordered_map<std::string, std::string>& properties) final;
+
+    Status
+    DropDatabaseProperties(const std::string& db_name, const std::vector<std::string>& properties) final;
+
+    Status
+    DescribeDatabase(const std::string& db_name, DatabaseDesc& db_desc) final;
 
     Status
     CreateIndex(const std::string& collection_name, const IndexDesc& index_desc,
@@ -124,17 +177,29 @@ class MilvusClientImpl : public MilvusClient {
            const std::vector<FieldDataPtr>& fields, DmlResults& results) final;
 
     Status
+    Insert(const std::string& collection_name, const std::string& partition_name,
+           const std::vector<nlohmann::json>& rows, DmlResults& results) final;
+
+    Status
+    Upsert(const std::string& collection_name, const std::string& partition_name,
+           const std::vector<FieldDataPtr>& fields, DmlResults& results) final;
+
+    Status
+    Upsert(const std::string& collection_name, const std::string& partition_name,
+           const std::vector<nlohmann::json>& rows, DmlResults& results) final;
+
+    Status
     Delete(const std::string& collection_name, const std::string& partition_name, const std::string& expression,
            DmlResults& results) final;
 
     Status
-    Search(const SearchArguments& arguments, SearchResults& results, int timeout) final;
+    Search(const SearchArguments& arguments, SearchResults& results) final;
 
     Status
-    Query(const QueryArguments& arguments, QueryResults& results, int timeout) final;
+    HybridSearch(const HybridSearchArguments& arguments, SearchResults& results) final;
 
     Status
-    CalcDistance(const CalcDistanceArguments& arguments, DistanceArray& results) final;
+    Query(const QueryArguments& arguments, QueryResults& results) final;
 
     Status
     Flush(const std::vector<std::string>& collection_names, const ProgressMonitor& progress_monitor) final;
@@ -177,6 +242,12 @@ class MilvusClientImpl : public MilvusClient {
     ListCredUsers(std::vector<std::string>& users) final;
 
  private:
+    // This interface is not exposed to users
+    Status
+    getLoadingProgress(const std::string& collection_name, const std::vector<std::string> partition_names,
+                       uint32_t& progress);
+
+ private:
     using GrpcOpts = MilvusConnection::GrpcContextOptions;
 
     /**
@@ -190,6 +261,12 @@ class MilvusClientImpl : public MilvusClient {
     WaitForStatus(const std::function<Status(Progress&)>& query_function, const ProgressMonitor& progress_monitor);
 
     /**
+     * @brief retry loop
+     */
+    Status
+    retry(std::function<Status(void)> caller);
+
+    /**
      * @brief template for public api call
      *        validate -> pre -> rpc -> wait_for_status -> post
      */
@@ -197,10 +274,9 @@ class MilvusClientImpl : public MilvusClient {
     Status
     apiHandler(const std::function<Status(void)>& validate, std::function<Request(void)> pre,
                Status (MilvusConnection::*rpc)(const Request&, Response&, const GrpcOpts&),
-               std::function<Status(const Response&)> wait_for_status, std::function<void(const Response&)> post,
-               const GrpcOpts& options = GrpcOpts{}) {
+               std::function<Status(const Response&)> wait_for_status, std::function<void(const Response&)> post) {
         if (connection_ == nullptr) {
-            return {StatusCode::NOT_CONNECTED, "Connection is not ready!"};
+            return {StatusCode::NOT_CONNECTED, "Connection is not created!"};
         }
 
         if (validate) {
@@ -212,8 +288,11 @@ class MilvusClientImpl : public MilvusClient {
 
         Request rpc_request = pre();
         Response rpc_response;
-        auto status = std::bind(rpc, connection_.get(), std::placeholders::_1, std::placeholders::_2,
-                                std::placeholders::_3)(rpc_request, rpc_response, options);
+        // the timeout value can be changed by MilvusClient::SetRpcDeadlineMs()
+        uint64_t timeout = connection_->GetConnectParam().RpcDeadlineMs();
+        auto func = std::bind(rpc, connection_.get(), rpc_request, std::placeholders::_1, GrpcOpts{timeout});
+        auto caller = [&func, &rpc_response]() { return func(rpc_response); };
+        auto status = retry(caller);
         if (!status.IsOk()) {
             // response's status already checked in connection class
             return status;
@@ -223,7 +302,7 @@ class MilvusClientImpl : public MilvusClient {
             status = wait_for_status(rpc_response);
         }
 
-        if (status.IsOk() && post) {
+        if (post) {
             post(rpc_response);
         }
         return status;
@@ -236,8 +315,8 @@ class MilvusClientImpl : public MilvusClient {
     Status
     apiHandler(std::function<Status(void)> validate, std::function<Request(void)> pre,
                Status (MilvusConnection::*rpc)(const Request&, Response&, const GrpcOpts&),
-               std::function<void(const Response&)> post, const GrpcOpts& options = GrpcOpts{}) {
-        return apiHandler(validate, pre, rpc, std::function<Status(const Response&)>{}, post, options);
+               std::function<void(const Response&)> post) {
+        return apiHandler(validate, pre, rpc, std::function<Status(const Response&)>{}, post);
     }
 
     /**
@@ -246,10 +325,9 @@ class MilvusClientImpl : public MilvusClient {
     template <typename Request, typename Response>
     Status
     apiHandler(std::function<Status(void)> validate, std::function<Request(void)> pre,
-               Status (MilvusConnection::*rpc)(const Request&, Response&, const GrpcOpts&),
-               const GrpcOpts& options = GrpcOpts{}) {
+               Status (MilvusConnection::*rpc)(const Request&, Response&, const GrpcOpts&)) {
         return apiHandler(validate, pre, rpc, std::function<Status(const Response&)>{},
-                          std::function<void(const Response&)>{}, options);
+                          std::function<void(const Response&)>{});
     }
 
     /**
@@ -259,9 +337,8 @@ class MilvusClientImpl : public MilvusClient {
     Status
     apiHandler(std::function<Request(void)> pre,
                Status (MilvusConnection::*rpc)(const Request&, Response&, const GrpcOpts&),
-               std::function<void(const Response&)> post, const GrpcOpts& options = GrpcOpts{}) {
-        return apiHandler(std::function<Status(void)>{}, pre, rpc, std::function<Status(const Response&)>{}, post,
-                          options);
+               std::function<void(const Response&)> post) {
+        return apiHandler(std::function<Status(void)>{}, pre, rpc, std::function<Status(const Response&)>{}, post);
     }
 
     /**
@@ -270,14 +347,42 @@ class MilvusClientImpl : public MilvusClient {
     template <typename Request, typename Response>
     Status
     apiHandler(std::function<Request(void)> pre,
-               Status (MilvusConnection::*rpc)(const Request&, Response&, const GrpcOpts&),
-               const GrpcOpts& options = GrpcOpts{}) {
+               Status (MilvusConnection::*rpc)(const Request&, Response&, const GrpcOpts&)) {
         return apiHandler(std::function<Status(void)>{}, pre, rpc, std::function<Status(const Response&)>{},
-                          std::function<void(const Response&)>{}, options);
+                          std::function<void(const Response&)>{});
     }
+
+    /**
+     * @brief return desc if it is existing, else call describeCollection() and cache it
+     */
+    Status
+    getCollectionDesc(const std::string& collection_name, bool forceUpdate, CollectionDescPtr& descPtr);
+
+    /**
+     * @brief clean desc of all the collections in the cache
+     */
+    void
+    cleanCollectionDescCache();
+
+    /**
+     * @brief remove a collections's desc from the cache
+     */
+    void
+    removeCollectionDesc(const std::string& collection_name);
+
+ private:
+    std::string
+    currentDbName(const std::string& overwrite_db_name) const;
 
  private:
     std::shared_ptr<MilvusConnection> connection_;
+    RetryParam retry_param_;
+
+    // cache of collection schemas
+    // this cache is db level, once useDatabase() is called, this cache will be cleaned
+    // so, it is fine to use collection name as key, no need to involve db name
+    std::map<std::string, CollectionDescPtr> collection_desc_cache_;
+    std::mutex collection_desc_cache_mtx_;
 };
 
 }  // namespace milvus

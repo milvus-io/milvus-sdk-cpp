@@ -42,11 +42,11 @@ class MilvusConnection {
      */
     struct GrpcContextOptions {
         /** timeout in milliseconds */
-        int timeout{0};
+        uint64_t timeout{0};
 
         // constructors
         GrpcContextOptions() = default;
-        explicit GrpcContextOptions(int timeout_) : timeout{timeout_} {
+        explicit GrpcContextOptions(uint64_t timeout_) : timeout{timeout_} {
         }
     };
 
@@ -57,8 +57,34 @@ class MilvusConnection {
     Status
     Connect(const ConnectParam& param);
 
+    ConnectParam&
+    GetConnectParam();
+
     Status
     Disconnect();
+
+    Status
+    UseDatabase(const std::string& db_name);
+
+    Status
+    CreateDatabase(const proto::milvus::CreateDatabaseRequest& request, proto::common::Status& response,
+                   const GrpcContextOptions& options);
+
+    Status
+    DropDatabase(const proto::milvus::DropDatabaseRequest& request, proto::common::Status& response,
+                 const GrpcContextOptions& options);
+
+    Status
+    ListDatabases(const proto::milvus::ListDatabasesRequest& request, proto::milvus::ListDatabasesResponse& response,
+                  const GrpcContextOptions& options);
+
+    Status
+    AlterDatabase(const proto::milvus::AlterDatabaseRequest& request, proto::common::Status& response,
+                  const GrpcContextOptions& options);
+
+    Status
+    DescribeDatabase(const proto::milvus::DescribeDatabaseRequest& request,
+                     proto::milvus::DescribeDatabaseResponse& response, const GrpcContextOptions& options);
 
     Status
     GetVersion(const proto::milvus::GetVersionRequest& request, proto::milvus::GetVersionResponse& response,
@@ -101,6 +127,14 @@ class MilvusConnection {
                     proto::milvus::ShowCollectionsResponse& response, const GrpcContextOptions& options);
 
     Status
+    GetLoadState(const proto::milvus::GetLoadStateRequest& request, proto::milvus::GetLoadStateResponse& response,
+                 const GrpcContextOptions& options);
+
+    Status
+    GetLoadingProgress(const proto::milvus::GetLoadingProgressRequest,
+                       proto::milvus::GetLoadingProgressResponse& response, const GrpcContextOptions& options);
+
+    Status
     CreatePartition(const proto::milvus::CreatePartitionRequest& request, proto::common::Status& response,
                     const GrpcContextOptions& options);
 
@@ -141,6 +175,14 @@ class MilvusConnection {
                const GrpcContextOptions& options);
 
     Status
+    DescribeAlias(const proto::milvus::DescribeAliasRequest& request, proto::milvus::DescribeAliasResponse& response,
+                  const GrpcContextOptions& options);
+
+    Status
+    ListAliases(const proto::milvus::ListAliasesRequest& request, proto::milvus::ListAliasesResponse& response,
+                const GrpcContextOptions& options);
+
+    Status
     CreateIndex(const proto::milvus::CreateIndexRequest& request, proto::common::Status& response,
                 const GrpcContextOptions& options);
 
@@ -169,6 +211,10 @@ class MilvusConnection {
            const GrpcContextOptions& options);
 
     Status
+    Upsert(const proto::milvus::UpsertRequest& request, proto::milvus::MutationResult& response,
+           const GrpcContextOptions& options);
+
+    Status
     Delete(const proto::milvus::DeleteRequest& request, proto::milvus::MutationResult& response,
            const GrpcContextOptions& options);
 
@@ -177,12 +223,12 @@ class MilvusConnection {
            const GrpcContextOptions& options);
 
     Status
-    Query(const proto::milvus::QueryRequest& request, proto::milvus::QueryResults& response,
-          const GrpcContextOptions& options);
+    HybridSearch(const proto::milvus::HybridSearchRequest& request, proto::milvus::SearchResults& response,
+                 const GrpcContextOptions& options);
 
     Status
-    CalcDistance(const proto::milvus::CalcDistanceRequest& request, proto::milvus::CalcDistanceResults& response,
-                 const GrpcContextOptions& options);
+    Query(const proto::milvus::QueryRequest& request, proto::milvus::QueryResults& response,
+          const GrpcContextOptions& options);
 
     Status
     GetFlushState(const proto::milvus::GetFlushStateRequest& request, proto::milvus::GetFlushStateResponse& response,
@@ -236,30 +282,17 @@ class MilvusConnection {
  private:
     std::unique_ptr<proto::milvus::MilvusService::Stub> stub_;
     std::shared_ptr<grpc::Channel> channel_;
-    std::string authorization_value_{};
+    ConnectParam param_;
 
     static Status
-    StatusByProtoResponse(const proto::common::Status& status) {
-        if (status.code() != proto::common::ErrorCode::Success) {
-            return Status{StatusCode::SERVER_FAILED, status.reason()};
-        }
-        return Status::OK();
-    }
+    StatusByProtoResponse(const proto::common::Status& status);
 
     template <typename Response>
     static Status
-    StatusByProtoResponse(const Response& response) {
-        const auto& status = response.status();
-        return StatusByProtoResponse(status);
-    }
+    StatusByProtoResponse(const Response& response);
 
-    static StatusCode
-    StatusCodeFromGrpcStatus(const ::grpc::Status& grpc_status) {
-        if (grpc_status.error_code() == ::grpc::StatusCode::DEADLINE_EXCEEDED) {
-            return StatusCode::TIMEOUT;
-        }
-        return StatusCode::SERVER_FAILED;
-    }
+    static Status
+    StatusCodeFromGrpcStatus(const ::grpc::Status& grpc_status);
 
     template <typename Request, typename Response>
     Status
@@ -276,17 +309,24 @@ class MilvusConnection {
             context.set_deadline(deadline);
         }
 
-        if (!authorization_value_.empty()) {
-            context.AddMetadata("authorization", authorization_value_);
-            context.set_authority(authorization_value_);
-        }
-
         ::grpc::Status grpc_status = (stub_.get()->*func)(&context, request, &response);
 
+        // TODO: check the error codes and do retry here
+        // The following grpc error codes cannot be retried:
+        //   grpc::StatusCode::DEADLINE_EXCEEDED
+        //   grpc::StatusCode::PERMISSION_DENIED
+        //   grpc::StatusCode::UNAUTHENTICATED
+        //   grpc::StatusCode::INVALID_ARGUMENT
+        //   grpc::StatusCode::LREADY_EXISTS
+        //   grpc::StatusCode::RESOURCE_EXHAUSTED
+        //   grpc::StatusCode::UNIMPLEMENTED
         if (!grpc_status.ok()) {
-            return {StatusCodeFromGrpcStatus(grpc_status), grpc_status.error_message()};
+            return StatusCodeFromGrpcStatus(grpc_status);
         }
 
+        // Some milvus error codes can be retried:
+        //   response.status().error_code() == io.milvus.grpc.ErrorCode.RateLimit
+        //   or response.status()code() == 8 can be retried
         return StatusByProtoResponse(response);
     }
 };

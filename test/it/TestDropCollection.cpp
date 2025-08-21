@@ -39,9 +39,7 @@ TEST_F(MilvusMockedTest, DropCollectionFooSuccess) {
     EXPECT_TRUE(status.IsOk());
 }
 
-TEST_F(MilvusMockedTest, DropCollectionFooWithoutConnect) {
-    milvus::ConnectParam connect_param{"127.0.0.1", server_.ListenPort()};
-
+TEST_F(UnconnectMilvusMockedTest, DropCollectionFooWithoutConnect) {
     std::string collection_name = "Foo";
     milvus::proto::milvus::DropCollectionRequest rpc_request;
     rpc_request.set_collection_name(collection_name);
@@ -64,7 +62,7 @@ TEST_F(MilvusMockedTest, DropCollectionFooFailed) {
         .WillOnce([error_code](::grpc::ServerContext*, const DropCollectionRequest*,
                                ::milvus::proto::common::Status* status) {
             status->set_code(error_code);
-            return ::grpc::Status{::grpc::StatusCode::UNKNOWN, "Collection drop failed. Internal error"};
+            return ::grpc::Status{};
         });
     auto status = client_->DropCollection(collection_name);
     EXPECT_FALSE(status.IsOk());

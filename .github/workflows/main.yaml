@@ -78,7 +78,7 @@ jobs:
         if: ${{ matrix.os.distro == 'Ubuntu' }}
         run: |
           make lint
-      - name: Uint Testing
+      - name: Unit Testing
         run: |
           make test
   st-ubuntu:
@@ -149,7 +149,7 @@ jobs:
       - name: Prepare
         run: |
           sh scripts/install_deps.sh
-      - name: Uint Testing
+      - name: Unit Testing
         run: |
           make test
   windows:
@@ -183,7 +183,7 @@ jobs:
           call "%ProgramFiles%\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
           cmake -S . -B build -DMILVUS_BUILD_TEST=YES -G Ninja
           cmake --build build
-      - name: Uint Testing
+      - name: Unit Testing
         shell: cmd
         run: |
           build\test\testing-ut

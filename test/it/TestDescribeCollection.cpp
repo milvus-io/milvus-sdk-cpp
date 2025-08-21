@@ -16,8 +16,9 @@
 
 #include <gtest/gtest.h>
 
-#include "TypeUtils.h"
 #include "mocks/MilvusMockedTest.h"
+#include "utils/CompareUtils.h"
+#include "utils/TypeUtils.h"
 
 using ::milvus::StatusCode;
 using ::milvus::proto::milvus::DescribeCollectionRequest;
@@ -75,9 +76,7 @@ TEST_F(MilvusMockedTest, DescribeCollectionFoo) {
     EXPECT_EQ(field.AutoID(), field_schema.AutoID());
 }
 
-TEST_F(MilvusMockedTest, DescribeCollectionFooConnect) {
-    milvus::ConnectParam connect_param{"127.0.0.1", server_.ListenPort()};
-
+TEST_F(UnconnectMilvusMockedTest, DescribeCollectionFooConnect) {
     const std::string collection_name = "test";
     ::milvus::CollectionDesc desc;
     auto status = client_->DescribeCollection(collection_name, desc);
@@ -95,12 +94,12 @@ TEST_F(MilvusMockedTest, DescribeCollectionFooFailed) {
     EXPECT_CALL(service_,
                 DescribeCollection(_, Property(&DescribeCollectionRequest::collection_name, collection_name), _))
         .WillOnce([](::grpc::ServerContext*, const DescribeCollectionRequest*, DescribeCollectionResponse*) {
-            return ::grpc::Status{::grpc::StatusCode::UNKNOWN, ""};
+            return ::grpc::Status{::grpc::StatusCode::DEADLINE_EXCEEDED, ""};
         });
 
     ::milvus::CollectionDesc desc;
     auto status = client_->DescribeCollection(collection_name, desc);
 
     EXPECT_FALSE(status.IsOk());
-    EXPECT_EQ(status.Code(), StatusCode::SERVER_FAILED);
+    EXPECT_EQ(status.Code(), StatusCode::TIMEOUT);
 }

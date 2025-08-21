@@ -44,6 +44,7 @@ enum class StatusCode {
     DIMENSION_NOT_EQUAL = 2000,
     VECTOR_IS_EMPTY,
     JSON_PARSE_ERROR,
+    DATA_UNMATCH_SCHEMA,  // this error code is to determine whether to update collection schema cache
 };
 
 /**
@@ -55,6 +56,7 @@ class Status {
      * @brief Constructor of Status
      */
     Status(StatusCode code, std::string msg);
+    Status(StatusCode code, std::string msg, int32_t rpc_err_code, int32_t server_err_code, int32_t legacy_server_code);
     Status();
 
     /**
@@ -70,7 +72,7 @@ class Status {
     IsOk() const;
 
     /**
-     * @brief Return the status code
+     * @brief Return the status code(general client-side error code)
      */
     StatusCode
     Code() const;
@@ -81,9 +83,32 @@ class Status {
     const std::string&
     Message() const;
 
+    /**
+     * @brief The error code from gRPC lib, which are listed here:
+     *      https://grpc.github.io/grpc/cpp/md_doc_statuscodes.html
+     */
+    int32_t
+    RpcErrCode() const;
+
+    /**
+     * @brief The server-side error code of milvus v2.4 and later versions
+     */
+    int32_t
+    ServerCode() const;
+
+    /**
+     * @brief The legacy server-side error code of milvus v2.2/v2.3
+     */
+    int32_t
+    LegacyServerCode() const;
+
  private:
     StatusCode code_{StatusCode::OK};
     std::string msg_{"OK"};
-};  // Status
+
+    int32_t rpc_err_code_{0};        // rpc error code
+    int32_t server_err_code_{0};     // v2.3+ server returns this code
+    int32_t legacy_server_code_{0};  // to compatible with v2.2.x server
+};
 
 }  // namespace milvus

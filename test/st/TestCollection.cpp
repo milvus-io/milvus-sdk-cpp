@@ -14,16 +14,25 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include <algorithm>
+
 #include "MilvusServerTest.h"
 
 using milvus::test::MilvusServerTestWithParam;
-
 using MilvusServerTestCollection = MilvusServerTestWithParam<bool>;
+
+bool
+ContainsCollection(std::vector<milvus::CollectionInfo>& collection_infos, const std::string& name) {
+    auto it = std::find_if(collection_infos.begin(), collection_infos.end(),
+                           [&name](milvus::CollectionInfo& info) { return info.Name() == name; });
+    return (it != collection_infos.end());
+}
 
 TEST_P(MilvusServerTestCollection, CreateAndDeleteCollection) {
     auto using_string_primary_key = GetParam();
 
-    milvus::CollectionSchema collection_schema("Foo");
+    std::string collection_name = milvus::test::RanName("Foo_");
+    milvus::CollectionSchema collection_schema(collection_name);
     if (using_string_primary_key) {
         collection_schema.AddField(
             // string as primary key, no auto-id
@@ -41,39 +50,48 @@ TEST_P(MilvusServerTestCollection, CreateAndDeleteCollection) {
     EXPECT_TRUE(status.IsOk());
 
     // create index needed after 2.2.0
-    milvus::IndexDesc index_desc("face", "", milvus::IndexType::FLAT, milvus::MetricType::L2, 0);
-    status = client_->CreateIndex("Foo", index_desc);
+    milvus::IndexDesc index_desc("face", "", milvus::IndexType::FLAT, milvus::MetricType::L2);
+    status = client_->CreateIndex(collection_name, index_desc);
     EXPECT_TRUE(status.IsOk());
 
     // test for https://github.com/milvus-io/milvus-sdk-cpp/issues/188
-    std::vector<std::string> names;
     std::vector<milvus::CollectionInfo> collection_infos;
-    status = client_->ShowCollections(names, collection_infos);
+    status = client_->ListCollections(collection_infos);
     EXPECT_TRUE(status.IsOk());
-    EXPECT_EQ(collection_infos.size(), 1);
-    EXPECT_EQ(collection_infos.front().MemoryPercentage(), 0);
-    EXPECT_EQ(collection_infos.front().Name(), "Foo");
+    EXPECT_GE(collection_infos.size(), 1);
+    EXPECT_TRUE(ContainsCollection(collection_infos, collection_name));
 
     // test for https://github.com/milvus-io/milvus-sdk-cpp/issues/246
-    milvus::PartitionsInfo partitionsInfo{};
-    status = client_->ShowPartitions("Foo", std::vector<std::string>{}, partitionsInfo);
+    milvus::PartitionsInfo partitions_info{};
+    status = client_->ListPartitions(collection_name, partitions_info);
     EXPECT_TRUE(status.IsOk());
+    EXPECT_GE(partitions_info.size(), 1);
 
-    names.emplace_back("Foo");
+    // the collection is not loaded, set only_show_loaded = true, the collection is not in the list
+    status = client_->ListCollections(collection_infos, true);
+    EXPECT_TRUE(status.IsOk());
+    EXPECT_FALSE(ContainsCollection(collection_infos, collection_name));
+
+    // load the collection
     collection_infos.clear();
-    status = client_->LoadCollection("Foo");
+    status = client_->LoadCollection(collection_name);
     EXPECT_TRUE(status.IsOk());
 
-    status = client_->ShowCollections(names, collection_infos);
+    // the collection is not loaded, set only_show_loaded = true, the collection is in the list
+    status = client_->ListCollections(collection_infos);
     EXPECT_TRUE(status.IsOk());
-    EXPECT_EQ(collection_infos.size(), 1);
-    EXPECT_EQ(collection_infos.front().MemoryPercentage(), 100);
+    EXPECT_TRUE(ContainsCollection(collection_infos, collection_name));
 
-    status = client_->RenameCollection("Foo", "Bar");
+    status = client_->RenameCollection(collection_name, "Bar");
     EXPECT_TRUE(status.IsOk());
 
+    // the collection is dropped, not in the list of ListCollections
     status = client_->DropCollection("Bar");
     EXPECT_TRUE(status.IsOk());
+    collection_infos.clear();
+    status = client_->ListCollections(collection_infos);
+    EXPECT_TRUE(status.IsOk());
+    EXPECT_FALSE(ContainsCollection(collection_infos, collection_name));
 }
 
 INSTANTIATE_TEST_SUITE_P(SystemTest, MilvusServerTestCollection, ::testing::Values(false, true));

@@ -22,11 +22,14 @@
 #include <thread>
 #include <utility>
 
-#include "TypeUtils.h"
 #include "mocks/MilvusMockedTest.h"
+#include "utils/CompareUtils.h"
+#include "utils/Constants.h"
+#include "utils/TypeUtils.h"
 
 using ::milvus::FieldDataPtr;
 using ::milvus::StatusCode;
+using ::milvus::TestKv;
 using ::milvus::proto::milvus::DescribeCollectionRequest;
 using ::milvus::proto::milvus::DescribeCollectionResponse;
 using ::milvus::proto::milvus::SearchRequest;
@@ -39,54 +42,26 @@ using ::testing::ElementsAre;
 using ::testing::Property;
 using ::testing::UnorderedElementsAre;
 
-namespace {
-struct TestKv {
-    TestKv(std::string key, std::string value) : key_(std::move(key)), value_(std::move(value)) {
-    }
-    std::string key_;
-    std::string value_;
-};
-
-bool
-operator==(const milvus::proto::common::KeyValuePair& lhs, const TestKv& rhs) {
-    return lhs.key() == rhs.key_ && lhs.value() == rhs.value_;
-}
-}  // namespace
-
 template <typename T>
 milvus::Status
-DoSearchVectors(testing::StrictMock<::milvus::MilvusMockedService>& service_,
-                std::shared_ptr<::milvus::MilvusClient>& client_, std::vector<T> vectors,
-                milvus::SearchResults& search_results, int simulate_timeout = 0, int search_timeout = 0) {
+DoSearchVectors(testing::StrictMock<milvus::MilvusMockedService>& service_, milvus::MilvusClientPtr& client_,
+                std::vector<T> vectors, milvus::SearchResults& search_results, uint64_t simulate_timeout = 0,
+                uint64_t search_timeout = 0) {
     milvus::SearchArguments search_arguments{};
     search_arguments.SetCollectionName("foo");
     search_arguments.AddPartitionName("part1");
     search_arguments.AddPartitionName("part2");
     search_arguments.AddOutputField("f1");
     search_arguments.AddOutputField("f2");
-    search_arguments.SetExpression("dummy expression");
+    search_arguments.SetFilter("dummy expression");
     for (const auto& vec : vectors) {
         search_arguments.AddTargetVector("anns_dummy", vec);
     }
-    search_arguments.SetTravelTimestamp(10000);
-    search_arguments.SetGuaranteeTimestamp(milvus::GuaranteeStrongTs());
-    search_arguments.SetTopK(10);
-    search_arguments.SetRoundDecimal(-1);
+    search_arguments.SetConsistencyLevel(milvus::ConsistencyLevel::STRONG);
+    search_arguments.SetLimit(10);
+    search_arguments.SetRoundDecimal(1);
     search_arguments.SetMetricType(milvus::MetricType::IP);
-
-    search_arguments.AddExtraParam("nprobe", 10);
-
-    EXPECT_CALL(service_, DescribeCollection(_, Property(&DescribeCollectionRequest::collection_name, "foo"), _))
-        .WillOnce([](::grpc::ServerContext*, const DescribeCollectionRequest*, DescribeCollectionResponse* response) {
-            response->set_collectionid(1000);
-            response->set_shards_num(2);
-            response->set_created_timestamp(10000);
-            auto* proto_schema = response->mutable_schema();
-            auto* field = proto_schema->add_fields();
-            field->set_data_type(DataType::FloatVector);
-            field->set_name("anns_dummy");
-            return ::grpc::Status{};
-        });
+    search_arguments.AddExtraParam("nprobe", "10");
 
     EXPECT_CALL(
         service_,
@@ -94,27 +69,18 @@ DoSearchVectors(testing::StrictMock<::milvus::MilvusMockedService>& service_,
             _,
             AllOf(Property(&SearchRequest::collection_name, "foo"), Property(&SearchRequest::dsl, "dummy expression"),
                   Property(&SearchRequest::dsl_type, milvus::proto::common::DslType::BoolExprV1),
-                  Property(&SearchRequest::travel_timestamp, 10000),
+                  Property(&SearchRequest::consistency_level, milvus::proto::common::ConsistencyLevel::Strong),
                   Property(&SearchRequest::guarantee_timestamp, milvus::GuaranteeStrongTs()),
                   Property(&SearchRequest::partition_names, UnorderedElementsAre("part1", "part2")),
                   Property(&SearchRequest::output_fields, UnorderedElementsAre("f1", "f2")),
                   Property(&SearchRequest::search_params,
-                           UnorderedElementsAre(TestKv("anns_field", "anns_dummy"), TestKv("topk", "10"),
-                                                TestKv("metric_type", "IP"), TestKv("round_decimal", "-1"), _))),
+                           UnorderedElementsAre(TestKv(milvus::ANNS_FIELD, "anns_dummy"), TestKv(milvus::TOPK, "10"),
+                                                TestKv(milvus::METRIC_TYPE, "IP"), TestKv(milvus::ROUND_DECIMAL, "1"),
+                                                TestKv(milvus::IGNORE_GROWING, "false"), TestKv(milvus::NPROBE, "10"),
+                                                TestKv(milvus::OFFSET, "0"), _))),
             _))
         .WillOnce([&vectors, simulate_timeout](::grpc::ServerContext*, const SearchRequest* request,
                                                SearchResults* response) {
-            // check params
-            auto& search_params = request->search_params();
-            std::string extra_params_payload;
-            for (const auto& pair : search_params) {
-                if (pair.key() == "params") {
-                    extra_params_payload = pair.value();
-                }
-            }
-            auto json_params = nlohmann::json::parse(extra_params_payload);
-            EXPECT_EQ(json_params["nprobe"].get<int>(), 10);
-
             // check placeholder
             const auto& placeholder_group_payload = request->placeholder_group();
             milvus::proto::common::PlaceholderGroup placeholder_group;
@@ -173,13 +139,14 @@ DoSearchVectors(testing::StrictMock<::milvus::MilvusMockedService>& service_,
             return ::grpc::Status{};
         });
 
-    return client_->Search(search_arguments, search_results, search_timeout);
+    client_->SetRpcDeadlineMs(search_timeout);
+    return client_->Search(search_arguments, search_results);
 }
 
 template <typename T>
 void
-TestSearchVectors(testing::StrictMock<::milvus::MilvusMockedService>& service_,
-                  std::shared_ptr<::milvus::MilvusClient>& client_, std::vector<T> vectors) {
+TestSearchVectors(testing::StrictMock<milvus::MilvusMockedService>& service_, milvus::MilvusClientPtr& client_,
+                  std::vector<T> vectors) {
     milvus::SearchResults search_results{};
 
     auto status = DoSearchVectors<T>(service_, client_, vectors, search_results);
@@ -249,9 +216,7 @@ TEST_F(MilvusMockedTest, SearchFooWithTimeoutOk) {
     EXPECT_GE(duration, 500);
 }
 
-TEST_F(MilvusMockedTest, SearchWithoutConnect) {
-    milvus::ConnectParam connect_param{"127.0.0.1", server_.ListenPort()};
-
+TEST_F(UnconnectMilvusMockedTest, SearchWithoutConnect) {
     milvus::SearchArguments search_arguments{};
     milvus::SearchResults search_results{};
 
@@ -259,44 +224,4 @@ TEST_F(MilvusMockedTest, SearchWithoutConnect) {
 
     EXPECT_FALSE(status.IsOk());
     EXPECT_EQ(status.Code(), StatusCode::NOT_CONNECTED);
-}
-
-TEST_F(MilvusMockedTest, SearchWithMismatchedAnnsField) {
-    milvus::ConnectParam connect_param{"127.0.0.1", server_.ListenPort()};
-    client_->Connect(connect_param);
-
-    std::vector<std::vector<float>> floats_vec = {std::vector<float>{0.1f, 0.2f, 0.3f, 0.4f},
-                                                  std::vector<float>{0.2f, 0.3f, 0.4f, 0.5f}};
-
-    milvus::SearchArguments search_arguments{};
-    milvus::SearchResults search_results{};
-    search_arguments.SetCollectionName("foo");
-    search_arguments.AddPartitionName("part1");
-    search_arguments.AddPartitionName("part2");
-    search_arguments.AddOutputField("f1");
-    search_arguments.AddOutputField("f2");
-    search_arguments.SetExpression("dummy expression");
-    for (const auto& floats : floats_vec) {
-        search_arguments.AddTargetVector("anns_dummy", floats);
-    }
-    search_arguments.SetTravelTimestamp(10000);
-    search_arguments.SetGuaranteeTimestamp(10001);
-    search_arguments.SetTopK(10);
-    search_arguments.SetRoundDecimal(-1);
-
-    EXPECT_CALL(service_, DescribeCollection(_, Property(&DescribeCollectionRequest::collection_name, "foo"), _))
-        .WillOnce([](::grpc::ServerContext*, const DescribeCollectionRequest*, DescribeCollectionResponse* response) {
-            response->set_collectionid(1000);
-            response->set_shards_num(2);
-            response->set_created_timestamp(10000);
-            auto* proto_schema = response->mutable_schema();
-            auto* field = proto_schema->add_fields();
-            field->set_data_type(DataType::FloatVector);
-            field->set_name("anns_mismatch");
-            return ::grpc::Status{};
-        });
-
-    auto status = client_->Search(search_arguments, search_results);
-    EXPECT_FALSE(status.IsOk());
-    EXPECT_EQ(status.Code(), StatusCode::INVALID_AGUMENT);
 }

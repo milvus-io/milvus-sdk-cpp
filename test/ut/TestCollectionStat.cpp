@@ -17,7 +17,7 @@
 #include <gtest/gtest.h>
 
 #include "milvus/types/CollectionStat.h"
-#include "milvus/types/Constants.h"
+#include "utils/Constants.h"
 
 class CollectionStatTest : public ::testing::Test {};
 
@@ -26,6 +26,6 @@ TEST_F(CollectionStatTest, GeneralTesting) {
     stat.SetName("test");
     EXPECT_EQ(stat.Name(), "test");
     EXPECT_EQ(stat.RowCount(), 0);
-    stat.Emplace(milvus::KeyRowCount(), "1000");
+    stat.Emplace(milvus::ROW_COUNT, "1000");
     EXPECT_EQ(stat.RowCount(), 1000);
 }

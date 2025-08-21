@@ -24,8 +24,8 @@ using testing::UnorderedElementsAreArray;
 
 class MilvusServerTestSearchWithBinaryVectors : public MilvusServerTest {
  protected:
-    std::string collection_name{"Foo"};
-    std::string partition_name{"Bar"};
+    std::string collection_name{milvus::test::RanName("Foo_")};
+    std::string partition_name{milvus::test::RanName("Bar_")};
 
     void
     createCollectionAndPartitions() {
@@ -51,6 +51,7 @@ class MilvusServerTestSearchWithBinaryVectors : public MilvusServerTest {
         EXPECT_EQ(status.Message(), "OK");
         EXPECT_TRUE(status.IsOk());
         EXPECT_EQ(dml_results.IdArray().IntIDArray().size(), fields.front()->Count());
+        EXPECT_EQ(dml_results.InsertCount(), fields.front()->Count());
         return dml_results;
     }
 
@@ -78,7 +79,7 @@ TEST_F(MilvusServerTestSearchWithBinaryVectors, RegressionIssue194) {
     std::vector<std::vector<uint8_t>> faces{};
     for (auto i = test_count; i > 0; --i) {
         ages.emplace_back(age_gen(rng));
-        faces.emplace_back(std::vector<uint8_t>{face_gen(rng), face_gen(rng), face_gen(rng), face_gen(rng)});
+        faces.emplace_back(std::move(std::vector<uint8_t>{face_gen(rng), face_gen(rng), face_gen(rng), face_gen(rng)}));
     }
 
     std::vector<milvus::FieldDataPtr> fields{std::make_shared<milvus::Int16FieldData>("age", ages),
@@ -87,7 +88,7 @@ TEST_F(MilvusServerTestSearchWithBinaryVectors, RegressionIssue194) {
     createCollectionAndPartitions();
     auto dml_results = insertRecords(fields);
 
-    milvus::IndexDesc index_desc("face", "", milvus::IndexType::BIN_FLAT, milvus::MetricType::HAMMING, 0);
+    milvus::IndexDesc index_desc("face", "", milvus::IndexType::BIN_FLAT, milvus::MetricType::HAMMING);
     auto status = client_->CreateIndex(collection_name, index_desc);
     EXPECT_EQ(status.Message(), "OK");
     EXPECT_TRUE(status.IsOk());
@@ -96,10 +97,10 @@ TEST_F(MilvusServerTestSearchWithBinaryVectors, RegressionIssue194) {
 
     milvus::SearchArguments arguments{};
     arguments.SetCollectionName(collection_name);
-    arguments.SetTopK(10);
+    arguments.SetLimit(10);
     arguments.SetMetricType(milvus::MetricType::HAMMING);
-    arguments.AddTargetVector("face", std::vector<uint8_t>{255, 255, 255, 255});
-    arguments.AddTargetVector("face", std::vector<uint8_t>{0, 0, 0, 0});
+    arguments.AddBinaryVector("face", std::vector<uint8_t>{255, 255, 255, 255});
+    arguments.AddBinaryVector("face", std::vector<uint8_t>{0, 0, 0, 0});
     milvus::SearchResults search_results{};
     status = client_->Search(arguments, search_results);
     EXPECT_EQ(status.Message(), "OK");

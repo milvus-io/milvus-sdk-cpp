@@ -18,8 +18,10 @@
 
 #include <memory>
 
-#include "TypeUtils.h"
 #include "mocks/MilvusMockedTest.h"
+#include "utils/CompareUtils.h"
+#include "utils/Constants.h"
+#include "utils/TypeUtils.h"
 
 using ::milvus::FieldDataPtr;
 using ::milvus::StatusCode;
@@ -53,21 +55,22 @@ TEST_F(MilvusMockedTest, QueryFoo) {
     query_arguments.SetCollectionName("foo");
     query_arguments.AddPartitionName("part1");
     query_arguments.AddPartitionName("part2");
-    query_arguments.SetExpression("id > 100");
-    query_arguments.SetGuaranteeTimestamp(10000);
-    query_arguments.SetTravelTimestamp(20000);
+    query_arguments.SetFilter("id > 100");
+    query_arguments.SetConsistencyLevel(milvus::ConsistencyLevel::EVENTUALLY);
     query_arguments.AddOutputField("age");
     query_arguments.AddOutputField("score");
     query_arguments.AddOutputField("signature");
 
-    EXPECT_CALL(service_, Query(_,
-                                AllOf(Property(&QueryRequest::collection_name, "foo"),
-                                      Property(&QueryRequest::partition_names, ElementsAre("part1", "part2")),
-                                      Property(&QueryRequest::expr, "id > 100"),
-                                      Property(&QueryRequest::guarantee_timestamp, 10000),
-                                      Property(&QueryRequest::travel_timestamp, 20000),
-                                      Property(&QueryRequest::output_fields, ElementsAre("age", "score", "signature"))),
-                                _))
+    EXPECT_CALL(
+        service_,
+        Query(_,
+              AllOf(Property(&QueryRequest::collection_name, "foo"),
+                    Property(&QueryRequest::partition_names, ElementsAre("part1", "part2")),
+                    Property(&QueryRequest::expr, "id > 100"),
+                    Property(&QueryRequest::consistency_level, milvus::proto::common::ConsistencyLevel::Eventually),
+                    Property(&QueryRequest::guarantee_timestamp, milvus::GuaranteeEventuallyTs()),
+                    Property(&QueryRequest::output_fields, ElementsAre("age", "score", "signature"))),
+              _))
         .WillOnce([](::grpc::ServerContext*, const QueryRequest* request, QueryResults* response) {
             // ret: age
             auto& age = *response->add_fields_data();
@@ -131,9 +134,7 @@ TEST_F(MilvusMockedTest, QueryFoo) {
                 ElementsAre(std::vector<float>{0.1f, 0.2f, 0.3f}, std::vector<float>{0.4f, 0.5f, 0.6f}));
 }
 
-TEST_F(MilvusMockedTest, QueryWithoutConnect) {
-    milvus::ConnectParam connect_param{"127.0.0.1", server_.ListenPort()};
-
+TEST_F(UnconnectMilvusMockedTest, QueryWithoutConnect) {
     milvus::QueryArguments query_arguments{};
     milvus::QueryResults query_results{};
 

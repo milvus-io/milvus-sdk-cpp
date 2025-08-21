@@ -37,8 +37,14 @@ enum class DataType {
     // STRING = 20,
     VARCHAR = 21,
 
+    ARRAY = 22,
+    JSON = 23,
+
     BINARY_VECTOR = 100,
     FLOAT_VECTOR = 101,
+    FLOAT16_VECTOR = 102,
+    BFLOAT16_VECTOR = 103,
+    SPARSE_FLOAT_VECTOR = 104,
 };
 
 }  // namespace milvus

@@ -44,13 +44,16 @@ TEST_F(QueryArgumentsTest, GeneralTesting) {
     EXPECT_TRUE(field_names.find(field_name) != field_names.end());
 
     std::string expression = "expr";
-    arguments.SetExpression(expression);
-    EXPECT_FALSE(arguments.SetExpression(empty_name).IsOk());
-    EXPECT_EQ(expression, arguments.Expression());
+    arguments.SetFilter(expression);
+    EXPECT_FALSE(arguments.SetFilter(empty_name).IsOk());
+    EXPECT_EQ(expression, arguments.Filter());
 
     uint64_t ts = 1000;
     arguments.SetTravelTimestamp(ts);
     EXPECT_EQ(ts, arguments.TravelTimestamp());
-    arguments.SetGuaranteeTimestamp(ts);
-    EXPECT_EQ(ts, arguments.GuaranteeTimestamp());
+
+    arguments.SetLimit(88);
+    EXPECT_EQ(88, arguments.Limit());
+    arguments.SetOffset(99);
+    EXPECT_EQ(99, arguments.Offset());
 }

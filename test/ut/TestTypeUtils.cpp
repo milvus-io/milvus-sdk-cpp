@@ -18,7 +18,8 @@
 
 #include <vector>
 
-#include "TypeUtils.h"
+#include "utils/CompareUtils.h"
+#include "utils/TypeUtils.h"
 
 using milvus::CreateIDArray;
 using milvus::CreateMilvusFieldData;
@@ -254,9 +255,46 @@ TEST_F(TypeUtilsTest, StringFieldNotEquals) {
     scalars->mutable_int_data();
     EXPECT_FALSE(proto_field == string_field);
 
-    auto double_scalars = scalars->mutable_string_data();
-    double_scalars->add_data("a");
+    auto str_scalars = scalars->mutable_string_data();
+    str_scalars->add_data("a");
     EXPECT_FALSE(proto_field == string_field);
+}
+
+TEST_F(TypeUtilsTest, JSONFieldEqualsAndCast) {
+    auto values = std::vector<nlohmann::json>{R"({"name":"aaa","age":18,"score":88})"};
+    milvus::JSONFieldData json_field_data{"foo", values};
+    auto proto_field_data = CreateProtoFieldData(static_cast<const milvus::Field&>(json_field_data));
+    auto json_field_data_ptr = CreateMilvusFieldData(proto_field_data);
+    EXPECT_EQ(proto_field_data, json_field_data);
+    EXPECT_EQ(proto_field_data, *json_field_data_ptr);
+    EXPECT_EQ(json_field_data, *json_field_data_ptr);
+}
+
+TEST_F(TypeUtilsTest, JSONFieldNotEquals) {
+    const std::string field_name = "foo";
+    auto values = std::vector<nlohmann::json>{R"({"name":"aaa","age":18,"score":88})"};
+    milvus::JSONFieldData json_field{field_name, values};
+    milvus::proto::schema::FieldData proto_field;
+    proto_field.set_field_name("_");
+    EXPECT_FALSE(proto_field == json_field);
+
+    proto_field.set_field_name(field_name);
+    proto_field.mutable_vectors();
+    EXPECT_FALSE(proto_field == json_field);
+
+    auto scalars = proto_field.mutable_scalars();
+    scalars->mutable_int_data();
+    EXPECT_FALSE(proto_field == json_field);
+
+    auto json_scalars = scalars->mutable_json_data();
+    json_scalars->add_data(values.at(0).dump());
+    EXPECT_TRUE(proto_field == json_field);
+
+    nlohmann::json a1 = R"({"name":"aaa","age":18,"score":88})";
+    nlohmann::json a2 = R"({"name":"aaa","age":17,"score":77})";
+    json_field.Add(a1);
+    json_scalars->add_data(a2.dump());
+    EXPECT_FALSE(proto_field == json_field);
 }
 
 TEST_F(TypeUtilsTest, BinaryVecFieldEqualsAndCast) {
@@ -377,7 +415,7 @@ TEST_F(TypeUtilsTest, IDArrayWithRange) {
     EXPECT_THAT(id_array.StrIDArray(), ElementsAre("10001", "10002"));
 }
 
-TEST_F(TypeUtilsTest, CreateMilvusFieldDataWithRange) {
+TEST_F(TypeUtilsTest, CreateMilvusFieldDataWithRange_Scalar) {
     milvus::BoolFieldData bool_field_data{"foo", std::vector<bool>{false, true, false}};
     const auto bool_field_data_ptr = std::dynamic_pointer_cast<const milvus::BoolFieldData>(
         CreateMilvusFieldData(CreateProtoFieldData(static_cast<const milvus::Field&>(bool_field_data)), 1, 2));
@@ -418,12 +456,21 @@ TEST_F(TypeUtilsTest, CreateMilvusFieldDataWithRange) {
         CreateMilvusFieldData(CreateProtoFieldData(static_cast<const milvus::Field&>(string_field_data)), 1, 2));
     EXPECT_THAT(string_field_data_ptr->Data(), ElementsAre("b", "c"));
 
+    auto values =
+        std::vector<nlohmann::json>{R"({"name":"aaa","age":18,"score":88})", R"({"name":"bbb","age":19,"score":99})",
+                                    R"({"name":"ccc","age":15,"score":100})"};
+    milvus::JSONFieldData json_field_data{"foo", values};
+    const auto json_field_data_ptr = std::dynamic_pointer_cast<const milvus::JSONFieldData>(
+        CreateMilvusFieldData(CreateProtoFieldData(static_cast<const milvus::Field&>(json_field_data)), 1, 2));
+    EXPECT_THAT(json_field_data_ptr->Data(), ElementsAre(values.at(1), values.at(2)));
+}
+
+TEST_F(TypeUtilsTest, CreateMilvusFieldDataWithRange_Vector) {
     milvus::BinaryVecFieldData bins_field_data{"foo",
                                                std::vector<std::vector<uint8_t>>{{1, 2, 3}, {4, 5, 6}, {7, 8, 9}}};
     const auto bins_field_data_ptr = std::dynamic_pointer_cast<const milvus::BinaryVecFieldData>(
         CreateMilvusFieldData(CreateProtoFieldData(static_cast<const milvus::Field&>(bins_field_data)), 1, 2));
-    EXPECT_THAT(bins_field_data_ptr->DataAsUnsignedChars(),
-                ElementsAre(std::vector<uint8_t>{4, 5, 6}, std::vector<uint8_t>{7, 8, 9}));
+    EXPECT_THAT(bins_field_data_ptr->Data(), ElementsAre(std::vector<uint8_t>{4, 5, 6}, std::vector<uint8_t>{7, 8, 9}));
 
     milvus::FloatVecFieldData floats_field_data{
         "foo", std::vector<std::vector<float>>{{0.1f, 0.2f, 0.3f}, {0.4f, 0.5f, 0.6f}, {0.7f, 0.8f, 0.9f}}};
@@ -433,16 +480,110 @@ TEST_F(TypeUtilsTest, CreateMilvusFieldDataWithRange) {
                 ElementsAre(std::vector<float>{0.4f, 0.5f, 0.6f}, std::vector<float>{0.7f, 0.8f, 0.9f}));
 }
 
+TEST_F(TypeUtilsTest, CreateMilvusFieldDataWithRange_Array) {
+    const std::string name = "foo";
+    {
+        auto values = std::vector<milvus::ArrayBoolFieldData::ElementT>{{true, false}, {false}};
+        milvus::ArrayBoolFieldData field_data{name, values};
+        auto field_data_ptr = std::dynamic_pointer_cast<const milvus::ArrayBoolFieldData>(
+            CreateMilvusFieldData(CreateProtoFieldData(static_cast<const milvus::Field&>(field_data)), 10, 20));
+        EXPECT_TRUE(field_data_ptr->Data().empty());
+
+        field_data_ptr = std::dynamic_pointer_cast<const milvus::ArrayBoolFieldData>(
+            CreateMilvusFieldData(CreateProtoFieldData(static_cast<const milvus::Field&>(field_data)), 10, 10));
+        EXPECT_TRUE(field_data_ptr->Data().empty());
+
+        field_data_ptr = std::dynamic_pointer_cast<const milvus::ArrayBoolFieldData>(
+            CreateMilvusFieldData(CreateProtoFieldData(static_cast<const milvus::Field&>(field_data)), -5, 1));
+        EXPECT_THAT(field_data_ptr->Data(), ElementsAre(values.at(0)));
+
+        field_data_ptr = std::dynamic_pointer_cast<const milvus::ArrayBoolFieldData>(
+            CreateMilvusFieldData(CreateProtoFieldData(static_cast<const milvus::Field&>(field_data)), 0, 5));
+        EXPECT_THAT(field_data_ptr->Data(), ElementsAre(values.at(0), values.at(1)));
+
+        field_data_ptr = std::dynamic_pointer_cast<const milvus::ArrayBoolFieldData>(
+            CreateMilvusFieldData(CreateProtoFieldData(static_cast<const milvus::Field&>(field_data)), 1, 2));
+        EXPECT_THAT(field_data_ptr->Data(), ElementsAre(values.at(1)));
+    }
+
+    {
+        auto values = std::vector<milvus::ArrayInt8FieldData::ElementT>{{2, 3}, {4}};
+        milvus::ArrayInt8FieldData field_data{name, values};
+        const auto field_data_ptr = std::dynamic_pointer_cast<const milvus::ArrayInt8FieldData>(
+            CreateMilvusFieldData(CreateProtoFieldData(static_cast<const milvus::Field&>(field_data)), 1, 2));
+        EXPECT_THAT(field_data_ptr->Data(), ElementsAre(values.at(1)));
+    }
+    {
+        auto values = std::vector<milvus::ArrayInt16FieldData::ElementT>{{2, 3}, {4}};
+        milvus::ArrayInt16FieldData field_data{name, values};
+        const auto field_data_ptr = std::dynamic_pointer_cast<const milvus::ArrayInt16FieldData>(
+            CreateMilvusFieldData(CreateProtoFieldData(static_cast<const milvus::Field&>(field_data)), 1, 2));
+        EXPECT_THAT(field_data_ptr->Data(), ElementsAre(values.at(1)));
+    }
+    {
+        auto values = std::vector<milvus::ArrayInt32FieldData::ElementT>{{2, 3}, {4}};
+        milvus::ArrayInt32FieldData field_data{name, values};
+        const auto field_data_ptr = std::dynamic_pointer_cast<const milvus::ArrayInt32FieldData>(
+            CreateMilvusFieldData(CreateProtoFieldData(static_cast<const milvus::Field&>(field_data)), 1, 2));
+        EXPECT_THAT(field_data_ptr->Data(), ElementsAre(values.at(1)));
+    }
+    {
+        auto values = std::vector<milvus::ArrayInt64FieldData::ElementT>{{2, 3}, {4}};
+        milvus::ArrayInt64FieldData field_data{name, values};
+        const auto field_data_ptr = std::dynamic_pointer_cast<const milvus::ArrayInt64FieldData>(
+            CreateMilvusFieldData(CreateProtoFieldData(static_cast<const milvus::Field&>(field_data)), 1, 2));
+        EXPECT_THAT(field_data_ptr->Data(), ElementsAre(values.at(1)));
+    }
+    {
+        auto values = std::vector<milvus::ArrayFloatFieldData::ElementT>{{0.2, 0.3}, {0.4}};
+        milvus::ArrayFloatFieldData field_data{name, values};
+        const auto field_data_ptr = std::dynamic_pointer_cast<const milvus::ArrayFloatFieldData>(
+            CreateMilvusFieldData(CreateProtoFieldData(static_cast<const milvus::Field&>(field_data)), 1, 2));
+        EXPECT_THAT(field_data_ptr->Data(), ElementsAre(values.at(1)));
+    }
+    {
+        auto values = std::vector<milvus::ArrayDoubleFieldData::ElementT>{{0.2, 0.3}, {0.4}};
+        milvus::ArrayDoubleFieldData field_data{name, values};
+        const auto field_data_ptr = std::dynamic_pointer_cast<const milvus::ArrayDoubleFieldData>(
+            CreateMilvusFieldData(CreateProtoFieldData(static_cast<const milvus::Field&>(field_data)), 1, 2));
+        EXPECT_THAT(field_data_ptr->Data(), ElementsAre(values.at(1)));
+    }
+    {
+        auto values = std::vector<milvus::ArrayVarCharFieldData::ElementT>{{"a", "bb"}, {"ccc"}};
+        milvus::ArrayVarCharFieldData field_data{name, values};
+        const auto field_data_ptr = std::dynamic_pointer_cast<const milvus::ArrayVarCharFieldData>(
+            CreateMilvusFieldData(CreateProtoFieldData(static_cast<const milvus::Field&>(field_data)), 1, 2));
+        EXPECT_THAT(field_data_ptr->Data(), ElementsAre(values.at(1)));
+    }
+}
+
 TEST_F(TypeUtilsTest, MetricTypeCastTest) {
-    for (const auto& name :
-         {"IP", "L2", "HAMMING", "SUBSTRUCTURE", "SUPERSTRUCTURE", "TANIMOTO", "JACCARD", "INVALID"}) {
+    for (const auto& name : {"IP", "L2", "COSINE", "HAMMING", "JACCARD", "DEFAULT"}) {
         EXPECT_EQ(std::to_string(milvus::MetricTypeCast(name)), name);
     }
 }
 
 TEST_F(TypeUtilsTest, IndexTypeCastTest) {
-    for (const auto& name : {"INVALID", "FLAT", "IVF_FLAT", "IVF_SQ8", "IVF_PQ", "HNSW", "IVF_HNSW", "RHNSW_FLAT",
-                             "RHNSW_SQ", "RHNSW_PQ", "ANNOY", "BIN_FLAT", "BIN_IVF_FLAT"}) {
+    for (const auto& name : {"INVALID",
+                             "FLAT",
+                             "IVF_FLAT",
+                             "IVF_SQ8",
+                             "IVF_PQ",
+                             "HNSW",
+                             "DISKANN",
+                             "AUTOINDEX",
+                             "SCANN",
+                             "GPU_IVF_FLAT",
+                             "GPU_IVF_PQ",
+                             "GPU_BRUTE_FORCE",
+                             "GPU_CAGRA",
+                             "BIN_FLAT",
+                             "BIN_IVF_FLAT",
+                             "Trie",
+                             "STL_SORT",
+                             "INVERTED",
+                             "SPARSE_INVERTED_INDEX",
+                             "SPARSE_WAND"}) {
         EXPECT_EQ(std::to_string(milvus::IndexTypeCast(name)), name);
     }
 }
@@ -458,6 +599,8 @@ TEST_F(TypeUtilsTest, DataTypeCast) {
         {milvus::DataType::FLOAT, milvus::proto::schema::DataType::Float},
         {milvus::DataType::DOUBLE, milvus::proto::schema::DataType::Double},
         {milvus::DataType::VARCHAR, milvus::proto::schema::DataType::VarChar},
+        {milvus::DataType::JSON, milvus::proto::schema::DataType::JSON},
+        {milvus::DataType::ARRAY, milvus::proto::schema::DataType::Array},
         {milvus::DataType::FLOAT_VECTOR, milvus::proto::schema::DataType::FloatVector},
         {milvus::DataType::BINARY_VECTOR, milvus::proto::schema::DataType::BinaryVector}};
 
@@ -533,4 +676,28 @@ TEST_F(TypeUtilsTest, TestB64EncodeGeneric) {
     EXPECT_EQ(milvus::Base64Encode("abc"), "YWJj");
     EXPECT_EQ(milvus::Base64Encode("abcd"), "YWJjZA==");
     EXPECT_EQ(milvus::Base64Encode("abcde"), "YWJjZGU=");
+}
+
+TEST_F(TypeUtilsTest, ConsistencyLevelCast) {
+    auto proto_levels = std::vector<milvus::proto::common::ConsistencyLevel>{
+        milvus::proto::common::ConsistencyLevel::Strong,
+        milvus::proto::common::ConsistencyLevel::Session,
+        milvus::proto::common::ConsistencyLevel::Bounded,
+        milvus::proto::common::ConsistencyLevel::Eventually,
+    };
+    auto sdk_levels = std::vector<milvus::ConsistencyLevel>{
+        milvus::ConsistencyLevel::STRONG,
+        milvus::ConsistencyLevel::SESSION,
+        milvus::ConsistencyLevel::BOUNDED,
+        milvus::ConsistencyLevel::EVENTUALLY,
+    };
+
+    for (size_t i = 0; i < proto_levels.size(); ++i) {
+        auto sdk_level = milvus::ConsistencyLevelCast(proto_levels[i]);
+        EXPECT_EQ(sdk_levels[i], sdk_level);
+    }
+    for (size_t i = 0; i < sdk_levels.size(); ++i) {
+        auto proto_level = milvus::ConsistencyLevelCast(sdk_levels[i]);
+        EXPECT_EQ(proto_levels[i], proto_level);
+    }
 }

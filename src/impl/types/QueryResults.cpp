@@ -16,6 +16,8 @@
 
 #include "milvus/types/QueryResults.h"
 
+#include "../utils/DmlUtils.h"
+
 namespace milvus {
 
 QueryResults::QueryResults() = default;
@@ -30,13 +32,17 @@ QueryResults::QueryResults(std::vector<FieldDataPtr>&& output_fields) {
 
 FieldDataPtr
 QueryResults::GetFieldByName(const std::string& name) {
-    for (FieldDataPtr& field : output_fields_) {
-        if (nullptr == field) {
+    return OutputField(name);
+}
+
+FieldDataPtr
+QueryResults::OutputField(const std::string& name) const {
+    for (const auto& output_field : output_fields_) {
+        if (output_field == nullptr) {
             continue;
         }
-
-        if (field->Name() == name) {
-            return field;
+        if (output_field->Name() == name) {
+            return output_field;
         }
     }
 
@@ -46,6 +52,31 @@ QueryResults::GetFieldByName(const std::string& name) {
 const std::vector<FieldDataPtr>&
 QueryResults::OutputFields() const {
     return output_fields_;
+}
+
+Status
+QueryResults::OutputRows(std::vector<nlohmann::json>& rows) const {
+    return GetRowsFromFieldsData(output_fields_, rows);
+}
+
+Status
+QueryResults::OutputRow(int i, nlohmann::json& row) const {
+    return GetRowFromFieldsData(output_fields_, i, row);
+}
+
+uint64_t
+QueryResults::GetRowCount() const {
+    auto data = OutputField<milvus::Int64FieldData>("count(*)");
+    if (data != nullptr && data->Count() > 0) {
+        return static_cast<uint64_t>(data->Value(0));
+    }
+    for (const auto& output_field : output_fields_) {
+        if (output_field == nullptr) {
+            continue;
+        }
+        return output_field->Count();
+    }
+    return 0;
 }
 
 }  // namespace milvus

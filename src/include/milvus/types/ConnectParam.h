@@ -26,10 +26,20 @@ namespace milvus {
  */
 class ConnectParam {
  public:
+    ConnectParam() = default;
+
+    ConnectParam&
+    operator=(const ConnectParam&);
+
     /**
      * @brief Constructor
      */
     ConnectParam(std::string host, uint16_t port);
+
+    /**
+     * @brief Constructor
+     */
+    ConnectParam(std::string host, uint16_t port, const std::string& token);
 
     /**
      * @brief Constructor
@@ -68,18 +78,112 @@ class ConnectParam {
     SetAuthorizations(std::string username, std::string password);
 
     /**
+     * @brief SetAuthorizations set username and password for connecting to the milvus.
+     */
+    ConnectParam&
+    WithAuthorizations(std::string username, std::string password);
+
+    /**
      * @brief Connect timeout in milliseconds.
      *
      */
-    uint32_t
+    uint64_t
     ConnectTimeout() const;
 
     /**
-     * @brief Set connect timeout in milliseconds.
+     * @brief Set connect timeout in milliseconds. It is the timeout value to wait grpc channel to ready.
      *
      */
     void
-    SetConnectTimeout(uint32_t timeout);
+    SetConnectTimeout(uint64_t connect_timeout_ms);
+
+    /**
+     * @brief Set connect timeout in milliseconds. It is the timeout value to wait grpc channel to ready.
+     */
+    ConnectParam&
+    WithConnectTimeout(uint64_t connect_timeout_ms);
+
+    /**
+     * @brief Get keepalive time value milliseconds.
+     *
+     * Note: teke effect when is true
+     * read the grpc doc for more info: https://github.com/grpc/grpc/blob/master/doc/keepalive.md
+     */
+    uint64_t
+    KeepaliveTimeMs() const;
+
+    /**
+     * @brief Set keepalive time value in milliseconds.
+     *
+     */
+    void
+    SetKeepaliveTimeMs(uint64_t keepalive_time_ms);
+
+    /**
+     * @brief Set keepalive time value in milliseconds.
+     */
+    ConnectParam&
+    WithKeepaliveTimeMs(uint64_t keepalive_time_ms);
+
+    /**
+     * @brief Get keepalive timeout value milliseconds.
+     *
+     */
+    uint64_t
+    KeepaliveTimeoutMs() const;
+
+    /**
+     * @brief Set keepalive timeout value in milliseconds.
+     *
+     */
+    void
+    SetKeepaliveTimeoutMs(uint64_t keepalive_timeout_ms);
+
+    /**
+     * @brief Set keepalive timeout value in milliseconds.
+     */
+    ConnectParam&
+    WithKeepaliveTimeoutMs(uint64_t keepalive_timeout_ms);
+
+    /**
+     * @brief Get keepalive without calls value.
+     *
+     */
+    bool
+    KeepaliveWithoutCalls() const;
+
+    /**
+     * @brief Set keepalive without calls or not.
+     *
+     */
+    void
+    SetKeepaliveWithoutCalls(bool keepalive_without_calls);
+
+    /**
+     * @brief Set keepalive without calls or not.
+     */
+    ConnectParam&
+    WithKeepaliveWithoutCalls(bool keepalive_without_calls);
+
+    /**
+     * @brief Get deadline value of rpc call in milliseconds.
+     *
+     */
+    uint64_t
+    RpcDeadlineMs() const;
+
+    /**
+     * @brief Set deadline value of rpc call in milliseconds.
+     *
+     */
+    void
+    SetRpcDeadlineMs(uint64_t rpc_deadline_ms);
+
+    /**
+     * @brief Set deadline value of rpc call in milliseconds.
+     */
+    ConnectParam&
+    WithRpcDeadlineMs(uint64_t rpc_deadline_ms);
 
     /**
      * @brief With ssl
@@ -155,10 +259,51 @@ class ConnectParam {
     const std::string&
     CaCert() const;
 
+    /**
+     * @brief Return user name
+     */
+    const std::string&
+    Username() const;
+
+    /**
+     * @brief Set token for connection
+     */
+    void
+    SetToken(const std::string& token);
+
+    /**
+     * @brief Set token for connection
+     */
+    ConnectParam&
+    WithToken(const std::string& token);
+
+    /**
+     * @brief Return the current used database name
+     */
+    const std::string&
+    DbName() const;
+
+    /**
+     * @brief Set the current used database name
+     */
+    void
+    SetDbName(const std::string& db_name);
+
+    /**
+     * @brief Set the current used database name
+     */
+    ConnectParam&
+    WithDbName(const std::string& db_name);
+
  private:
-    std::string host_;
-    uint16_t port_ = 0;
-    uint32_t connect_timeout_ = 5000;
+    std::string host_ = "localhost";
+    uint16_t port_ = 19350;
+
+    uint64_t connect_timeout_ms_ = 10000;    // the same with pymilvus
+    uint64_t keepalive_time_ms_ = 55000;     // the same with pymilvus
+    uint64_t keepalive_timeout_ms_ = 20000;  // the same with java sdk
+    bool keepalive_without_calls_ = false;   // the same with java sdk
+    uint64_t rpc_deadline_ms_ = 0;           // the same with java sdk
 
     bool tls_{false};
     std::string server_name_;
@@ -167,6 +312,8 @@ class ConnectParam {
     std::string ca_cert_;
 
     std::string authorizations_;
+    std::string username_;
+    std::string db_name_ = "default";
 };
 
 }  // namespace milvus

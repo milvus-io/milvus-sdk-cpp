@@ -16,8 +16,9 @@
 
 #include <gtest/gtest.h>
 
-#include "TypeUtils.h"
 #include "mocks/MilvusMockedTest.h"
+#include "utils/CompareUtils.h"
+#include "utils/TypeUtils.h"
 
 using ::milvus::StatusCode;
 using ::milvus::proto::milvus::DescribeIndexRequest;
@@ -51,15 +52,11 @@ TEST_F(MilvusMockedTest, DescribeIndexFoo) {
             index_desc_ptr->set_field_name(field_name);
 
             auto kv = index_desc_ptr->add_params();
-            kv->set_key(milvus::KeyIndexType());
+            kv->set_key(milvus::INDEX_TYPE);
             kv->set_value(std::to_string(milvus::IndexType::IVF_FLAT));
             kv = index_desc_ptr->add_params();
-            kv->set_key(milvus::KeyMetricType());
+            kv->set_key(milvus::METRIC_TYPE);
             kv->set_value(std::to_string(milvus::MetricType::L2));
-
-            kv = index_desc_ptr->add_params();
-            kv->set_key(milvus::KeyParams());
-            kv->set_value(R"({"nlist": 1024})");
 
             return ::grpc::Status{};
         });
