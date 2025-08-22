@@ -286,6 +286,18 @@ MilvusConnection::GetLoadingProgress(const proto::milvus::GetLoadingProgressRequ
 }
 
 Status
+MilvusConnection::AlterCollection(const proto::milvus::AlterCollectionRequest& request, proto::common::Status& response,
+                                  const GrpcContextOptions& options) {
+    return grpcCall("AlterCollection", &Stub::AlterCollection, request, response, options);
+}
+
+Status
+MilvusConnection::AlterCollectionField(const proto::milvus::AlterCollectionFieldRequest& request,
+                                       proto::common::Status& response, const GrpcContextOptions& options) {
+    return grpcCall("AlterCollectionField", &Stub::AlterCollectionField, request, response, options);
+}
+
+Status
 MilvusConnection::CreatePartition(const proto::milvus::CreatePartitionRequest& request, proto::common::Status& response,
                                   const GrpcContextOptions& options) {
     return grpcCall("CreatePartition", &Stub::CreatePartition, request, response, options);
