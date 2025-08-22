@@ -45,6 +45,12 @@ const char* MAX_CAPACITY = "max_capacity";
 const char* DYNAMIC_FIELD = "$meta";
 const char* SPARSE_INDICES = "indices";
 const char* SPARSE_VALUES = "values";
+const char* MMAP_ENABLED = "mmap.enabled";
+const char* COLLECTION_TTL_SECONDS = "collection.ttl.seconds";
+const char* COLLECTION_REPLICA_NUMBER = "collection.replica.number";
+const char* COLLECTION_RESOURCE_GROUPS = "collection.resource_groups";
+const char* DATABASE_REPLICA_NUMBER = "database.replica.number";
+const char* DATABASE_RESOURCE_GROUPS = "database.resource_groups";
 
 std::string
 GetBuildVersion() {

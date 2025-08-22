@@ -56,7 +56,9 @@ main(int argc, char* argv[]) {
 
     status = client->UseDatabase(my_db_name);
     util::CheckStatus("Failed to switch database:", status);
-    std::cout << "Switch to database: " << my_db_name << std::endl;
+    std::string current_db_name;
+    client->CurrentUsedDatabase(current_db_name);
+    std::cout << "Current in-used database: " << current_db_name << std::endl;
 
     // drop the collection if it exists
     const std::string collection_name = "TEST_CPP_DB";
@@ -153,12 +155,13 @@ main(int argc, char* argv[]) {
         std::cout << "partition count(*) = " << count_resutl.GetRowCount() << std::endl;
     }
 
-    {
-        // now we switch back to the default database
-        status = client->UseDatabase("default");
-        util::CheckStatus("Failed to switch default database:", status);
-        std::cout << "Switch to the default database" << std::endl;
+    // now we switch back to the default database
+    status = client->UseDatabase("default");
+    util::CheckStatus("Failed to switch default database:", status);
+    client->CurrentUsedDatabase(current_db_name);
+    std::cout << "Current in-used database: " << current_db_name << std::endl;
 
+    {
         // query the deleted item and anthor item
         milvus::QueryArguments q_arguments{};
         q_arguments.SetDatabaseName(my_db_name);  // we still can do search with our db name
@@ -180,19 +183,9 @@ main(int argc, char* argv[]) {
         for (auto& field_data : query_resutls.OutputFields()) {
             std::cout << "Field: " << field_data->Name() << " Count:" << field_data->Count() << std::endl;
         }
-
-        // now we switch back to our database, since some interface no db_name parameter
-        status = client->UseDatabase(my_db_name);
-        util::CheckStatus("Failed to switch database:", status);
-        std::cout << "Switch to database: " << my_db_name << std::endl;
     }
 
     {
-        // now we switch back to the default database
-        status = client->UseDatabase("default");
-        util::CheckStatus("Failed to switch default database:", status);
-        std::cout << "Switch to the default database" << std::endl;
-
         // do search
         // this collection has only one vector field, no need to set the AnnsField name
         milvus::SearchArguments s_arguments{};
@@ -241,12 +234,13 @@ main(int argc, char* argv[]) {
                 }
             }
         }
-
-        // now we switch back to our database, since some interface no db_name parameter
-        status = client->UseDatabase(my_db_name);
-        util::CheckStatus("Failed to switch database:", status);
-        std::cout << "Switch to database: " << my_db_name << std::endl;
     }
+
+    // now we switch back to our database, since some interfaces no db_name parameter
+    status = client->UseDatabase(my_db_name);
+    util::CheckStatus("Failed to switch database:", status);
+    client->CurrentUsedDatabase(current_db_name);
+    std::cout << "Current in-used database: " << current_db_name << std::endl;
 
     // release collection
     status = client->ReleaseCollection(collection_name);
@@ -285,7 +279,8 @@ main(int argc, char* argv[]) {
     // now we switch back to the default database, prepare to delete our empty database
     status = client->UseDatabase(my_db_name);
     util::CheckStatus("Failed to switch default database:", status);
-    std::cout << "Switch to default database" << std::endl;
+    client->CurrentUsedDatabase(current_db_name);
+    std::cout << "Current in-used database: " << current_db_name << std::endl;
 
     status = client->DropDatabase(my_db_name);
     util::CheckStatus("Failed to drop database:", status);

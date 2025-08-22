@@ -92,6 +92,16 @@ class MilvusClientImpl : public MilvusClient {
                  const std::vector<std::string> partition_names) final;
 
     Status
+    AlterCollectionProperties(const std::string& collection_name,
+                              const std::unordered_map<std::string, std::string>& properties) final;
+
+    Status
+    DropCollectionProperties(const std::string& collection_name, const std::set<std::string>& property_keys) final;
+
+    Status
+    AlterCollectionField(const std::string& collection_name, const std::string& field_name,
+                         const std::unordered_map<std::string, std::string>& properties) final;
+    Status
     CreatePartition(const std::string& collection_name, const std::string& partition_name) final;
 
     Status
@@ -135,6 +145,9 @@ class MilvusClientImpl : public MilvusClient {
 
     Status
     UseDatabase(const std::string& db_name) final;
+
+    Status
+    CurrentUsedDatabase(std::string& db_name) final;
 
     Status
     CreateDatabase(const std::string& db_name, const std::unordered_map<std::string, std::string>& properties) final;
