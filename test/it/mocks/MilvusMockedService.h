@@ -154,6 +154,9 @@ class MilvusMockedService : public ::milvus::proto::milvus::MilvusService::Servi
     MOCK_METHOD3(DropIndex, ::grpc::Status(::grpc::ServerContext*, const ::milvus::proto::milvus::DropIndexRequest*,
                                            ::milvus::proto::common::Status*));
 
+    MOCK_METHOD3(AlterIndex, ::grpc::Status(::grpc::ServerContext*, const ::milvus::proto::milvus::AlterIndexRequest*,
+                                            ::milvus::proto::common::Status*));
+
     MOCK_METHOD3(Insert, ::grpc::Status(::grpc::ServerContext*, const ::milvus::proto::milvus::InsertRequest*,
                                         ::milvus::proto::milvus::MutationResult*));
 

@@ -402,6 +402,12 @@ MilvusConnection::DropIndex(const proto::milvus::DropIndexRequest& request, prot
 }
 
 Status
+MilvusConnection::AlterIndex(const proto::milvus::AlterIndexRequest& request, proto::common::Status& response,
+                             const GrpcContextOptions& options) {
+    return grpcCall("AlterIndex", &Stub::AlterIndex, request, response, options);
+}
+
+Status
 MilvusConnection::Flush(const proto::milvus::FlushRequest& request, proto::milvus::FlushResponse& response,
                         const GrpcContextOptions& options) {
     return grpcCall("Flush", &Stub::Flush, request, response, options);

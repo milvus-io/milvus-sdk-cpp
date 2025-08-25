@@ -567,6 +567,30 @@ class MilvusClient {
     DropIndex(const std::string& collection_name, const std::string& field_name) = 0;
 
     /**
+     * @brief Alter an index's properties.
+     *
+     * @param [in] collection_name name of the collection
+     * @param [in] index_name name of the index
+     * @param [in] properties properties to be altered
+     * @return Status operation successfully or not
+     */
+    virtual Status
+    AlterIndexProperties(const std::string& collection_name, const std::string& index_name,
+                         const std::unordered_map<std::string, std::string>& properties) = 0;
+
+    /**
+     * @brief Drop an index's properties.
+     *
+     * @param [in] collection_name name of the collection
+     * @param [in] index_name name of the index
+     * @param [in] property_keys keys of the properties
+     * @return Status operation successfully or not
+     */
+    virtual Status
+    DropIndexProperties(const std::string& collection_name, const std::string& index_name,
+                        const std::set<std::string>& property_keys) = 0;
+
+    /**
      * @brief Insert data into a collection by column-based.
      *
      * @param [in] collection_name name of the collection

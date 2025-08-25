@@ -186,6 +186,14 @@ class MilvusClientImpl : public MilvusClient {
     DropIndex(const std::string& collection_name, const std::string& field_name) final;
 
     Status
+    AlterIndexProperties(const std::string& collection_name, const std::string& index_name,
+                         const std::unordered_map<std::string, std::string>& properties) final;
+
+    Status
+    DropIndexProperties(const std::string& collection_name, const std::string& index_name,
+                        const std::set<std::string>& property_keys) final;
+
+    Status
     Insert(const std::string& collection_name, const std::string& partition_name,
            const std::vector<FieldDataPtr>& fields, DmlResults& results) final;
 

@@ -211,6 +211,10 @@ class MilvusConnection {
               const GrpcContextOptions& options);
 
     Status
+    AlterIndex(const proto::milvus::AlterIndexRequest& request, proto::common::Status& response,
+               const GrpcContextOptions& options);
+
+    Status
     Flush(const proto::milvus::FlushRequest& request, proto::milvus::FlushResponse& response,
           const GrpcContextOptions& options);
 
