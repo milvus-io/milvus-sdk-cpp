@@ -19,11 +19,18 @@
 #include "mocks/MilvusMockedTest.h"
 
 using ::milvus::StatusCode;
+using ::milvus::proto::milvus::ConnectRequest;
+using ::milvus::proto::milvus::ConnectResponse;
 using ::milvus::proto::milvus::CreateDatabaseRequest;
 using ::testing::_;
 using ::testing::Property;
 
-TEST_F(MilvusMockedTest, CreateDatabaseSuccess) {
+TEST_F(UnconnectMilvusMockedTest, CreateDatabaseSuccess) {
+    EXPECT_CALL(service_, Connect(_, _, _))
+        .Times(2)
+        .WillRepeatedly(
+            [](::grpc::ServerContext*, const ConnectRequest*, ConnectResponse* response) { return ::grpc::Status{}; });
+
     milvus::ConnectParam connect_param{"127.0.0.1", server_.ListenPort()};
     client_->Connect(connect_param);
 
@@ -31,10 +38,22 @@ TEST_F(MilvusMockedTest, CreateDatabaseSuccess) {
         .WillOnce([](::grpc::ServerContext*, const CreateDatabaseRequest* request, ::milvus::proto::common::Status*) {
             return ::grpc::Status{};
         });
+    const std::string db_name = "Foo";
     std::unordered_map<std::string, std::string> properties{};
-    auto status = client_->CreateDatabase("Foo", properties);
-
+    auto status = client_->CreateDatabase(db_name, properties);
     EXPECT_TRUE(status.IsOk());
+
+    std::string used_db;
+    status = client_->CurrentUsedDatabase(used_db);
+    EXPECT_TRUE(status.IsOk());
+    EXPECT_EQ(used_db, "default");
+
+    status = client_->UseDatabase(db_name);
+    EXPECT_TRUE(status.IsOk());
+
+    status = client_->CurrentUsedDatabase(used_db);
+    EXPECT_TRUE(status.IsOk());
+    EXPECT_EQ(used_db, db_name);
 }
 
 TEST_F(UnconnectMilvusMockedTest, CreateDatabaseWithoutConnect) {

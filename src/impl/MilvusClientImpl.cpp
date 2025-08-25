@@ -321,6 +321,59 @@ MilvusClientImpl::GetLoadState(const std::string& collection_name, bool& is_load
 }
 
 Status
+MilvusClientImpl::AlterCollectionProperties(const std::string& collection_name,
+                                            const std::unordered_map<std::string, std::string>& properties) {
+    auto pre = [&collection_name, &properties]() {
+        proto::milvus::AlterCollectionRequest rpc_request;
+        rpc_request.set_collection_name(collection_name);
+        for (const auto& pair : properties) {
+            auto kv = rpc_request.add_properties();
+            kv->set_key(pair.first);
+            kv->set_value(pair.second);
+        }
+        return rpc_request;
+    };
+
+    return apiHandler<proto::milvus::AlterCollectionRequest, proto::common::Status>(pre,
+                                                                                    &MilvusConnection::AlterCollection);
+}
+
+Status
+MilvusClientImpl::DropCollectionProperties(const std::string& collection_name,
+                                           const std::set<std::string>& property_keys) {
+    auto pre = [&collection_name, &property_keys]() {
+        proto::milvus::AlterCollectionRequest rpc_request;
+        rpc_request.set_collection_name(collection_name);
+        for (const auto& key : property_keys) {
+            rpc_request.add_delete_keys(key);
+        }
+        return rpc_request;
+    };
+
+    return apiHandler<proto::milvus::AlterCollectionRequest, proto::common::Status>(pre,
+                                                                                    &MilvusConnection::AlterCollection);
+}
+
+Status
+MilvusClientImpl::AlterCollectionField(const std::string& collection_name, const std::string& field_name,
+                                       const std::unordered_map<std::string, std::string>& properties) {
+    auto pre = [&collection_name, &field_name, &properties]() {
+        proto::milvus::AlterCollectionFieldRequest rpc_request;
+        rpc_request.set_collection_name(collection_name);
+        rpc_request.set_field_name(field_name);
+        for (const auto& pair : properties) {
+            auto kv = rpc_request.add_properties();
+            kv->set_key(pair.first);
+            kv->set_value(pair.second);
+        }
+        return rpc_request;
+    };
+
+    return apiHandler<proto::milvus::AlterCollectionFieldRequest, proto::common::Status>(
+        pre, &MilvusConnection::AlterCollectionField);
+}
+
+Status
 MilvusClientImpl::CreatePartition(const std::string& collection_name, const std::string& partition_name) {
     auto pre = [&collection_name, &partition_name]() {
         proto::milvus::CreatePartitionRequest rpc_request;
@@ -537,6 +590,19 @@ MilvusClientImpl::UseDatabase(const std::string& db_name) {
         return connection_->UseDatabase(db_name);
     }
 
+    return Status::OK();
+}
+
+Status
+MilvusClientImpl::CurrentUsedDatabase(std::string& db_name) {
+    if (connection_ == nullptr) {
+        return {StatusCode::NOT_CONNECTED, "Connection is not created!"};
+    }
+
+    // the db name is returned from ConnectParam, the default db_name of ConnectParam
+    // is an empty string which means the default database named "default".
+    auto name = currentDbName("");
+    db_name = name.empty() ? "default" : name;
     return Status::OK();
 }
 
