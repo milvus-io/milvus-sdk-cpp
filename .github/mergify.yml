@@ -66,13 +66,7 @@ pull_request_rules:
   - name: Add ci-passed when no code changes
     conditions:
       - or: *BRANCHES
-      - or:
-        # all path not in source pattern
-        # try keep same as in .github/workflows/main.yaml
-        - and:
-          - -files~=^(cmake|examples|doc/thirdparty)\/.*$
-        # only .md files changed
-        - -files~=^.*(?<!\.md)$
+      - -files~=^(?!.*\.(md)).*$
     actions:
       label:
         add:

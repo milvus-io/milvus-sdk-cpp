@@ -875,6 +875,42 @@ MilvusClientImpl::DropIndex(const std::string& collection_name, const std::strin
 }
 
 Status
+MilvusClientImpl::AlterIndexProperties(const std::string& collection_name, const std::string& index_name,
+                                       const std::unordered_map<std::string, std::string>& properties) {
+    auto pre = [&collection_name, &index_name, &properties]() {
+        proto::milvus::AlterIndexRequest rpc_request;
+        rpc_request.set_collection_name(collection_name);
+        rpc_request.set_index_name(index_name);
+        for (const auto& pair : properties) {
+            auto kv_pair = rpc_request.add_extra_params();
+            kv_pair->set_key(pair.first);
+            kv_pair->set_value(pair.second);
+        }
+
+        return rpc_request;
+    };
+
+    return apiHandler<proto::milvus::AlterIndexRequest, proto::common::Status>(pre, &MilvusConnection::AlterIndex);
+}
+
+Status
+MilvusClientImpl::DropIndexProperties(const std::string& collection_name, const std::string& index_name,
+                                      const std::set<std::string>& property_keys) {
+    auto pre = [&collection_name, &index_name, &property_keys]() {
+        proto::milvus::AlterIndexRequest rpc_request;
+        rpc_request.set_collection_name(collection_name);
+        rpc_request.set_index_name(index_name);
+        for (const auto& name : property_keys) {
+            rpc_request.add_delete_keys(name);
+        }
+
+        return rpc_request;
+    };
+
+    return apiHandler<proto::milvus::AlterIndexRequest, proto::common::Status>(pre, &MilvusConnection::AlterIndex);
+}
+
+Status
 MilvusClientImpl::Insert(const std::string& collection_name, const std::string& partition_name,
                          const std::vector<FieldDataPtr>& fields, DmlResults& results) {
     bool enable_dynamic_field;
