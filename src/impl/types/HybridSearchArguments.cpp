@@ -121,6 +121,17 @@ HybridSearchArguments::SetConsistencyLevel(const ConsistencyLevel& level) {
     return Status::OK();
 }
 
+bool
+HybridSearchArguments::IgnoreGrowing() const {
+    return ignore_growing_;
+}
+
+Status
+HybridSearchArguments::SetIgnoreGrowing(bool ignore_growing) {
+    ignore_growing_ = ignore_growing;
+    return Status::OK();
+}
+
 const std::vector<SubSearchRequestPtr>&
 HybridSearchArguments::SubRequests() const {
     return sub_requests_;

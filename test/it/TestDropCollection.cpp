@@ -23,7 +23,7 @@ using ::milvus::proto::milvus::DropCollectionRequest;
 using ::testing::_;
 using ::testing::Property;
 
-TEST_F(MilvusMockedTest, DropCollectionFooSuccess) {
+TEST_F(MilvusMockedTest, DropCollectionSuccess) {
     milvus::ConnectParam connect_param{"127.0.0.1", server_.ListenPort()};
     client_->Connect(connect_param);
 
@@ -39,7 +39,7 @@ TEST_F(MilvusMockedTest, DropCollectionFooSuccess) {
     EXPECT_TRUE(status.IsOk());
 }
 
-TEST_F(UnconnectMilvusMockedTest, DropCollectionFooWithoutConnect) {
+TEST_F(UnconnectMilvusMockedTest, DropCollectionWithoutConnect) {
     std::string collection_name = "Foo";
     milvus::proto::milvus::DropCollectionRequest rpc_request;
     rpc_request.set_collection_name(collection_name);
@@ -49,7 +49,7 @@ TEST_F(UnconnectMilvusMockedTest, DropCollectionFooWithoutConnect) {
     EXPECT_EQ(status.Code(), StatusCode::NOT_CONNECTED);
 }
 
-TEST_F(MilvusMockedTest, DropCollectionFooFailed) {
+TEST_F(MilvusMockedTest, DropCollectionFailed) {
     milvus::ConnectParam connect_param{"127.0.0.1", server_.ListenPort()};
     client_->Connect(connect_param);
 

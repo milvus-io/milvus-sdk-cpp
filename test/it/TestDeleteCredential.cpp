@@ -16,8 +16,24 @@
 
 #include <gtest/gtest.h>
 
-class DummyTest : public ::testing::Test {};
+#include "mocks/MilvusMockedTest.h"
 
-TEST_F(DummyTest, Foo) {
-    EXPECT_EQ(0, 0);
+using ::milvus::StatusCode;
+using ::milvus::proto::milvus::DeleteCredentialRequest;
+using ::testing::_;
+using ::testing::AllOf;
+using ::testing::ElementsAre;
+using ::testing::Property;
+
+TEST_F(MilvusMockedTest, DeleteCredential) {
+    milvus::ConnectParam connect_param{"127.0.0.1", server_.ListenPort()};
+    client_->Connect(connect_param);
+
+    EXPECT_CALL(service_, DeleteCredential(_, Property(&DeleteCredentialRequest::username, "username"), _))
+        .WillOnce([](::grpc::ServerContext*, const DeleteCredentialRequest* request, ::milvus::proto::common::Status*) {
+            return ::grpc::Status{};
+        });
+    auto status = client_->DeleteCredential("username");
+
+    EXPECT_TRUE(status.IsOk());
 }

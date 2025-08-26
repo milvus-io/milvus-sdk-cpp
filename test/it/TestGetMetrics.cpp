@@ -24,7 +24,7 @@ using ::milvus::proto::milvus::GetMetricsResponse;
 using ::testing::_;
 using ::testing::Property;
 
-TEST_F(MilvusMockedTest, GetMetricsFoo) {
+TEST_F(MilvusMockedTest, GetMetrics) {
     milvus::ConnectParam connect_param{"127.0.0.1", server_.ListenPort()};
     client_->Connect(connect_param);
 
@@ -50,7 +50,7 @@ TEST_F(MilvusMockedTest, GetMetricsFoo) {
     EXPECT_EQ(res_comp, component_str);
 }
 
-TEST_F(UnconnectMilvusMockedTest, GetMetricsFooWithoutConnect) {
+TEST_F(UnconnectMilvusMockedTest, GetMetricsWithoutConnect) {
     std::string request_str = "dummy_req";
     milvus::proto::milvus::GetMetricsRequest rpc_request;
     rpc_request.set_request(request_str);
@@ -60,7 +60,7 @@ TEST_F(UnconnectMilvusMockedTest, GetMetricsFooWithoutConnect) {
     EXPECT_EQ(status.Code(), StatusCode::NOT_CONNECTED);
 }
 
-TEST_F(MilvusMockedTest, GetMetricsFooFailed) {
+TEST_F(MilvusMockedTest, GetMetricsFailed) {
     milvus::ConnectParam connect_param{"127.0.0.1", server_.ListenPort()};
     client_->Connect(connect_param);
 

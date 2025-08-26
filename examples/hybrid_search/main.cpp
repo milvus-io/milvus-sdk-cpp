@@ -38,6 +38,7 @@ main(int argc, char* argv[]) {
 
     // create a collection
     const std::string field_id = "id";
+    const std::string field_flag = "flag";
     const std::string field_text = "text";
     const std::string field_dense = "dense";
     const std::string field_sparse = "sparse";
@@ -46,6 +47,7 @@ main(int argc, char* argv[]) {
     // collection schema, create collection
     milvus::CollectionSchema collection_schema(collection_name);
     collection_schema.AddField({field_id, milvus::DataType::INT64, "id", true, false});
+    collection_schema.AddField({field_flag, milvus::DataType::INT16, "flag"});
     collection_schema.AddField(milvus::FieldSchema(field_text, milvus::DataType::VARCHAR, "text").WithMaxLength(1024));
     collection_schema.AddField(
         milvus::FieldSchema(field_dense, milvus::DataType::FLOAT_VECTOR, "dense vector").WithDimension(dimension));
@@ -57,7 +59,7 @@ main(int argc, char* argv[]) {
     std::cout << "Successfully create collection " << collection_name << std::endl;
 
     // create index
-    milvus::IndexDesc index_dense(field_dense, "", milvus::IndexType::DISKANN, milvus::MetricType::L2);
+    milvus::IndexDesc index_dense(field_dense, "", milvus::IndexType::DISKANN, milvus::MetricType::COSINE);
     status = client->CreateIndex(collection_name, index_dense);
     util::CheckStatus("Failed to create index on dense vector field:", status);
     std::cout << "Successfully create index on dense vector field." << std::endl;
@@ -77,6 +79,7 @@ main(int argc, char* argv[]) {
     for (auto i = 0; i < row_count; ++i) {
         nlohmann::json row;
         row[field_id] = i;
+        row[field_flag] = i % 8 + 1;
         row[field_text] = "text_" + std::to_string(i);
         row[field_dense] = util::GenerateFloatVector(dimension);
         row[field_sparse] = util::GenerateSparseVectorInJson(50, false);
@@ -108,15 +111,16 @@ main(int argc, char* argv[]) {
         milvus::HybridSearchArguments s_arguments{};
         s_arguments.SetCollectionName(collection_name);
         s_arguments.SetLimit(10);
+        s_arguments.AddOutputField(field_flag);
         s_arguments.AddOutputField(field_text);
-        s_arguments.AddOutputField(field_sparse);
+        // s_arguments.AddOutputField(field_sparse);
         // set to BOUNDED level to accept data inconsistence within a time window(default is 5 seconds)
         s_arguments.SetConsistencyLevel(milvus::ConsistencyLevel::BOUNDED);
 
         // sub search request 1 for dense vector
         auto sub_req1 = std::make_shared<milvus::SubSearchRequest>();
         sub_req1->SetLimit(5);
-        sub_req1->SetFilter(field_id + " > 50");
+        sub_req1->SetFilter(field_flag + " == 5");
         status = sub_req1->AddFloatVector(field_dense, util::GenerateFloatVector(dimension));
         util::CheckStatus("Failed to add vector to SubSearchRequest:", status);
         s_arguments.AddSubRequest(sub_req1);
@@ -124,13 +128,13 @@ main(int argc, char* argv[]) {
         // sub search request 2 for sparse vector
         auto sub_req2 = std::make_shared<milvus::SubSearchRequest>();
         sub_req2->SetLimit(15);
-        sub_req2->SetFilter(field_id + " < 100");
+        sub_req2->SetFilter(field_flag + " in [1, 3]");
         status = sub_req2->AddSparseVector(field_sparse, util::GenerateSparseVector(50));
         util::CheckStatus("Failed to add vector to SubSearchRequest:", status);
         s_arguments.AddSubRequest(sub_req2);
 
         // define reranker
-        auto reranker = std::make_shared<milvus::WeightedRerank>(std::vector<float>{0.2, 0.8});
+        auto reranker = std::make_shared<milvus::WeightedRerank>(std::vector<float>{0.5, 0.5});
         s_arguments.SetRerank(reranker);
 
         milvus::SearchResults search_results{};

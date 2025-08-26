@@ -134,6 +134,18 @@ class HybridSearchArguments {
     SetConsistencyLevel(const ConsistencyLevel& level);
 
     /**
+     * @brief Get ignore growing segments.
+     */
+    bool
+    IgnoreGrowing() const;
+
+    /**
+     * @brief Set ignore growing segments.
+     */
+    Status
+    SetIgnoreGrowing(bool ignore_growing);
+
+    /**
      * @brief Get sub search requests
      */
     const std::vector<SubSearchRequestPtr>&
@@ -174,6 +186,7 @@ class HybridSearchArguments {
     int64_t limit_{10};
     int64_t offset_{0};
     int round_decimal_{-1};
+    bool ignore_growing_{false};
 
     // ConsistencyLevel::NONE means using collection's default level
     ConsistencyLevel consistency_level_{ConsistencyLevel::NONE};

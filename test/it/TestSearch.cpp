@@ -100,12 +100,13 @@ DoSearchVectors(testing::StrictMock<milvus::MilvusMockedService>& service_, milv
             auto* results = response->mutable_results();
             results->set_top_k(10);
             results->set_num_queries(2);
+            results->set_primary_field_name("PrimaryKey");
 
             auto* fields_f1 = results->add_fields_data();
             fields_f1->set_field_id(1000);
             fields_f1->set_field_name("f1");
             fields_f1->set_type(milvus::proto::schema::DataType::Bool);
-            std::vector<bool> out_f1{true, false, false, true};
+            std::vector<bool> out_f1{true, false, false, true, false};
             for (const auto val : out_f1) {
                 fields_f1->mutable_scalars()->mutable_bool_data()->add_data(val);
             }
@@ -114,22 +115,24 @@ DoSearchVectors(testing::StrictMock<milvus::MilvusMockedService>& service_, milv
             fields_f2->set_field_id(1001);
             fields_f2->set_field_name("f2");
             fields_f2->set_type(milvus::proto::schema::DataType::Int16);
-            std::vector<int16_t> out_f2{1, 2, 3, 4};
+            std::vector<int16_t> out_f2{1, 2, 3, 4, 5};
             for (const auto val : out_f2) {
                 fields_f2->mutable_scalars()->mutable_int_data()->add_data(val);
             }
 
             // ids, topk and scores
             results->mutable_topks()->Add(2);
-            results->mutable_topks()->Add(2);
+            results->mutable_topks()->Add(3);
             results->mutable_scores()->Add(0.1f);
             results->mutable_scores()->Add(0.2f);
             results->mutable_scores()->Add(0.3f);
             results->mutable_scores()->Add(0.4f);
+            results->mutable_scores()->Add(0.5f);
             results->mutable_ids()->mutable_int_id()->add_data(10000);
             results->mutable_ids()->mutable_int_id()->add_data(20000);
             results->mutable_ids()->mutable_int_id()->add_data(30000);
             results->mutable_ids()->mutable_int_id()->add_data(40000);
+            results->mutable_ids()->mutable_int_id()->add_data(50000);
 
             // sleep if timeout
             if (simulate_timeout > 0) {
@@ -153,22 +156,73 @@ TestSearchVectors(testing::StrictMock<milvus::MilvusMockedService>& service_, mi
     EXPECT_TRUE(status.IsOk());
     auto& results = search_results.Results();
     EXPECT_EQ(results.size(), 2);
-    EXPECT_THAT(results.at(0).Ids().IntIDArray(), ElementsAre(10000, 20000));
-    EXPECT_THAT(results.at(0).Scores(), ElementsAre(0.1f, 0.2f));
-    EXPECT_THAT(std::static_pointer_cast<milvus::BoolFieldData>(results.at(0).OutputField("f1"))->Data(),
-                ElementsAre(true, false));
-    EXPECT_THAT(std::static_pointer_cast<milvus::Int16FieldData>(results.at(0).OutputField("f2"))->Data(),
-                ElementsAre(1, 2));
 
-    EXPECT_THAT(results.at(1).Ids().IntIDArray(), ElementsAre(30000, 40000));
-    EXPECT_THAT(results.at(1).Scores(), ElementsAre(0.3f, 0.4f));
-    EXPECT_THAT(std::static_pointer_cast<milvus::BoolFieldData>(results.at(1).OutputField("f1"))->Data(),
-                ElementsAre(false, true));
-    EXPECT_THAT(std::static_pointer_cast<milvus::Int16FieldData>(results.at(1).OutputField("f2"))->Data(),
-                ElementsAre(3, 4));
+    // check result in column-based
+    auto single_1 = results.at(0);
+    auto ids_1 = std::vector<int64_t>{10000, 20000};
+    auto scores_1 = std::vector<float>{0.1f, 0.2f};
+    auto f1_1 = std::vector<bool>{true, false};
+    auto f2_1 = std::vector<int16_t>{1, 2};
+    EXPECT_EQ(single_1.Ids().IntIDArray(), ids_1);
+    EXPECT_EQ(single_1.Scores(), scores_1);
+    EXPECT_EQ(single_1.OutputFields().size(), 2);
+    EXPECT_EQ(std::static_pointer_cast<milvus::BoolFieldData>(single_1.OutputField("f1"))->Data(), f1_1);
+    EXPECT_EQ(std::static_pointer_cast<milvus::Int16FieldData>(single_1.OutputField("f2"))->Data(), f2_1);
+
+    auto single_2 = results.at(1);
+    auto ids_2 = std::vector<int64_t>{30000, 40000, 50000};
+    auto scores_2 = std::vector<float>{0.3f, 0.4f, 0.5f};
+    auto f1_2 = std::vector<bool>{false, true, false};
+    auto f2_2 = std::vector<int16_t>{3, 4, 5};
+    EXPECT_EQ(single_2.Ids().IntIDArray(), ids_2);
+    EXPECT_EQ(single_2.Scores(), scores_2);
+    EXPECT_EQ(single_2.OutputFields().size(), 2);
+    EXPECT_EQ(std::static_pointer_cast<milvus::BoolFieldData>(single_2.OutputField("f1"))->Data(), f1_2);
+    EXPECT_EQ(std::static_pointer_cast<milvus::Int16FieldData>(single_2.OutputField("f2"))->Data(), f2_2);
+
+    // check result in row-based
+    EXPECT_EQ(single_1.GetRowCount(), 2);
+    EXPECT_EQ(single_2.GetRowCount(), 3);
+    EXPECT_EQ(single_1.PrimaryKeyName(), "PrimaryKey");
+    EXPECT_EQ(single_2.PrimaryKeyName(), "PrimaryKey");
+
+    std::vector<nlohmann::json> rows;
+    status = single_1.OutputRows(rows);
+    EXPECT_TRUE(status.IsOk());
+    EXPECT_EQ(rows.size(), 2);
+    status = single_2.OutputRows(rows);
+    EXPECT_TRUE(status.IsOk());
+    EXPECT_EQ(rows.size(), 3);
+
+    for (auto i = 0; i < single_1.GetRowCount(); i++) {
+        nlohmann::json row;
+        status = single_1.OutputRow(i, row);
+        EXPECT_TRUE(status.IsOk());
+        EXPECT_TRUE(row.contains("PrimaryKey"));
+        EXPECT_EQ(row["PrimaryKey"].get<int64_t>(), ids_1.at(i));
+        EXPECT_TRUE(row.contains(milvus::SCORE));
+        EXPECT_EQ(row[milvus::SCORE].get<float>(), scores_1.at(i));
+        EXPECT_TRUE(row.contains("f1"));
+        EXPECT_EQ(row["f1"].get<bool>(), f1_1.at(i));
+        EXPECT_TRUE(row.contains("f2"));
+        EXPECT_EQ(row["f2"].get<int16_t>(), f2_1.at(i));
+    }
+    for (auto i = 0; i < single_2.GetRowCount(); i++) {
+        nlohmann::json row;
+        status = single_2.OutputRow(i, row);
+        EXPECT_TRUE(status.IsOk());
+        EXPECT_TRUE(row.contains("PrimaryKey"));
+        EXPECT_EQ(row["PrimaryKey"].get<int64_t>(), ids_2.at(i));
+        EXPECT_TRUE(row.contains(milvus::SCORE));
+        EXPECT_EQ(row[milvus::SCORE].get<float>(), scores_2.at(i));
+        EXPECT_TRUE(row.contains("f1"));
+        EXPECT_EQ(row["f1"].get<bool>(), f1_2.at(i));
+        EXPECT_TRUE(row.contains("f2"));
+        EXPECT_EQ(row["f2"].get<int16_t>(), f2_2.at(i));
+    }
 }
 
-TEST_F(MilvusMockedTest, SearchFoo) {
+TEST_F(MilvusMockedTest, Search) {
     milvus::ConnectParam connect_param{"127.0.0.1", server_.ListenPort()};
     client_->Connect(connect_param);
 
@@ -181,7 +235,7 @@ TEST_F(MilvusMockedTest, SearchFoo) {
     TestSearchVectors<std::vector<uint8_t>>(service_, client_, bin_vectors);
 }
 
-TEST_F(MilvusMockedTest, SearchFooWithTimeoutExpired) {
+TEST_F(MilvusMockedTest, SearchWithTimeoutExpired) {
     milvus::ConnectParam connect_param{"127.0.0.1", server_.ListenPort()};
     client_->Connect(connect_param);
 
@@ -199,7 +253,7 @@ TEST_F(MilvusMockedTest, SearchFooWithTimeoutExpired) {
     EXPECT_GE(duration, 500);
 }
 
-TEST_F(MilvusMockedTest, SearchFooWithTimeoutOk) {
+TEST_F(MilvusMockedTest, SearchWithTimeoutOk) {
     milvus::ConnectParam connect_param{"127.0.0.1", server_.ListenPort()};
     client_->Connect(connect_param);
 

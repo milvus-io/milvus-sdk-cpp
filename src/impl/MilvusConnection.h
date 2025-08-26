@@ -291,6 +291,33 @@ class MilvusConnection {
     ListCredUsers(const proto::milvus::ListCredUsersRequest& request, proto::milvus::ListCredUsersResponse& response,
                   const GrpcContextOptions& options);
 
+    Status
+    CreateResourceGroup(const proto::milvus::CreateResourceGroupRequest& request, proto::common::Status& response,
+                        const GrpcContextOptions& options);
+
+    Status
+    DropResourceGroup(const proto::milvus::DropResourceGroupRequest& request, proto::common::Status& response,
+                      const GrpcContextOptions& options);
+    Status
+    UpdateResourceGroups(const proto::milvus::UpdateResourceGroupsRequest& request, proto::common::Status& response,
+                         const GrpcContextOptions& options);
+
+    Status
+    TransferNode(const proto::milvus::TransferNodeRequest& request, proto::common::Status& response,
+                 const GrpcContextOptions& options);
+
+    Status
+    TransferReplica(const proto::milvus::TransferReplicaRequest& request, proto::common::Status& response,
+                    const GrpcContextOptions& options);
+
+    Status
+    ListResourceGroups(const proto::milvus::ListResourceGroupsRequest& request,
+                       proto::milvus::ListResourceGroupsResponse& response, const GrpcContextOptions& options);
+
+    Status
+    DescribeResourceGroup(const proto::milvus::DescribeResourceGroupRequest& request,
+                          proto::milvus::DescribeResourceGroupResponse& response, const GrpcContextOptions& options);
+
  private:
     std::unique_ptr<proto::milvus::MilvusService::Stub> stub_;
     std::shared_ptr<grpc::Channel> channel_;
