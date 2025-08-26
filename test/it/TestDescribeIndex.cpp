@@ -28,7 +28,7 @@ using ::testing::AllOf;
 using ::testing::ElementsAreArray;
 using ::testing::Property;
 
-TEST_F(MilvusMockedTest, DescribeIndexFoo) {
+TEST_F(MilvusMockedTest, DescribeIndex) {
     milvus::ConnectParam connect_param{"127.0.0.1", server_.ListenPort()};
     client_->Connect(connect_param);
 

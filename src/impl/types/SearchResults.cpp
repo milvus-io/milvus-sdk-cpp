@@ -16,6 +16,7 @@
 
 #include "milvus/types/SearchResults.h"
 
+#include "../utils/Constants.h"
 #include "../utils/DmlUtils.h"
 
 namespace milvus {
@@ -23,6 +24,9 @@ namespace milvus {
 SingleResult::SingleResult(const std::string& pk_name, IDArray&& ids, std::vector<float>&& scores,
                            std::vector<FieldDataPtr>&& output_fields)
     : pk_name_(pk_name), ids_{std::move(ids)}, scores_{std::move(scores)}, output_fields_{std::move(output_fields)} {
+    if (pk_name_.empty()) {
+        pk_name_ = "pk";
+    }
 }
 
 const std::vector<float>&
@@ -75,7 +79,9 @@ SingleResult::setPkAndScore(int i, nlohmann::json& row) const {
     if (static_cast<size_t>(i) > scores_.size()) {
         return Status{StatusCode::INVALID_AGUMENT, "out of bound"};
     }
-    row["score"] = scores_.at(i);
+    // if already output a scalar named "score", overwrite?
+    row[SCORE] = scores_.at(i);
+
     return Status::OK();
 }
 
@@ -119,7 +125,12 @@ SingleResult::GetRowCount() const {
 /////////////////////////////////////////////////////////////////////////////////////////
 SearchResults::SearchResults() = default;
 
-SearchResults::SearchResults(std::vector<SingleResult>&& results) {
+SearchResults::SearchResults(std::vector<SingleResult>& results) {
+    SetResults(results);
+}
+
+void
+SearchResults::SetResults(std::vector<SingleResult>& results) {
     nq_results_.swap(results);
 }
 

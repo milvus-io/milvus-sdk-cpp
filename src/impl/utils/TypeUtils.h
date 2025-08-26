@@ -26,6 +26,7 @@
 #include "milvus/types/IndexState.h"
 #include "milvus/types/IndexType.h"
 #include "milvus/types/MetricType.h"
+#include "milvus/types/ResourceGroupConfig.h"
 #include "milvus/types/SearchResults.h"
 #include "milvus/types/SegmentInfo.h"
 
@@ -115,6 +116,12 @@ SetExtraParams(const std::unordered_map<std::string, std::string>& params,
 
 void
 ConvertSearchResults(const proto::milvus::SearchResults& response, SearchResults& results);
+
+void
+ConvertResourceGroupConfig(const ResourceGroupConfig& config, proto::rg::ResourceGroupConfig* rpc_config);
+
+void
+ConvertResourceGroupConfig(const proto::rg::ResourceGroupConfig& rpc_config, ResourceGroupConfig& config);
 
 }  // namespace milvus
 

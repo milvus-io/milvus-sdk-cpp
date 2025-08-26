@@ -38,7 +38,7 @@ TEST_F(UnconnectMilvusMockedTest, GetQuerySegmentInfoWithoutConnection) {
     EXPECT_EQ(status.Code(), StatusCode::NOT_CONNECTED);
 }
 
-TEST_F(MilvusMockedTest, GetQuerySegmentInfoFoo) {
+TEST_F(MilvusMockedTest, GetQuerySegmentInfo) {
     milvus::ConnectParam connect_param{"127.0.0.1", server_.ListenPort()};
     client_->Connect(connect_param);
 

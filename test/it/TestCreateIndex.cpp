@@ -31,7 +31,7 @@ using ::testing::AllOf;
 using ::testing::ElementsAre;
 using ::testing::Property;
 
-TEST_F(MilvusMockedTest, TestCreateIndexInstantly) {
+TEST_F(MilvusMockedTest, CreateIndexInstantly) {
     milvus::ConnectParam connect_param{"127.0.0.1", server_.ListenPort()};
     client_->Connect(connect_param);
 
@@ -56,7 +56,7 @@ TEST_F(MilvusMockedTest, TestCreateIndexInstantly) {
     EXPECT_TRUE(status.IsOk());
 }
 
-TEST_F(MilvusMockedTest, TestCreateIndexWithProgress) {
+TEST_F(MilvusMockedTest, CreateIndexWithProgress) {
     milvus::ConnectParam connect_param{"127.0.0.1", server_.ListenPort()};
     client_->Connect(connect_param);
 
@@ -109,7 +109,7 @@ TEST_F(MilvusMockedTest, TestCreateIndexWithProgress) {
     EXPECT_TRUE(status.IsOk());
 }
 
-TEST_F(MilvusMockedTest, TestCreateIndexFailed) {
+TEST_F(MilvusMockedTest, CreateIndexFailed) {
     milvus::ConnectParam connect_param{"127.0.0.1", server_.ListenPort()};
     client_->Connect(connect_param);
 

@@ -26,7 +26,7 @@ using ::testing::_;
 using ::testing::AllOf;
 using ::testing::Property;
 
-TEST_F(MilvusMockedTest, LoadCollectionFooInstantly) {
+TEST_F(MilvusMockedTest, LoadCollectionInstantly) {
     milvus::ConnectParam connect_param{"127.0.0.1", server_.ListenPort()};
     client_->Connect(connect_param);
 
@@ -45,7 +45,7 @@ TEST_F(MilvusMockedTest, LoadCollectionFooInstantly) {
     EXPECT_TRUE(status.IsOk());
 }
 
-TEST_F(MilvusMockedTest, LoadCollectionFooWithProgress) {
+TEST_F(MilvusMockedTest, LoadCollectionWithProgress) {
     milvus::ConnectParam connect_param{"127.0.0.1", server_.ListenPort()};
     client_->Connect(connect_param);
 

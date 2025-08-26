@@ -30,7 +30,7 @@ using ::testing::ElementsAre;
 using ::testing::ElementsAreArray;
 using ::testing::Property;
 
-TEST_F(MilvusMockedTest, DeleteFoo) {
+TEST_F(MilvusMockedTest, Delete) {
     milvus::ConnectParam connect_param{"127.0.0.1", server_.ListenPort()};
     client_->Connect(connect_param);
 

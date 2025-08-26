@@ -49,7 +49,7 @@ DoShowPartitions(testing::StrictMock<milvus::MilvusMockedService>& service_, mil
     return client_->ListPartitions(collection_name, partitions_received, only_show_loaded);
 }
 
-TEST_F(MilvusMockedTest, ShowPartitionsQueryTest) {
+TEST_F(MilvusMockedTest, ShowPartitions) {
     milvus::ConnectParam connect_param{"127.0.0.1", server_.ListenPort()};
     client_->Connect(connect_param);
 

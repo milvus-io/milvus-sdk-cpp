@@ -25,7 +25,7 @@ using ::testing::AllOf;
 using ::testing::ElementsAreArray;
 using ::testing::Property;
 
-TEST_F(MilvusMockedTest, LoadBalanceFoo) {
+TEST_F(MilvusMockedTest, LoadBalance) {
     milvus::ConnectParam connect_param{"127.0.0.1", server_.ListenPort()};
     client_->Connect(connect_param);
 
