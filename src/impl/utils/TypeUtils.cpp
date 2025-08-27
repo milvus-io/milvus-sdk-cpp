@@ -1201,7 +1201,45 @@ ConvertSearchResults(const proto::milvus::SearchResults& response, SearchResults
         offset += item_topk;
     }
 
-    results = std::move(SearchResults(std::move(single_results)));
+    results.SetResults(single_results);
+}
+
+void
+ConvertResourceGroupConfig(const ResourceGroupConfig& config, proto::rg::ResourceGroupConfig* rpc_config) {
+    rpc_config->mutable_requests()->set_node_num(static_cast<int32_t>(config.Requests()));
+    rpc_config->mutable_limits()->set_node_num(static_cast<int32_t>(config.Limits()));
+
+    for (const auto& name : config.TransferFromGroups()) {
+        proto::rg::ResourceGroupTransfer transfer;
+        transfer.set_resource_group(name);
+        rpc_config->mutable_transfer_from()->Add(std::move(transfer));
+    }
+    for (const auto& name : config.TransferToGroups()) {
+        proto::rg::ResourceGroupTransfer transfer;
+        transfer.set_resource_group(name);
+        rpc_config->mutable_transfer_to()->Add(std::move(transfer));
+    }
+    for (const auto& pair : config.NodeFilters()) {
+        auto kv = rpc_config->mutable_node_filter()->add_node_labels();
+        kv->set_key(pair.first);
+        kv->set_value(pair.second);
+    }
+}
+
+void
+ConvertResourceGroupConfig(const proto::rg::ResourceGroupConfig& rpc_config, ResourceGroupConfig& config) {
+    config.SetRequests(static_cast<uint32_t>(rpc_config.requests().node_num()));
+    config.SetLimits(static_cast<uint32_t>(rpc_config.limits().node_num()));
+
+    for (const auto& transfer : rpc_config.transfer_from()) {
+        config.AddTrnasferFromGroup(transfer.resource_group());
+    }
+    for (const auto& transfer : rpc_config.transfer_to()) {
+        config.AddTrnasferToGroup(transfer.resource_group());
+    }
+    for (const auto& kv : rpc_config.node_filter().node_labels()) {
+        config.AddNodeFilter(kv.key(), kv.value());
+    }
 }
 
 }  // namespace milvus

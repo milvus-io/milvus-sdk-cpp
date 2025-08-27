@@ -18,13 +18,14 @@
 
 #include "milvus.pb.h"
 #include "mocks/MilvusMockedTest.h"
+#include "utils/Constants.h"
 
 using ::milvus::StatusCode;
 using ::milvus::proto::milvus::GetVersionRequest;
 using ::testing::_;
 using ::testing::Property;
 
-TEST_F(MilvusMockedTest, GetVersionFoo) {
+TEST_F(MilvusMockedTest, GetServerVersion) {
     milvus::ConnectParam connect_param{"127.0.0.1", server_.ListenPort()};
     client_->Connect(connect_param);
 
@@ -39,4 +40,15 @@ TEST_F(MilvusMockedTest, GetVersionFoo) {
 
     EXPECT_TRUE(status.IsOk());
     EXPECT_EQ(version, "2.0.0");
+}
+
+TEST_F(MilvusMockedTest, GetSDKVersion) {
+    milvus::ConnectParam connect_param{"127.0.0.1", server_.ListenPort()};
+    client_->Connect(connect_param);
+
+    std::string version;
+    auto status = client_->GetSDKVersion(version);
+
+    EXPECT_TRUE(status.IsOk());
+    EXPECT_EQ(version, milvus::GetBuildVersion());
 }

@@ -33,6 +33,7 @@ extern const char* ROUND_DECIMAL;
 extern const char* GROUPBY_FIELD;
 extern const char* PARAMS;
 extern const char* STRATEGY;
+extern const char* SCORE;
 
 std::string
 GetBuildVersion();

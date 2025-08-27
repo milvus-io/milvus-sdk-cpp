@@ -84,6 +84,14 @@ class MilvusMockedService : public ::milvus::proto::milvus::MilvusService::Servi
                  ::grpc::Status(::grpc::ServerContext*, const ::milvus::proto::milvus::ShowCollectionsRequest*,
                                 ::milvus::proto::milvus::ShowCollectionsResponse*));
 
+    MOCK_METHOD3(GetLoadState,
+                 ::grpc::Status(::grpc::ServerContext*, const ::milvus::proto::milvus::GetLoadStateRequest*,
+                                ::milvus::proto::milvus::GetLoadStateResponse*));
+
+    MOCK_METHOD3(GetLoadingProgress,
+                 ::grpc::Status(::grpc::ServerContext*, const ::milvus::proto::milvus::GetLoadingProgressRequest*,
+                                ::milvus::proto::milvus::GetLoadingProgressResponse*));
+
     MOCK_METHOD3(AlterCollection,
                  ::grpc::Status(::grpc::ServerContext*, const ::milvus::proto::milvus::AlterCollectionRequest*,
                                 ::milvus::proto::common::Status*));
@@ -169,6 +177,10 @@ class MilvusMockedService : public ::milvus::proto::milvus::MilvusService::Servi
     MOCK_METHOD3(Search, ::grpc::Status(::grpc::ServerContext*, const ::milvus::proto::milvus::SearchRequest*,
                                         ::milvus::proto::milvus::SearchResults*));
 
+    MOCK_METHOD3(HybridSearch,
+                 ::grpc::Status(::grpc::ServerContext*, const ::milvus::proto::milvus::HybridSearchRequest*,
+                                ::milvus::proto::milvus::SearchResults*));
+
     MOCK_METHOD3(Flush, ::grpc::Status(::grpc::ServerContext*, const ::milvus::proto::milvus::FlushRequest*,
                                        ::milvus::proto::milvus::FlushResponse*));
 
@@ -186,13 +198,6 @@ class MilvusMockedService : public ::milvus::proto::milvus::MilvusService::Servi
     MOCK_METHOD3(GetQuerySegmentInfo,
                  ::grpc::Status(::grpc::ServerContext*, const ::milvus::proto::milvus::GetQuerySegmentInfoRequest*,
                                 ::milvus::proto::milvus::GetQuerySegmentInfoResponse*));
-
-    MOCK_METHOD3(Dummy, ::grpc::Status(::grpc::ServerContext*, const ::milvus::proto::milvus::DummyRequest*,
-                                       ::milvus::proto::milvus::DummyResponse*));
-
-    MOCK_METHOD3(RegisterLink,
-                 ::grpc::Status(::grpc::ServerContext*, const ::milvus::proto::milvus::RegisterLinkRequest*,
-                                ::milvus::proto::milvus::RegisterLinkResponse*));
 
     MOCK_METHOD3(GetMetrics, ::grpc::Status(::grpc::ServerContext*, const ::milvus::proto::milvus::GetMetricsRequest*,
                                             ::milvus::proto::milvus::GetMetricsResponse*));
@@ -228,13 +233,33 @@ class MilvusMockedService : public ::milvus::proto::milvus::MilvusService::Servi
                  ::grpc::Status(::grpc::ServerContext*, const ::milvus::proto::milvus::ListCredUsersRequest*,
                                 ::milvus::proto::milvus::ListCredUsersResponse*));
 
-    MOCK_METHOD3(GetLoadState,
-                 ::grpc::Status(::grpc::ServerContext*, const ::milvus::proto::milvus::GetLoadStateRequest*,
-                                ::milvus::proto::milvus::GetLoadStateResponse*));
+    MOCK_METHOD3(CreateResourceGroup,
+                 ::grpc::Status(::grpc::ServerContext*, const ::milvus::proto::milvus::CreateResourceGroupRequest*,
+                                ::milvus::proto::common::Status*));
 
-    MOCK_METHOD3(GetLoadingProgress,
-                 ::grpc::Status(::grpc::ServerContext*, const ::milvus::proto::milvus::GetLoadingProgressRequest*,
-                                ::milvus::proto::milvus::GetLoadingProgressResponse*));
+    MOCK_METHOD3(DropResourceGroup,
+                 ::grpc::Status(::grpc::ServerContext*, const ::milvus::proto::milvus::DropResourceGroupRequest*,
+                                ::milvus::proto::common::Status*));
+
+    MOCK_METHOD3(UpdateResourceGroups,
+                 ::grpc::Status(::grpc::ServerContext*, const ::milvus::proto::milvus::UpdateResourceGroupsRequest*,
+                                ::milvus::proto::common::Status*));
+
+    MOCK_METHOD3(TransferNode,
+                 ::grpc::Status(::grpc::ServerContext*, const ::milvus::proto::milvus::TransferNodeRequest*,
+                                ::milvus::proto::common::Status*));
+
+    MOCK_METHOD3(TransferReplica,
+                 ::grpc::Status(::grpc::ServerContext*, const ::milvus::proto::milvus::TransferReplicaRequest*,
+                                ::milvus::proto::common::Status*));
+
+    MOCK_METHOD3(ListResourceGroups,
+                 ::grpc::Status(::grpc::ServerContext*, const ::milvus::proto::milvus::ListResourceGroupsRequest*,
+                                ::milvus::proto::milvus::ListResourceGroupsResponse*));
+
+    MOCK_METHOD3(DescribeResourceGroup,
+                 ::grpc::Status(::grpc::ServerContext*, const ::milvus::proto::milvus::DescribeResourceGroupRequest*,
+                                ::milvus::proto::milvus::DescribeResourceGroupResponse*));
 };
 
 }  // namespace milvus

@@ -262,6 +262,28 @@ class MilvusClientImpl : public MilvusClient {
     Status
     ListCredUsers(std::vector<std::string>& users) final;
 
+    Status
+    CreateResourceGroup(const std::string& name, const ResourceGroupConfig& config) final;
+
+    Status
+    DropResourceGroup(const std::string& name) final;
+
+    Status
+    UpdateResourceGroups(const std::unordered_map<std::string, ResourceGroupConfig>& groups) final;
+
+    Status
+    TransferNode(const std::string& source_group, const std::string& target_group, uint32_t num_nodes) final;
+
+    Status
+    TransferReplica(const std::string& source_group, const std::string& target_group,
+                    const std::string& collection_name, uint32_t num_replicas) final;
+
+    Status
+    ListResourceGroups(std::vector<std::string>& group_names) final;
+
+    Status
+    DescribeResourceGroup(const std::string& group_name, ResourceGroupDesc& desc) final;
+
  private:
     // This interface is not exposed to users
     Status

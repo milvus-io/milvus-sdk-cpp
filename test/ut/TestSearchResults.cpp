@@ -42,6 +42,6 @@ TEST_F(SearchResultsTest, GeneralTesting) {
     std::vector<milvus::SingleResult> result_array = {
         milvus::SingleResult("pk", std::move(ids), std::move(scores), std::move(fields))};
 
-    milvus::SearchResults results(std::move(result_array));
+    milvus::SearchResults results(result_array);
     EXPECT_EQ(1, results.Results().size());
 }

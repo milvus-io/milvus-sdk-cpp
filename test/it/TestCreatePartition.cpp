@@ -24,7 +24,7 @@ using ::testing::_;
 using ::testing::AllOf;
 using ::testing::Property;
 
-TEST_F(MilvusMockedTest, CreatePartitionFoo) {
+TEST_F(MilvusMockedTest, CreatePartition) {
     milvus::ConnectParam connect_param{"127.0.0.1", server_.ListenPort()};
     client_->Connect(connect_param);
 
@@ -44,7 +44,7 @@ TEST_F(MilvusMockedTest, CreatePartitionFoo) {
     EXPECT_TRUE(status.IsOk());
 }
 
-TEST_F(MilvusMockedTest, CreatePartitionFooFailed) {
+TEST_F(MilvusMockedTest, CreatePartitionFailed) {
     milvus::ConnectParam connect_param{"127.0.0.1", server_.ListenPort()};
     client_->Connect(connect_param);
 

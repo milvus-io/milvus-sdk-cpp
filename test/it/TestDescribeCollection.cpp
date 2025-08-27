@@ -28,7 +28,7 @@ using ::testing::AllOf;
 using ::testing::ElementsAreArray;
 using ::testing::Property;
 
-TEST_F(MilvusMockedTest, DescribeCollectionFoo) {
+TEST_F(MilvusMockedTest, DescribeCollection) {
     milvus::ConnectParam connect_param{"127.0.0.1", server_.ListenPort()};
     client_->Connect(connect_param);
 
@@ -76,7 +76,7 @@ TEST_F(MilvusMockedTest, DescribeCollectionFoo) {
     EXPECT_EQ(field.AutoID(), field_schema.AutoID());
 }
 
-TEST_F(UnconnectMilvusMockedTest, DescribeCollectionFooConnect) {
+TEST_F(UnconnectMilvusMockedTest, DescribeCollectionConnect) {
     const std::string collection_name = "test";
     ::milvus::CollectionDesc desc;
     auto status = client_->DescribeCollection(collection_name, desc);
@@ -85,7 +85,7 @@ TEST_F(UnconnectMilvusMockedTest, DescribeCollectionFooConnect) {
     EXPECT_EQ(status.Code(), StatusCode::NOT_CONNECTED);
 }
 
-TEST_F(MilvusMockedTest, DescribeCollectionFooFailed) {
+TEST_F(MilvusMockedTest, DescribeCollectionFailed) {
     milvus::ConnectParam connect_param{"127.0.0.1", server_.ListenPort()};
     client_->Connect(connect_param);
 

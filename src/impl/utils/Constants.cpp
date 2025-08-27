@@ -33,6 +33,7 @@ const char* ROUND_DECIMAL = "round_decimal";
 const char* GROUPBY_FIELD = "group_by_field";
 const char* PARAMS = "params";
 const char* STRATEGY = "strategy";
+const char* SCORE = "score";
 
 // const names for external common usage
 const char* INDEX_TYPE = "index_type";

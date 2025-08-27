@@ -75,7 +75,7 @@ std::vector<FieldDataPtr> fields{bool_field_ptr,  int8_field_ptr,  int16_field_p
                                  bins_field_ptr,  floats_field_ptr};
 }  // namespace
 
-TEST_F(MilvusMockedTest, InsertFoo) {
+TEST_F(MilvusMockedTest, Insert) {
     milvus::ConnectParam connect_param{"127.0.0.1", server_.ListenPort()};
     client_->Connect(connect_param);
 

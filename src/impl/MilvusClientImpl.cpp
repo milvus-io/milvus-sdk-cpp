@@ -24,6 +24,7 @@
 
 #include "common.pb.h"
 #include "milvus.pb.h"
+#include "rg.pb.h"
 #include "schema.pb.h"
 #include "utils/Constants.h"
 #include "utils/DmlUtils.h"
@@ -1302,6 +1303,12 @@ MilvusClientImpl::HybridSearch(const HybridSearchArguments& arguments, SearchRes
             auto search_req = rpc_request.add_requests();
             SetTargetVectors(sub_request->TargetVectors(), search_req);
 
+            // set filter expression
+            search_req->set_dsl_type(proto::common::DslType::BoolExprV1);
+            if (!sub_request->Filter().empty()) {
+                search_req->set_dsl(sub_request->Filter());
+            }
+
             // set anns field name, if the name is empty and the collection has only one vector field,
             // milvus server will use the vector field name as anns name. If the collection has multiple
             // vector fields, user needs to explicitly provide an anns field name.
@@ -1336,6 +1343,7 @@ MilvusClientImpl::HybridSearch(const HybridSearchArguments& arguments, SearchRes
         params[LIMIT] = std::to_string(arguments.Limit());  // hybrid search is new interface, requires "limit"
         params[OFFSET] = std::to_string(arguments.Offset());
         params[ROUND_DECIMAL] = std::to_string(arguments.RoundDecimal());
+        params[IGNORE_GROWING] = arguments.IgnoreGrowing() ? "true" : "false";
 
         for (auto& pair : params) {
             auto kv_pair = rpc_request.add_rank_params();
@@ -1711,6 +1719,135 @@ MilvusClientImpl::ListCredUsers(std::vector<std::string>& users) {
 }
 
 Status
+MilvusClientImpl::CreateResourceGroup(const std::string& name, const ResourceGroupConfig& config) {
+    auto pre = [&name, &config]() {
+        proto::milvus::CreateResourceGroupRequest rpc_request;
+        rpc_request.set_resource_group(name);
+
+        auto rpc_config = new proto::rg::ResourceGroupConfig{};
+        ConvertResourceGroupConfig(config, rpc_config);
+        rpc_request.set_allocated_config(rpc_config);
+        return rpc_request;
+    };
+
+    return apiHandler<proto::milvus::CreateResourceGroupRequest, proto::common::Status>(
+        pre, &MilvusConnection::CreateResourceGroup, nullptr);
+}
+
+Status
+MilvusClientImpl::DropResourceGroup(const std::string& name) {
+    auto pre = [&name]() {
+        proto::milvus::DropResourceGroupRequest rpc_request;
+        rpc_request.set_resource_group(name);
+        return rpc_request;
+    };
+
+    return apiHandler<proto::milvus::DropResourceGroupRequest, proto::common::Status>(
+        pre, &MilvusConnection::DropResourceGroup, nullptr);
+}
+
+Status
+MilvusClientImpl::UpdateResourceGroups(const std::unordered_map<std::string, ResourceGroupConfig>& groups) {
+    auto pre = [&groups]() {
+        proto::milvus::UpdateResourceGroupsRequest rpc_request;
+        for (const auto& pair : groups) {
+            proto::rg::ResourceGroupConfig rpc_config;
+            ConvertResourceGroupConfig(pair.second, &rpc_config);
+            rpc_request.mutable_resource_groups()->insert(std::make_pair(pair.first, rpc_config));
+        }
+        return rpc_request;
+    };
+
+    return apiHandler<proto::milvus::UpdateResourceGroupsRequest, proto::common::Status>(
+        pre, &MilvusConnection::UpdateResourceGroups, nullptr);
+}
+
+Status
+MilvusClientImpl::TransferNode(const std::string& source_group, const std::string& target_group, uint32_t num_nodes) {
+    auto pre = [&source_group, &target_group, &num_nodes]() {
+        proto::milvus::TransferNodeRequest rpc_request;
+        rpc_request.set_source_resource_group(source_group);
+        rpc_request.set_target_resource_group(target_group);
+        rpc_request.set_num_node(num_nodes);
+        return rpc_request;
+    };
+
+    return apiHandler<proto::milvus::TransferNodeRequest, proto::common::Status>(pre, &MilvusConnection::TransferNode,
+                                                                                 nullptr);
+}
+
+Status
+MilvusClientImpl::TransferReplica(const std::string& source_group, const std::string& target_group,
+                                  const std::string& collection_name, uint32_t num_replicas) {
+    auto pre = [&source_group, &target_group, &collection_name, &num_replicas]() {
+        proto::milvus::TransferReplicaRequest rpc_request;
+        rpc_request.set_source_resource_group(source_group);
+        rpc_request.set_target_resource_group(target_group);
+        rpc_request.set_collection_name(collection_name);
+        rpc_request.set_num_replica(num_replicas);
+        return rpc_request;
+    };
+
+    return apiHandler<proto::milvus::TransferReplicaRequest, proto::common::Status>(
+        pre, &MilvusConnection::TransferReplica, nullptr);
+}
+
+Status
+MilvusClientImpl::ListResourceGroups(std::vector<std::string>& group_names) {
+    auto pre = []() {
+        proto::milvus::ListResourceGroupsRequest rpc_request;
+        return rpc_request;
+    };
+
+    auto post = [&group_names](const proto::milvus::ListResourceGroupsResponse& response) {
+        group_names.clear();
+        for (const auto& group : response.resource_groups()) {
+            group_names.push_back(group);
+        }
+    };
+    return apiHandler<proto::milvus::ListResourceGroupsRequest, proto::milvus::ListResourceGroupsResponse>(
+        pre, &MilvusConnection::ListResourceGroups, post);
+}
+
+Status
+MilvusClientImpl::DescribeResourceGroup(const std::string& group_name, ResourceGroupDesc& desc) {
+    auto pre = [&group_name]() {
+        proto::milvus::DescribeResourceGroupRequest rpc_request;
+        rpc_request.set_resource_group(group_name);
+        return rpc_request;
+    };
+
+    auto post = [&desc](const proto::milvus::DescribeResourceGroupResponse& response) {
+        const auto& group = response.resource_group();
+        desc.SetName(group.name());
+        desc.SetCapacity(static_cast<uint32_t>(group.capacity()));
+        desc.SetAvailableNodesNum(static_cast<uint32_t>(group.num_available_node()));
+
+        for (const auto& pair : group.num_loaded_replica()) {
+            desc.AddLoadedReplicasNum(pair.first, static_cast<uint32_t>(pair.second));
+        }
+        for (const auto& pair : group.num_outgoing_node()) {
+            desc.AddOutgoingNodesNum(pair.first, static_cast<uint32_t>(pair.second));
+        }
+        for (const auto& pair : group.num_incoming_node()) {
+            desc.AddIncomingNodesNum(pair.first, static_cast<uint32_t>(pair.second));
+        }
+
+        ResourceGroupConfig config;
+        ConvertResourceGroupConfig(group.config(), config);
+        desc.SetConfig(std::move(config));
+
+        for (const auto& info : group.nodes()) {
+            desc.AddNode({info.node_id(), info.address(), info.hostname()});
+        }
+    };
+    return apiHandler<proto::milvus::DescribeResourceGroupRequest, proto::milvus::DescribeResourceGroupResponse>(
+        pre, &MilvusConnection::DescribeResourceGroup, post);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// internal used methods
+Status
 MilvusClientImpl::getLoadingProgress(const std::string& collection_name, const std::vector<std::string> partition_names,
                                      uint32_t& progress) {
     proto::milvus::GetLoadingProgressRequest progress_req;
@@ -1770,8 +1907,6 @@ MilvusClientImpl::WaitForStatus(const std::function<Status(Progress&)>& query_fu
     }
 }
 
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// internal used methods
 Status
 MilvusClientImpl::retry(std::function<Status(void)> caller) {
     auto max_retry_times = retry_param_.MaxRetryTimes();
