@@ -569,4 +569,71 @@ MilvusConnection::DescribeResourceGroup(const proto::milvus::DescribeResourceGro
     return grpcCall("DescribeResourceGroup", &Stub::DescribeResourceGroup, request, response, options);
 }
 
+Status
+MilvusConnection::SelectUser(const proto::milvus::SelectUserRequest& request,
+                             proto::milvus::SelectUserResponse& response, const GrpcContextOptions& options) {
+    return grpcCall("SelectUser", &Stub::SelectUser, request, response, options);
+}
+
+Status
+MilvusConnection::SelectRole(const proto::milvus::SelectRoleRequest& request,
+                             proto::milvus::SelectRoleResponse& response, const GrpcContextOptions& options) {
+    return grpcCall("SelectRole", &Stub::SelectRole, request, response, options);
+}
+
+Status
+MilvusConnection::SelectGrant(const proto::milvus::SelectGrantRequest& request,
+                              proto::milvus::SelectGrantResponse& response, const GrpcContextOptions& options) {
+    return grpcCall("SelectGrant", &Stub::SelectGrant, request, response, options);
+}
+
+Status
+MilvusConnection::CreateRole(const proto::milvus::CreateRoleRequest& request, proto::common::Status& response,
+                             const GrpcContextOptions& options) {
+    return grpcCall("CreateRole", &Stub::CreateRole, request, response, options);
+}
+
+Status
+MilvusConnection::DropRole(const proto::milvus::DropRoleRequest& request, proto::common::Status& response,
+                           const GrpcContextOptions& options) {
+    return grpcCall("DropRole", &Stub::DropRole, request, response, options);
+}
+
+Status
+MilvusConnection::OperateUserRole(const proto::milvus::OperateUserRoleRequest& request, proto::common::Status& response,
+                                  const GrpcContextOptions& options) {
+    return grpcCall("OperateUserRole", &Stub::OperateUserRole, request, response, options);
+}
+
+Status
+MilvusConnection::OperatePrivilegeV2(const proto::milvus::OperatePrivilegeV2Request& request,
+                                     proto::common::Status& response, const GrpcContextOptions& options) {
+    return grpcCall("OperatePrivilegeV2", &Stub::OperatePrivilegeV2, request, response, options);
+}
+
+Status
+MilvusConnection::CreatePrivilegeGroup(const proto::milvus::CreatePrivilegeGroupRequest& request,
+                                       proto::common::Status& response, const GrpcContextOptions& options) {
+    return grpcCall("CreatePrivilegeGroup", &Stub::CreatePrivilegeGroup, request, response, options);
+}
+
+Status
+MilvusConnection::DropPrivilegeGroup(const proto::milvus::DropPrivilegeGroupRequest& request,
+                                     proto::common::Status& response, const GrpcContextOptions& options) {
+    return grpcCall("DropPrivilegeGroup", &Stub::DropPrivilegeGroup, request, response, options);
+}
+
+Status
+MilvusConnection::ListPrivilegeGroups(const proto::milvus::ListPrivilegeGroupsRequest& request,
+                                      proto::milvus::ListPrivilegeGroupsResponse& response,
+                                      const GrpcContextOptions& options) {
+    return grpcCall("ListPrivilegeGroups", &Stub::ListPrivilegeGroups, request, response, options);
+}
+
+Status
+MilvusConnection::OperatePrivilegeGroup(const proto::milvus::OperatePrivilegeGroupRequest& request,
+                                        proto::common::Status& response, const GrpcContextOptions& options) {
+    return grpcCall("OperatePrivilegeGroup", &Stub::OperatePrivilegeGroup, request, response, options);
+}
+
 }  // namespace milvus

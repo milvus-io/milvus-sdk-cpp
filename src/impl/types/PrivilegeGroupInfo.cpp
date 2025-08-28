@@ -14,26 +14,34 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <gtest/gtest.h>
+#include "milvus/types/PrivilegeGroupInfo.h"
 
-#include "mocks/MilvusMockedTest.h"
+namespace milvus {
 
-using ::milvus::StatusCode;
-using ::milvus::proto::milvus::DeleteCredentialRequest;
-using ::testing::_;
-using ::testing::AllOf;
-using ::testing::ElementsAre;
-using ::testing::Property;
+PrivilegeGroupInfo::PrivilegeGroupInfo() = default;
 
-TEST_F(MilvusMockedTest, DeleteCredential) {
-    milvus::ConnectParam connect_param{"127.0.0.1", server_.ListenPort()};
-    client_->Connect(connect_param);
-
-    EXPECT_CALL(service_, DeleteCredential(_, Property(&DeleteCredentialRequest::username, "username"), _))
-        .WillOnce([](::grpc::ServerContext*, const DeleteCredentialRequest* request, ::milvus::proto::common::Status*) {
-            return ::grpc::Status{};
-        });
-    auto status = client_->DeleteCredential("username");
-
-    EXPECT_TRUE(status.IsOk());
+PrivilegeGroupInfo::PrivilegeGroupInfo(const std::string& name, std::vector<std::string>&& privileges)
+    : name_(name), privileges_(std::move(privileges)) {
 }
+
+const std::string&
+PrivilegeGroupInfo::Name() const {
+    return name_;
+}
+
+void
+PrivilegeGroupInfo::SetName(const std::string& name) {
+    name_ = name;
+}
+
+const std::vector<std::string>&
+PrivilegeGroupInfo::Privileges() const {
+    return privileges_;
+}
+
+void
+PrivilegeGroupInfo::AddPrivilege(const std::string& privilege) {
+    privileges_.push_back(privilege);
+}
+
+}  // namespace milvus

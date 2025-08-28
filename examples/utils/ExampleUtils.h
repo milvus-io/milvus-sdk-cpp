@@ -32,9 +32,11 @@ using REAL_GEN = std::uniform_real_distribution<float>;
 using INT_GEN = std::uniform_int_distribution<int>;
 
 void
-CheckStatus(std::string&& prefix, const milvus::Status& status) {
-    if (!status.IsOk()) {
-        std::cout << prefix << " " << status.Message() << std::endl;
+CheckStatus(std::string&& message, const milvus::Status& status) {
+    if (status.IsOk()) {
+        std::cout << "Succeed: " << message << std::endl;
+    } else {
+        std::cout << "Failed: " << message << " , status: " << status.Message() << std::endl;
         exit(1);
     }
 }
@@ -215,6 +217,36 @@ RansomBools(int count) {
     std::vector<bool> bools(count);
     std::transform(values.begin(), values.end(), bools.begin(), [](int x) { return x % 2 == 1; });
     return bools;
+}
+
+template <typename T>
+void
+PrintList(const std::vector<T>& obj) {
+    std::cout << "[";
+    auto it = obj.begin();
+    while (it != obj.end()) {
+        if (it != obj.begin()) {
+            std::cout << ", ";
+        }
+        std::cout << *it;
+        ++it;
+    }
+    std::cout << "]" << std::endl;
+}
+
+template <typename K, typename V>
+void
+PrintMap(const std::map<K, V>& obj) {
+    std::cout << "{";
+    auto it = obj.begin();
+    while (it != obj.end()) {
+        if (it != obj.begin()) {
+            std::cout << ", ";
+        }
+        std::cout << it->first << ":" << it->second;
+        ++it;
+    }
+    std::cout << "}" << std::endl;
 }
 
 }  // namespace util
