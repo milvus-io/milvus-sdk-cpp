@@ -24,7 +24,7 @@ using ::testing::_;
 using ::testing::AllOf;
 using ::testing::Property;
 
-TEST_F(MilvusMockedTest, DropIndexFoo) {
+TEST_F(MilvusMockedTest, DropIndex) {
     milvus::ConnectParam connect_param{"127.0.0.1", server_.ListenPort()};
     client_->Connect(connect_param);
 
@@ -42,7 +42,7 @@ TEST_F(MilvusMockedTest, DropIndexFoo) {
     EXPECT_TRUE(status.IsOk());
 }
 
-TEST_F(MilvusMockedTest, DropIndexFooFailed) {
+TEST_F(MilvusMockedTest, DropIndexFailed) {
     milvus::ConnectParam connect_param{"127.0.0.1", server_.ListenPort()};
     client_->Connect(connect_param);
 

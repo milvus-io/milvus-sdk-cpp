@@ -26,7 +26,7 @@ using ::testing::_;
 using ::testing::AllOf;
 using ::testing::Property;
 
-TEST_F(MilvusMockedTest, GetIndexBuildProgressFoo) {
+TEST_F(MilvusMockedTest, GetIndexBuildProgress) {
     milvus::ConnectParam connect_param{"127.0.0.1", server_.ListenPort()};
     client_->Connect(connect_param);
 

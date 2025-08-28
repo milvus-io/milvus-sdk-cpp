@@ -45,7 +45,7 @@ using ::testing::Contains;
 using ::testing::ElementsAre;
 using ::testing::Property;
 
-TEST_F(MilvusMockedTest, QueryFoo) {
+TEST_F(MilvusMockedTest, Query) {
     milvus::ConnectParam connect_param{"127.0.0.1", server_.ListenPort()};
     client_->Connect(connect_param);
 

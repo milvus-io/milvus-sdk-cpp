@@ -23,7 +23,7 @@ using ::milvus::proto::milvus::CreateCollectionRequest;
 using ::testing::_;
 using ::testing::Property;
 
-TEST_F(MilvusMockedTest, CreateCollectionFoo) {
+TEST_F(MilvusMockedTest, CreateCollection) {
     milvus::ConnectParam connect_param{"127.0.0.1", server_.ListenPort()};
     client_->Connect(connect_param);
 
@@ -45,7 +45,7 @@ TEST_F(MilvusMockedTest, CreateCollectionFoo) {
     EXPECT_TRUE(status.IsOk());
 }
 
-TEST_F(UnconnectMilvusMockedTest, CreateCollectionFooWithoutConnect) {
+TEST_F(UnconnectMilvusMockedTest, CreateCollectionWithoutConnect) {
     milvus::CollectionSchema collection_schema("Foo");
     milvus::proto::milvus::CreateCollectionRequest rpc_request;
     rpc_request.set_collection_name("Foo");
@@ -56,7 +56,7 @@ TEST_F(UnconnectMilvusMockedTest, CreateCollectionFooWithoutConnect) {
     EXPECT_EQ(status.Code(), StatusCode::NOT_CONNECTED);
 }
 
-TEST_F(MilvusMockedTest, CreateCollectionFooFailed) {
+TEST_F(MilvusMockedTest, CreateCollectionFailed) {
     milvus::ConnectParam connect_param{"127.0.0.1", server_.ListenPort()};
     client_->Connect(connect_param);
 

@@ -39,6 +39,8 @@
 #include "types/ProgressMonitor.h"
 #include "types/QueryArguments.h"
 #include "types/QueryResults.h"
+#include "types/ResourceGroupConfig.h"
+#include "types/ResourceGroupDesc.h"
 #include "types/RetryParam.h"
 #include "types/SearchArguments.h"
 #include "types/SearchResults.h"
@@ -820,6 +822,78 @@ class MilvusClient {
      */
     virtual Status
     ListCredUsers(std::vector<std::string>& names) = 0;
+
+    /**
+     * @brief Create a resource group
+     *
+     * @param [in] name name of the resource group
+     * @param [in] config configurations of the resource group
+     * @return Status operation successfully or not
+     */
+    virtual Status
+    CreateResourceGroup(const std::string& name, const ResourceGroupConfig& config) = 0;
+
+    /**
+     * @brief Drop a resource group
+     *
+     * @param [in] name name of the resource group
+     * @return Status operation successfully or not
+     */
+    virtual Status
+    DropResourceGroup(const std::string& name) = 0;
+
+    /**
+     * @brief Update resource groups
+     *
+     * @param [in] name name of the resource group
+     * @param [in] groups configurations of the resource groups
+     * @return Status operation successfully or not
+     */
+    virtual Status
+    UpdateResourceGroups(const std::unordered_map<std::string, ResourceGroupConfig>& groups) = 0;
+
+    /**
+     * @brief Transfer nodes to another resource groups
+     *
+     * @param [in] source_group name of the source resource group
+     * @param [in] target_group name of the target resource group
+     * @param [in] num_nodes number of nodes to be transfered
+     * @return Status operation successfully or not
+     */
+    virtual Status
+    TransferNode(const std::string& source_group, const std::string& target_group, uint32_t num_nodes) = 0;
+
+    /**
+     * @brief Transfer replicas of a collection from source group to target group
+     *
+     * @param [in] source_group name of the source resource group
+     * @param [in] target_group name of the target resource group
+     * @param [in] collection_name name of a collection
+     * @param [in] num_replicas number of replicas to be transfered
+     * @return Status operation successfully or not
+     */
+    virtual Status
+    TransferReplica(const std::string& source_group, const std::string& target_group,
+                    const std::string& collection_name, uint32_t num_replicas) = 0;
+
+    /**
+     * @brief List all the resource groups under the current database
+     *
+     * @param [out] group_names names of the resource groups
+     * @return Status operation successfully or not
+     */
+    virtual Status
+    ListResourceGroups(std::vector<std::string>& group_names) = 0;
+
+    /**
+     * @brief Describe a resource group
+     *
+     * @param [in] group_name name of the resource group
+     * @param [out] desc details of the resource group
+     * @return Status operation successfully or not
+     */
+    virtual Status
+    DescribeResourceGroup(const std::string& group_name, ResourceGroupDesc& desc) = 0;
 };
 
 using MilvusClientPtr = std::shared_ptr<MilvusClient>;

@@ -23,7 +23,7 @@ using ::milvus::proto::milvus::HasPartitionRequest;
 using ::testing::_;
 using ::testing::Property;
 
-TEST_F(MilvusMockedTest, HasPartitionFoo) {
+TEST_F(MilvusMockedTest, HasPartition) {
     milvus::ConnectParam connect_param{"127.0.0.1", server_.ListenPort()};
     client_->Connect(connect_param);
 

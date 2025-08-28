@@ -114,13 +114,19 @@ class SearchResults {
     /**
      * @brief Constructor
      */
-    explicit SearchResults(std::vector<SingleResult>&& results);
+    explicit SearchResults(std::vector<SingleResult>& results);
 
     /**
      * @brief Get search results.
      */
     std::vector<SingleResult>&
     Results();
+
+    /**
+     * @brief Set search results.
+     */
+    void
+    SetResults(std::vector<SingleResult>& results);
 
  private:
     std::vector<SingleResult> nq_results_{};

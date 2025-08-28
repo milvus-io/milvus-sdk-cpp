@@ -23,7 +23,7 @@ using ::milvus::proto::milvus::HasCollectionRequest;
 using ::testing::_;
 using ::testing::Property;
 
-TEST_F(MilvusMockedTest, HasCollectionFoo) {
+TEST_F(MilvusMockedTest, HasCollection) {
     milvus::ConnectParam connect_param{"127.0.0.1", server_.ListenPort()};
     client_->Connect(connect_param);
 
