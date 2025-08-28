@@ -34,12 +34,12 @@ namespace milvus {
 class IndexDesc {
  public:
     /**
-     * @brief Construct a new Index Desc object
+     * @brief Construct a new IndexDesc object
      */
     IndexDesc();
 
     /**
-     * @brief Construct a new Index Desc object
+     * @brief Construct a new IndexDesc object
      *
      * @param field_name field name which the index belong to
      * @param index_name index name

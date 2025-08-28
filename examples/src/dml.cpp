@@ -29,8 +29,7 @@ main(int argc, char* argv[]) {
 
     milvus::ConnectParam connect_param{"localhost", 19530, "root", "Milvus"};
     auto status = client->Connect(connect_param);
-    util::CheckStatus("Failed to connect milvus server:", status);
-    std::cout << "Connect to milvus server." << std::endl;
+    util::CheckStatus("connect milvus server", status);
 
     // drop the collection if it exists
     const std::string collection_name = "TEST_CPP_DML";
@@ -50,22 +49,19 @@ main(int argc, char* argv[]) {
     collection_schema.AddField(milvus::FieldSchema(field_text, milvus::DataType::VARCHAR).WithMaxLength(100));
 
     status = client->CreateCollection(collection_schema);
-    util::CheckStatus("Failed to create collection:", status);
-    std::cout << "Successfully create collection " << collection_name << std::endl;
+    util::CheckStatus("create collection: " + collection_name, status);
 
     // create index
     milvus::IndexDesc index_vector(field_vector, "", milvus::IndexType::AUTOINDEX, milvus::MetricType::L2);
     status = client->CreateIndex(collection_name, index_vector);
-    util::CheckStatus("Failed to create index on vector field:", status);
+    util::CheckStatus("create index on vector field", status);
     milvus::IndexDesc index_text(field_text, "", milvus::IndexType::INVERTED);
     status = client->CreateIndex(collection_name, index_text);
-    util::CheckStatus("Failed to create index on varchar field:", status);
-    std::cout << "Successfully create index." << std::endl;
+    util::CheckStatus("create index on varchar field", status);
 
     // load collection
     status = client->LoadCollection(collection_name);
-    util::CheckStatus("Failed to load collection:", status);
-    std::cout << "Successfully load collection." << std::endl;
+    util::CheckStatus("load collection: " + collection_name, status);
 
     {
         // insert somes rows by column-based
@@ -76,8 +72,8 @@ main(int argc, char* argv[]) {
             std::make_shared<milvus::FloatVecFieldData>(field_vector, vectors)};
         milvus::DmlResults dml_results;
         status = client->Insert(collection_name, "", fields_data, dml_results);
-        util::CheckStatus("Failed to insert:", status);
-        std::cout << "Successfully insert " << dml_results.InsertCount() << " rows by column-based." << std::endl;
+        util::CheckStatus("insert", status);
+        std::cout << dml_results.InsertCount() << " rows inserted by column-based." << std::endl;
     }
 
     // insert some rows
@@ -92,8 +88,8 @@ main(int argc, char* argv[]) {
 
     milvus::DmlResults dml_results;
     status = client->Insert(collection_name, "", rows, dml_results);
-    util::CheckStatus("Failed to insert:", status);
-    std::cout << "Successfully insert " << dml_results.InsertCount() << " rows by row-based." << std::endl;
+    util::CheckStatus("insert", status);
+    std::cout << dml_results.InsertCount() << " rows inserted by row-based." << std::endl;
     const auto& ids = dml_results.IdArray().IntIDArray();
 
     // upsert some rows
@@ -121,8 +117,8 @@ main(int argc, char* argv[]) {
 
     milvus::DmlResults update_results;
     status = client->Upsert(collection_name, "", upsert_rows, update_results);
-    util::CheckStatus("Failed to upsert:", status);
-    std::cout << "Successfully upsert." << std::endl;
+    util::CheckStatus("upsert", status);
+
     // if the primary key is auto-id, upsert() will delete the old id and create a new id,
     // this behavior is a technical trade-off of milvus
     const auto new_ids = update_results.IdArray().IntIDArray();
@@ -144,15 +140,14 @@ main(int argc, char* argv[]) {
     q_arguments.SetConsistencyLevel(milvus::ConsistencyLevel::SESSION);
 
     std::cout << "Query with expression: " << expr << std::endl;
-    milvus::QueryResults query_resutls{};
-    status = client->Query(q_arguments, query_resutls);
-    util::CheckStatus("Failed to query:", status);
-    std::cout << "Successfully query." << std::endl;
+    milvus::QueryResults query_results{};
+    status = client->Query(q_arguments, query_results);
+    util::CheckStatus("query", status);
     std::cout << "Query results:" << std::endl;
-    for (auto i = 0; i < query_resutls.GetRowCount(); i++) {
+    for (auto i = 0; i < query_results.GetRowCount(); i++) {
         nlohmann::json output_row;
-        status = query_resutls.OutputRow(i, output_row);
-        util::CheckStatus("Failed to get output row:", status);
+        status = query_results.OutputRow(i, output_row);
+        util::CheckStatus("get output row", status);
         std::cout << "\t" << output_row << std::endl;
     }
 
@@ -160,16 +155,14 @@ main(int argc, char* argv[]) {
     std::cout << "Delete with expression: " << expr << std::endl;
     milvus::DmlResults delete_results;
     status = client->Delete(collection_name, "", expr, delete_results);
-    util::CheckStatus("Failed to delete:", status);
-    std::cout << "Successfully delete." << std::endl;
+    util::CheckStatus("delete", status);
 
     // query immediatelly again with STRONG level, result must be empty.
     // set to STRONG level so that the query is executed after the inserted data is consumed by server
     q_arguments.SetConsistencyLevel(milvus::ConsistencyLevel::STRONG);
-    status = client->Query(q_arguments, query_resutls);
-    util::CheckStatus("Failed to query:", status);
-    std::cout << "Successfully query again with the same expression." << std::endl;
-    std::cout << "Query result count: " << std::to_string(query_resutls.GetRowCount()) << std::endl;
+    status = client->Query(q_arguments, query_results);
+    util::CheckStatus("query again with the same expression", status);
+    std::cout << "Query result count: " << std::to_string(query_results.GetRowCount()) << std::endl;
 
     // get the numer of rows after delete, must be 100 - 2 = 98
     // no data changed after the last query, we can use EVENTUALLY level to ignore
@@ -179,11 +172,10 @@ main(int argc, char* argv[]) {
     q_count.AddOutputField("count(*)");
     q_count.SetConsistencyLevel(milvus::ConsistencyLevel::EVENTUALLY);
 
-    milvus::QueryResults count_resutl{};
-    status = client->Query(q_count, count_resutl);
-    util::CheckStatus("Failed to query count(*):", status);
-    std::cout << "Successfully query count(*)." << std::endl;
-    std::cout << "count(*) = " << count_resutl.GetRowCount() << std::endl;
+    milvus::QueryResults count_result{};
+    status = client->Query(q_count, count_result);
+    util::CheckStatus("query count(*)", status);
+    std::cout << "count(*) = " << count_result.GetRowCount() << std::endl;
 
     client->Disconnect();
     return 0;

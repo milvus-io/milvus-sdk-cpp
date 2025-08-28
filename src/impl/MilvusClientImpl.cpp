@@ -1652,70 +1652,23 @@ MilvusClientImpl::GetCompactionPlans(int64_t compaction_id, CompactionPlans& pla
 
 Status
 MilvusClientImpl::CreateCredential(const std::string& username, const std::string& password) {
-    auto pre = [&username, &password]() {
-        proto::milvus::CreateCredentialRequest rpc_request;
-        rpc_request.set_username(username);
-        rpc_request.set_password(milvus::Base64Encode(password));
-        // TODO: seconds or milliseconds?
-        auto timestamp =
-            std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now().time_since_epoch())
-                .count();
-        rpc_request.set_created_utc_timestamps(timestamp);
-        rpc_request.set_modified_utc_timestamps(timestamp);
-        return rpc_request;
-    };
-
-    return apiHandler<proto::milvus::CreateCredentialRequest, proto::common::Status>(
-        pre, &MilvusConnection::CreateCredential, nullptr);
+    return CreateCredential(username, password);
 }
 
 Status
 MilvusClientImpl::UpdateCredential(const std::string& username, const std::string& old_password,
                                    const std::string& new_password) {
-    auto pre = [&username, &old_password, &new_password]() {
-        proto::milvus::UpdateCredentialRequest rpc_request;
-        rpc_request.set_username(username);
-        rpc_request.set_oldpassword(milvus::Base64Encode(old_password));
-        rpc_request.set_newpassword(milvus::Base64Encode(new_password));
-        // TODO: seconds or milliseconds?
-        rpc_request.set_modified_utc_timestamps(
-            std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now().time_since_epoch())
-                .count());
-        return rpc_request;
-    };
-
-    return apiHandler<proto::milvus::UpdateCredentialRequest, proto::common::Status>(
-        pre, &MilvusConnection::UpdateCredential, nullptr);
+    return UpdatePassword(username, old_password, new_password);
 }
 
 Status
 MilvusClientImpl::DeleteCredential(const std::string& username) {
-    auto pre = [&username]() {
-        proto::milvus::DeleteCredentialRequest rpc_request;
-        rpc_request.set_username(username);
-        return rpc_request;
-    };
-
-    return apiHandler<proto::milvus::DeleteCredentialRequest, proto::common::Status>(
-        pre, &MilvusConnection::DeleteCredential, nullptr);
+    return DropUser(username);
 }
 
 Status
 MilvusClientImpl::ListCredUsers(std::vector<std::string>& users) {
-    auto pre = []() {
-        proto::milvus::ListCredUsersRequest rpc_request;
-        return rpc_request;
-    };
-
-    auto post = [&users](const proto::milvus::ListCredUsersResponse& response) {
-        users.clear();
-        for (const auto& user : response.usernames()) {
-            users.emplace_back(user);
-        }
-    };
-
-    return apiHandler<proto::milvus::ListCredUsersRequest, proto::milvus::ListCredUsersResponse>(
-        pre, &MilvusConnection::ListCredUsers, post);
+    return ListUsers(users);
 }
 
 Status
@@ -1843,6 +1796,292 @@ MilvusClientImpl::DescribeResourceGroup(const std::string& group_name, ResourceG
     };
     return apiHandler<proto::milvus::DescribeResourceGroupRequest, proto::milvus::DescribeResourceGroupResponse>(
         pre, &MilvusConnection::DescribeResourceGroup, post);
+}
+
+Status
+MilvusClientImpl::CreateUser(const std::string& user_name, const std::string& password) {
+    auto pre = [&user_name, &password]() {
+        proto::milvus::CreateCredentialRequest rpc_request;
+        rpc_request.set_username(user_name);
+        rpc_request.set_password(milvus::Base64Encode(password));
+        return rpc_request;
+    };
+
+    return apiHandler<proto::milvus::CreateCredentialRequest, proto::common::Status>(
+        pre, &MilvusConnection::CreateCredential, nullptr);
+}
+
+Status
+MilvusClientImpl::UpdatePassword(const std::string& user_name, const std::string& old_password,
+                                 const std::string& new_password) {
+    auto pre = [&user_name, &old_password, &new_password]() {
+        proto::milvus::UpdateCredentialRequest rpc_request;
+        rpc_request.set_username(user_name);
+        rpc_request.set_oldpassword(milvus::Base64Encode(old_password));
+        rpc_request.set_newpassword(milvus::Base64Encode(new_password));
+        return rpc_request;
+    };
+
+    return apiHandler<proto::milvus::UpdateCredentialRequest, proto::common::Status>(
+        pre, &MilvusConnection::UpdateCredential, nullptr);
+}
+
+Status
+MilvusClientImpl::DropUser(const std::string& user_name) {
+    auto pre = [&user_name]() {
+        proto::milvus::DeleteCredentialRequest rpc_request;
+        rpc_request.set_username(user_name);
+        return rpc_request;
+    };
+
+    return apiHandler<proto::milvus::DeleteCredentialRequest, proto::common::Status>(
+        pre, &MilvusConnection::DeleteCredential, nullptr);
+}
+
+Status
+MilvusClientImpl::DescribeUser(const std::string& user_name, UserDesc& desc) {
+    auto pre = [&user_name]() {
+        proto::milvus::SelectUserRequest rpc_request;
+        rpc_request.mutable_user()->set_name(user_name);
+        rpc_request.set_include_role_info(true);
+        return rpc_request;
+    };
+
+    auto post = [&user_name, &desc](const proto::milvus::SelectUserResponse& response) {
+        desc.SetName(user_name);
+        if (response.results().size() > 0) {
+            auto result = response.results().at(0);
+            for (const auto& role : result.roles()) {
+                desc.AddRole(role.name());
+            }
+        }
+    };
+
+    return apiHandler<proto::milvus::SelectUserRequest, proto::milvus::SelectUserResponse>(
+        pre, &MilvusConnection::SelectUser, post);
+}
+
+Status
+MilvusClientImpl::ListUsers(std::vector<std::string>& names) {
+    auto pre = []() {
+        proto::milvus::ListCredUsersRequest rpc_request;
+        return rpc_request;
+    };
+
+    auto post = [&names](const proto::milvus::ListCredUsersResponse& response) {
+        names.clear();
+        for (const auto& user : response.usernames()) {
+            names.emplace_back(user);
+        }
+    };
+
+    return apiHandler<proto::milvus::ListCredUsersRequest, proto::milvus::ListCredUsersResponse>(
+        pre, &MilvusConnection::ListCredUsers, post);
+}
+
+Status
+MilvusClientImpl::CreateRole(const std::string& role_name) {
+    auto pre = [&role_name]() {
+        proto::milvus::CreateRoleRequest rpc_request;
+        rpc_request.mutable_entity()->set_name(role_name);
+        return rpc_request;
+    };
+
+    return apiHandler<proto::milvus::CreateRoleRequest, proto::common::Status>(pre, &MilvusConnection::CreateRole,
+                                                                               nullptr);
+}
+
+Status
+MilvusClientImpl::DropRole(const std::string& role_name, bool force_drop) {
+    auto pre = [&role_name, &force_drop]() {
+        proto::milvus::DropRoleRequest rpc_request;
+        rpc_request.set_role_name(role_name);
+        rpc_request.set_force_drop(force_drop);
+        return rpc_request;
+    };
+
+    return apiHandler<proto::milvus::DropRoleRequest, proto::common::Status>(pre, &MilvusConnection::DropRole, nullptr);
+}
+
+Status
+MilvusClientImpl::DescribeRole(const std::string& role_name, RoleDesc& desc) {
+    auto pre = [&role_name]() {
+        proto::milvus::SelectGrantRequest rpc_request;
+        rpc_request.mutable_entity()->mutable_role()->set_name(role_name);
+        return rpc_request;
+    };
+
+    auto post = [&role_name, &desc](const proto::milvus::SelectGrantResponse& response) {
+        desc.SetName(role_name);
+        for (const auto& entity : response.entities()) {
+            desc.AddGrantItem({entity.object().name(), entity.object_name(), entity.db_name(), entity.role().name(),
+                               entity.grantor().user().name(), entity.grantor().privilege().name()});
+        }
+    };
+
+    return apiHandler<proto::milvus::SelectGrantRequest, proto::milvus::SelectGrantResponse>(
+        pre, &MilvusConnection::SelectGrant, post);
+}
+
+Status
+MilvusClientImpl::ListRoles(std::vector<std::string>& names) {
+    auto pre = []() {
+        proto::milvus::SelectRoleRequest rpc_request;
+        rpc_request.set_include_user_info(false);
+        return rpc_request;
+    };
+
+    auto post = [&names](const proto::milvus::SelectRoleResponse& response) {
+        names.clear();
+        for (const auto& result : response.results()) {
+            names.push_back(result.role().name());
+        }
+    };
+
+    return apiHandler<proto::milvus::SelectRoleRequest, proto::milvus::SelectRoleResponse>(
+        pre, &MilvusConnection::SelectRole, post);
+}
+
+Status
+MilvusClientImpl::GrantRole(const std::string& user_name, const std::string& role_name) {
+    auto pre = [&user_name, &role_name]() {
+        proto::milvus::OperateUserRoleRequest rpc_request;
+        rpc_request.set_username(user_name);
+        rpc_request.set_role_name(role_name);
+        rpc_request.set_type(proto::milvus::OperateUserRoleType::AddUserToRole);
+        return rpc_request;
+    };
+
+    return apiHandler<proto::milvus::OperateUserRoleRequest, proto::common::Status>(
+        pre, &MilvusConnection::OperateUserRole, nullptr);
+}
+
+Status
+MilvusClientImpl::RevokeRole(const std::string& user_name, const std::string& role_name) {
+    auto pre = [&user_name, &role_name]() {
+        proto::milvus::OperateUserRoleRequest rpc_request;
+        rpc_request.set_username(user_name);
+        rpc_request.set_role_name(role_name);
+        rpc_request.set_type(proto::milvus::OperateUserRoleType::RemoveUserFromRole);
+        return rpc_request;
+    };
+
+    return apiHandler<proto::milvus::OperateUserRoleRequest, proto::common::Status>(
+        pre, &MilvusConnection::OperateUserRole, nullptr);
+}
+
+Status
+MilvusClientImpl::GrantPrivilege(const std::string& role_name, const std::string& privilege,
+                                 const std::string& collection_name, const std::string& db_name) {
+    auto pre = [&role_name, &privilege, &collection_name, &db_name]() {
+        proto::milvus::OperatePrivilegeV2Request rpc_request;
+        rpc_request.mutable_role()->set_name(role_name);
+        rpc_request.mutable_grantor()->mutable_privilege()->set_name(privilege);
+        rpc_request.set_type(proto::milvus::OperatePrivilegeType::Grant);
+        rpc_request.set_collection_name(collection_name);
+        rpc_request.set_db_name(db_name);
+        return rpc_request;
+    };
+
+    return apiHandler<proto::milvus::OperatePrivilegeV2Request, proto::common::Status>(
+        pre, &MilvusConnection::OperatePrivilegeV2, nullptr);
+}
+
+Status
+MilvusClientImpl::RevokePrivilege(const std::string& role_name, const std::string& privilege,
+                                  const std::string& collection_name, const std::string& db_name) {
+    auto pre = [&role_name, &privilege, &collection_name, &db_name]() {
+        proto::milvus::OperatePrivilegeV2Request rpc_request;
+        rpc_request.mutable_role()->set_name(role_name);
+        rpc_request.mutable_grantor()->mutable_privilege()->set_name(privilege);
+        rpc_request.set_type(proto::milvus::OperatePrivilegeType::Revoke);
+        rpc_request.set_collection_name(collection_name);
+        rpc_request.set_db_name(db_name);
+        return rpc_request;
+    };
+
+    return apiHandler<proto::milvus::OperatePrivilegeV2Request, proto::common::Status>(
+        pre, &MilvusConnection::OperatePrivilegeV2, nullptr);
+}
+
+Status
+MilvusClientImpl::CreatePrivilegeGroup(const std::string& group_name) {
+    auto pre = [&group_name]() {
+        proto::milvus::CreatePrivilegeGroupRequest rpc_request;
+        rpc_request.set_group_name(group_name);
+        return rpc_request;
+    };
+
+    return apiHandler<proto::milvus::CreatePrivilegeGroupRequest, proto::common::Status>(
+        pre, &MilvusConnection::CreatePrivilegeGroup, nullptr);
+}
+
+Status
+MilvusClientImpl::DropPrivilegeGroup(const std::string& group_name) {
+    auto pre = [&group_name]() {
+        proto::milvus::DropPrivilegeGroupRequest rpc_request;
+        rpc_request.set_group_name(group_name);
+        return rpc_request;
+    };
+
+    return apiHandler<proto::milvus::DropPrivilegeGroupRequest, proto::common::Status>(
+        pre, &MilvusConnection::DropPrivilegeGroup, nullptr);
+}
+
+Status
+MilvusClientImpl::ListPrivilegeGroups(PrivilegeGroupInfos& groups) {
+    auto pre = []() {
+        proto::milvus::ListPrivilegeGroupsRequest rpc_request;
+        return rpc_request;
+    };
+
+    auto post = [&groups](const proto::milvus::ListPrivilegeGroupsResponse& response) {
+        groups.clear();
+        for (const auto& result : response.privilege_groups()) {
+            std::vector<std::string> privileges;
+            for (const auto& rpc_privilege : result.privileges()) {
+                privileges.push_back(rpc_privilege.name());
+            }
+            groups.emplace_back(result.group_name(), std::move(privileges));
+        }
+    };
+
+    return apiHandler<proto::milvus::ListPrivilegeGroupsRequest, proto::milvus::ListPrivilegeGroupsResponse>(
+        pre, &MilvusConnection::ListPrivilegeGroups, post);
+}
+
+Status
+MilvusClientImpl::AddPrivilegesToGroup(const std::string& group_name, const std::vector<std::string>& privileges) {
+    auto pre = [&group_name, &privileges]() {
+        proto::milvus::OperatePrivilegeGroupRequest rpc_request;
+        rpc_request.set_group_name(group_name);
+        for (const auto& privilege : privileges) {
+            auto rpc_privilege = rpc_request.mutable_privileges()->Add();
+            rpc_privilege->set_name(privilege);
+        }
+        rpc_request.set_type(proto::milvus::OperatePrivilegeGroupType::AddPrivilegesToGroup);
+        return rpc_request;
+    };
+
+    return apiHandler<proto::milvus::OperatePrivilegeGroupRequest, proto::common::Status>(
+        pre, &MilvusConnection::OperatePrivilegeGroup, nullptr);
+}
+
+Status
+MilvusClientImpl::RemovePrivilegesFromGroup(const std::string& group_name, const std::vector<std::string>& privileges) {
+    auto pre = [&group_name, &privileges]() {
+        proto::milvus::OperatePrivilegeGroupRequest rpc_request;
+        rpc_request.set_group_name(group_name);
+        for (const auto& privilege : privileges) {
+            auto rpc_privilege = rpc_request.mutable_privileges()->Add();
+            rpc_privilege->set_name(privilege);
+        }
+        rpc_request.set_type(proto::milvus::OperatePrivilegeGroupType::RemovePrivilegesFromGroup);
+        return rpc_request;
+    };
+
+    return apiHandler<proto::milvus::OperatePrivilegeGroupRequest, proto::common::Status>(
+        pre, &MilvusConnection::OperatePrivilegeGroup, nullptr);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

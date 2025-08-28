@@ -260,6 +260,45 @@ class MilvusMockedService : public ::milvus::proto::milvus::MilvusService::Servi
     MOCK_METHOD3(DescribeResourceGroup,
                  ::grpc::Status(::grpc::ServerContext*, const ::milvus::proto::milvus::DescribeResourceGroupRequest*,
                                 ::milvus::proto::milvus::DescribeResourceGroupResponse*));
+
+    MOCK_METHOD3(SelectUser, ::grpc::Status(::grpc::ServerContext*, const ::milvus::proto::milvus::SelectUserRequest*,
+                                            ::milvus::proto::milvus::SelectUserResponse*));
+
+    MOCK_METHOD3(SelectRole, ::grpc::Status(::grpc::ServerContext*, const ::milvus::proto::milvus::SelectRoleRequest*,
+                                            ::milvus::proto::milvus::SelectRoleResponse*));
+
+    MOCK_METHOD3(SelectGrant, ::grpc::Status(::grpc::ServerContext*, const ::milvus::proto::milvus::SelectGrantRequest*,
+                                             ::milvus::proto::milvus::SelectGrantResponse*));
+
+    MOCK_METHOD3(CreateRole, ::grpc::Status(::grpc::ServerContext*, const ::milvus::proto::milvus::CreateRoleRequest*,
+                                            ::milvus::proto::common::Status*));
+
+    MOCK_METHOD3(DropRole, ::grpc::Status(::grpc::ServerContext*, const ::milvus::proto::milvus::DropRoleRequest*,
+                                          ::milvus::proto::common::Status*));
+
+    MOCK_METHOD3(OperateUserRole,
+                 ::grpc::Status(::grpc::ServerContext*, const ::milvus::proto::milvus::OperateUserRoleRequest*,
+                                ::milvus::proto::common::Status*));
+
+    MOCK_METHOD3(OperatePrivilegeV2,
+                 ::grpc::Status(::grpc::ServerContext*, const ::milvus::proto::milvus::OperatePrivilegeV2Request*,
+                                ::milvus::proto::common::Status*));
+
+    MOCK_METHOD3(CreatePrivilegeGroup,
+                 ::grpc::Status(::grpc::ServerContext*, const ::milvus::proto::milvus::CreatePrivilegeGroupRequest*,
+                                ::milvus::proto::common::Status*));
+
+    MOCK_METHOD3(DropPrivilegeGroup,
+                 ::grpc::Status(::grpc::ServerContext*, const ::milvus::proto::milvus::DropPrivilegeGroupRequest*,
+                                ::milvus::proto::common::Status*));
+
+    MOCK_METHOD3(ListPrivilegeGroups,
+                 ::grpc::Status(::grpc::ServerContext*, const ::milvus::proto::milvus::ListPrivilegeGroupsRequest*,
+                                ::milvus::proto::milvus::ListPrivilegeGroupsResponse*));
+
+    MOCK_METHOD3(OperatePrivilegeGroup,
+                 ::grpc::Status(::grpc::ServerContext*, const ::milvus::proto::milvus::OperatePrivilegeGroupRequest*,
+                                ::milvus::proto::common::Status*));
 };
 
 }  // namespace milvus

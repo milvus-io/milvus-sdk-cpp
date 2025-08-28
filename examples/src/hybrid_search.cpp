@@ -29,8 +29,7 @@ main(int argc, char* argv[]) {
 
     milvus::ConnectParam connect_param{"localhost", 19530, "root", "Milvus"};
     auto status = client->Connect(connect_param);
-    util::CheckStatus("Failed to connect milvus server:", status);
-    std::cout << "Connect to milvus server." << std::endl;
+    util::CheckStatus("connect milvus server", status);
 
     // drop the collection if it exists
     const std::string collection_name = "TEST_CPP_HYBRID";
@@ -55,23 +54,20 @@ main(int argc, char* argv[]) {
         milvus::FieldSchema(field_sparse, milvus::DataType::SPARSE_FLOAT_VECTOR, "sparse vector"));
 
     status = client->CreateCollection(collection_schema);
-    util::CheckStatus("Failed to create collection:", status);
-    std::cout << "Successfully create collection " << collection_name << std::endl;
+    util::CheckStatus("create collection: " + collection_name, status);
 
     // create index
     milvus::IndexDesc index_dense(field_dense, "", milvus::IndexType::DISKANN, milvus::MetricType::COSINE);
     status = client->CreateIndex(collection_name, index_dense);
-    util::CheckStatus("Failed to create index on dense vector field:", status);
-    std::cout << "Successfully create index on dense vector field." << std::endl;
+    util::CheckStatus("create index on dense vector field", status);
 
     milvus::IndexDesc index_sparse(field_sparse, "", milvus::IndexType::SPARSE_INVERTED_INDEX, milvus::MetricType::IP);
     status = client->CreateIndex(collection_name, index_sparse);
-    util::CheckStatus("Failed to create index on sparse vector field:", status);
-    std::cout << "Successfully create index on sparse vector field." << std::endl;
+    util::CheckStatus("create index on sparse vector field", status);
 
     // tell server prepare to load collection
     status = client->LoadCollection(collection_name);
-    util::CheckStatus("Failed to load collection:", status);
+    util::CheckStatus("load collection: " + collection_name, status);
 
     // insert some rows
     const int64_t row_count = 1000;
@@ -88,8 +84,8 @@ main(int argc, char* argv[]) {
 
     milvus::DmlResults dml_results;
     status = client->Insert(collection_name, "", rows, dml_results);
-    util::CheckStatus("Failed to insert:", status);
-    std::cout << "Successfully insert " << dml_results.InsertCount() << " rows." << std::endl;
+    util::CheckStatus("insert", status);
+    std::cout << dml_results.InsertCount() << " rows inserted" << std::endl;
 
     {
         // verify the row count of the partition is 999 by query(count(*))
@@ -99,11 +95,10 @@ main(int argc, char* argv[]) {
         q_count.AddOutputField("count(*)");
         q_count.SetConsistencyLevel(milvus::ConsistencyLevel::STRONG);
 
-        milvus::QueryResults count_resutl{};
-        status = client->Query(q_count, count_resutl);
-        util::CheckStatus("Failed to query count(*):", status);
-        std::cout << "Successfully query count(*)." << std::endl;
-        std::cout << "count(*) = " << count_resutl.GetRowCount() << std::endl;
+        milvus::QueryResults count_result{};
+        status = client->Query(q_count, count_result);
+        util::CheckStatus("query count(*)", status);
+        std::cout << "count(*) = " << count_result.GetRowCount() << std::endl;
     }
 
     {
@@ -122,7 +117,7 @@ main(int argc, char* argv[]) {
         sub_req1->SetLimit(5);
         sub_req1->SetFilter(field_flag + " == 5");
         status = sub_req1->AddFloatVector(field_dense, util::GenerateFloatVector(dimension));
-        util::CheckStatus("Failed to add vector to SubSearchRequest:", status);
+        util::CheckStatus("add vector to SubSearchRequest:", status);
         s_arguments.AddSubRequest(sub_req1);
 
         // sub search request 2 for sparse vector
@@ -130,7 +125,7 @@ main(int argc, char* argv[]) {
         sub_req2->SetLimit(15);
         sub_req2->SetFilter(field_flag + " in [1, 3]");
         status = sub_req2->AddSparseVector(field_sparse, util::GenerateSparseVector(50));
-        util::CheckStatus("Failed to add vector to SubSearchRequest:", status);
+        util::CheckStatus("add vector to SubSearchRequest:", status);
         s_arguments.AddSubRequest(sub_req2);
 
         // define reranker
@@ -139,14 +134,13 @@ main(int argc, char* argv[]) {
 
         milvus::SearchResults search_results{};
         status = client->HybridSearch(s_arguments, search_results);
-        util::CheckStatus("Failed to search:", status);
-        std::cout << "Successfully search." << std::endl;
+        util::CheckStatus("search", status);
 
         for (auto& result : search_results.Results()) {
             std::cout << "Result of one target vector:" << std::endl;
             std::vector<nlohmann::json> output_rows;
             status = result.OutputRows(output_rows);
-            util::CheckStatus("Failed to get output rows:", status);
+            util::CheckStatus("get output rows", status);
             for (const auto& row : output_rows) {
                 std::cout << "\t" << row << std::endl;
             }
@@ -155,8 +149,7 @@ main(int argc, char* argv[]) {
 
     // drop collection
     status = client->DropCollection(collection_name);
-    util::CheckStatus("Failed to drop collection:", status);
-    std::cout << "Drop collection " << collection_name << std::endl;
+    util::CheckStatus("drop collection: " + collection_name, status);
 
     client->Disconnect();
     return 0;

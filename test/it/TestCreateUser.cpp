@@ -25,7 +25,7 @@ using ::testing::AllOf;
 using ::testing::ElementsAre;
 using ::testing::Property;
 
-TEST_F(MilvusMockedTest, CreateCredential) {
+TEST_F(MilvusMockedTest, CreateUser) {
     milvus::ConnectParam connect_param{"127.0.0.1", server_.ListenPort()};
     client_->Connect(connect_param);
 
@@ -36,12 +36,12 @@ TEST_F(MilvusMockedTest, CreateCredential) {
         .WillOnce([](::grpc::ServerContext*, const CreateCredentialRequest* request, ::milvus::proto::common::Status*) {
             return ::grpc::Status{};
         });
-    auto status = client_->CreateCredential("username", "password");
+    auto status = client_->CreateUser("username", "password");
 
     EXPECT_TRUE(status.IsOk());
 }
 
-TEST_F(MilvusMockedTest, CreateCredentialError) {
+TEST_F(MilvusMockedTest, CreateUserError) {
     milvus::ConnectParam connect_param{"127.0.0.1", server_.ListenPort()};
     client_->Connect(connect_param);
 
@@ -54,7 +54,7 @@ TEST_F(MilvusMockedTest, CreateCredentialError) {
             status->set_code(milvus::proto::common::ErrorCode::CreateCredentialFailure);
             return ::grpc::Status{};
         });
-    auto status = client_->CreateCredential("username", "password");
+    auto status = client_->CreateUser("username", "password");
 
     EXPECT_FALSE(status.IsOk());
     EXPECT_EQ(status.Code(), StatusCode::SERVER_FAILED);
