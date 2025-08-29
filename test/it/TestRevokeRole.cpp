@@ -18,26 +18,26 @@
 
 #include "mocks/MilvusMockedTest.h"
 
-using ::milvus::StatusCode;
-using ::milvus::proto::milvus::UpdateCredentialRequest;
+using ::milvus::proto::milvus::OperateUserRoleRequest;
 using ::testing::_;
-using ::testing::AllOf;
-using ::testing::ElementsAre;
-using ::testing::Property;
 
-TEST_F(MilvusMockedTest, UpdateCredential) {
+TEST_F(MilvusMockedTest, RevokeRole) {
     milvus::ConnectParam connect_param{"127.0.0.1", server_.ListenPort()};
     client_->Connect(connect_param);
 
-    EXPECT_CALL(service_, UpdateCredential(_,
-                                           AllOf(Property(&UpdateCredentialRequest::username, "username"),
-                                                 Property(&UpdateCredentialRequest::oldpassword, "b2xk"),
-                                                 Property(&UpdateCredentialRequest::newpassword, "bmV3")),
-                                           _))
-        .WillOnce([](::grpc::ServerContext*, const UpdateCredentialRequest* request, ::milvus::proto::common::Status*) {
+    const std::string user_name = "Foo";
+    const std::string role_name = "Bar";
+
+    EXPECT_CALL(service_, OperateUserRole(_, _, _))
+        .WillOnce([&user_name, &role_name](::grpc::ServerContext*, const OperateUserRoleRequest* request,
+                                           ::milvus::proto::common::Status*) {
+            EXPECT_EQ(request->username(), user_name);
+            EXPECT_EQ(request->role_name(), role_name);
+            EXPECT_EQ(request->type(), ::milvus::proto::milvus::OperateUserRoleType::RemoveUserFromRole);
+
             return ::grpc::Status{};
         });
-    auto status = client_->UpdateCredential("username", "old", "new");
 
+    auto status = client_->RevokeRole(user_name, role_name);
     EXPECT_TRUE(status.IsOk());
 }

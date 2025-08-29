@@ -36,15 +36,18 @@
 #include "types/IndexState.h"
 #include "types/PartitionInfo.h"
 #include "types/PartitionStat.h"
+#include "types/PrivilegeGroupInfo.h"
 #include "types/ProgressMonitor.h"
 #include "types/QueryArguments.h"
 #include "types/QueryResults.h"
 #include "types/ResourceGroupConfig.h"
 #include "types/ResourceGroupDesc.h"
 #include "types/RetryParam.h"
+#include "types/RoleDesc.h"
 #include "types/SearchArguments.h"
 #include "types/SearchResults.h"
 #include "types/SegmentInfo.h"
+#include "types/UserDesc.h"
 
 /**
  *  @brief namespace milvus
@@ -786,6 +789,7 @@ class MilvusClient {
 
     /**
      * @brief Create Credential.
+     * @deprecated replaced by CreateUser() in v2.4
      *
      * @param [in] username the username for created
      * @param [in] password the password for the user to be created
@@ -796,6 +800,7 @@ class MilvusClient {
 
     /**
      * @brief Update Credential.
+     * @deprecated replaced by UpdatePassword() in v2.4
      *
      * @param [in] username the username for updated
      * @param [in] old_password the old password for the user
@@ -807,6 +812,7 @@ class MilvusClient {
 
     /**
      * @brief Delete Credential.
+     * @deprecated replaced by DropUser() in v2.4
      *
      * @param [in] username the username to be deleted
      * @return Status operation successfully or not
@@ -815,7 +821,8 @@ class MilvusClient {
     DeleteCredential(const std::string& username) = 0;
 
     /**
-     * @brief List Users
+     * @brief List Users.
+     * @deprecated replaced by ListUsers() in v2.4
      *
      * @param [out] the usernames
      * @return Status operation successfully or not
@@ -824,7 +831,7 @@ class MilvusClient {
     ListCredUsers(std::vector<std::string>& names) = 0;
 
     /**
-     * @brief Create a resource group
+     * @brief Create a resource group.
      *
      * @param [in] name name of the resource group
      * @param [in] config configurations of the resource group
@@ -834,7 +841,7 @@ class MilvusClient {
     CreateResourceGroup(const std::string& name, const ResourceGroupConfig& config) = 0;
 
     /**
-     * @brief Drop a resource group
+     * @brief Drop a resource group.
      *
      * @param [in] name name of the resource group
      * @return Status operation successfully or not
@@ -843,7 +850,7 @@ class MilvusClient {
     DropResourceGroup(const std::string& name) = 0;
 
     /**
-     * @brief Update resource groups
+     * @brief Update resource groups.
      *
      * @param [in] name name of the resource group
      * @param [in] groups configurations of the resource groups
@@ -853,7 +860,7 @@ class MilvusClient {
     UpdateResourceGroups(const std::unordered_map<std::string, ResourceGroupConfig>& groups) = 0;
 
     /**
-     * @brief Transfer nodes to another resource groups
+     * @brief Transfer nodes to another resource groups.
      *
      * @param [in] source_group name of the source resource group
      * @param [in] target_group name of the target resource group
@@ -864,7 +871,7 @@ class MilvusClient {
     TransferNode(const std::string& source_group, const std::string& target_group, uint32_t num_nodes) = 0;
 
     /**
-     * @brief Transfer replicas of a collection from source group to target group
+     * @brief Transfer replicas of a collection from source group to target group.
      *
      * @param [in] source_group name of the source resource group
      * @param [in] target_group name of the target resource group
@@ -877,7 +884,7 @@ class MilvusClient {
                     const std::string& collection_name, uint32_t num_replicas) = 0;
 
     /**
-     * @brief List all the resource groups under the current database
+     * @brief List all the resource groups under the current database.
      *
      * @param [out] group_names names of the resource groups
      * @return Status operation successfully or not
@@ -886,7 +893,7 @@ class MilvusClient {
     ListResourceGroups(std::vector<std::string>& group_names) = 0;
 
     /**
-     * @brief Describe a resource group
+     * @brief Describe a resource group.
      *
      * @param [in] group_name name of the resource group
      * @param [out] desc details of the resource group
@@ -894,6 +901,188 @@ class MilvusClient {
      */
     virtual Status
     DescribeResourceGroup(const std::string& group_name, ResourceGroupDesc& desc) = 0;
+
+    /**
+     * @brief Create an user.
+     *
+     * @param [in] user_name name of the user
+     * @param [in] password password of the user
+     * @return Status operation successfully or not
+     */
+    virtual Status
+    CreateUser(const std::string& user_name, const std::string& password) = 0;
+
+    /**
+     * @brief Update password of an user.
+     *
+     * @param [in] user_name name of the user
+     * @param [in] old_password the old password for the user
+     * @param [in] new_password the updated password for the user
+     * @return Status operation successfully or not
+     */
+    virtual Status
+    UpdatePassword(const std::string& user_name, const std::string& old_password, const std::string& new_password) = 0;
+
+    /**
+     * @brief Drop an user.
+     *
+     * @param [in] user_name name of the user
+     * @return Status operation successfully or not
+     */
+    virtual Status
+    DropUser(const std::string& user_name) = 0;
+
+    /**
+     * @brief Describe an user.
+     *
+     * @param [in] user_name name of the user
+     * @param [out] desc description of the user
+     * @return Status operation successfully or not
+     */
+    virtual Status
+    DescribeUser(const std::string& user_name, UserDesc& desc) = 0;
+
+    /**
+     * @brief List users.
+     *
+     * @param [out] names names of users
+     * @return Status operation successfully or not
+     */
+    virtual Status
+    ListUsers(std::vector<std::string>& names) = 0;
+
+    /**
+     * @brief Create a role.
+     *
+     * @param [in] role_name name of the role
+     * @return Status operation successfully or not
+     */
+    virtual Status
+    CreateRole(const std::string& role_name) = 0;
+
+    /**
+     * @brief Drop a role.
+     *
+     * @param [in] role_name name of the role
+     * @param [in] force_drop force to drop the role even if there is permission binding
+     * @return Status operation successfully or not
+     */
+    virtual Status
+    DropRole(const std::string& role_name, bool force_drop = false) = 0;
+
+    /**
+     * @brief Describe an role.
+     *
+     * @param [in] role_name name of the role
+     * @param [out] desc description of the role
+     * @return Status operation successfully or not
+     */
+    virtual Status
+    DescribeRole(const std::string& role_name, RoleDesc& desc) = 0;
+
+    /**
+     * @brief List roles.
+     *
+     * @param [out] names names of roles
+     * @return Status operation successfully or not
+     */
+    virtual Status
+    ListRoles(std::vector<std::string>& names) = 0;
+
+    /**
+     * @brief Grant a role to an user.
+     *
+     * @param [in] user_name name of the user
+     * @param [in] role_name name of the role
+     * @return Status operation successfully or not
+     */
+    virtual Status
+    GrantRole(const std::string& user_name, const std::string& role_name) = 0;
+
+    /**
+     * @brief Revoke a role from an user.
+     *
+     * @param [in] user_name name of the user
+     * @param [in] role_name name of the role
+     * @return Status operation successfully or not
+     */
+    virtual Status
+    RevokeRole(const std::string& user_name, const std::string& role_name) = 0;
+
+    /**
+     * @brief Grant a privilege or a privilege group to a role.
+     * For more info: https://milvus.io/docs/v2.4.x/users_and_roles.md
+     *
+     * @param [in] role_name name of the role
+     * @param [in] privilege the privilege or privilege group to grant
+     * @param [in] collection_name name of a collection, "*" for all collections
+     * @param [in] db_name name of a database, "*" for all databases
+     * @return Status operation successfully or not
+     */
+    virtual Status
+    GrantPrivilege(const std::string& role_name, const std::string& privilege, const std::string& collection_name,
+                   const std::string& db_name) = 0;
+
+    /**
+     * @brief Revoke a privilege or a privilege group from a role.
+     * For more info: https://milvus.io/docs/v2.4.x/users_and_roles.md
+     *
+     * @param [in] role_name name of the role
+     * @param [in] privilege the privilege or privilege group to revoke
+     * @param [in] collection_name name of a collection, "*" for all collections
+     * @param [in] db_name name of a database, "*" for all databases
+     * @return Status operation successfully or not
+     */
+    virtual Status
+    RevokePrivilege(const std::string& role_name, const std::string& privilege, const std::string& collection_name,
+                    const std::string& db_name) = 0;
+
+    /**
+     * @brief Create a privilege group.
+     *
+     * @param [in] group_name name of the privilege group
+     * @return Status operation successfully or not
+     */
+    virtual Status
+    CreatePrivilegeGroup(const std::string& group_name) = 0;
+
+    /**
+     * @brief Drop a privilege group.
+     *
+     * @param [in] group_name name of the privilege group
+     * @return Status operation successfully or not
+     */
+    virtual Status
+    DropPrivilegeGroup(const std::string& group_name) = 0;
+
+    /**
+     * @brief List all the privilege groups.
+     *
+     * @param [out] groups a list of privilege groups
+     * @return Status operation successfully or not
+     */
+    virtual Status
+    ListPrivilegeGroups(PrivilegeGroupInfos& groups) = 0;
+
+    /**
+     * @brief Add privileges to a privilege group.
+     *
+     * @param [in] group_name name of the privilege group
+     * @param [in] privileges a list of privileges
+     * @return Status operation successfully or not
+     */
+    virtual Status
+    AddPrivilegesToGroup(const std::string& group_name, const std::vector<std::string>& privileges) = 0;
+
+    /**
+     * @brief Remove privileges from a privilege group.
+     *
+     * @param [in] group_name name of the privilege group
+     * @param [in] privileges a list of privileges
+     * @return Status operation successfully or not
+     */
+    virtual Status
+    RemovePrivilegesFromGroup(const std::string& group_name, const std::vector<std::string>& privileges) = 0;
 };
 
 using MilvusClientPtr = std::shared_ptr<MilvusClient>;
