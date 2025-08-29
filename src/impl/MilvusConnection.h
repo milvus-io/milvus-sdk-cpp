@@ -318,6 +318,50 @@ class MilvusConnection {
     DescribeResourceGroup(const proto::milvus::DescribeResourceGroupRequest& request,
                           proto::milvus::DescribeResourceGroupResponse& response, const GrpcContextOptions& options);
 
+    Status
+    SelectUser(const proto::milvus::SelectUserRequest& request, proto::milvus::SelectUserResponse& response,
+               const GrpcContextOptions& options);
+
+    Status
+    SelectRole(const proto::milvus::SelectRoleRequest& request, proto::milvus::SelectRoleResponse& response,
+               const GrpcContextOptions& options);
+
+    Status
+    SelectGrant(const proto::milvus::SelectGrantRequest& request, proto::milvus::SelectGrantResponse& response,
+                const GrpcContextOptions& options);
+
+    Status
+    CreateRole(const proto::milvus::CreateRoleRequest& request, proto::common::Status& response,
+               const GrpcContextOptions& options);
+
+    Status
+    DropRole(const proto::milvus::DropRoleRequest& request, proto::common::Status& response,
+             const GrpcContextOptions& options);
+
+    Status
+    OperateUserRole(const proto::milvus::OperateUserRoleRequest& request, proto::common::Status& response,
+                    const GrpcContextOptions& options);
+
+    Status
+    OperatePrivilegeV2(const proto::milvus::OperatePrivilegeV2Request& request, proto::common::Status& response,
+                       const GrpcContextOptions& options);
+
+    Status
+    CreatePrivilegeGroup(const proto::milvus::CreatePrivilegeGroupRequest& request, proto::common::Status& response,
+                         const GrpcContextOptions& options);
+
+    Status
+    DropPrivilegeGroup(const proto::milvus::DropPrivilegeGroupRequest& request, proto::common::Status& response,
+                       const GrpcContextOptions& options);
+
+    Status
+    ListPrivilegeGroups(const proto::milvus::ListPrivilegeGroupsRequest& request,
+                        proto::milvus::ListPrivilegeGroupsResponse& response, const GrpcContextOptions& options);
+
+    Status
+    OperatePrivilegeGroup(const proto::milvus::OperatePrivilegeGroupRequest& request, proto::common::Status& response,
+                          const GrpcContextOptions& options);
+
  private:
     std::unique_ptr<proto::milvus::MilvusService::Stub> stub_;
     std::shared_ptr<grpc::Channel> channel_;

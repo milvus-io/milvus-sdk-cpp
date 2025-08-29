@@ -29,12 +29,11 @@ main(int argc, char* argv[]) {
 
     milvus::ConnectParam connect_param{"localhost", 19530, "root", "Milvus"};
     auto status = client->Connect(connect_param);
-    util::CheckStatus("Failed to connect milvus server:", status);
-    std::cout << "Connect to milvus server." << std::endl;
+    util::CheckStatus("connect milvus server", status);
 
     std::vector<std::string> db_names;
     status = client->ListDatabases(db_names);
-    util::CheckStatus("Failed to create database:", status);
+    util::CheckStatus("list databases", status);
 
     const std::string my_db_name = "my_temp_db_for_cpp_test";
     std::cout << "Databases: ";
@@ -46,16 +45,15 @@ main(int argc, char* argv[]) {
     std::unordered_map<std::string, std::string> props;
     props.emplace("database.replica.number", "2");
     status = client->CreateDatabase(my_db_name, props);
-    util::CheckStatus("Failed to create database:", status);
-    std::cout << "Database created: " << my_db_name << std::endl;
+    util::CheckStatus("create database: " + my_db_name, status);
 
     milvus::DatabaseDesc db_desc;
     status = client->DescribeDatabase(my_db_name, db_desc);
-    util::CheckStatus("Failed to describe database:", status);
+    util::CheckStatus("describe database: " + my_db_name, status);
     std::cout << "database.replica.number = " << db_desc.Properties().at("database.replica.number") << std::endl;
 
     status = client->UseDatabase(my_db_name);
-    util::CheckStatus("Failed to switch database:", status);
+    util::CheckStatus("switch database:" + my_db_name, status);
     std::string current_db_name;
     client->CurrentUsedDatabase(current_db_name);
     std::cout << "Current in-used database: " << current_db_name << std::endl;
@@ -82,34 +80,29 @@ main(int argc, char* argv[]) {
         milvus::FieldSchema(field_face, milvus::DataType::FLOAT_VECTOR, "face signature").WithDimension(dimension));
 
     status = client->CreateCollection(collection_schema);
-    util::CheckStatus("Failed to create collection:", status);
-    std::cout << "Successfully create collection " << collection_name << std::endl;
+    util::CheckStatus("create collection: " + collection_name, status);
 
     // create index (required after 2.2.0)
     milvus::IndexDesc index_vector(field_face, "", milvus::IndexType::FLAT, milvus::MetricType::COSINE);
     status = client->CreateIndex(collection_name, index_vector);
-    util::CheckStatus("Failed to create index on vector field:", status);
-    std::cout << "Successfully create index." << std::endl;
+    util::CheckStatus("create index on vector field", status);
 
     milvus::IndexDesc index_varchar(field_name, "", milvus::IndexType::TRIE);
     status = client->CreateIndex(collection_name, index_varchar);
-    util::CheckStatus("Failed to create index on varchar field:", status);
-    std::cout << "Successfully create index." << std::endl;
+    util::CheckStatus("create index on varchar field", status);
 
     milvus::IndexDesc index_sort(field_age, "", milvus::IndexType::STL_SORT);
     status = client->CreateIndex(collection_name, index_sort);
-    util::CheckStatus("Failed to create index on integer field:", status);
-    std::cout << "Successfully create index." << std::endl;
+    util::CheckStatus("create index on integer field", status);
 
     // create a partition
     std::string partition_name = "Year_2022";
     status = client->CreatePartition(collection_name, partition_name);
-    util::CheckStatus("Failed to create partition:", status);
-    std::cout << "Successfully create partition." << std::endl;
+    util::CheckStatus("create partition: " + partition_name, status);
 
     // tell server prepare to load collection
     status = client->LoadCollection(collection_name);
-    util::CheckStatus("Failed to load collection:", status);
+    util::CheckStatus("load collection: " + collection_name, status);
 
     // insert data by column-based
     const int64_t row_count = 1000;
@@ -130,14 +123,13 @@ main(int argc, char* argv[]) {
         std::make_shared<milvus::FloatVecFieldData>(field_face, insert_vectors)};
     milvus::DmlResults dml_results;
     status = client->Insert(collection_name, partition_name, fields_data, dml_results);
-    util::CheckStatus("Failed to insert:", status);
-    std::cout << "Successfully insert " << dml_results.InsertCount() << " rows." << std::endl;
+    util::CheckStatus("insert", status);
+    std::cout << dml_results.InsertCount() << " rows inserted." << std::endl;
 
     // delete the item whose primary key is 5
     milvus::DmlResults del_res;
     status = client->Delete(collection_name, partition_name, field_id + "== 5", del_res);
-    util::CheckStatus("Failed to delete entity:", status);
-    std::cout << "Delete entity whose id is 5" << std::endl;
+    util::CheckStatus("delete entity whose id is 5", status);
 
     {
         // verify the row count of the partition is 999 by query(count(*))
@@ -148,16 +140,15 @@ main(int argc, char* argv[]) {
         q_count.AddOutputField("count(*)");
         q_count.SetConsistencyLevel(milvus::ConsistencyLevel::STRONG);
 
-        milvus::QueryResults count_resutl{};
-        status = client->Query(q_count, count_resutl);
-        util::CheckStatus("Failed to query count(*):", status);
-        std::cout << "Successfully query count(*) on partition." << std::endl;
-        std::cout << "partition count(*) = " << count_resutl.GetRowCount() << std::endl;
+        milvus::QueryResults count_result{};
+        status = client->Query(q_count, count_result);
+        util::CheckStatus("query count(*) on partition", status);
+        std::cout << "partition count(*) = " << count_result.GetRowCount() << std::endl;
     }
 
     // now we switch back to the default database
     status = client->UseDatabase("default");
-    util::CheckStatus("Failed to switch default database:", status);
+    util::CheckStatus("switch default database", status);
     client->CurrentUsedDatabase(current_db_name);
     std::cout << "Current in-used database: " << current_db_name << std::endl;
 
@@ -175,12 +166,11 @@ main(int argc, char* argv[]) {
         q_arguments.SetConsistencyLevel(milvus::ConsistencyLevel::EVENTUALLY);
 
         std::cout << "Query with expression: " << q_arguments.Filter() << std::endl;
-        milvus::QueryResults query_resutls{};
-        status = client->Query(q_arguments, query_resutls);
-        util::CheckStatus("Failed to query:", status);
-        std::cout << "Successfully query." << std::endl;
+        milvus::QueryResults query_results{};
+        status = client->Query(q_arguments, query_results);
+        util::CheckStatus("query", status);
 
-        for (auto& field_data : query_resutls.OutputFields()) {
+        for (auto& field_data : query_results.OutputFields()) {
             std::cout << "Field: " << field_data->Name() << " Count:" << field_data->Count() << std::endl;
         }
     }
@@ -209,8 +199,7 @@ main(int argc, char* argv[]) {
 
         milvus::SearchResults search_results{};
         status = client->Search(s_arguments, search_results);
-        util::CheckStatus("Failed to search:", status);
-        std::cout << "Successfully search." << std::endl;
+        util::CheckStatus("search", status);
 
         for (auto& result : search_results.Results()) {
             auto& ids = result.Ids().IntIDArray();
@@ -238,24 +227,21 @@ main(int argc, char* argv[]) {
 
     // now we switch back to our database, since some interfaces no db_name parameter
     status = client->UseDatabase(my_db_name);
-    util::CheckStatus("Failed to switch database:", status);
+    util::CheckStatus("switch database: " + my_db_name, status);
     client->CurrentUsedDatabase(current_db_name);
     std::cout << "Current in-used database: " << current_db_name << std::endl;
 
     // release collection
     status = client->ReleaseCollection(collection_name);
-    util::CheckStatus("Failed to release collection:", status);
-    std::cout << "Release collection " << collection_name << std::endl;
+    util::CheckStatus("release collection: " + collection_name, status);
 
     // drop index
     status = client->DropIndex(collection_name, field_face);
-    util::CheckStatus("Failed to drop index:", status);
-    std::cout << "Drop index for field: " << field_face << std::endl;
+    util::CheckStatus("drop index on field: " + field_face, status);
 
     // drop partition
     status = client->DropPartition(collection_name, partition_name);
-    util::CheckStatus("Failed to drop partition:", status);
-    std::cout << "Drop partition " << partition_name << std::endl;
+    util::CheckStatus("drop partition: " + partition_name, status);
 
     {
         // verify the row count should be 0
@@ -267,24 +253,22 @@ main(int argc, char* argv[]) {
         std::this_thread::sleep_for(std::chrono::seconds(5));
         milvus::CollectionStat col_stat;
         status = client->GetCollectionStatistics(collection_name, col_stat);
-        util::CheckStatus("Failed to get collection statistics:", status);
+        util::CheckStatus("get collection statistics: " + collection_name, status);
         std::cout << "Collection " << collection_name << " row count: " << col_stat.RowCount() << std::endl;
     }
 
     // drop collection
     status = client->DropCollection(collection_name);
-    util::CheckStatus("Failed to drop collection:", status);
-    std::cout << "Drop collection " << collection_name << std::endl;
+    util::CheckStatus("drop collection: " + collection_name, status);
 
     // now we switch back to the default database, prepare to delete our empty database
     status = client->UseDatabase(my_db_name);
-    util::CheckStatus("Failed to switch default database:", status);
+    util::CheckStatus("switch default database", status);
     client->CurrentUsedDatabase(current_db_name);
     std::cout << "Current in-used database: " << current_db_name << std::endl;
 
     status = client->DropDatabase(my_db_name);
-    util::CheckStatus("Failed to drop database:", status);
-    std::cout << "Drop database: " << my_db_name << std::endl;
+    util::CheckStatus("drop database: " + my_db_name, status);
 
     client->Disconnect();
     return 0;

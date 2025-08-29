@@ -284,6 +284,63 @@ class MilvusClientImpl : public MilvusClient {
     Status
     DescribeResourceGroup(const std::string& group_name, ResourceGroupDesc& desc) final;
 
+    Status
+    CreateUser(const std::string& user_name, const std::string& password) final;
+
+    Status
+    UpdatePassword(const std::string& user_name, const std::string& old_password,
+                   const std::string& new_password) final;
+
+    Status
+    DropUser(const std::string& user_name) final;
+
+    Status
+    DescribeUser(const std::string& user_name, UserDesc& desc) final;
+
+    Status
+    ListUsers(std::vector<std::string>& names) final;
+
+    Status
+    CreateRole(const std::string& role_name) final;
+
+    Status
+    DropRole(const std::string& role_name, bool force_drop) final;
+
+    Status
+    DescribeRole(const std::string& role_name, RoleDesc& desc) final;
+
+    Status
+    ListRoles(std::vector<std::string>& names) final;
+
+    Status
+    GrantRole(const std::string& user_name, const std::string& role_name) final;
+
+    Status
+    RevokeRole(const std::string& user_name, const std::string& role_name) final;
+
+    Status
+    GrantPrivilege(const std::string& role_name, const std::string& privilege, const std::string& collection_name,
+                   const std::string& db_name) final;
+
+    Status
+    RevokePrivilege(const std::string& role_name, const std::string& privilege, const std::string& collection_name,
+                    const std::string& db_name) final;
+
+    Status
+    CreatePrivilegeGroup(const std::string& group_name) final;
+
+    Status
+    DropPrivilegeGroup(const std::string& group_name) final;
+
+    Status
+    ListPrivilegeGroups(PrivilegeGroupInfos& groups) final;
+
+    Status
+    AddPrivilegesToGroup(const std::string& group_name, const std::vector<std::string>& privileges) final;
+
+    Status
+    RemovePrivilegesFromGroup(const std::string& group_name, const std::vector<std::string>& privileges) final;
+
  private:
     // This interface is not exposed to users
     Status

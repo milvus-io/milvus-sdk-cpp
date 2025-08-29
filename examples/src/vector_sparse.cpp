@@ -29,8 +29,7 @@ main(int argc, char* argv[]) {
 
     milvus::ConnectParam connect_param{"localhost", 19530, "root", "Milvus"};
     auto status = client->Connect(connect_param);
-    util::CheckStatus("Failed to connect milvus server:", status);
-    std::cout << "Connect to milvus server." << std::endl;
+    util::CheckStatus("connect milvus server", status);
 
     // drop the collection if it exists
     const std::string collection_name = "TEST_CPP_SPARSE";
@@ -48,18 +47,16 @@ main(int argc, char* argv[]) {
     collection_schema.AddField(milvus::FieldSchema(field_text, milvus::DataType::VARCHAR).WithMaxLength(1024));
 
     status = client->CreateCollection(collection_schema);
-    util::CheckStatus("Failed to create collection:", status);
-    std::cout << "Successfully create collection " << collection_name << std::endl;
+    util::CheckStatus("create collection: " + collection_name, status);
 
     // create index
     milvus::IndexDesc index_vector(field_vector, "", milvus::IndexType::SPARSE_INVERTED_INDEX, milvus::MetricType::IP);
     status = client->CreateIndex(collection_name, index_vector);
-    util::CheckStatus("Failed to create index on vector field:", status);
-    std::cout << "Successfully create index." << std::endl;
+    util::CheckStatus("create index on vector field", status);
 
     // tell server prepare to load collection
     status = client->LoadCollection(collection_name);
-    util::CheckStatus("Failed to load collection:", status);
+    util::CheckStatus("load collection: " + collection_name, status);
 
     {
         // insert some rows by column-based
@@ -72,8 +69,8 @@ main(int argc, char* argv[]) {
             std::make_shared<milvus::SparseFloatVecFieldData>(field_vector, vectors)};
         milvus::DmlResults dml_results;
         status = client->Insert(collection_name, "", fields_data, dml_results);
-        util::CheckStatus("Failed to insert:", status);
-        std::cout << "Successfully insert " << dml_results.InsertCount() << " rows by column-based." << std::endl;
+        util::CheckStatus("insert", status);
+        std::cout << dml_results.InsertCount() << " rows inserted by column-based." << std::endl;
     }
 
     const int64_t row_count = 10;
@@ -90,8 +87,8 @@ main(int argc, char* argv[]) {
 
         milvus::DmlResults dml_results;
         status = client->Insert(collection_name, "", rows, dml_results);
-        util::CheckStatus("Failed to insert:", status);
-        std::cout << "Successfully insert " << dml_results.InsertCount() << " rows by row-based." << std::endl;
+        util::CheckStatus("insert", status);
+        std::cout << dml_results.InsertCount() << " rows inserted by row-based." << std::endl;
     }
 
     // query
@@ -103,14 +100,13 @@ main(int argc, char* argv[]) {
     // set to strong level so that the query is executed after the inserted data is consumed by server
     q_arguments.SetConsistencyLevel(milvus::ConsistencyLevel::STRONG);
 
-    milvus::QueryResults query_resutls{};
-    status = client->Query(q_arguments, query_resutls);
-    util::CheckStatus("Failed to query:", status);
-    std::cout << "Successfully query." << std::endl;
+    milvus::QueryResults query_results{};
+    status = client->Query(q_arguments, query_results);
+    util::CheckStatus("query", status);
 
     std::vector<nlohmann::json> output_rows;
-    status = query_resutls.OutputRows(output_rows);
-    util::CheckStatus("Failed to get output rows:", status);
+    status = query_results.OutputRows(output_rows);
+    util::CheckStatus("get output rows", status);
     std::cout << "Query results:" << std::endl;
     for (const auto& row : output_rows) {
         std::cout << "\t" << row << std::endl;
@@ -136,14 +132,13 @@ main(int argc, char* argv[]) {
 
     milvus::SearchResults search_results{};
     status = client->Search(s_arguments, search_results);
-    util::CheckStatus("Failed to search:", status);
-    std::cout << "Successfully search." << std::endl;
+    util::CheckStatus("search", status);
 
     for (auto& result : search_results.Results()) {
         std::cout << "Result of one target vector:" << std::endl;
         std::vector<nlohmann::json> output_rows;
         status = result.OutputRows(output_rows);
-        util::CheckStatus("Failed to get output rows:", status);
+        util::CheckStatus("get output rows", status);
         for (const auto& row : output_rows) {
             std::cout << "\t" << row << std::endl;
         }
