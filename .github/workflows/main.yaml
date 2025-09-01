@@ -117,10 +117,12 @@ jobs:
         run: |
           make coverage
       - name: Upload coverage
-        uses: codecov/codecov-action@v3
+        uses: codecov/codecov-action@v5
         with:
           files: ./code_coverage/lcov_output.info
           name: ubuntu-${{ matrix.ubuntu }}-coverage
+          disable_safe_directory: true
+          verbose: true
   macos:
     name: Build and test macOS ${{ matrix.macos }}
     runs-on: macos-${{ matrix.macos }}
