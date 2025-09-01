@@ -56,7 +56,7 @@ coverage:
 	@(env bash $(PWD)/scripts/build.sh -u -c)
 	@(env bash $(PWD)/scripts/coverage.sh)
 
-documentation:
+doc:
 	@echo "Generating Milvus SDK documentation ..."
 	rm -rf ./doc/html ./doc/latex
 	doxygen ./doc/Doxyfile
@@ -65,4 +65,4 @@ clean:
 	@echo "Cleaning"
 	rm -fr cmake_build/
 
-.PHONY: test clean
+.PHONY: test clean doc

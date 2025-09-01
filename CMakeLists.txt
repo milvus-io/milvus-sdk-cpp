@@ -73,9 +73,18 @@ set(BUILD_SCRIPTS_DIR ${PROJECT_SOURCE_DIR}/scripts)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 
-# This will set RPATH to all excutable TARGET
+# set the GRPC_PATH variable to specify external gRPC installed path
+if ("${GRPC_PATH}" STREQUAL "")
+    set(MILVUS_WITH_GRPC "module")
+    set(CMAKE_INSTALL_RPATH "/usr/lib" "${CMAKE_INSTALL_PREFIX}/lib" "${CMAKE_INSTALL_PREFIX}/lib64" )
+else ()
+    set(MILVUS_WITH_GRPC "package")
+    set(GRPC_LIB_PATH ${GRPC_PATH}/lib)
+    set(CMAKE_INSTALL_RPATH "/usr/lib" "${CMAKE_INSTALL_PREFIX}/lib" "${CMAKE_INSTALL_PREFIX}/lib64" "${GRPC_LIB_PATH}" )
+endif ()
+
+# CMAKE_INSTALL_RPATH and CMAKE_INSTALL_RPATH_USE_LINK_PATH will set RPATH to all excutable TARGET
 # self-installed dynamic libraries will be correctly linked by excutable
-set(CMAKE_INSTALL_RPATH "/usr/lib" "${CMAKE_INSTALL_PREFIX}/lib" "${CMAKE_INSTALL_PREFIX}/lib64" )
 set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 
 
