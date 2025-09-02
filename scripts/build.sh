@@ -114,6 +114,10 @@ if [ -f /opt/rh/devtoolset-7/enable ] ; then
   source /opt/rh/devtoolset-7/enable
 fi
 
+# if the external gRPC is specified, the testing binaries require the LD_LIBRARY_PATH to include gRPC lib path
+# and the protoc exe also needs the path to dynamic link dependencies
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:${GRPC_PATH}/lib
+
 CMAKE_CMD="cmake \
 -DCMAKE_BUILD_TYPE=${BUILD_TYPE} \
 -DMILVUS_BUILD_TEST=${BUILD_TEST} \
@@ -121,6 +125,8 @@ CMAKE_CMD="cmake \
 -DMILVUS_SDK_VERSION=${MILVUS_SDK_VERSION} \
 -DCMAKE_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX} \
 -DBUILD_SHARED_LIBS=${BUILD_SHARED_LIBS} \
+-DGRPC_PATH=${GRPC_PATH} \
+-DLD_LIBRARY_PATH=${LD_LIBRARY_PATH} \
 ../"
 echo ${CMAKE_CMD}
 ${CMAKE_CMD}

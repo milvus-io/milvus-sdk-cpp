@@ -22,6 +22,10 @@ Currently, we tested the below platform and compilers for developing Milvus C++ 
 ### Clone the code
 
 ```shell
+$ git clone https://github.com/milvus-io/milvus-sdk-cpp.git
+```
+Or:
+```shell
 $ git clone git@github.com:milvus-io/milvus-sdk-cpp.git
 ```
 
@@ -34,19 +38,59 @@ $ bash scripts/install_deps.sh
 
 This script could help you set a developing environment from a minimal installation.
 
-## Build SDK
-You could build the debug versioned SDK with `make` in the source directory.
+## Building from source
 
-Or `make all-release` to build the release version.
+You could build the debug versioned SDK with `make` in the source directory, or `make all-release` to build the release version.
 
 And you could also create a dedicated CMake build directory, then use CMake to build it from the source by yourself
 
 ```shell
-$ mkdir build
-$ cd build
+$ cd milvus-sdk-cpp
+$ mkdir cmake_build
+$ cd cmake_build
 $ cmake ..
 $ make
 ```
+
+## Building with external gRPC
+
+By default, `make` command downloads gRPC source code from github and compile it under the CMake build directory.
+
+You can use a pre-built gRPC lib build by youself. milvus-sdk-cpp 2.4 is using gRPC v1.59.0, make sure your gRPC version is compatible.
+
+### Download gRPC source code
+```shell
+$ git clone https://github.com/grpc/grpc.git
+$ git checkout v1.59.0
+$ git submodule update --init
+```
+Or:
+```shell
+$ git clone git@github.com:grpc/grpc.git
+$ git checkout v1.59.0
+$ git submodule update --init
+```
+
+### Build gRPC dynamic lib from source code and install it
+```shell
+$ cd grpc
+$ mkdir cmake_build
+$ cd cmake_build
+$ cmake -DCMAKE_INSTALL_PREFIX=/path/to/pre-installed/grpc  -DBUILD_SHARED_LIBS=ON ..
+$ make
+$ make install
+```
+Make sure the `BUILD_SHARED_LIBS` is `ON` since milvus-sdk-cpp dynamiclly links to gRPC.
+
+### Use `GRPC_PATH` to specify the external gRPC and build milvus-sdk-cpp
+```shell
+$ cd milvus-sdk-cpp
+$ mkdir cmake_build
+$ cd cmake_build
+$ cmake ..
+$ make GRPC_PATH=/path/to/pre-installed/grpc
+```
+With `GRPC_PATH`, milvus-sdk-cpp will skip gRPC downloading and compile/link with the external gRPC.
 
 ## Code style for Milvus C++ SDK
 Milvus C++ SDK project using the similar clang-format and clang-tidy rules
@@ -64,11 +108,23 @@ to automatic format all c++ source code
 ## Run tests, and add testing code
 Milvus C++ SDK using googletest as a test framework. You could run `make test` to run unit testing and integration testing.
 
+If you have an pre-installed gRPC, use `GRPC_PATH` to specify the path:
+```shell
+$ make test GRPC_PATH=/path/to/pre-installed/grpc
+```
+
 If you add some new code, you'd better add related testing code together.
 We have below test scopes:
 - Test code under `test/ut`: the code could run without any Milvus server, which we called unit testing. 
 - Test code under `test/it`: the code needs to run with a mocked server, which we called integration testing.
 - Test code under `test/st`: the code needs to run with a real Milvus server, which we called that acceptance testing.
+
+The test cases are built as executable binaries under the path `cmake_build/test`:
+```shell
+$ ./cmake_build/test/testing-it
+$ ./cmake_build/test/testing-ut
+$ ./cmake_build/test/testing-st
+```
 
 ### Run acceptance/system tests with real Milvus server
 The acceptance/system tests are not included by default. You cloud using the below commands to run them:
