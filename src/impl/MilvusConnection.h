@@ -413,4 +413,8 @@ class MilvusConnection {
         return StatusByProtoResponse(response);
     }
 };
+
+using GrpcOpts = MilvusConnection::GrpcContextOptions;
+using MilvusConnectionPtr = std::shared_ptr<MilvusConnection>;
+
 }  // namespace milvus

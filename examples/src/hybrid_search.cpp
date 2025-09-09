@@ -31,11 +31,7 @@ main(int argc, char* argv[]) {
     auto status = client->Connect(connect_param);
     util::CheckStatus("connect milvus server", status);
 
-    // drop the collection if it exists
     const std::string collection_name = "TEST_CPP_HYBRID";
-    status = client->DropCollection(collection_name);
-
-    // create a collection
     const std::string field_id = "id";
     const std::string field_flag = "flag";
     const std::string field_text = "text";
@@ -43,7 +39,7 @@ main(int argc, char* argv[]) {
     const std::string field_sparse = "sparse";
     const uint32_t dimension = 128;
 
-    // collection schema, create collection
+    // collection schema, drop and create collection
     milvus::CollectionSchema collection_schema(collection_name);
     collection_schema.AddField({field_id, milvus::DataType::INT64, "id", true, false});
     collection_schema.AddField({field_flag, milvus::DataType::INT16, "flag"});
@@ -53,6 +49,7 @@ main(int argc, char* argv[]) {
     collection_schema.AddField(
         milvus::FieldSchema(field_sparse, milvus::DataType::SPARSE_FLOAT_VECTOR, "sparse vector"));
 
+    status = client->DropCollection(collection_name);
     status = client->CreateCollection(collection_schema);
     util::CheckStatus("create collection: " + collection_name, status);
 
@@ -71,9 +68,9 @@ main(int argc, char* argv[]) {
 
     // insert some rows
     const int64_t row_count = 1000;
-    std::vector<nlohmann::json> rows;
+    milvus::EntityRows rows;
     for (auto i = 0; i < row_count; ++i) {
-        nlohmann::json row;
+        milvus::EntityRow row;
         row[field_id] = i;
         row[field_flag] = i % 8 + 1;
         row[field_text] = "text_" + std::to_string(i);
@@ -138,7 +135,7 @@ main(int argc, char* argv[]) {
 
         for (auto& result : search_results.Results()) {
             std::cout << "Result of one target vector:" << std::endl;
-            std::vector<nlohmann::json> output_rows;
+            milvus::EntityRows output_rows;
             status = result.OutputRows(output_rows);
             util::CheckStatus("get output rows", status);
             for (const auto& row : output_rows) {

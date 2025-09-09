@@ -33,6 +33,11 @@ class QueryResults {
     /**
      * @brief Constructor
      */
+    QueryResults(const QueryResults& src);
+
+    /**
+     * @brief Constructor
+     */
     explicit QueryResults(const std::vector<FieldDataPtr>& output_fields);
 
     /**
@@ -72,13 +77,13 @@ class QueryResults {
      * @brief Get all output rows.
      */
     Status
-    OutputRows(std::vector<nlohmann::json>& rows) const;
+    OutputRows(EntityRows& rows) const;
 
     /**
      * @brief Get row data. Throw exception if the i is out of bound.
      */
     Status
-    OutputRow(int i, nlohmann::json& row) const;
+    OutputRow(int i, EntityRow& row) const;
 
     /**
      * @brief Get row count of the result. Return the value of count(*) when you query with count(*).

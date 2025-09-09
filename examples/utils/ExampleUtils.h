@@ -193,7 +193,7 @@ std::vector<T>
 RandomeValues(T min, T max, int count) {
     std::random_device rd;
     std::mt19937 ran(rd());
-    const auto is_float = std::is_same<T, float>::value || std::is_same<T, double>::value;
+    const auto is_float = std::is_floating_point<T>::value;
     typename std::conditional<is_float, REAL_GEN, INT_GEN>::type gen(min, max);
 
     std::vector<T> values(count);

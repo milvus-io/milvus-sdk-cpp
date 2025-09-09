@@ -33,6 +33,8 @@ namespace milvus {
  */
 class SearchArguments {
  public:
+    virtual ~SearchArguments() = default;
+
     /**
      * @brief Get the target db name.
      */
@@ -233,7 +235,7 @@ class SearchArguments {
      * @brief Get range radius.
      * @return
      */
-    float
+    double
     Radius() const;
 
     /**
@@ -242,13 +244,13 @@ class SearchArguments {
      * @return
      */
     Status
-    SetRadius(float value);
+    SetRadius(double value);
 
     /**
      * @brief Get range filter.
      * @return
      */
-    float
+    double
     RangeFilter() const;
 
     /**
@@ -257,7 +259,7 @@ class SearchArguments {
      * @return
      */
     Status
-    SetRangeFilter(float value);
+    SetRangeFilter(double value);
 
     /**
      * @brief Set range radius. \n
@@ -267,7 +269,7 @@ class SearchArguments {
      * the query vector are considered potential matches.
      */
     Status
-    SetRange(float range_filter, float radius);
+    SetRange(double range_filter, double radius);
 
     /**
      * @brief Get consistency level.
@@ -357,7 +359,7 @@ class SearchArguments {
 
     /**
      * @brief Set nprobe.
-     * @deprecated replaced by SetExtraParams()
+     * @deprecated replaced by AddExtraParam()
      */
     Status
     SetNprobe(int64_t nlist);

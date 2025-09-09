@@ -151,8 +151,8 @@ main(int argc, char* argv[]) {
     util::CheckStatus("connect milvus server with user: " + user_name, status);
 
     // this user has no privilege to insert data, this call is expected to fail
-    std::vector<nlohmann::json> rows;
-    nlohmann::json row;
+    milvus::EntityRows rows;
+    milvus::EntityRow row;
     row["vector"] = util::GenerateFloatVector(8);
     rows.emplace_back(std::move(row));
 

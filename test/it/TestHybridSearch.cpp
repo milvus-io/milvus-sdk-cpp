@@ -112,13 +112,13 @@ TEST_F(MilvusMockedTest, HybridSearch) {
                 EXPECT_EQ(rpc_sub_req.dsl(), "dummy expression");
                 EXPECT_EQ(rpc_sub_req.dsl_type(), ::milvus::proto::common::DslType::BoolExprV1);
                 auto rpc_search_params = rpc_sub_req.search_params();
-                EXPECT_THAT(
-                    rpc_search_params,
-                    UnorderedElementsAre(TestKv(milvus::ANNS_FIELD, sub_req->AnnsField()),
-                                         TestKv(milvus::TOPK, std::to_string(sub_req->Limit())),
-                                         TestKv(milvus::METRIC_TYPE, std::to_string(sub_req->MetricType())),
-                                         TestKv(milvus::RADIUS, std::to_string(sub_req->Radius())),
-                                         TestKv(milvus::RANGE_FILTER, std::to_string(sub_req->RangeFilter())), _));
+                EXPECT_THAT(rpc_search_params,
+                            UnorderedElementsAre(
+                                TestKv(milvus::ANNS_FIELD, sub_req->AnnsField()),
+                                TestKv(milvus::TOPK, std::to_string(sub_req->Limit())),
+                                TestKv(milvus::METRIC_TYPE, std::to_string(sub_req->MetricType())),
+                                TestKv(milvus::RADIUS, milvus::doubleToString(sub_req->Radius())),
+                                TestKv(milvus::RANGE_FILTER, milvus::doubleToString(sub_req->RangeFilter())), _));
 
                 const auto& placeholder_group_payload = rpc_sub_req.placeholder_group();
                 milvus::proto::common::PlaceholderGroup placeholder_group;
@@ -143,6 +143,7 @@ TEST_F(MilvusMockedTest, HybridSearch) {
             auto* results = response->mutable_results();
             results->set_top_k(expected_ids.size());
             results->set_num_queries(1);
+            results->set_primary_field_name("PrimaryKey");
 
             auto* fields_f1 = results->add_fields_data();
             fields_f1->set_field_id(1000);
