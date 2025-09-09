@@ -28,11 +28,20 @@ namespace milvus {
  * @brief Topk results for one target vector of MilvusClient::Search()
  */
 struct SingleResult {
+    SingleResult() = default;
+
     /**
      * @brief Constructor
      */
-    SingleResult(const std::string& pk_name, IDArray&& ids, std::vector<float>&& scores,
-                 std::vector<FieldDataPtr>&& output_fields);
+    SingleResult(const SingleResult& src);
+
+    /**
+     * @brief Constructor
+     * Note: this constructor might throw exception in the cases of:
+     *   1. the pk_name or score_name is empty
+     *   2. row count of fields are unequal
+     */
+    SingleResult(const std::string& pk_name, const std::string& score_name, std::vector<FieldDataPtr>&& output_fields);
 
     /**
      * @brief Distances/scores array of one target vector
@@ -42,8 +51,11 @@ struct SingleResult {
 
     /**
      * @brief Topk id array of one target vector
+     * Note: the returned IDArray is a temporary object copied from FieldData. It is recommended to
+     * use OutputField() method like this:
+     *    FieldDataPtr ids = result.OutputField(result.PrimaryKeyName());
      */
-    const IDArray&
+    IDArray
     Ids() const;
 
     /**
@@ -53,6 +65,15 @@ struct SingleResult {
      */
     const std::string&
     PrimaryKeyName() const;
+
+    /**
+     * @brief Score field name in search result
+     * Note: the default score name is "score", but if your collection schema already has a "score" field,
+     * and the "score" field is an output field, the score name will be changed to "_score". If "_socre" is
+     * also duplicated, then the score name will be changed to "__score", etc.
+     */
+    const std::string&
+    ScoreName() const;
 
     /**
      * @brief Output fields data
@@ -79,13 +100,13 @@ struct SingleResult {
      * @brief Get all output rows.
      */
     Status
-    OutputRows(std::vector<nlohmann::json>& rows) const;
+    OutputRows(EntityRows& rows) const;
 
     /**
      * @brief Get row data. Throw exception if the i is out of bound.
      */
     Status
-    OutputRow(int i, nlohmann::json& row) const;
+    OutputRow(int i, EntityRow& row) const;
 
     /**
      * @brief Get row count of the result.
@@ -94,13 +115,12 @@ struct SingleResult {
     GetRowCount() const;
 
  private:
-    Status
-    setPkAndScore(int i, nlohmann::json& row) const;
+    void
+    verify() const;
 
  private:
-    std::string pk_name_;  // the server tells primary key name so that you don't need to describe the collection
-    IDArray ids_;
-    std::vector<float> scores_;
+    std::string pk_name_;     // the server tells primary key name so that you don't need to describe the collection
+    std::string score_name_;  // name of score field, default is "score". if duplicated, the name could be "_socre"
     std::vector<FieldDataPtr> output_fields_;
 };
 
@@ -114,19 +134,23 @@ class SearchResults {
     /**
      * @brief Constructor
      */
-    explicit SearchResults(std::vector<SingleResult>& results);
+    SearchResults(const SearchResults& src);
+
+    /**
+     * @brief Constructor
+     */
+    explicit SearchResults(std::vector<SingleResult>&& results);
+
+    /**
+     * @brief Constructor
+     */
+    explicit SearchResults(const std::vector<SingleResult>& results);
 
     /**
      * @brief Get search results.
      */
-    std::vector<SingleResult>&
-    Results();
-
-    /**
-     * @brief Set search results.
-     */
-    void
-    SetResults(std::vector<SingleResult>& results);
+    const std::vector<SingleResult>&
+    Results() const;
 
  private:
     std::vector<SingleResult> nq_results_{};

@@ -124,7 +124,7 @@ class SubSearchRequest {
      * @brief Get range radius
      * @return
      */
-    float
+    double
     Radius() const;
 
     /**
@@ -133,13 +133,13 @@ class SubSearchRequest {
      * @return
      */
     Status
-    SetRadius(float value);
+    SetRadius(double value);
 
     /**
      * @brief Get range filter
      * @return
      */
-    float
+    double
     RangeFilter() const;
 
     /**
@@ -148,7 +148,7 @@ class SubSearchRequest {
      * @return
      */
     Status
-    SetRangeFilter(float value);
+    SetRangeFilter(double value);
 
     /**
      * @brief Set range radius
@@ -158,7 +158,7 @@ class SubSearchRequest {
      * the query vector are considered potential matches.
      */
     Status
-    SetRange(float range_filter, float radius);
+    SetRange(double range_filter, double radius);
 
     /**
      * @brief Validate for search arguments and get name of the target anns field

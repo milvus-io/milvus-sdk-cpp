@@ -16,11 +16,9 @@
 
 #include "MilvusConnection.h"
 
-#include <chrono>
 #include <ctime>
 #include <fstream>
 #include <iomanip>
-#include <memory>
 #include <sstream>
 
 #include "MilvusInterceptor.h"

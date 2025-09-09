@@ -188,7 +188,7 @@ operator==(const proto::schema::FieldData& lhs, const JSONFieldData& rhs) {
         return false;
     }
 
-    std::vector<nlohmann::json> jsons;
+    EntityRows jsons;
     for (const auto& str : scalars_data) {
         jsons.emplace_back(std::move(nlohmann::json::parse(str)));
     }
@@ -205,7 +205,7 @@ operator==(const proto::schema::FieldData& lhs, const BinaryVecFieldData& rhs) {
     }
 
     const auto& vectors = lhs.vectors();
-    if (vectors.has_float_vector()) {
+    if (!vectors.has_binary_vector()) {
         return false;
     }
 

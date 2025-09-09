@@ -31,6 +31,16 @@ class IDArray {
     /**
      * @brief Constructor
      */
+    IDArray() = delete;
+
+    /**
+     * @brief Constructor
+     */
+    IDArray(const IDArray&);
+
+    /**
+     * @brief Constructor
+     */
     explicit IDArray(const std::vector<int64_t>& id_array);
 
     /**
@@ -65,6 +75,12 @@ class IDArray {
      */
     const std::vector<std::string>&
     StrIDArray() const;
+
+    /**
+     * @brief Get row count.
+     */
+    uint64_t
+    GetRowCount() const;
 
  private:
     bool is_int_array_{true};

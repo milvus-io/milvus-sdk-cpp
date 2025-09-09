@@ -16,6 +16,8 @@
 
 #pragma once
 
+#include <string>
+
 namespace milvus {
 
 /**
@@ -58,3 +60,7 @@ enum class IndexType {
     SPARSE_WAND
 };
 }  // namespace milvus
+
+namespace std {
+std::string to_string(milvus::IndexType);
+}  // namespace std

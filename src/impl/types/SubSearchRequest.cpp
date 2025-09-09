@@ -20,6 +20,7 @@
 #include <utility>
 
 #include "../utils/Constants.h"
+#include "../utils/TypeUtils.h"
 
 namespace milvus {
 
@@ -181,38 +182,38 @@ SubSearchRequest::Validate() const {
     return Status::OK();
 }
 
-float
+double
 SubSearchRequest::Radius() const {
     auto it = extra_params_.find(RADIUS);
     if (it != extra_params_.end()) {
-        return std::stof(it->second);
+        return std::stod(it->second);
     }
     return 0;
 }
 
 Status
-SubSearchRequest::SetRadius(float value) {
-    extra_params_[RADIUS] = std::to_string(value);
+SubSearchRequest::SetRadius(double value) {
+    extra_params_[RADIUS] = doubleToString(value);
     return Status::OK();
 }
 
-float
+double
 SubSearchRequest::RangeFilter() const {
     auto it = extra_params_.find(RANGE_FILTER);
     if (it != extra_params_.end()) {
-        return std::stof(it->second);
+        return std::stod(it->second);
     }
     return 0;
 }
 
 Status
-SubSearchRequest::SetRangeFilter(float value) {
-    extra_params_[RANGE_FILTER] = std::to_string(value);
+SubSearchRequest::SetRangeFilter(double value) {
+    extra_params_[RANGE_FILTER] = doubleToString(value);
     return Status::OK();
 }
 
 Status
-SubSearchRequest::SetRange(float range_filter, float radius) {
+SubSearchRequest::SetRange(double range_filter, double radius) {
     // directly pass the radius/range_filter to let server validate, no need to verify here
     auto status = SetRadius(radius);
     if (!status.IsOk()) {

@@ -28,8 +28,6 @@ TEST_F(MilvusMockedTest, ReleaseCollection) {
     client_->Connect(connect_param);
 
     const std::string collection = "Foo";
-    milvus::proto::milvus::ReleaseCollectionRequest request;
-    request.set_collection_name(collection);
 
     EXPECT_CALL(service_, ReleaseCollection(_, Property(&ReleaseCollectionRequest::collection_name, collection), _))
         .WillOnce([](::grpc::ServerContext*, const ReleaseCollectionRequest* request,

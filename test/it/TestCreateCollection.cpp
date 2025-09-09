@@ -61,9 +61,6 @@ TEST_F(MilvusMockedTest, CreateCollectionFailed) {
     client_->Connect(connect_param);
 
     milvus::CollectionSchema collection_schema("Foo");
-    milvus::proto::milvus::CreateCollectionRequest rpc_request;
-    rpc_request.set_collection_name("Foo");
-
     auto error_code = milvus::proto::common::ErrorCode::UnexpectedError;
     EXPECT_CALL(service_, CreateCollection(_, Property(&CreateCollectionRequest::collection_name, "Foo"), _))
         .WillOnce([error_code](::grpc::ServerContext*, const CreateCollectionRequest* request,

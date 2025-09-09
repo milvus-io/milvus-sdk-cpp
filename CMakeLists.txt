@@ -24,6 +24,7 @@ set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
+set(BUILD_SCRIPTS_DIR ${PROJECT_SOURCE_DIR}/scripts)
 
 # Avoid warning about DOWNLOAD_EXTRACT_TIMESTAMP in CMake 3.24:
 if (CMAKE_VERSION VERSION_GREATER_EQUAL "3.24.0")
@@ -65,12 +66,6 @@ define_option_string(MILVUS_WITH_ZLIB           "Using Zlib from"       "module"
 define_option_string(MILVUS_WITH_NLOHMANN_JSON  "nlohmann json from"    "module" "package" "module")
 define_option_string(MILVUS_WITH_CPP_HTTPLIB    "cpp-httplib from"      "module" "package" "module")
 define_option_string(MILVUS_WITH_GTEST          "Using GTest from"      "module" "package" "module")
-
-
-set(CMAKE_CXX_STANDARD 14)
-set(CMAKE_CXX_STANDARD_REQUIRED on)
-set(BUILD_SCRIPTS_DIR ${PROJECT_SOURCE_DIR}/scripts)
-set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 
 # set the GRPC_PATH variable to specify external gRPC installed path
