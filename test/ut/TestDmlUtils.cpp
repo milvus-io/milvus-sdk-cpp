@@ -21,9 +21,173 @@
 #include "milvus/types/FieldSchema.h"
 #include "utils/Constants.h"
 #include "utils/DmlUtils.h"
-#include "utils/GtsDict.h"
+#include "utils/DqlUtils.h"
+
+using milvus::CreateIDArray;
+using milvus::CreateMilvusFieldData;
+using milvus::CreateProtoFieldData;
+using ::testing::ElementsAre;
 
 class DmlUtilsTest : public ::testing::Test {};
+
+TEST_F(DmlUtilsTest, IDArray) {
+    milvus::proto::schema::IDs ids;
+    ids.mutable_int_id()->add_data(10000);
+    ids.mutable_int_id()->add_data(10001);
+    auto id_array = CreateIDArray(ids);
+
+    EXPECT_TRUE(id_array.IsIntegerID());
+    EXPECT_THAT(id_array.IntIDArray(), ElementsAre(10000, 10001));
+
+    ids.mutable_str_id()->add_data("10000");
+    ids.mutable_str_id()->add_data("10001");
+    id_array = CreateIDArray(ids);
+
+    EXPECT_FALSE(id_array.IsIntegerID());
+    EXPECT_THAT(id_array.StrIDArray(), ElementsAre("10000", "10001"));
+}
+
+TEST_F(DmlUtilsTest, CreateMilvusFieldDataWithRange_Scalar) {
+    milvus::BoolFieldData bool_field_data{"foo", std::vector<bool>{false, true, false}};
+    const auto bool_field_data_ptr = std::dynamic_pointer_cast<const milvus::BoolFieldData>(
+        CreateMilvusFieldData(CreateProtoFieldData(static_cast<const milvus::Field&>(bool_field_data)), 1, 2));
+    EXPECT_THAT(bool_field_data_ptr->Data(), ElementsAre(true, false));
+
+    milvus::Int8FieldData int8_field_data{"foo", std::vector<int8_t>{1, 2, 1}};
+    const auto int8_field_data_ptr = std::dynamic_pointer_cast<const milvus::Int8FieldData>(
+        CreateMilvusFieldData(CreateProtoFieldData(static_cast<const milvus::Field&>(int8_field_data)), 1, 2));
+    EXPECT_THAT(int8_field_data_ptr->Data(), ElementsAre(2, 1));
+
+    milvus::Int16FieldData int16_field_data{"foo", std::vector<int16_t>{1, 2, 1}};
+    const auto int16_field_data_ptr = std::dynamic_pointer_cast<const milvus::Int16FieldData>(
+        CreateMilvusFieldData(CreateProtoFieldData(static_cast<const milvus::Field&>(int16_field_data)), 1, 2));
+    EXPECT_THAT(int16_field_data_ptr->Data(), ElementsAre(2, 1));
+
+    milvus::Int32FieldData int32_field_data{"foo", std::vector<int32_t>{1, 2, 1}};
+    const auto int32_field_data_ptr = std::dynamic_pointer_cast<const milvus::Int32FieldData>(
+        CreateMilvusFieldData(CreateProtoFieldData(static_cast<const milvus::Field&>(int32_field_data)), 1, 2));
+    EXPECT_THAT(int32_field_data_ptr->Data(), ElementsAre(2, 1));
+
+    milvus::Int64FieldData int64_field_data{"foo", std::vector<int64_t>{1, 2, 1}};
+    const auto int64_field_data_ptr = std::dynamic_pointer_cast<const milvus::Int64FieldData>(
+        CreateMilvusFieldData(CreateProtoFieldData(static_cast<const milvus::Field&>(int64_field_data)), 1, 2));
+    EXPECT_THAT(int64_field_data_ptr->Data(), ElementsAre(2, 1));
+
+    milvus::FloatFieldData float_field_data{"foo", std::vector<float>{0.1f, 0.2f, 0.3f}};
+    const auto float_field_data_ptr = std::dynamic_pointer_cast<const milvus::FloatFieldData>(
+        CreateMilvusFieldData(CreateProtoFieldData(static_cast<const milvus::Field&>(float_field_data)), 1, 2));
+    EXPECT_THAT(float_field_data_ptr->Data(), ElementsAre(0.2f, 0.3f));
+
+    milvus::DoubleFieldData double_field_data{"foo", std::vector<double>{0.1, 0.2, 0.3}};
+    const auto double_field_data_ptr = std::dynamic_pointer_cast<const milvus::DoubleFieldData>(
+        CreateMilvusFieldData(CreateProtoFieldData(static_cast<const milvus::Field&>(double_field_data)), 1, 2));
+    EXPECT_THAT(double_field_data_ptr->Data(), ElementsAre(0.2, 0.3));
+
+    milvus::VarCharFieldData string_field_data{"foo", std::vector<std::string>{"a", "b", "c"}};
+    const auto string_field_data_ptr = std::dynamic_pointer_cast<const milvus::VarCharFieldData>(
+        CreateMilvusFieldData(CreateProtoFieldData(static_cast<const milvus::Field&>(string_field_data)), 1, 2));
+    EXPECT_THAT(string_field_data_ptr->Data(), ElementsAre("b", "c"));
+
+    auto values =
+        std::vector<nlohmann::json>{R"({"name":"aaa","age":18,"score":88})", R"({"name":"bbb","age":19,"score":99})",
+                                    R"({"name":"ccc","age":15,"score":100})"};
+    milvus::JSONFieldData json_field_data{"foo", values};
+    const auto json_field_data_ptr = std::dynamic_pointer_cast<const milvus::JSONFieldData>(
+        CreateMilvusFieldData(CreateProtoFieldData(static_cast<const milvus::Field&>(json_field_data)), 1, 2));
+    EXPECT_THAT(json_field_data_ptr->Data(), ElementsAre(values.at(1), values.at(2)));
+}
+
+TEST_F(DmlUtilsTest, CreateMilvusFieldDataWithRange_Vector) {
+    milvus::BinaryVecFieldData bins_field_data{"foo",
+                                               std::vector<std::vector<uint8_t>>{{1, 2, 3}, {4, 5, 6}, {7, 8, 9}}};
+    const auto bins_field_data_ptr = std::dynamic_pointer_cast<const milvus::BinaryVecFieldData>(
+        CreateMilvusFieldData(CreateProtoFieldData(static_cast<const milvus::Field&>(bins_field_data)), 1, 2));
+    EXPECT_THAT(bins_field_data_ptr->Data(), ElementsAre(std::vector<uint8_t>{4, 5, 6}, std::vector<uint8_t>{7, 8, 9}));
+
+    milvus::FloatVecFieldData floats_field_data{
+        "foo", std::vector<std::vector<float>>{{0.1f, 0.2f, 0.3f}, {0.4f, 0.5f, 0.6f}, {0.7f, 0.8f, 0.9f}}};
+    const auto floats_field_data_ptr = std::dynamic_pointer_cast<const milvus::FloatVecFieldData>(
+        CreateMilvusFieldData(CreateProtoFieldData(static_cast<const milvus::Field&>(floats_field_data)), 1, 2));
+    EXPECT_THAT(floats_field_data_ptr->Data(),
+                ElementsAre(std::vector<float>{0.4f, 0.5f, 0.6f}, std::vector<float>{0.7f, 0.8f, 0.9f}));
+}
+
+TEST_F(DmlUtilsTest, CreateMilvusFieldDataWithRange_Array) {
+    const std::string name = "foo";
+    {
+        auto values = std::vector<milvus::ArrayBoolFieldData::ElementT>{{true, false}, {false}};
+        milvus::ArrayBoolFieldData field_data{name, values};
+        auto field_data_ptr = std::dynamic_pointer_cast<const milvus::ArrayBoolFieldData>(
+            CreateMilvusFieldData(CreateProtoFieldData(static_cast<const milvus::Field&>(field_data)), 10, 20));
+        EXPECT_TRUE(field_data_ptr->Data().empty());
+
+        field_data_ptr = std::dynamic_pointer_cast<const milvus::ArrayBoolFieldData>(
+            CreateMilvusFieldData(CreateProtoFieldData(static_cast<const milvus::Field&>(field_data)), 10, 10));
+        EXPECT_TRUE(field_data_ptr->Data().empty());
+
+        field_data_ptr = std::dynamic_pointer_cast<const milvus::ArrayBoolFieldData>(
+            CreateMilvusFieldData(CreateProtoFieldData(static_cast<const milvus::Field&>(field_data)), -5, 1));
+        EXPECT_THAT(field_data_ptr->Data(), ElementsAre(values.at(0)));
+
+        field_data_ptr = std::dynamic_pointer_cast<const milvus::ArrayBoolFieldData>(
+            CreateMilvusFieldData(CreateProtoFieldData(static_cast<const milvus::Field&>(field_data)), 0, 5));
+        EXPECT_THAT(field_data_ptr->Data(), ElementsAre(values.at(0), values.at(1)));
+
+        field_data_ptr = std::dynamic_pointer_cast<const milvus::ArrayBoolFieldData>(
+            CreateMilvusFieldData(CreateProtoFieldData(static_cast<const milvus::Field&>(field_data)), 1, 2));
+        EXPECT_THAT(field_data_ptr->Data(), ElementsAre(values.at(1)));
+    }
+
+    {
+        auto values = std::vector<milvus::ArrayInt8FieldData::ElementT>{{2, 3}, {4}};
+        milvus::ArrayInt8FieldData field_data{name, values};
+        const auto field_data_ptr = std::dynamic_pointer_cast<const milvus::ArrayInt8FieldData>(
+            CreateMilvusFieldData(CreateProtoFieldData(static_cast<const milvus::Field&>(field_data)), 1, 2));
+        EXPECT_THAT(field_data_ptr->Data(), ElementsAre(values.at(1)));
+    }
+    {
+        auto values = std::vector<milvus::ArrayInt16FieldData::ElementT>{{2, 3}, {4}};
+        milvus::ArrayInt16FieldData field_data{name, values};
+        const auto field_data_ptr = std::dynamic_pointer_cast<const milvus::ArrayInt16FieldData>(
+            CreateMilvusFieldData(CreateProtoFieldData(static_cast<const milvus::Field&>(field_data)), 1, 2));
+        EXPECT_THAT(field_data_ptr->Data(), ElementsAre(values.at(1)));
+    }
+    {
+        auto values = std::vector<milvus::ArrayInt32FieldData::ElementT>{{2, 3}, {4}};
+        milvus::ArrayInt32FieldData field_data{name, values};
+        const auto field_data_ptr = std::dynamic_pointer_cast<const milvus::ArrayInt32FieldData>(
+            CreateMilvusFieldData(CreateProtoFieldData(static_cast<const milvus::Field&>(field_data)), 1, 2));
+        EXPECT_THAT(field_data_ptr->Data(), ElementsAre(values.at(1)));
+    }
+    {
+        auto values = std::vector<milvus::ArrayInt64FieldData::ElementT>{{2, 3}, {4}};
+        milvus::ArrayInt64FieldData field_data{name, values};
+        const auto field_data_ptr = std::dynamic_pointer_cast<const milvus::ArrayInt64FieldData>(
+            CreateMilvusFieldData(CreateProtoFieldData(static_cast<const milvus::Field&>(field_data)), 1, 2));
+        EXPECT_THAT(field_data_ptr->Data(), ElementsAre(values.at(1)));
+    }
+    {
+        auto values = std::vector<milvus::ArrayFloatFieldData::ElementT>{{0.2, 0.3}, {0.4}};
+        milvus::ArrayFloatFieldData field_data{name, values};
+        const auto field_data_ptr = std::dynamic_pointer_cast<const milvus::ArrayFloatFieldData>(
+            CreateMilvusFieldData(CreateProtoFieldData(static_cast<const milvus::Field&>(field_data)), 1, 2));
+        EXPECT_THAT(field_data_ptr->Data(), ElementsAre(values.at(1)));
+    }
+    {
+        auto values = std::vector<milvus::ArrayDoubleFieldData::ElementT>{{0.2, 0.3}, {0.4}};
+        milvus::ArrayDoubleFieldData field_data{name, values};
+        const auto field_data_ptr = std::dynamic_pointer_cast<const milvus::ArrayDoubleFieldData>(
+            CreateMilvusFieldData(CreateProtoFieldData(static_cast<const milvus::Field&>(field_data)), 1, 2));
+        EXPECT_THAT(field_data_ptr->Data(), ElementsAre(values.at(1)));
+    }
+    {
+        auto values = std::vector<milvus::ArrayVarCharFieldData::ElementT>{{"a", "bb"}, {"ccc"}};
+        milvus::ArrayVarCharFieldData field_data{name, values};
+        const auto field_data_ptr = std::dynamic_pointer_cast<const milvus::ArrayVarCharFieldData>(
+            CreateMilvusFieldData(CreateProtoFieldData(static_cast<const milvus::Field&>(field_data)), 1, 2));
+        EXPECT_THAT(field_data_ptr->Data(), ElementsAre(values.at(1)));
+    }
+}
 
 TEST_F(DmlUtilsTest, IsInputFieldTest) {
     milvus::FieldSchema id_field{"foo", milvus::DataType::INT64, "foo", true, true};
@@ -167,28 +331,4 @@ TEST_F(DmlUtilsTest, CheckInsertInputTest) {
         status = milvus::CheckInsertInput(desc, temp_fields, true);
         EXPECT_EQ(status.Code(), milvus::StatusCode::DATA_UNMATCH_SCHEMA);
     }
-}
-
-TEST_F(DmlUtilsTest, DeduceGuaranteeTimestampTest) {
-    auto ts = milvus::DeduceGuaranteeTimestamp(milvus::ConsistencyLevel::NONE, "db", "coll");
-    EXPECT_EQ(ts, 1);
-
-    ts = milvus::DeduceGuaranteeTimestamp(milvus::ConsistencyLevel::SESSION, "db", "coll");
-    EXPECT_EQ(ts, 1);
-
-    milvus::GtsDict::GetInstance().UpdateCollectionTs("db", "coll", 999);
-    ts = milvus::DeduceGuaranteeTimestamp(milvus::ConsistencyLevel::NONE, "db", "coll");
-    EXPECT_EQ(ts, 999);
-
-    ts = milvus::DeduceGuaranteeTimestamp(milvus::ConsistencyLevel::SESSION, "db", "coll");
-    EXPECT_EQ(ts, 999);
-
-    ts = milvus::DeduceGuaranteeTimestamp(milvus::ConsistencyLevel::STRONG, "db", "coll");
-    EXPECT_EQ(ts, milvus::GuaranteeStrongTs());
-
-    ts = milvus::DeduceGuaranteeTimestamp(milvus::ConsistencyLevel::BOUNDED, "db", "coll");
-    EXPECT_EQ(ts, 2);
-
-    ts = milvus::DeduceGuaranteeTimestamp(milvus::ConsistencyLevel::EVENTUALLY, "db", "coll");
-    EXPECT_EQ(ts, 1);
 }

@@ -28,9 +28,6 @@ TEST_F(MilvusMockedTest, DropCollectionSuccess) {
     client_->Connect(connect_param);
 
     std::string collection_name = "Foo";
-    milvus::proto::milvus::DropCollectionRequest rpc_request;
-    rpc_request.set_collection_name(collection_name);
-
     EXPECT_CALL(service_, DropCollection(_, Property(&DropCollectionRequest::collection_name, collection_name), _))
         .WillOnce([](::grpc::ServerContext*, const DropCollectionRequest* request, ::milvus::proto::common::Status*) {
             return ::grpc::Status{};
@@ -41,9 +38,6 @@ TEST_F(MilvusMockedTest, DropCollectionSuccess) {
 
 TEST_F(UnconnectMilvusMockedTest, DropCollectionWithoutConnect) {
     std::string collection_name = "Foo";
-    milvus::proto::milvus::DropCollectionRequest rpc_request;
-    rpc_request.set_collection_name(collection_name);
-
     auto status = client_->DropCollection(collection_name);
     EXPECT_FALSE(status.IsOk());
     EXPECT_EQ(status.Code(), StatusCode::NOT_CONNECTED);
@@ -54,8 +48,6 @@ TEST_F(MilvusMockedTest, DropCollectionFailed) {
     client_->Connect(connect_param);
 
     std::string collection_name = "Foo";
-    milvus::proto::milvus::DropCollectionRequest rpc_request;
-    rpc_request.set_collection_name(collection_name);
     auto error_code = milvus::proto::common::ErrorCode::UnexpectedError;
 
     EXPECT_CALL(service_, DropCollection(_, Property(&DropCollectionRequest::collection_name, collection_name), _))

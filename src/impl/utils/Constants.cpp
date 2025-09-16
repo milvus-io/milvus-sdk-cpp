@@ -34,6 +34,9 @@ const char* GROUPBY_FIELD = "group_by_field";
 const char* PARAMS = "params";
 const char* STRATEGY = "strategy";
 const char* SCORE = "score";
+const char* ITERATOR = "iterator";
+const char* REDUCE_STOP_FOR_BEST = "reduce_stop_for_best";
+const char* COLLECTION_ID = "collection_id";
 
 // const names for external common usage
 const char* INDEX_TYPE = "index_type";

@@ -16,32 +16,82 @@
 
 #include "milvus/types/SearchResults.h"
 
+#include <stdexcept>
+
 #include "../utils/Constants.h"
-#include "../utils/DmlUtils.h"
+#include "../utils/DqlUtils.h"
 
 namespace milvus {
 
-SingleResult::SingleResult(const std::string& pk_name, IDArray&& ids, std::vector<float>&& scores,
+SingleResult::SingleResult(const SingleResult& src)
+    : pk_name_(src.pk_name_), score_name_{src.score_name_}, output_fields_{src.output_fields_} {
+    verify();
+}
+
+SingleResult::SingleResult(const std::string& pk_name, const std::string& score_name,
                            std::vector<FieldDataPtr>&& output_fields)
-    : pk_name_(pk_name), ids_{std::move(ids)}, scores_{std::move(scores)}, output_fields_{std::move(output_fields)} {
+    : pk_name_(pk_name), score_name_(score_name), output_fields_(std::move(output_fields)) {
+    verify();
+}
+
+void
+SingleResult::verify() const {
     if (pk_name_.empty()) {
-        pk_name_ = "pk";
+        throw std::runtime_error("Primary key name is not set");
+    }
+    if (score_name_.empty()) {
+        throw std::runtime_error("Score field name is not set");
+    }
+
+    if (output_fields_.empty()) {
+        return;
+    }
+
+    int64_t count = (output_fields_.at(0) == nullptr) ? 0 : output_fields_.at(0)->Count();
+    for (const auto& field : output_fields_) {
+        if (field == nullptr) {
+            throw std::runtime_error("FieldData is null pointer");
+        }
+        if (field->Count() != count) {
+            throw std::runtime_error("The lenth of output fields are unequal");
+        }
     }
 }
 
 const std::vector<float>&
 SingleResult::Scores() const {
-    return scores_;
+    FloatFieldDataPtr score_field = OutputField<FloatFieldData>(score_name_);
+    if (score_field == nullptr) {
+        throw std::runtime_error("The score field data is null pointer");
+    }
+    return score_field->Data();
 }
 
-const IDArray&
+IDArray
 SingleResult::Ids() const {
-    return ids_;
+    FieldDataPtr id_field = OutputField(pk_name_);
+    if (id_field == nullptr) {
+        throw std::runtime_error("The primary key field data is null pointer");
+    }
+    if (id_field->Type() == DataType::INT64) {
+        auto ptr = std::static_pointer_cast<Int64FieldData>(id_field);
+        return IDArray(ptr->Data());
+    } else if (id_field->Type() == DataType::VARCHAR) {
+        auto ptr = std::static_pointer_cast<VarCharFieldData>(id_field);
+        return IDArray(ptr->Data());
+    } else {
+        throw std::runtime_error("The primary key type is neither integer nor string");
+    }
 }
 
 const std::string&
 SingleResult::PrimaryKeyName() const {
     return pk_name_;
+}
+
+const std::string&
+SingleResult::ScoreName() const {
+    return score_name_;
 }
 
 const std::vector<FieldDataPtr>&
@@ -63,52 +113,13 @@ SingleResult::OutputField(const std::string& name) const {
 }
 
 Status
-SingleResult::setPkAndScore(int i, nlohmann::json& row) const {
-    if (ids_.IsIntegerID()) {
-        if (static_cast<size_t>(i) > ids_.IntIDArray().size()) {
-            return Status{StatusCode::INVALID_AGUMENT, "out of bound"};
-        }
-        row[pk_name_] = ids_.IntIDArray().at(i);
-    } else {
-        if (static_cast<size_t>(i) > ids_.StrIDArray().size()) {
-            return Status{StatusCode::INVALID_AGUMENT, "out of bound"};
-        }
-        row[pk_name_] = ids_.StrIDArray().at(i);
-    }
-
-    if (static_cast<size_t>(i) > scores_.size()) {
-        return Status{StatusCode::INVALID_AGUMENT, "out of bound"};
-    }
-    // if already output a scalar named "score", overwrite?
-    row[SCORE] = scores_.at(i);
-
-    return Status::OK();
+SingleResult::OutputRows(EntityRows& rows) const {
+    return GetRowsFromFieldsData(output_fields_, rows);
 }
 
 Status
-SingleResult::OutputRows(std::vector<nlohmann::json>& rows) const {
-    auto status = GetRowsFromFieldsData(output_fields_, rows);
-    if (!status.IsOk()) {
-        return status;
-    }
-
-    for (auto k = 0; k < rows.size(); k++) {
-        status = setPkAndScore(static_cast<int>(k), rows[k]);
-        if (!status.IsOk()) {
-            return status;
-        }
-    }
-    return Status::OK();
-}
-
-Status
-SingleResult::OutputRow(int i, nlohmann::json& row) const {
-    auto status = GetRowFromFieldsData(output_fields_, i, row);
-    if (!status.IsOk()) {
-        return status;
-    }
-
-    return setPkAndScore(i, row);
+SingleResult::OutputRow(int i, EntityRow& row) const {
+    return GetRowFromFieldsData(output_fields_, i, row);
 }
 
 uint64_t
@@ -125,17 +136,17 @@ SingleResult::GetRowCount() const {
 /////////////////////////////////////////////////////////////////////////////////////////
 SearchResults::SearchResults() = default;
 
-SearchResults::SearchResults(std::vector<SingleResult>& results) {
-    SetResults(results);
+SearchResults::SearchResults(const SearchResults& src) : nq_results_(src.nq_results_) {
 }
 
-void
-SearchResults::SetResults(std::vector<SingleResult>& results) {
-    nq_results_.swap(results);
+SearchResults::SearchResults(std::vector<SingleResult>&& results) : nq_results_(std::move(results)) {
 }
 
-std::vector<SingleResult>&
-SearchResults::Results() {
+SearchResults::SearchResults(const std::vector<SingleResult>& results) : nq_results_(results) {
+}
+
+const std::vector<SingleResult>&
+SearchResults::Results() const {
     return nq_results_;
 }
 

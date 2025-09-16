@@ -17,14 +17,30 @@
 #include "DmlUtils.h"
 
 #include <limits>
-#include <set>
 
+#include "./Constants.h"
 #include "./GtsDict.h"
 #include "./TypeUtils.h"
 #include "milvus/types/Constants.h"
 #include "milvus/utils/FP16.h"
 
 namespace milvus {
+
+template <typename V, typename T>
+Status
+CheckValueRange(V val, const std::string& field_name) {
+    T min = std::numeric_limits<T>::min();
+    T max = std::numeric_limits<T>::max();
+    if (val < static_cast<V>(min) || val > static_cast<V>(max)) {
+        std::string err_msg = "Value " + std::to_string(val) + " should be in range [" + std::to_string(min) + ", " +
+                              std::to_string(max) + "]";
+        if (field_name.empty()) {
+            err_msg += (" for field: " + field_name);
+        }
+        return Status{StatusCode::INVALID_AGUMENT, err_msg};
+    }
+    return Status::OK();
+}
 
 bool
 IsInputField(const FieldSchema& field_schema, bool is_upsert) {
@@ -125,94 +141,28 @@ IsRealFailure(const proto::common::Status& status) {
            (status.code() != 0 && status.code() != 8);
 }
 
-uint64_t
-DeduceGuaranteeTimestamp(const ConsistencyLevel& level, const std::string& db_name,
-                         const std::string& collection_name) {
-    if (level == ConsistencyLevel::NONE) {
-        uint64_t ts = 1;
-        return GtsDict::GetInstance().GetCollectionTs(db_name, collection_name, ts) ? ts : 1;
+std::string
+EncodeSparseFloatVector(const SparseFloatVecFieldData::ElementT& sparse) {
+    // Milvus server requires sparse vector to be transferred in little endian.
+    // For each index-value pair, the first 4 bytes is a binary of unsigned int32,
+    // the next 4 bytes is a binary of float32.
+    // Each sparse is transfered with a binary of (8 * sparse.size()) bytes.
+    std::vector<uint8_t> bytes(8 * sparse.size());
+    int count = 0;
+    for (const auto& pair : sparse) {
+        int k = count * 8;
+        uint32_t index = pair.first;
+        bytes[k] = index & 0xFF;
+        bytes[k + 1] = (index >> 8) & 0xFF;
+        bytes[k + 2] = (index >> 16) & 0xFF;
+        bytes[k + 3] = (index >> 24) & 0xFF;
+
+        float value = pair.second;
+        std::memcpy(&bytes[k + 4], &value, sizeof(float));
+        count++;
     }
 
-    switch (level) {
-        case ConsistencyLevel::STRONG:
-            return 0;
-        case ConsistencyLevel::SESSION: {
-            uint64_t ts = 1;
-            return GtsDict::GetInstance().GetCollectionTs(db_name, collection_name, ts) ? ts : 1;
-        }
-        case ConsistencyLevel::BOUNDED:
-            return 2;  // let server side to determine the bounded time
-        default:
-            return 1;  // EVENTUALLY and others
-    }
-}
-
-template <typename V, typename T>
-Status
-CheckValueRange(V val, const std::string& field_name) {
-    T min = std::numeric_limits<T>::min();
-    T max = std::numeric_limits<T>::max();
-    if (val < static_cast<V>(min) || val > static_cast<V>(max)) {
-        std::string err_msg = "Value " + std::to_string(val) + " should be in range [" + std::to_string(min) + ", " +
-                              std::to_string(max) + "]";
-        if (field_name.empty()) {
-            err_msg += (" for field: " + field_name);
-        }
-        return Status{StatusCode::INVALID_AGUMENT, err_msg};
-    }
-    return Status::OK();
-}
-
-Status
-CheckAndSetBinaryVector(const nlohmann::json& obj, const FieldSchema& fs, proto::schema::VectorField* vf) {
-    if (!obj.is_array()) {
-        std::string err_msg = "Value type should be array for field: " + fs.Name();
-        return Status{StatusCode::INVALID_AGUMENT, err_msg};
-    }
-    if (obj.size() * 8 != static_cast<std::size_t>(fs.Dimension())) {
-        std::string err_msg = "Array length is not equal to dimension/8 for field: " + fs.Name();
-        return Status{StatusCode::INVALID_AGUMENT, err_msg};
-    }
-
-    vf->set_dim(fs.Dimension());
-    auto data = vf->mutable_binary_vector();
-    for (const auto& ele : obj) {
-        if (ele.is_number_integer() || ele.is_number_unsigned()) {
-            auto val = ele.get<int64_t>();
-            auto status = CheckValueRange<int64_t, uint8_t>(val, fs.Name());
-            if (!status.IsOk()) {
-                return status;
-            }
-            data->push_back(static_cast<uint8_t>(val));
-        } else {
-            std::string err_msg = "Value should be int8 for field: " + fs.Name();
-            return Status{StatusCode::INVALID_AGUMENT, err_msg};
-        }
-    }
-    return Status::OK();
-}
-
-Status
-CheckAndSetFloatVector(const nlohmann::json& obj, const FieldSchema& fs, proto::schema::VectorField* vf) {
-    if (!obj.is_array()) {
-        std::string err_msg = "Value type should be array for field: " + fs.Name();
-        return Status{StatusCode::INVALID_AGUMENT, err_msg};
-    }
-    if (obj.size() != static_cast<std::size_t>(fs.Dimension())) {
-        std::string err_msg = "Array length is not equal to dimension for field: " + fs.Name();
-        return Status{StatusCode::INVALID_AGUMENT, err_msg};
-    }
-
-    vf->set_dim(fs.Dimension());
-    auto data = vf->mutable_float_vector()->mutable_data();
-    for (const auto& ele : obj) {
-        if (!ele.is_number_float()) {
-            std::string err_msg = "Element value should be float for field: " + fs.Name();
-            return Status{StatusCode::INVALID_AGUMENT, err_msg};
-        }
-        data->Add(ele.get<float>());
-    }
-    return Status::OK();
+    return std::string{bytes.begin(), bytes.end()};
 }
 
 // We support two patterns of sparse vector:
@@ -298,6 +248,390 @@ ParseSparseFloatVector(const nlohmann::json& obj, const std::string& field_name,
         return Status{StatusCode::INVALID_AGUMENT, "Duplicated indices for field: " + field_name};
     }
 
+    return Status::OK();
+}
+
+////////////////////////////////////////////////////////////////////////////////////////
+// methods to convert SDK field types to proto field types
+proto::schema::VectorField*
+CreateProtoFieldData(const BinaryVecFieldData& field) {
+    auto ret = new proto::schema::VectorField{};
+    auto& data = field.Data();
+    auto dim = data.front().size() * 8;
+    auto& vectors_data = *(ret->mutable_binary_vector());
+    vectors_data.reserve(data.size() * dim);
+    for (const auto& item : data) {
+        std::copy(item.begin(), item.end(), std::back_inserter(vectors_data));
+    }
+    ret->set_dim(static_cast<int>(dim));
+    return ret;
+}
+
+proto::schema::VectorField*
+CreateProtoFieldData(const FloatVecFieldData& field) {
+    auto ret = new proto::schema::VectorField{};
+    auto& data = field.Data();
+    auto dim = data.front().size();
+    auto& vectors_data = *(ret->mutable_float_vector()->mutable_data());
+    vectors_data.Reserve(static_cast<int>(data.size() * dim));
+    for (const auto& item : data) {
+        vectors_data.Add(item.begin(), item.end());
+    }
+    ret->set_dim(static_cast<int>(dim));
+    return ret;
+}
+
+proto::schema::VectorField*
+CreateProtoFieldData(const SparseFloatVecFieldData& field) {
+    auto ret = new proto::schema::VectorField{};
+    auto& data = field.Data();
+    auto& vectors_data = *(ret->mutable_sparse_float_vector()->mutable_contents());
+    vectors_data.Reserve(static_cast<int>(data.size()));
+    size_t max_dim = 0;
+    for (const auto& item : data) {
+        vectors_data.Add(EncodeSparseFloatVector(item));
+        max_dim = item.size() > max_dim ? item.size() : max_dim;
+    }
+    ret->set_dim(static_cast<int64_t>(max_dim));
+    return ret;
+}
+
+proto::schema::VectorField*
+CreateProtoFieldData(const Float16VecFieldData& field) {
+    auto ret = new proto::schema::VectorField{};
+    auto& data = field.Data();
+    auto dim = data.front().size();
+    auto vec_bytes = dim * 2;
+    auto& vectors_data = *(ret->mutable_float16_vector());
+    vectors_data.resize(data.size() * vec_bytes);
+    for (size_t i = 0; i < data.size(); i++) {
+        std::memcpy(&vectors_data[i * vec_bytes], data[i].data(), vec_bytes);
+    }
+    ret->set_dim(static_cast<int>(dim));
+    return ret;
+}
+
+proto::schema::VectorField*
+CreateProtoFieldData(const BFloat16VecFieldData& field) {
+    auto ret = new proto::schema::VectorField{};
+    auto& data = field.Data();
+    auto dim = data.front().size();
+    auto vec_bytes = dim * 2;
+    auto& vectors_data = *(ret->mutable_bfloat16_vector());
+    vectors_data.resize(data.size() * vec_bytes);
+    for (size_t i = 0; i < data.size(); i++) {
+        std::memcpy(&vectors_data[i * vec_bytes], data[i].data(), vec_bytes);
+    }
+    ret->set_dim(static_cast<int>(dim));
+    return ret;
+}
+
+proto::schema::ScalarField*
+CreateProtoFieldData(const BoolFieldData& field) {
+    auto ret = new proto::schema::ScalarField{};
+    auto& data = field.Data();
+    auto& scalars_data = *(ret->mutable_bool_data()->mutable_data());
+    scalars_data.Add(data.begin(), data.end());
+    return ret;
+}
+
+proto::schema::ScalarField*
+CreateProtoFieldData(const Int8FieldData& field) {
+    auto ret = new proto::schema::ScalarField{};
+    auto& data = field.Data();
+    auto& scalars_data = *(ret->mutable_int_data()->mutable_data());
+    scalars_data.Add(data.begin(), data.end());
+    return ret;
+}
+
+proto::schema::ScalarField*
+CreateProtoFieldData(const Int16FieldData& field) {
+    auto ret = new proto::schema::ScalarField{};
+    auto& data = field.Data();
+    auto& scalars_data = *(ret->mutable_int_data()->mutable_data());
+    scalars_data.Add(data.begin(), data.end());
+    return ret;
+}
+
+proto::schema::ScalarField*
+CreateProtoFieldData(const Int32FieldData& field) {
+    auto ret = new proto::schema::ScalarField{};
+    auto& data = field.Data();
+    auto& scalars_data = *(ret->mutable_int_data()->mutable_data());
+    scalars_data.Add(data.begin(), data.end());
+    return ret;
+}
+
+proto::schema::ScalarField*
+CreateProtoFieldData(const Int64FieldData& field) {
+    auto ret = new proto::schema::ScalarField{};
+    auto& data = field.Data();
+    auto& scalars_data = *(ret->mutable_long_data()->mutable_data());
+    scalars_data.Add(data.begin(), data.end());
+    return ret;
+}
+
+proto::schema::ScalarField*
+CreateProtoFieldData(const FloatFieldData& field) {
+    auto ret = new proto::schema::ScalarField{};
+    auto& data = field.Data();
+    auto& scalars_data = *(ret->mutable_float_data()->mutable_data());
+    scalars_data.Add(data.begin(), data.end());
+    return ret;
+}
+
+proto::schema::ScalarField*
+CreateProtoFieldData(const DoubleFieldData& field) {
+    auto ret = new proto::schema::ScalarField{};
+    auto& data = field.Data();
+    auto& scalars_data = *(ret->mutable_double_data()->mutable_data());
+    scalars_data.Add(data.begin(), data.end());
+    return ret;
+}
+
+proto::schema::ScalarField*
+CreateProtoFieldData(const VarCharFieldData& field) {
+    auto ret = new proto::schema::ScalarField{};
+    auto& data = field.Data();
+    auto& scalars_data = *(ret->mutable_string_data()->mutable_data());
+    scalars_data.Add(data.begin(), data.end());
+    return ret;
+}
+
+proto::schema::ScalarField*
+CreateProtoFieldData(const JSONFieldData& field) {
+    auto ret = new proto::schema::ScalarField{};
+    auto& data = field.Data();
+    auto& scalars_data = *(ret->mutable_json_data());
+    for (const auto& item : data) {
+        scalars_data.add_data(item.dump());
+    }
+    return ret;
+}
+
+proto::schema::ScalarField*
+CreateProtoArrayFieldData(const Field& field) {
+    auto ret = new proto::schema::ScalarField{};
+    auto element_type = field.ElementType();
+    auto& array_data = *(ret->mutable_array_data());
+    array_data.set_element_type(DataTypeCast(element_type));
+
+    switch (element_type) {
+        case DataType::BOOL: {
+            const auto& arrayField = dynamic_cast<const ArrayBoolFieldData&>(field);
+            const auto& data = arrayField.Data();
+            for (const auto& row : data) {
+                auto& scalar_field = *(array_data.add_data());
+                auto& scalars_data = *(scalar_field.mutable_bool_data()->mutable_data());
+                scalars_data.Add(row.begin(), row.end());
+            }
+            break;
+        }
+        case DataType::INT8: {
+            const auto& arrayField = dynamic_cast<const ArrayInt8FieldData&>(field);
+            const auto& data = arrayField.Data();
+            for (const auto& row : data) {
+                auto& scalar_field = *(array_data.add_data());
+                auto& scalars_data = *(scalar_field.mutable_int_data()->mutable_data());
+                scalars_data.Add(row.begin(), row.end());
+            }
+            break;
+        }
+        case DataType::INT16: {
+            const auto& arrayField = dynamic_cast<const ArrayInt16FieldData&>(field);
+            const auto& data = arrayField.Data();
+            for (const auto& row : data) {
+                auto& scalar_field = *(array_data.add_data());
+                auto& scalars_data = *(scalar_field.mutable_int_data()->mutable_data());
+                scalars_data.Add(row.begin(), row.end());
+            }
+            break;
+        }
+        case DataType::INT32: {
+            const auto& arrayField = dynamic_cast<const ArrayInt32FieldData&>(field);
+            const auto& data = arrayField.Data();
+            for (const auto& row : data) {
+                auto& scalar_field = *(array_data.add_data());
+                auto& scalars_data = *(scalar_field.mutable_int_data()->mutable_data());
+                scalars_data.Add(row.begin(), row.end());
+            }
+            break;
+        }
+        case DataType::INT64: {
+            const auto& arrayField = dynamic_cast<const ArrayInt64FieldData&>(field);
+            const auto& data = arrayField.Data();
+            for (const auto& row : data) {
+                auto& scalar_field = *(array_data.add_data());
+                auto& scalars_data = *(scalar_field.mutable_long_data()->mutable_data());
+                scalars_data.Add(row.begin(), row.end());
+            }
+            break;
+        }
+        case DataType::FLOAT: {
+            const auto& arrayField = dynamic_cast<const ArrayFloatFieldData&>(field);
+            const auto& data = arrayField.Data();
+            for (const auto& row : data) {
+                auto& scalar_field = *(array_data.add_data());
+                auto& scalars_data = *(scalar_field.mutable_float_data()->mutable_data());
+                scalars_data.Add(row.begin(), row.end());
+            }
+            break;
+        }
+        case DataType::DOUBLE: {
+            const auto& arrayField = dynamic_cast<const ArrayDoubleFieldData&>(field);
+            const auto& data = arrayField.Data();
+            for (const auto& row : data) {
+                auto& scalar_field = *(array_data.add_data());
+                auto& scalars_data = *(scalar_field.mutable_double_data()->mutable_data());
+                scalars_data.Add(row.begin(), row.end());
+            }
+            break;
+        }
+        case DataType::VARCHAR: {
+            const auto& arrayField = dynamic_cast<const ArrayVarCharFieldData&>(field);
+            const auto& data = arrayField.Data();
+            for (const auto& row : data) {
+                auto& scalar_field = *(array_data.add_data());
+                auto& scalars_data = *(scalar_field.mutable_string_data()->mutable_data());
+                scalars_data.Add(row.begin(), row.end());
+            }
+            break;
+        }
+        default:
+            // TODO: should throw error here
+            break;
+    }
+
+    return ret;
+}
+
+proto::schema::FieldData
+CreateProtoFieldData(const Field& field) {
+    proto::schema::FieldData field_data;
+    const auto field_type = field.Type();
+    field_data.set_field_name(field.Name());
+    field_data.set_type(DataTypeCast(field_type));
+
+    switch (field_type) {
+        case DataType::BINARY_VECTOR:
+            field_data.set_allocated_vectors(CreateProtoFieldData(dynamic_cast<const BinaryVecFieldData&>(field)));
+            break;
+        case DataType::FLOAT_VECTOR:
+            field_data.set_allocated_vectors(CreateProtoFieldData(dynamic_cast<const FloatVecFieldData&>(field)));
+            break;
+        case DataType::SPARSE_FLOAT_VECTOR:
+            field_data.set_allocated_vectors(CreateProtoFieldData(dynamic_cast<const SparseFloatVecFieldData&>(field)));
+            break;
+        case DataType::FLOAT16_VECTOR:
+            field_data.set_allocated_vectors(CreateProtoFieldData(dynamic_cast<const Float16VecFieldData&>(field)));
+            break;
+        case DataType::BFLOAT16_VECTOR:
+            field_data.set_allocated_vectors(CreateProtoFieldData(dynamic_cast<const BFloat16VecFieldData&>(field)));
+            break;
+        case DataType::BOOL:
+            field_data.set_allocated_scalars(CreateProtoFieldData(dynamic_cast<const BoolFieldData&>(field)));
+            break;
+        case DataType::INT8:
+            field_data.set_allocated_scalars(CreateProtoFieldData(dynamic_cast<const Int8FieldData&>(field)));
+            break;
+        case DataType::INT16:
+            field_data.set_allocated_scalars(CreateProtoFieldData(dynamic_cast<const Int16FieldData&>(field)));
+            break;
+        case DataType::INT32:
+            field_data.set_allocated_scalars(CreateProtoFieldData(dynamic_cast<const Int32FieldData&>(field)));
+            break;
+        case DataType::INT64:
+            field_data.set_allocated_scalars(CreateProtoFieldData(dynamic_cast<const Int64FieldData&>(field)));
+            break;
+        case DataType::FLOAT:
+            field_data.set_allocated_scalars(CreateProtoFieldData(dynamic_cast<const FloatFieldData&>(field)));
+            break;
+        case DataType::DOUBLE:
+            field_data.set_allocated_scalars(CreateProtoFieldData(dynamic_cast<const DoubleFieldData&>(field)));
+            break;
+        case DataType::VARCHAR:
+            field_data.set_allocated_scalars(CreateProtoFieldData(dynamic_cast<const VarCharFieldData&>(field)));
+            break;
+        case DataType::JSON:
+            field_data.set_allocated_scalars(CreateProtoFieldData(dynamic_cast<const JSONFieldData&>(field)));
+            break;
+        case DataType::ARRAY:
+            field_data.set_allocated_scalars(CreateProtoArrayFieldData(field));
+            break;
+        default:
+            // TODO: should throw error here
+            break;
+    }
+
+    return field_data;
+}
+
+IDArray
+CreateIDArray(const proto::schema::IDs& ids) {
+    if (ids.has_int_id()) {
+        std::vector<int64_t> int_array;
+        auto& int_ids = ids.int_id();
+        int_array.reserve(int_ids.data_size());
+        std::copy(int_ids.data().begin(), int_ids.data().end(), std::back_inserter(int_array));
+        return IDArray(int_array);
+    } else {
+        std::vector<std::string> str_array;
+        auto& str_ids = ids.str_id();
+        str_array.reserve(str_ids.data_size());
+        std::copy(str_ids.data().begin(), str_ids.data().end(), std::back_inserter(str_array));
+        return IDArray(str_array);
+    }
+}
+
+Status
+CheckAndSetBinaryVector(const nlohmann::json& obj, const FieldSchema& fs, proto::schema::VectorField* vf) {
+    if (!obj.is_array()) {
+        std::string err_msg = "Value type should be array for field: " + fs.Name();
+        return Status{StatusCode::INVALID_AGUMENT, err_msg};
+    }
+    if (obj.size() * 8 != static_cast<std::size_t>(fs.Dimension())) {
+        std::string err_msg = "Array length is not equal to dimension/8 for field: " + fs.Name();
+        return Status{StatusCode::INVALID_AGUMENT, err_msg};
+    }
+
+    vf->set_dim(fs.Dimension());
+    auto data = vf->mutable_binary_vector();
+    for (const auto& ele : obj) {
+        if (ele.is_number_integer() || ele.is_number_unsigned()) {
+            auto val = ele.get<int64_t>();
+            auto status = CheckValueRange<int64_t, uint8_t>(val, fs.Name());
+            if (!status.IsOk()) {
+                return status;
+            }
+            data->push_back(static_cast<uint8_t>(val));
+        } else {
+            std::string err_msg = "Value should be int8 for field: " + fs.Name();
+            return Status{StatusCode::INVALID_AGUMENT, err_msg};
+        }
+    }
+    return Status::OK();
+}
+
+Status
+CheckAndSetFloatVector(const nlohmann::json& obj, const FieldSchema& fs, proto::schema::VectorField* vf) {
+    if (!obj.is_array()) {
+        std::string err_msg = "Value type should be array for field: " + fs.Name();
+        return Status{StatusCode::INVALID_AGUMENT, err_msg};
+    }
+    if (obj.size() != static_cast<std::size_t>(fs.Dimension())) {
+        std::string err_msg = "Array length is not equal to dimension for field: " + fs.Name();
+        return Status{StatusCode::INVALID_AGUMENT, err_msg};
+    }
+
+    vf->set_dim(fs.Dimension());
+    auto data = vf->mutable_float_vector()->mutable_data();
+    for (const auto& ele : obj) {
+        if (!ele.is_number_float()) {
+            std::string err_msg = "Element value should be float for field: " + fs.Name();
+            return Status{StatusCode::INVALID_AGUMENT, err_msg};
+        }
+        data->Add(ele.get<float>());
+    }
     return Status::OK();
 }
 
@@ -540,7 +874,7 @@ CheckAndSetFieldValue(const nlohmann::json& obj, const FieldSchema& fs, proto::s
 }
 
 Status
-CheckAndSetRowData(const std::vector<nlohmann::json>& rows, const CollectionSchema& schema, bool is_upsert,
+CheckAndSetRowData(const EntityRows& rows, const CollectionSchema& schema, bool is_upsert,
                    std::vector<proto::schema::FieldData>& rpc_fields) {
     const std::vector<FieldSchema>& schema_fields = schema.Fields();
     std::map<std::string, proto::schema::FieldData> name_fields;
@@ -573,198 +907,6 @@ CheckAndSetRowData(const std::vector<nlohmann::json>& rows, const CollectionSche
         rpc_fields.emplace_back(std::move(n.second));
     }
 
-    return Status::OK();
-}
-
-template <typename T>
-std::function<nlohmann::json(size_t)>
-GenGetter(const FieldDataPtr& field) {
-    return [&field](size_t i) {
-        // special process float16/bfloat16 vector to float arrays
-        if (field->Type() == DataType::FLOAT16_VECTOR || field->Type() == DataType::BFLOAT16_VECTOR) {
-            bool is_fp16 = (field->Type() == DataType::FLOAT16_VECTOR);
-            std::vector<uint16_t> f16_vec = is_fp16 ? std::static_pointer_cast<Float16VecFieldData>(field)->Value(i)
-                                                    : std::static_pointer_cast<BFloat16VecFieldData>(field)->Value(i);
-            std::vector<float> f32_vec;
-            f32_vec.reserve(f16_vec.size());
-            std::transform(f16_vec.begin(), f16_vec.end(), std::back_inserter(f32_vec),
-                           [&is_fp16](uint16_t val) { return is_fp16 ? F16toF32(val) : BF16toF32(val); });
-            return nlohmann::json(f32_vec);
-        } else {
-            std::shared_ptr<T> real_field = std::static_pointer_cast<T>(field);
-            return nlohmann::json(real_field->Value(i));
-        }
-    };
-}
-
-std::map<std::string, std::function<nlohmann::json(size_t)>>
-GenGetters(const std::vector<FieldDataPtr>& fields) {
-    std::map<std::string, std::function<nlohmann::json(size_t)>> getters;
-    for (const auto& field : fields) {
-        DataType dt = field->Type();
-        const std::string& name = field->Name();
-        switch (dt) {
-            case DataType::BOOL: {
-                getters.insert(std::make_pair(name, std::move(GenGetter<BoolFieldData>(field))));
-                break;
-            }
-            case DataType::INT8: {
-                getters.insert(std::make_pair(name, std::move(GenGetter<Int8FieldData>(field))));
-                break;
-            }
-            case DataType::INT16: {
-                getters.insert(std::make_pair(name, std::move(GenGetter<Int16FieldData>(field))));
-                break;
-            }
-            case DataType::INT32: {
-                getters.insert(std::make_pair(name, std::move(GenGetter<Int32FieldData>(field))));
-                break;
-            }
-            case DataType::INT64: {
-                getters.insert(std::make_pair(name, std::move(GenGetter<Int64FieldData>(field))));
-                break;
-            }
-            case DataType::FLOAT: {
-                getters.insert(std::make_pair(name, std::move(GenGetter<FloatFieldData>(field))));
-                break;
-            }
-            case DataType::DOUBLE: {
-                getters.insert(std::make_pair(name, std::move(GenGetter<DoubleFieldData>(field))));
-                break;
-            }
-            case DataType::VARCHAR: {
-                getters.insert(std::make_pair(name, std::move(GenGetter<VarCharFieldData>(field))));
-                break;
-            }
-            case DataType::JSON: {
-                getters.insert(std::make_pair(name, std::move(GenGetter<JSONFieldData>(field))));
-                break;
-            }
-            case DataType::ARRAY: {
-                switch (field->ElementType()) {
-                    case DataType::BOOL: {
-                        getters.insert(std::make_pair(name, std::move(GenGetter<ArrayBoolFieldData>(field))));
-                        break;
-                    }
-                    case DataType::INT8: {
-                        getters.insert(std::make_pair(name, std::move(GenGetter<ArrayInt8FieldData>(field))));
-                        break;
-                    }
-                    case DataType::INT16: {
-                        getters.insert(std::make_pair(name, std::move(GenGetter<ArrayInt16FieldData>(field))));
-                        break;
-                    }
-                    case DataType::INT32: {
-                        getters.insert(std::make_pair(name, std::move(GenGetter<ArrayInt32FieldData>(field))));
-                        break;
-                    }
-                    case DataType::INT64: {
-                        getters.insert(std::make_pair(name, std::move(GenGetter<ArrayInt64FieldData>(field))));
-                        break;
-                    }
-                    case DataType::FLOAT: {
-                        getters.insert(std::make_pair(name, std::move(GenGetter<ArrayFloatFieldData>(field))));
-                        break;
-                    }
-                    case DataType::DOUBLE: {
-                        getters.insert(std::make_pair(name, std::move(GenGetter<ArrayDoubleFieldData>(field))));
-                        break;
-                    }
-                    case DataType::VARCHAR: {
-                        getters.insert(std::make_pair(name, std::move(GenGetter<ArrayVarCharFieldData>(field))));
-                        break;
-                    }
-                    default:
-                        // no need to return error here, for new unknown dat type, the data is not displayed,
-                        // SearchResults::OutputFields/QueryResults::OutputFields can handle unknown dat types.
-                        break;
-                }
-                break;
-            }
-            case DataType::BINARY_VECTOR: {
-                getters.insert(std::make_pair(name, std::move(GenGetter<BinaryVecFieldData>(field))));
-                break;
-            }
-            case DataType::FLOAT_VECTOR: {
-                getters.insert(std::make_pair(name, std::move(GenGetter<FloatVecFieldData>(field))));
-                break;
-            }
-            case DataType::FLOAT16_VECTOR: {
-                getters.insert(std::make_pair(name, std::move(GenGetter<Float16VecFieldData>(field))));
-                break;
-            }
-            case DataType::BFLOAT16_VECTOR: {
-                getters.insert(std::make_pair(name, std::move(GenGetter<BFloat16VecFieldData>(field))));
-                break;
-            }
-            case DataType::SPARSE_FLOAT_VECTOR: {
-                getters.insert(std::make_pair(name, std::move(GenGetter<SparseFloatVecFieldData>(field))));
-                break;
-            }
-            default:
-                // no need to return error here, for new unknown dat type, the data is not displayed,
-                // SearchResults::OutputFields/QueryResults::OutputFields can handle unknown dat types.
-                break;
-        }
-    }
-    return std::move(getters);
-}
-
-Status
-GetRowCountOfFields(const std::vector<FieldDataPtr>& fields, size_t& count) {
-    size_t first_cnt = 0;
-    for (const auto& field : fields) {
-        if (field != nullptr) {
-            first_cnt = field->Count();
-            break;
-        }
-    }
-    for (const auto& field : fields) {
-        if (field != nullptr && first_cnt != field->Count()) {
-            return Status{StatusCode::INVALID_AGUMENT, "Row numbers of fields are not equal"};
-        }
-    }
-    count = first_cnt;
-    return Status::OK();
-}
-
-Status
-GetRowsFromFieldsData(const std::vector<FieldDataPtr>& fields, std::vector<nlohmann::json>& rows) {
-    rows.clear();
-    size_t count = 0;
-    auto status = GetRowCountOfFields(fields, count);
-    if (!status.IsOk()) {
-        return status;
-    }
-
-    auto getters = GenGetters(fields);
-    for (auto i = 0; i < count; i++) {
-        nlohmann::json row;
-        for (auto& getter : getters) {
-            row[getter.first] = getter.second(i);
-        }
-        rows.emplace_back(std::move(row));
-    }
-    return Status::OK();
-}
-
-Status
-GetRowFromFieldsData(const std::vector<FieldDataPtr>& fields, size_t i, nlohmann::json& row) {
-    row.clear();
-    size_t count = 0;
-    auto status = GetRowCountOfFields(fields, count);
-    if (!status.IsOk()) {
-        return status;
-    }
-
-    if (i >= count) {
-        return Status{StatusCode::INVALID_AGUMENT, "out of bound"};
-    }
-
-    auto getters = GenGetters(fields);
-    for (auto& getter : getters) {
-        row[getter.first] = getter.second(i);
-    }
     return Status::OK();
 }
 

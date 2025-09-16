@@ -34,6 +34,8 @@
 #include "types/HybridSearchArguments.h"
 #include "types/IndexDesc.h"
 #include "types/IndexState.h"
+#include "types/Iterator.h"
+#include "types/IteratorArguments.h"
 #include "types/PartitionInfo.h"
 #include "types/PartitionStat.h"
 #include "types/PrivilegeGroupInfo.h"
@@ -539,6 +541,18 @@ class MilvusClient {
     DescribeIndex(const std::string& collection_name, const std::string& field_name, IndexDesc& index_desc) = 0;
 
     /**
+     * @brief Get index names of a collection.
+     *
+     * @param [in] collection_name name of the collection
+     * @param [in] field_name name of the field, if this value is empty, return all index names
+     * @param [out] index_names index names
+     * @return Status operation successfully or not
+     */
+    virtual Status
+    ListIndexes(const std::string& collection_name, const std::string& field_name,
+                std::vector<std::string>& index_names) = 0;
+
+    /**
      * @brief Get state of an index. From the state client can know whether the index has finished or in-progress.
      *
      * @param [in] collection_name name of the collection
@@ -618,8 +632,8 @@ class MilvusClient {
      * @return Status operation successfully or not
      */
     virtual Status
-    Insert(const std::string& collection_name, const std::string& partition_name,
-           const std::vector<nlohmann::json>& rows, DmlResults& results) = 0;
+    Insert(const std::string& collection_name, const std::string& partition_name, const EntityRows& rows,
+           DmlResults& results) = 0;
 
     /**
      * @brief Upsert entities into a collection.
@@ -644,8 +658,8 @@ class MilvusClient {
      * @return Status operation successfully or not
      */
     virtual Status
-    Upsert(const std::string& collection_name, const std::string& partition_name,
-           const std::vector<nlohmann::json>& rows, DmlResults& results) = 0;
+    Upsert(const std::string& collection_name, const std::string& partition_name, const EntityRows& rows,
+           DmlResults& results) = 0;
 
     /**
      * @brief Delete entities by filtering condition.
@@ -672,6 +686,17 @@ class MilvusClient {
     Search(const SearchArguments& arguments, SearchResults& results) = 0;
 
     /**
+     * @brief Get SearchIterator object based on scalar field(s) filtered by boolean expression.
+     * Note that the order of the returned entities cannot be guaranteed.
+     *
+     * @param [in] arguments search iterator arguments
+     * @param [out] iterator search iterator object
+     * @return Status operation successfully or not
+     */
+    virtual Status
+    SearchIterator(SearchIteratorArguments& arguments, SearchIteratorPtr& iterator) = 0;
+
+    /**
      * @brief Hybrid search a collection based on the given parameters and return results.
      *
      * @param [in] arguments search arguments
@@ -690,6 +715,16 @@ class MilvusClient {
      */
     virtual Status
     Query(const QueryArguments& arguments, QueryResults& results) = 0;
+
+    /**
+     * @brief Get QueryIterator object based on scalar field(s) filtered by boolean expression.
+     *
+     * @param [in] arguments query iterator arguments
+     * @param [out] iterator query iterator object
+     * @return Status operation successfully or not
+     */
+    virtual Status
+    QueryIterator(QueryIteratorArguments& arguments, QueryIteratorPtr& iterator) = 0;
 
     /**
      * @brief Flush insert buffer into storage.

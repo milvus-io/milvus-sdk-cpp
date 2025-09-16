@@ -19,6 +19,10 @@
 #include <string>
 
 namespace milvus {
+// const values for internal common usage
+constexpr int64_t MAX_BATCH_SIZE = 16384;
+constexpr uint64_t ITERATION_MAX_FILTERED_IDS_COUNT = 100000;
+constexpr uint64_t ITERATION_MAX_RETRY_TIME = 20;
 
 // const names for internal common usage
 extern const char* ROW_COUNT;
@@ -34,6 +38,10 @@ extern const char* GROUPBY_FIELD;
 extern const char* PARAMS;
 extern const char* STRATEGY;
 extern const char* SCORE;
+
+extern const char* ITERATOR;
+extern const char* REDUCE_STOP_FOR_BEST;
+extern const char* COLLECTION_ID;
 
 std::string
 GetBuildVersion();

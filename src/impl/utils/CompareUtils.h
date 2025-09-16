@@ -21,7 +21,7 @@
 #include "milvus/types/SegmentInfo.h"
 
 namespace milvus {
-
+// the following methods are mainly for unitest
 bool
 operator==(const proto::schema::FieldData& lhs, const BoolFieldData& rhs);
 

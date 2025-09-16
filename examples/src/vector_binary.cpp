@@ -31,17 +31,13 @@ main(int argc, char* argv[]) {
     auto status = client->Connect(connect_param);
     util::CheckStatus("connect milvus server", status);
 
-    // drop the collection if it exists
     const std::string collection_name = "TEST_CPP_BINARY";
-    status = client->DropCollection(collection_name);
-
-    // create a collection
     const std::string field_id = "pk";
     const std::string field_vector = "vector";
     const std::string field_text = "text";
     const uint32_t dimension = 128;
 
-    // collection schema, create collection
+    // collection schema, drop and create collection
     milvus::CollectionSchema collection_schema(collection_name);
     collection_schema.AddField(
         milvus::FieldSchema(field_id, milvus::DataType::VARCHAR, "", true, false).WithMaxLength(128));
@@ -49,6 +45,7 @@ main(int argc, char* argv[]) {
         milvus::FieldSchema(field_vector, milvus::DataType::BINARY_VECTOR).WithDimension(dimension));
     collection_schema.AddField(milvus::FieldSchema(field_text, milvus::DataType::VARCHAR).WithMaxLength(1024));
 
+    status = client->DropCollection(collection_name);
     status = client->CreateCollection(collection_schema);
     util::CheckStatus("create collection: " + collection_name, status);
 
@@ -78,11 +75,11 @@ main(int argc, char* argv[]) {
     }
 
     const int64_t row_count = 10;
-    std::vector<nlohmann::json> rows;
+    milvus::EntityRows rows;
     {
         // insert some rows
         for (auto i = 0; i < row_count; ++i) {
-            nlohmann::json row;
+            milvus::EntityRow row;
             row[field_id] = "primary_key_" + std::to_string(i);
             row[field_text] = "this is text_" + std::to_string(i);
             row[field_vector] = util::GenerateBinaryVector(dimension);
@@ -115,7 +112,7 @@ main(int argc, char* argv[]) {
     status = client->Query(q_arguments, query_results);
     util::CheckStatus("query", status);
 
-    std::vector<nlohmann::json> output_rows;
+    milvus::EntityRows output_rows;
     status = query_results.OutputRows(output_rows);
     util::CheckStatus("get output rows", status);
     std::cout << "Query results:" << std::endl;
@@ -144,7 +141,7 @@ main(int argc, char* argv[]) {
 
     for (auto& result : search_results.Results()) {
         std::cout << "Result of one target vector:" << std::endl;
-        std::vector<nlohmann::json> output_rows;
+        milvus::EntityRows output_rows;
         status = result.OutputRows(output_rows);
         util::CheckStatus("get output rows", status);
         for (const auto& row : output_rows) {

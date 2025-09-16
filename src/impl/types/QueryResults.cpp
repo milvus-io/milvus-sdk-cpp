@@ -16,11 +16,14 @@
 
 #include "milvus/types/QueryResults.h"
 
-#include "../utils/DmlUtils.h"
+#include "../utils/DqlUtils.h"
 
 namespace milvus {
 
 QueryResults::QueryResults() = default;
+
+QueryResults::QueryResults(const QueryResults& src) : output_fields_(src.output_fields_) {
+}
 
 QueryResults::QueryResults(const std::vector<FieldDataPtr>& output_fields) {
     output_fields_ = output_fields;
@@ -55,12 +58,12 @@ QueryResults::OutputFields() const {
 }
 
 Status
-QueryResults::OutputRows(std::vector<nlohmann::json>& rows) const {
+QueryResults::OutputRows(EntityRows& rows) const {
     return GetRowsFromFieldsData(output_fields_, rows);
 }
 
 Status
-QueryResults::OutputRow(int i, nlohmann::json& row) const {
+QueryResults::OutputRow(int i, EntityRow& row) const {
     return GetRowFromFieldsData(output_fields_, i, row);
 }
 

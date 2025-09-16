@@ -31,21 +31,18 @@ main(int argc, char* argv[]) {
     auto status = client->Connect(connect_param);
     util::CheckStatus("connect milvus server", status);
 
-    // drop the collection if it exists
     const std::string collection_name = "TEST_CPP_SPARSE";
-    status = client->DropCollection(collection_name);
-
-    // create a collection
     const std::string field_id = "pk";
     const std::string field_vector = "sparse";
     const std::string field_text = "text";
 
-    // collection schema, create collection
+    // collection schema, drop and create collection
     milvus::CollectionSchema collection_schema(collection_name);
     collection_schema.AddField({field_id, milvus::DataType::INT64, "user id", true, false});
     collection_schema.AddField({field_vector, milvus::DataType::SPARSE_FLOAT_VECTOR});
     collection_schema.AddField(milvus::FieldSchema(field_text, milvus::DataType::VARCHAR).WithMaxLength(1024));
 
+    status = client->DropCollection(collection_name);
     status = client->CreateCollection(collection_schema);
     util::CheckStatus("create collection: " + collection_name, status);
 
@@ -74,11 +71,11 @@ main(int argc, char* argv[]) {
     }
 
     const int64_t row_count = 10;
-    std::vector<nlohmann::json> rows;
+    milvus::EntityRows rows;
     {
         // insert some rows by row-based
         for (auto i = 0; i < row_count; ++i) {
-            nlohmann::json row;
+            milvus::EntityRow row;
             row[field_id] = i;
             row[field_text] = "this is text_" + std::to_string(i);
             row[field_vector] = util::GenerateSparseVectorInJson(100, true);
@@ -104,7 +101,7 @@ main(int argc, char* argv[]) {
     status = client->Query(q_arguments, query_results);
     util::CheckStatus("query", status);
 
-    std::vector<nlohmann::json> output_rows;
+    milvus::EntityRows output_rows;
     status = query_results.OutputRows(output_rows);
     util::CheckStatus("get output rows", status);
     std::cout << "Query results:" << std::endl;
@@ -136,7 +133,7 @@ main(int argc, char* argv[]) {
 
     for (auto& result : search_results.Results()) {
         std::cout << "Result of one target vector:" << std::endl;
-        std::vector<nlohmann::json> output_rows;
+        milvus::EntityRows output_rows;
         status = result.OutputRows(output_rows);
         util::CheckStatus("get output rows", status);
         for (const auto& row : output_rows) {
