@@ -59,9 +59,31 @@ AddElement(const T& element, std::vector<T>& array) {
     return StatusCode::OK;
 }
 
+template <typename T, DataType Dt, std::enable_if_t<!DataTypeTraits<Dt>::is_vector, bool> = true>
+StatusCode
+AddElement(T&& element, std::vector<T>& array) {
+    array.emplace_back(element);
+    return StatusCode::OK;
+}
+
 template <typename T, DataType Dt, std::enable_if_t<DataTypeTraits<Dt>::is_vector, bool> = true>
 StatusCode
 AddElement(const T& element, std::vector<T>& array) {
+    if (element.empty()) {
+        return StatusCode::VECTOR_IS_EMPTY;
+    }
+
+    if (!array.empty() && element.size() != array.at(0).size()) {
+        return StatusCode::DIMENSION_NOT_EQUAL;
+    }
+
+    array.push_back(element);
+    return StatusCode::OK;
+}
+
+template <typename T, DataType Dt, std::enable_if_t<DataTypeTraits<Dt>::is_vector, bool> = true>
+StatusCode
+AddElement(T&& element, std::vector<T>& array) {
     if (element.empty()) {
         return StatusCode::VECTOR_IS_EMPTY;
     }
@@ -127,13 +149,27 @@ FieldData<T, Dt>::Add(const T& element) {
 template <typename T, DataType Dt>
 StatusCode
 FieldData<T, Dt>::Add(T&& element) {
-    return AddElement<T, Dt>(std::move(element), data_);
+    return AddElement<T, Dt>(element, data_);
+}
+
+template <typename T, DataType Dt>
+StatusCode
+FieldData<T, Dt>::Append(const std::vector<T>& elements) {
+    data_.reserve(data_.size() + elements.size());
+    std::copy(elements.begin(), elements.end(), std::back_inserter(data_));
+    return StatusCode::OK;
 }
 
 template <typename T, DataType Dt>
 size_t
 FieldData<T, Dt>::Count() const {
     return data_.size();
+}
+
+template <typename T, DataType Dt>
+void
+FieldData<T, Dt>::Reserve(size_t count) {
+    data_.reserve(count);
 }
 
 template <typename T, DataType Dt>

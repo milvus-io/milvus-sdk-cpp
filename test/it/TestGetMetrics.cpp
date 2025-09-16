@@ -29,9 +29,6 @@ TEST_F(MilvusMockedTest, GetMetrics) {
     client_->Connect(connect_param);
 
     std::string request_str = "dummy_req";
-    milvus::proto::milvus::GetMetricsRequest rpc_request;
-    rpc_request.set_request(request_str);
-
     std::string response_str = "dummy_resp";
     std::string component_str = "dummy_comp";
     EXPECT_CALL(service_, GetMetrics(_, Property(&GetMetricsRequest::request, request_str), _))
@@ -52,9 +49,6 @@ TEST_F(MilvusMockedTest, GetMetrics) {
 
 TEST_F(UnconnectMilvusMockedTest, GetMetricsWithoutConnect) {
     std::string request_str = "dummy_req";
-    milvus::proto::milvus::GetMetricsRequest rpc_request;
-    rpc_request.set_request(request_str);
-
     std::string res_response, res_comp;
     auto status = client_->GetMetrics(request_str, res_response, res_comp);
     EXPECT_EQ(status.Code(), StatusCode::NOT_CONNECTED);
@@ -65,9 +59,6 @@ TEST_F(MilvusMockedTest, GetMetricsFailed) {
     client_->Connect(connect_param);
 
     std::string request_str = "dummy_req";
-    milvus::proto::milvus::GetMetricsRequest rpc_request;
-    rpc_request.set_request(request_str);
-
     EXPECT_CALL(service_, GetMetrics(_, Property(&GetMetricsRequest::request, request_str), _))
         .WillOnce([](::grpc::ServerContext*, const GetMetricsRequest*, GetMetricsResponse*) {
             return ::grpc::Status{::grpc::StatusCode::ABORTED, "Get metrics failed. Internal error"};

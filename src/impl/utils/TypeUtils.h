@@ -44,36 +44,6 @@ MetricTypeCast(const std::string& type);
 IndexType
 IndexTypeCast(const std::string& type);
 
-proto::schema::FieldData
-CreateProtoFieldData(const Field& field);
-
-std::string
-EncodeSparseFloatVector(const SparseFloatVecFieldData::ElementT& sparse);
-
-template <typename T, typename V>
-std::vector<std::vector<T>>
-BuildFieldDataVectors(size_t out_len, size_t in_len, const V* vectors_data, size_t offset, size_t count);
-
-template <typename T, typename ScalarData>
-std::vector<T>
-BuildFieldDataScalars(const ScalarData& scalar_data, size_t offset, size_t count);
-
-template <typename T, typename ScalarData>
-std::vector<T>
-BuildFieldDataScalars(const ScalarData& scalar_data);
-
-FieldDataPtr
-CreateMilvusFieldData(const proto::schema::FieldData& field_data, size_t offset, size_t count);
-
-FieldDataPtr
-CreateMilvusFieldData(const proto::schema::FieldData& field_data);
-
-IDArray
-CreateIDArray(const proto::schema::IDs& ids);
-
-IDArray
-CreateIDArray(const proto::schema::IDs& ids, size_t offset, size_t size);
-
 void
 ConvertFieldSchema(const proto::schema::FieldSchema& proto_schema, FieldSchema& schema);
 
@@ -108,27 +78,12 @@ ConsistencyLevel
 ConsistencyLevelCast(const proto::common::ConsistencyLevel& level);
 
 void
-SetTargetVectors(const FieldDataPtr& vectors, milvus::proto::milvus::SearchRequest* rpc_request);
-
-void
-SetExtraParams(const std::unordered_map<std::string, std::string>& params,
-               milvus::proto::milvus::SearchRequest* rpc_request);
-
-void
-ConvertSearchResults(const proto::milvus::SearchResults& response, SearchResults& results);
-
-void
 ConvertResourceGroupConfig(const ResourceGroupConfig& config, proto::rg::ResourceGroupConfig* rpc_config);
 
 void
 ConvertResourceGroupConfig(const proto::rg::ResourceGroupConfig& rpc_config, ResourceGroupConfig& config);
 
+std::string
+doubleToString(double val);
+
 }  // namespace milvus
-
-namespace std {
-std::string to_string(milvus::IndexType);
-
-std::string to_string(milvus::MetricType);
-
-std::string to_string(milvus::DataType);
-}  // namespace std

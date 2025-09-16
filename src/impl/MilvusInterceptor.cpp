@@ -24,7 +24,7 @@ void
 HeaderAdderInterceptor::Intercept(grpc::experimental::InterceptorBatchMethods* methods) {
     if (methods->QueryInterceptionHookPoint(grpc::experimental::InterceptionHookPoints::PRE_SEND_INITIAL_METADATA)) {
         for (const auto& header : headers_) {
-            methods->GetSendInitialMetadata()->insert({header.first, header.second});
+            methods->GetSendInitialMetadata()->insert(header);
         }
     }
     methods->Proceed();

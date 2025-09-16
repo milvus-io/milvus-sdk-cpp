@@ -18,6 +18,10 @@
 
 namespace milvus {
 
+IDArray::IDArray(const IDArray& src)
+    : is_int_array_(src.is_int_array_), int_id_array_(src.int_id_array_), str_id_array_(src.str_id_array_) {
+}
+
 IDArray::IDArray(const std::vector<int64_t>& id_array) : int_id_array_(id_array) {
 }
 
@@ -43,6 +47,11 @@ IDArray::IntIDArray() const {
 const std::vector<std::string>&
 IDArray::StrIDArray() const {
     return str_id_array_;
+}
+
+uint64_t
+IDArray::GetRowCount() const {
+    return IsIntegerID() ? int_id_array_.size() : str_id_array_.size();
 }
 
 }  // namespace milvus

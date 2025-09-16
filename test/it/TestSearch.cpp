@@ -30,8 +30,6 @@
 using ::milvus::FieldDataPtr;
 using ::milvus::StatusCode;
 using ::milvus::TestKv;
-using ::milvus::proto::milvus::DescribeCollectionRequest;
-using ::milvus::proto::milvus::DescribeCollectionResponse;
 using ::milvus::proto::milvus::SearchRequest;
 using ::milvus::proto::milvus::SearchResults;
 using ::milvus::proto::schema::DataType;
@@ -165,7 +163,7 @@ TestSearchVectors(testing::StrictMock<milvus::MilvusMockedService>& service_, mi
     auto f2_1 = std::vector<int16_t>{1, 2};
     EXPECT_EQ(single_1.Ids().IntIDArray(), ids_1);
     EXPECT_EQ(single_1.Scores(), scores_1);
-    EXPECT_EQ(single_1.OutputFields().size(), 2);
+    EXPECT_EQ(single_1.OutputFields().size(), 4);
     EXPECT_EQ(std::static_pointer_cast<milvus::BoolFieldData>(single_1.OutputField("f1"))->Data(), f1_1);
     EXPECT_EQ(std::static_pointer_cast<milvus::Int16FieldData>(single_1.OutputField("f2"))->Data(), f2_1);
 
@@ -176,7 +174,7 @@ TestSearchVectors(testing::StrictMock<milvus::MilvusMockedService>& service_, mi
     auto f2_2 = std::vector<int16_t>{3, 4, 5};
     EXPECT_EQ(single_2.Ids().IntIDArray(), ids_2);
     EXPECT_EQ(single_2.Scores(), scores_2);
-    EXPECT_EQ(single_2.OutputFields().size(), 2);
+    EXPECT_EQ(single_2.OutputFields().size(), 4);
     EXPECT_EQ(std::static_pointer_cast<milvus::BoolFieldData>(single_2.OutputField("f1"))->Data(), f1_2);
     EXPECT_EQ(std::static_pointer_cast<milvus::Int16FieldData>(single_2.OutputField("f2"))->Data(), f2_2);
 
@@ -186,7 +184,7 @@ TestSearchVectors(testing::StrictMock<milvus::MilvusMockedService>& service_, mi
     EXPECT_EQ(single_1.PrimaryKeyName(), "PrimaryKey");
     EXPECT_EQ(single_2.PrimaryKeyName(), "PrimaryKey");
 
-    std::vector<nlohmann::json> rows;
+    milvus::EntityRows rows;
     status = single_1.OutputRows(rows);
     EXPECT_TRUE(status.IsOk());
     EXPECT_EQ(rows.size(), 2);
@@ -195,7 +193,7 @@ TestSearchVectors(testing::StrictMock<milvus::MilvusMockedService>& service_, mi
     EXPECT_EQ(rows.size(), 3);
 
     for (auto i = 0; i < single_1.GetRowCount(); i++) {
-        nlohmann::json row;
+        milvus::EntityRow row;
         status = single_1.OutputRow(i, row);
         EXPECT_TRUE(status.IsOk());
         EXPECT_TRUE(row.contains("PrimaryKey"));
@@ -208,7 +206,7 @@ TestSearchVectors(testing::StrictMock<milvus::MilvusMockedService>& service_, mi
         EXPECT_EQ(row["f2"].get<int16_t>(), f2_1.at(i));
     }
     for (auto i = 0; i < single_2.GetRowCount(); i++) {
-        nlohmann::json row;
+        milvus::EntityRow row;
         status = single_2.OutputRow(i, row);
         EXPECT_TRUE(status.IsOk());
         EXPECT_TRUE(row.contains("PrimaryKey"));

@@ -16,6 +16,8 @@
 
 #pragma once
 
+#include <string>
+
 namespace milvus {
 
 /**
@@ -48,3 +50,7 @@ enum class DataType {
 };
 
 }  // namespace milvus
+
+namespace std {
+std::string to_string(milvus::DataType);
+}  // namespace std

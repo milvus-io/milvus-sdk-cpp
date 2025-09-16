@@ -30,28 +30,34 @@ class Field {
     virtual ~Field() = default;
 
     /**
-     * @brief Get field name
+     * @brief Get field name.
      */
     const std::string&
     Name() const;
 
     /**
-     * @brief Get field data type
+     * @brief Get field data type.
      */
     DataType
     Type() const;
 
     /**
-     * @brief Get elelemnt type for array field
+     * @brief Get elelemnt type for array field.
      */
     DataType
     ElementType() const;
 
     /**
-     * @brief Total number of field elements
+     * @brief Total number of field elements.
      */
     virtual size_t
     Count() const = 0;
+
+    /**
+     * @brief Pre-allocate a space for number of elements.
+     */
+    virtual void
+    Reserve(size_t count) = 0;
 
  protected:
     Field(std::string name, DataType data_type);
@@ -75,57 +81,72 @@ using FieldDataPtr = std::shared_ptr<Field>;
  *  DoubleFieldData for double scalar field \n
  *  VarCharFieldData for string scalar field \n
  *  JSONFieldData for json scalar field (supportted in 2.4) \n
- *  BinaryVecFieldData for float vector scalar field \n
- *  FloatVecFieldData for binary vector scalar field \n
+ *  BinaryVecFieldData for float vector field \n
+ *  FloatVecFieldData for binary vector field \n
+ *  SparseFloatVecFieldData for sparse vector field \n
+ *  Float16VecFieldData for float16 vector field \n
+ *  BFloat16VecFieldData for bfloat16 vector field \n
  */
 template <typename T, DataType Dt>
 class FieldData : public Field {
  public:
     /**
-     * @brief Field element type
+     * @brief Field element type.
      */
     using ElementT = T;
 
     /**
-     * @brief Constructor
+     * @brief Constructor.
      */
     FieldData();
 
     /**
-     * @brief Constructor
+     * @brief Constructor.
      */
     explicit FieldData(std::string name);
 
     /**
-     * @brief Constructor
+     * @brief Constructor.
      */
     FieldData(std::string name, const std::vector<T>& data);
 
     /**
-     * @brief Constructor
+     * @brief Constructor.
      */
     FieldData(std::string name, std::vector<T>&& data);
 
     /**
-     * @brief Add element to field data
+     * @brief Add element to field data.
      */
     virtual StatusCode
     Add(const T& element);
 
     /**
-     * @brief Add element to field data
+     * @brief Add element to field data.
      */
     virtual StatusCode
     Add(T&& element);
 
     /**
-     * @brief Total number of field elements
+     * @brief Append elements to field data.
+     */
+    virtual StatusCode
+    Append(const std::vector<T>& elements);
+
+    /**
+     * @brief Total number of field elements.
      */
     size_t
     Count() const final;
 
     /**
-     * @brief Field elements array
+     * @brief Pre-allocate a space for number of elements.
+     */
+    void
+    Reserve(size_t count) final;
+
+    /**
+     * @brief Field elements array.
      */
     virtual const std::vector<T>&
     Data() const;
@@ -153,38 +174,38 @@ template <typename T, DataType Et>
 class ArrayFieldData : public FieldData<std::vector<T>, DataType::ARRAY> {
  public:
     /**
-     * @brief Field element type
+     * @brief Field element type.
      */
     using ElementT = std::vector<T>;
 
     /**
-     * @brief Constructor
+     * @brief Constructor.
      */
     ArrayFieldData();
 
     /**
-     * @brief Constructor
+     * @brief Constructor.
      */
     explicit ArrayFieldData(std::string name);
 
     /**
-     * @brief Constructor
+     * @brief Constructor.
      */
     ArrayFieldData(std::string name, const std::vector<ArrayFieldData::ElementT>& data);
 
     /**
-     * @brief Constructor
+     * @brief Constructor.
      */
     ArrayFieldData(std::string name, std::vector<ArrayFieldData::ElementT>&& data);
 
     /**
-     * @brief Add element to field data
+     * @brief Add element to field data.
      */
     StatusCode
     Add(const ArrayFieldData::ElementT& element) override;
 
     /**
-     * @brief Add element to field data
+     * @brief Add element to field data.
      */
     StatusCode
     Add(ArrayFieldData::ElementT&& element) override;
@@ -193,77 +214,80 @@ class ArrayFieldData : public FieldData<std::vector<T>, DataType::ARRAY> {
 class BinaryVecFieldData : public FieldData<std::vector<uint8_t>, DataType::BINARY_VECTOR> {
  public:
     /**
-     * @brief Field element type
+     * @brief Field element type.
      */
     using ElementT = std::vector<uint8_t>;
 
     /**
-     * @brief Constructor
+     * @brief Constructor.
      */
     explicit BinaryVecFieldData(std::string name);
 
     /**
-     * @brief Constructor
+     * @brief Constructor.
      */
     BinaryVecFieldData(std::string name, const std::vector<std::vector<uint8_t>>& data);
 
     /**
-     * @brief Constructor
+     * @brief Constructor.
      */
     BinaryVecFieldData(std::string name, std::vector<std::vector<uint8_t>>&& data);
 
     /**
-     * @brief Extra constructor
+     * @brief Extra constructor.
      */
     BinaryVecFieldData(std::string name, const std::vector<std::string>& data);
 
     /**
-     * @brief Extra constructor
+     * @brief Extra constructor.
      */
     BinaryVecFieldData(std::string name, std::vector<std::string>&& data);
 
     /**
-     * @brief Extra method to get field elements array
+     * @brief Extra method to get field elements array.
      */
     std::vector<std::string>
     DataAsString() const;
 
     /**
-     * @brief Extra method to add element to field data
+     * @brief Extra method to add element to field data.
      */
     StatusCode
     AddAsString(const std::string& element);
 
     /**
-     * @brief Extra method to add element to field data
+     * @brief Extra method to add element to field data.
      */
     StatusCode
     AddAsString(std::string&& element);
 
     /**
-     * @brief Convert binary vectors to strings
+     * @brief Convert binary vectors to strings.
      */
     static std::vector<std::string>
     ToBinaryStrings(const std::vector<std::vector<uint8_t>>& data);
 
     /**
-     * @brief Convert binary vector to string
+     * @brief Convert binary vector to string.
      */
     static std::string
     ToBinaryString(const std::vector<uint8_t>& data);
 
     /**
-     * @brief Convert strings to binary vectors
+     * @brief Convert strings to binary vectors.
      */
     static std::vector<std::vector<uint8_t>>
     ToUnsignedChars(const std::vector<std::string>& data);
 
     /**
-     * @brief Convert string to binary vector
+     * @brief Convert string to binary vector.
      */
     static std::vector<uint8_t>
     ToUnsignedChars(const std::string& data);
 };
+
+using EntityRow = nlohmann::json;
+using EntityRows = std::vector<nlohmann::json>;
 
 using BoolFieldData = FieldData<bool, DataType::BOOL>;
 using Int8FieldData = FieldData<int8_t, DataType::INT8>;

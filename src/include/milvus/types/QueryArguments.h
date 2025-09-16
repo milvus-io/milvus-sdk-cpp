@@ -31,6 +31,8 @@ namespace milvus {
  */
 class QueryArguments {
  public:
+    virtual ~QueryArguments() = default;
+
     /**
      * @brief Get the target db name.
      */
@@ -215,7 +217,6 @@ class QueryArguments {
     std::set<std::string> output_field_names_;
     std::string filter_expression_;
 
-    std::set<std::string> output_fields_;
     std::unordered_map<std::string, std::string> extra_params_;
 
     uint64_t travel_timestamp_{0};

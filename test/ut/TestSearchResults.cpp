@@ -22,8 +22,10 @@ class SearchResultsTest : public ::testing::Test {};
 
 TEST_F(SearchResultsTest, TestSingleResult) {
     milvus::SingleResult result{
-        "pk", milvus::IDArray{std::vector<int64_t>{10000}}, std::vector<float>{0.1f},
-        std::vector<milvus::FieldDataPtr>{std::make_shared<milvus::BoolFieldData>("bool", std::vector<bool>{true}),
+        "pk", "score",
+        std::vector<milvus::FieldDataPtr>{std::make_shared<milvus::Int64FieldData>("pk", std::vector<int64_t>{10000}),
+                                          std::make_shared<milvus::FloatFieldData>("score", std::vector<float>{0.1}),
+                                          std::make_shared<milvus::BoolFieldData>("bool", std::vector<bool>{true}),
                                           std::make_shared<milvus::Int16FieldData>("int16", std::vector<int16_t>{1})}};
     EXPECT_EQ(result.PrimaryKeyName(), "pk");
     EXPECT_EQ(result.Ids().IntIDArray(), std::vector<int64_t>{10000});
@@ -31,17 +33,15 @@ TEST_F(SearchResultsTest, TestSingleResult) {
     EXPECT_EQ(result.OutputField("bool")->Name(), "bool");
     EXPECT_EQ(result.OutputField("int16")->Name(), "int16");
     EXPECT_EQ(result.OutputField("invalid"), nullptr);
-    EXPECT_EQ(result.OutputFields().size(), 2);
+    EXPECT_EQ(result.OutputFields().size(), 4);
 }
 
 TEST_F(SearchResultsTest, GeneralTesting) {
-    milvus::IDArray ids{std::vector<int64_t>{}};
-    std::vector<float> scores{};
     std::vector<milvus::FieldDataPtr> fields{};
+    milvus::SingleResult single("id", "distance", std::move(fields));
+    std::vector<milvus::SingleResult> result_array;
+    result_array.emplace_back(std::move(single));
 
-    std::vector<milvus::SingleResult> result_array = {
-        milvus::SingleResult("pk", std::move(ids), std::move(scores), std::move(fields))};
-
-    milvus::SearchResults results(result_array);
+    milvus::SearchResults results(std::move(result_array));
     EXPECT_EQ(1, results.Results().size());
 }

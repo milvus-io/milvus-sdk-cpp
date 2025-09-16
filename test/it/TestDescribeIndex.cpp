@@ -36,10 +36,6 @@ TEST_F(MilvusMockedTest, DescribeIndex) {
     const std::string field_name = "test_field";
     const std::string index_name = "test_index";
 
-    DescribeIndexRequest request;
-    request.set_collection_name(collection_name);
-    request.set_field_name(field_name);
-
     milvus::IndexDesc index_desc;
     EXPECT_CALL(service_, DescribeIndex(_,
                                         AnyOf(Property(&DescribeIndexRequest::collection_name, collection_name),

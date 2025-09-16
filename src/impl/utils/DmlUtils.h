@@ -17,10 +17,12 @@
 #pragma once
 
 #include "common.pb.h"
+#include "milvus.pb.h"
 #include "milvus/types/CollectionDesc.h"
 #include "milvus/types/ConsistencyLevel.h"
 #include "milvus/types/FieldData.h"
 #include "milvus/types/FieldSchema.h"
+#include "milvus/types/IDArray.h"
 #include "schema.pb.h"
 
 namespace milvus {
@@ -34,17 +36,23 @@ CheckInsertInput(const CollectionDescPtr& collection_desc, const std::vector<Fie
 bool
 IsRealFailure(const proto::common::Status& status);
 
-uint64_t
-DeduceGuaranteeTimestamp(const ConsistencyLevel& level, const std::string& db_name, const std::string& collection_name);
+std::string
+EncodeSparseFloatVector(const SparseFloatVecFieldData::ElementT& sparse);
+
+Status
+ParseSparseFloatVector(const nlohmann::json& obj, const std::string& field_name, std::map<uint32_t, float>& pairs);
+
+proto::schema::FieldData
+CreateProtoFieldData(const Field& field);
+
+IDArray
+CreateIDArray(const proto::schema::IDs& ids);
 
 Status
 CheckAndSetBinaryVector(const nlohmann::json& obj, const FieldSchema& fs, proto::schema::VectorField* vf);
 
 Status
 CheckAndSetFloatVector(const nlohmann::json& obj, const FieldSchema& fs, proto::schema::VectorField* vf);
-
-Status
-ParseSparseFloatVector(const nlohmann::json& obj, const std::string& field_name, std::map<uint32_t, float>& pairs);
 
 Status
 CheckAndSetSparseFloatVector(const nlohmann::json& obj, const FieldSchema& fs, proto::schema::VectorField* vf);
@@ -62,13 +70,7 @@ Status
 CheckAndSetFieldValue(const nlohmann::json& obj, const FieldSchema& fs, proto::schema::FieldData& fd);
 
 Status
-CheckAndSetRowData(const std::vector<nlohmann::json>& rows, const CollectionSchema& schema, bool is_upsert,
+CheckAndSetRowData(const EntityRows& rows, const CollectionSchema& schema, bool is_upsert,
                    std::vector<proto::schema::FieldData>& rpc_fields);
-
-Status
-GetRowsFromFieldsData(const std::vector<FieldDataPtr>& fields, std::vector<nlohmann::json>& rows);
-
-Status
-GetRowFromFieldsData(const std::vector<FieldDataPtr>& fields, size_t i, nlohmann::json& row);
 
 }  // namespace milvus

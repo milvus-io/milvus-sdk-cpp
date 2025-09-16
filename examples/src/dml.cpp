@@ -31,28 +31,27 @@ main(int argc, char* argv[]) {
     auto status = client->Connect(connect_param);
     util::CheckStatus("connect milvus server", status);
 
-    // drop the collection if it exists
     const std::string collection_name = "TEST_CPP_DML";
-    status = client->DropCollection(collection_name);
-
-    // create a collection
     const std::string field_id = "pk";
     const std::string field_vector = "vector";
     const std::string field_text = "text";
     const uint32_t dimension = 4;
 
-    // collection schema, create collection
+    // collection schema, drop and create collection
     milvus::CollectionSchema collection_schema(collection_name);
     collection_schema.AddField({field_id, milvus::DataType::INT64, "id", true, true});
     collection_schema.AddField(
         milvus::FieldSchema(field_vector, milvus::DataType::FLOAT_VECTOR).WithDimension(dimension));
     collection_schema.AddField(milvus::FieldSchema(field_text, milvus::DataType::VARCHAR).WithMaxLength(100));
 
+    status = client->DropCollection(collection_name);
     status = client->CreateCollection(collection_schema);
     util::CheckStatus("create collection: " + collection_name, status);
 
     // create index
-    milvus::IndexDesc index_vector(field_vector, "", milvus::IndexType::AUTOINDEX, milvus::MetricType::L2);
+    milvus::IndexDesc index_vector(field_vector, "", milvus::IndexType::HNSW, milvus::MetricType::L2);
+    index_vector.AddExtraParam("M", "64");
+    index_vector.AddExtraParam("efConstruction", "200");
     status = client->CreateIndex(collection_name, index_vector);
     util::CheckStatus("create index on vector field", status);
     milvus::IndexDesc index_text(field_text, "", milvus::IndexType::INVERTED);
@@ -78,9 +77,9 @@ main(int argc, char* argv[]) {
 
     // insert some rows
     const int64_t row_count = 100;
-    std::vector<nlohmann::json> rows;
+    milvus::EntityRows rows;
     for (auto i = 0; i < row_count; ++i) {
-        nlohmann::json row;
+        milvus::EntityRow row;
         row[field_text] = "hello world " + std::to_string(i);
         row[field_vector] = util::GenerateFloatVector(dimension);
         rows.emplace_back(std::move(row));
@@ -95,20 +94,20 @@ main(int argc, char* argv[]) {
     // upsert some rows
     int64_t update_id_1 = ids[1];
     int64_t update_id_2 = ids[ids.size() - 1];
-    std::vector<nlohmann::json> upsert_rows;
+    milvus::EntityRows upsert_rows;
     std::vector<float> dummy_vector(dimension);
     for (auto d = 0; d < dimension; ++d) {
         dummy_vector[d] = 0.88;
     }
     {
-        nlohmann::json row;
+        milvus::EntityRow row;
         row[field_id] = update_id_1;
         row[field_text] = "this row is updated from " + std::to_string(update_id_1);
         row[field_vector] = dummy_vector;
         upsert_rows.emplace_back(std::move(row));
     }
     {
-        nlohmann::json row;
+        milvus::EntityRow row;
         row[field_id] = update_id_2;
         row[field_text] = "this row is updated from " + std::to_string(update_id_2);
         row[field_vector] = dummy_vector;
@@ -145,7 +144,7 @@ main(int argc, char* argv[]) {
     util::CheckStatus("query", status);
     std::cout << "Query results:" << std::endl;
     for (auto i = 0; i < query_results.GetRowCount(); i++) {
-        nlohmann::json output_row;
+        milvus::EntityRow output_row;
         status = query_results.OutputRow(i, output_row);
         util::CheckStatus("get output row", status);
         std::cout << "\t" << output_row << std::endl;

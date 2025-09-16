@@ -30,7 +30,7 @@ DmlResults::SetIdArray(const IDArray& id_array) {
 
 void
 DmlResults::SetIdArray(IDArray&& id_array) {
-    id_array_ = std::move(id_array);
+    id_array_ = id_array;
 }
 
 uint64_t

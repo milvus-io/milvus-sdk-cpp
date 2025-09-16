@@ -16,6 +16,8 @@
 
 #pragma once
 
+#include <string>
+
 namespace milvus {
 
 /**
@@ -31,6 +33,10 @@ enum class MetricType {
     HAMMING,
     JACCARD,
 
-    // Note: in milvus 2.4+, TANIMOTO/SUBSTRUCTURE/SUPERSTRUCTURE have been deprecated
+    // Note: in milvus 2.4+, TANIMOTO/SUBSTRUCTURE/SUPERSTRUCTURE are no longer supported
 };
 }  // namespace milvus
+
+namespace std {
+std::string to_string(milvus::MetricType);
+}  // namespace std

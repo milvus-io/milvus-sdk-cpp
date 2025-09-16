@@ -21,13 +21,14 @@
 #include <cstdlib>
 #include <nlohmann/json.hpp>
 #include <thread>
+#include <type_traits>
 
-#include "common.pb.h"
-#include "milvus.pb.h"
 #include "rg.pb.h"
-#include "schema.pb.h"
+#include "types/QueryIteratorImpl.h"
+#include "types/SearchIteratorImpl.h"
 #include "utils/Constants.h"
 #include "utils/DmlUtils.h"
+#include "utils/DqlUtils.h"
 #include "utils/GtsDict.h"
 #include "utils/TypeUtils.h"
 
@@ -828,6 +829,30 @@ MilvusClientImpl::DescribeIndex(const std::string& collection_name, const std::s
 }
 
 Status
+MilvusClientImpl::ListIndexes(const std::string& collection_name, const std::string& field_name,
+                              std::vector<std::string>& index_names) {
+    auto pre = [&collection_name, &field_name]() {
+        proto::milvus::DescribeIndexRequest rpc_request;
+        rpc_request.set_collection_name(collection_name);
+        rpc_request.set_field_name(field_name);
+        return rpc_request;
+    };
+
+    auto post = [&index_names, &field_name](const proto::milvus::DescribeIndexResponse& response) {
+        auto count = response.index_descriptions_size();
+        for (int i = 0; i < count; ++i) {
+            auto rpc_desc = response.index_descriptions(i);
+            if (field_name.empty() || field_name == rpc_desc.field_name()) {
+                index_names.push_back(rpc_desc.index_name());
+            }
+        }
+    };
+
+    return apiHandler<proto::milvus::DescribeIndexRequest, proto::milvus::DescribeIndexResponse>(
+        pre, &MilvusConnection::DescribeIndex, post);
+}
+
+Status
 MilvusClientImpl::GetIndexState(const std::string& collection_name, const std::string& field_name, IndexState& state) {
     auto pre = [&collection_name, &field_name]() {
         proto::milvus::GetIndexStateRequest rpc_request;
@@ -984,8 +1009,8 @@ MilvusClientImpl::Insert(const std::string& collection_name, const std::string& 
 }
 
 Status
-MilvusClientImpl::Insert(const std::string& collection_name, const std::string& partition_name,
-                         const std::vector<nlohmann::json>& rows, DmlResults& results) {
+MilvusClientImpl::Insert(const std::string& collection_name, const std::string& partition_name, const EntityRows& rows,
+                         DmlResults& results) {
     std::vector<proto::schema::FieldData> rpc_fields;
     auto validate = [this, &collection_name, &rows, &rpc_fields]() {
         CollectionDescPtr collection_desc;
@@ -1112,8 +1137,8 @@ MilvusClientImpl::Upsert(const std::string& collection_name, const std::string& 
 }
 
 Status
-MilvusClientImpl::Upsert(const std::string& collection_name, const std::string& partition_name,
-                         const std::vector<nlohmann::json>& rows, DmlResults& results) {
+MilvusClientImpl::Upsert(const std::string& collection_name, const std::string& partition_name, const EntityRows& rows,
+                         DmlResults& results) {
     std::vector<proto::schema::FieldData> rpc_fields;
     auto validate = [this, &collection_name, &rows, &rpc_fields]() {
         CollectionDescPtr collection_desc;
@@ -1200,84 +1225,82 @@ MilvusClientImpl::Search(const SearchArguments& arguments, SearchResults& result
 
     auto pre = [this, &arguments]() {
         proto::milvus::SearchRequest rpc_request;
-        auto db_name = arguments.DatabaseName();
-        if (!db_name.empty()) {
-            rpc_request.set_db_name(db_name);
-        }
-        rpc_request.set_collection_name(arguments.CollectionName());
-        rpc_request.set_dsl_type(proto::common::DslType::BoolExprV1);
-        if (!arguments.Filter().empty()) {
-            rpc_request.set_dsl(arguments.Filter());
-        }
-        for (const auto& partition_name : arguments.PartitionNames()) {
-            rpc_request.add_partition_names(partition_name);
-        }
-        for (const auto& output_field : arguments.OutputFields()) {
-            rpc_request.add_output_fields(output_field);
-        }
-
-        // set target vectors
-        SetTargetVectors(arguments.TargetVectors(), &rpc_request);
-
-        auto setParamFunc = [&rpc_request](const std::string& key, const std::string& value) {
-            auto kv_pair = rpc_request.add_search_params();
-            kv_pair->set_key(key);
-            kv_pair->set_value(value);
-        };
-
-        // set anns field name, if the name is empty and the collection has only one vector field,
-        // milvus server will use the vector field name as anns name. If the collection has multiple
-        // vector fields, user needs to explicitly provide an anns field name.
-        auto anns_field = arguments.AnnsField();
-        if (!anns_field.empty()) {
-            setParamFunc(milvus::ANNS_FIELD, anns_field);
-        }
-
-        // for history reason, query() requires "limit", search() requires "topk"
-        setParamFunc(milvus::TOPK, std::to_string(arguments.Limit()));
-
-        // set this value only when client specified, otherwise let server to get it from index parameters
-        if (arguments.MetricType() != MetricType::DEFAULT) {
-            setParamFunc(milvus::METRIC_TYPE, std::to_string(arguments.MetricType()));
-        }
-
-        // offset
-        setParamFunc(milvus::OFFSET, std::to_string(arguments.Offset()));
-
-        // round decimal
-        setParamFunc(milvus::ROUND_DECIMAL, std::to_string(arguments.RoundDecimal()));
-
-        // ignore growing
-        setParamFunc(milvus::IGNORE_GROWING, arguments.IgnoreGrowing() ? "true" : "false");
-
-        // group by
-        auto group_by_field = arguments.GroupByField();
-        if (!group_by_field.empty()) {
-            setParamFunc(milvus::GROUPBY_FIELD, arguments.GroupByField());
-        }
-
-        // extra params radius/range_filter/nprobe etc.
-        SetExtraParams(arguments.ExtraParams(), &rpc_request);
-
-        // consistency level
-        ConsistencyLevel level = arguments.GetConsistencyLevel();
-        uint64_t guarantee_ts = DeduceGuaranteeTimestamp(level, currentDbName(db_name), arguments.CollectionName());
-        rpc_request.set_guarantee_timestamp(guarantee_ts);
-        rpc_request.set_travel_timestamp(arguments.TravelTimestamp());
-
-        if (level == ConsistencyLevel::NONE) {
-            rpc_request.set_use_default_consistency(true);
-        } else {
-            rpc_request.set_consistency_level(ConsistencyLevelCast(arguments.GetConsistencyLevel()));
-        }
-
+        auto current_name = currentDbName(arguments.DatabaseName());
+        ConvertSearchRequest(arguments, current_name, rpc_request);
         return rpc_request;
     };
 
-    auto post = [&results](const proto::milvus::SearchResults& response) { ConvertSearchResults(response, results); };
+    auto post = [this, &arguments, &results](const proto::milvus::SearchResults& response) {
+        // in milvus version older than v2.4.20, the primary_field_name() is empty, we need to
+        // get the primary key field name from collection schema
+        const auto& result_data = response.results();
+        auto pk_name = result_data.primary_field_name();
+        if (result_data.primary_field_name().empty()) {
+            CollectionDescPtr collection_desc;
+            getCollectionDesc(arguments.CollectionName(), false, collection_desc);
+            if (collection_desc != nullptr) {
+                pk_name = collection_desc->Schema().Name();
+            }
+        }
+        ConvertSearchResults(response, pk_name, results);
+    };
 
     return apiHandler<proto::milvus::SearchRequest, proto::milvus::SearchResults>(
         validate, pre, &MilvusConnection::Search, nullptr, post);
+}
+
+Status
+MilvusClientImpl::SearchIterator(SearchIteratorArguments& arguments, SearchIteratorPtr& iterator) {
+    auto status = iteratorPrepare(arguments);
+    if (!status.IsOk()) {
+        return status;
+    }
+
+    // special process for search iterator
+    // iterator needs vector field's metric type to determine the search range,
+    // if user didn't offer the metric type, we need to describe the vector's index
+    // to get the metric type.
+    if (arguments.MetricType() == MetricType::DEFAULT) {
+        std::string anns_field = arguments.AnnsField();
+        if (anns_field.empty()) {
+            CollectionDescPtr collection_desc;
+            auto status = getCollectionDesc(arguments.CollectionName(), false, collection_desc);
+            if (!status.IsOk()) {
+                return status;
+            }
+
+            const auto& fields = collection_desc->Schema().Fields();
+            std::set<std::string> vector_field_names;
+            for (const auto& field : fields) {
+                if (IsVectorType(field.FieldDataType())) {
+                    vector_field_names.insert(field.Name());
+                }
+            }
+
+            if (vector_field_names.empty()) {
+                return {StatusCode::UNKNOWN_ERROR, "there should be at least one vector field in milvus collection"};
+            }
+            if (vector_field_names.size() > 1) {
+                return {StatusCode::UNKNOWN_ERROR, "must specify anns_field when there are more than one vector field"};
+            }
+            anns_field = *(vector_field_names.begin());
+        }
+
+        IndexDesc desc;
+        status = DescribeIndex(arguments.CollectionName(), anns_field, desc);
+        if (!status.IsOk()) {
+            return status;
+        }
+        arguments.SetMetricType(desc.MetricType());
+    }
+
+    // iterator constructor might throw exception when it fails to initialize
+    try {
+        iterator = std::make_shared<SearchIteratorImpl>(connection_, arguments, retry_param_);
+    } catch (const std::exception& e) {
+        return {StatusCode::UNKNOWN_ERROR, "Not able to create iterator, error: " + std::string(e.what())};
+    }
+    return Status::OK();
 }
 
 Status
@@ -1286,86 +1309,25 @@ MilvusClientImpl::HybridSearch(const HybridSearchArguments& arguments, SearchRes
 
     auto pre = [this, &arguments]() {
         proto::milvus::HybridSearchRequest rpc_request;
-        auto db_name = arguments.DatabaseName();
-        if (!db_name.empty()) {
-            rpc_request.set_db_name(db_name);
-        }
-        rpc_request.set_collection_name(arguments.CollectionName());
-
-        for (const auto& partition_name : arguments.PartitionNames()) {
-            rpc_request.add_partition_names(partition_name);
-        }
-        for (const auto& output_field : arguments.OutputFields()) {
-            rpc_request.add_output_fields(output_field);
-        }
-
-        for (const auto& sub_request : arguments.SubRequests()) {
-            auto search_req = rpc_request.add_requests();
-            SetTargetVectors(sub_request->TargetVectors(), search_req);
-
-            // set filter expression
-            search_req->set_dsl_type(proto::common::DslType::BoolExprV1);
-            if (!sub_request->Filter().empty()) {
-                search_req->set_dsl(sub_request->Filter());
-            }
-
-            // set anns field name, if the name is empty and the collection has only one vector field,
-            // milvus server will use the vector field name as anns name. If the collection has multiple
-            // vector fields, user needs to explicitly provide an anns field name.
-            auto anns_field = sub_request->AnnsField();
-            if (!anns_field.empty()) {
-                auto kv_pair = search_req->add_search_params();
-                kv_pair->set_key(milvus::ANNS_FIELD);
-                kv_pair->set_value(anns_field);
-            }
-
-            // for history reason, query() requires "limit", search() requires "topk"
-            {
-                auto kv_pair = search_req->add_search_params();
-                kv_pair->set_key(milvus::TOPK);
-                kv_pair->set_value(std::to_string(sub_request->Limit()));
-            }
-
-            // set this value only when client specified, otherwise let server to get it from index parameters
-            if (sub_request->MetricType() != MetricType::DEFAULT) {
-                auto kv_pair = search_req->add_search_params();
-                kv_pair->set_key(milvus::METRIC_TYPE);
-                kv_pair->set_value(std::to_string(sub_request->MetricType()));
-            }
-
-            // extra params offet/radius/range_filter/nprobe etc.
-            SetExtraParams(sub_request->ExtraParams(), search_req);
-        }
-
-        // set rerank/limit/offset/round decimal
-        auto reranker = arguments.Rerank();
-        auto params = reranker->Params();
-        params[LIMIT] = std::to_string(arguments.Limit());  // hybrid search is new interface, requires "limit"
-        params[OFFSET] = std::to_string(arguments.Offset());
-        params[ROUND_DECIMAL] = std::to_string(arguments.RoundDecimal());
-        params[IGNORE_GROWING] = arguments.IgnoreGrowing() ? "true" : "false";
-
-        for (auto& pair : params) {
-            auto kv_pair = rpc_request.add_rank_params();
-            kv_pair->set_key(pair.first);
-            kv_pair->set_value(pair.second);
-        }
-
-        // consistancy level
-        ConsistencyLevel level = arguments.GetConsistencyLevel();
-        uint64_t guarantee_ts = DeduceGuaranteeTimestamp(level, currentDbName(db_name), arguments.CollectionName());
-        rpc_request.set_guarantee_timestamp(guarantee_ts);
-
-        if (level == ConsistencyLevel::NONE) {
-            rpc_request.set_use_default_consistency(true);
-        } else {
-            rpc_request.set_consistency_level(ConsistencyLevelCast(arguments.GetConsistencyLevel()));
-        }
-
+        auto current_name = currentDbName(arguments.DatabaseName());
+        ConvertHybridSearchRequest(arguments, current_name, rpc_request);
         return rpc_request;
     };
 
-    auto post = [&results](const proto::milvus::SearchResults& response) { ConvertSearchResults(response, results); };
+    auto post = [this, &arguments, &results](const proto::milvus::SearchResults& response) {
+        // in milvus version older than v2.4.20, the primary_field_name() is empty, we need to
+        // get the primary key field name from collection schema
+        const auto& result_data = response.results();
+        auto pk_name = result_data.primary_field_name();
+        if (result_data.primary_field_name().empty()) {
+            CollectionDescPtr collection_desc;
+            getCollectionDesc(arguments.CollectionName(), false, collection_desc);
+            if (collection_desc != nullptr) {
+                pk_name = collection_desc->Schema().Name();
+            }
+        }
+        ConvertSearchResults(response, pk_name, results);
+    };
 
     return apiHandler<proto::milvus::HybridSearchRequest, proto::milvus::SearchResults>(
         validate, pre, &MilvusConnection::HybridSearch, nullptr, post);
@@ -1375,52 +1337,29 @@ Status
 MilvusClientImpl::Query(const QueryArguments& arguments, QueryResults& results) {
     auto pre = [this, &arguments]() {
         proto::milvus::QueryRequest rpc_request;
-        auto db_name = arguments.DatabaseName();
-        if (!db_name.empty()) {
-            rpc_request.set_db_name(db_name);
-        }
-        rpc_request.set_collection_name(arguments.CollectionName());
-        for (const auto& partition_name : arguments.PartitionNames()) {
-            rpc_request.add_partition_names(partition_name);
-        }
-
-        rpc_request.set_expr(arguments.Filter());
-        for (const auto& field : arguments.OutputFields()) {
-            rpc_request.add_output_fields(field);
-        }
-
-        // limit/offet etc.
-        auto& params = arguments.ExtraParams();
-        for (auto& pair : params) {
-            auto kv_pair = rpc_request.add_query_params();
-            kv_pair->set_key(pair.first);
-            kv_pair->set_value(pair.second);
-        }
-
-        ConsistencyLevel level = arguments.GetConsistencyLevel();
-        uint64_t guarantee_ts = DeduceGuaranteeTimestamp(level, currentDbName(db_name), arguments.CollectionName());
-        rpc_request.set_guarantee_timestamp(guarantee_ts);
-        rpc_request.set_travel_timestamp(arguments.TravelTimestamp());
-
-        if (level == ConsistencyLevel::NONE) {
-            rpc_request.set_use_default_consistency(true);
-        } else {
-            rpc_request.set_consistency_level(ConsistencyLevelCast(arguments.GetConsistencyLevel()));
-        }
-
+        auto current_name = currentDbName(arguments.DatabaseName());
+        ConvertQueryRequest(arguments, current_name, rpc_request);
         return rpc_request;
     };
 
-    auto post = [&results](const proto::milvus::QueryResults& response) {
-        std::vector<milvus::FieldDataPtr> return_fields{};
-        return_fields.reserve(response.fields_data_size());
-        for (const auto& field_data : response.fields_data()) {
-            return_fields.emplace_back(std::move(CreateMilvusFieldData(field_data)));
-        }
-
-        results = std::move(QueryResults(std::move(return_fields)));
-    };
+    auto post = [&results](const proto::milvus::QueryResults& response) { ConvertQueryResults(response, results); };
     return apiHandler<proto::milvus::QueryRequest, proto::milvus::QueryResults>(pre, &MilvusConnection::Query, post);
+}
+
+Status
+MilvusClientImpl::QueryIterator(QueryIteratorArguments& arguments, QueryIteratorPtr& iterator) {
+    auto status = iteratorPrepare(arguments);
+    if (!status.IsOk()) {
+        return status;
+    }
+
+    // iterator constructor might throw exception when it fails to initialize
+    try {
+        iterator = std::make_shared<QueryIteratorImpl>(connection_, arguments, retry_param_);
+    } catch (const std::exception& e) {
+        return {StatusCode::UNKNOWN_ERROR, "Not able to create iterator, error: " + std::string(e.what())};
+    }
+    return Status::OK();
 }
 
 Status
@@ -2147,83 +2086,6 @@ MilvusClientImpl::WaitForStatus(const std::function<Status(Progress&)>& query_fu
 }
 
 Status
-MilvusClientImpl::retry(std::function<Status(void)> caller) {
-    auto max_retry_times = retry_param_.MaxRetryTimes();
-    // no retry, call the method
-    if (max_retry_times <= 1) {
-        return caller();
-    }
-
-    auto begin = GetNowMs();
-    auto max_timeout_ms = retry_param_.MaxRetryTimeoutMs();
-    auto is_timeout = [&begin, &max_timeout_ms]() {
-        auto current = GetNowMs();
-        auto cost = (current - begin);
-        if (max_timeout_ms > 0 && cost >= max_timeout_ms) {
-            return true;
-        }
-        return false;
-    };
-
-    auto retry_interval_ms = retry_param_.InitialBackOffMs();
-    for (auto k = 1; k <= max_retry_times; k++) {
-        auto status = caller();
-        if (status.IsOk()) {
-            return status;
-        }
-
-        // the following rpc error codes cannot be retried
-        auto rpc_code = status.RpcErrCode();
-        if (rpc_code == ::grpc::StatusCode::DEADLINE_EXCEEDED || rpc_code == ::grpc::StatusCode::PERMISSION_DENIED ||
-            rpc_code == ::grpc::StatusCode::UNAUTHENTICATED || rpc_code == ::grpc::StatusCode::INVALID_ARGUMENT ||
-            rpc_code == ::grpc::StatusCode::ALREADY_EXISTS || rpc_code == ::grpc::StatusCode::RESOURCE_EXHAUSTED ||
-            rpc_code == ::grpc::StatusCode::UNIMPLEMENTED) {
-            std::string msg = "Encounter rpc error that cannot be retried, reason: " + status.Message();
-            auto code =
-                (rpc_code == ::grpc::StatusCode::DEADLINE_EXCEEDED) ? StatusCode::TIMEOUT : StatusCode::RPC_FAILED;
-            return Status{code, msg, rpc_code, status.ServerCode(), status.LegacyServerCode()};
-        }
-
-        // for server-side returned error, only retry for rate limit
-        // error codes of v2.2, LegacyServerCode value is 49
-        // error codes of v2.3, rate limit error value is 8
-        if (retry_param_.RetryOnRateLimit() &&
-            (status.LegacyServerCode() == static_cast<int32_t>(proto::common::ErrorCode::RateLimit) ||
-             status.ServerCode() == 8)) {
-            // can be retried
-        } else if (!status.IsOk()) {
-            // server-side error cannot be retried, exit retry, return the error
-            return status;
-        }
-
-        if (k >= max_retry_times) {
-            // finish retry loop
-            std::string msg = std::to_string(max_retry_times) + " retry times, stop retry";
-            return Status{StatusCode::TIMEOUT, msg, rpc_code, status.ServerCode(), status.LegacyServerCode()};
-        } else {
-            // sleep for interval
-            // TODO: print log
-            std::this_thread::sleep_for(std::chrono::milliseconds(retry_interval_ms));
-            // reset the next interval value
-            retry_interval_ms = retry_interval_ms * retry_param_.BackOffMultiplier();
-            if (retry_interval_ms > retry_param_.MaxBackOffMs()) {
-                retry_interval_ms = retry_param_.MaxBackOffMs();
-            }
-        }
-
-        if (is_timeout()) {
-            std::string msg = "Retry timeout: " + std::to_string(max_timeout_ms) +
-                              " max_retry: " + std::to_string(max_retry_times) + " retries: " + std::to_string(k + 1) +
-                              " reason: " + status.Message();
-            return Status{StatusCode::TIMEOUT, msg, rpc_code, status.ServerCode(), status.LegacyServerCode()};
-        }
-    }
-
-    // theorectically this line will not be hit
-    return Status::OK();
-}
-
-Status
 MilvusClientImpl::getCollectionDesc(const std::string& collection_name, bool forceUpdate, CollectionDescPtr& descPtr) {
     // this lock locks the entire section, including the call of DescribeCollection()
     // the reason is: describeCollection() could be limited by server-side(DDL request throttling is enabled)
@@ -2271,6 +2133,31 @@ MilvusClientImpl::currentDbName(const std::string& overwrite_db_name) const {
         return param.DbName();
     }
     return "";
+}
+
+template <typename ArgClass>
+Status
+MilvusClientImpl::iteratorPrepare(ArgClass& arguments) {
+    CollectionDescPtr collection_desc;
+    auto status = getCollectionDesc(arguments.CollectionName(), false, collection_desc);
+    if (!status.IsOk()) {
+        return status;
+    }
+    arguments.SetCollectionID(collection_desc->ID());
+
+    const auto& fields = collection_desc->Schema().Fields();
+    bool pk_found = false;
+    for (const auto& field : fields) {
+        if (field.IsPrimaryKey()) {
+            arguments.SetPkSchema(field);
+            pk_found = true;
+            break;
+        }
+    }
+    if (!pk_found) {
+        return {StatusCode::UNKNOWN_ERROR, "Primary key field is not found"};
+    }
+    return Status::OK();
 }
 
 }  // namespace milvus

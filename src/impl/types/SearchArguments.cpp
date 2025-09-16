@@ -21,6 +21,7 @@
 
 #include "../utils/Constants.h"
 #include "../utils/DmlUtils.h"
+#include "../utils/DqlUtils.h"
 #include "../utils/TypeUtils.h"
 #include "milvus/utils/FP16.h"
 
@@ -227,38 +228,38 @@ SearchArguments::ExtraParams() const {
     return extra_params_;
 }
 
-float
+double
 SearchArguments::Radius() const {
     auto it = extra_params_.find(RADIUS);
     if (it != extra_params_.end()) {
-        return std::stof(it->second);
+        return std::stod(it->second);
     }
     return 0;
 }
 
 Status
-SearchArguments::SetRadius(float value) {
-    extra_params_[RADIUS] = std::to_string(value);
+SearchArguments::SetRadius(double value) {
+    extra_params_[RADIUS] = doubleToString(value);
     return Status::OK();
 }
 
-float
+double
 SearchArguments::RangeFilter() const {
     auto it = extra_params_.find(RANGE_FILTER);
     if (it != extra_params_.end()) {
-        return std::stof(it->second);
+        return std::stod(it->second);
     }
     return 0;
 }
 
 Status
-SearchArguments::SetRangeFilter(float value) {
-    extra_params_[RANGE_FILTER] = std::to_string(value);
+SearchArguments::SetRangeFilter(double value) {
+    extra_params_[RANGE_FILTER] = doubleToString(value);
     return Status::OK();
 }
 
 Status
-SearchArguments::SetRange(float range_filter, float radius) {
+SearchArguments::SetRange(double range_filter, double radius) {
     // directly pass the radius/range_filter to let server validate, no need to verify here
     auto status = SetRadius(radius);
     if (!status.IsOk()) {

@@ -23,6 +23,7 @@
 #include "MilvusConnection.h"
 #include "common.pb.h"
 #include "milvus/MilvusClient.h"
+#include "utils/RpcUtils.h"
 
 /**
  *  @brief namespace milvus
@@ -176,6 +177,10 @@ class MilvusClientImpl : public MilvusClient {
     DescribeIndex(const std::string& collection_name, const std::string& field_name, IndexDesc& index_desc) final;
 
     Status
+    ListIndexes(const std::string& collection_name, const std::string& field_name,
+                std::vector<std::string>& index_names) final;
+
+    Status
     GetIndexState(const std::string& collection_name, const std::string& field_name, IndexState& state) final;
 
     Status
@@ -198,16 +203,16 @@ class MilvusClientImpl : public MilvusClient {
            const std::vector<FieldDataPtr>& fields, DmlResults& results) final;
 
     Status
-    Insert(const std::string& collection_name, const std::string& partition_name,
-           const std::vector<nlohmann::json>& rows, DmlResults& results) final;
+    Insert(const std::string& collection_name, const std::string& partition_name, const EntityRows& rows,
+           DmlResults& results) final;
 
     Status
     Upsert(const std::string& collection_name, const std::string& partition_name,
            const std::vector<FieldDataPtr>& fields, DmlResults& results) final;
 
     Status
-    Upsert(const std::string& collection_name, const std::string& partition_name,
-           const std::vector<nlohmann::json>& rows, DmlResults& results) final;
+    Upsert(const std::string& collection_name, const std::string& partition_name, const EntityRows& rows,
+           DmlResults& results) final;
 
     Status
     Delete(const std::string& collection_name, const std::string& partition_name, const std::string& expression,
@@ -217,10 +222,16 @@ class MilvusClientImpl : public MilvusClient {
     Search(const SearchArguments& arguments, SearchResults& results) final;
 
     Status
+    SearchIterator(SearchIteratorArguments& arguments, SearchIteratorPtr& iterator) final;
+
+    Status
     HybridSearch(const HybridSearchArguments& arguments, SearchResults& results) final;
 
     Status
     Query(const QueryArguments& arguments, QueryResults& results) final;
+
+    Status
+    QueryIterator(QueryIteratorArguments& arguments, QueryIteratorPtr& iterator) final;
 
     Status
     Flush(const std::vector<std::string>& collection_names, const ProgressMonitor& progress_monitor) final;
@@ -348,8 +359,6 @@ class MilvusClientImpl : public MilvusClient {
                        uint32_t& progress);
 
  private:
-    using GrpcOpts = MilvusConnection::GrpcContextOptions;
-
     /**
      * Internal wait for status query done.
      *
@@ -359,12 +368,6 @@ class MilvusClientImpl : public MilvusClient {
      */
     static Status
     WaitForStatus(const std::function<Status(Progress&)>& query_function, const ProgressMonitor& progress_monitor);
-
-    /**
-     * @brief retry loop
-     */
-    Status
-    retry(std::function<Status(void)> caller);
 
     /**
      * @brief template for public api call
@@ -392,7 +395,7 @@ class MilvusClientImpl : public MilvusClient {
         uint64_t timeout = connection_->GetConnectParam().RpcDeadlineMs();
         auto func = std::bind(rpc, connection_.get(), rpc_request, std::placeholders::_1, GrpcOpts{timeout});
         auto caller = [&func, &rpc_response]() { return func(rpc_response); };
-        auto status = retry(caller);
+        auto status = Retry(caller, retry_param_);
         if (!status.IsOk()) {
             // response's status already checked in connection class
             return status;
@@ -470,12 +473,15 @@ class MilvusClientImpl : public MilvusClient {
     void
     removeCollectionDesc(const std::string& collection_name);
 
- private:
     std::string
     currentDbName(const std::string& overwrite_db_name) const;
 
+    template <typename ArgClass>
+    Status
+    iteratorPrepare(ArgClass& arguments);
+
  private:
-    std::shared_ptr<MilvusConnection> connection_;
+    MilvusConnectionPtr connection_;
     RetryParam retry_param_;
 
     // cache of collection schemas
