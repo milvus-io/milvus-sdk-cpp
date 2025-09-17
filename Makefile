@@ -22,38 +22,38 @@ all: all-debug
 
 # Code lint
 lint:
-	@(env bash ${PWD}/scripts/build.sh -l)
+	@(env bash ${PWD}/scripts/build.sh -l $(GRPC_PATH))
 
 # Build sdk
 build-sdk-debug:
 	@echo "Building Milvus SDK debug version ..."
-	@(env bash $(PWD)/scripts/build.sh -t Debug)
+	@(env bash $(PWD)/scripts/build.sh -t Debug $(GRPC_PATH))
 
 build-sdk-release:
 	@echo "Building Milvus SDK release version ..."
-	@(env bash $(PWD)/scripts/build.sh -t Release)
+	@(env bash $(PWD)/scripts/build.sh -t Release $(GRPC_PATH))
 
 install: install-release
 
 install-release:
 	@echo "Installing Milvus SDK release version ..."
-	@(env bash $(PWD)/scripts/build.sh -i -t Release)
+	@(env bash $(PWD)/scripts/build.sh -i -t Release $(GRPC_PATH))
 
 install-debug:
 	@echo "Installing Milvus SDK debug version ..."
-	@(env bash $(PWD)/scripts/build.sh -i -t Debug)
+	@(env bash $(PWD)/scripts/build.sh -i -t Debug $(GRPC_PATH))
 
 test:
 	@echo "Testing with Milvus SDK"
-	@(env bash $(PWD)/scripts/build.sh -u)
+	@(env bash $(PWD)/scripts/build.sh -u $(GRPC_PATH))
 
 st:
 	@echo "System Testing with Milvus SDK"
-	@(env bash $(PWD)/scripts/build.sh -s)
+	@(env bash $(PWD)/scripts/build.sh -s $(GRPC_PATH))
 
 coverage:
 	@echo "Run code coverage ..."
-	@(env bash $(PWD)/scripts/build.sh -u -c)
+	@(env bash $(PWD)/scripts/build.sh -u -c $(GRPC_PATH))
 	@(env bash $(PWD)/scripts/coverage.sh)
 
 doc:

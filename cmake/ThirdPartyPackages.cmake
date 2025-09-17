@@ -20,15 +20,11 @@ include(FetchContent)
 
 # milvus server v2.4.23 is using grpc v1.59.0
 set(GRPC_VERSION 1.59.0)
-set(NLOHMANN_JSON_VERSION 3.11.3)
 set(GOOGLETEST_VERSION 1.12.1)
-set(CPP_HTTPLIB_VERSION 0.18.5)
 Set(FETCHCONTENT_QUIET FALSE)
 
 set(GRPC_SRC_URL https://github.com/grpc/grpc.git)
-set(NLOHMANN_JSON_SRC_URL https://github.com/nlohmann/json.git)
 set(GTEST_SRC_URL https://github.com/google/googletest.git)
-set(HTTPLIB_SRC_URL https://github.com/yhirose/cpp-httplib.git)
 
 # grpc
 FetchContent_Declare(
@@ -39,29 +35,11 @@ FetchContent_Declare(
     GIT_PROGRESS      TRUE
 )
 
-# nlohmann_json
-FetchContent_Declare(
-    nlohmann_json
-    GIT_REPOSITORY    ${NLOHMANN_JSON_SRC_URL}
-    GIT_TAG           v${NLOHMANN_JSON_VERSION}
-    GIT_SHALLOW       TRUE
-    GIT_PROGRESS      TRUE
-)
-
 # googletest
 FetchContent_Declare(
     googletest
     GIT_REPOSITORY    ${GTEST_SRC_URL}
     GIT_TAG           release-${GOOGLETEST_VERSION}
-    GIT_SHALLOW       TRUE
-    GIT_PROGRESS      TRUE
-)
-
-# cpp-httplib
-FetchContent_Declare(
-    cpp-httplib
-    GIT_REPOSITORY    ${HTTPLIB_SRC_URL}
-    GIT_TAG           v${CPP_HTTPLIB_VERSION}
     GIT_SHALLOW       TRUE
     GIT_PROGRESS      TRUE
 )
@@ -81,6 +59,7 @@ if ("${MILVUS_WITH_GRPC}" STREQUAL "package")
         CONFIG
         HINTS ${GRPC_PATH}
         REQUIRED)
+    set(protobuf_SOURCE_DIR ${GRPC_PATH}/include)
 else ()
     if (WIN32)
         set(OPENSSL_NO_ASM_TXT "YES")
@@ -100,34 +79,8 @@ else ()
         set(ABSL_ENABLE_INSTALL ON CACHE INTERNAL "")
         set(ABSL_PROPAGATE_CXX_STD ON CACHE INTERNAL "")
         add_subdirectory(${grpc_SOURCE_DIR} ${grpc_BINARY_DIR} EXCLUDE_FROM_ALL)
+        set(protobuf_SOURCE_DIR ${grpc_SOURCE_DIR}/third_party/protobuf/src)
         add_library(gRPC::grpc++ ALIAS grpc++)
         add_executable(gRPC::grpc_cpp_plugin ALIAS grpc_cpp_plugin)
-    endif ()
-endif ()
-
-
-# nlohmann_json
-if ("${MILVUS_WITH_NLOHMANN_JSON}" STREQUAL "package")
-    message(STATUS "Finding nlohmann_json lib")
-    find_package(nlohmann_json REQUIRED)
-else ()
-    if (NOT nlohmann_json_POPULATED)
-        message(STATUS "Downloading nlohmann_json source code from: ${NLOHMANN_JSON_SRC_URL}")
-        FetchContent_Populate(nlohmann_json)
-        add_subdirectory(${nlohmann_json_SOURCE_DIR} ${nlohmann_json_BINARY_DIR} EXCLUDE_FROM_ALL)
-    endif ()
-endif ()
-
-
-# cpp-httplib
-if ("${MILVUS_WITH_CPP_HTTPLIB}" STREQUAL "package")
-    message(STATUS "Finding cpp-httplib lib")
-    find_package(cpp-httplib REQUIRED)
-else ()
-    if (NOT cpp-httplib_POPULATED)
-        message(STATUS "Downloading cpp-httplib source code from: ${HTTPLIB_SRC_URL}")
-        FetchContent_Populate(cpp-httplib)
-        add_subdirectory(${cpp-httplib_SOURCE_DIR} ${cpp-httplib_BINARY_DIR} EXCLUDE_FROM_ALL)
-        include_directories(${cpp-httplib_SOURCE_DIR})
     endif ()
 endif ()

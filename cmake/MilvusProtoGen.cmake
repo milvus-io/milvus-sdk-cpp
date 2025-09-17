@@ -31,12 +31,14 @@ FetchContent_Populate(milvus_proto)
 set(PROTO_BINARY_DIR "${milvus_proto_BINARY_DIR}")
 set(PROTO_IMPORT_DIR "${milvus_proto_SOURCE_DIR}/proto")
 
-# resolve protoc, always use the protoc in the build tree
-set(Protobuf_PROTOC_EXECUTABLE $<TARGET_FILE:protobuf::protoc>)
+if ("${GRPC_PATH}" STREQUAL "")
+    set(Protobuf_PROTOC_EXECUTABLE $<TARGET_FILE:protobuf::protoc>)
+    set(GRPC_CPP_PLUGIN $<TARGET_FILE:gRPC::grpc_cpp_plugin>)
+else ()
+    set(Protobuf_PROTOC_EXECUTABLE ${GRPC_PATH}/bin/protoc)
+    set(GRPC_CPP_PLUGIN ${GRPC_PATH}/bin/grpc_cpp_plugin)
+endif ()
 message(STATUS "using protoc: ${Protobuf_PROTOC_EXECUTABLE}")
-
-# resolve grpc_cpp_plugin
-set(GRPC_CPP_PLUGIN $<TARGET_FILE:gRPC::grpc_cpp_plugin>)
 message(STATUS "using grpc_cpp_plugin: ${GRPC_CPP_PLUGIN}")
 
 
@@ -49,7 +51,7 @@ function(add_proto_source target name)
         COMMAND ${Protobuf_PROTOC_EXECUTABLE}
                 --cpp_out ${milvus_proto_BINARY_DIR}
                 -I${PROTO_IMPORT_DIR}
-                -I${grpc_SOURCE_DIR}/third_party/protobuf/src
+                -I${protobuf_SOURCE_DIR}
                 ${PROTO_IMPORT_DIR}/${name}.proto
     )
     target_sources(${target} PRIVATE ${milvus_proto_BINARY_DIR}/${name}.pb.cc)
@@ -65,7 +67,7 @@ function(add_proto_service target name)
         COMMAND ${Protobuf_PROTOC_EXECUTABLE}
                 --grpc_out ${milvus_proto_BINARY_DIR}
                 -I${PROTO_IMPORT_DIR}
-                -I${grpc_SOURCE_DIR}/third_party/protobuf/src
+                -I${protobuf_SOURCE_DIR}
                 --plugin=protoc-gen-grpc=${GRPC_CPP_PLUGIN}
                 ${PROTO_IMPORT_DIR}/${name}.proto
     )
