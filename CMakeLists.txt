@@ -62,9 +62,6 @@ set_option_category("Thirdparty")
 #  package: Find
 #  module: Fetch_Content_Then_Find
 define_option_string(MILVUS_WITH_GRPC           "Using gRPC from"       "module" "package" "module")
-define_option_string(MILVUS_WITH_ZLIB           "Using Zlib from"       "module" "package" "module")
-define_option_string(MILVUS_WITH_NLOHMANN_JSON  "nlohmann json from"    "module" "package" "module")
-define_option_string(MILVUS_WITH_CPP_HTTPLIB    "cpp-httplib from"      "module" "package" "module")
 define_option_string(MILVUS_WITH_GTEST          "Using GTest from"      "module" "package" "module")
 
 
@@ -74,8 +71,7 @@ if ("${GRPC_PATH}" STREQUAL "")
     set(CMAKE_INSTALL_RPATH "/usr/lib" "${CMAKE_INSTALL_PREFIX}/lib" "${CMAKE_INSTALL_PREFIX}/lib64" )
 else ()
     set(MILVUS_WITH_GRPC "package")
-    set(GRPC_LIB_PATH ${GRPC_PATH}/lib)
-    set(CMAKE_INSTALL_RPATH "/usr/lib" "${CMAKE_INSTALL_PREFIX}/lib" "${CMAKE_INSTALL_PREFIX}/lib64" "${GRPC_LIB_PATH}" )
+    set(CMAKE_INSTALL_RPATH "/usr/lib" "${CMAKE_INSTALL_PREFIX}/lib" "${CMAKE_INSTALL_PREFIX}/lib64" "${GRPC_PATH}/lib" )
 endif ()
 
 # CMAKE_INSTALL_RPATH and CMAKE_INSTALL_RPATH_USE_LINK_PATH will set RPATH to all excutable TARGET

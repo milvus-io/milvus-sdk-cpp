@@ -24,10 +24,27 @@ BUILD_TEST="OFF"
 MAKE_CLEAN="OFF"
 RUN_CPPLINT="OFF"
 BUILD_COVERAGE="OFF"
-MILVUS_SDK_VERSION=${MILVUS_SDK_VERSION:-2.4.0}
+MILVUS_SDK_VERSION=${MILVUS_SDK_VERSION:-v2.4.0}
 DO_INSTALL="OFF"
 CMAKE_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX:-/usr/local}
 BUILD_SHARED_LIBS=${BUILD_SHARED_LIBS:-ON}
+
+# set GRPC_PATH into path environment since the build process will call protoc to compile milvus porot files
+# and the protoc executable requires some libraries under the gRPC install path
+unameOut="$(uname -s)"
+case "${unameOut}" in
+    Linux*)
+      export LD_LIBRARY_PATH="${GRPC_PATH}/lib:${LD_LIBRARY_PATH}"
+      ;;
+    Darwin*)
+      export DYLD_LIBRARY_PATH="${GRPC_PATH}/lib:${DYLD_LIBRARY_PATH}"
+      ;;
+    MINGW*)
+      export LD_LIBRARY_PATH="${GRPC_PATH}/lib;${LD_LIBRARY_PATH}"
+      ;;
+    *)
+      echo "gRPC path is not passed into environment path"
+esac
 
 JOBS="$(nproc 2>/dev/null || sysctl -n hw.logicalcpu 2>/dev/null || echo 3)"
 if [ ${JOBS} -lt 3 ] ; then
@@ -114,10 +131,6 @@ if [ -f /opt/rh/devtoolset-7/enable ] ; then
   source /opt/rh/devtoolset-7/enable
 fi
 
-# if the external gRPC is specified, the testing binaries require the LD_LIBRARY_PATH to include gRPC lib path
-# and the protoc exe also needs the path to dynamic link dependencies
-export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:${GRPC_PATH}/lib
-
 CMAKE_CMD="cmake \
 -DCMAKE_BUILD_TYPE=${BUILD_TYPE} \
 -DMILVUS_BUILD_TEST=${BUILD_TEST} \
@@ -126,7 +139,6 @@ CMAKE_CMD="cmake \
 -DCMAKE_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX} \
 -DBUILD_SHARED_LIBS=${BUILD_SHARED_LIBS} \
 -DGRPC_PATH=${GRPC_PATH} \
--DLD_LIBRARY_PATH=${LD_LIBRARY_PATH} \
 ../"
 echo ${CMAKE_CMD}
 ${CMAKE_CMD}

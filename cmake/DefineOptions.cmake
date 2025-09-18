@@ -55,6 +55,10 @@ macro(define_option_string name description default)
     endif ()
 endmacro()
 
+if ( "${CMAKE_BUILD_TYPE}" STREQUAL "")
+    set(CMAKE_BUILD_TYPE "Debug")
+endif ()
+
 #----------------------------------------------------------------------
 macro(config_summary)
     message(STATUS "---------------------------------------------------------------------")
