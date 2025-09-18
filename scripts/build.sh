@@ -29,22 +29,27 @@ DO_INSTALL="OFF"
 CMAKE_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX:-/usr/local}
 BUILD_SHARED_LIBS=${BUILD_SHARED_LIBS:-ON}
 
-# set GRPC_PATH into path environment since the build process will call protoc to compile milvus porot files
-# and the protoc executable requires some libraries under the gRPC install path
-unameOut="$(uname -s)"
-case "${unameOut}" in
-    Linux*)
-      export LD_LIBRARY_PATH="${GRPC_PATH}/lib:${LD_LIBRARY_PATH}"
-      ;;
-    Darwin*)
-      export DYLD_LIBRARY_PATH="${GRPC_PATH}/lib:${DYLD_LIBRARY_PATH}"
-      ;;
-    MINGW*)
-      export LD_LIBRARY_PATH="${GRPC_PATH}/lib;${LD_LIBRARY_PATH}"
-      ;;
-    *)
-      echo "gRPC path is not passed into environment path"
-esac
+if [ -z "$GRPC_PATH" ]; then
+  echo "Use internal gRPC package"
+else
+  echo "External gRPC path: ${GRPC_PATH}"
+  # set GRPC_PATH into path environment since the build process will call protoc to compile milvus porot files
+  # and the protoc executable requires some libraries under the gRPC install path
+  unameOut="$(uname -s)"
+  case "${unameOut}" in
+      Linux*)
+        export LD_LIBRARY_PATH="${GRPC_PATH}/lib:${LD_LIBRARY_PATH}"
+        ;;
+      Darwin*)
+        export DYLD_LIBRARY_PATH="${GRPC_PATH}/lib:${DYLD_LIBRARY_PATH}"
+        ;;
+      MINGW*)
+        export LD_LIBRARY_PATH="${GRPC_PATH}/lib;${LD_LIBRARY_PATH}"
+        ;;
+      *)
+        echo "gRPC path is not passed into environment path"
+  esac
+fi
 
 JOBS="$(nproc 2>/dev/null || sysctl -n hw.logicalcpu 2>/dev/null || echo 3)"
 if [ ${JOBS} -lt 3 ] ; then
