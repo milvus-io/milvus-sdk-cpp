@@ -25,7 +25,7 @@ add_milvus_protos(milvus_sdk)
 set_target_properties(milvus_sdk PROPERTIES OUTPUT_NAME milvus_sdk)
 target_link_libraries(milvus_sdk gRPC::grpc++)
 target_include_directories(milvus_sdk PUBLIC include)
-
+target_include_directories(milvus_sdk PRIVATE ${PROJECT_SOURCE_DIR}/thirdparty)
 
 # install
 include(GNUInstallDirs)
