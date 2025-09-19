@@ -2,5 +2,5 @@
 */cmake_build/*
 */build/*
 */cmake-build*/*
+*/thirdparty/*
 */src/include/nlohmann*
-*/src/include/httplib.h

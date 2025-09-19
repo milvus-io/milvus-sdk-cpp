@@ -16,7 +16,7 @@
 
 #include "milvus/BulkImport.h"
 
-#include <httplib.h>
+#include <cpp-httplib/httplib.h>
 
 namespace milvus {
 
