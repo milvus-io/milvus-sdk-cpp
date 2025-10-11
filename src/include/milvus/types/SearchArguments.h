@@ -25,16 +25,15 @@
 #include "Constants.h"
 #include "FieldData.h"
 #include "MetricType.h"
+#include "SubSearchRequest.h"
 
 namespace milvus {
 
 /**
  * @brief Arguments for MilvusClient::Search().
  */
-class SearchArguments {
+class SearchArguments : public SearchRequestBase {
  public:
-    virtual ~SearchArguments() = default;
-
     /**
      * @brief Get the target db name.
      */
@@ -84,102 +83,6 @@ class SearchArguments {
     AddOutputField(std::string field_name);
 
     /**
-     * @brief Get filter expression.
-     */
-    const std::string&
-    Filter() const;
-
-    /**
-     * @brief Set filter expression.
-     */
-    Status
-    SetFilter(std::string filter);
-
-    /**
-     * @brief Get target vectors.
-     */
-    FieldDataPtr
-    TargetVectors() const;
-
-    /**
-     * @brief Add a binary vector to search.
-     */
-    Status
-    AddBinaryVector(std::string field_name, const std::string& vector);
-
-    /**
-     * @brief Add a binary vector to search.
-     */
-    Status
-    AddBinaryVector(std::string field_name, const BinaryVecFieldData::ElementT& vector);
-
-    /**
-     * @brief Add a float vector to search.
-     */
-    Status
-    AddFloatVector(std::string field_name, const FloatVecFieldData::ElementT& vector);
-
-    /**
-     * @brief Add a sparse vector to search.
-     */
-    Status
-    AddSparseVector(std::string field_name, const SparseFloatVecFieldData::ElementT& vector);
-
-    /**
-     * @brief Add a sparse vector to search. \n
-     * We support two patterns of sparse vector: \n
-     *  1. a json dict like {"1": 0.1, "5": 0.2, "8": 0.15}
-     *  2. a json dict like {"indices": [1, 5, 8], "values": [0.1, 0.2, 0.15]}
-     */
-    Status
-    AddSparseVector(std::string field_name, const nlohmann::json& vector);
-
-    /**
-     * @brief Add a float16 vector to search.
-     */
-    Status
-    AddFloat16Vector(std::string field_name, const Float16VecFieldData::ElementT& vector);
-
-    /**
-     * @brief Add a float16 vector to search. \n
-     * This method automatically converts the float array to float16 binary
-     */
-    Status
-    AddFloat16Vector(std::string field_name, const std::vector<float>& vector);
-
-    /**
-     * @brief Add a bfloat16 vector to search.
-     */
-    Status
-    AddBFloat16Vector(std::string field_name, const BFloat16VecFieldData::ElementT& vector);
-
-    /**
-     * @brief Add a bfloat16 vector to search. \n
-     * This method automatically converts the float array to bfloat16 binary
-     */
-    Status
-    AddBFloat16Vector(std::string field_name, const std::vector<float>& vector);
-
-    /**
-     * @brief Get anns field name.
-     */
-    std::string
-    AnnsField() const;
-
-    /**
-     * @brief Get search limit(topk).
-     */
-    int64_t
-    Limit() const;
-
-    /**
-     * @brief Set search limit(topk). \n
-     * Note: this value is stored in the ExtraParams
-     */
-    Status
-    SetLimit(int64_t limit);
-
-    /**
      * @brief Get offset value.
      */
     int64_t
@@ -204,72 +107,6 @@ class SearchArguments {
      */
     Status
     SetRoundDecimal(int round_decimal);
-
-    /**
-     * @brief Get the metric type.
-     */
-    ::milvus::MetricType
-    MetricType() const;
-
-    /**
-     * @brief Specifies the metric type.
-     */
-    Status
-    SetMetricType(::milvus::MetricType metric_type);
-
-    /**
-     * @brief Add extra param. \n
-     * Note: int v2.4, we redefine this method, old client code might be affected
-     */
-    Status
-    AddExtraParam(const std::string& key, const std::string& value);
-
-    /**
-     * @brief Get extra param. \n
-     * Note: int v2.4, we redefine this method, old client code might be affected
-     */
-    const std::unordered_map<std::string, std::string>&
-    ExtraParams() const;
-
-    /**
-     * @brief Get range radius.
-     * @return
-     */
-    double
-    Radius() const;
-
-    /**
-     * @brief Set range radius.
-     * Note: this value is stored in the ExtraParams
-     * @return
-     */
-    Status
-    SetRadius(double value);
-
-    /**
-     * @brief Get range filter.
-     * @return
-     */
-    double
-    RangeFilter() const;
-
-    /**
-     * @brief Set range filter.
-     * Note: this value is stored in the ExtraParams
-     * @return
-     */
-    Status
-    SetRangeFilter(double value);
-
-    /**
-     * @brief Set range radius. \n
-     * @param range_filter while radius sets the outer limit of the search, range_filter can be optionally used to
-     * define an inner boundary, creating a distance range within which vectors must fall to be considered matches.
-     * @param radius defines the outer boundary of your search space. Only vectors that are within this distance from
-     * the query vector are considered potential matches.
-     */
-    Status
-    SetRange(double range_filter, double radius);
 
     /**
      * @brief Get consistency level.
@@ -437,36 +274,19 @@ class SearchArguments {
      */
     Status
     SetGuaranteeTimestamp(uint64_t timestamp);
-    ///////////////////////////////////////////////////////////////////////////////////////
- private:
-    Status verifyVectorType(DataType) const;
-
-    template <typename T, typename V>
-    Status
-    addVector(std::string field_name, DataType data_type, const V& vector);
 
  private:
     std::string db_name_;
     std::string collection_name_;
     std::set<std::string> partition_names_;
     std::set<std::string> output_field_names_;
-    std::string filter_expression_;
-
-    FieldDataPtr target_vectors_;
-
-    std::unordered_map<std::string, std::string> extra_params_;
-
-    int64_t limit_{10};
+    std::string group_by_field_;
     int64_t offset_{0};
     int round_decimal_{-1};
     bool ignore_growing_{false};
 
-    ::milvus::MetricType metric_type_{::milvus::MetricType::DEFAULT};
-
     // ConsistencyLevel::NONE means using collection's default level
     ConsistencyLevel consistency_level_{ConsistencyLevel::NONE};
-
-    std::string group_by_field_;
 };
 
 }  // namespace milvus

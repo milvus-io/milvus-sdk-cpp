@@ -452,6 +452,14 @@ SetTargetVectors(const FieldDataPtr& target, milvus::proto::milvus::SearchReques
             placeholder_value.add_values(std::move(placeholder_data));
         }
         rpc_request->set_nq(static_cast<int64_t>(vectors.Count()));
+    } else if (target->Type() == DataType::VARCHAR) {
+        // BM25
+        placeholder_value.set_type(proto::common::PlaceholderType::VarChar);
+        auto& texts = dynamic_cast<VarCharFieldData&>(*target);
+        for (std::string text : texts.Data()) {
+            placeholder_value.add_values(std::move(text));
+        }
+        rpc_request->set_nq(static_cast<int64_t>(texts.Count()));
     }  // else throw an exception?
     rpc_request->set_placeholder_group(std::move(placeholder_group.SerializeAsString()));
 }

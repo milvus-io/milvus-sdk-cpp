@@ -18,6 +18,7 @@
 
 #include <cstdint>
 #include <map>
+#include <nlohmann/json.hpp>
 #include <string>
 
 #include "../Status.h"
@@ -198,6 +199,48 @@ class FieldSchema {
      */
     FieldSchema&
     WithMaxCapacity(uint32_t capacity);
+
+    /**
+     * @brief Enable enable text analysis/tokenize for varchar field
+     */
+    FieldSchema&
+    EnableAnalyzer(bool enableAnalyzer);
+
+    /**
+     * @brief Get the flag whether enable analyzer
+     */
+    bool
+    IsEnableAnalyzer() const;
+
+    /**
+     * @brief Enable text match for varchar field
+     */
+    FieldSchema&
+    EnableMatch(bool enableMatch);
+
+    /**
+     * @brief Get the flag whether enable text match
+     */
+    bool
+    IsEnableMatch() const;
+
+    /**
+     * @brief Set analyzer parameters
+     */
+    void
+    SetAnalyzerParams(const nlohmann::json& params);
+
+    /**
+     * @brief Set analyzer parameters
+     */
+    FieldSchema&
+    WithAnalyzerParams(const nlohmann::json& params);
+
+    /**
+     * @brief Get analyzer parameters
+     */
+    nlohmann::json
+    AnalyzerParams() const;
 
  private:
     std::string name_;

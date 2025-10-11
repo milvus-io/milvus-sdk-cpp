@@ -98,6 +98,11 @@ from [milvus-io/milvus](https://github.com/milvus-io/milvus)
 
 We have defined some naming rules in clang-tidy rules.
 
+Make sure you have installed clang-format and clang-tidy:
+```
+sudo apt install clang-format clang-tidy
+```
+
 Using `make lint` under the source directory helps you to check your local modification
 if compliance with cpplint/clang-format/clang-tidy.
 
