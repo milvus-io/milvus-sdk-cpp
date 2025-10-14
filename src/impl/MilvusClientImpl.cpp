@@ -111,6 +111,8 @@ MilvusClientImpl::CreateCollection(const CollectionSchema& schema) {
         proto::milvus::CreateCollectionRequest rpc_request;
         rpc_request.set_collection_name(schema.Name());
         rpc_request.set_shards_num(schema.ShardsNum());
+        rpc_request.set_consistency_level(ConsistencyLevelCast(ConsistencyLevel::BOUNDED));  // TODO: how to pass in?
+
         proto::schema::CollectionSchema rpc_collection;
         rpc_collection.set_name(schema.Name());
         rpc_collection.set_description(schema.Description());
