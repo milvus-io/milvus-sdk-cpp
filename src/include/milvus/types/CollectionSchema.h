@@ -38,7 +38,7 @@ class CollectionSchema {
     /**
      * @brief Constructor
      */
-    explicit CollectionSchema(std::string name, std::string desc = "", int32_t shard_num = 2,
+    explicit CollectionSchema(std::string name, std::string desc = "", int32_t shard_num = 1,
                               bool enable_dynamic_field = false);
 
     /**
