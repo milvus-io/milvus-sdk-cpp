@@ -211,6 +211,7 @@ ConvertFieldSchema(const proto::schema::FieldSchema& proto_schema, FieldSchema& 
     field_schema.SetName(proto_schema.name());
     field_schema.SetDescription(proto_schema.description());
     field_schema.SetPrimaryKey(proto_schema.is_primary_key());
+    field_schema.SetPartitionKey(proto_schema.is_partition_key());
     field_schema.SetAutoID(proto_schema.autoid());
     field_schema.SetDataType(DataTypeCast(proto_schema.data_type()));
     field_schema.SetElementType(DataTypeCast(proto_schema.element_type()));
@@ -268,6 +269,7 @@ ConvertFieldSchema(const FieldSchema& schema, proto::schema::FieldSchema& proto_
     proto_schema.set_name(schema.Name());
     proto_schema.set_description(schema.Description());
     proto_schema.set_is_primary_key(schema.IsPrimaryKey());
+    proto_schema.set_is_partition_key(schema.IsPartitionKey());
     proto_schema.set_autoid(schema.AutoID());
     proto_schema.set_data_type(DataTypeCast(schema.FieldDataType()));
 
