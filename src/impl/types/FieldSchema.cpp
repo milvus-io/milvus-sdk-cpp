@@ -16,6 +16,7 @@
 
 #include "milvus/types/FieldSchema.h"
 
+#include "../utils/Constants.h"
 #include "milvus/types/Constants.h"
 
 namespace milvus {
@@ -174,6 +175,56 @@ FieldSchema&
 FieldSchema::WithMaxCapacity(uint32_t capacity) {
     SetMaxCapacity(capacity);
     return *this;
+}
+
+FieldSchema&
+FieldSchema::EnableAnalyzer(bool enableAnalyzer) {
+    type_params_[ENABLE_ANALYZER] = enableAnalyzer ? "true" : "false";
+    return *this;
+}
+
+bool
+FieldSchema::IsEnableAnalyzer() const {
+    auto iter = type_params_.find(ENABLE_ANALYZER);
+    if (iter != type_params_.end()) {
+        return iter->second == "true";
+    }
+    return false;
+}
+
+FieldSchema&
+FieldSchema::EnableMatch(bool enableMatch) {
+    type_params_[ENABLE_MATCH] = enableMatch ? "true" : "false";
+    return *this;
+}
+
+bool
+FieldSchema::IsEnableMatch() const {
+    auto iter = type_params_.find(ENABLE_MATCH);
+    if (iter != type_params_.end()) {
+        return iter->second == "true";
+    }
+    return false;
+}
+
+void
+FieldSchema::SetAnalyzerParams(const nlohmann::json& params) {
+    type_params_[ANALYZER_PARAMS] = params.dump();
+}
+
+FieldSchema&
+FieldSchema::WithAnalyzerParams(const nlohmann::json& params) {
+    SetAnalyzerParams(params);
+    return *this;
+}
+
+nlohmann::json
+FieldSchema::AnalyzerParams() const {
+    auto iter = type_params_.find(ANALYZER_PARAMS);
+    if (iter != type_params_.end()) {
+        return nlohmann::json::parse(iter->second);
+    }
+    return nullptr;
 }
 
 }  // namespace milvus

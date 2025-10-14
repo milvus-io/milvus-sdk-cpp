@@ -22,6 +22,7 @@
 #include "milvus/types/CollectionSchema.h"
 #include "milvus/types/ConsistencyLevel.h"
 #include "milvus/types/FieldData.h"
+#include "milvus/types/Function.h"
 #include "milvus/types/IDArray.h"
 #include "milvus/types/IndexState.h"
 #include "milvus/types/IndexType.h"
@@ -38,6 +39,15 @@ DataTypeCast(DataType type);
 DataType
 DataTypeCast(proto::schema::DataType type);
 
+proto::schema::FunctionType
+FunctionTypeCast(FunctionType type);
+
+FunctionType
+FunctionTypeCast(proto::schema::FunctionType type);
+
+DataType
+DataTypeCast(proto::schema::DataType type);
+
 MetricType
 MetricTypeCast(const std::string& type);
 
@@ -48,10 +58,16 @@ void
 ConvertFieldSchema(const proto::schema::FieldSchema& proto_schema, FieldSchema& schema);
 
 void
+ConvertFunctionSchema(const proto::schema::FunctionSchema& proto_function, FunctionPtr& function_schema);
+
+void
 ConvertCollectionSchema(const proto::schema::CollectionSchema& proto_schema, CollectionSchema& schema);
 
 void
 ConvertFieldSchema(const FieldSchema& schema, proto::schema::FieldSchema& proto_schema);
+
+void
+ConvertFunctionSchema(const FunctionPtr& function_schema, proto::schema::FunctionSchema& proto_function);
 
 void
 ConvertCollectionSchema(const CollectionSchema& schema, proto::schema::CollectionSchema& proto_schema);

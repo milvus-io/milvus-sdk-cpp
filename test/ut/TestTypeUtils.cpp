@@ -379,31 +379,17 @@ TEST_F(TypeUtilsTest, FloatVecFieldNotEquals) {
 }
 
 TEST_F(TypeUtilsTest, MetricTypeCastTest) {
-    for (const auto& name : {"IP", "L2", "COSINE", "HAMMING", "JACCARD", "DEFAULT"}) {
+    for (const auto& name : {"IP", "L2", "COSINE", "HAMMING", "JACCARD", "BM25", "DEFAULT"}) {
         EXPECT_EQ(std::to_string(milvus::MetricTypeCast(name)), name);
     }
 }
 
 TEST_F(TypeUtilsTest, IndexTypeCastTest) {
-    for (const auto& name : {"INVALID",
-                             "FLAT",
-                             "IVF_FLAT",
-                             "IVF_SQ8",
-                             "IVF_PQ",
-                             "HNSW",
-                             "DISKANN",
-                             "AUTOINDEX",
-                             "SCANN",
-                             "GPU_IVF_FLAT",
-                             "GPU_IVF_PQ",
-                             "GPU_BRUTE_FORCE",
-                             "GPU_CAGRA",
-                             "BIN_FLAT",
-                             "BIN_IVF_FLAT",
-                             "Trie",
-                             "STL_SORT",
-                             "INVERTED",
-                             "SPARSE_INVERTED_INDEX",
+    for (const auto& name : {"INVALID",    "FLAT",         "IVF_FLAT",     "IVF_SQ8",
+                             "IVF_PQ",     "HNSW",         "DISKANN",      "AUTOINDEX",
+                             "SCANN",      "GPU_IVF_FLAT", "GPU_IVF_PQ",   "GPU_BRUTE_FORCE",
+                             "GPU_CAGRA",  "BIN_FLAT",     "BIN_IVF_FLAT", "Trie",
+                             "STL_SORT",   "INVERTED",     "BITMAP",       "SPARSE_INVERTED_INDEX",
                              "SPARSE_WAND"}) {
         EXPECT_EQ(std::to_string(milvus::IndexTypeCast(name)), name);
     }
@@ -463,31 +449,128 @@ TEST_F(TypeUtilsTest, ConvertFieldSchema) {
     const std::string field_desc = "face signature";
     const bool primary_key = true;
     const bool auto_id = true;
-    const milvus::DataType field_type = milvus::DataType::FLOAT_VECTOR;
+    milvus::DataType field_type = milvus::DataType::FLOAT_VECTOR;
     const uint32_t dimension = 128;
-    milvus::FieldSchema field(field_name, field_type, field_desc, primary_key, auto_id);
-    field.SetDimension(dimension);
 
-    milvus::proto::schema::FieldSchema proto_field;
-    milvus::ConvertFieldSchema(field, proto_field);
+    {
+        milvus::FieldSchema field(field_name, field_type, field_desc, primary_key, auto_id);
+        field.SetDimension(dimension);
 
-    EXPECT_EQ(proto_field.name(), field_name);
-    EXPECT_EQ(proto_field.description(), field_desc);
-    EXPECT_EQ(proto_field.is_primary_key(), primary_key);
-    EXPECT_EQ(proto_field.autoid(), auto_id);
-    EXPECT_EQ(proto_field.data_type(), milvus::DataTypeCast(field_type));
+        milvus::proto::schema::FieldSchema proto_field;
+        milvus::ConvertFieldSchema(field, proto_field);
 
-    milvus::FieldSchema sdk_field;
-    milvus::ConvertFieldSchema(proto_field, sdk_field);
-    EXPECT_EQ(sdk_field.Name(), field_name);
-    EXPECT_EQ(sdk_field.Description(), field_desc);
-    EXPECT_EQ(sdk_field.IsPrimaryKey(), primary_key);
-    EXPECT_EQ(sdk_field.AutoID(), auto_id);
-    EXPECT_EQ(sdk_field.FieldDataType(), field_type);
-    EXPECT_EQ(sdk_field.Dimension(), dimension);
+        EXPECT_EQ(proto_field.name(), field_name);
+        EXPECT_EQ(proto_field.description(), field_desc);
+        EXPECT_EQ(proto_field.is_primary_key(), primary_key);
+        EXPECT_EQ(proto_field.autoid(), auto_id);
+        EXPECT_EQ(proto_field.data_type(), milvus::DataTypeCast(field_type));
+
+        milvus::FieldSchema sdk_field;
+        milvus::ConvertFieldSchema(proto_field, sdk_field);
+        EXPECT_EQ(sdk_field.Name(), field_name);
+        EXPECT_EQ(sdk_field.Description(), field_desc);
+        EXPECT_EQ(sdk_field.IsPrimaryKey(), primary_key);
+        EXPECT_EQ(sdk_field.AutoID(), auto_id);
+        EXPECT_EQ(sdk_field.FieldDataType(), field_type);
+        EXPECT_EQ(sdk_field.Dimension(), dimension);
+    }
+
+    field_type = milvus::DataType::ARRAY;
+    const milvus::DataType element_type = milvus::DataType::DOUBLE;
+    const uint32_t capacity = 128;
+    {
+        milvus::FieldSchema field(field_name, field_type, field_desc, primary_key, auto_id);
+        field.SetElementType(element_type);
+        field.SetMaxCapacity(capacity);
+
+        milvus::proto::schema::FieldSchema proto_field;
+        milvus::ConvertFieldSchema(field, proto_field);
+
+        EXPECT_EQ(proto_field.data_type(), milvus::DataTypeCast(field_type));
+        EXPECT_EQ(proto_field.element_type(), milvus::DataTypeCast(element_type));
+
+        milvus::FieldSchema sdk_field;
+        milvus::ConvertFieldSchema(proto_field, sdk_field);
+        EXPECT_EQ(sdk_field.FieldDataType(), field_type);
+        EXPECT_EQ(sdk_field.ElementType(), element_type);
+        EXPECT_EQ(sdk_field.MaxCapacity(), capacity);
+    }
+
+    field_type = milvus::DataType::VARCHAR;
+    const uint32_t length = 512;
+    nlohmann::json analyzer_params = {
+        {"tokenizer", "standard"},
+        {"filter", {"lowercase", {{"type", "length"}, {"max", 40}}, {{"type", "stop"}, {"stop_words", {"of", "for"}}}}},
+    };
+    {
+        milvus::FieldSchema field(field_name, field_type, field_desc, primary_key, auto_id);
+        field.SetMaxLength(length);
+        field.EnableAnalyzer(true);
+        field.EnableMatch(true);
+        field.SetAnalyzerParams(analyzer_params);
+
+        milvus::proto::schema::FieldSchema proto_field;
+        milvus::ConvertFieldSchema(field, proto_field);
+
+        EXPECT_EQ(proto_field.data_type(), milvus::DataTypeCast(field_type));
+
+        milvus::FieldSchema sdk_field;
+        milvus::ConvertFieldSchema(proto_field, sdk_field);
+        EXPECT_EQ(sdk_field.FieldDataType(), field_type);
+        EXPECT_EQ(sdk_field.MaxLength(), length);
+        EXPECT_EQ(sdk_field.IsEnableAnalyzer(), true);
+        EXPECT_EQ(sdk_field.IsEnableMatch(), true);
+        EXPECT_EQ(sdk_field.AnalyzerParams(), analyzer_params);
+    }
 }
 
 TEST_F(TypeUtilsTest, ConvertCollectionSchema) {
+    const std::string collection_name = "dummy";
+    const std::string collection_desc = "desc";
+    const bool enable_dynamic = true;
+    const std::string field_name = "field";
+    const std::string function_name = "bm25_func";
+    const std::string function_desc = "bm25 function";
+    const milvus::FunctionType function_type = milvus::FunctionType::BM25;
+
+    milvus::CollectionSchema collection_schema(collection_name, collection_desc, 1, enable_dynamic);
+    collection_schema.AddField({field_name, milvus::DataType::INT64, "dummy", true, true});
+
+    milvus::FunctionPtr function = std::make_shared<milvus::Function>(function_name, function_type, function_desc);
+    function->AddInputFieldName("aaa");
+    function->AddOutputFieldName("bbb");
+    function->AddParam("111", "222");
+    collection_schema.AddFunction(function);
+
+    milvus::proto::schema::CollectionSchema proto_schema;
+    ConvertCollectionSchema(collection_schema, proto_schema);
+
+    EXPECT_EQ(proto_schema.name(), collection_name);
+    EXPECT_EQ(proto_schema.description(), collection_desc);
+    EXPECT_EQ(proto_schema.enable_dynamic_field(), enable_dynamic);
+    EXPECT_EQ(proto_schema.fields_size(), 1);
+    EXPECT_EQ(proto_schema.functions_size(), 1);
+
+    milvus::CollectionSchema sdk_schema;
+    ConvertCollectionSchema(proto_schema, sdk_schema);
+
+    EXPECT_EQ(sdk_schema.Name(), collection_name);
+    EXPECT_EQ(sdk_schema.Description(), collection_desc);
+    EXPECT_EQ(sdk_schema.EnableDynamicField(), enable_dynamic);
+    EXPECT_EQ(sdk_schema.Fields().size(), 1);
+    EXPECT_EQ(sdk_schema.Fields().at(0).Name(), field_name);
+    EXPECT_EQ(sdk_schema.Functions().size(), 1);
+    milvus::FunctionPtr sdk_function = sdk_schema.Functions().at(0);
+    EXPECT_EQ(sdk_function->Name(), function_name);
+    EXPECT_EQ(sdk_function->Description(), function_desc);
+    EXPECT_EQ(sdk_function->GetFunctionType(), function_type);
+    EXPECT_EQ(sdk_function->InputFieldNames().size(), 1);
+    EXPECT_EQ(sdk_function->InputFieldNames().at(0), "aaa");
+    EXPECT_EQ(sdk_function->OutputFieldNames().size(), 1);
+    EXPECT_EQ(sdk_function->OutputFieldNames().at(0), "bbb");
+    EXPECT_EQ(sdk_function->Params().size(), 1);
+    EXPECT_EQ(sdk_function->Params().count("111"), 1);
+    EXPECT_EQ(sdk_function->Params().at("111"), "222");
 }
 
 TEST_F(TypeUtilsTest, TestB64EncodeGeneric) {

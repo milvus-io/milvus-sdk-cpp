@@ -26,12 +26,14 @@ namespace milvus {
 enum class MetricType {
     INVALID = 0,  // deprecated, replaced by DEFAULT
     DEFAULT = 0,  // the server automatically determines metric type
-    L2,
-    IP,
-    COSINE,
+    L2 = 1,
+    IP = 2,
+    COSINE = 3,
     // The following values are for binary vectors
-    HAMMING,
-    JACCARD,
+    HAMMING = 4,
+    JACCARD = 5,
+
+    BM25 = 6,  // Only for sparse vector with BM25
 
     // Note: in milvus 2.4+, TANIMOTO/SUBSTRUCTURE/SUPERSTRUCTURE are no longer supported
 };
