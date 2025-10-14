@@ -110,4 +110,14 @@ CollectionSchema::AnnsFieldNames() const {
     return ret;
 }
 
+const std::vector<FunctionPtr>&
+CollectionSchema::Functions() const {
+    return functions_;
+}
+
+void
+CollectionSchema::AddFunction(const FunctionPtr& function) {
+    functions_.push_back(function);
+}
+
 }  // namespace milvus

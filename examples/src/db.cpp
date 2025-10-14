@@ -202,8 +202,8 @@ main(int argc, char* argv[]) {
         util::CheckStatus("search", status);
 
         for (auto& result : search_results.Results()) {
-            auto& ids = result.Ids().IntIDArray();
-            auto& distances = result.Scores();
+            auto ids = result.Ids().IntIDArray();
+            auto distances = result.Scores();
             if (ids.size() != distances.size()) {
                 std::cout << "Illegal result!" << std::endl;
                 continue;
@@ -218,7 +218,7 @@ main(int argc, char* argv[]) {
                           << name_field->Name() << ":" << name_field->Value(i) << "\t" << age_field->Name() << ":"
                           << +(age_field->Value(i)) << std::endl;
                 // validate the age value
-                if (insert_ages[ids[i]] != age_field->Value(i)) {
+                if (insert_ages.at(ids[i]) != age_field->Value(i)) {
                     std::cout << "ERROR! The returned value doesn't match the inserted value" << std::endl;
                 }
             }

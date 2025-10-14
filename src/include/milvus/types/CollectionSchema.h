@@ -22,6 +22,7 @@
 #include <vector>
 
 #include "FieldSchema.h"
+#include "Function.h"
 
 namespace milvus {
 
@@ -38,7 +39,7 @@ class CollectionSchema {
     /**
      * @brief Constructor
      */
-    explicit CollectionSchema(std::string name, std::string desc = "", int32_t shard_num = 2,
+    explicit CollectionSchema(std::string name, std::string desc = "", int32_t shard_num = 1,
                               bool enable_dynamic_field = false);
 
     /**
@@ -107,12 +108,26 @@ class CollectionSchema {
     std::unordered_set<std::string>
     AnnsFieldNames() const;
 
+    /**
+     * @brief Get functions array.
+     */
+    const std::vector<FunctionPtr>&
+    Functions() const;
+
+    /**
+     * @brief Add a function.
+     */
+    void
+    AddFunction(const FunctionPtr& function);
+
  private:
     std::string name_;
     std::string description_;
     int32_t shard_num_ = 1;  // from v2.4, the default shard_num is 1(old version is 2)
     bool enable_dynamic_field_;
     std::vector<FieldSchema> fields_;
+
+    std::vector<FunctionPtr> functions_;
 };
 
 }  // namespace milvus

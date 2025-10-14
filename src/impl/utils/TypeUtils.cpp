@@ -96,6 +96,26 @@ DataTypeCast(proto::schema::DataType type) {
     }
 }
 
+proto::schema::FunctionType
+FunctionTypeCast(FunctionType type) {
+    switch (type) {
+        case FunctionType::BM25:
+            return proto::schema::FunctionType::BM25;
+        default:
+            return proto::schema::FunctionType::Unknown;
+    }
+}
+
+FunctionType
+FunctionTypeCast(proto::schema::FunctionType type) {
+    switch (type) {
+        case proto::schema::FunctionType::BM25:
+            return FunctionType::BM25;
+        default:
+            return FunctionType::UNKNOWN;
+    }
+}
+
 MetricType
 MetricTypeCast(const std::string& type) {
     if (type == "L2") {
@@ -112,6 +132,9 @@ MetricTypeCast(const std::string& type) {
     }
     if (type == "JACCARD") {
         return MetricType::JACCARD;
+    }
+    if (type == "BM25") {
+        return MetricType::BM25;
     }
     return MetricType::DEFAULT;
 }
@@ -169,6 +192,9 @@ IndexTypeCast(const std::string& type) {
     if (type == "INVERTED") {
         return IndexType::INVERTED;
     }
+    if (type == "BITMAP") {
+        return IndexType::BITMAP;
+    }
     if (type == "SPARSE_INVERTED_INDEX") {
         return IndexType::SPARSE_INVERTED_INDEX;
     }
@@ -198,6 +224,25 @@ ConvertFieldSchema(const proto::schema::FieldSchema& proto_schema, FieldSchema& 
 }
 
 void
+ConvertFunctionSchema(const proto::schema::FunctionSchema& proto_function, FunctionPtr& function_schema) {
+    function_schema = std::make_shared<Function>();
+    function_schema->SetName(proto_function.name());
+    function_schema->SetDescription(proto_function.description());
+    function_schema->SetFunctionType(FunctionTypeCast(proto_function.type()));
+
+    for (const auto& name : proto_function.input_field_names()) {
+        function_schema->AddInputFieldName(name);
+    }
+    for (const auto& name : proto_function.output_field_names()) {
+        function_schema->AddOutputFieldName(name);
+    }
+
+    for (const auto& kv : proto_function.params()) {
+        function_schema->AddParam(kv.key(), kv.value());
+    }
+}
+
+void
 ConvertCollectionSchema(const proto::schema::CollectionSchema& proto_schema, CollectionSchema& schema) {
     schema.SetName(proto_schema.name());
     schema.SetDescription(proto_schema.description());
@@ -209,6 +254,13 @@ ConvertCollectionSchema(const proto::schema::CollectionSchema& proto_schema, Col
         ConvertFieldSchema(proto_field, field_schema);
         schema.AddField(std::move(field_schema));
     }
+
+    for (int i = 0; i < proto_schema.functions_size(); ++i) {
+        auto& proto_function = proto_schema.functions(i);
+        FunctionPtr function_schema;
+        ConvertFunctionSchema(proto_function, function_schema);
+        schema.AddFunction(function_schema);
+    }
 }
 
 void
@@ -219,6 +271,10 @@ ConvertFieldSchema(const FieldSchema& schema, proto::schema::FieldSchema& proto_
     proto_schema.set_autoid(schema.AutoID());
     proto_schema.set_data_type(DataTypeCast(schema.FieldDataType()));
 
+    if (schema.FieldDataType() == DataType::ARRAY) {
+        proto_schema.set_element_type(DataTypeCast(schema.ElementType()));
+    }
+
     for (auto& kv : schema.TypeParams()) {
         auto pair = proto_schema.add_type_params();
         pair->set_key(kv.first);
@@ -227,13 +283,42 @@ ConvertFieldSchema(const FieldSchema& schema, proto::schema::FieldSchema& proto_
 }
 
 void
+ConvertFunctionSchema(const FunctionPtr& function_schema, proto::schema::FunctionSchema& proto_function) {
+    if (function_schema == nullptr) {
+        return;
+    }
+    proto_function.set_name(function_schema->Name());
+    proto_function.set_description(function_schema->Description());
+    proto_function.set_type(FunctionTypeCast(function_schema->GetFunctionType()));
+
+    for (const auto& input_field : function_schema->InputFieldNames()) {
+        proto_function.add_input_field_names(input_field);
+    }
+    for (const auto& output_field : function_schema->OutputFieldNames()) {
+        proto_function.add_output_field_names(output_field);
+    }
+
+    for (const auto& pair : function_schema->Params()) {
+        auto kv = proto_function.add_params();
+        kv->set_key(pair.first);
+        kv->set_value(pair.second);
+    }
+}
+
+void
 ConvertCollectionSchema(const CollectionSchema& schema, proto::schema::CollectionSchema& proto_schema) {
     proto_schema.set_name(schema.Name());
     proto_schema.set_description(schema.Description());
+    proto_schema.set_enable_dynamic_field(schema.EnableDynamicField());
 
-    for (auto& field : schema.Fields()) {
+    for (const auto& field : schema.Fields()) {
         auto proto_field = proto_schema.add_fields();
         ConvertFieldSchema(field, *proto_field);
+    }
+
+    for (const auto& function : schema.Functions()) {
+        auto proto_function = proto_schema.add_functions();
+        ConvertFunctionSchema(function, *proto_function);
     }
 }
 
@@ -429,6 +514,8 @@ to_string(milvus::MetricType metric_type) {
             return "HAMMING";
         case milvus::MetricType::JACCARD:
             return "JACCARD";
+        case milvus::MetricType::BM25:
+            return "BM25";
         default:
             return "DEFAULT";
     }
@@ -470,6 +557,8 @@ to_string(milvus::IndexType index_type) {
             return "STL_SORT";
         case milvus::IndexType::INVERTED:
             return "INVERTED";
+        case milvus::IndexType::BITMAP:
+            return "BITMAP";
         case milvus::IndexType::SPARSE_INVERTED_INDEX:
             return "SPARSE_INVERTED_INDEX";
         case milvus::IndexType::SPARSE_WAND:
