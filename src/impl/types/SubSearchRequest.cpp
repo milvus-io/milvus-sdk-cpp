@@ -20,114 +20,97 @@
 #include <utility>
 
 #include "../utils/Constants.h"
+#include "../utils/DmlUtils.h"
 #include "../utils/TypeUtils.h"
+#include "milvus/utils/FP16.h"
 
 namespace milvus {
 
 const std::string&
-SubSearchRequest::Filter() const {
+SearchRequestBase::Filter() const {
     return filter_expression_;
 }
 
 Status
-SubSearchRequest::SetFilter(std::string filter) {
+SearchRequestBase::SetFilter(std::string filter) {
     filter_expression_ = std::move(filter);
     return Status::OK();
 }
 
 FieldDataPtr
-SubSearchRequest::TargetVectors() const {
+SearchRequestBase::TargetVectors() const {
     return target_vectors_;
 }
 
 Status
-SubSearchRequest::AddBinaryVector(std::string field_name, const std::string& vector) {
+SearchRequestBase::AddBinaryVector(std::string field_name, const std::string& vector) {
     return AddBinaryVector(std::move(field_name), BinaryVecFieldData::ToUnsignedChars(vector));
 }
 
 Status
-SubSearchRequest::AddBinaryVector(std::string field_name, const BinaryVecFieldData::ElementT& vector) {
-    auto status = verifyVectorType(DataType::BINARY_VECTOR);
-    if (!status.IsOk()) {
-        return status;
-    }
-
-    BinaryVecFieldDataPtr vectors;
-    if (nullptr == target_vectors_) {
-        vectors = std::make_shared<BinaryVecFieldData>(std::move(field_name));
-        target_vectors_ = vectors;
-    } else {
-        if (field_name != target_vectors_->Name()) {
-            std::string msg = "The vector field name must be the same! Previous name is " + vectors->Name();
-            return {StatusCode::INVALID_AGUMENT, msg};
-        }
-        vectors = std::static_pointer_cast<BinaryVecFieldData>(target_vectors_);
-    }
-
-    auto code = vectors->Add(vector);
-    if (code != StatusCode::OK) {
-        return {code, "Failed to add binary vector"};
-    }
-
-    return Status::OK();
+SearchRequestBase::AddBinaryVector(std::string field_name, const BinaryVecFieldData::ElementT& vector) {
+    return addVector<BinaryVecFieldData, BinaryVecFieldData::ElementT>(field_name, DataType::BINARY_VECTOR, vector);
 }
 
 Status
-SubSearchRequest::AddFloatVector(std::string field_name, const FloatVecFieldData::ElementT& vector) {
-    auto status = verifyVectorType(DataType::FLOAT_VECTOR);
-    if (!status.IsOk()) {
-        return status;
-    }
-
-    FloatVecFieldDataPtr vectors;
-    if (nullptr == target_vectors_) {
-        vectors = std::make_shared<FloatVecFieldData>(std::move(field_name));
-        target_vectors_ = vectors;
-    } else {
-        if (field_name != target_vectors_->Name()) {
-            std::string msg = "The vector field name must be the same! Previous name is " + vectors->Name();
-            return {StatusCode::INVALID_AGUMENT, msg};
-        }
-        vectors = std::static_pointer_cast<FloatVecFieldData>(target_vectors_);
-    }
-
-    auto code = vectors->Add(vector);
-    if (code != StatusCode::OK) {
-        return {code, "Failed to add float vector"};
-    }
-
-    return Status::OK();
+SearchRequestBase::AddFloatVector(std::string field_name, const FloatVecFieldData::ElementT& vector) {
+    return addVector<FloatVecFieldData, FloatVecFieldData::ElementT>(field_name, DataType::FLOAT_VECTOR, vector);
 }
 
 Status
-SubSearchRequest::AddSparseVector(std::string field_name, const SparseFloatVecFieldData::ElementT& vector) {
-    auto status = verifyVectorType(DataType::SPARSE_FLOAT_VECTOR);
+SearchRequestBase::AddSparseVector(std::string field_name, const SparseFloatVecFieldData::ElementT& vector) {
+    return addVector<SparseFloatVecFieldData, SparseFloatVecFieldData::ElementT>(field_name,
+                                                                                 DataType::SPARSE_FLOAT_VECTOR, vector);
+}
+
+Status
+SearchRequestBase::AddSparseVector(std::string field_name, const nlohmann::json& vector) {
+    std::map<uint32_t, float> pairs;
+    auto status = ParseSparseFloatVector(vector, field_name, pairs);
     if (!status.IsOk()) {
         return status;
     }
+    return AddSparseVector(field_name, pairs);
+}
 
-    SparseFloatVecFieldDataPtr vectors;
-    if (nullptr == target_vectors_) {
-        vectors = std::make_shared<SparseFloatVecFieldData>(std::move(field_name));
-        target_vectors_ = vectors;
-    } else {
-        if (field_name != target_vectors_->Name()) {
-            std::string msg = "The vector field name must be the same! Previous name is " + vectors->Name();
-            return {StatusCode::INVALID_AGUMENT, msg};
-        }
-        vectors = std::static_pointer_cast<SparseFloatVecFieldData>(target_vectors_);
+Status
+SearchRequestBase::AddFloat16Vector(std::string field_name, const Float16VecFieldData::ElementT& vector) {
+    return addVector<Float16VecFieldData, Float16VecFieldData::ElementT>(field_name, DataType::FLOAT16_VECTOR, vector);
+}
+
+Status
+SearchRequestBase::AddFloat16Vector(std::string field_name, const std::vector<float>& vector) {
+    std::vector<uint16_t> binary;
+    binary.reserve(vector.size());
+    for (auto val : vector) {
+        binary.push_back(F32toF16(val));
     }
+    return AddFloat16Vector(field_name, binary);
+}
 
-    auto code = vectors->Add(vector);
-    if (code != StatusCode::OK) {
-        return {code, "Failed to add sparse vector"};
+Status
+SearchRequestBase::AddBFloat16Vector(std::string field_name, const BFloat16VecFieldData::ElementT& vector) {
+    return addVector<BFloat16VecFieldData, BFloat16VecFieldData::ElementT>(field_name, DataType::BFLOAT16_VECTOR,
+                                                                           vector);
+}
+
+Status
+SearchRequestBase::AddBFloat16Vector(std::string field_name, const std::vector<float>& vector) {
+    std::vector<uint16_t> binary;
+    binary.reserve(vector.size());
+    for (auto val : vector) {
+        binary.push_back(F32toBF16(val));
     }
+    return AddBFloat16Vector(field_name, binary);
+}
 
-    return Status::OK();
+Status
+SearchRequestBase::AddEmbeddedText(std::string field_name, const std::string& text) {
+    return addVector<VarCharFieldData, VarCharFieldData::ElementT>(field_name, DataType::VARCHAR, text);
 }
 
 std::string
-SubSearchRequest::AnnsField() const {
+SearchRequestBase::AnnsField() const {
     if (target_vectors_ != nullptr) {
         return target_vectors_->Name();
     }
@@ -135,30 +118,30 @@ SubSearchRequest::AnnsField() const {
 }
 
 int64_t
-SubSearchRequest::Limit() const {
+SearchRequestBase::Limit() const {
     return limit_;
 }
 
 Status
-SubSearchRequest::SetLimit(int64_t limit) {
+SearchRequestBase::SetLimit(int64_t limit) {
     limit_ = limit;
     return Status::OK();
 }
 
 ::milvus::MetricType
-SubSearchRequest::MetricType() const {
+SearchRequestBase::MetricType() const {
     return metric_type_;
 }
 
 Status
-SubSearchRequest::SetMetricType(::milvus::MetricType metric_type) {
+SearchRequestBase::SetMetricType(::milvus::MetricType metric_type) {
     // directly pass metric_type to server, no need to verify here
     metric_type_ = metric_type;
     return Status::OK();
 }
 
 Status
-SubSearchRequest::AddExtraParam(const std::string& key, const std::string& value) {
+SearchRequestBase::AddExtraParam(const std::string& key, const std::string& value) {
     extra_params_[key] = value;
     static std::set<std::string> s_ambiguous = {PARAMS, TOPK, ANNS_FIELD, METRIC_TYPE, ROUND_DECIMAL, IGNORE_GROWING};
     if (s_ambiguous.find(key) != s_ambiguous.end()) {
@@ -169,12 +152,12 @@ SubSearchRequest::AddExtraParam(const std::string& key, const std::string& value
 }
 
 const std::unordered_map<std::string, std::string>&
-SubSearchRequest::ExtraParams() const {
+SearchRequestBase::ExtraParams() const {
     return extra_params_;
 }
 
 Status
-SubSearchRequest::Validate() const {
+SearchRequestBase::Validate() const {
     // in milvus 2.4+, no need to check index parameters, let the server to check it
     if (target_vectors_ == nullptr || target_vectors_->Count() == 0) {
         return Status{StatusCode::INVALID_AGUMENT, "no target vector is assigned"};
@@ -183,7 +166,7 @@ SubSearchRequest::Validate() const {
 }
 
 double
-SubSearchRequest::Radius() const {
+SearchRequestBase::Radius() const {
     auto it = extra_params_.find(RADIUS);
     if (it != extra_params_.end()) {
         return std::stod(it->second);
@@ -192,13 +175,13 @@ SubSearchRequest::Radius() const {
 }
 
 Status
-SubSearchRequest::SetRadius(double value) {
+SearchRequestBase::SetRadius(double value) {
     extra_params_[RADIUS] = doubleToString(value);
     return Status::OK();
 }
 
 double
-SubSearchRequest::RangeFilter() const {
+SearchRequestBase::RangeFilter() const {
     auto it = extra_params_.find(RANGE_FILTER);
     if (it != extra_params_.end()) {
         return std::stod(it->second);
@@ -207,13 +190,13 @@ SubSearchRequest::RangeFilter() const {
 }
 
 Status
-SubSearchRequest::SetRangeFilter(double value) {
+SearchRequestBase::SetRangeFilter(double value) {
     extra_params_[RANGE_FILTER] = doubleToString(value);
     return Status::OK();
 }
 
 Status
-SubSearchRequest::SetRange(double range_filter, double radius) {
+SearchRequestBase::SetRange(double range_filter, double radius) {
     // directly pass the radius/range_filter to let server validate, no need to verify here
     auto status = SetRadius(radius);
     if (!status.IsOk()) {
@@ -228,10 +211,39 @@ SubSearchRequest::SetRange(double range_filter, double radius) {
 }
 
 Status
-SubSearchRequest::verifyVectorType(DataType data_type) const {
+SearchRequestBase::verifyVectorType(DataType data_type) const {
     if (target_vectors_ != nullptr && target_vectors_->Type() != data_type) {
         return {StatusCode::INVALID_AGUMENT, "Target vector must be the same type!"};
     }
+    return Status::OK();
+}
+
+template <typename T, typename V>
+Status
+SearchRequestBase::addVector(std::string field_name, DataType data_type, const V& vector) {
+    auto status = verifyVectorType(data_type);
+    if (!status.IsOk()) {
+        return status;
+    }
+
+    StatusCode code = StatusCode::OK;
+    if (nullptr == target_vectors_) {
+        std::shared_ptr<T> vectors = std::make_shared<T>(std::move(field_name));
+        target_vectors_ = vectors;
+        code = vectors->Add(vector);
+    } else {
+        if (field_name != target_vectors_->Name()) {
+            std::string msg = "The vector field name must be the same! Previous name is " + target_vectors_->Name();
+            return {StatusCode::INVALID_AGUMENT, msg};
+        }
+        std::shared_ptr<T> vectors = std::static_pointer_cast<T>(target_vectors_);
+        code = vectors->Add(vector);
+    }
+
+    if (code != StatusCode::OK) {
+        return {code, "Failed to add " + std::to_string(data_type)};
+    }
+
     return Status::OK();
 }
 

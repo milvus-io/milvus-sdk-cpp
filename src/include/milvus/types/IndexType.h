@@ -30,34 +30,38 @@ enum class IndexType {
     // the value of each index type doesn't matter, the sdk converts IndexType to string name and
     // passes the name to the server
     // Note: in milvus 2.4+, IVF_HNSW/RHNSW_FLAT/RHNSW_SQ/RHNSW_PQ/ANNOY have been deprecated
-    FLAT,
-    IVF_FLAT,
-    IVF_SQ8,
-    IVF_PQ,
-    HNSW,
-    DISKANN,
-    AUTOINDEX,
-    SCANN,
+    FLAT = 1,
+    IVF_FLAT = 2,
+    IVF_SQ8 = 3,
+    IVF_PQ = 4,
+    HNSW = 5,
+    DISKANN = 6,
+    AUTOINDEX = 7,
+    SCANN = 8,
+    HNSW_SQ = 9,
+    HNSW_PQ = 10,
+    HNSW_PRQ = 11,
 
     // GPU indexes only for float vectors
     GPU_IVF_FLAT = 201,
-    GPU_IVF_PQ,
-    GPU_BRUTE_FORCE,
-    GPU_CAGRA,
+    GPU_IVF_PQ = 202,
+    GPU_BRUTE_FORCE = 203,
+    GPU_CAGRA = 204,
 
     // Indexes for binary vectors
     BIN_FLAT = 1001,
-    BIN_IVF_FLAT,
+    BIN_IVF_FLAT = 1002,
 
     // Only for varchar type field
     TRIE = 1101,
     // Only for scalar type field
-    STL_SORT,  // only for numeric type field
-    INVERTED,  // works for all scalar fields except JSON type field
+    STL_SORT = 1102,  // only for numeric type field
+    INVERTED = 1103,  // works for all scalar fields except JSON type field
+    BITMAP = 1104,    // works for all scalar fields except JSON, FLOAT and DOUBLE type fields
 
     // Only for sparse vectors
     SPARSE_INVERTED_INDEX = 1201,
-    SPARSE_WAND
+    SPARSE_WAND = 1202
 };
 }  // namespace milvus
 

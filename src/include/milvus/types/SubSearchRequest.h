@@ -29,9 +29,13 @@
 namespace milvus {
 
 /**
- * @brief Arguments for MilvusClient::HybridSearch().
+ * @brief A base class for SubSearchRequest and SearchArguments
  */
-class SubSearchRequest {
+class SearchRequestBase {
+ protected:
+    SearchRequestBase() = default;
+    virtual ~SearchRequestBase() = default;
+
  public:
     /**
      * @brief Get filter expression
@@ -74,6 +78,47 @@ class SubSearchRequest {
      */
     Status
     AddSparseVector(std::string field_name, const SparseFloatVecFieldData::ElementT& vector);
+
+    /**
+     * @brief Add a sparse vector to search. \n
+     * We support two patterns of sparse vector: \n
+     *  1. a json dict like {"1": 0.1, "5": 0.2, "8": 0.15}
+     *  2. a json dict like {"indices": [1, 5, 8], "values": [0.1, 0.2, 0.15]}
+     */
+    Status
+    AddSparseVector(std::string field_name, const nlohmann::json& vector);
+
+    /**
+     * @brief Add a float16 vector to search.
+     */
+    Status
+    AddFloat16Vector(std::string field_name, const Float16VecFieldData::ElementT& vector);
+
+    /**
+     * @brief Add a float16 vector to search. \n
+     * This method automatically converts the float array to float16 binary
+     */
+    Status
+    AddFloat16Vector(std::string field_name, const std::vector<float>& vector);
+
+    /**
+     * @brief Add a bfloat16 vector to search.
+     */
+    Status
+    AddBFloat16Vector(std::string field_name, const BFloat16VecFieldData::ElementT& vector);
+
+    /**
+     * @brief Add a bfloat16 vector to search. \n
+     * This method automatically converts the float array to bfloat16 binary
+     */
+    Status
+    AddBFloat16Vector(std::string field_name, const std::vector<float>& vector);
+
+    /**
+     * @brief Add a text to search. Only works for BM25 function \n
+     */
+    Status
+    AddEmbeddedText(std::string field_name, const std::string& text);
 
     /**
      * @brief Get anns field name
@@ -176,7 +221,11 @@ class SubSearchRequest {
  private:
     Status verifyVectorType(DataType) const;
 
- private:
+    template <typename T, typename V>
+    Status
+    addVector(std::string field_name, DataType data_type, const V& vector);
+
+ protected:
     FieldDataPtr target_vectors_;
 
     int64_t limit_{10};
@@ -186,6 +235,11 @@ class SubSearchRequest {
 
     std::unordered_map<std::string, std::string> extra_params_;
 };
+
+/**
+ * @brief Sub request for HybridSearchArguments for MilvusClient::HybridSearch().
+ */
+class SubSearchRequest : public SearchRequestBase {};
 
 using SubSearchRequestPtr = std::shared_ptr<SubSearchRequest>;
 

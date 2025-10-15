@@ -38,6 +38,9 @@ extern const char* GROUPBY_FIELD;
 extern const char* PARAMS;
 extern const char* STRATEGY;
 extern const char* SCORE;
+extern const char* ENABLE_ANALYZER;
+extern const char* ENABLE_MATCH;
+extern const char* ANALYZER_PARAMS;
 
 extern const char* ITERATOR;
 extern const char* REDUCE_STOP_FOR_BEST;

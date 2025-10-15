@@ -21,10 +21,12 @@ namespace milvus {
 /**
  * @brief Supported function types.
  * Note: in v2.4, only support RERANK for hybrid search
- * in v2.5, we will have BM25 = 1 and TEXTEMBEDDING = 2
+ * in v2.5, we have BM25 = 1
+ * in v2.6, we have TEXTEMBEDDING = 2
  */
 enum class FunctionType {
     UNKNOWN = 0,
+    BM25 = 1,
     RERANK = 3,
 };
 }  // namespace milvus
