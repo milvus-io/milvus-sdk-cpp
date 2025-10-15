@@ -123,6 +123,19 @@ class FieldSchema {
     SetAutoID(bool auto_id);
 
     /**
+     * @brief Field item's id is partition key or not.
+     *
+     */
+    bool
+    IsPartitionKey() const;
+
+    /**
+     * @brief Set field item's id to be partition key.
+     */
+    void
+    SetPartitionKey(bool partition_key);
+
+    /**
      * @brief Extra key-value pair setting for this field
      *
      * Currently vector field need to input "dim":"x" to specify dimension.
@@ -249,6 +262,7 @@ class FieldSchema {
     DataType element_type_{DataType::UNKNOWN};  // only for array field
     bool is_primary_key_ = false;
     bool auto_id_ = false;
+    bool is_partition_key_ = false;
     std::map<std::string, std::string> type_params_;
 };
 }  // namespace milvus

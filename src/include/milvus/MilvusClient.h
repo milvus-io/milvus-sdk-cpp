@@ -138,10 +138,12 @@ class MilvusClient {
      * @brief Create a collection with schema.
      *
      * @param [in] schema schema of the collection
+     * @param [in] num_partitions num of default physical partitions, only used in partition key mode
+     *  and changes are not supported, default value is 16 if set to negative or zero.
      * @return Status operation successfully or not
      */
     virtual Status
-    CreateCollection(const CollectionSchema& schema) = 0;
+    CreateCollection(const CollectionSchema& schema, int64_t num_partitions = 0) = 0;
 
     /**
      * @brief Check existence of a collection.
