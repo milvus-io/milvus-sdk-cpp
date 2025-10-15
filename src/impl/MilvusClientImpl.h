@@ -57,7 +57,7 @@ class MilvusClientImpl : public MilvusClient {
     GetSDKVersion(std::string& version) final;
 
     Status
-    CreateCollection(const CollectionSchema& schema) final;
+    CreateCollection(const CollectionSchema& schema, int64_t num_partitions) final;
 
     Status
     HasCollection(const std::string& collection_name, bool& has) final;

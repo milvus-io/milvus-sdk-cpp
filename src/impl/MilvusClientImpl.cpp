@@ -106,12 +106,15 @@ MilvusClientImpl::GetSDKVersion(std::string& version) {
 }
 
 Status
-MilvusClientImpl::CreateCollection(const CollectionSchema& schema) {
-    auto pre = [&schema]() {
+MilvusClientImpl::CreateCollection(const CollectionSchema& schema, int64_t num_partitions) {
+    auto pre = [&schema, &num_partitions]() {
         proto::milvus::CreateCollectionRequest rpc_request;
         rpc_request.set_collection_name(schema.Name());
         rpc_request.set_shards_num(schema.ShardsNum());
         rpc_request.set_consistency_level(ConsistencyLevelCast(ConsistencyLevel::BOUNDED));  // TODO: how to pass in?
+        if (num_partitions > 0) {
+            rpc_request.set_num_partitions(num_partitions);
+        }
 
         proto::schema::CollectionSchema rpc_collection;
         rpc_collection.set_name(schema.Name());

@@ -97,6 +97,16 @@ FieldSchema::SetAutoID(bool auto_id) {
     auto_id_ = auto_id;
 }
 
+bool
+FieldSchema::IsPartitionKey() const {
+    return is_partition_key_;
+}
+
+void
+FieldSchema::SetPartitionKey(bool partition_key) {
+    is_partition_key_ = partition_key;
+}
+
 const std::map<std::string, std::string>&
 FieldSchema::TypeParams() const {
     return type_params_;
