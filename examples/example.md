@@ -7,6 +7,7 @@ $ make test
 Once the `make test` is done, you will see some executable examples under the path `./cmake_build/examples`.
 - `./cmake_build/examples/sdk_array`: example to show the usage of Array field.
 - `./cmake_build/examples/sdk_db`: example to show the usage of databases.
+- `./cmake_build/examples/sdk_default_value`: example to show the usage of default value.
 - `./cmake_build/examples/sdk_dml`: example to show the usage of dml interfaces.
 - `./cmake_build/examples/sdk_dynamic_field`: example to show the usage of dynamic fields.
 - `./cmake_build/examples/sdk_full_text_match`: example to show the usage of BM25 function.
@@ -15,6 +16,7 @@ Once the `make test` is done, you will see some executable examples under the pa
 - `./cmake_build/examples/sdk_iterator_query`: example to show the usage of query iterator.
 - `./cmake_build/examples/sdk_iterator_search`: example to show the usage of search iterator.
 - `./cmake_build/examples/sdk_json`: example to show the usage of JSON field.
+- `./cmake_build/examples/sdk_nullalbe_field`: example to show the usage of nullable field.
 - `./cmake_build/examples/sdk_partition_key`: example to show the usage of partition key.
 - `./cmake_build/examples/sdk_rbac`: example to show the usage of RBAC.
 - `./cmake_build/examples/sdk_text_match`: example to show the usage of TEXT_MATCH.
