@@ -52,6 +52,12 @@ class FieldSchema {
     SetName(std::string name);
 
     /**
+     * @brief Set name of the field.
+     */
+    FieldSchema&
+    WithName(std::string name);
+
+    /**
      * @brief Description of this field, can be empty.
      */
     const std::string&
@@ -64,6 +70,12 @@ class FieldSchema {
     SetDescription(std::string description);
 
     /**
+     * @brief Set description of the field.
+     */
+    FieldSchema&
+    WithDescription(std::string description);
+
+    /**
      * @brief Field data type.
      */
     DataType
@@ -74,6 +86,12 @@ class FieldSchema {
      */
     void
     SetDataType(DataType dt);
+
+    /**
+     * @brief Set field data type.
+     */
+    FieldSchema&
+    WithDataType(DataType dt);
 
     /**
      * @brief Element type of array field.
@@ -101,11 +119,18 @@ class FieldSchema {
      */
     bool
     IsPrimaryKey() const;
+
     /**
      * @brief Set field to be primary key.
      */
     void
     SetPrimaryKey(bool is_primary_key);
+
+    /**
+     * @brief Set field to be primary key.
+     */
+    FieldSchema&
+    WithPrimaryKey(bool is_primary_key);
 
     /**
      * @brief Field item's id is auto-generated or not.
@@ -123,6 +148,12 @@ class FieldSchema {
     SetAutoID(bool auto_id);
 
     /**
+     * @brief Set field item's id to be auto-generated.
+     */
+    FieldSchema&
+    WithAutoID(bool auto_id);
+
+    /**
      * @brief Field item's id is partition key or not.
      *
      */
@@ -134,6 +165,31 @@ class FieldSchema {
      */
     void
     SetPartitionKey(bool partition_key);
+
+    /**
+     * @brief Set field item's id to be partition key.
+     */
+    FieldSchema&
+    WithPartitionKey(bool partition_key);
+
+    /**
+     * @brief Field item's id is clustering key or not.
+     *
+     */
+    bool
+    IsClusteringKey() const;
+
+    /**
+     * @brief Set field item's id to be clustering key.
+     */
+    void
+    SetClusteringKey(bool clustering_key);
+
+    /**
+     * @brief Set field item's id to be clustering key.
+     */
+    FieldSchema&
+    WithClusteringKey(bool clustering_key);
 
     /**
      * @brief Extra key-value pair setting for this field
@@ -263,6 +319,7 @@ class FieldSchema {
     bool is_primary_key_ = false;
     bool auto_id_ = false;
     bool is_partition_key_ = false;
+    bool is_clustering_key_ = false;
     std::map<std::string, std::string> type_params_;
 };
 }  // namespace milvus
