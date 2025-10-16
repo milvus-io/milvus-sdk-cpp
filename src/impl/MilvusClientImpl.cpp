@@ -107,6 +107,16 @@ MilvusClientImpl::GetSDKVersion(std::string& version) {
 
 Status
 MilvusClientImpl::CreateCollection(const CollectionSchema& schema, int64_t num_partitions) {
+    auto validate = [&schema]() {
+        for (const auto& field : schema.Fields()) {
+            auto status = CheckDefaultValue(field);
+            if (!status.IsOk()) {
+                return status;
+            }
+        }
+        return Status::OK();
+    };
+
     auto pre = [&schema, &num_partitions]() {
         proto::milvus::CreateCollectionRequest rpc_request;
         rpc_request.set_collection_name(schema.Name());
@@ -126,7 +136,7 @@ MilvusClientImpl::CreateCollection(const CollectionSchema& schema, int64_t num_p
     };
 
     return apiHandler<proto::milvus::CreateCollectionRequest, proto::common::Status>(
-        pre, &MilvusConnection::CreateCollection);
+        validate, pre, &MilvusConnection::CreateCollection, nullptr);
 }
 
 Status

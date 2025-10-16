@@ -193,8 +193,6 @@ class FieldSchema {
 
     /**
      * @brief Extra key-value pair setting for this field
-     *
-     * Currently vector field need to input "dim":"x" to specify dimension.
      */
     const std::map<std::string, std::string>&
     TypeParams() const;
@@ -202,7 +200,7 @@ class FieldSchema {
     /**
      * @brief Set extra key-value pair setting for this field
      *
-     * Currently vector field need to input "dim":"x" to specify dimension.
+     * Note: the values inputted by SetDimension/SetMaxLength/SetMaxCapacity are stored in typeParams as a map
      */
     void
     SetTypeParams(const std::map<std::string, std::string>& params);
@@ -210,7 +208,7 @@ class FieldSchema {
     /**
      * @brief Set extra key-value pair setting for this field
      *
-     * Currently vector field need to input "dim":"x" to specify dimension.
+     * Note: the values inputted by SetDimension/SetMaxLength/SetMaxCapacity are stored in typeParams as a map
      */
     void
     SetTypeParams(std::map<std::string, std::string>&& params);
@@ -311,6 +309,46 @@ class FieldSchema {
     nlohmann::json
     AnalyzerParams() const;
 
+    /**
+     * @brief Get the flag whether the field value is nullable.
+     */
+    bool
+    IsNullable() const;
+
+    /**
+     * @brief Set field value can be nullable or not.
+     */
+    void
+    SetNullable(bool nullable);
+
+    /**
+     * @brief Set field value can be nullable or not.
+     */
+    FieldSchema&
+    WithNullable(bool nullable);
+
+    /**
+     * @brief Set default value of this field.
+     *
+     * Note: only accept primitive types
+     */
+    void
+    SetDefaultValue(const nlohmann::json& val);
+
+    /**
+     * @brief Set default value of this field.
+     *
+     * Note: only accept primitive types
+     */
+    FieldSchema&
+    WithDefaultValue(const nlohmann::json& val);
+
+    /**
+     * @brief Get default value of this field.
+     */
+    const nlohmann::json&
+    DefaultValue() const;
+
  private:
     std::string name_;
     std::string description_;
@@ -321,5 +359,8 @@ class FieldSchema {
     bool is_partition_key_ = false;
     bool is_clustering_key_ = false;
     std::map<std::string, std::string> type_params_;
+
+    bool is_nullable_ = false;
+    nlohmann::json default_value_;  // only accept primitive types
 };
 }  // namespace milvus
