@@ -24,6 +24,7 @@
 #include "utils/Constants.h"
 #include "utils/DmlUtils.h"
 #include "utils/DqlUtils.h"
+#include "utils/FieldDataSchema.h"
 #include "utils/TypeUtils.h"
 
 using ::milvus::proto::milvus::DescribeCollectionRequest;
@@ -97,7 +98,10 @@ TEST_F(MilvusMockedTest, SearchIterator) {
                 milvus::FieldDataPtr page_data;
                 auto status = milvus::CopyFieldData(field_data, current_poz, current_poz + topk, page_data);
                 EXPECT_TRUE(status.IsOk());
-                milvus::proto::schema::FieldData data = milvus::CreateProtoFieldData(*page_data);
+                milvus::FieldDataSchema bridge(page_data, nullptr);
+                milvus::proto::schema::FieldData data;
+                status = milvus::CreateProtoFieldData(bridge, data);
+                EXPECT_TRUE(status.IsOk());
                 mutable_fields->Add(std::move(data));
 
                 if (field_data->Name() == milvus::T_PK_NAME) {

@@ -135,21 +135,53 @@ FieldData<T, Dt>::FieldData(std::string name, const std::vector<T>& data) : Fiel
 }
 
 template <typename T, DataType Dt>
+FieldData<T, Dt>::FieldData(std::string name, const std::vector<T>& data, const std::vector<bool>& valid_data)
+    : Field(std::move(name), Dt) {
+    // use "=" instead of constructor because the nlohmann::json constructor does special things
+    data_ = data;
+    valid_data_ = valid_data;
+}
+
+template <typename T, DataType Dt>
 FieldData<T, Dt>::FieldData(std::string name, std::vector<T>&& data) : Field(std::move(name), Dt) {
     // use "=" instead of constructor because the nlohmann::json constructor does special things
     data_ = std::move(data);
 }
 
 template <typename T, DataType Dt>
+FieldData<T, Dt>::FieldData(std::string name, std::vector<T>&& data, std::vector<bool>&& valid_data)
+    : Field(std::move(name), Dt) {
+    // use "=" instead of constructor because the nlohmann::json constructor does special things
+    data_ = std::move(data);
+    valid_data_ = std::move(valid_data);
+}
+
+template <typename T, DataType Dt>
 StatusCode
 FieldData<T, Dt>::Add(const T& element) {
-    return AddElement<T, Dt>(element, data_);
+    auto code = AddElement<T, Dt>(element, data_);
+    if (code == StatusCode::OK) {
+        valid_data_.push_back(true);
+    }
+    return code;
 }
 
 template <typename T, DataType Dt>
 StatusCode
 FieldData<T, Dt>::Add(T&& element) {
-    return AddElement<T, Dt>(element, data_);
+    auto code = AddElement<T, Dt>(element, data_);
+    if (code == StatusCode::OK) {
+        valid_data_.push_back(true);
+    }
+    return code;
+}
+
+template <typename T, DataType Dt>
+StatusCode
+FieldData<T, Dt>::AddNull() {
+    valid_data_.push_back(false);
+    data_.push_back(T());
+    return StatusCode::OK;
 }
 
 template <typename T, DataType Dt>
@@ -157,6 +189,9 @@ StatusCode
 FieldData<T, Dt>::Append(const std::vector<T>& elements) {
     data_.reserve(data_.size() + elements.size());
     std::copy(elements.begin(), elements.end(), std::back_inserter(data_));
+    for (auto i = 0; i < elements.size(); i++) {
+        valid_data_.push_back(true);
+    }
     return StatusCode::OK;
 }
 
@@ -170,6 +205,7 @@ template <typename T, DataType Dt>
 void
 FieldData<T, Dt>::Reserve(size_t count) {
     data_.reserve(count);
+    valid_data_.reserve(count);
 }
 
 template <typename T, DataType Dt>
@@ -182,6 +218,21 @@ template <typename T, DataType Dt>
 T
 FieldData<T, Dt>::Value(size_t i) const {
     return data_.at(i);
+}
+
+template <typename T, DataType Dt>
+bool
+FieldData<T, Dt>::IsNull(size_t i) const {
+    if (i >= valid_data_.size()) {
+        return false;
+    }
+    return !valid_data_.at(i);
+}
+
+template <typename T, DataType Dt>
+const std::vector<bool>&
+FieldData<T, Dt>::ValidData() const {
+    return valid_data_;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -204,8 +255,22 @@ ArrayFieldData<T, Et>::ArrayFieldData(std::string name, const std::vector<ArrayF
 }
 
 template <typename T, DataType Et>
+ArrayFieldData<T, Et>::ArrayFieldData(std::string name, const std::vector<ArrayFieldData::ElementT>& data,
+                                      const std::vector<bool>& valid_data)
+    : FieldData<ArrayFieldData::ElementT, DataType::ARRAY>(std::move(name), data, valid_data) {
+    this->element_type_ = Et;
+}
+
+template <typename T, DataType Et>
 ArrayFieldData<T, Et>::ArrayFieldData(std::string name, std::vector<ArrayFieldData::ElementT>&& data)
     : FieldData<ArrayFieldData::ElementT, DataType::ARRAY>(std::move(name), data) {
+    this->element_type_ = Et;
+}
+
+template <typename T, DataType Et>
+ArrayFieldData<T, Et>::ArrayFieldData(std::string name, std::vector<ArrayFieldData::ElementT>&& data,
+                                      std::vector<bool>&& valid_data)
+    : FieldData<ArrayFieldData::ElementT, DataType::ARRAY>(std::move(name), data, valid_data) {
     this->element_type_ = Et;
 }
 
@@ -233,16 +298,38 @@ BinaryVecFieldData::BinaryVecFieldData(std::string name, const std::vector<std::
     : FieldData<std::vector<uint8_t>, DataType::BINARY_VECTOR>(std::move(name), data) {
 }
 
+BinaryVecFieldData::BinaryVecFieldData(std::string name, const std::vector<std::vector<uint8_t>>& data,
+                                       const std::vector<bool>& valid_data)
+    : FieldData<std::vector<uint8_t>, DataType::BINARY_VECTOR>(std::move(name), data, valid_data) {
+}
+
 BinaryVecFieldData::BinaryVecFieldData(std::string name, std::vector<std::vector<uint8_t>>&& data)
     : FieldData<std::vector<uint8_t>, DataType::BINARY_VECTOR>(std::move(name), std::move(data)) {
 }
 
+BinaryVecFieldData::BinaryVecFieldData(std::string name, std::vector<std::vector<uint8_t>>&& data,
+                                       std::vector<bool>&& valid_data)
+    : FieldData<std::vector<uint8_t>, DataType::BINARY_VECTOR>(std::move(name), std::move(data),
+                                                               std::move(valid_data)) {
+}
+
 BinaryVecFieldData::BinaryVecFieldData(std::string name, const std::vector<std::string>& data)
-    : FieldData<std::vector<uint8_t>, DataType::BINARY_VECTOR>(std::move(name), std::move(ToUnsignedChars(data))) {
+    : FieldData<std::vector<uint8_t>, DataType::BINARY_VECTOR>(std::move(name), ToUnsignedChars(data)) {
+}
+
+BinaryVecFieldData::BinaryVecFieldData(std::string name, const std::vector<std::string>& data,
+                                       const std::vector<bool>& valid_data)
+    : FieldData<std::vector<uint8_t>, DataType::BINARY_VECTOR>(std::move(name), ToUnsignedChars(data), valid_data) {
 }
 
 BinaryVecFieldData::BinaryVecFieldData(std::string name, std::vector<std::string>&& data)
     : FieldData<std::vector<uint8_t>, DataType::BINARY_VECTOR>(std::move(name), std::move(ToUnsignedChars(data))) {
+}
+
+BinaryVecFieldData::BinaryVecFieldData(std::string name, std::vector<std::string>&& data,
+                                       std::vector<bool>&& valid_data)
+    : FieldData<std::vector<uint8_t>, DataType::BINARY_VECTOR>(std::move(name), std::move(ToUnsignedChars(data)),
+                                                               std::move(valid_data)) {
 }
 
 std::vector<std::string>

@@ -16,12 +16,11 @@
 
 #pragma once
 
+#include "./FieldDataSchema.h"
 #include "common.pb.h"
 #include "milvus.pb.h"
 #include "milvus/types/CollectionDesc.h"
 #include "milvus/types/ConsistencyLevel.h"
-#include "milvus/types/FieldData.h"
-#include "milvus/types/FieldSchema.h"
 #include "milvus/types/IDArray.h"
 #include "schema.pb.h"
 
@@ -42,8 +41,8 @@ EncodeSparseFloatVector(const SparseFloatVecFieldData::ElementT& sparse);
 Status
 ParseSparseFloatVector(const nlohmann::json& obj, const std::string& field_name, std::map<uint32_t, float>& pairs);
 
-proto::schema::FieldData
-CreateProtoFieldData(const Field& field);
+Status
+CreateProtoFieldData(const FieldDataSchema& data_schema, proto::schema::FieldData& field_data);
 
 IDArray
 CreateIDArray(const proto::schema::IDs& ids);
@@ -62,6 +61,9 @@ CheckAndSetFloat16Vector(const nlohmann::json& obj, const FieldSchema& fs, proto
 
 Status
 CheckAndSetArray(const nlohmann::json& obj, const FieldSchema& fs, proto::schema::ArrayArray* aa);
+
+Status
+CheckAndSetNullableDefaultScalar(const nlohmann::json& obj, const FieldSchema& fs, proto::schema::FieldData& fd);
 
 Status
 CheckAndSetScalar(const nlohmann::json& obj, const FieldSchema& fs, proto::schema::ScalarField* sf, bool is_array);
