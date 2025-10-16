@@ -42,6 +42,12 @@ FieldSchema::SetName(std::string name) {
     name_ = std::move(name);
 }
 
+FieldSchema&
+FieldSchema::WithName(std::string name) {
+    SetName(std::move(name));
+    return *this;
+}
+
 const std::string&
 FieldSchema::Description() const {
     return description_;
@@ -52,6 +58,12 @@ FieldSchema::SetDescription(std::string description) {
     description_ = std::move(description);
 }
 
+FieldSchema&
+FieldSchema::WithDescription(std::string description) {
+    SetDescription(std::move(description));
+    return *this;
+}
+
 DataType
 FieldSchema::FieldDataType() const {
     return data_type_;
@@ -60,6 +72,12 @@ FieldSchema::FieldDataType() const {
 void
 FieldSchema::SetDataType(DataType dt) {
     data_type_ = dt;
+}
+
+FieldSchema&
+FieldSchema::WithDataType(DataType dt) {
+    SetDataType(dt);
+    return *this;
 }
 
 DataType
@@ -88,6 +106,12 @@ FieldSchema::SetPrimaryKey(bool is_primary_key) {
     is_primary_key_ = is_primary_key;
 }
 
+FieldSchema&
+FieldSchema::WithPrimaryKey(bool is_primary_key) {
+    SetPrimaryKey(is_primary_key);
+    return *this;
+}
+
 bool
 FieldSchema::AutoID() const {
     return auto_id_;
@@ -98,6 +122,12 @@ FieldSchema::SetAutoID(bool auto_id) {
     auto_id_ = auto_id;
 }
 
+FieldSchema&
+FieldSchema::WithAutoID(bool auto_id) {
+    SetAutoID(auto_id);
+    return *this;
+}
+
 bool
 FieldSchema::IsPartitionKey() const {
     return is_partition_key_;
@@ -106,6 +136,28 @@ FieldSchema::IsPartitionKey() const {
 void
 FieldSchema::SetPartitionKey(bool partition_key) {
     is_partition_key_ = partition_key;
+}
+
+FieldSchema&
+FieldSchema::WithPartitionKey(bool partition_key) {
+    SetPartitionKey(partition_key);
+    return *this;
+}
+
+bool
+FieldSchema::IsClusteringKey() const {
+    return is_clustering_key_;
+}
+
+void
+FieldSchema::SetClusteringKey(bool clustering_key) {
+    is_clustering_key_ = clustering_key;
+}
+
+FieldSchema&
+FieldSchema::WithClusteringKey(bool clustering_key) {
+    SetClusteringKey(clustering_key);
+    return *this;
 }
 
 const std::map<std::string, std::string>&
