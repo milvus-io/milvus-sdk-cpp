@@ -24,6 +24,7 @@
 #include "utils/Constants.h"
 #include "utils/DmlUtils.h"
 #include "utils/DqlUtils.h"
+#include "utils/FieldDataSchema.h"
 #include "utils/TypeUtils.h"
 
 using ::milvus::proto::milvus::DescribeCollectionRequest;
@@ -96,7 +97,10 @@ TEST_F(MilvusMockedTest, QueryIterator) {
                 milvus::FieldDataPtr offset_id;
                 auto status = milvus::CopyFieldData(id_field, current_poz, current_poz + query_limit, offset_id);
                 EXPECT_TRUE(status.IsOk());
-                milvus::proto::schema::FieldData data = milvus::CreateProtoFieldData(*offset_id);
+                milvus::FieldDataSchema bridge(offset_id, nullptr);
+                milvus::proto::schema::FieldData data;
+                status = milvus::CreateProtoFieldData(bridge, data);
+                EXPECT_TRUE(status.IsOk());
                 auto* mutable_fields = response->mutable_fields_data();
                 mutable_fields->Add(std::move(data));
                 current_poz += offset_id->Count();
@@ -124,7 +128,10 @@ TEST_F(MilvusMockedTest, QueryIterator) {
                 milvus::FieldDataPtr page_data;
                 auto status = milvus::CopyFieldData(field_data, from, to, page_data);
                 EXPECT_TRUE(status.IsOk());
-                milvus::proto::schema::FieldData data = milvus::CreateProtoFieldData(*page_data);
+                milvus::FieldDataSchema bridge(page_data, nullptr);
+                milvus::proto::schema::FieldData data;
+                status = milvus::CreateProtoFieldData(bridge, data);
+                EXPECT_TRUE(status.IsOk());
                 mutable_fields->Add(std::move(data));
             }
             return ::grpc::Status{};

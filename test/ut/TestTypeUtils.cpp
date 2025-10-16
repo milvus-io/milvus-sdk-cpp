@@ -23,25 +23,15 @@
 #include "utils/DqlUtils.h"
 #include "utils/TypeUtils.h"
 
-using milvus::CreateMilvusFieldData;
-using milvus::CreateProtoFieldData;
 using ::testing::ElementsAre;
 
 class TypeUtilsTest : public ::testing::Test {};
 
-TEST_F(TypeUtilsTest, BoolFieldEqualsAndCast) {
-    milvus::BoolFieldData bool_field_data{"foo", std::vector<bool>{false, true}};
-    auto proto_field_data = CreateProtoFieldData(static_cast<const milvus::Field&>(bool_field_data));
-    auto bool_field_data_ptr = CreateMilvusFieldData(proto_field_data);
-    EXPECT_EQ(proto_field_data, bool_field_data);
-    EXPECT_EQ(proto_field_data, *bool_field_data_ptr);
-    EXPECT_EQ(bool_field_data, *bool_field_data_ptr);
-}
-
-TEST_F(TypeUtilsTest, BoolFieldNotEquals) {
+TEST_F(TypeUtilsTest, BoolFieldCompare) {
     const std::string field_name = "foo";
     milvus::BoolFieldData bool_field{field_name, std::vector<bool>{false, true}};
     milvus::proto::schema::FieldData proto_field;
+    proto_field.set_type(milvus::proto::schema::DataType::Bool);
     proto_field.set_field_name("_");
     EXPECT_FALSE(proto_field == bool_field);
 
@@ -56,21 +46,16 @@ TEST_F(TypeUtilsTest, BoolFieldNotEquals) {
     auto bool_scalars = scalars->mutable_bool_data();
     bool_scalars->add_data(false);
     EXPECT_FALSE(proto_field == bool_field);
+
+    bool_scalars->add_data(true);
+    EXPECT_TRUE(proto_field == bool_field);
 }
 
-TEST_F(TypeUtilsTest, Int8FieldEqualsAndCast) {
-    milvus::Int8FieldData int8_field_data{"foo", std::vector<int8_t>{1, 2}};
-    auto proto_field_data = CreateProtoFieldData(static_cast<const milvus::Field&>(int8_field_data));
-    auto int8_field_data_ptr = CreateMilvusFieldData(proto_field_data);
-    EXPECT_EQ(proto_field_data, int8_field_data);
-    EXPECT_EQ(proto_field_data, *int8_field_data_ptr);
-    EXPECT_EQ(int8_field_data, *int8_field_data_ptr);
-}
-
-TEST_F(TypeUtilsTest, Int8FieldNotEquals) {
+TEST_F(TypeUtilsTest, Int8FieldCompare) {
     const std::string field_name = "foo";
     milvus::Int8FieldData int8_field{field_name, std::vector<int8_t>{1, 2}};
     milvus::proto::schema::FieldData proto_field;
+    proto_field.set_type(milvus::proto::schema::DataType::Int8);
     proto_field.set_field_name("_");
     EXPECT_FALSE(proto_field == int8_field);
 
@@ -85,21 +70,16 @@ TEST_F(TypeUtilsTest, Int8FieldNotEquals) {
     auto int_scalars = scalars->mutable_int_data();
     int_scalars->add_data(1);
     EXPECT_FALSE(proto_field == int8_field);
+
+    int_scalars->add_data(2);
+    EXPECT_TRUE(proto_field == int8_field);
 }
 
-TEST_F(TypeUtilsTest, Int16FieldEqualsAndCast) {
-    milvus::Int16FieldData int16_field_data{"foo", std::vector<int16_t>{1, 2}};
-    auto proto_field_data = CreateProtoFieldData(static_cast<const milvus::Field&>(int16_field_data));
-    auto int16_field_data_ptr = CreateMilvusFieldData(proto_field_data);
-    EXPECT_EQ(proto_field_data, int16_field_data);
-    EXPECT_EQ(proto_field_data, *int16_field_data_ptr);
-    EXPECT_EQ(int16_field_data, *int16_field_data_ptr);
-}
-
-TEST_F(TypeUtilsTest, Int16FieldNotEquals) {
+TEST_F(TypeUtilsTest, Int16FieldCompare) {
     const std::string field_name = "foo";
     milvus::Int16FieldData int16_field{field_name, std::vector<int16_t>{1, 2}};
     milvus::proto::schema::FieldData proto_field;
+    proto_field.set_type(milvus::proto::schema::DataType::Int16);
     proto_field.set_field_name("_");
     EXPECT_FALSE(proto_field == int16_field);
 
@@ -114,21 +94,16 @@ TEST_F(TypeUtilsTest, Int16FieldNotEquals) {
     auto int_scalars = scalars->mutable_int_data();
     int_scalars->add_data(1);
     EXPECT_FALSE(proto_field == int16_field);
+
+    int_scalars->add_data(2);
+    EXPECT_TRUE(proto_field == int16_field);
 }
 
-TEST_F(TypeUtilsTest, Int32FieldEqualsAndCast) {
-    milvus::Int32FieldData int32_field_data{"foo", std::vector<int32_t>{1, 2}};
-    auto proto_field_data = CreateProtoFieldData(static_cast<const milvus::Field&>(int32_field_data));
-    auto int32_field_data_ptr = CreateMilvusFieldData(proto_field_data);
-    EXPECT_EQ(proto_field_data, int32_field_data);
-    EXPECT_EQ(proto_field_data, *int32_field_data_ptr);
-    EXPECT_EQ(int32_field_data, *int32_field_data_ptr);
-}
-
-TEST_F(TypeUtilsTest, Int32FieldNotEquals) {
+TEST_F(TypeUtilsTest, Int32FieldCompare) {
     const std::string field_name = "foo";
     milvus::Int32FieldData int32_field{field_name, std::vector<int32_t>{1, 2}};
     milvus::proto::schema::FieldData proto_field;
+    proto_field.set_type(milvus::proto::schema::DataType::Int32);
     proto_field.set_field_name("_");
     EXPECT_FALSE(proto_field == int32_field);
 
@@ -143,21 +118,16 @@ TEST_F(TypeUtilsTest, Int32FieldNotEquals) {
     auto int_scalars = scalars->mutable_int_data();
     int_scalars->add_data(1);
     EXPECT_FALSE(proto_field == int32_field);
+
+    int_scalars->add_data(2);
+    EXPECT_TRUE(proto_field == int32_field);
 }
 
-TEST_F(TypeUtilsTest, Int64FieldEqualsAndCast) {
-    milvus::Int64FieldData int64_field_data{"foo", std::vector<int64_t>{1, 2}};
-    auto proto_field_data = CreateProtoFieldData(static_cast<const milvus::Field&>(int64_field_data));
-    auto int64_field_data_ptr = CreateMilvusFieldData(proto_field_data);
-    EXPECT_EQ(proto_field_data, int64_field_data);
-    EXPECT_EQ(proto_field_data, *int64_field_data_ptr);
-    EXPECT_EQ(int64_field_data, *int64_field_data_ptr);
-}
-
-TEST_F(TypeUtilsTest, Int64FieldNotEquals) {
+TEST_F(TypeUtilsTest, Int64FieldCompare) {
     const std::string field_name = "foo";
     milvus::Int64FieldData int64_field{field_name, std::vector<int64_t>{1, 2}};
     milvus::proto::schema::FieldData proto_field;
+    proto_field.set_type(milvus::proto::schema::DataType::Int64);
     proto_field.set_field_name("_");
     EXPECT_FALSE(proto_field == int64_field);
 
@@ -172,21 +142,16 @@ TEST_F(TypeUtilsTest, Int64FieldNotEquals) {
     auto int_scalars = scalars->mutable_long_data();
     int_scalars->add_data(1);
     EXPECT_FALSE(proto_field == int64_field);
+
+    int_scalars->add_data(2);
+    EXPECT_TRUE(proto_field == int64_field);
 }
 
-TEST_F(TypeUtilsTest, FloatFieldEqualsAndCast) {
-    milvus::FloatFieldData float_field_data{"foo", std::vector<float>{0.1f, 0.2f}};
-    auto proto_field_data = CreateProtoFieldData(static_cast<const milvus::Field&>(float_field_data));
-    auto float_field_data_ptr = CreateMilvusFieldData(proto_field_data);
-    EXPECT_EQ(proto_field_data, float_field_data);
-    EXPECT_EQ(proto_field_data, *float_field_data_ptr);
-    EXPECT_EQ(float_field_data, *float_field_data_ptr);
-}
-
-TEST_F(TypeUtilsTest, FloatFieldNotEquals) {
+TEST_F(TypeUtilsTest, FloatFieldCompare) {
     const std::string field_name = "foo";
     milvus::FloatFieldData float_field{field_name, std::vector<float>{1.0f, 2.0f}};
     milvus::proto::schema::FieldData proto_field;
+    proto_field.set_type(milvus::proto::schema::DataType::Float);
     proto_field.set_field_name("_");
     EXPECT_FALSE(proto_field == float_field);
 
@@ -201,21 +166,16 @@ TEST_F(TypeUtilsTest, FloatFieldNotEquals) {
     auto float_scalars = scalars->mutable_float_data();
     float_scalars->add_data(1.0);
     EXPECT_FALSE(proto_field == float_field);
+
+    float_scalars->add_data(2.0);
+    EXPECT_TRUE(proto_field == float_field);
 }
 
-TEST_F(TypeUtilsTest, DoubleFieldEqualsAndCast) {
-    milvus::DoubleFieldData double_field_data{"foo", std::vector<double>{0.1, 0.2}};
-    auto proto_field_data = CreateProtoFieldData(static_cast<const milvus::Field&>(double_field_data));
-    auto double_field_data_ptr = CreateMilvusFieldData(proto_field_data);
-    EXPECT_EQ(proto_field_data, double_field_data);
-    EXPECT_EQ(proto_field_data, *double_field_data_ptr);
-    EXPECT_EQ(double_field_data, *double_field_data_ptr);
-}
-
-TEST_F(TypeUtilsTest, DoubleFieldNotEquals) {
+TEST_F(TypeUtilsTest, DoubleFieldCompare) {
     const std::string field_name = "foo";
     milvus::DoubleFieldData double_field{field_name, std::vector<double>{1.0, 2.0}};
     milvus::proto::schema::FieldData proto_field;
+    proto_field.set_type(milvus::proto::schema::DataType::Double);
     proto_field.set_field_name("_");
     EXPECT_FALSE(proto_field == double_field);
 
@@ -230,21 +190,16 @@ TEST_F(TypeUtilsTest, DoubleFieldNotEquals) {
     auto double_scalars = scalars->mutable_double_data();
     double_scalars->add_data(1.0);
     EXPECT_FALSE(proto_field == double_field);
+
+    double_scalars->add_data(2.0);
+    EXPECT_TRUE(proto_field == double_field);
 }
 
-TEST_F(TypeUtilsTest, StringFieldEqualsAndCast) {
-    milvus::VarCharFieldData string_field_data{"foo", std::vector<std::string>{"foo", "bar"}};
-    auto proto_field_data = CreateProtoFieldData(static_cast<const milvus::Field&>(string_field_data));
-    auto string_field_data_ptr = CreateMilvusFieldData(proto_field_data);
-    EXPECT_EQ(proto_field_data, string_field_data);
-    EXPECT_EQ(proto_field_data, *string_field_data_ptr);
-    EXPECT_EQ(string_field_data, *string_field_data_ptr);
-}
-
-TEST_F(TypeUtilsTest, StringFieldNotEquals) {
+TEST_F(TypeUtilsTest, StringFieldCompare) {
     const std::string field_name = "foo";
     milvus::VarCharFieldData string_field{field_name, std::vector<std::string>{"a", "b"}};
     milvus::proto::schema::FieldData proto_field;
+    proto_field.set_type(milvus::proto::schema::DataType::VarChar);
     proto_field.set_field_name("_");
     EXPECT_FALSE(proto_field == string_field);
 
@@ -259,23 +214,17 @@ TEST_F(TypeUtilsTest, StringFieldNotEquals) {
     auto str_scalars = scalars->mutable_string_data();
     str_scalars->add_data("a");
     EXPECT_FALSE(proto_field == string_field);
+
+    str_scalars->add_data("b");
+    EXPECT_TRUE(proto_field == string_field);
 }
 
-TEST_F(TypeUtilsTest, JSONFieldEqualsAndCast) {
-    auto values = std::vector<nlohmann::json>{R"({"name":"aaa","age":18,"score":88})"};
-    milvus::JSONFieldData json_field_data{"foo", values};
-    auto proto_field_data = CreateProtoFieldData(static_cast<const milvus::Field&>(json_field_data));
-    auto json_field_data_ptr = CreateMilvusFieldData(proto_field_data);
-    EXPECT_EQ(proto_field_data, json_field_data);
-    EXPECT_EQ(proto_field_data, *json_field_data_ptr);
-    EXPECT_EQ(json_field_data, *json_field_data_ptr);
-}
-
-TEST_F(TypeUtilsTest, JSONFieldNotEquals) {
+TEST_F(TypeUtilsTest, JSONFieldCompare) {
     const std::string field_name = "foo";
     auto values = std::vector<nlohmann::json>{R"({"name":"aaa","age":18,"score":88})"};
     milvus::JSONFieldData json_field{field_name, values};
     milvus::proto::schema::FieldData proto_field;
+    proto_field.set_type(milvus::proto::schema::DataType::JSON);
     proto_field.set_field_name("_");
     EXPECT_FALSE(proto_field == json_field);
 
@@ -298,25 +247,14 @@ TEST_F(TypeUtilsTest, JSONFieldNotEquals) {
     EXPECT_FALSE(proto_field == json_field);
 }
 
-TEST_F(TypeUtilsTest, BinaryVecFieldEqualsAndCast) {
-    milvus::BinaryVecFieldData bins_field_data{"foo", std::vector<std::vector<uint8_t>>{
-                                                          std::vector<uint8_t>{1, 2},
-                                                          std::vector<uint8_t>{3, 4},
-                                                      }};
-    auto proto_field_data = CreateProtoFieldData(static_cast<const milvus::Field&>(bins_field_data));
-    auto bins_field_data_ptr = CreateMilvusFieldData(proto_field_data);
-    EXPECT_EQ(proto_field_data, bins_field_data);
-    EXPECT_EQ(proto_field_data, *bins_field_data_ptr);
-    EXPECT_EQ(bins_field_data, *bins_field_data_ptr);
-}
-
-TEST_F(TypeUtilsTest, BinaryVecFieldNotEquals) {
+TEST_F(TypeUtilsTest, BinaryVecFieldCompare) {
     const std::string field_name = "foo";
     milvus::BinaryVecFieldData bins_field{"foo", std::vector<std::vector<uint8_t>>{
                                                      std::vector<uint8_t>{1, 2},
                                                      std::vector<uint8_t>{3, 4},
                                                  }};
     milvus::proto::schema::FieldData proto_field;
+    proto_field.set_type(milvus::proto::schema::DataType::BinaryVector);
     proto_field.set_field_name("_");
     EXPECT_FALSE(proto_field == bins_field);
 
@@ -329,34 +267,23 @@ TEST_F(TypeUtilsTest, BinaryVecFieldNotEquals) {
     EXPECT_FALSE(proto_field == bins_field);
 
     auto bins_scalars = scalars->mutable_binary_vector();
-    bins_scalars->push_back('a');
+    bins_scalars->push_back(static_cast<char>(1));
+    bins_scalars->push_back(static_cast<char>(2));
     EXPECT_FALSE(proto_field == bins_field);
 
-    bins_scalars->push_back('a');
-    bins_scalars->push_back('a');
-    bins_scalars->push_back('a');
-    EXPECT_FALSE(proto_field == bins_field);
+    bins_scalars->push_back(static_cast<char>(3));
+    bins_scalars->push_back(static_cast<char>(4));
+    EXPECT_TRUE(proto_field == bins_field);
 }
 
-TEST_F(TypeUtilsTest, FloatVecFieldEqualsAndCast) {
-    milvus::FloatVecFieldData floats_field_data{"foo", std::vector<std::vector<float>>{
-                                                           std::vector<float>{0.1f, 0.2f},
-                                                           std::vector<float>{0.3f, 0.4f},
-                                                       }};
-    auto proto_field_data = CreateProtoFieldData(static_cast<const milvus::Field&>(floats_field_data));
-    auto floats_field_data_ptr = CreateMilvusFieldData(proto_field_data);
-    EXPECT_EQ(proto_field_data, floats_field_data);
-    EXPECT_EQ(proto_field_data, *floats_field_data_ptr);
-    EXPECT_EQ(floats_field_data, *floats_field_data_ptr);
-}
-
-TEST_F(TypeUtilsTest, FloatVecFieldNotEquals) {
+TEST_F(TypeUtilsTest, FloatVecFieldCompare) {
     const std::string field_name = "foo";
     milvus::FloatVecFieldData floats_field{"foo", std::vector<std::vector<float>>{
                                                       std::vector<float>{0.1f, 0.2f},
                                                       std::vector<float>{0.3f, 0.4f},
                                                   }};
     milvus::proto::schema::FieldData proto_field;
+    proto_field.set_type(milvus::proto::schema::DataType::FloatVector);
     proto_field.set_field_name("_");
     EXPECT_FALSE(proto_field == floats_field);
 
@@ -370,12 +297,12 @@ TEST_F(TypeUtilsTest, FloatVecFieldNotEquals) {
 
     auto floats_scalars = scalars->mutable_float_vector();
     floats_scalars->add_data(0.1f);
+    floats_scalars->add_data(0.2f);
     EXPECT_FALSE(proto_field == floats_field);
 
-    floats_scalars->add_data(0.1f);
-    floats_scalars->add_data(0.1f);
-    floats_scalars->add_data(0.1f);
-    EXPECT_FALSE(proto_field == floats_field);
+    floats_scalars->add_data(0.3f);
+    floats_scalars->add_data(0.4f);
+    EXPECT_TRUE(proto_field == floats_field);
 }
 
 TEST_F(TypeUtilsTest, MetricTypeCastTest) {
@@ -454,6 +381,68 @@ TEST_F(TypeUtilsTest, IndexStateCast) {
     }
 }
 
+TEST_F(TypeUtilsTest, ConvertValueFieldSchema) {
+    const std::vector<std::pair<milvus::DataType, nlohmann::json>> valid_pairs = {
+        {milvus::DataType::UNKNOWN, nlohmann::json()},  // null json, directly return ok
+        {milvus::DataType::BOOL, nlohmann::json(true)},
+        {milvus::DataType::INT8, nlohmann::json(6)},
+        {milvus::DataType::INT16, nlohmann::json(60)},
+        {milvus::DataType::INT32, nlohmann::json(600)},
+        {milvus::DataType::INT64, nlohmann::json(-6000)},
+        {milvus::DataType::FLOAT, nlohmann::json(3.14)},
+        {milvus::DataType::FLOAT, nlohmann::json(3)},
+        {milvus::DataType::DOUBLE, nlohmann::json(9.99)},
+        {milvus::DataType::DOUBLE, nlohmann::json(9)},
+        {milvus::DataType::VARCHAR, nlohmann::json("ok")},
+        {milvus::DataType::JSON, nlohmann::json(R"([1, 2, 3, 4])")},
+    };
+    for (auto& pair : valid_pairs) {
+        const milvus::FieldSchema field =
+            milvus::FieldSchema().WithName("dummy").WithDataType(pair.first).WithDefaultValue(pair.second);
+        auto status = milvus::CheckDefaultValue(field);
+        EXPECT_TRUE(status.IsOk());
+
+        milvus::proto::schema::FieldSchema proto_field;
+        ConvertValueFieldSchema(pair.second, pair.first, *proto_field.mutable_default_value());
+
+        nlohmann::json converted_json;
+        ConvertValueFieldSchema(proto_field.default_value(), pair.first, converted_json);
+        if (converted_json.is_number()) {
+            // for numeric value, format to double to compare with tolerance
+            milvus::IsNumEquals(converted_json.get<double>(), pair.second.get<double>());
+        } else {
+            EXPECT_EQ(converted_json, pair.second);
+        }
+    }
+
+    const std::vector<std::pair<milvus::DataType, nlohmann::json>> invalid_pairs = {
+        {milvus::DataType::BOOL, nlohmann::json(5)},
+        {milvus::DataType::INT8, nlohmann::json("ok")},
+        {milvus::DataType::INT16, nlohmann::json("ok")},
+        {milvus::DataType::INT32, nlohmann::json("ok")},
+        {milvus::DataType::INT64, nlohmann::json("ok")},
+        {milvus::DataType::INT8, nlohmann::json(3.1)},
+        {milvus::DataType::INT16, nlohmann::json(3.2)},
+        {milvus::DataType::INT32, nlohmann::json(3.3)},
+        {milvus::DataType::INT64, nlohmann::json(3.4)},
+        {milvus::DataType::FLOAT, nlohmann::json("ok")},
+        {milvus::DataType::DOUBLE, nlohmann::json("ok")},
+        {milvus::DataType::VARCHAR, nlohmann::json(1)},
+        {milvus::DataType::VARCHAR, nlohmann::json(false)},
+        {milvus::DataType::BINARY_VECTOR, nlohmann::json(1)},
+        {milvus::DataType::FLOAT_VECTOR, nlohmann::json(1)},
+        {milvus::DataType::FLOAT16_VECTOR, nlohmann::json(1)},
+        {milvus::DataType::BFLOAT16_VECTOR, nlohmann::json(1)},
+        {milvus::DataType::SPARSE_FLOAT_VECTOR, nlohmann::json(1)},
+    };
+    for (auto& pair : invalid_pairs) {
+        const milvus::FieldSchema field =
+            milvus::FieldSchema().WithName("dummy").WithDataType(pair.first).WithDefaultValue(pair.second);
+        auto status = milvus::CheckDefaultValue(field);
+        EXPECT_FALSE(status.IsOk());
+    }
+}
+
 TEST_F(TypeUtilsTest, ConvertFieldSchema) {
     const std::string field_name = "face";
     const std::string field_desc = "face signature";
@@ -477,7 +466,9 @@ TEST_F(TypeUtilsTest, ConvertFieldSchema) {
                                         .WithPartitionKey(true)
                                         .WithClusteringKey(true)
                                         .EnableMatch(true)
-                                        .EnableAnalyzer(true);
+                                        .EnableAnalyzer(true)
+                                        .WithNullable(true)
+                                        .WithDefaultValue("aaa");
         EXPECT_EQ(field.Name(), field_name);
         EXPECT_EQ(field.Description(), field_desc);
         EXPECT_EQ(field.FieldDataType(), field_type);
@@ -491,6 +482,8 @@ TEST_F(TypeUtilsTest, ConvertFieldSchema) {
         EXPECT_EQ(field.IsClusteringKey(), true);
         EXPECT_EQ(field.IsEnableAnalyzer(), true);
         EXPECT_EQ(field.IsEnableMatch(), true);
+        EXPECT_EQ(field.IsNullable(), true);
+        EXPECT_EQ(field.DefaultValue(), "aaa");
     }
 
     {
@@ -554,6 +547,8 @@ TEST_F(TypeUtilsTest, ConvertFieldSchema) {
         field.SetAnalyzerParams(analyzer_params);
         field.SetPartitionKey(true);
         field.SetClusteringKey(true);
+        field.SetNullable(false);
+        field.SetDefaultValue("abc");
 
         milvus::proto::schema::FieldSchema proto_field;
         milvus::ConvertFieldSchema(field, proto_field);
@@ -569,6 +564,8 @@ TEST_F(TypeUtilsTest, ConvertFieldSchema) {
         EXPECT_EQ(sdk_field.AnalyzerParams(), analyzer_params);
         EXPECT_EQ(sdk_field.IsPartitionKey(), true);
         EXPECT_EQ(sdk_field.IsClusteringKey(), true);
+        EXPECT_EQ(sdk_field.IsNullable(), false);
+        EXPECT_EQ(sdk_field.DefaultValue(), "abc");
     }
 }
 

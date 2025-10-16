@@ -99,4 +99,44 @@ BF16toF32(uint16_t val) {
     return *reinterpret_cast<float*>(&f32_bits);
 }
 
+std::vector<uint16_t>
+ArrayF32toF16(std::vector<float> array) {
+    std::vector<uint16_t> result;
+    result.reserve(array.size());
+    for (float v : array) {
+        result.push_back(F32toF16(v));
+    }
+    return std::move(result);
+}
+
+std::vector<float>
+ArrayF16toF32(std::vector<uint16_t> array) {
+    std::vector<float> result;
+    result.reserve(array.size());
+    for (uint16_t v : array) {
+        result.push_back(F16toF32(v));
+    }
+    return std::move(result);
+}
+
+std::vector<uint16_t>
+ArrayF32toBF16(std::vector<float> array) {
+    std::vector<uint16_t> result;
+    result.reserve(array.size());
+    for (float v : array) {
+        result.push_back(F32toBF16(v));
+    }
+    return std::move(result);
+}
+
+std::vector<float>
+ArrayBF16toF32(std::vector<uint16_t> array) {
+    std::vector<float> result;
+    result.reserve(array.size());
+    for (uint16_t v : array) {
+        result.push_back(BF16toF32(v));
+    }
+    return std::move(result);
+}
+
 }  // namespace milvus

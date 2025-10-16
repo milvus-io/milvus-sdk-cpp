@@ -19,6 +19,7 @@
 #include <unordered_map>
 
 #include "milvus.pb.h"
+#include "milvus/Status.h"
 #include "milvus/types/CollectionSchema.h"
 #include "milvus/types/ConsistencyLevel.h"
 #include "milvus/types/FieldData.h"
@@ -55,6 +56,9 @@ IndexType
 IndexTypeCast(const std::string& type);
 
 void
+ConvertValueFieldSchema(const proto::schema::ValueField& value_field, DataType type, nlohmann::json& val);
+
+void
 ConvertFieldSchema(const proto::schema::FieldSchema& proto_schema, FieldSchema& schema);
 
 void
@@ -62,6 +66,12 @@ ConvertFunctionSchema(const proto::schema::FunctionSchema& proto_function, Funct
 
 void
 ConvertCollectionSchema(const proto::schema::CollectionSchema& proto_schema, CollectionSchema& schema);
+
+Status
+CheckDefaultValue(const FieldSchema& schema);
+
+void
+ConvertValueFieldSchema(const nlohmann::json& val, DataType type, proto::schema::ValueField& value_field);
 
 void
 ConvertFieldSchema(const FieldSchema& schema, proto::schema::FieldSchema& proto_schema);
