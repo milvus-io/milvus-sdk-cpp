@@ -409,7 +409,10 @@ TEST_F(TypeUtilsTest, DataTypeCast) {
         {milvus::DataType::JSON, milvus::proto::schema::DataType::JSON},
         {milvus::DataType::ARRAY, milvus::proto::schema::DataType::Array},
         {milvus::DataType::FLOAT_VECTOR, milvus::proto::schema::DataType::FloatVector},
-        {milvus::DataType::BINARY_VECTOR, milvus::proto::schema::DataType::BinaryVector}};
+        {milvus::DataType::BINARY_VECTOR, milvus::proto::schema::DataType::BinaryVector},
+        {milvus::DataType::FLOAT16_VECTOR, milvus::proto::schema::DataType::Float16Vector},
+        {milvus::DataType::BFLOAT16_VECTOR, milvus::proto::schema::DataType::BFloat16Vector},
+        {milvus::DataType::SPARSE_FLOAT_VECTOR, milvus::proto::schema::DataType::SparseFloatVector}};
 
     for (auto& pair : data_types) {
         auto dt = milvus::DataTypeCast(milvus::DataType(pair.first));
@@ -418,6 +421,13 @@ TEST_F(TypeUtilsTest, DataTypeCast) {
     for (auto& pair : data_types) {
         auto dt = milvus::DataTypeCast(milvus::proto::schema::DataType(pair.second));
         EXPECT_EQ(dt, pair.first);
+    }
+}
+
+TEST_F(TypeUtilsTest, FunctionTypeCastTest) {
+    auto values = {milvus::FunctionType::UNKNOWN, milvus::FunctionType::BM25};
+    for (auto value : values) {
+        EXPECT_EQ(milvus::FunctionTypeCast(milvus::FunctionTypeCast(value)), value);
     }
 }
 
@@ -450,7 +460,38 @@ TEST_F(TypeUtilsTest, ConvertFieldSchema) {
     const bool primary_key = true;
     const bool auto_id = true;
     milvus::DataType field_type = milvus::DataType::FLOAT_VECTOR;
+    const milvus::DataType element_type = milvus::DataType::DOUBLE;
     const uint32_t dimension = 128;
+
+    {
+        milvus::FieldSchema field = milvus::FieldSchema()
+                                        .WithName(field_name)
+                                        .WithDescription(field_desc)
+                                        .WithDataType(field_type)
+                                        .WithPrimaryKey(primary_key)
+                                        .WithAutoID(auto_id)
+                                        .WithElementType(element_type)
+                                        .WithDimension(dimension)
+                                        .WithMaxLength(100)
+                                        .WithMaxCapacity(200)
+                                        .WithPartitionKey(true)
+                                        .WithClusteringKey(true)
+                                        .EnableMatch(true)
+                                        .EnableAnalyzer(true);
+        EXPECT_EQ(field.Name(), field_name);
+        EXPECT_EQ(field.Description(), field_desc);
+        EXPECT_EQ(field.FieldDataType(), field_type);
+        EXPECT_EQ(field.IsPrimaryKey(), primary_key);
+        EXPECT_EQ(field.AutoID(), auto_id);
+        EXPECT_EQ(field.ElementType(), element_type);
+        EXPECT_EQ(field.Dimension(), dimension);
+        EXPECT_EQ(field.MaxLength(), 100);
+        EXPECT_EQ(field.MaxCapacity(), 200);
+        EXPECT_EQ(field.IsPartitionKey(), true);
+        EXPECT_EQ(field.IsClusteringKey(), true);
+        EXPECT_EQ(field.IsEnableAnalyzer(), true);
+        EXPECT_EQ(field.IsEnableMatch(), true);
+    }
 
     {
         milvus::FieldSchema field(field_name, field_type, field_desc, primary_key, auto_id);
@@ -473,10 +514,13 @@ TEST_F(TypeUtilsTest, ConvertFieldSchema) {
         EXPECT_EQ(sdk_field.AutoID(), auto_id);
         EXPECT_EQ(sdk_field.FieldDataType(), field_type);
         EXPECT_EQ(sdk_field.Dimension(), dimension);
+        EXPECT_EQ(sdk_field.IsEnableAnalyzer(), false);
+        EXPECT_EQ(sdk_field.IsEnableMatch(), false);
+        EXPECT_EQ(sdk_field.IsPartitionKey(), false);
+        EXPECT_EQ(sdk_field.IsClusteringKey(), false);
     }
 
     field_type = milvus::DataType::ARRAY;
-    const milvus::DataType element_type = milvus::DataType::DOUBLE;
     const uint32_t capacity = 128;
     {
         milvus::FieldSchema field(field_name, field_type, field_desc, primary_key, auto_id);
@@ -508,6 +552,8 @@ TEST_F(TypeUtilsTest, ConvertFieldSchema) {
         field.EnableAnalyzer(true);
         field.EnableMatch(true);
         field.SetAnalyzerParams(analyzer_params);
+        field.SetPartitionKey(true);
+        field.SetClusteringKey(true);
 
         milvus::proto::schema::FieldSchema proto_field;
         milvus::ConvertFieldSchema(field, proto_field);
@@ -521,6 +567,8 @@ TEST_F(TypeUtilsTest, ConvertFieldSchema) {
         EXPECT_EQ(sdk_field.IsEnableAnalyzer(), true);
         EXPECT_EQ(sdk_field.IsEnableMatch(), true);
         EXPECT_EQ(sdk_field.AnalyzerParams(), analyzer_params);
+        EXPECT_EQ(sdk_field.IsPartitionKey(), true);
+        EXPECT_EQ(sdk_field.IsClusteringKey(), true);
     }
 }
 
