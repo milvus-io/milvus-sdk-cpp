@@ -167,7 +167,7 @@ TEST_F(MilvusMockedTest, QueryIterator) {
     status = milvus::CopyFieldsData(fields_data, offset, offset + limit, expected_fields);
     EXPECT_TRUE(status.IsOk());
 
-    milvus::QueryResults expected_results{std::move(expected_fields)};
+    milvus::QueryResults expected_results{std::move(expected_fields), arguments.OutputFields()};
     milvus::EntityRows expected_rows;
     status = expected_results.OutputRows(expected_rows);
     EXPECT_TRUE(status.IsOk());

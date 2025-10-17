@@ -16,6 +16,7 @@
 
 #pragma once
 
+#include <set>
 #include <string>
 #include <vector>
 
@@ -38,12 +39,12 @@ class QueryResults {
     /**
      * @brief Constructor
      */
-    explicit QueryResults(const std::vector<FieldDataPtr>& output_fields);
+    explicit QueryResults(const std::vector<FieldDataPtr>& output_fields, const std::set<std::string>& output_names);
 
     /**
      * @brief Constructor
      */
-    explicit QueryResults(std::vector<FieldDataPtr>&& output_fields);
+    explicit QueryResults(std::vector<FieldDataPtr>&& output_fields, const std::set<std::string>& output_names);
 
     /**
      * @brief Get output field data by name.
@@ -74,6 +75,12 @@ class QueryResults {
     OutputFields() const;
 
     /**
+     * @brief Get output field names specified by query().
+     */
+    const std::set<std::string>&
+    OutputFieldNames() const;
+
+    /**
      * @brief Get all output rows.
      */
     Status
@@ -93,6 +100,7 @@ class QueryResults {
 
  private:
     std::vector<FieldDataPtr> output_fields_;
+    std::set<std::string> output_names_;  // output_fields list specified by query()
 };
 
 }  // namespace milvus
