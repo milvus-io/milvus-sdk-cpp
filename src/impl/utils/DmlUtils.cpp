@@ -17,6 +17,7 @@
 #include "DmlUtils.h"
 
 #include <limits>
+#include <set>
 
 #include "./Constants.h"
 #include "./GtsDict.h"
@@ -808,6 +809,11 @@ CheckAndSetScalar(const nlohmann::json& obj, const FieldSchema& fs, proto::schem
             if (!obj.is_object() && !obj.is_array() && !obj.is_primitive()) {
                 return Status{StatusCode::INVALID_AGUMENT, msg_prefix + "JSON"};
             }
+            // for dynamic field, the json must be a dict
+            // for the case user explicitly input $meta like {"id": 1, "vector": [], "$meta": {}}
+            if (fs.Name() == DYNAMIC_FIELD && !obj.is_object()) {
+                return Status{StatusCode::INVALID_AGUMENT, "'$meta' value must be a JSON dict"};
+            }
             auto scalars = sf->mutable_json_data()->mutable_data();
             scalars->Add(obj.dump());
             break;
@@ -877,7 +883,20 @@ Status
 CheckAndSetRowData(const EntityRows& rows, const CollectionSchema& schema, bool is_upsert,
                    std::vector<proto::schema::FieldData>& rpc_fields) {
     const std::vector<FieldSchema>& schema_fields = schema.Fields();
-    std::map<std::string, proto::schema::FieldData> name_fields;
+    std::set<std::string> field_names;
+    for (const auto& field_schema : schema_fields) {
+        field_names.insert(field_schema.Name());
+    }
+    std::map<std::string, proto::schema::FieldData> proto_fields;
+
+    // add a dynamic field into the output list if it is enabled
+    if (schema.EnableDynamicField()) {
+        proto::schema::FieldData dy;
+        dy.set_type(milvus::proto::schema::DataType::JSON);
+        dy.set_is_dynamic(true);
+        proto_fields[DYNAMIC_FIELD] = dy;
+    }
+
     for (auto i = 0; i < rows.size(); i++) {
         const auto& row = rows[i];
         if (!row.is_object()) {
@@ -885,6 +904,7 @@ CheckAndSetRowData(const EntityRows& rows, const CollectionSchema& schema, bool 
                           "The No." + std::to_string(i) + " input row is not a JSON dict object"};
         }
 
+        // process values for non-dynamic fields
         for (const auto& field_schema : schema_fields) {
             const std::string& name = field_schema.Name();
             if (row.contains(name)) {
@@ -893,7 +913,7 @@ CheckAndSetRowData(const EntityRows& rows, const CollectionSchema& schema, bool 
                     return Status{StatusCode::INVALID_AGUMENT,
                                   "The primary key: " + name + " is auto generated, no need to input."};
                 }
-                proto::schema::FieldData& fd = name_fields[name];
+                proto::schema::FieldData& fd = proto_fields[name];
                 auto status = CheckAndSetFieldValue(row[name], field_schema, fd);
                 if (!status.IsOk()) {
                     return status;
@@ -901,9 +921,22 @@ CheckAndSetRowData(const EntityRows& rows, const CollectionSchema& schema, bool 
             } else {
             }
         }
+
+        // process values for dynamic fields
+        if (schema.EnableDynamicField()) {
+            nlohmann::json dynamic;
+            for (auto it = row.begin(); it != row.end(); ++it) {
+                if (field_names.find(it.key()) == field_names.end()) {
+                    dynamic[it.key()] = it.value();
+                }
+            }
+            auto sf = proto_fields[DYNAMIC_FIELD].mutable_scalars();
+            auto scalars = sf->mutable_json_data()->mutable_data();
+            scalars->Add(dynamic.dump());
+        }
     }
 
-    for (auto& n : name_fields) {
+    for (auto& n : proto_fields) {
         rpc_fields.emplace_back(std::move(n.second));
     }
 
