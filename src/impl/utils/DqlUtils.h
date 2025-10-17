@@ -47,10 +47,12 @@ SetExtraParams(const std::unordered_map<std::string, std::string>& params,
                milvus::proto::milvus::SearchRequest* rpc_request);
 
 Status
-GetRowsFromFieldsData(const std::vector<FieldDataPtr>& fields, EntityRows& rows);
+GetRowsFromFieldsData(const std::vector<FieldDataPtr>& fields, const std::set<std::string>& output_names,
+                      EntityRows& rows);
 
 Status
-GetRowFromFieldsData(const std::vector<FieldDataPtr>& fields, size_t i, EntityRow& row);
+GetRowFromFieldsData(const std::vector<FieldDataPtr>& fields, size_t i, const std::set<std::string>& output_names,
+                     EntityRow& row);
 
 uint64_t
 DeduceGuaranteeTimestamp(const ConsistencyLevel& level, const std::string& db_name, const std::string& collection_name);
