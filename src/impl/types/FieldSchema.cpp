@@ -289,4 +289,36 @@ FieldSchema::AnalyzerParams() const {
     return nullptr;
 }
 
+bool
+FieldSchema::IsNullable() const {
+    return is_nullable_;
+}
+
+void
+FieldSchema::SetNullable(bool nullable) {
+    is_nullable_ = nullable;
+}
+
+FieldSchema&
+FieldSchema::WithNullable(bool nullable) {
+    SetNullable(nullable);
+    return *this;
+}
+
+void
+FieldSchema::SetDefaultValue(const nlohmann::json& val) {
+    default_value_ = val;
+}
+
+FieldSchema&
+FieldSchema::WithDefaultValue(const nlohmann::json& val) {
+    SetDefaultValue(val);
+    return *this;
+}
+
+const nlohmann::json&
+FieldSchema::DefaultValue() const {
+    return default_value_;
+}
+
 }  // namespace milvus

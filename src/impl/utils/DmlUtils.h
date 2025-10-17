@@ -64,6 +64,9 @@ Status
 CheckAndSetArray(const nlohmann::json& obj, const FieldSchema& fs, proto::schema::ArrayArray* aa);
 
 Status
+CheckAndSetNullableScalar(const nlohmann::json& obj, const FieldSchema& fs, proto::schema::FieldData& fd);
+
+Status
 CheckAndSetScalar(const nlohmann::json& obj, const FieldSchema& fs, proto::schema::ScalarField* sf, bool is_array);
 
 Status

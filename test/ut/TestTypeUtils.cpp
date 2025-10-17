@@ -454,6 +454,68 @@ TEST_F(TypeUtilsTest, IndexStateCast) {
     }
 }
 
+TEST_F(TypeUtilsTest, ConvertValueFieldSchema) {
+    const std::vector<std::pair<milvus::DataType, nlohmann::json>> valid_pairs = {
+        {milvus::DataType::UNKNOWN, nlohmann::json()},  // null json, directly return ok
+        {milvus::DataType::BOOL, nlohmann::json(true)},
+        {milvus::DataType::INT8, nlohmann::json(6)},
+        {milvus::DataType::INT16, nlohmann::json(60)},
+        {milvus::DataType::INT32, nlohmann::json(600)},
+        {milvus::DataType::INT64, nlohmann::json(-6000)},
+        {milvus::DataType::FLOAT, nlohmann::json(3.14)},
+        {milvus::DataType::FLOAT, nlohmann::json(3)},
+        {milvus::DataType::DOUBLE, nlohmann::json(9.99)},
+        {milvus::DataType::DOUBLE, nlohmann::json(9)},
+        {milvus::DataType::VARCHAR, nlohmann::json("ok")},
+        {milvus::DataType::JSON, nlohmann::json(R"([1, 2, 3, 4])")},
+    };
+    for (auto& pair : valid_pairs) {
+        const milvus::FieldSchema field =
+            milvus::FieldSchema().WithName("dummy").WithDataType(pair.first).WithDefaultValue(pair.second);
+        auto status = milvus::CheckDefaultValue(field);
+        EXPECT_TRUE(status.IsOk());
+
+        milvus::proto::schema::FieldSchema proto_field;
+        ConvertValueFieldSchema(pair.second, pair.first, *proto_field.mutable_default_value());
+
+        nlohmann::json converted_json;
+        ConvertValueFieldSchema(proto_field.default_value(), pair.first, converted_json);
+        if (converted_json.is_number()) {
+            // for numeric value, format to double to compare with tolerance
+            milvus::IsNumEquals(converted_json.get<double>(), pair.second.get<double>());
+        } else {
+            EXPECT_EQ(converted_json, pair.second);
+        }
+    }
+
+    const std::vector<std::pair<milvus::DataType, nlohmann::json>> invalid_pairs = {
+        {milvus::DataType::BOOL, nlohmann::json(5)},
+        {milvus::DataType::INT8, nlohmann::json("ok")},
+        {milvus::DataType::INT16, nlohmann::json("ok")},
+        {milvus::DataType::INT32, nlohmann::json("ok")},
+        {milvus::DataType::INT64, nlohmann::json("ok")},
+        {milvus::DataType::INT8, nlohmann::json(3.1)},
+        {milvus::DataType::INT16, nlohmann::json(3.2)},
+        {milvus::DataType::INT32, nlohmann::json(3.3)},
+        {milvus::DataType::INT64, nlohmann::json(3.4)},
+        {milvus::DataType::FLOAT, nlohmann::json("ok")},
+        {milvus::DataType::DOUBLE, nlohmann::json("ok")},
+        {milvus::DataType::VARCHAR, nlohmann::json(1)},
+        {milvus::DataType::VARCHAR, nlohmann::json(false)},
+        {milvus::DataType::BINARY_VECTOR, nlohmann::json(1)},
+        {milvus::DataType::FLOAT_VECTOR, nlohmann::json(1)},
+        {milvus::DataType::FLOAT16_VECTOR, nlohmann::json(1)},
+        {milvus::DataType::BFLOAT16_VECTOR, nlohmann::json(1)},
+        {milvus::DataType::SPARSE_FLOAT_VECTOR, nlohmann::json(1)},
+    };
+    for (auto& pair : invalid_pairs) {
+        const milvus::FieldSchema field =
+            milvus::FieldSchema().WithName("dummy").WithDataType(pair.first).WithDefaultValue(pair.second);
+        auto status = milvus::CheckDefaultValue(field);
+        EXPECT_FALSE(status.IsOk());
+    }
+}
+
 TEST_F(TypeUtilsTest, ConvertFieldSchema) {
     const std::string field_name = "face";
     const std::string field_desc = "face signature";
@@ -477,7 +539,9 @@ TEST_F(TypeUtilsTest, ConvertFieldSchema) {
                                         .WithPartitionKey(true)
                                         .WithClusteringKey(true)
                                         .EnableMatch(true)
-                                        .EnableAnalyzer(true);
+                                        .EnableAnalyzer(true)
+                                        .WithNullable(true)
+                                        .WithDefaultValue("aaa");
         EXPECT_EQ(field.Name(), field_name);
         EXPECT_EQ(field.Description(), field_desc);
         EXPECT_EQ(field.FieldDataType(), field_type);
@@ -491,6 +555,8 @@ TEST_F(TypeUtilsTest, ConvertFieldSchema) {
         EXPECT_EQ(field.IsClusteringKey(), true);
         EXPECT_EQ(field.IsEnableAnalyzer(), true);
         EXPECT_EQ(field.IsEnableMatch(), true);
+        EXPECT_EQ(field.IsNullable(), true);
+        EXPECT_EQ(field.DefaultValue(), "aaa");
     }
 
     {
@@ -554,6 +620,8 @@ TEST_F(TypeUtilsTest, ConvertFieldSchema) {
         field.SetAnalyzerParams(analyzer_params);
         field.SetPartitionKey(true);
         field.SetClusteringKey(true);
+        field.SetNullable(false);
+        field.SetDefaultValue("abc");
 
         milvus::proto::schema::FieldSchema proto_field;
         milvus::ConvertFieldSchema(field, proto_field);
@@ -569,6 +637,8 @@ TEST_F(TypeUtilsTest, ConvertFieldSchema) {
         EXPECT_EQ(sdk_field.AnalyzerParams(), analyzer_params);
         EXPECT_EQ(sdk_field.IsPartitionKey(), true);
         EXPECT_EQ(sdk_field.IsClusteringKey(), true);
+        EXPECT_EQ(sdk_field.IsNullable(), false);
+        EXPECT_EQ(sdk_field.DefaultValue(), "abc");
     }
 }
 

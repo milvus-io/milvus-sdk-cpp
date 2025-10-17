@@ -17,6 +17,7 @@
 #include "DmlUtils.h"
 
 #include <limits>
+#include <set>
 
 #include "./Constants.h"
 #include "./GtsDict.h"
@@ -721,6 +722,48 @@ CheckAndSetArray(const nlohmann::json& obj, const FieldSchema& fs, proto::schema
 }
 
 Status
+CheckAndSetNullableScalar(const nlohmann::json& obj, const FieldSchema& fs, proto::schema::FieldData& fd) {
+    // nullable and default value check
+    // 1. if the field is nullable, user can input json_null/json_object(for row-based insert)
+    //    1) if user input json_null, this value is replaced by default value
+    //    2) if user input json_object, infer this value by type
+    // 2. if the field is not nullable, user can input json_null/json_object(for row-based insert)
+    //    1) if user input json_null, and default value is null, throw error
+    //    2) if user input json_null, and default value is not null, this value is replaced by default value
+    //    3) if user input json_object, infer this value by type
+    nlohmann::json temp_obj = obj;
+    if (fs.IsNullable()) {
+        if (temp_obj.is_null()) {
+            temp_obj = fs.DefaultValue();  // 1.1
+        }
+    } else {
+        if (temp_obj.is_null()) {
+            if (fs.DefaultValue().is_null()) {
+                std::string msg = "Field " + fs.Name() + " is not nullable but the input value is null";
+                return Status{StatusCode::INVALID_AGUMENT, msg};  // 2.1
+            } else {
+                temp_obj = fs.DefaultValue();  // 2.2
+            }
+        }
+    }
+
+    // assume we have a value list [1, 2, null, 3, null, 4]
+    // the fd.valid_data is [true, true, false, true, false, true]
+    // the fd.scalars is [1, 2, 3, 4]
+    if (fs.IsNullable()) {
+        bool valid = !temp_obj.is_null();
+        fd.mutable_valid_data()->Add(false);
+    }
+
+    // the fd.scalars only stores non-null values
+    if (temp_obj.is_null()) {
+        return Status::OK();
+    }
+
+    return CheckAndSetScalar(temp_obj, fs, fd.mutable_scalars(), false);
+}
+
+Status
 CheckAndSetScalar(const nlohmann::json& obj, const FieldSchema& fs, proto::schema::ScalarField* sf, bool is_array) {
     DataType dt = is_array ? fs.ElementType() : fs.FieldDataType();
     const std::string msg_prefix =
@@ -868,7 +911,8 @@ CheckAndSetFieldValue(const nlohmann::json& obj, const FieldSchema& fs, proto::s
             break;
         }
         default:
-            return CheckAndSetScalar(obj, fs, fd.mutable_scalars(), false);
+            return fs.IsNullable() ? CheckAndSetNullableScalar(obj, fs, fd) :
+                                     CheckAndSetScalar(obj, fs, fd.mutable_scalars(), false);
     }
     return Status::OK();
 }
@@ -876,8 +920,18 @@ CheckAndSetFieldValue(const nlohmann::json& obj, const FieldSchema& fs, proto::s
 Status
 CheckAndSetRowData(const EntityRows& rows, const CollectionSchema& schema, bool is_upsert,
                    std::vector<proto::schema::FieldData>& rpc_fields) {
+    std::set<std::string> output_fields;
+    for (const auto& function : schema.Functions()) {
+        if (function) {
+            for (const auto& name : function->OutputFieldNames()) {
+                output_fields.insert(name);
+            }
+        }
+    }
+
     const std::vector<FieldSchema>& schema_fields = schema.Fields();
     std::map<std::string, proto::schema::FieldData> name_fields;
+
     for (auto i = 0; i < rows.size(); i++) {
         const auto& row = rows[i];
         if (!row.is_object()) {
@@ -887,18 +941,36 @@ CheckAndSetRowData(const EntityRows& rows, const CollectionSchema& schema, bool 
 
         for (const auto& field_schema : schema_fields) {
             const std::string& name = field_schema.Name();
+            nlohmann::json field_value;
             if (row.contains(name)) {
-                // from v2.4.10, milvus allows upsert for auto-id pk, no need to check for upsert action
-                if (field_schema.IsPrimaryKey() && field_schema.AutoID() && !is_upsert) {
-                    return Status{StatusCode::INVALID_AGUMENT,
-                                  "The primary key: " + name + " is auto generated, no need to input."};
-                }
-                proto::schema::FieldData& fd = name_fields[name];
-                auto status = CheckAndSetFieldValue(row[name], field_schema, fd);
-                if (!status.IsOk()) {
-                    return status;
-                }
+                field_value = row[name];
             } else {
+                // if the field is auto-id, no need to provide value for insert, require to provide for upsert
+                if ((field_schema.IsPrimaryKey() && field_schema.AutoID()) && !is_upsert) {
+                    continue;
+                }
+
+                // if the field is an output field of doc-in-doc-out, no need to provide value
+                if (output_fields.find(name) != output_fields.end()) {
+                    continue;
+                }
+
+                // if the field doesn't have default value and is not nullable, require user to provide the value
+                if (!field_schema.IsNullable() && field_schema.DefaultValue().is_null()) {
+                    return Status{StatusCode::INVALID_AGUMENT, "The field: " + name + " is not provided."};
+                }
+            }
+
+            // from v2.4.10, milvus allows upsert for auto-id pk, no need to check for upsert action
+            if (field_schema.IsPrimaryKey() && field_schema.AutoID() && !is_upsert) {
+                return Status{StatusCode::INVALID_AGUMENT,
+                                "The primary key: " + name + " is auto generated, no need to input."};
+            }
+
+            proto::schema::FieldData& fd = name_fields[name];
+            auto status = CheckAndSetFieldValue(field_value, field_schema, fd);
+            if (!status.IsOk()) {
+                return status;
             }
         }
     }
