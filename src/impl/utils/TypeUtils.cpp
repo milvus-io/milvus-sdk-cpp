@@ -221,6 +221,10 @@ ConvertFieldSchema(const FieldSchema& schema, proto::schema::FieldSchema& proto_
     proto_schema.set_autoid(schema.AutoID());
     proto_schema.set_data_type(DataTypeCast(schema.FieldDataType()));
 
+    if (schema.FieldDataType() == DataType::ARRAY) {
+        proto_schema.set_element_type(DataTypeCast(schema.ElementType()));
+    }
+
     for (auto& kv : schema.TypeParams()) {
         auto pair = proto_schema.add_type_params();
         pair->set_key(kv.first);

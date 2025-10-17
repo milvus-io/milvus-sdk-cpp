@@ -261,7 +261,7 @@ QueryIteratorImpl::copyResults(const QueryResults& src, uint64_t from, uint64_t 
     const std::vector<FieldDataPtr>& src_fields = src.OutputFields();
     if ((from == 0 && to == src.GetRowCount()) || src.GetRowCount() == 0) {
         // from begin to end, or the src is empty, no need to copy, return the src
-        target = QueryResults(src_fields);
+        target = QueryResults(src_fields, args_.OutputFields());
         return Status::OK();
     }
 
@@ -275,7 +275,7 @@ QueryIteratorImpl::copyResults(const QueryResults& src, uint64_t from, uint64_t 
         return status;
     }
 
-    target = QueryResults(std::move(result_fields));
+    target = QueryResults(std::move(result_fields), args_.OutputFields());
     return Status::OK();
 }
 

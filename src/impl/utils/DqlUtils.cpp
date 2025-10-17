@@ -637,8 +637,36 @@ GetRowCountOfFields(const std::vector<FieldDataPtr>& fields, size_t& count) {
     return Status::OK();
 }
 
+void
+SetOutputRow(std::map<std::string, std::function<nlohmann::json(size_t)>>& getters, size_t i,
+             const std::set<std::string>& output_names, EntityRow& row) {
+    for (auto& getter : getters) {
+        if (getter.first == DYNAMIC_FIELD) {
+            // dynamic field special name "$meta", the value is a JSON dict
+            // the server returns entire value of "$meta", we only pick the keys in output_names into the row
+            // if the output_names contains DYNAMIC_FIELD, that means all dynamic fields need to be output
+            auto meta = getter.second(i);
+            if (output_names.find(DYNAMIC_FIELD) != output_names.end()) {
+                for (auto& pair : meta.items()) {
+                    row[pair.key()] = pair.value();
+                }
+            } else {
+                for (auto& pair : meta.items()) {
+                    if (output_names.find(pair.key()) != output_names.end()) {
+                        row[pair.key()] = pair.value();
+                    }
+                }
+            }
+        } else {
+            // non-dynamic fields
+            row[getter.first] = getter.second(i);
+        }
+    }
+}
+
 Status
-GetRowsFromFieldsData(const std::vector<FieldDataPtr>& fields, EntityRows& rows) {
+GetRowsFromFieldsData(const std::vector<FieldDataPtr>& fields, const std::set<std::string>& output_names,
+                      EntityRows& rows) {
     rows.clear();
     size_t count = 0;
     auto status = GetRowCountOfFields(fields, count);
@@ -649,16 +677,15 @@ GetRowsFromFieldsData(const std::vector<FieldDataPtr>& fields, EntityRows& rows)
     auto getters = GenGetters(fields);
     for (auto i = 0; i < count; i++) {
         EntityRow row;
-        for (auto& getter : getters) {
-            row[getter.first] = getter.second(i);
-        }
+        SetOutputRow(getters, i, output_names, row);
         rows.emplace_back(std::move(row));
     }
     return Status::OK();
 }
 
 Status
-GetRowFromFieldsData(const std::vector<FieldDataPtr>& fields, size_t i, EntityRow& row) {
+GetRowFromFieldsData(const std::vector<FieldDataPtr>& fields, size_t i, const std::set<std::string>& output_names,
+                     EntityRow& row) {
     row.clear();
     size_t count = 0;
     auto status = GetRowCountOfFields(fields, count);
@@ -671,9 +698,7 @@ GetRowFromFieldsData(const std::vector<FieldDataPtr>& fields, size_t i, EntityRo
     }
 
     auto getters = GenGetters(fields);
-    for (auto& getter : getters) {
-        row[getter.first] = getter.second(i);
-    }
+    SetOutputRow(getters, i, output_names, row);
     return Status::OK();
 }
 
@@ -752,7 +777,12 @@ ConvertQueryResults(const proto::milvus::QueryResults& rpc_results, QueryResults
         return_fields.emplace_back(std::move(CreateMilvusFieldData(field_data)));
     }
 
-    results = QueryResults(std::move(return_fields));
+    std::set<std::string> output_names;
+    for (const auto& name : rpc_results.output_fields()) {
+        output_names.insert(name);
+    }
+
+    results = QueryResults(std::move(return_fields), output_names);
     return Status::OK();
 }
 
@@ -933,6 +963,11 @@ ConvertSearchResults(const proto::milvus::SearchResults& rpc_results, const std:
     const auto& result_data = rpc_results.results();
     const auto& ids = result_data.ids();
     const auto& fields_data = result_data.fields_data();
+    std::set<std::string> output_names;
+    for (const auto& name : result_data.output_fields()) {
+        output_names.insert(name);
+    }
+
     // in milvus version older than v2.4.20, the primary_field_name() is empty, we need to
     // get the primary key field name from collection schema
     // if no pk_name is inputed, use a hard-code name "pk"
@@ -971,7 +1006,7 @@ ConvertSearchResults(const proto::milvus::SearchResults& rpc_results, const std:
         // if the server return different lenth of ids, scores, this line will throw an exception
         // we never saw such bug, just keep a protection here in case if it happens.
         try {
-            single_results.emplace_back(real_pk_name, score_name, std::move(item_fields_data));
+            single_results.emplace_back(real_pk_name, score_name, std::move(item_fields_data), output_names);
         } catch (const std::exception& e) {
             return {StatusCode::UNKNOWN_ERROR, "Not able to parse search results, error: " + std::string(e.what())};
         }

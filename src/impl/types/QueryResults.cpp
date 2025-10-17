@@ -22,15 +22,18 @@ namespace milvus {
 
 QueryResults::QueryResults() = default;
 
-QueryResults::QueryResults(const QueryResults& src) : output_fields_(src.output_fields_) {
+QueryResults::QueryResults(const QueryResults& src)
+    : output_fields_(src.output_fields_), output_names_(src.output_names_) {
 }
 
-QueryResults::QueryResults(const std::vector<FieldDataPtr>& output_fields) {
+QueryResults::QueryResults(const std::vector<FieldDataPtr>& output_fields, const std::set<std::string>& output_names) {
     output_fields_ = output_fields;
+    output_names_ = output_names;
 }
 
-QueryResults::QueryResults(std::vector<FieldDataPtr>&& output_fields) {
+QueryResults::QueryResults(std::vector<FieldDataPtr>&& output_fields, const std::set<std::string>& output_names) {
     output_fields_ = std::move(output_fields);
+    output_names_ = output_names;
 }
 
 FieldDataPtr
@@ -57,14 +60,19 @@ QueryResults::OutputFields() const {
     return output_fields_;
 }
 
+const std::set<std::string>&
+QueryResults::OutputFieldNames() const {
+    return output_names_;
+}
+
 Status
 QueryResults::OutputRows(EntityRows& rows) const {
-    return GetRowsFromFieldsData(output_fields_, rows);
+    return GetRowsFromFieldsData(output_fields_, output_names_, rows);
 }
 
 Status
 QueryResults::OutputRow(int i, EntityRow& row) const {
-    return GetRowFromFieldsData(output_fields_, i, row);
+    return GetRowFromFieldsData(output_fields_, i, output_names_, row);
 }
 
 uint64_t
