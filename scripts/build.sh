@@ -55,6 +55,9 @@ JOBS="$(nproc 2>/dev/null || sysctl -n hw.logicalcpu 2>/dev/null || echo 3)"
 if [ ${JOBS} -lt 3 ] ; then
     JOBS=3
 fi
+if [ ${JOBS} -gt 10 ] ; then
+    JOBS=10
+fi
 
 while getopts "t:v:ulrcsphi" arg; do
   case $arg in

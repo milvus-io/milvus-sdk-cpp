@@ -117,28 +117,8 @@ MilvusClientImpl::CreateCollection(const CollectionSchema& schema, int64_t num_p
         }
 
         proto::schema::CollectionSchema rpc_collection;
-        rpc_collection.set_name(schema.Name());
-        rpc_collection.set_description(schema.Description());
-        rpc_collection.set_enable_dynamic_field(schema.EnableDynamicField());
+        ConvertCollectionSchema(schema, rpc_collection);
 
-        for (auto& field : schema.Fields()) {
-            proto::schema::FieldSchema* rpc_field = rpc_collection.add_fields();
-            rpc_field->set_name(field.Name());
-            rpc_field->set_description(field.Description());
-            rpc_field->set_data_type(static_cast<proto::schema::DataType>(field.FieldDataType()));
-            rpc_field->set_is_primary_key(field.IsPrimaryKey());
-            rpc_field->set_autoid(field.AutoID());
-
-            if (field.FieldDataType() == DataType::ARRAY) {
-                rpc_field->set_element_type(static_cast<proto::schema::DataType>(field.ElementType()));
-            }
-
-            for (auto& pair : field.TypeParams()) {
-                proto::common::KeyValuePair* kv = rpc_field->add_type_params();
-                kv->set_key(pair.first);
-                kv->set_value(pair.second);
-            }
-        }
         std::string binary;
         rpc_collection.SerializeToString(&binary);
         rpc_request.set_schema(binary);

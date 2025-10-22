@@ -16,6 +16,7 @@
 
 #pragma once
 
+#include <set>
 #include <string>
 #include <vector>
 
@@ -41,7 +42,8 @@ struct SingleResult {
      *   1. the pk_name or score_name is empty
      *   2. row count of fields are unequal
      */
-    SingleResult(const std::string& pk_name, const std::string& score_name, std::vector<FieldDataPtr>&& output_fields);
+    SingleResult(const std::string& pk_name, const std::string& score_name, std::vector<FieldDataPtr>&& output_fields,
+                 const std::set<std::string>& output_names);
 
     /**
      * @brief Distances/scores array of one target vector
@@ -97,6 +99,12 @@ struct SingleResult {
     }
 
     /**
+     * @brief Output field names specified by search()
+     */
+    const std::set<std::string>&
+    OutputFieldNames() const;
+
+    /**
      * @brief Get all output rows.
      */
     Status
@@ -122,6 +130,7 @@ struct SingleResult {
     std::string pk_name_;     // the server tells primary key name so that you don't need to describe the collection
     std::string score_name_;  // name of score field, default is "score". if duplicated, the name could be "_socre"
     std::vector<FieldDataPtr> output_fields_;
+    std::set<std::string> output_names_;  // output_fields list specified by search()
 };
 
 /**
