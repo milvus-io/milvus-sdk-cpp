@@ -32,6 +32,7 @@ void
 buildCollection(milvus::MilvusClientPtr& client, milvus::MetricType index_metric) {
     // collection schema, drop and create collection
     milvus::CollectionSchema collection_schema(collection_name);
+    collection_schema.SetEnableDynamicField(true);
     collection_schema.AddField({field_id, milvus::DataType::INT64, "user id", true, false});
     collection_schema.AddField(milvus::FieldSchema(field_name, milvus::DataType::VARCHAR).WithMaxLength(100));
     collection_schema.AddField({field_age, milvus::DataType::INT8});
@@ -64,6 +65,8 @@ buildCollection(milvus::MilvusClientPtr& client, milvus::MetricType index_metric
             row[field_name] = "my name is " + std::to_string(id);
             row[field_age] = k % 100;
             row[field_face] = util::GenerateFloatVector(dimension);
+            row["a"] = id;                            // dynamic field "a"
+            row["b"] = "b is " + std::to_string(id);  // dynamic field "b"
             rows.emplace_back(std::move(row));
         }
 
@@ -119,6 +122,7 @@ iterateCollection(milvus::MilvusClientPtr& client, uint64_t batch, int64_t limit
     arguments.SetFilter(filter);
     arguments.AddOutputField(field_name);
     arguments.AddOutputField(field_age);
+    arguments.AddOutputField("b");  // dynamic field
     // SearchIterator only accepts one vector
     std::vector<float> vector(dimension);
     for (auto d = 0; d < dimension; ++d) {

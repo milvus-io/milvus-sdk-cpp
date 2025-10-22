@@ -39,6 +39,7 @@ main(int argc, char* argv[]) {
 
     // collection schema, drop and create collection
     milvus::CollectionSchema collection_schema(collection_name);
+    collection_schema.SetEnableDynamicField(true);
     collection_schema.AddField({field_id, milvus::DataType::INT64, "user id", true, false});
     collection_schema.AddField(milvus::FieldSchema(field_name, milvus::DataType::VARCHAR).WithMaxLength(100));
     collection_schema.AddField({field_age, milvus::DataType::INT8});
@@ -70,6 +71,8 @@ main(int argc, char* argv[]) {
             row[field_name] = "my name is " + std::to_string(id);
             row[field_age] = k % 100;
             row[field_face] = util::GenerateFloatVector(dimension);
+            row["a"] = id;                            // dynamic field "a"
+            row["b"] = "b is " + std::to_string(id);  // dynamic field "b"
             rows.emplace_back(std::move(row));
         }
 
@@ -104,6 +107,7 @@ main(int argc, char* argv[]) {
         arguments.SetFilter(filter);
         arguments.AddOutputField(field_name);
         arguments.AddOutputField(field_age);
+        arguments.AddOutputField("a");  // dynamic field
 
         milvus::QueryIteratorPtr iterator;
         auto status = client->QueryIterator(arguments, iterator);

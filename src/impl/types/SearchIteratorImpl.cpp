@@ -378,7 +378,8 @@ SearchIteratorImpl::fetchPageFromCache(int64_t count, SingleResult& results) {
                 return status;
             }
 
-            SingleResult append_result{one_cache->PrimaryKeyName(), one_cache->ScoreName(), std::move(append_data)};
+            SingleResult append_result{one_cache->PrimaryKeyName(), one_cache->ScoreName(), std::move(append_data),
+                                       args_.OutputFields()};
             status = AppendSearchResult(append_result, results);
             if (!status.IsOk()) {
                 return status;
@@ -393,7 +394,7 @@ SearchIteratorImpl::fetchPageFromCache(int64_t count, SingleResult& results) {
                     return status;
                 }
                 SingleResultPtr left_batch = std::make_shared<SingleResult>(
-                    one_cache->PrimaryKeyName(), one_cache->ScoreName(), std::move(left_data));
+                    one_cache->PrimaryKeyName(), one_cache->ScoreName(), std::move(left_data), args_.OutputFields());
                 cache_.emplace_front(std::move(left_batch));
             }
         }

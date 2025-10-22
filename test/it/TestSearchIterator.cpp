@@ -156,7 +156,7 @@ TEST_F(MilvusMockedTest, SearchIterator) {
     }
     EXPECT_EQ(total_rows.size(), row_count);
 
-    milvus::SingleResult expected_results{milvus::T_PK_NAME, "score", std::move(fields_data)};
+    milvus::SingleResult expected_results{milvus::T_PK_NAME, "score", std::move(fields_data), arguments.OutputFields()};
     milvus::EntityRows expected_rows;
     status = expected_results.OutputRows(expected_rows);
     EXPECT_TRUE(status.IsOk());

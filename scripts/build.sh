@@ -24,7 +24,7 @@ BUILD_TEST="OFF"
 MAKE_CLEAN="OFF"
 RUN_CPPLINT="OFF"
 BUILD_COVERAGE="OFF"
-MILVUS_SDK_VERSION=${MILVUS_SDK_VERSION:-v2.4.0}
+MILVUS_SDK_VERSION=${MILVUS_SDK_VERSION:-v2.5.0}
 DO_INSTALL="OFF"
 CMAKE_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX:-/usr/local}
 BUILD_SHARED_LIBS=${BUILD_SHARED_LIBS:-ON}
@@ -54,6 +54,9 @@ fi
 JOBS="$(nproc 2>/dev/null || sysctl -n hw.logicalcpu 2>/dev/null || echo 3)"
 if [ ${JOBS} -lt 3 ] ; then
     JOBS=3
+fi
+if [ ${JOBS} -gt 10 ] ; then
+    JOBS=10
 fi
 
 while getopts "t:v:ulrcsphi" arg; do

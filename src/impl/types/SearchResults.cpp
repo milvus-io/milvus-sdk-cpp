@@ -24,13 +24,17 @@
 namespace milvus {
 
 SingleResult::SingleResult(const SingleResult& src)
-    : pk_name_(src.pk_name_), score_name_{src.score_name_}, output_fields_{src.output_fields_} {
+    : pk_name_(src.pk_name_),
+      score_name_(src.score_name_),
+      output_fields_(src.output_fields_),
+      output_names_(src.output_names_) {
     verify();
 }
 
 SingleResult::SingleResult(const std::string& pk_name, const std::string& score_name,
-                           std::vector<FieldDataPtr>&& output_fields)
+                           std::vector<FieldDataPtr>&& output_fields, const std::set<std::string>& output_names)
     : pk_name_(pk_name), score_name_(score_name), output_fields_(std::move(output_fields)) {
+    output_names_ = output_names;
     verify();
 }
 
@@ -112,14 +116,19 @@ SingleResult::OutputField(const std::string& name) const {
     return nullptr;
 }
 
+const std::set<std::string>&
+SingleResult::OutputFieldNames() const {
+    return output_names_;
+}
+
 Status
 SingleResult::OutputRows(EntityRows& rows) const {
-    return GetRowsFromFieldsData(output_fields_, rows);
+    return GetRowsFromFieldsData(output_fields_, output_names_, rows);
 }
 
 Status
 SingleResult::OutputRow(int i, EntityRow& row) const {
-    return GetRowFromFieldsData(output_fields_, i, row);
+    return GetRowFromFieldsData(output_fields_, i, output_names_, row);
 }
 
 uint64_t

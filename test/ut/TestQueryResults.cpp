@@ -26,10 +26,12 @@ TEST_F(QueryResultsTest, GeneralTesting) {
         std::make_shared<milvus::BoolFieldData>("bool_data"),
         std::make_shared<milvus::Int16FieldData>("int16_data"),
     };
+    std::set<std::string> output_names;
+    output_names.insert("int16_data");
 
-    milvus::QueryResults results(fields);
+    milvus::QueryResults results(std::move(fields), output_names);
     EXPECT_EQ(results.GetFieldByName("foo"), nullptr);
     EXPECT_EQ(results.GetFieldByName("int16_data")->Name(), "int16_data");
-
     EXPECT_EQ(results.OutputFields().front(), nullptr);
+    EXPECT_EQ(results.OutputFieldNames().size(), output_names.size());
 }
