@@ -29,6 +29,7 @@
 #include "utils/Constants.h"
 #include "utils/DmlUtils.h"
 #include "utils/DqlUtils.h"
+#include "utils/FieldDataSchema.h"
 #include "utils/GtsDict.h"
 #include "utils/TypeUtils.h"
 
@@ -88,15 +89,13 @@ MilvusClientImpl::GetVersion(std::string& version) {
 
 Status
 MilvusClientImpl::GetServerVersion(std::string& version) {
-    auto pre = []() {
-        proto::milvus::GetVersionRequest rpc_request;
-        return rpc_request;
+    auto post = [&version](const proto::milvus::GetVersionResponse& response) {
+        version = response.version();
+        return Status::OK();
     };
 
-    auto post = [&version](const proto::milvus::GetVersionResponse& response) { version = response.version(); };
-
     return apiHandler<proto::milvus::GetVersionRequest, proto::milvus::GetVersionResponse>(
-        pre, &MilvusConnection::GetVersion, post);
+        nullptr, &MilvusConnection::GetVersion, post);
 }
 
 Status
@@ -107,8 +106,17 @@ MilvusClientImpl::GetSDKVersion(std::string& version) {
 
 Status
 MilvusClientImpl::CreateCollection(const CollectionSchema& schema, int64_t num_partitions) {
-    auto pre = [&schema, &num_partitions]() {
-        proto::milvus::CreateCollectionRequest rpc_request;
+    auto validate = [&schema]() {
+        for (const auto& field : schema.Fields()) {
+            auto status = CheckDefaultValue(field);
+            if (!status.IsOk()) {
+                return status;
+            }
+        }
+        return Status::OK();
+    };
+
+    auto pre = [&schema, &num_partitions](proto::milvus::CreateCollectionRequest& rpc_request) {
         rpc_request.set_collection_name(schema.Name());
         rpc_request.set_shards_num(schema.ShardsNum());
         rpc_request.set_consistency_level(ConsistencyLevelCast(ConsistencyLevel::BOUNDED));  // TODO: how to pass in?
@@ -122,23 +130,25 @@ MilvusClientImpl::CreateCollection(const CollectionSchema& schema, int64_t num_p
         std::string binary;
         rpc_collection.SerializeToString(&binary);
         rpc_request.set_schema(binary);
-        return rpc_request;
+        return Status::OK();
     };
 
     return apiHandler<proto::milvus::CreateCollectionRequest, proto::common::Status>(
-        pre, &MilvusConnection::CreateCollection);
+        validate, pre, &MilvusConnection::CreateCollection, nullptr);
 }
 
 Status
 MilvusClientImpl::HasCollection(const std::string& collection_name, bool& has) {
-    auto pre = [&collection_name]() {
-        proto::milvus::HasCollectionRequest rpc_request;
+    auto pre = [&collection_name](proto::milvus::HasCollectionRequest& rpc_request) {
         rpc_request.set_collection_name(collection_name);
         rpc_request.set_time_stamp(0);
-        return rpc_request;
+        return Status::OK();
     };
 
-    auto post = [&has](const proto::milvus::BoolResponse& response) { has = response.value(); };
+    auto post = [&has](const proto::milvus::BoolResponse& response) {
+        has = response.value();
+        return Status::OK();
+    };
 
     return apiHandler<proto::milvus::HasCollectionRequest, proto::milvus::BoolResponse>(
         pre, &MilvusConnection::HasCollection, post);
@@ -146,10 +156,9 @@ MilvusClientImpl::HasCollection(const std::string& collection_name, bool& has) {
 
 Status
 MilvusClientImpl::DropCollection(const std::string& collection_name) {
-    auto pre = [&collection_name]() {
-        proto::milvus::DropCollectionRequest rpc_request;
+    auto pre = [&collection_name](proto::milvus::DropCollectionRequest& rpc_request) {
         rpc_request.set_collection_name(collection_name);
-        return rpc_request;
+        return Status::OK();
     };
 
     auto post = [this, &collection_name](const proto::common::Status& status) {
@@ -160,6 +169,7 @@ MilvusClientImpl::DropCollection(const std::string& collection_name) {
             GtsDict::GetInstance().RemoveCollectionTs(currentDbName(""), collection_name);
             removeCollectionDesc(collection_name);
         }
+        return Status::OK();
     };
 
     return apiHandler<proto::milvus::DropCollectionRequest, proto::common::Status>(
@@ -169,11 +179,10 @@ MilvusClientImpl::DropCollection(const std::string& collection_name) {
 Status
 MilvusClientImpl::LoadCollection(const std::string& collection_name, int replica_number,
                                  const ProgressMonitor& progress_monitor) {
-    auto pre = [&collection_name, replica_number]() {
-        proto::milvus::LoadCollectionRequest rpc_request;
+    auto pre = [&collection_name, replica_number](proto::milvus::LoadCollectionRequest& rpc_request) {
         rpc_request.set_collection_name(collection_name);
         rpc_request.set_replica_number(replica_number);
-        return rpc_request;
+        return Status::OK();
     };
 
     auto wait_for_status = [this, &collection_name, &progress_monitor](const proto::common::Status&) {
@@ -192,10 +201,9 @@ MilvusClientImpl::LoadCollection(const std::string& collection_name, int replica
 
 Status
 MilvusClientImpl::ReleaseCollection(const std::string& collection_name) {
-    auto pre = [&collection_name]() {
-        proto::milvus::ReleaseCollectionRequest rpc_request;
+    auto pre = [&collection_name](proto::milvus::ReleaseCollectionRequest& rpc_request) {
         rpc_request.set_collection_name(collection_name);
-        return rpc_request;
+        return Status::OK();
     };
 
     return apiHandler<proto::milvus::ReleaseCollectionRequest, proto::common::Status>(
@@ -204,10 +212,9 @@ MilvusClientImpl::ReleaseCollection(const std::string& collection_name) {
 
 Status
 MilvusClientImpl::DescribeCollection(const std::string& collection_name, CollectionDesc& collection_desc) {
-    auto pre = [&collection_name]() {
-        proto::milvus::DescribeCollectionRequest rpc_request;
+    auto pre = [&collection_name](proto::milvus::DescribeCollectionRequest& rpc_request) {
         rpc_request.set_collection_name(collection_name);
-        return rpc_request;
+        return Status::OK();
     };
 
     auto post = [&collection_desc](const proto::milvus::DescribeCollectionResponse& response) {
@@ -223,6 +230,7 @@ MilvusClientImpl::DescribeCollection(const std::string& collection_name, Collect
 
         collection_desc.SetAlias(std::move(aliases));
         collection_desc.SetCreatedTime(response.created_timestamp());
+        return Status::OK();
     };
 
     return apiHandler<proto::milvus::DescribeCollectionRequest, proto::milvus::DescribeCollectionResponse>(
@@ -231,11 +239,10 @@ MilvusClientImpl::DescribeCollection(const std::string& collection_name, Collect
 
 Status
 MilvusClientImpl::RenameCollection(const std::string& collection_name, const std::string& new_collection_name) {
-    auto pre = [&collection_name, &new_collection_name]() {
-        proto::milvus::RenameCollectionRequest rpc_request;
+    auto pre = [&collection_name, &new_collection_name](proto::milvus::RenameCollectionRequest& rpc_request) {
         rpc_request.set_oldname(collection_name);
         rpc_request.set_newname(new_collection_name);
-        return rpc_request;
+        return Status::OK();
     };
 
     return apiHandler<proto::milvus::RenameCollectionRequest, proto::common::Status>(
@@ -245,10 +252,9 @@ MilvusClientImpl::RenameCollection(const std::string& collection_name, const std
 Status
 MilvusClientImpl::GetCollectionStatistics(const std::string& collection_name, CollectionStat& collection_stat,
                                           const ProgressMonitor& progress_monitor) {
-    auto pre = [&collection_name]() {
-        proto::milvus::GetCollectionStatisticsRequest rpc_request;
+    auto pre = [&collection_name](proto::milvus::GetCollectionStatisticsRequest& rpc_request) {
         rpc_request.set_collection_name(collection_name);
-        return rpc_request;
+        return Status::OK();
     };
 
     auto post = [&collection_stat, &collection_name](const proto::milvus::GetCollectionStatisticsResponse& response) {
@@ -256,6 +262,7 @@ MilvusClientImpl::GetCollectionStatistics(const std::string& collection_name, Co
         for (const auto& stat_pair : response.stats()) {
             collection_stat.Emplace(stat_pair.key(), stat_pair.value());
         }
+        return Status::OK();
     };
 
     return apiHandler<proto::milvus::GetCollectionStatisticsRequest, proto::milvus::GetCollectionStatisticsResponse>(
@@ -269,11 +276,10 @@ MilvusClientImpl::ShowCollections(const std::vector<std::string>& collection_nam
 
 Status
 MilvusClientImpl::ListCollections(CollectionsInfo& collections_info, bool only_show_loaded) {
-    auto pre = [&only_show_loaded]() {
-        proto::milvus::ShowCollectionsRequest rpc_request;
+    auto pre = [&only_show_loaded](proto::milvus::ShowCollectionsRequest& rpc_request) {
         auto show_type = only_show_loaded ? proto::milvus::ShowType::InMemory : proto::milvus::ShowType::All;
         rpc_request.set_type(show_type);
-        return rpc_request;
+        return Status::OK();
     };
 
     auto post = [&collections_info](const proto::milvus::ShowCollectionsResponse& response) {
@@ -282,6 +288,7 @@ MilvusClientImpl::ListCollections(CollectionsInfo& collections_info, bool only_s
             collections_info.emplace_back(response.collection_names(i), response.collection_ids(i),
                                           response.created_utc_timestamps(i));
         }
+        return Status::OK();
     };
     return apiHandler<proto::milvus::ShowCollectionsRequest, proto::milvus::ShowCollectionsResponse>(
         pre, &MilvusConnection::ShowCollections, post);
@@ -290,17 +297,17 @@ MilvusClientImpl::ListCollections(CollectionsInfo& collections_info, bool only_s
 Status
 MilvusClientImpl::GetLoadState(const std::string& collection_name, bool& is_loaded,
                                const std::vector<std::string> partition_names) {
-    auto pre = [&collection_name, &partition_names]() {
-        proto::milvus::GetLoadStateRequest rpc_request;
+    auto pre = [&collection_name, &partition_names](proto::milvus::GetLoadStateRequest& rpc_request) {
         rpc_request.set_collection_name(collection_name);
         for (const auto& partition_name : partition_names) {
             rpc_request.add_partition_names(partition_name);
         }
-        return rpc_request;
+        return Status::OK();
     };
 
     auto post = [&is_loaded](const proto::milvus::GetLoadStateResponse& response) {
         is_loaded = response.state() == proto::common::LoadStateLoaded;
+        return Status::OK();
     };
 
     return apiHandler<proto::milvus::GetLoadStateRequest, proto::milvus::GetLoadStateResponse>(
@@ -310,15 +317,14 @@ MilvusClientImpl::GetLoadState(const std::string& collection_name, bool& is_load
 Status
 MilvusClientImpl::AlterCollectionProperties(const std::string& collection_name,
                                             const std::unordered_map<std::string, std::string>& properties) {
-    auto pre = [&collection_name, &properties]() {
-        proto::milvus::AlterCollectionRequest rpc_request;
+    auto pre = [&collection_name, &properties](proto::milvus::AlterCollectionRequest& rpc_request) {
         rpc_request.set_collection_name(collection_name);
         for (const auto& pair : properties) {
             auto kv = rpc_request.add_properties();
             kv->set_key(pair.first);
             kv->set_value(pair.second);
         }
-        return rpc_request;
+        return Status::OK();
     };
 
     return apiHandler<proto::milvus::AlterCollectionRequest, proto::common::Status>(pre,
@@ -328,13 +334,12 @@ MilvusClientImpl::AlterCollectionProperties(const std::string& collection_name,
 Status
 MilvusClientImpl::DropCollectionProperties(const std::string& collection_name,
                                            const std::set<std::string>& property_keys) {
-    auto pre = [&collection_name, &property_keys]() {
-        proto::milvus::AlterCollectionRequest rpc_request;
+    auto pre = [&collection_name, &property_keys](proto::milvus::AlterCollectionRequest& rpc_request) {
         rpc_request.set_collection_name(collection_name);
         for (const auto& key : property_keys) {
             rpc_request.add_delete_keys(key);
         }
-        return rpc_request;
+        return Status::OK();
     };
 
     return apiHandler<proto::milvus::AlterCollectionRequest, proto::common::Status>(pre,
@@ -344,8 +349,7 @@ MilvusClientImpl::DropCollectionProperties(const std::string& collection_name,
 Status
 MilvusClientImpl::AlterCollectionField(const std::string& collection_name, const std::string& field_name,
                                        const std::unordered_map<std::string, std::string>& properties) {
-    auto pre = [&collection_name, &field_name, &properties]() {
-        proto::milvus::AlterCollectionFieldRequest rpc_request;
+    auto pre = [&collection_name, &field_name, &properties](proto::milvus::AlterCollectionFieldRequest& rpc_request) {
         rpc_request.set_collection_name(collection_name);
         rpc_request.set_field_name(field_name);
         for (const auto& pair : properties) {
@@ -353,7 +357,7 @@ MilvusClientImpl::AlterCollectionField(const std::string& collection_name, const
             kv->set_key(pair.first);
             kv->set_value(pair.second);
         }
-        return rpc_request;
+        return Status::OK();
     };
 
     return apiHandler<proto::milvus::AlterCollectionFieldRequest, proto::common::Status>(
@@ -362,12 +366,10 @@ MilvusClientImpl::AlterCollectionField(const std::string& collection_name, const
 
 Status
 MilvusClientImpl::CreatePartition(const std::string& collection_name, const std::string& partition_name) {
-    auto pre = [&collection_name, &partition_name]() {
-        proto::milvus::CreatePartitionRequest rpc_request;
-
+    auto pre = [&collection_name, &partition_name](proto::milvus::CreatePartitionRequest& rpc_request) {
         rpc_request.set_collection_name(collection_name);
         rpc_request.set_partition_name(partition_name);
-        return rpc_request;
+        return Status::OK();
     };
 
     return apiHandler<proto::milvus::CreatePartitionRequest, proto::common::Status>(pre,
@@ -376,12 +378,10 @@ MilvusClientImpl::CreatePartition(const std::string& collection_name, const std:
 
 Status
 MilvusClientImpl::DropPartition(const std::string& collection_name, const std::string& partition_name) {
-    auto pre = [&collection_name, &partition_name]() {
-        proto::milvus::DropPartitionRequest rpc_request;
-
+    auto pre = [&collection_name, &partition_name](proto::milvus::DropPartitionRequest& rpc_request) {
         rpc_request.set_collection_name(collection_name);
         rpc_request.set_partition_name(partition_name);
-        return rpc_request;
+        return Status::OK();
     };
 
     return apiHandler<proto::milvus::DropPartitionRequest, proto::common::Status>(pre,
@@ -390,15 +390,16 @@ MilvusClientImpl::DropPartition(const std::string& collection_name, const std::s
 
 Status
 MilvusClientImpl::HasPartition(const std::string& collection_name, const std::string& partition_name, bool& has) {
-    auto pre = [&collection_name, &partition_name]() {
-        proto::milvus::HasPartitionRequest rpc_request;
-
+    auto pre = [&collection_name, &partition_name](proto::milvus::HasPartitionRequest& rpc_request) {
         rpc_request.set_collection_name(collection_name);
         rpc_request.set_partition_name(partition_name);
-        return rpc_request;
+        return Status::OK();
     };
 
-    auto post = [&has](const proto::milvus::BoolResponse& response) { has = response.value(); };
+    auto post = [&has](const proto::milvus::BoolResponse& response) {
+        has = response.value();
+        return Status::OK();
+    };
 
     return apiHandler<proto::milvus::HasPartitionRequest, proto::milvus::BoolResponse>(
         pre, &MilvusConnection::HasPartition, post);
@@ -407,15 +408,13 @@ MilvusClientImpl::HasPartition(const std::string& collection_name, const std::st
 Status
 MilvusClientImpl::LoadPartitions(const std::string& collection_name, const std::vector<std::string>& partition_names,
                                  int replica_number, const ProgressMonitor& progress_monitor) {
-    auto pre = [&collection_name, &partition_names, replica_number]() {
-        proto::milvus::LoadPartitionsRequest rpc_request;
-
+    auto pre = [&collection_name, &partition_names, replica_number](proto::milvus::LoadPartitionsRequest& rpc_request) {
         rpc_request.set_collection_name(collection_name);
         for (const auto& partition_name : partition_names) {
             rpc_request.add_partition_names(partition_name);
         }
         rpc_request.set_replica_number(replica_number);
-        return rpc_request;
+        return Status::OK();
     };
 
     auto wait_for_status = [this, &collection_name, &partition_names, &progress_monitor](const proto::common::Status&) {
@@ -433,14 +432,12 @@ MilvusClientImpl::LoadPartitions(const std::string& collection_name, const std::
 Status
 MilvusClientImpl::ReleasePartitions(const std::string& collection_name,
                                     const std::vector<std::string>& partition_names) {
-    auto pre = [&collection_name, &partition_names]() {
-        proto::milvus::ReleasePartitionsRequest rpc_request;
-
+    auto pre = [&collection_name, &partition_names](proto::milvus::ReleasePartitionsRequest& rpc_request) {
         rpc_request.set_collection_name(collection_name);
         for (const auto& partition_name : partition_names) {
             rpc_request.add_partition_names(partition_name);
         }
-        return rpc_request;
+        return Status::OK();
     };
 
     return apiHandler<proto::milvus::ReleasePartitionsRequest, proto::common::Status>(
@@ -450,11 +447,10 @@ MilvusClientImpl::ReleasePartitions(const std::string& collection_name,
 Status
 MilvusClientImpl::GetPartitionStatistics(const std::string& collection_name, const std::string& partition_name,
                                          PartitionStat& partition_stat, const ProgressMonitor& progress_monitor) {
-    auto pre = [&collection_name, &partition_name] {
-        proto::milvus::GetPartitionStatisticsRequest rpc_request;
+    auto pre = [&collection_name, &partition_name](proto::milvus::GetPartitionStatisticsRequest& rpc_request) {
         rpc_request.set_collection_name(collection_name);
         rpc_request.set_partition_name(partition_name);
-        return rpc_request;
+        return Status::OK();
     };
 
     auto post = [&partition_stat, &partition_name](const proto::milvus::GetPartitionStatisticsResponse& response) {
@@ -462,6 +458,7 @@ MilvusClientImpl::GetPartitionStatistics(const std::string& collection_name, con
         for (const auto& stat_pair : response.stats()) {
             partition_stat.Emplace(stat_pair.key(), stat_pair.value());
         }
+        return Status::OK();
     };
 
     return apiHandler<proto::milvus::GetPartitionStatisticsRequest, proto::milvus::GetPartitionStatisticsResponse>(
@@ -477,12 +474,11 @@ MilvusClientImpl::ShowPartitions(const std::string& collection_name, const std::
 Status
 MilvusClientImpl::ListPartitions(const std::string& collection_name, PartitionsInfo& partitions_info,
                                  bool only_show_loaded) {
-    auto pre = [&collection_name, &only_show_loaded] {
-        proto::milvus::ShowPartitionsRequest rpc_request;
+    auto pre = [&collection_name, &only_show_loaded](proto::milvus::ShowPartitionsRequest& rpc_request) {
         rpc_request.set_collection_name(collection_name);
         auto show_type = only_show_loaded ? proto::milvus::ShowType::InMemory : proto::milvus::ShowType::All;
         rpc_request.set_type(show_type);  // compile warning at this line since proto deprecates this method set_type()
-        return rpc_request;
+        return Status::OK();
     };
 
     auto post = [&partitions_info](const proto::milvus::ShowPartitionsResponse& response) {
@@ -493,6 +489,7 @@ MilvusClientImpl::ListPartitions(const std::string& collection_name, PartitionsI
             partitions_info.emplace_back(response.partition_names(i), response.partitionids(i),
                                          response.created_timestamps(i));
         }
+        return Status::OK();
     };
 
     return apiHandler<proto::milvus::ShowPartitionsRequest, proto::milvus::ShowPartitionsResponse>(
@@ -501,11 +498,10 @@ MilvusClientImpl::ListPartitions(const std::string& collection_name, PartitionsI
 
 Status
 MilvusClientImpl::CreateAlias(const std::string& collection_name, const std::string& alias) {
-    auto pre = [&collection_name, &alias]() {
-        proto::milvus::CreateAliasRequest rpc_request;
+    auto pre = [&collection_name, &alias](proto::milvus::CreateAliasRequest& rpc_request) {
         rpc_request.set_collection_name(collection_name);
         rpc_request.set_alias(alias);
-        return rpc_request;
+        return Status::OK();
     };
 
     return apiHandler<proto::milvus::CreateAliasRequest, proto::common::Status>(pre, &MilvusConnection::CreateAlias);
@@ -513,10 +509,9 @@ MilvusClientImpl::CreateAlias(const std::string& collection_name, const std::str
 
 Status
 MilvusClientImpl::DropAlias(const std::string& alias) {
-    auto pre = [&alias]() {
-        proto::milvus::DropAliasRequest rpc_request;
+    auto pre = [&alias](proto::milvus::DropAliasRequest& rpc_request) {
         rpc_request.set_alias(alias);
-        return rpc_request;
+        return Status::OK();
     };
 
     return apiHandler<proto::milvus::DropAliasRequest, proto::common::Status>(pre, &MilvusConnection::DropAlias);
@@ -524,11 +519,10 @@ MilvusClientImpl::DropAlias(const std::string& alias) {
 
 Status
 MilvusClientImpl::AlterAlias(const std::string& collection_name, const std::string& alias) {
-    auto pre = [&collection_name, &alias]() {
-        proto::milvus::AlterAliasRequest rpc_request;
+    auto pre = [&collection_name, &alias](proto::milvus::AlterAliasRequest& rpc_request) {
         rpc_request.set_collection_name(collection_name);
         rpc_request.set_alias(alias);
-        return rpc_request;
+        return Status::OK();
     };
 
     return apiHandler<proto::milvus::AlterAliasRequest, proto::common::Status>(pre, &MilvusConnection::AlterAlias);
@@ -536,16 +530,16 @@ MilvusClientImpl::AlterAlias(const std::string& collection_name, const std::stri
 
 Status
 MilvusClientImpl::DescribeAlias(const std::string& alias_name, AliasDesc& desc) {
-    auto pre = [&alias_name]() {
-        proto::milvus::DescribeAliasRequest rpc_request;
+    auto pre = [&alias_name](proto::milvus::DescribeAliasRequest& rpc_request) {
         rpc_request.set_alias(alias_name);
-        return rpc_request;
+        return Status::OK();
     };
 
     auto post = [&desc](const proto::milvus::DescribeAliasResponse& response) {
         desc.SetName(response.alias());
         desc.SetDatabaseName(response.db_name());
         desc.SetCollectionName(response.collection());
+        return Status::OK();
     };
 
     return apiHandler<proto::milvus::DescribeAliasRequest, proto::milvus::DescribeAliasResponse>(
@@ -554,16 +548,16 @@ MilvusClientImpl::DescribeAlias(const std::string& alias_name, AliasDesc& desc) 
 
 Status
 MilvusClientImpl::ListAliases(const std::string& collection_name, std::vector<AliasDesc>& descs) {
-    auto pre = [&collection_name]() {
-        proto::milvus::ListAliasesRequest rpc_request;
+    auto pre = [&collection_name](proto::milvus::ListAliasesRequest& rpc_request) {
         rpc_request.set_collection_name(collection_name);
-        return rpc_request;
+        return Status::OK();
     };
 
     auto post = [&descs](const proto::milvus::ListAliasesResponse& response) {
         for (auto i = 0; i < response.aliases_size(); i++) {
             descs.emplace_back(response.aliases(i), response.db_name(), response.collection_name());
         }
+        return Status::OK();
     };
 
     return apiHandler<proto::milvus::ListAliasesRequest, proto::milvus::ListAliasesResponse>(
@@ -596,8 +590,7 @@ MilvusClientImpl::CurrentUsedDatabase(std::string& db_name) {
 Status
 MilvusClientImpl::CreateDatabase(const std::string& db_name,
                                  const std::unordered_map<std::string, std::string>& properties) {
-    auto pre = [&db_name, &properties]() {
-        proto::milvus::CreateDatabaseRequest rpc_request;
+    auto pre = [&db_name, &properties](proto::milvus::CreateDatabaseRequest& rpc_request) {
         rpc_request.set_db_name(db_name);
 
         for (const auto& pair : properties) {
@@ -605,8 +598,7 @@ MilvusClientImpl::CreateDatabase(const std::string& db_name,
             kv_pair->set_key(pair.first);
             kv_pair->set_value(pair.second);
         }
-
-        return rpc_request;
+        return Status::OK();
     };
 
     return apiHandler<proto::milvus::CreateDatabaseRequest, proto::common::Status>(pre,
@@ -615,10 +607,9 @@ MilvusClientImpl::CreateDatabase(const std::string& db_name,
 
 Status
 MilvusClientImpl::DropDatabase(const std::string& db_name) {
-    auto pre = [&db_name]() {
-        proto::milvus::DropDatabaseRequest rpc_request;
+    auto pre = [&db_name](proto::milvus::DropDatabaseRequest& rpc_request) {
         rpc_request.set_db_name(db_name);
-        return rpc_request;
+        return Status::OK();
     };
 
     return apiHandler<proto::milvus::DropDatabaseRequest, proto::common::Status>(pre, &MilvusConnection::DropDatabase);
@@ -626,26 +617,21 @@ MilvusClientImpl::DropDatabase(const std::string& db_name) {
 
 Status
 MilvusClientImpl::ListDatabases(std::vector<std::string>& names) {
-    auto pre = []() {
-        proto::milvus::ListDatabasesRequest rpc_request;
-        return rpc_request;
-    };
-
     auto post = [&names](const proto::milvus::ListDatabasesResponse& response) {
         for (int i = 0; i < response.db_names_size(); i++) {
             names.push_back(response.db_names(i));
         }
+        return Status::OK();
     };
 
     return apiHandler<proto::milvus::ListDatabasesRequest, proto::milvus::ListDatabasesResponse>(
-        pre, &MilvusConnection::ListDatabases, post);
+        nullptr, &MilvusConnection::ListDatabases, post);
 }
 
 Status
 MilvusClientImpl::AlterDatabaseProperties(const std::string& db_name,
                                           const std::unordered_map<std::string, std::string>& properties) {
-    auto pre = [&db_name, &properties]() {
-        proto::milvus::AlterDatabaseRequest rpc_request;
+    auto pre = [&db_name, &properties](proto::milvus::AlterDatabaseRequest& rpc_request) {
         rpc_request.set_db_name(db_name);
 
         for (const auto& pair : properties) {
@@ -653,8 +639,7 @@ MilvusClientImpl::AlterDatabaseProperties(const std::string& db_name,
             kv_pair->set_key(pair.first);
             kv_pair->set_value(pair.second);
         }
-
-        return rpc_request;
+        return Status::OK();
     };
 
     return apiHandler<proto::milvus::AlterDatabaseRequest, proto::common::Status>(pre,
@@ -663,15 +648,13 @@ MilvusClientImpl::AlterDatabaseProperties(const std::string& db_name,
 
 Status
 MilvusClientImpl::DropDatabaseProperties(const std::string& db_name, const std::vector<std::string>& properties) {
-    auto pre = [&db_name, &properties]() {
-        proto::milvus::AlterDatabaseRequest rpc_request;
+    auto pre = [&db_name, &properties](proto::milvus::AlterDatabaseRequest& rpc_request) {
         rpc_request.set_db_name(db_name);
 
         for (const auto& name : properties) {
             rpc_request.add_delete_keys(name);
         }
-
-        return rpc_request;
+        return Status::OK();
     };
 
     return apiHandler<proto::milvus::AlterDatabaseRequest, proto::common::Status>(pre,
@@ -680,10 +663,9 @@ MilvusClientImpl::DropDatabaseProperties(const std::string& db_name, const std::
 
 Status
 MilvusClientImpl::DescribeDatabase(const std::string& db_name, DatabaseDesc& db_desc) {
-    auto pre = [&db_name]() {
-        proto::milvus::DescribeDatabaseRequest rpc_request;
+    auto pre = [&db_name](proto::milvus::DescribeDatabaseRequest& rpc_request) {
         rpc_request.set_db_name(db_name);
-        return rpc_request;
+        return Status::OK();
     };
 
     auto post = [&db_desc](const proto::milvus::DescribeDatabaseResponse& response) {
@@ -696,6 +678,7 @@ MilvusClientImpl::DescribeDatabase(const std::string& db_name, DatabaseDesc& db_
             properties[prop.key()] = prop.value();
         }
         db_desc.SetProperties(properties);
+        return Status::OK();
     };
 
     return apiHandler<proto::milvus::DescribeDatabaseRequest, proto::milvus::DescribeDatabaseResponse>(
@@ -705,8 +688,7 @@ MilvusClientImpl::DescribeDatabase(const std::string& db_name, DatabaseDesc& db_
 Status
 MilvusClientImpl::CreateIndex(const std::string& collection_name, const IndexDesc& index_desc,
                               const ProgressMonitor& progress_monitor) {
-    auto pre = [&collection_name, &index_desc]() {
-        proto::milvus::CreateIndexRequest rpc_request;
+    auto pre = [&collection_name, &index_desc](proto::milvus::CreateIndexRequest& rpc_request) {
         rpc_request.set_collection_name(collection_name);
         rpc_request.set_field_name(index_desc.FieldName());
         rpc_request.set_index_name(index_desc.IndexName());
@@ -727,7 +709,7 @@ MilvusClientImpl::CreateIndex(const std::string& collection_name, const IndexDes
         ::nlohmann::json json_obj(index_desc.ExtraParams());
         kv_pair->set_value(json_obj.dump());
 
-        return rpc_request;
+        return Status::OK();
     };
 
     auto wait_for_status = [&collection_name, &index_desc, &progress_monitor, this](const proto::common::Status&) {
@@ -762,11 +744,10 @@ MilvusClientImpl::CreateIndex(const std::string& collection_name, const IndexDes
 Status
 MilvusClientImpl::DescribeIndex(const std::string& collection_name, const std::string& field_name,
                                 IndexDesc& index_desc) {
-    auto pre = [&collection_name, &field_name]() {
-        proto::milvus::DescribeIndexRequest rpc_request;
+    auto pre = [&collection_name, &field_name](proto::milvus::DescribeIndexRequest& rpc_request) {
         rpc_request.set_collection_name(collection_name);
         rpc_request.set_field_name(field_name);
-        return rpc_request;
+        return Status::OK();
     };
 
     auto post = [&index_desc, &field_name](const proto::milvus::DescribeIndexResponse& response) {
@@ -807,6 +788,7 @@ MilvusClientImpl::DescribeIndex(const std::string& collection_name, const std::s
                 }
             }
         }
+        return Status::OK();
     };
 
     return apiHandler<proto::milvus::DescribeIndexRequest, proto::milvus::DescribeIndexResponse>(
@@ -816,11 +798,10 @@ MilvusClientImpl::DescribeIndex(const std::string& collection_name, const std::s
 Status
 MilvusClientImpl::ListIndexes(const std::string& collection_name, const std::string& field_name,
                               std::vector<std::string>& index_names) {
-    auto pre = [&collection_name, &field_name]() {
-        proto::milvus::DescribeIndexRequest rpc_request;
+    auto pre = [&collection_name, &field_name](proto::milvus::DescribeIndexRequest& rpc_request) {
         rpc_request.set_collection_name(collection_name);
         rpc_request.set_field_name(field_name);
-        return rpc_request;
+        return Status::OK();
     };
 
     auto post = [&index_names, &field_name](const proto::milvus::DescribeIndexResponse& response) {
@@ -831,6 +812,7 @@ MilvusClientImpl::ListIndexes(const std::string& collection_name, const std::str
                 index_names.push_back(rpc_desc.index_name());
             }
         }
+        return Status::OK();
     };
 
     return apiHandler<proto::milvus::DescribeIndexRequest, proto::milvus::DescribeIndexResponse>(
@@ -839,16 +821,16 @@ MilvusClientImpl::ListIndexes(const std::string& collection_name, const std::str
 
 Status
 MilvusClientImpl::GetIndexState(const std::string& collection_name, const std::string& field_name, IndexState& state) {
-    auto pre = [&collection_name, &field_name]() {
-        proto::milvus::GetIndexStateRequest rpc_request;
+    auto pre = [&collection_name, &field_name](proto::milvus::GetIndexStateRequest& rpc_request) {
         rpc_request.set_collection_name(collection_name);
         rpc_request.set_field_name(field_name);
-        return rpc_request;
+        return Status::OK();
     };
 
     auto post = [&state](const proto::milvus::GetIndexStateResponse& response) {
         state.SetStateCode(IndexStateCast(response.state()));
         state.SetFailedReason(response.fail_reason());
+        return Status::OK();
     };
 
     return apiHandler<proto::milvus::GetIndexStateRequest, proto::milvus::GetIndexStateResponse>(
@@ -858,16 +840,16 @@ MilvusClientImpl::GetIndexState(const std::string& collection_name, const std::s
 Status
 MilvusClientImpl::GetIndexBuildProgress(const std::string& collection_name, const std::string& field_name,
                                         IndexProgress& progress) {
-    auto pre = [&collection_name, &field_name]() {
-        proto::milvus::GetIndexBuildProgressRequest rpc_request;
+    auto pre = [&collection_name, &field_name](proto::milvus::GetIndexBuildProgressRequest& rpc_request) {
         rpc_request.set_collection_name(collection_name);
         rpc_request.set_field_name(field_name);
-        return rpc_request;
+        return Status::OK();
     };
 
     auto post = [&progress](const proto::milvus::GetIndexBuildProgressResponse& response) {
         progress.SetTotalRows(response.total_rows());
         progress.SetIndexedRows(response.indexed_rows());
+        return Status::OK();
     };
 
     return apiHandler<proto::milvus::GetIndexBuildProgressRequest, proto::milvus::GetIndexBuildProgressResponse>(
@@ -876,11 +858,10 @@ MilvusClientImpl::GetIndexBuildProgress(const std::string& collection_name, cons
 
 Status
 MilvusClientImpl::DropIndex(const std::string& collection_name, const std::string& index_name) {
-    auto pre = [&collection_name, &index_name]() {
-        proto::milvus::DropIndexRequest rpc_request;
+    auto pre = [&collection_name, &index_name](proto::milvus::DropIndexRequest& rpc_request) {
         rpc_request.set_collection_name(collection_name);
         rpc_request.set_index_name(index_name);
-        return rpc_request;
+        return Status::OK();
     };
     return apiHandler<proto::milvus::DropIndexRequest, proto::common::Status>(pre, &MilvusConnection::DropIndex);
 }
@@ -888,8 +869,7 @@ MilvusClientImpl::DropIndex(const std::string& collection_name, const std::strin
 Status
 MilvusClientImpl::AlterIndexProperties(const std::string& collection_name, const std::string& index_name,
                                        const std::unordered_map<std::string, std::string>& properties) {
-    auto pre = [&collection_name, &index_name, &properties]() {
-        proto::milvus::AlterIndexRequest rpc_request;
+    auto pre = [&collection_name, &index_name, &properties](proto::milvus::AlterIndexRequest& rpc_request) {
         rpc_request.set_collection_name(collection_name);
         rpc_request.set_index_name(index_name);
         for (const auto& pair : properties) {
@@ -898,7 +878,7 @@ MilvusClientImpl::AlterIndexProperties(const std::string& collection_name, const
             kv_pair->set_value(pair.second);
         }
 
-        return rpc_request;
+        return Status::OK();
     };
 
     return apiHandler<proto::milvus::AlterIndexRequest, proto::common::Status>(pre, &MilvusConnection::AlterIndex);
@@ -907,15 +887,14 @@ MilvusClientImpl::AlterIndexProperties(const std::string& collection_name, const
 Status
 MilvusClientImpl::DropIndexProperties(const std::string& collection_name, const std::string& index_name,
                                       const std::set<std::string>& property_keys) {
-    auto pre = [&collection_name, &index_name, &property_keys]() {
-        proto::milvus::AlterIndexRequest rpc_request;
+    auto pre = [&collection_name, &index_name, &property_keys](proto::milvus::AlterIndexRequest& rpc_request) {
         rpc_request.set_collection_name(collection_name);
         rpc_request.set_index_name(index_name);
         for (const auto& name : property_keys) {
             rpc_request.add_delete_keys(name);
         }
 
-        return rpc_request;
+        return Status::OK();
     };
 
     return apiHandler<proto::milvus::AlterIndexRequest, proto::common::Status>(pre, &MilvusConnection::AlterIndex);
@@ -925,8 +904,8 @@ Status
 MilvusClientImpl::Insert(const std::string& collection_name, const std::string& partition_name,
                          const std::vector<FieldDataPtr>& fields, DmlResults& results) {
     bool enable_dynamic_field;
-    auto validate = [this, &collection_name, &fields, &enable_dynamic_field]() {
-        CollectionDescPtr collection_desc;
+    CollectionDescPtr collection_desc;
+    auto validate = [this, &collection_name, &fields, &enable_dynamic_field, &collection_desc]() {
         auto status = getCollectionDesc(collection_name, false, collection_desc);
         if (!status.IsOk()) {
             return status;
@@ -947,21 +926,37 @@ MilvusClientImpl::Insert(const std::string& collection_name, const std::string& 
         return status;
     };
 
-    auto pre = [&collection_name, &partition_name, &fields, &enable_dynamic_field] {
-        proto::milvus::InsertRequest rpc_request;
+    auto pre = [&collection_name, &partition_name, &fields, &enable_dynamic_field,
+                &collection_desc](proto::milvus::InsertRequest& rpc_request) {
+        const auto& collection_schema = collection_desc->Schema();
+        std::map<std::string, FieldSchema> name_schemas;
+        for (const auto& schema : collection_schema.Fields()) {
+            name_schemas.insert(std::make_pair(schema.Name(), schema));
+        }
 
         auto* mutable_fields = rpc_request.mutable_fields_data();
         rpc_request.set_collection_name(collection_name);
         rpc_request.set_partition_name(partition_name);
         rpc_request.set_num_rows((*fields.front()).Count());
+        rpc_request.set_schema_timestamp(collection_desc->UpdateTime());
         for (const auto& field : fields) {
-            proto::schema::FieldData data = CreateProtoFieldData(*field);
-            if (enable_dynamic_field && field->Name() == DYNAMIC_FIELD) {
-                data.set_is_dynamic(true);
+            FieldSchemaPtr schema_ptr;
+            auto it = name_schemas.find(field->Name());
+            if (it != name_schemas.end()) {
+                schema_ptr = std::make_shared<FieldSchema>(it->second);  // this is a schema copy
             }
-            mutable_fields->Add(std::move(data));
+            FieldDataSchema bridge(field, schema_ptr);
+            proto::schema::FieldData proto_data;
+            auto status = CreateProtoFieldData(bridge, proto_data);
+            if (!status.IsOk()) {
+                return status;
+            }
+            if (enable_dynamic_field && field->Name() == DYNAMIC_FIELD) {
+                proto_data.set_is_dynamic(true);
+            }
+            mutable_fields->Add(std::move(proto_data));
         }
-        return rpc_request;
+        return Status::OK();
     };
 
     auto post = [this, &collection_name, &results](const proto::milvus::MutationResult& response) {
@@ -978,6 +973,7 @@ MilvusClientImpl::Insert(const std::string& collection_name, const std::string& 
             // db_name to UpdateCollectionTs()
             GtsDict::GetInstance().UpdateCollectionTs(currentDbName(""), collection_name, response.timestamp());
         }
+        return Status::OK();
     };
 
     auto status = apiHandler<proto::milvus::InsertRequest, proto::milvus::MutationResult>(
@@ -997,8 +993,8 @@ Status
 MilvusClientImpl::Insert(const std::string& collection_name, const std::string& partition_name, const EntityRows& rows,
                          DmlResults& results) {
     std::vector<proto::schema::FieldData> rpc_fields;
-    auto validate = [this, &collection_name, &rows, &rpc_fields]() {
-        CollectionDescPtr collection_desc;
+    CollectionDescPtr collection_desc;
+    auto validate = [this, &collection_name, &rows, &rpc_fields, &collection_desc]() {
         auto status = getCollectionDesc(collection_name, false, collection_desc);
         if (!status.IsOk()) {
             return status;
@@ -1006,18 +1002,18 @@ MilvusClientImpl::Insert(const std::string& collection_name, const std::string& 
         return CheckAndSetRowData(rows, collection_desc->Schema(), false, rpc_fields);
     };
 
-    auto pre = [&collection_name, &partition_name, &rows, &rpc_fields] {
-        proto::milvus::InsertRequest rpc_request;
-
+    auto pre = [&collection_name, &partition_name, &rows, &rpc_fields,
+                &collection_desc](proto::milvus::InsertRequest& rpc_request) {
         auto* mutable_fields = rpc_request.mutable_fields_data();
         rpc_request.set_collection_name(collection_name);
         rpc_request.set_partition_name(partition_name);
         rpc_request.set_num_rows(static_cast<uint32_t>(rows.size()));
+        rpc_request.set_schema_timestamp(collection_desc->UpdateTime());
         for (auto& field : rpc_fields) {
             mutable_fields->Add(std::move(field));
         }
 
-        return rpc_request;
+        return Status::OK();
     };
 
     auto post = [this, &collection_name, &results](const proto::milvus::MutationResult& response) {
@@ -1034,6 +1030,7 @@ MilvusClientImpl::Insert(const std::string& collection_name, const std::string& 
             // db_name to UpdateCollectionTs()
             GtsDict::GetInstance().UpdateCollectionTs(currentDbName(""), collection_name, response.timestamp());
         }
+        return Status::OK();
     };
 
     auto status = apiHandler<proto::milvus::InsertRequest, proto::milvus::MutationResult>(
@@ -1053,8 +1050,8 @@ Status
 MilvusClientImpl::Upsert(const std::string& collection_name, const std::string& partition_name,
                          const std::vector<FieldDataPtr>& fields, DmlResults& results) {
     bool enable_dynamic_field;
-    auto validate = [this, &collection_name, &fields, &enable_dynamic_field]() {
-        CollectionDescPtr collection_desc;
+    CollectionDescPtr collection_desc;
+    auto validate = [this, &collection_name, &fields, &enable_dynamic_field, &collection_desc]() {
         auto status = getCollectionDesc(collection_name, false, collection_desc);
         if (!status.IsOk()) {
             return status;
@@ -1075,21 +1072,37 @@ MilvusClientImpl::Upsert(const std::string& collection_name, const std::string& 
         return status;
     };
 
-    auto pre = [&collection_name, &partition_name, &fields, &enable_dynamic_field] {
-        proto::milvus::UpsertRequest rpc_request;
+    auto pre = [&collection_name, &partition_name, &fields, &enable_dynamic_field,
+                &collection_desc](proto::milvus::UpsertRequest& rpc_request) {
+        const auto& collection_schema = collection_desc->Schema();
+        std::map<std::string, FieldSchema> name_schemas;
+        for (const auto& schema : collection_schema.Fields()) {
+            name_schemas.insert(std::make_pair(schema.Name(), schema));
+        }
 
         auto* mutable_fields = rpc_request.mutable_fields_data();
         rpc_request.set_collection_name(collection_name);
         rpc_request.set_partition_name(partition_name);
         rpc_request.set_num_rows((*fields.front()).Count());
+        rpc_request.set_schema_timestamp(collection_desc->UpdateTime());
         for (const auto& field : fields) {
-            proto::schema::FieldData data = CreateProtoFieldData(*field);
-            if (enable_dynamic_field && field->Name() == DYNAMIC_FIELD) {
-                data.set_is_dynamic(true);
+            FieldSchemaPtr schema_ptr;
+            auto it = name_schemas.find(field->Name());
+            if (it != name_schemas.end()) {
+                schema_ptr = std::make_shared<FieldSchema>(it->second);  // this is a schema copy
             }
-            mutable_fields->Add(std::move(data));
+            FieldDataSchema bridge(field, schema_ptr);
+            proto::schema::FieldData proto_data;
+            auto status = CreateProtoFieldData(bridge, proto_data);
+            if (!status.IsOk()) {
+                return status;
+            }
+            if (enable_dynamic_field && field->Name() == DYNAMIC_FIELD) {
+                proto_data.set_is_dynamic(true);
+            }
+            mutable_fields->Add(std::move(proto_data));
         }
-        return rpc_request;
+        return Status::OK();
     };
 
     auto post = [this, &collection_name, &results](const proto::milvus::MutationResult& response) {
@@ -1106,6 +1119,7 @@ MilvusClientImpl::Upsert(const std::string& collection_name, const std::string& 
             // db_name to UpdateCollectionTs()
             GtsDict::GetInstance().UpdateCollectionTs(currentDbName(""), collection_name, response.timestamp());
         }
+        return Status::OK();
     };
 
     auto status = apiHandler<proto::milvus::UpsertRequest, proto::milvus::MutationResult>(
@@ -1125,8 +1139,8 @@ Status
 MilvusClientImpl::Upsert(const std::string& collection_name, const std::string& partition_name, const EntityRows& rows,
                          DmlResults& results) {
     std::vector<proto::schema::FieldData> rpc_fields;
-    auto validate = [this, &collection_name, &rows, &rpc_fields]() {
-        CollectionDescPtr collection_desc;
+    CollectionDescPtr collection_desc;
+    auto validate = [this, &collection_name, &rows, &rpc_fields, &collection_desc]() {
         auto status = getCollectionDesc(collection_name, false, collection_desc);
         if (!status.IsOk()) {
             return status;
@@ -1134,17 +1148,17 @@ MilvusClientImpl::Upsert(const std::string& collection_name, const std::string& 
         return CheckAndSetRowData(rows, collection_desc->Schema(), true, rpc_fields);
     };
 
-    auto pre = [&collection_name, &partition_name, &rows, &rpc_fields] {
-        proto::milvus::UpsertRequest rpc_request;
-
+    auto pre = [&collection_name, &partition_name, &rows, &rpc_fields,
+                &collection_desc](proto::milvus::UpsertRequest& rpc_request) {
         auto* mutable_fields = rpc_request.mutable_fields_data();
         rpc_request.set_collection_name(collection_name);
         rpc_request.set_partition_name(partition_name);
         rpc_request.set_num_rows(static_cast<uint32_t>(rows.size()));
+        rpc_request.set_schema_timestamp(collection_desc->UpdateTime());
         for (auto& field : rpc_fields) {
             mutable_fields->Add(std::move(field));
         }
-        return rpc_request;
+        return Status::OK();
     };
 
     auto post = [this, &collection_name, &results](const proto::milvus::MutationResult& response) {
@@ -1161,6 +1175,7 @@ MilvusClientImpl::Upsert(const std::string& collection_name, const std::string& 
             // db_name to UpdateCollectionTs()
             GtsDict::GetInstance().UpdateCollectionTs(currentDbName(""), collection_name, response.timestamp());
         }
+        return Status::OK();
     };
 
     auto status = apiHandler<proto::milvus::UpsertRequest, proto::milvus::MutationResult>(
@@ -1179,12 +1194,11 @@ MilvusClientImpl::Upsert(const std::string& collection_name, const std::string& 
 Status
 MilvusClientImpl::Delete(const std::string& collection_name, const std::string& partition_name,
                          const std::string& expression, DmlResults& results) {
-    auto pre = [&collection_name, &partition_name, &expression]() {
-        proto::milvus::DeleteRequest rpc_request;
+    auto pre = [&collection_name, &partition_name, &expression](proto::milvus::DeleteRequest& rpc_request) {
         rpc_request.set_collection_name(collection_name);
         rpc_request.set_partition_name(partition_name);
         rpc_request.set_expr(expression);
-        return rpc_request;
+        return Status::OK();
     };
 
     auto post = [this, &results, &collection_name](const proto::milvus::MutationResult& response) {
@@ -1198,6 +1212,7 @@ MilvusClientImpl::Delete(const std::string& collection_name, const std::string& 
             // db_name to UpdateCollectionTs()
             GtsDict::GetInstance().UpdateCollectionTs(currentDbName(""), collection_name, response.timestamp());
         }
+        return Status::OK();
     };
 
     return apiHandler<proto::milvus::DeleteRequest, proto::milvus::MutationResult>(pre, &MilvusConnection::Delete,
@@ -1208,11 +1223,10 @@ Status
 MilvusClientImpl::Search(const SearchArguments& arguments, SearchResults& results) {
     auto validate = [&arguments]() { return arguments.Validate(); };
 
-    auto pre = [this, &arguments]() {
-        proto::milvus::SearchRequest rpc_request;
+    auto pre = [this, &arguments](proto::milvus::SearchRequest& rpc_request) {
         auto current_name = currentDbName(arguments.DatabaseName());
         ConvertSearchRequest(arguments, current_name, rpc_request);
-        return rpc_request;
+        return Status::OK();
     };
 
     auto post = [this, &arguments, &results](const proto::milvus::SearchResults& response) {
@@ -1227,7 +1241,7 @@ MilvusClientImpl::Search(const SearchArguments& arguments, SearchResults& result
                 pk_name = collection_desc->Schema().Name();
             }
         }
-        ConvertSearchResults(response, pk_name, results);
+        return ConvertSearchResults(response, pk_name, results);
     };
 
     return apiHandler<proto::milvus::SearchRequest, proto::milvus::SearchResults>(
@@ -1292,11 +1306,10 @@ Status
 MilvusClientImpl::HybridSearch(const HybridSearchArguments& arguments, SearchResults& results) {
     auto validate = [&arguments]() { return arguments.Validate(); };
 
-    auto pre = [this, &arguments]() {
-        proto::milvus::HybridSearchRequest rpc_request;
+    auto pre = [this, &arguments](proto::milvus::HybridSearchRequest& rpc_request) {
         auto current_name = currentDbName(arguments.DatabaseName());
         ConvertHybridSearchRequest(arguments, current_name, rpc_request);
-        return rpc_request;
+        return Status::OK();
     };
 
     auto post = [this, &arguments, &results](const proto::milvus::SearchResults& response) {
@@ -1311,7 +1324,7 @@ MilvusClientImpl::HybridSearch(const HybridSearchArguments& arguments, SearchRes
                 pk_name = collection_desc->Schema().Name();
             }
         }
-        ConvertSearchResults(response, pk_name, results);
+        return ConvertSearchResults(response, pk_name, results);
     };
 
     return apiHandler<proto::milvus::HybridSearchRequest, proto::milvus::SearchResults>(
@@ -1320,14 +1333,15 @@ MilvusClientImpl::HybridSearch(const HybridSearchArguments& arguments, SearchRes
 
 Status
 MilvusClientImpl::Query(const QueryArguments& arguments, QueryResults& results) {
-    auto pre = [this, &arguments]() {
-        proto::milvus::QueryRequest rpc_request;
+    auto pre = [this, &arguments](proto::milvus::QueryRequest& rpc_request) {
         auto current_name = currentDbName(arguments.DatabaseName());
         ConvertQueryRequest(arguments, current_name, rpc_request);
-        return rpc_request;
+        return Status::OK();
     };
 
-    auto post = [&results](const proto::milvus::QueryResults& response) { ConvertQueryResults(response, results); };
+    auto post = [&results](const proto::milvus::QueryResults& response) {
+        return ConvertQueryResults(response, results);
+    };
     return apiHandler<proto::milvus::QueryRequest, proto::milvus::QueryResults>(pre, &MilvusConnection::Query, post);
 }
 
@@ -1349,12 +1363,11 @@ MilvusClientImpl::QueryIterator(QueryIteratorArguments& arguments, QueryIterator
 
 Status
 MilvusClientImpl::Flush(const std::vector<std::string>& collection_names, const ProgressMonitor& progress_monitor) {
-    auto pre = [&collection_names]() {
-        proto::milvus::FlushRequest rpc_request;
+    auto pre = [&collection_names](proto::milvus::FlushRequest& rpc_request) {
         for (const auto& collection_name : collection_names) {
             rpc_request.add_collection_names(collection_name);
         }
-        return rpc_request;
+        return Status::OK();
     };
 
     auto wait_for_status = [this, &progress_monitor](const proto::milvus::FlushResponse& response) {
@@ -1409,15 +1422,17 @@ MilvusClientImpl::Flush(const std::vector<std::string>& collection_names, const 
 
 Status
 MilvusClientImpl::GetFlushState(const std::vector<int64_t>& segments, bool& flushed) {
-    auto pre = [&segments]() {
-        proto::milvus::GetFlushStateRequest rpc_request;
+    auto pre = [&segments](proto::milvus::GetFlushStateRequest& rpc_request) {
         for (auto id : segments) {
             rpc_request.add_segmentids(id);
         }
-        return rpc_request;
+        return Status::OK();
     };
 
-    auto post = [&flushed](const proto::milvus::GetFlushStateResponse& response) { flushed = response.flushed(); };
+    auto post = [&flushed](const proto::milvus::GetFlushStateResponse& response) {
+        flushed = response.flushed();
+        return Status::OK();
+    };
 
     return apiHandler<proto::milvus::GetFlushStateRequest, proto::milvus::GetFlushStateResponse>(
         pre, &MilvusConnection::GetFlushState, post);
@@ -1425,10 +1440,9 @@ MilvusClientImpl::GetFlushState(const std::vector<int64_t>& segments, bool& flus
 
 Status
 MilvusClientImpl::GetPersistentSegmentInfo(const std::string& collection_name, SegmentsInfo& segments_info) {
-    auto pre = [&collection_name] {
-        proto::milvus::GetPersistentSegmentInfoRequest rpc_request;
+    auto pre = [&collection_name](proto::milvus::GetPersistentSegmentInfoRequest& rpc_request) {
         rpc_request.set_collectionname(collection_name);
-        return rpc_request;
+        return Status::OK();
     };
 
     auto post = [&segments_info](const proto::milvus::GetPersistentSegmentInfoResponse& response) {
@@ -1436,6 +1450,7 @@ MilvusClientImpl::GetPersistentSegmentInfo(const std::string& collection_name, S
             segments_info.emplace_back(info.collectionid(), info.partitionid(), info.segmentid(), info.num_rows(),
                                        SegmentStateCast(info.state()));
         }
+        return Status::OK();
     };
 
     return apiHandler<proto::milvus::GetPersistentSegmentInfoRequest, proto::milvus::GetPersistentSegmentInfoResponse>(
@@ -1444,10 +1459,9 @@ MilvusClientImpl::GetPersistentSegmentInfo(const std::string& collection_name, S
 
 Status
 MilvusClientImpl::GetQuerySegmentInfo(const std::string& collection_name, QuerySegmentsInfo& segments_info) {
-    auto pre = [&collection_name] {
-        proto::milvus::GetQuerySegmentInfoRequest rpc_request;
+    auto pre = [&collection_name](proto::milvus::GetQuerySegmentInfoRequest& rpc_request) {
         rpc_request.set_collectionname(collection_name);
-        return rpc_request;
+        return Status::OK();
     };
 
     auto post = [&segments_info](const proto::milvus::GetQuerySegmentInfoResponse& response) {
@@ -1459,6 +1473,7 @@ MilvusClientImpl::GetQuerySegmentInfo(const std::string& collection_name, QueryS
             segments_info.emplace_back(info.collectionid(), info.partitionid(), info.segmentid(), info.num_rows(),
                                        milvus::SegmentStateCast(info.state()), info.index_name(), info.indexid(), ids);
         }
+        return Status::OK();
     };
     return apiHandler<proto::milvus::GetQuerySegmentInfoRequest, proto::milvus::GetQuerySegmentInfoResponse>(
         pre, &MilvusConnection::GetQuerySegmentInfo, post);
@@ -1466,15 +1481,15 @@ MilvusClientImpl::GetQuerySegmentInfo(const std::string& collection_name, QueryS
 
 Status
 MilvusClientImpl::GetMetrics(const std::string& request, std::string& response, std::string& component_name) {
-    auto pre = [&request]() {
-        proto::milvus::GetMetricsRequest rpc_request;
+    auto pre = [&request](proto::milvus::GetMetricsRequest& rpc_request) {
         rpc_request.set_request(request);
-        return rpc_request;
+        return Status::OK();
     };
 
     auto post = [&response, &component_name](const proto::milvus::GetMetricsResponse& rpc_response) {
         response = rpc_response.response();
         component_name = rpc_response.component_name();
+        return Status::OK();
     };
 
     return apiHandler<proto::milvus::GetMetricsRequest, proto::milvus::GetMetricsResponse>(
@@ -1484,8 +1499,7 @@ MilvusClientImpl::GetMetrics(const std::string& request, std::string& response, 
 Status
 MilvusClientImpl::LoadBalance(int64_t src_node, const std::vector<int64_t>& dst_nodes,
                               const std::vector<int64_t>& segments) {
-    auto pre = [src_node, &dst_nodes, &segments] {
-        proto::milvus::LoadBalanceRequest rpc_request;
+    auto pre = [src_node, &dst_nodes, &segments](proto::milvus::LoadBalanceRequest& rpc_request) {
         rpc_request.set_src_nodeid(src_node);
         for (const auto dst_node : dst_nodes) {
             rpc_request.add_dst_nodeids(dst_node);
@@ -1493,7 +1507,7 @@ MilvusClientImpl::LoadBalance(int64_t src_node, const std::vector<int64_t>& dst_
         for (const auto segment : segments) {
             rpc_request.add_sealed_segmentids(segment);
         }
-        return rpc_request;
+        return Status::OK();
     };
 
     return apiHandler<proto::milvus::LoadBalanceRequest, proto::common::Status>(pre, &MilvusConnection::LoadBalance,
@@ -1502,10 +1516,9 @@ MilvusClientImpl::LoadBalance(int64_t src_node, const std::vector<int64_t>& dst_
 
 Status
 MilvusClientImpl::GetCompactionState(int64_t compaction_id, CompactionState& compaction_state) {
-    auto pre = [&compaction_id]() {
-        proto::milvus::GetCompactionStateRequest rpc_request;
+    auto pre = [&compaction_id](proto::milvus::GetCompactionStateRequest& rpc_request) {
         rpc_request.set_compactionid(compaction_id);
-        return rpc_request;
+        return Status::OK();
     };
 
     auto post = [&compaction_state](const proto::milvus::GetCompactionStateResponse& response) {
@@ -1522,6 +1535,7 @@ MilvusClientImpl::GetCompactionState(int64_t compaction_id, CompactionState& com
             default:
                 break;
         }
+        return Status::OK();
     };
 
     return apiHandler<proto::milvus::GetCompactionStateRequest, proto::milvus::GetCompactionStateResponse>(
@@ -1537,15 +1551,15 @@ MilvusClientImpl::ManualCompaction(const std::string& collection_name, uint64_t 
         return status;
     }
 
-    auto pre = [&travel_timestamp, &collection_desc]() {
-        proto::milvus::ManualCompactionRequest rpc_request;
+    auto pre = [&travel_timestamp, &collection_desc](proto::milvus::ManualCompactionRequest& rpc_request) {
         rpc_request.set_collectionid(collection_desc.ID());
         rpc_request.set_timetravel(travel_timestamp);
-        return rpc_request;
+        return Status::OK();
     };
 
     auto post = [&compaction_id](const proto::milvus::ManualCompactionResponse& response) {
         compaction_id = response.compactionid();
+        return Status::OK();
     };
 
     return apiHandler<proto::milvus::ManualCompactionRequest, proto::milvus::ManualCompactionResponse>(
@@ -1554,10 +1568,9 @@ MilvusClientImpl::ManualCompaction(const std::string& collection_name, uint64_t 
 
 Status
 MilvusClientImpl::GetCompactionPlans(int64_t compaction_id, CompactionPlans& plans) {
-    auto pre = [&compaction_id]() {
-        proto::milvus::GetCompactionPlansRequest rpc_request;
+    auto pre = [&compaction_id](proto::milvus::GetCompactionPlansRequest& rpc_request) {
         rpc_request.set_compactionid(compaction_id);
-        return rpc_request;
+        return Status::OK();
     };
 
     auto post = [&plans](const proto::milvus::GetCompactionPlansResponse& response) {
@@ -1568,6 +1581,7 @@ MilvusClientImpl::GetCompactionPlans(int64_t compaction_id, CompactionPlans& pla
             source_ids.insert(source_ids.end(), info.sources().begin(), info.sources().end());
             plans.emplace_back(source_ids, info.target());
         }
+        return Status::OK();
     };
 
     return apiHandler<proto::milvus::GetCompactionPlansRequest, proto::milvus::GetCompactionPlansResponse>(
@@ -1597,14 +1611,13 @@ MilvusClientImpl::ListCredUsers(std::vector<std::string>& users) {
 
 Status
 MilvusClientImpl::CreateResourceGroup(const std::string& name, const ResourceGroupConfig& config) {
-    auto pre = [&name, &config]() {
-        proto::milvus::CreateResourceGroupRequest rpc_request;
+    auto pre = [&name, &config](proto::milvus::CreateResourceGroupRequest& rpc_request) {
         rpc_request.set_resource_group(name);
 
         auto rpc_config = new proto::rg::ResourceGroupConfig{};
         ConvertResourceGroupConfig(config, rpc_config);
         rpc_request.set_allocated_config(rpc_config);
-        return rpc_request;
+        return Status::OK();
     };
 
     return apiHandler<proto::milvus::CreateResourceGroupRequest, proto::common::Status>(
@@ -1613,10 +1626,9 @@ MilvusClientImpl::CreateResourceGroup(const std::string& name, const ResourceGro
 
 Status
 MilvusClientImpl::DropResourceGroup(const std::string& name) {
-    auto pre = [&name]() {
-        proto::milvus::DropResourceGroupRequest rpc_request;
+    auto pre = [&name](proto::milvus::DropResourceGroupRequest& rpc_request) {
         rpc_request.set_resource_group(name);
-        return rpc_request;
+        return Status::OK();
     };
 
     return apiHandler<proto::milvus::DropResourceGroupRequest, proto::common::Status>(
@@ -1625,14 +1637,13 @@ MilvusClientImpl::DropResourceGroup(const std::string& name) {
 
 Status
 MilvusClientImpl::UpdateResourceGroups(const std::unordered_map<std::string, ResourceGroupConfig>& groups) {
-    auto pre = [&groups]() {
-        proto::milvus::UpdateResourceGroupsRequest rpc_request;
+    auto pre = [&groups](proto::milvus::UpdateResourceGroupsRequest& rpc_request) {
         for (const auto& pair : groups) {
             proto::rg::ResourceGroupConfig rpc_config;
             ConvertResourceGroupConfig(pair.second, &rpc_config);
             rpc_request.mutable_resource_groups()->insert(std::make_pair(pair.first, rpc_config));
         }
-        return rpc_request;
+        return Status::OK();
     };
 
     return apiHandler<proto::milvus::UpdateResourceGroupsRequest, proto::common::Status>(
@@ -1641,12 +1652,11 @@ MilvusClientImpl::UpdateResourceGroups(const std::unordered_map<std::string, Res
 
 Status
 MilvusClientImpl::TransferNode(const std::string& source_group, const std::string& target_group, uint32_t num_nodes) {
-    auto pre = [&source_group, &target_group, &num_nodes]() {
-        proto::milvus::TransferNodeRequest rpc_request;
+    auto pre = [&source_group, &target_group, &num_nodes](proto::milvus::TransferNodeRequest& rpc_request) {
         rpc_request.set_source_resource_group(source_group);
         rpc_request.set_target_resource_group(target_group);
         rpc_request.set_num_node(num_nodes);
-        return rpc_request;
+        return Status::OK();
     };
 
     return apiHandler<proto::milvus::TransferNodeRequest, proto::common::Status>(pre, &MilvusConnection::TransferNode,
@@ -1656,13 +1666,13 @@ MilvusClientImpl::TransferNode(const std::string& source_group, const std::strin
 Status
 MilvusClientImpl::TransferReplica(const std::string& source_group, const std::string& target_group,
                                   const std::string& collection_name, uint32_t num_replicas) {
-    auto pre = [&source_group, &target_group, &collection_name, &num_replicas]() {
-        proto::milvus::TransferReplicaRequest rpc_request;
+    auto pre = [&source_group, &target_group, &collection_name,
+                &num_replicas](proto::milvus::TransferReplicaRequest& rpc_request) {
         rpc_request.set_source_resource_group(source_group);
         rpc_request.set_target_resource_group(target_group);
         rpc_request.set_collection_name(collection_name);
         rpc_request.set_num_replica(num_replicas);
-        return rpc_request;
+        return Status::OK();
     };
 
     return apiHandler<proto::milvus::TransferReplicaRequest, proto::common::Status>(
@@ -1671,27 +1681,22 @@ MilvusClientImpl::TransferReplica(const std::string& source_group, const std::st
 
 Status
 MilvusClientImpl::ListResourceGroups(std::vector<std::string>& group_names) {
-    auto pre = []() {
-        proto::milvus::ListResourceGroupsRequest rpc_request;
-        return rpc_request;
-    };
-
     auto post = [&group_names](const proto::milvus::ListResourceGroupsResponse& response) {
         group_names.clear();
         for (const auto& group : response.resource_groups()) {
             group_names.push_back(group);
         }
+        return Status::OK();
     };
     return apiHandler<proto::milvus::ListResourceGroupsRequest, proto::milvus::ListResourceGroupsResponse>(
-        pre, &MilvusConnection::ListResourceGroups, post);
+        nullptr, &MilvusConnection::ListResourceGroups, post);
 }
 
 Status
 MilvusClientImpl::DescribeResourceGroup(const std::string& group_name, ResourceGroupDesc& desc) {
-    auto pre = [&group_name]() {
-        proto::milvus::DescribeResourceGroupRequest rpc_request;
+    auto pre = [&group_name](proto::milvus::DescribeResourceGroupRequest& rpc_request) {
         rpc_request.set_resource_group(group_name);
-        return rpc_request;
+        return Status::OK();
     };
 
     auto post = [&desc](const proto::milvus::DescribeResourceGroupResponse& response) {
@@ -1717,6 +1722,7 @@ MilvusClientImpl::DescribeResourceGroup(const std::string& group_name, ResourceG
         for (const auto& info : group.nodes()) {
             desc.AddNode({info.node_id(), info.address(), info.hostname()});
         }
+        return Status::OK();
     };
     return apiHandler<proto::milvus::DescribeResourceGroupRequest, proto::milvus::DescribeResourceGroupResponse>(
         pre, &MilvusConnection::DescribeResourceGroup, post);
@@ -1724,11 +1730,10 @@ MilvusClientImpl::DescribeResourceGroup(const std::string& group_name, ResourceG
 
 Status
 MilvusClientImpl::CreateUser(const std::string& user_name, const std::string& password) {
-    auto pre = [&user_name, &password]() {
-        proto::milvus::CreateCredentialRequest rpc_request;
+    auto pre = [&user_name, &password](proto::milvus::CreateCredentialRequest& rpc_request) {
         rpc_request.set_username(user_name);
         rpc_request.set_password(milvus::Base64Encode(password));
-        return rpc_request;
+        return Status::OK();
     };
 
     return apiHandler<proto::milvus::CreateCredentialRequest, proto::common::Status>(
@@ -1738,12 +1743,11 @@ MilvusClientImpl::CreateUser(const std::string& user_name, const std::string& pa
 Status
 MilvusClientImpl::UpdatePassword(const std::string& user_name, const std::string& old_password,
                                  const std::string& new_password) {
-    auto pre = [&user_name, &old_password, &new_password]() {
-        proto::milvus::UpdateCredentialRequest rpc_request;
+    auto pre = [&user_name, &old_password, &new_password](proto::milvus::UpdateCredentialRequest& rpc_request) {
         rpc_request.set_username(user_name);
         rpc_request.set_oldpassword(milvus::Base64Encode(old_password));
         rpc_request.set_newpassword(milvus::Base64Encode(new_password));
-        return rpc_request;
+        return Status::OK();
     };
 
     return apiHandler<proto::milvus::UpdateCredentialRequest, proto::common::Status>(
@@ -1752,10 +1756,9 @@ MilvusClientImpl::UpdatePassword(const std::string& user_name, const std::string
 
 Status
 MilvusClientImpl::DropUser(const std::string& user_name) {
-    auto pre = [&user_name]() {
-        proto::milvus::DeleteCredentialRequest rpc_request;
+    auto pre = [&user_name](proto::milvus::DeleteCredentialRequest& rpc_request) {
         rpc_request.set_username(user_name);
-        return rpc_request;
+        return Status::OK();
     };
 
     return apiHandler<proto::milvus::DeleteCredentialRequest, proto::common::Status>(
@@ -1764,11 +1767,10 @@ MilvusClientImpl::DropUser(const std::string& user_name) {
 
 Status
 MilvusClientImpl::DescribeUser(const std::string& user_name, UserDesc& desc) {
-    auto pre = [&user_name]() {
-        proto::milvus::SelectUserRequest rpc_request;
+    auto pre = [&user_name](proto::milvus::SelectUserRequest& rpc_request) {
         rpc_request.mutable_user()->set_name(user_name);
         rpc_request.set_include_role_info(true);
-        return rpc_request;
+        return Status::OK();
     };
 
     auto post = [&user_name, &desc](const proto::milvus::SelectUserResponse& response) {
@@ -1779,6 +1781,7 @@ MilvusClientImpl::DescribeUser(const std::string& user_name, UserDesc& desc) {
                 desc.AddRole(role.name());
             }
         }
+        return Status::OK();
     };
 
     return apiHandler<proto::milvus::SelectUserRequest, proto::milvus::SelectUserResponse>(
@@ -1787,28 +1790,23 @@ MilvusClientImpl::DescribeUser(const std::string& user_name, UserDesc& desc) {
 
 Status
 MilvusClientImpl::ListUsers(std::vector<std::string>& names) {
-    auto pre = []() {
-        proto::milvus::ListCredUsersRequest rpc_request;
-        return rpc_request;
-    };
-
     auto post = [&names](const proto::milvus::ListCredUsersResponse& response) {
         names.clear();
         for (const auto& user : response.usernames()) {
             names.emplace_back(user);
         }
+        return Status::OK();
     };
 
     return apiHandler<proto::milvus::ListCredUsersRequest, proto::milvus::ListCredUsersResponse>(
-        pre, &MilvusConnection::ListCredUsers, post);
+        nullptr, &MilvusConnection::ListCredUsers, post);
 }
 
 Status
 MilvusClientImpl::CreateRole(const std::string& role_name) {
-    auto pre = [&role_name]() {
-        proto::milvus::CreateRoleRequest rpc_request;
+    auto pre = [&role_name](proto::milvus::CreateRoleRequest& rpc_request) {
         rpc_request.mutable_entity()->set_name(role_name);
-        return rpc_request;
+        return Status::OK();
     };
 
     return apiHandler<proto::milvus::CreateRoleRequest, proto::common::Status>(pre, &MilvusConnection::CreateRole,
@@ -1817,11 +1815,10 @@ MilvusClientImpl::CreateRole(const std::string& role_name) {
 
 Status
 MilvusClientImpl::DropRole(const std::string& role_name, bool force_drop) {
-    auto pre = [&role_name, &force_drop]() {
-        proto::milvus::DropRoleRequest rpc_request;
+    auto pre = [&role_name, &force_drop](proto::milvus::DropRoleRequest& rpc_request) {
         rpc_request.set_role_name(role_name);
         rpc_request.set_force_drop(force_drop);
-        return rpc_request;
+        return Status::OK();
     };
 
     return apiHandler<proto::milvus::DropRoleRequest, proto::common::Status>(pre, &MilvusConnection::DropRole, nullptr);
@@ -1829,10 +1826,9 @@ MilvusClientImpl::DropRole(const std::string& role_name, bool force_drop) {
 
 Status
 MilvusClientImpl::DescribeRole(const std::string& role_name, RoleDesc& desc) {
-    auto pre = [&role_name]() {
-        proto::milvus::SelectGrantRequest rpc_request;
+    auto pre = [&role_name](proto::milvus::SelectGrantRequest& rpc_request) {
         rpc_request.mutable_entity()->mutable_role()->set_name(role_name);
-        return rpc_request;
+        return Status::OK();
     };
 
     auto post = [&role_name, &desc](const proto::milvus::SelectGrantResponse& response) {
@@ -1841,6 +1837,7 @@ MilvusClientImpl::DescribeRole(const std::string& role_name, RoleDesc& desc) {
             desc.AddGrantItem({entity.object().name(), entity.object_name(), entity.db_name(), entity.role().name(),
                                entity.grantor().user().name(), entity.grantor().privilege().name()});
         }
+        return Status::OK();
     };
 
     return apiHandler<proto::milvus::SelectGrantRequest, proto::milvus::SelectGrantResponse>(
@@ -1849,10 +1846,9 @@ MilvusClientImpl::DescribeRole(const std::string& role_name, RoleDesc& desc) {
 
 Status
 MilvusClientImpl::ListRoles(std::vector<std::string>& names) {
-    auto pre = []() {
-        proto::milvus::SelectRoleRequest rpc_request;
+    auto pre = [](proto::milvus::SelectRoleRequest& rpc_request) {
         rpc_request.set_include_user_info(false);
-        return rpc_request;
+        return Status::OK();
     };
 
     auto post = [&names](const proto::milvus::SelectRoleResponse& response) {
@@ -1860,6 +1856,7 @@ MilvusClientImpl::ListRoles(std::vector<std::string>& names) {
         for (const auto& result : response.results()) {
             names.push_back(result.role().name());
         }
+        return Status::OK();
     };
 
     return apiHandler<proto::milvus::SelectRoleRequest, proto::milvus::SelectRoleResponse>(
@@ -1868,12 +1865,11 @@ MilvusClientImpl::ListRoles(std::vector<std::string>& names) {
 
 Status
 MilvusClientImpl::GrantRole(const std::string& user_name, const std::string& role_name) {
-    auto pre = [&user_name, &role_name]() {
-        proto::milvus::OperateUserRoleRequest rpc_request;
+    auto pre = [&user_name, &role_name](proto::milvus::OperateUserRoleRequest& rpc_request) {
         rpc_request.set_username(user_name);
         rpc_request.set_role_name(role_name);
         rpc_request.set_type(proto::milvus::OperateUserRoleType::AddUserToRole);
-        return rpc_request;
+        return Status::OK();
     };
 
     return apiHandler<proto::milvus::OperateUserRoleRequest, proto::common::Status>(
@@ -1882,12 +1878,11 @@ MilvusClientImpl::GrantRole(const std::string& user_name, const std::string& rol
 
 Status
 MilvusClientImpl::RevokeRole(const std::string& user_name, const std::string& role_name) {
-    auto pre = [&user_name, &role_name]() {
-        proto::milvus::OperateUserRoleRequest rpc_request;
+    auto pre = [&user_name, &role_name](proto::milvus::OperateUserRoleRequest& rpc_request) {
         rpc_request.set_username(user_name);
         rpc_request.set_role_name(role_name);
         rpc_request.set_type(proto::milvus::OperateUserRoleType::RemoveUserFromRole);
-        return rpc_request;
+        return Status::OK();
     };
 
     return apiHandler<proto::milvus::OperateUserRoleRequest, proto::common::Status>(
@@ -1897,14 +1892,14 @@ MilvusClientImpl::RevokeRole(const std::string& user_name, const std::string& ro
 Status
 MilvusClientImpl::GrantPrivilege(const std::string& role_name, const std::string& privilege,
                                  const std::string& collection_name, const std::string& db_name) {
-    auto pre = [&role_name, &privilege, &collection_name, &db_name]() {
-        proto::milvus::OperatePrivilegeV2Request rpc_request;
+    auto pre = [&role_name, &privilege, &collection_name,
+                &db_name](proto::milvus::OperatePrivilegeV2Request& rpc_request) {
         rpc_request.mutable_role()->set_name(role_name);
         rpc_request.mutable_grantor()->mutable_privilege()->set_name(privilege);
         rpc_request.set_type(proto::milvus::OperatePrivilegeType::Grant);
         rpc_request.set_collection_name(collection_name);
         rpc_request.set_db_name(db_name);
-        return rpc_request;
+        return Status::OK();
     };
 
     return apiHandler<proto::milvus::OperatePrivilegeV2Request, proto::common::Status>(
@@ -1914,14 +1909,14 @@ MilvusClientImpl::GrantPrivilege(const std::string& role_name, const std::string
 Status
 MilvusClientImpl::RevokePrivilege(const std::string& role_name, const std::string& privilege,
                                   const std::string& collection_name, const std::string& db_name) {
-    auto pre = [&role_name, &privilege, &collection_name, &db_name]() {
-        proto::milvus::OperatePrivilegeV2Request rpc_request;
+    auto pre = [&role_name, &privilege, &collection_name,
+                &db_name](proto::milvus::OperatePrivilegeV2Request& rpc_request) {
         rpc_request.mutable_role()->set_name(role_name);
         rpc_request.mutable_grantor()->mutable_privilege()->set_name(privilege);
         rpc_request.set_type(proto::milvus::OperatePrivilegeType::Revoke);
         rpc_request.set_collection_name(collection_name);
         rpc_request.set_db_name(db_name);
-        return rpc_request;
+        return Status::OK();
     };
 
     return apiHandler<proto::milvus::OperatePrivilegeV2Request, proto::common::Status>(
@@ -1930,10 +1925,9 @@ MilvusClientImpl::RevokePrivilege(const std::string& role_name, const std::strin
 
 Status
 MilvusClientImpl::CreatePrivilegeGroup(const std::string& group_name) {
-    auto pre = [&group_name]() {
-        proto::milvus::CreatePrivilegeGroupRequest rpc_request;
+    auto pre = [&group_name](proto::milvus::CreatePrivilegeGroupRequest& rpc_request) {
         rpc_request.set_group_name(group_name);
-        return rpc_request;
+        return Status::OK();
     };
 
     return apiHandler<proto::milvus::CreatePrivilegeGroupRequest, proto::common::Status>(
@@ -1942,10 +1936,9 @@ MilvusClientImpl::CreatePrivilegeGroup(const std::string& group_name) {
 
 Status
 MilvusClientImpl::DropPrivilegeGroup(const std::string& group_name) {
-    auto pre = [&group_name]() {
-        proto::milvus::DropPrivilegeGroupRequest rpc_request;
+    auto pre = [&group_name](proto::milvus::DropPrivilegeGroupRequest& rpc_request) {
         rpc_request.set_group_name(group_name);
-        return rpc_request;
+        return Status::OK();
     };
 
     return apiHandler<proto::milvus::DropPrivilegeGroupRequest, proto::common::Status>(
@@ -1954,11 +1947,6 @@ MilvusClientImpl::DropPrivilegeGroup(const std::string& group_name) {
 
 Status
 MilvusClientImpl::ListPrivilegeGroups(PrivilegeGroupInfos& groups) {
-    auto pre = []() {
-        proto::milvus::ListPrivilegeGroupsRequest rpc_request;
-        return rpc_request;
-    };
-
     auto post = [&groups](const proto::milvus::ListPrivilegeGroupsResponse& response) {
         groups.clear();
         for (const auto& result : response.privilege_groups()) {
@@ -1968,23 +1956,23 @@ MilvusClientImpl::ListPrivilegeGroups(PrivilegeGroupInfos& groups) {
             }
             groups.emplace_back(result.group_name(), std::move(privileges));
         }
+        return Status::OK();
     };
 
     return apiHandler<proto::milvus::ListPrivilegeGroupsRequest, proto::milvus::ListPrivilegeGroupsResponse>(
-        pre, &MilvusConnection::ListPrivilegeGroups, post);
+        nullptr, &MilvusConnection::ListPrivilegeGroups, post);
 }
 
 Status
 MilvusClientImpl::AddPrivilegesToGroup(const std::string& group_name, const std::vector<std::string>& privileges) {
-    auto pre = [&group_name, &privileges]() {
-        proto::milvus::OperatePrivilegeGroupRequest rpc_request;
+    auto pre = [&group_name, &privileges](proto::milvus::OperatePrivilegeGroupRequest& rpc_request) {
         rpc_request.set_group_name(group_name);
         for (const auto& privilege : privileges) {
             auto rpc_privilege = rpc_request.mutable_privileges()->Add();
             rpc_privilege->set_name(privilege);
         }
         rpc_request.set_type(proto::milvus::OperatePrivilegeGroupType::AddPrivilegesToGroup);
-        return rpc_request;
+        return Status::OK();
     };
 
     return apiHandler<proto::milvus::OperatePrivilegeGroupRequest, proto::common::Status>(
@@ -1993,15 +1981,14 @@ MilvusClientImpl::AddPrivilegesToGroup(const std::string& group_name, const std:
 
 Status
 MilvusClientImpl::RemovePrivilegesFromGroup(const std::string& group_name, const std::vector<std::string>& privileges) {
-    auto pre = [&group_name, &privileges]() {
-        proto::milvus::OperatePrivilegeGroupRequest rpc_request;
+    auto pre = [&group_name, &privileges](proto::milvus::OperatePrivilegeGroupRequest& rpc_request) {
         rpc_request.set_group_name(group_name);
         for (const auto& privilege : privileges) {
             auto rpc_privilege = rpc_request.mutable_privileges()->Add();
             rpc_privilege->set_name(privilege);
         }
         rpc_request.set_type(proto::milvus::OperatePrivilegeGroupType::RemovePrivilegesFromGroup);
-        return rpc_request;
+        return Status::OK();
     };
 
     return apiHandler<proto::milvus::OperatePrivilegeGroupRequest, proto::common::Status>(
@@ -2071,15 +2058,16 @@ MilvusClientImpl::WaitForStatus(const std::function<Status(Progress&)>& query_fu
 }
 
 Status
-MilvusClientImpl::getCollectionDesc(const std::string& collection_name, bool forceUpdate, CollectionDescPtr& descPtr) {
+MilvusClientImpl::getCollectionDesc(const std::string& collection_name, bool force_update,
+                                    CollectionDescPtr& desc_ptr) {
     // this lock locks the entire section, including the call of DescribeCollection()
     // the reason is: describeCollection() could be limited by server-side(DDL request throttling is enabled)
     // we don't intend to allow too many threads run into describeCollection() in this method
     std::lock_guard<std::mutex> lock(collection_desc_cache_mtx_);
     auto it = collection_desc_cache_.find(collection_name);
     if (it != collection_desc_cache_.end()) {
-        if (it->second != nullptr && !forceUpdate) {
-            descPtr = it->second;
+        if (it->second != nullptr && !force_update) {
+            desc_ptr = it->second;
             return Status::OK();
         }
     }
@@ -2087,8 +2075,8 @@ MilvusClientImpl::getCollectionDesc(const std::string& collection_name, bool for
     CollectionDesc desc;
     auto status = DescribeCollection(collection_name, desc);
     if (status.IsOk()) {
-        descPtr = std::make_shared<CollectionDesc>(desc);
-        collection_desc_cache_[collection_name] = descPtr;
+        desc_ptr = std::make_shared<CollectionDesc>(desc);
+        collection_desc_cache_[collection_name] = desc_ptr;
         return status;
     }
     return status;

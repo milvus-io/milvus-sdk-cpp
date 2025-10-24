@@ -27,11 +27,12 @@
 #include "schema.pb.h"
 
 namespace milvus {
-FieldDataPtr
-CreateMilvusFieldData(const proto::schema::FieldData& field_data, size_t offset, size_t count);
+Status
+CreateMilvusFieldData(const proto::schema::FieldData& proto_data, size_t offset, size_t count,
+                      FieldDataPtr& field_data);
 
-FieldDataPtr
-CreateMilvusFieldData(const proto::schema::FieldData& field_data);
+Status
+CreateMilvusFieldData(const proto::schema::FieldData& proto_data, FieldDataPtr& field_data);
 
 FieldDataPtr
 CreateIDField(const std::string& name, const proto::schema::IDs& ids, size_t offset, size_t size);
@@ -39,7 +40,7 @@ CreateIDField(const std::string& name, const proto::schema::IDs& ids, size_t off
 FieldDataPtr
 CreateScoreField(const std::string& name, const proto::schema::SearchResultData& data, size_t offset, size_t size);
 
-void
+Status
 SetTargetVectors(const FieldDataPtr& vectors, milvus::proto::milvus::SearchRequest* rpc_request);
 
 void

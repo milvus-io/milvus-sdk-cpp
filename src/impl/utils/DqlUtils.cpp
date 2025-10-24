@@ -53,6 +53,12 @@ std::vector<SparseFloatVecFieldData::ElementT>
 BuildFieldDataSparseVectors(const google::protobuf::RepeatedPtrField<std::string>& vector_data, size_t offset,
                             size_t count) {
     std::vector<SparseFloatVecFieldData::ElementT> data{};
+    if (vector_data.empty() || offset > vector_data.size() || count == 0) {
+        return data;
+    }
+    if (offset + count > vector_data.size()) {
+        count = vector_data.size() - offset;
+    }
     data.reserve(count);
     auto cursor = vector_data.begin();
     std::advance(cursor, offset);
@@ -68,13 +74,25 @@ BuildFieldDataSparseVectors(const google::protobuf::RepeatedPtrField<std::string
 
 template <typename T, typename V>
 std::vector<std::vector<T>>
-BuildFieldDataVectors(size_t out_len, size_t in_len, const V* vectors_data, size_t offset, size_t count) {
+BuildFieldDataVectors(size_t bytes_per_vec, const V* vectors_data, size_t data_len, size_t offset, size_t count) {
     std::vector<std::vector<T>> data{};
+    if (bytes_per_vec == 0 || data_len == 0 || count == 0) {
+        return data;
+    }
+    size_t data_cnt = data_len * sizeof(V) / bytes_per_vec;
+    if (offset > data_cnt) {
+        return data;
+    }
+    if (offset + count > data_cnt) {
+        count = data_cnt - offset;
+    }
     data.reserve(count);
+    size_t t_len = bytes_per_vec / sizeof(T);
+    size_t v_len = bytes_per_vec / sizeof(V);
     for (size_t i = offset; i < offset + count; i++) {
         std::vector<T> item{};
-        item.resize(out_len);
-        std::memcpy(item.data(), vectors_data + i * in_len, in_len * sizeof(V));
+        item.resize(t_len);
+        std::memcpy(item.data(), vectors_data + i * v_len, bytes_per_vec);
         data.emplace_back(std::move(item));
     }
     return data;
@@ -84,10 +102,16 @@ template <typename T, typename ScalarData>
 std::vector<T>
 BuildFieldDataScalars(const ScalarData& scalar_data, size_t offset, size_t count) {
     std::vector<T> data{};
+    if (offset >= scalar_data.size()) {
+        return data;
+    }
     data.reserve(count);
     auto begin = scalar_data.begin();
     std::advance(begin, offset);
     auto end = begin;
+    if (offset + count > scalar_data.size()) {
+        count = scalar_data.size() - offset;
+    }
     std::advance(end, count);
     std::copy(begin, end, std::back_inserter(data));
     return data;
@@ -99,265 +123,285 @@ BuildFieldDataScalars(const ScalarData& scalar_data) {
     return BuildFieldDataScalars<T>(scalar_data, 0, scalar_data.size());
 }
 
-FieldDataPtr
-BuildMilvusArrayFieldData(const std::string& name, const milvus::proto::schema::ArrayArray& array_field, int offset,
-                          int count) {
+Status
+BuildMilvusArrayFieldData(const std::string& name, const milvus::proto::schema::ArrayArray& array_field,
+                          std::vector<bool>&& valid_data, size_t offset, size_t count, FieldDataPtr& field_data) {
+    field_data = nullptr;
     const auto& scalars_data = array_field.data();
+    const auto head = scalars_data.begin();
+    const auto total = scalars_data.size();
     auto begin = scalars_data.begin();
-    if (offset < 0) {
-        offset = 0;
-    }
     std::advance(begin, offset);
     auto end = begin;
-    // avoid overflow
-    int arr_size = scalars_data.size();
-    if (offset < arr_size) {
-        if (offset + count > arr_size) {
-            count = arr_size - offset;
-        }
-        if (count > 0) {
-            std::advance(end, count);
-        }
-    }
+    std::advance(end, count);
 
+    std::string field_name = name;
     proto::schema::DataType element_type = array_field.element_type();
     switch (element_type) {
         case proto::schema::DataType::Bool: {
             std::vector<ArrayBoolFieldData::ElementT> arr;
-            for (; begin != end; begin++) {
+            for (; begin != end && std::distance(head, begin) < total; begin++) {
                 arr.emplace_back(std::move(BuildFieldDataScalars<bool>((*begin).bool_data().data())));
             }
-            return std::make_shared<ArrayBoolFieldData>(name, arr);
+            field_data =
+                std::make_shared<ArrayBoolFieldData>(std::move(field_name), std::move(arr), std::move(valid_data));
+            return Status::OK();
         }
         case proto::schema::DataType::Int8: {
             std::vector<ArrayInt8FieldData::ElementT> arr;
-            for (; begin != end; begin++) {
+            for (; begin != end && std::distance(head, begin) < total; begin++) {
                 arr.emplace_back(std::move(BuildFieldDataScalars<int8_t>((*begin).int_data().data())));
             }
-            return std::make_shared<ArrayInt8FieldData>(name, arr);
+            field_data =
+                std::make_shared<ArrayInt8FieldData>(std::move(field_name), std::move(arr), std::move(valid_data));
+            return Status::OK();
         }
         case proto::schema::DataType::Int16: {
             std::vector<ArrayInt16FieldData::ElementT> arr;
-            for (; begin != end; begin++) {
+            for (; begin != end && std::distance(head, begin) < total; begin++) {
                 arr.emplace_back(std::move(BuildFieldDataScalars<int16_t>((*begin).int_data().data())));
             }
-            return std::make_shared<ArrayInt16FieldData>(name, arr);
+            field_data =
+                std::make_shared<ArrayInt16FieldData>(std::move(field_name), std::move(arr), std::move(valid_data));
+            return Status::OK();
         }
         case proto::schema::DataType::Int32: {
             std::vector<ArrayInt32FieldData::ElementT> arr;
-            for (; begin != end; begin++) {
+            for (; begin != end && std::distance(head, begin) < total; begin++) {
                 arr.emplace_back(std::move(BuildFieldDataScalars<int32_t>((*begin).int_data().data())));
             }
-            return std::make_shared<ArrayInt32FieldData>(name, arr);
+            field_data =
+                std::make_shared<ArrayInt32FieldData>(std::move(field_name), std::move(arr), std::move(valid_data));
+            return Status::OK();
         }
         case proto::schema::DataType::Int64: {
             std::vector<ArrayInt64FieldData::ElementT> arr;
-            for (; begin != end; begin++) {
+            for (; begin != end && std::distance(head, begin) < total; begin++) {
                 arr.emplace_back(std::move(BuildFieldDataScalars<int64_t>((*begin).long_data().data())));
             }
-            return std::make_shared<ArrayInt64FieldData>(name, arr);
+            field_data =
+                std::make_shared<ArrayInt64FieldData>(std::move(field_name), std::move(arr), std::move(valid_data));
+            return Status::OK();
         }
         case proto::schema::DataType::Float: {
             std::vector<ArrayFloatFieldData::ElementT> arr;
-            for (; begin != end; begin++) {
+            for (; begin != end && std::distance(head, begin) < total; begin++) {
                 arr.emplace_back(std::move(BuildFieldDataScalars<float>((*begin).float_data().data())));
             }
-            return std::make_shared<ArrayFloatFieldData>(name, arr);
+            field_data =
+                std::make_shared<ArrayFloatFieldData>(std::move(field_name), std::move(arr), std::move(valid_data));
+            return Status::OK();
         }
         case proto::schema::DataType::Double: {
             std::vector<ArrayDoubleFieldData::ElementT> arr;
-            for (; begin != end; begin++) {
+            for (; begin != end && std::distance(head, begin) < total; begin++) {
                 arr.emplace_back(std::move(BuildFieldDataScalars<double>((*begin).double_data().data())));
             }
-            return std::make_shared<ArrayDoubleFieldData>(name, arr);
+            field_data =
+                std::make_shared<ArrayDoubleFieldData>(std::move(field_name), std::move(arr), std::move(valid_data));
+            return Status::OK();
         }
         case proto::schema::DataType::VarChar: {
             std::vector<ArrayVarCharFieldData::ElementT> arr;
-            for (; begin != end; begin++) {
+            for (; begin != end && std::distance(head, begin) < total; begin++) {
                 arr.emplace_back(std::move(BuildFieldDataScalars<std::string>((*begin).string_data().data())));
             }
-            return std::make_shared<ArrayVarCharFieldData>(name, arr);
+            field_data =
+                std::make_shared<ArrayVarCharFieldData>(std::move(field_name), std::move(arr), std::move(valid_data));
+            return Status::OK();
         }
         default:
-            return nullptr;
+            return {StatusCode::NOT_SUPPORTED, "Unsupported array element type: " + std::to_string(element_type)};
     }
 }
 
-FieldDataPtr
-CreateMilvusFieldData(const milvus::proto::schema::FieldData& field_data, size_t offset, size_t count) {
-    auto field_type = field_data.type();
-    const auto& name = field_data.field_name();
+Status
+GetValidData(const google::protobuf::RepeatedField<bool>& proto_valid, size_t offset, size_t count,
+             std::vector<bool>& valid_data) {
+    valid_data.clear();
+    if (proto_valid.empty()) {
+        return Status::OK();
+    }
+    const bool* valid_begin = proto_valid.data();
+    if (valid_begin != nullptr && offset < proto_valid.size()) {
+        if (offset + count > proto_valid.size()) {
+            count = proto_valid.size() - offset;
+        }
+        valid_begin = valid_begin + offset;
+        valid_data = std::vector<bool>(valid_begin, valid_begin + count);
+    }
+    return Status::OK();
+}
+
+Status
+CreateMilvusFieldData(const milvus::proto::schema::FieldData& proto_data, size_t offset, size_t count,
+                      FieldDataPtr& field_data) {
+    field_data = nullptr;
+    auto field_type = proto_data.type();
+    std::string name = proto_data.field_name();
+    const auto& proto_vectors = proto_data.vectors();
+    const auto& proto_scalars = proto_data.scalars();
+    const auto& proto_valid = proto_data.valid_data();
+    std::vector<bool> valid_data;
+    GetValidData(proto_valid, offset, count, valid_data);
 
     switch (field_type) {
         case proto::schema::DataType::BinaryVector: {
-            size_t len = field_data.vectors().dim() / 8;
-            std::vector<std::vector<uint8_t>> vectors = BuildFieldDataVectors<uint8_t, char>(
-                len, len, field_data.vectors().binary_vector().data(), offset, count);
-            return std::make_shared<BinaryVecFieldData>(name, std::move(vectors));
+            const auto& str = proto_vectors.binary_vector();
+            std::vector<BinaryVecFieldData::ElementT> vectors =
+                BuildFieldDataVectors<uint8_t, char>(proto_vectors.dim() / 8, str.data(), str.size(), offset, count);
+            field_data =
+                std::make_shared<BinaryVecFieldData>(std::move(name), std::move(vectors), std::move(valid_data));
+            return Status::OK();
         }
         case proto::schema::DataType::FloatVector: {
-            size_t len = field_data.vectors().dim();
+            const auto& floats = proto_vectors.float_vector().data();
             std::vector<FloatVecFieldData::ElementT> vectors = BuildFieldDataVectors<float, float>(
-                len, len, field_data.vectors().float_vector().data().data(), offset, count);
-            return std::make_shared<FloatVecFieldData>(name, std::move(vectors));
+                proto_vectors.dim() * 4, floats.data(), floats.size(), offset, count);
+            field_data =
+                std::make_shared<FloatVecFieldData>(std::move(name), std::move(vectors), std::move(valid_data));
+            return Status::OK();
         }
         case proto::schema::DataType::Float16Vector: {
-            size_t out_len = field_data.vectors().dim();
-            size_t in_len = field_data.vectors().dim() * 2;
-            std::vector<Float16VecFieldData::ElementT> vectors = BuildFieldDataVectors<uint16_t, char>(
-                out_len, in_len, field_data.vectors().float16_vector().data(), offset, count);
-            return std::make_shared<Float16VecFieldData>(name, std::move(vectors));
+            const auto& str = proto_vectors.float16_vector();
+            std::vector<Float16VecFieldData::ElementT> vectors =
+                BuildFieldDataVectors<uint16_t, char>(proto_vectors.dim() * 2, str.data(), str.size(), offset, count);
+            field_data =
+                std::make_shared<Float16VecFieldData>(std::move(name), std::move(vectors), std::move(valid_data));
+            return Status::OK();
         }
         case proto::schema::DataType::BFloat16Vector: {
-            size_t out_len = field_data.vectors().dim();
-            size_t in_len = field_data.vectors().dim() * 2;
-            std::vector<BFloat16VecFieldData::ElementT> vectors = BuildFieldDataVectors<uint16_t, char>(
-                out_len, in_len, field_data.vectors().bfloat16_vector().data(), offset, count);
-            return std::make_shared<BFloat16VecFieldData>(name, std::move(vectors));
+            const auto& str = proto_vectors.bfloat16_vector();
+            std::vector<BFloat16VecFieldData::ElementT> vectors =
+                BuildFieldDataVectors<uint16_t, char>(proto_vectors.dim() * 2, str.data(), str.size(), offset, count);
+            field_data =
+                std::make_shared<BFloat16VecFieldData>(std::move(name), std::move(vectors), std::move(valid_data));
+            return Status::OK();
         }
         case proto::schema::DataType::SparseFloatVector: {
             std::vector<SparseFloatVecFieldData::ElementT> vectors =
-                BuildFieldDataSparseVectors(field_data.vectors().sparse_float_vector().contents(), offset, count);
-            return std::make_shared<SparseFloatVecFieldData>(name, std::move(vectors));
+                BuildFieldDataSparseVectors(proto_vectors.sparse_float_vector().contents(), offset, count);
+            field_data =
+                std::make_shared<SparseFloatVecFieldData>(std::move(name), std::move(vectors), std::move(valid_data));
+            return Status::OK();
         }
-        case proto::schema::DataType::Bool:
-            return std::make_shared<BoolFieldData>(
-                name, BuildFieldDataScalars<bool>(field_data.scalars().bool_data().data(), offset, count));
-
-        case proto::schema::DataType::Int8:
-            return std::make_shared<Int8FieldData>(
-                name, BuildFieldDataScalars<int8_t>(field_data.scalars().int_data().data(), offset, count));
-
-        case proto::schema::DataType::Int16:
-            return std::make_shared<Int16FieldData>(
-                name, BuildFieldDataScalars<int16_t>(field_data.scalars().int_data().data(), offset, count));
-
-        case proto::schema::DataType::Int32:
-            return std::make_shared<Int32FieldData>(
-                name, BuildFieldDataScalars<int32_t>(field_data.scalars().int_data().data(), offset, count));
-
-        case proto::schema::DataType::Int64:
-            return std::make_shared<Int64FieldData>(
-                name, BuildFieldDataScalars<int64_t>(field_data.scalars().long_data().data(), offset, count));
-
-        case proto::schema::DataType::Float:
-            return std::make_shared<FloatFieldData>(
-                name, BuildFieldDataScalars<float>(field_data.scalars().float_data().data(), offset, count));
-
-        case proto::schema::DataType::Double:
-            return std::make_shared<DoubleFieldData>(
-                name, BuildFieldDataScalars<double>(field_data.scalars().double_data().data(), offset, count));
-
-        case proto::schema::DataType::VarChar:
-            return std::make_shared<VarCharFieldData>(
-                name, BuildFieldDataScalars<std::string>(field_data.scalars().string_data().data(), offset, count));
-
+        case proto::schema::DataType::Bool: {
+            std::vector<BoolFieldData::ElementT> values =
+                BuildFieldDataScalars<BoolFieldData::ElementT>(proto_scalars.bool_data().data(), offset, count);
+            field_data = std::make_shared<BoolFieldData>(std::move(name), std::move(values), std::move(valid_data));
+            return Status::OK();
+        }
+        case proto::schema::DataType::Int8: {
+            std::vector<Int8FieldData::ElementT> values =
+                BuildFieldDataScalars<Int8FieldData::ElementT>(proto_scalars.int_data().data(), offset, count);
+            field_data = std::make_shared<Int8FieldData>(std::move(name), std::move(values), std::move(valid_data));
+            return Status::OK();
+        }
+        case proto::schema::DataType::Int16: {
+            std::vector<Int16FieldData::ElementT> values =
+                BuildFieldDataScalars<Int16FieldData::ElementT>(proto_scalars.int_data().data(), offset, count);
+            field_data = std::make_shared<Int16FieldData>(std::move(name), std::move(values), std::move(valid_data));
+            return Status::OK();
+        }
+        case proto::schema::DataType::Int32: {
+            std::vector<Int32FieldData::ElementT> values =
+                BuildFieldDataScalars<Int32FieldData::ElementT>(proto_scalars.int_data().data(), offset, count);
+            field_data = std::make_shared<Int32FieldData>(std::move(name), std::move(values), std::move(valid_data));
+            return Status::OK();
+        }
+        case proto::schema::DataType::Int64: {
+            std::vector<Int64FieldData::ElementT> values =
+                BuildFieldDataScalars<Int64FieldData::ElementT>(proto_scalars.long_data().data(), offset, count);
+            field_data = std::make_shared<Int64FieldData>(std::move(name), std::move(values), std::move(valid_data));
+            return Status::OK();
+        }
+        case proto::schema::DataType::Float: {
+            std::vector<FloatFieldData::ElementT> values =
+                BuildFieldDataScalars<FloatFieldData::ElementT>(proto_scalars.float_data().data(), offset, count);
+            field_data = std::make_shared<FloatFieldData>(std::move(name), std::move(values), std::move(valid_data));
+            return Status::OK();
+        }
+        case proto::schema::DataType::Double: {
+            std::vector<DoubleFieldData::ElementT> values =
+                BuildFieldDataScalars<DoubleFieldData::ElementT>(proto_scalars.double_data().data(), offset, count);
+            field_data = std::make_shared<DoubleFieldData>(std::move(name), std::move(values), std::move(valid_data));
+            return Status::OK();
+        }
+        case proto::schema::DataType::VarChar: {
+            std::vector<VarCharFieldData::ElementT> values =
+                BuildFieldDataScalars<VarCharFieldData::ElementT>(proto_scalars.string_data().data(), offset, count);
+            field_data = std::make_shared<VarCharFieldData>(std::move(name), std::move(values), std::move(valid_data));
+            return Status::OK();
+        }
         case proto::schema::DataType::JSON: {
             std::vector<nlohmann::json> objects;
-            const auto& scalars_data = field_data.scalars().json_data().data();
+            const auto& scalars_data = proto_scalars.json_data().data();
             for (const auto& s : scalars_data) {
                 objects.emplace_back(std::move(nlohmann::json::parse(s)));
             }
-            return std::make_shared<JSONFieldData>(name, BuildFieldDataScalars<nlohmann::json>(objects, offset, count));
+            std::vector<JSONFieldData::ElementT> values =
+                BuildFieldDataScalars<JSONFieldData::ElementT>(objects, offset, count);
+            field_data = std::make_shared<JSONFieldData>(std::move(name), std::move(values), std::move(valid_data));
+            return Status::OK();
         }
-
-        case proto::schema::DataType::Array: {
-            return BuildMilvusArrayFieldData(name, field_data.scalars().array_data(), offset, count);
-        }
+        case proto::schema::DataType::Array:
+            return BuildMilvusArrayFieldData(name, proto_scalars.array_data(), std::move(valid_data), offset, count,
+                                             field_data);
         default:
-            return nullptr;
+            return {StatusCode::NOT_SUPPORTED, "Unsupported field type: " + std::to_string(field_type)};
     }
 }
 
-FieldDataPtr
-CreateMilvusFieldData(const milvus::proto::schema::FieldData& field_data) {
-    auto field_type = field_data.type();
-    const auto& name = field_data.field_name();
-
+Status
+CreateMilvusFieldData(const milvus::proto::schema::FieldData& proto_data, FieldDataPtr& field_data) {
+    auto field_type = proto_data.type();
+    const auto& proto_vectors = proto_data.vectors();
+    const auto& proto_scalars = proto_data.scalars();
     switch (field_type) {
         case proto::schema::DataType::BinaryVector: {
-            size_t len = field_data.vectors().dim() / 8;
-            size_t count = field_data.vectors().binary_vector().size() / len;
-            std::vector<std::vector<uint8_t>> vectors =
-                BuildFieldDataVectors<uint8_t, char>(len, len, field_data.vectors().binary_vector().data(), 0, count);
-            return std::make_shared<BinaryVecFieldData>(name, std::move(vectors));
+            size_t len = proto_vectors.dim() / 8;
+            size_t count = proto_vectors.binary_vector().size() / len;
+            return CreateMilvusFieldData(proto_data, 0, count, field_data);
         }
         case proto::schema::DataType::FloatVector: {
-            size_t len = field_data.vectors().dim();
-            size_t count = field_data.vectors().float_vector().data().size() / len;
-            std::vector<FloatVecFieldData::ElementT> vectors = BuildFieldDataVectors<float, float>(
-                len, len, field_data.vectors().float_vector().data().data(), 0, count);
-            return std::make_shared<FloatVecFieldData>(name, std::move(vectors));
+            size_t len = proto_vectors.dim();
+            size_t count = proto_vectors.float_vector().data().size() / len;
+            return CreateMilvusFieldData(proto_data, 0, count, field_data);
         }
         case proto::schema::DataType::Float16Vector: {
-            size_t out_len = field_data.vectors().dim();
-            size_t in_len = field_data.vectors().dim() * 2;
-            size_t count = field_data.vectors().float16_vector().size() / in_len;
-            std::vector<Float16VecFieldData::ElementT> vectors = BuildFieldDataVectors<uint16_t, char>(
-                out_len, in_len, field_data.vectors().float16_vector().data(), 0, count);
-            return std::make_shared<Float16VecFieldData>(name, std::move(vectors));
+            size_t in_len = proto_vectors.dim() * 2;
+            size_t count = proto_vectors.float16_vector().size() / in_len;
+            return CreateMilvusFieldData(proto_data, 0, count, field_data);
         }
         case proto::schema::DataType::BFloat16Vector: {
-            size_t out_len = field_data.vectors().dim();
-            size_t in_len = field_data.vectors().dim() * 2;
-            size_t count = field_data.vectors().bfloat16_vector().size() / in_len;
-            std::vector<BFloat16VecFieldData::ElementT> vectors = BuildFieldDataVectors<uint16_t, char>(
-                out_len, in_len, field_data.vectors().bfloat16_vector().data(), 0, count);
-            return std::make_shared<BFloat16VecFieldData>(name, std::move(vectors));
+            size_t in_len = proto_vectors.dim() * 2;
+            size_t count = proto_vectors.bfloat16_vector().size() / in_len;
+            return CreateMilvusFieldData(proto_data, 0, count, field_data);
         }
-
         case proto::schema::DataType::SparseFloatVector: {
-            auto content = field_data.vectors().sparse_float_vector().contents();
-            return std::make_shared<SparseFloatVecFieldData>(name,
-                                                             BuildFieldDataSparseVectors(content, 0, content.size()));
+            const auto& content = proto_vectors.sparse_float_vector().contents();
+            return CreateMilvusFieldData(proto_data, 0, content.size(), field_data);
         }
         case proto::schema::DataType::Bool:
-            return std::make_shared<BoolFieldData>(
-                name, BuildFieldDataScalars<bool>(field_data.scalars().bool_data().data()));
-
+            return CreateMilvusFieldData(proto_data, 0, proto_scalars.bool_data().data().size(), field_data);
         case proto::schema::DataType::Int8:
-            return std::make_shared<Int8FieldData>(
-                name, BuildFieldDataScalars<int8_t>(field_data.scalars().int_data().data()));
-
         case proto::schema::DataType::Int16:
-            return std::make_shared<Int16FieldData>(
-                name, BuildFieldDataScalars<int16_t>(field_data.scalars().int_data().data()));
-
         case proto::schema::DataType::Int32:
-            return std::make_shared<Int32FieldData>(
-                name, BuildFieldDataScalars<int32_t>(field_data.scalars().int_data().data()));
-
+            return CreateMilvusFieldData(proto_data, 0, proto_scalars.int_data().data().size(), field_data);
         case proto::schema::DataType::Int64:
-            return std::make_shared<Int64FieldData>(
-                name, BuildFieldDataScalars<int64_t>(field_data.scalars().long_data().data()));
-
+            return CreateMilvusFieldData(proto_data, 0, proto_scalars.long_data().data().size(), field_data);
         case proto::schema::DataType::Float:
-            return std::make_shared<FloatFieldData>(
-                name, BuildFieldDataScalars<float>(field_data.scalars().float_data().data()));
-
+            return CreateMilvusFieldData(proto_data, 0, proto_scalars.float_data().data().size(), field_data);
         case proto::schema::DataType::Double:
-            return std::make_shared<DoubleFieldData>(
-                name, BuildFieldDataScalars<double>(field_data.scalars().double_data().data()));
-
+            return CreateMilvusFieldData(proto_data, 0, proto_scalars.double_data().data().size(), field_data);
         case proto::schema::DataType::VarChar:
-            return std::make_shared<VarCharFieldData>(
-                name, BuildFieldDataScalars<std::string>(field_data.scalars().string_data().data()));
-
-        case proto::schema::DataType::JSON: {
-            std::vector<nlohmann::json> objects;
-            const auto& scalars_data = field_data.scalars().json_data().data();
-            for (const auto& s : scalars_data) {
-                objects.emplace_back(std::move(nlohmann::json::parse(s)));
-            }
-            return std::make_shared<JSONFieldData>(name, BuildFieldDataScalars<nlohmann::json>(objects));
-        }
-
-        case proto::schema::DataType::Array: {
-            const auto& scalars_data = field_data.scalars().array_data();
-            return BuildMilvusArrayFieldData(name, scalars_data, 0, scalars_data.data().size());
-        }
+            return CreateMilvusFieldData(proto_data, 0, proto_scalars.string_data().data().size(), field_data);
+        case proto::schema::DataType::JSON:
+            return CreateMilvusFieldData(proto_data, 0, proto_scalars.json_data().data().size(), field_data);
+        case proto::schema::DataType::Array:
+            return CreateMilvusFieldData(proto_data, 0, proto_scalars.array_data().data().size(), field_data);
         default:
-            return nullptr;
+            return {StatusCode::NOT_SUPPORTED, "Unsupported field type: " + std::to_string(field_type)};
     }
 }
 
@@ -399,7 +443,7 @@ CreateScoreField(const std::string& name, const proto::schema::SearchResultData&
     return std::make_shared<FloatFieldData>(name, std::move(score_values));
 }
 
-void
+Status
 SetTargetVectors(const FieldDataPtr& target, milvus::proto::milvus::SearchRequest* rpc_request) {
     // placeholders
     proto::common::PlaceholderGroup placeholder_group;
@@ -460,8 +504,11 @@ SetTargetVectors(const FieldDataPtr& target, milvus::proto::milvus::SearchReques
             placeholder_value.add_values(std::move(text));
         }
         rpc_request->set_nq(static_cast<int64_t>(texts.Count()));
-    }  // else throw an exception?
+    } else {
+        return {StatusCode::NOT_SUPPORTED, "Unsupported target type: " + std::to_string(target->Type())};
+    }
     rpc_request->set_placeholder_group(std::move(placeholder_group.SerializeAsString()));
+    return Status::OK();
 }
 
 void
@@ -509,7 +556,11 @@ GenGetter(const FieldDataPtr& field) {
             return nlohmann::json(f32_vec);
         } else {
             std::shared_ptr<T> real_field = std::static_pointer_cast<T>(field);
-            return nlohmann::json(real_field->Value(i));
+            if (real_field->IsNull(i)) {
+                return nlohmann::json();
+            } else {
+                return nlohmann::json(real_field->Value(i));
+            }
         }
     };
 }
@@ -638,7 +689,7 @@ GetRowCountOfFields(const std::vector<FieldDataPtr>& fields, size_t& count) {
     }
     for (const auto& field : fields) {
         if (field != nullptr && first_cnt != field->Count()) {
-            return Status{StatusCode::INVALID_AGUMENT, "Row numbers of fields are not equal"};
+            return {StatusCode::INVALID_AGUMENT, "Row numbers of fields are not equal"};
         }
     }
     count = first_cnt;
@@ -702,7 +753,7 @@ GetRowFromFieldsData(const std::vector<FieldDataPtr>& fields, size_t i, const st
     }
 
     if (i >= count) {
-        return Status{StatusCode::INVALID_AGUMENT, "out of bound"};
+        return {StatusCode::INVALID_AGUMENT, std::to_string(i) + " is out of bound: " + std::to_string(count)};
     }
 
     auto getters = GenGetters(fields);
@@ -782,7 +833,12 @@ ConvertQueryResults(const proto::milvus::QueryResults& rpc_results, QueryResults
     std::vector<milvus::FieldDataPtr> return_fields{};
     return_fields.reserve(rpc_results.fields_data_size());
     for (const auto& field_data : rpc_results.fields_data()) {
-        return_fields.emplace_back(std::move(CreateMilvusFieldData(field_data)));
+        FieldDataPtr field_ptr;
+        auto status = CreateMilvusFieldData(field_data, field_ptr);
+        if (!status.IsOk()) {
+            return status;
+        }
+        return_fields.emplace_back(std::move(field_ptr));
     }
 
     std::set<std::string> output_names;
@@ -821,7 +877,10 @@ ConvertSearchRequest(const SearchArguments& arguments, const std::string& curren
     }
 
     // set target vectors
-    SetTargetVectors(arguments.TargetVectors(), &rpc_request);
+    auto status = SetTargetVectors(arguments.TargetVectors(), &rpc_request);
+    if (!status.IsOk()) {
+        return status;
+    }
 
     auto setParamFunc = [&rpc_request](const std::string& key, const std::string& value) {
         auto kv_pair = rpc_request.add_search_params();
@@ -902,7 +961,10 @@ ConvertHybridSearchRequest(const HybridSearchArguments& arguments, const std::st
 
     for (const auto& sub_request : arguments.SubRequests()) {
         auto search_req = rpc_request.add_requests();
-        SetTargetVectors(sub_request->TargetVectors(), search_req);
+        auto status = SetTargetVectors(sub_request->TargetVectors(), search_req);
+        if (!status.IsOk()) {
+            return status;
+        }
 
         // set filter expression
         search_req->set_dsl_type(proto::common::DslType::BoolExprV1);
@@ -998,7 +1060,12 @@ ConvertSearchResults(const proto::milvus::SearchResults& rpc_results, const std:
         auto item_topk = topks[i];
         std::set<std::string> field_names;
         for (const auto& field_data : fields_data) {
-            item_fields_data.emplace_back(std::move(milvus::CreateMilvusFieldData(field_data, offset, item_topk)));
+            FieldDataPtr field_ptr;
+            auto status = CreateMilvusFieldData(field_data, offset, item_topk, field_ptr);
+            if (!status.IsOk()) {
+                return status;
+            }
+            item_fields_data.emplace_back(std::move(field_ptr));
             field_names.insert(field_data.field_name());
         }
         std::string score_name = SCORE;
@@ -1029,7 +1096,7 @@ template <typename T>
 Status
 CopyFieldDataRange(const FieldDataPtr& src, uint64_t from, uint64_t to, FieldDataPtr& target) {
     if (from >= to) {
-        return {StatusCode::INVALID_AGUMENT, "illegal copy range"};
+        return {StatusCode::INVALID_AGUMENT, "Illegal copy range"};
     }
 
     auto src_ptr = std::static_pointer_cast<T>(src);
@@ -1048,10 +1115,10 @@ CopyFieldDataRange(const FieldDataPtr& src, uint64_t from, uint64_t to, FieldDat
 Status
 CopyFieldData(const FieldDataPtr& src, uint64_t from, uint64_t to, FieldDataPtr& target) {
     if (src == nullptr) {
-        return {StatusCode::INVALID_AGUMENT, "source field data is null pointer"};
+        return {StatusCode::INVALID_AGUMENT, "Source field data is null pointer"};
     }
     if (from >= to || from >= src->Count()) {
-        return {StatusCode::INVALID_AGUMENT, "invalid range to copy"};
+        return {StatusCode::INVALID_AGUMENT, "Invalid range to copy"};
     }
     if (to > src->Count()) {
         to = src->Count();
@@ -1111,8 +1178,10 @@ CopyFieldData(const FieldDataPtr& src, uint64_t from, uint64_t to, FieldDataPtr&
                 case DataType::VARCHAR: {
                     return CopyFieldDataRange<ArrayVarCharFieldData>(src, from, to, target);
                 }
-                default:
-                    return Status{StatusCode::INVALID_AGUMENT, "array field element type is unsupported"};
+                default: {
+                    std::string msg = "Unsupported element type: " + std::to_string(src->ElementType());
+                    return {StatusCode::NOT_SUPPORTED, msg};
+                }
             }
         }
         case DataType::BINARY_VECTOR: {
@@ -1131,7 +1200,7 @@ CopyFieldData(const FieldDataPtr& src, uint64_t from, uint64_t to, FieldDataPtr&
             return CopyFieldDataRange<SparseFloatVecFieldData>(src, from, to, target);
         }
         default: {
-            return Status{StatusCode::INVALID_AGUMENT, "field data type is unsupported"};
+            return {StatusCode::NOT_SUPPORTED, "Unsupported field type: " + std::to_string(src->Type())};
         }
     }
 
@@ -1165,10 +1234,10 @@ Append(const FieldDataPtr& src, FieldDataPtr& target) {
 Status
 AppendFieldData(const FieldDataPtr& from, FieldDataPtr& to) {
     if (from == nullptr || to == nullptr) {
-        return {StatusCode::INVALID_AGUMENT, "field data is null pointer"};
+        return {StatusCode::INVALID_AGUMENT, "Field data is null pointer"};
     }
     if ((from->Type() != to->Type()) || (from->ElementType() != to->ElementType())) {
-        return {StatusCode::INVALID_AGUMENT, "not able to append data, type mismatch"};
+        return {StatusCode::INVALID_AGUMENT, "Not able to append data, type mismatch"};
     }
     switch (from->Type()) {
         case DataType::BOOL: {
@@ -1224,8 +1293,10 @@ AppendFieldData(const FieldDataPtr& from, FieldDataPtr& to) {
                 case DataType::VARCHAR: {
                     return Append<ArrayVarCharFieldData>(from, to);
                 }
-                default:
-                    return Status{StatusCode::INVALID_AGUMENT, "array field element type is unsupported"};
+                default: {
+                    std::string msg = "Unsupported element type: " + std::to_string(from->ElementType());
+                    return {StatusCode::NOT_SUPPORTED, msg};
+                }
             }
         }
         case DataType::BINARY_VECTOR: {
@@ -1244,7 +1315,7 @@ AppendFieldData(const FieldDataPtr& from, FieldDataPtr& to) {
             return Append<SparseFloatVecFieldData>(from, to);
         }
         default: {
-            return Status{StatusCode::INVALID_AGUMENT, "field data type is unsupported"};
+            return {StatusCode::NOT_SUPPORTED, "Unsupported field type: " + std::to_string(from->Type())};
         }
     }
     return Status::OK();

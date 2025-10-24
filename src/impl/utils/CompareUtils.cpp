@@ -16,11 +16,24 @@
 
 #include "CompareUtils.h"
 
+#include "./TypeUtils.h"
+
 namespace milvus {
 
 bool
-operator==(const proto::schema::FieldData& lhs, const BoolFieldData& rhs) {
+IsEqual(const proto::schema::FieldData& lhs, const Field& rhs) {
     if (lhs.field_name() != rhs.Name()) {
+        return false;
+    }
+    if (lhs.type() != DataTypeCast(rhs.Type())) {
+        return false;
+    }
+    return true;
+}
+
+bool
+operator==(const proto::schema::FieldData& lhs, const BoolFieldData& rhs) {
+    if (!IsEqual(lhs, reinterpret_cast<const Field&>(rhs))) {
         return false;
     }
     if (!lhs.has_scalars()) {
@@ -39,7 +52,7 @@ operator==(const proto::schema::FieldData& lhs, const BoolFieldData& rhs) {
 
 bool
 operator==(const proto::schema::FieldData& lhs, const Int8FieldData& rhs) {
-    if (lhs.field_name() != rhs.Name()) {
+    if (!IsEqual(lhs, reinterpret_cast<const Field&>(rhs))) {
         return false;
     }
     if (!lhs.has_scalars()) {
@@ -58,7 +71,7 @@ operator==(const proto::schema::FieldData& lhs, const Int8FieldData& rhs) {
 
 bool
 operator==(const proto::schema::FieldData& lhs, const Int16FieldData& rhs) {
-    if (lhs.field_name() != rhs.Name()) {
+    if (!IsEqual(lhs, reinterpret_cast<const Field&>(rhs))) {
         return false;
     }
     if (!lhs.has_scalars()) {
@@ -77,7 +90,7 @@ operator==(const proto::schema::FieldData& lhs, const Int16FieldData& rhs) {
 
 bool
 operator==(const proto::schema::FieldData& lhs, const Int32FieldData& rhs) {
-    if (lhs.field_name() != rhs.Name()) {
+    if (!IsEqual(lhs, reinterpret_cast<const Field&>(rhs))) {
         return false;
     }
     if (!lhs.has_scalars()) {
@@ -96,7 +109,7 @@ operator==(const proto::schema::FieldData& lhs, const Int32FieldData& rhs) {
 
 bool
 operator==(const proto::schema::FieldData& lhs, const Int64FieldData& rhs) {
-    if (lhs.field_name() != rhs.Name()) {
+    if (!IsEqual(lhs, reinterpret_cast<const Field&>(rhs))) {
         return false;
     }
     if (!lhs.has_scalars()) {
@@ -115,7 +128,7 @@ operator==(const proto::schema::FieldData& lhs, const Int64FieldData& rhs) {
 
 bool
 operator==(const proto::schema::FieldData& lhs, const FloatFieldData& rhs) {
-    if (lhs.field_name() != rhs.Name()) {
+    if (!IsEqual(lhs, reinterpret_cast<const Field&>(rhs))) {
         return false;
     }
     if (!lhs.has_scalars()) {
@@ -134,7 +147,7 @@ operator==(const proto::schema::FieldData& lhs, const FloatFieldData& rhs) {
 
 bool
 operator==(const proto::schema::FieldData& lhs, const DoubleFieldData& rhs) {
-    if (lhs.field_name() != rhs.Name()) {
+    if (!IsEqual(lhs, reinterpret_cast<const Field&>(rhs))) {
         return false;
     }
     if (!lhs.has_scalars()) {
@@ -153,7 +166,7 @@ operator==(const proto::schema::FieldData& lhs, const DoubleFieldData& rhs) {
 
 bool
 operator==(const proto::schema::FieldData& lhs, const VarCharFieldData& rhs) {
-    if (lhs.field_name() != rhs.Name()) {
+    if (!IsEqual(lhs, reinterpret_cast<const Field&>(rhs))) {
         return false;
     }
     if (!lhs.has_scalars()) {
@@ -172,7 +185,7 @@ operator==(const proto::schema::FieldData& lhs, const VarCharFieldData& rhs) {
 
 bool
 operator==(const proto::schema::FieldData& lhs, const JSONFieldData& rhs) {
-    if (lhs.field_name() != rhs.Name()) {
+    if (!IsEqual(lhs, reinterpret_cast<const Field&>(rhs))) {
         return false;
     }
     if (!lhs.has_scalars()) {
@@ -197,7 +210,7 @@ operator==(const proto::schema::FieldData& lhs, const JSONFieldData& rhs) {
 
 bool
 operator==(const proto::schema::FieldData& lhs, const BinaryVecFieldData& rhs) {
-    if (lhs.field_name() != rhs.Name()) {
+    if (!IsEqual(lhs, reinterpret_cast<const Field&>(rhs))) {
         return false;
     }
     if (!lhs.has_vectors()) {
@@ -226,7 +239,7 @@ operator==(const proto::schema::FieldData& lhs, const BinaryVecFieldData& rhs) {
 
 bool
 operator==(const proto::schema::FieldData& lhs, const FloatVecFieldData& rhs) {
-    if (lhs.field_name() != rhs.Name()) {
+    if (!IsEqual(lhs, reinterpret_cast<const Field&>(rhs))) {
         return false;
     }
     if (!lhs.has_vectors()) {
