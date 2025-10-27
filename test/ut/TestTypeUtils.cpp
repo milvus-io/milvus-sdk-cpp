@@ -488,6 +488,26 @@ TEST_F(TypeUtilsTest, ConvertFieldSchema) {
 }
 
 TEST_F(TypeUtilsTest, ConvertCollectionSchema) {
+    const std::string name = "dummy";
+    const std::string desc = "dummy_desc";
+    milvus::CollectionSchema schema(name);
+    schema.SetDescription(desc);
+    schema.SetEnableDynamicField(true);
+    schema.AddField({"id", milvus::DataType::INT64, "", true, false});
+
+    milvus::proto::schema::CollectionSchema proto_schema;
+    milvus::ConvertCollectionSchema(schema, proto_schema);
+
+    EXPECT_EQ(proto_schema.name(), name);
+    EXPECT_EQ(proto_schema.description(), desc);
+    EXPECT_TRUE(proto_schema.enable_dynamic_field());
+
+    milvus::CollectionSchema sdk_schema;
+    milvus::ConvertCollectionSchema(proto_schema, sdk_schema);
+
+    EXPECT_EQ(sdk_schema.Name(), name);
+    EXPECT_EQ(sdk_schema.Description(), desc);
+    EXPECT_TRUE(sdk_schema.EnableDynamicField());
 }
 
 TEST_F(TypeUtilsTest, TestB64EncodeGeneric) {
