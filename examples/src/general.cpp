@@ -48,6 +48,7 @@ main(int argc, char* argv[]) {
     const std::string field_id = "user_id";
     const std::string field_name = "user_name";
     const std::string field_age = "user_age";
+    const std::string field_score = "user_score";
     const std::string field_face = "user_face";
     const uint32_t dimension = 128;
 
@@ -58,6 +59,7 @@ main(int argc, char* argv[]) {
     varchar_scheam.SetMaxLength(100);
     collection_schema.AddField(varchar_scheam);
     collection_schema.AddField({field_age, milvus::DataType::INT8, "user age"});
+    collection_schema.AddField({field_score, milvus::DataType::FLOAT, "user score"});
     collection_schema.AddField(
         milvus::FieldSchema(field_face, milvus::DataType::FLOAT_VECTOR, "face signature").WithDimension(dimension));
 
@@ -111,10 +113,12 @@ main(int argc, char* argv[]) {
     std::vector<int64_t> insert_ids;
     std::vector<std::string> insert_names;
     std::vector<int8_t> insert_ages;
+    std::vector<float> insert_scores;
     std::vector<std::vector<float>> insert_vectors;
     for (auto i = 0; i < row_count; ++i) {
         insert_ids.push_back(i);
         insert_names.push_back("user_" + std::to_string(i));
+        insert_scores.push_back(static_cast<float>(i) / 4);
         insert_ages.push_back(static_cast<int8_t>(util::RandomeValue<int>(1, 100)));
         insert_vectors.emplace_back(std::move(util::GenerateFloatVector(dimension)));
     }
@@ -126,10 +130,12 @@ main(int argc, char* argv[]) {
         auto ids = std::vector<int64_t>(insert_ids.begin(), insert_ids.begin() + count);
         auto names = std::vector<std::string>(insert_names.begin(), insert_names.begin() + count);
         auto ages = std::vector<int8_t>(insert_ages.begin(), insert_ages.begin() + count);
+        auto scores = std::vector<float>(insert_scores.begin(), insert_scores.begin() + count);
         auto faces = std::vector<std::vector<float>>(insert_vectors.begin(), insert_vectors.begin() + count);
         std::vector<milvus::FieldDataPtr> fields_data{std::make_shared<milvus::Int64FieldData>(field_id, ids),
                                                       std::make_shared<milvus::VarCharFieldData>(field_name, names),
                                                       std::make_shared<milvus::Int8FieldData>(field_age, ages),
+                                                      std::make_shared<milvus::FloatFieldData>(field_score, scores),
                                                       std::make_shared<milvus::FloatVecFieldData>(field_face, faces)};
         milvus::DmlResults dml_results;
         status = client->Insert(collection_name, partition_name, fields_data, dml_results);
@@ -145,6 +151,7 @@ main(int argc, char* argv[]) {
             row[field_id] = insert_ids[i];
             row[field_name] = insert_names[i];
             row[field_age] = insert_ages[i];
+            row[field_score] = insert_scores[i];
             row[field_face] = insert_vectors[i];
             rows.emplace_back(std::move(row));
 
@@ -217,6 +224,7 @@ main(int argc, char* argv[]) {
         s_arguments.AddExtraParam(milvus::NPROBE, "10");
         s_arguments.AddOutputField(field_name);
         s_arguments.AddOutputField(field_age);
+        s_arguments.AddOutputField(field_score);
         std::string filter_expr = field_age + " > 40";
         s_arguments.SetFilter(filter_expr);
         // set to BOUNDED level to accept data inconsistence within a time window(default is 5 seconds)
