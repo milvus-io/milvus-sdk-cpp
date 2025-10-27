@@ -30,15 +30,18 @@ namespace milvus {
 template <typename V, typename T>
 Status
 CheckValueRange(V val, const std::string& field_name) {
-    T min = std::numeric_limits<T>::min();
+    T min = std::numeric_limits<T>::lowest();
     T max = std::numeric_limits<T>::max();
-    if (val < static_cast<V>(min) || val > static_cast<V>(max)) {
-        std::string err_msg = "Value " + std::to_string(val) + " should be in range [" + std::to_string(min) + ", " +
-                              std::to_string(max) + "]";
-        if (field_name.empty()) {
+    V v_max = static_cast<V>(max);
+    V v_min = static_cast<V>(min);
+
+    if (val < v_min || val > v_max) {
+        std::string err_msg = "Value " + std::to_string(val) + " should be in range [" + std::to_string(v_min) + ", " +
+                              std::to_string(v_max) + "]";
+        if (!field_name.empty()) {
             err_msg += (" for field: " + field_name);
         }
-        return Status{StatusCode::INVALID_AGUMENT, err_msg};
+        return {StatusCode::INVALID_AGUMENT, err_msg};
     }
     return Status::OK();
 }
