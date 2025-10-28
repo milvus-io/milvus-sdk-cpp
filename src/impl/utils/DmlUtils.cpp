@@ -30,15 +30,18 @@ namespace milvus {
 template <typename V, typename T>
 Status
 CheckValueRange(V val, const std::string& field_name) {
-    T min = std::numeric_limits<T>::min();
+    T min = std::numeric_limits<T>::lowest();
     T max = std::numeric_limits<T>::max();
-    if (val < static_cast<V>(min) || val > static_cast<V>(max)) {
-        std::string err_msg = "Value " + std::to_string(val) + " should be in range [" + std::to_string(min) + ", " +
-                              std::to_string(max) + "]";
-        if (field_name.empty()) {
+    V v_max = static_cast<V>(max);
+    V v_min = static_cast<V>(min);
+
+    if (val < v_min || val > v_max) {
+        std::string err_msg = "Value " + std::to_string(val) + " should be in range [" + std::to_string(v_min) + ", " +
+                              std::to_string(v_max) + "]";
+        if (!field_name.empty()) {
             err_msg += (" for field: " + field_name);
         }
-        return Status{StatusCode::INVALID_AGUMENT, err_msg};
+        return {StatusCode::INVALID_AGUMENT, err_msg};
     }
     return Status::OK();
 }
@@ -70,7 +73,7 @@ CheckInsertInput(const CollectionDescPtr& collection_desc, const std::vector<Fie
     // this loop is for "are there any redundant data?"
     for (const auto& field : fields) {
         if (field == nullptr) {
-            return Status{StatusCode::INVALID_AGUMENT, "Null pointer field is not allowed"};
+            return {StatusCode::INVALID_AGUMENT, "Null pointer field is not allowed"};
         }
 
         auto it = std::find_if(collection_fields.begin(), collection_fields.end(),
@@ -80,15 +83,15 @@ CheckInsertInput(const CollectionDescPtr& collection_desc, const std::vector<Fie
             // maybe the schema has been changed(primary key from auto-id to non-auto-id)
             // tell the MilvusClientImpl to update collection schema cache
             if (!IsInputField(*it, is_upsert)) {
-                return Status{StatusCode::DATA_UNMATCH_SCHEMA, "No need to provide data for field: " + field->Name()};
+                return {StatusCode::DATA_UNMATCH_SCHEMA, "No need to provide data for field: " + field->Name()};
             }
 
             // the provided field is not consistent with the schema
             if (field->Type() != it->FieldDataType()) {
-                return Status{StatusCode::DATA_UNMATCH_SCHEMA, "Field data type mismatch for field: " + field->Name()};
+                return {StatusCode::DATA_UNMATCH_SCHEMA, "Field data type mismatch for field: " + field->Name()};
             } else if (field->Type() == DataType::ARRAY && field->ElementType() != it->ElementType()) {
-                return Status{StatusCode::DATA_UNMATCH_SCHEMA,
-                              "Element data type mismatch for array field: " + field->Name()};
+                return {StatusCode::DATA_UNMATCH_SCHEMA,
+                        "Element data type mismatch for array field: " + field->Name()};
             }
             // accept it
             continue;
@@ -96,11 +99,11 @@ CheckInsertInput(const CollectionDescPtr& collection_desc, const std::vector<Fie
         if (field->Name() == DYNAMIC_FIELD) {
             // if dynamic field is not JSON type, no need to update collection schema cache
             if (field->Type() != DataType::JSON) {
-                return Status{StatusCode::INVALID_AGUMENT, "Require JSON data for dynamic field: " + field->Name()};
+                return {StatusCode::INVALID_AGUMENT, "Require JSON data for dynamic field: " + field->Name()};
             }
             // if has dynamic field data but enable_dynamic_field is false, maybe the schema cache is out of date
             if (!enable_dynamic_field) {
-                return Status{StatusCode::DATA_UNMATCH_SCHEMA, "Not a valid field: " + field->Name()};
+                return {StatusCode::DATA_UNMATCH_SCHEMA, "Not a valid field: " + field->Name()};
             }
             // enable_dynamic_field is true and has dynamic field data
             // maybe the schema cache is out of date(enable_dynamic_field from true to false)
@@ -110,10 +113,10 @@ CheckInsertInput(const CollectionDescPtr& collection_desc, const std::vector<Fie
 
         // redundant fields, maybe the schema has been changed(some fields added)
         // tell the MilvusClientImpl to update collection schema cache
-        return Status{StatusCode::DATA_UNMATCH_SCHEMA, std::string(field->Name() + " is not a valid field")};
+        return {StatusCode::DATA_UNMATCH_SCHEMA, std::string(field->Name() + " is not a valid field")};
     }
 
-    // this loop is for "are there any data missed?
+    // this loop is for "are there any data missed?"
     for (const auto& collection_field : collection_fields) {
         auto it = std::find_if(fields.begin(), fields.end(), [&collection_field](const FieldDataPtr& field) {
             return field->Name() == collection_field.Name();
@@ -123,10 +126,20 @@ CheckInsertInput(const CollectionDescPtr& collection_desc, const std::vector<Fie
             continue;
         }
 
+        // nullable field can be ignored
+        if (collection_field.IsNullable()) {
+            continue;
+        }
+
+        // the field has default value can be ignored
+        if (!collection_field.DefaultValue().is_null()) {
+            continue;
+        }
+
         // some required fields are not provided, maybe the schema has been changed(some fields deleted)
         // tell the MilvusClientImpl to update collection schema cache
         if (IsInputField(collection_field, is_upsert)) {
-            return Status{StatusCode::DATA_UNMATCH_SCHEMA, "Data is missed for field: " + collection_field.Name()};
+            return {StatusCode::DATA_UNMATCH_SCHEMA, "Data is missed for field: " + collection_field.Name()};
         }
     }
     return Status::OK();
@@ -174,7 +187,7 @@ ParseSparseFloatVector(const nlohmann::json& obj, const std::string& field_name,
     if (!obj.is_object()) {
         std::cout << obj << std::endl;
         std::string err_msg = "Value type should be a dict for field: " + field_name;
-        return Status{StatusCode::INVALID_AGUMENT, err_msg};
+        return {StatusCode::INVALID_AGUMENT, err_msg};
     }
 
     // parse indices/values from json
@@ -185,7 +198,7 @@ ParseSparseFloatVector(const nlohmann::json& obj, const std::string& field_name,
         const auto& values = obj[SPARSE_VALUES];
         if (!indices.is_array() || !values.is_array()) {
             std::string err_msg = "Sparse indices or values must be array for field: " + field_name;
-            return Status{StatusCode::INVALID_AGUMENT, err_msg};
+            return {StatusCode::INVALID_AGUMENT, err_msg};
         }
         for (const auto& index : indices) {
             if (index.is_number_integer() || index.is_number_unsigned()) {
@@ -197,7 +210,7 @@ ParseSparseFloatVector(const nlohmann::json& obj, const std::string& field_name,
                 indices_vec.push_back(static_cast<uint32_t>(val));
             } else {
                 std::string err_msg = "Indices array should be integer values for field: " + field_name;
-                return Status{StatusCode::INVALID_AGUMENT, err_msg};
+                return {StatusCode::INVALID_AGUMENT, err_msg};
             }
         }
         for (const auto& val : values) {
@@ -205,7 +218,7 @@ ParseSparseFloatVector(const nlohmann::json& obj, const std::string& field_name,
                 values_vec.push_back(val.get<float>());
             } else {
                 std::string err_msg = "Values array should be numeric values for field: " + field_name;
-                return Status{StatusCode::INVALID_AGUMENT, err_msg};
+                return {StatusCode::INVALID_AGUMENT, err_msg};
             }
         }
     } else {
@@ -219,7 +232,7 @@ ParseSparseFloatVector(const nlohmann::json& obj, const std::string& field_name,
                 indices_vec.push_back(static_cast<uint32_t>(index));
             } catch (...) {
                 std::string err_msg = "Failed to parse index value'" + pair.key() + "' for field: " + field_name;
-                return Status{StatusCode::INVALID_AGUMENT, err_msg};
+                return {StatusCode::INVALID_AGUMENT, err_msg};
             }
 
             auto val = pair.value();
@@ -227,7 +240,7 @@ ParseSparseFloatVector(const nlohmann::json& obj, const std::string& field_name,
                 values_vec.push_back(val.get<float>());
             } else {
                 std::string err_msg = "Values array should be numeric values for field: " + field_name;
-                return Status{StatusCode::INVALID_AGUMENT, err_msg};
+                return {StatusCode::INVALID_AGUMENT, err_msg};
             }
         }
     }
@@ -237,7 +250,7 @@ ParseSparseFloatVector(const nlohmann::json& obj, const std::string& field_name,
         std::string err_msg = "Indices length(" + std::to_string(indices_vec.size()) +
                               ") is not equal to values length(" + std::to_string(values_vec.size()) +
                               ") for field: " + field_name;
-        return Status{StatusCode::INVALID_AGUMENT, err_msg};
+        return {StatusCode::INVALID_AGUMENT, err_msg};
     }
 
     // the indices must be in accending order, and not allowed duplicated indices
@@ -246,7 +259,7 @@ ParseSparseFloatVector(const nlohmann::json& obj, const std::string& field_name,
         pairs.insert(std::make_pair(indices_vec[i], values_vec[i]));
     }
     if (pairs.size() != indices_vec.size()) {
-        return Status{StatusCode::INVALID_AGUMENT, "Duplicated indices for field: " + field_name};
+        return {StatusCode::INVALID_AGUMENT, "Duplicated indices for field: " + field_name};
     }
 
     return Status::OK();
@@ -255,7 +268,7 @@ ParseSparseFloatVector(const nlohmann::json& obj, const std::string& field_name,
 ////////////////////////////////////////////////////////////////////////////////////////
 // methods to convert SDK field types to proto field types
 proto::schema::VectorField*
-CreateProtoFieldData(const BinaryVecFieldData& field) {
+CreateProtoVectorField(const BinaryVecFieldData& field) {
     auto ret = new proto::schema::VectorField{};
     auto& data = field.Data();
     auto dim = data.front().size() * 8;
@@ -264,12 +277,12 @@ CreateProtoFieldData(const BinaryVecFieldData& field) {
     for (const auto& item : data) {
         std::copy(item.begin(), item.end(), std::back_inserter(vectors_data));
     }
-    ret->set_dim(static_cast<int>(dim));
+    ret->set_dim(static_cast<int64_t>(dim));
     return ret;
 }
 
 proto::schema::VectorField*
-CreateProtoFieldData(const FloatVecFieldData& field) {
+CreateProtoVectorField(const FloatVecFieldData& field) {
     auto ret = new proto::schema::VectorField{};
     auto& data = field.Data();
     auto dim = data.front().size();
@@ -278,12 +291,12 @@ CreateProtoFieldData(const FloatVecFieldData& field) {
     for (const auto& item : data) {
         vectors_data.Add(item.begin(), item.end());
     }
-    ret->set_dim(static_cast<int>(dim));
+    ret->set_dim(static_cast<int64_t>(dim));
     return ret;
 }
 
 proto::schema::VectorField*
-CreateProtoFieldData(const SparseFloatVecFieldData& field) {
+CreateProtoVectorField(const SparseFloatVecFieldData& field) {
     auto ret = new proto::schema::VectorField{};
     auto& data = field.Data();
     auto& vectors_data = *(ret->mutable_sparse_float_vector()->mutable_contents());
@@ -298,7 +311,7 @@ CreateProtoFieldData(const SparseFloatVecFieldData& field) {
 }
 
 proto::schema::VectorField*
-CreateProtoFieldData(const Float16VecFieldData& field) {
+CreateProtoVectorField(const Float16VecFieldData& field) {
     auto ret = new proto::schema::VectorField{};
     auto& data = field.Data();
     auto dim = data.front().size();
@@ -308,12 +321,12 @@ CreateProtoFieldData(const Float16VecFieldData& field) {
     for (size_t i = 0; i < data.size(); i++) {
         std::memcpy(&vectors_data[i * vec_bytes], data[i].data(), vec_bytes);
     }
-    ret->set_dim(static_cast<int>(dim));
+    ret->set_dim(static_cast<int64_t>(dim));
     return ret;
 }
 
 proto::schema::VectorField*
-CreateProtoFieldData(const BFloat16VecFieldData& field) {
+CreateProtoVectorField(const BFloat16VecFieldData& field) {
     auto ret = new proto::schema::VectorField{};
     auto& data = field.Data();
     auto dim = data.front().size();
@@ -323,248 +336,271 @@ CreateProtoFieldData(const BFloat16VecFieldData& field) {
     for (size_t i = 0; i < data.size(); i++) {
         std::memcpy(&vectors_data[i * vec_bytes], data[i].data(), vec_bytes);
     }
-    ret->set_dim(static_cast<int>(dim));
+    ret->set_dim(static_cast<int64_t>(dim));
     return ret;
 }
 
-proto::schema::ScalarField*
-CreateProtoFieldData(const BoolFieldData& field) {
-    auto ret = new proto::schema::ScalarField{};
-    auto& data = field.Data();
-    auto& scalars_data = *(ret->mutable_bool_data()->mutable_data());
-    scalars_data.Add(data.begin(), data.end());
-    return ret;
+template <typename T>
+void
+CopyValidData(const Field& field, proto::schema::FieldData& proto_field) {
+    auto actual_field = dynamic_cast<const T&>(field);
+    const auto& valid_data = actual_field.ValidData();
+    if (!valid_data.empty()) {
+        auto ret = proto_field.mutable_valid_data();
+        ret->Add(valid_data.begin(), valid_data.end());
+    }
 }
 
-proto::schema::ScalarField*
-CreateProtoFieldData(const Int8FieldData& field) {
-    auto ret = new proto::schema::ScalarField{};
-    auto& data = field.Data();
-    auto& scalars_data = *(ret->mutable_int_data()->mutable_data());
-    scalars_data.Add(data.begin(), data.end());
-    return ret;
-}
-
-proto::schema::ScalarField*
-CreateProtoFieldData(const Int16FieldData& field) {
-    auto ret = new proto::schema::ScalarField{};
-    auto& data = field.Data();
-    auto& scalars_data = *(ret->mutable_int_data()->mutable_data());
-    scalars_data.Add(data.begin(), data.end());
-    return ret;
-}
-
-proto::schema::ScalarField*
-CreateProtoFieldData(const Int32FieldData& field) {
-    auto ret = new proto::schema::ScalarField{};
-    auto& data = field.Data();
-    auto& scalars_data = *(ret->mutable_int_data()->mutable_data());
-    scalars_data.Add(data.begin(), data.end());
-    return ret;
-}
-
-proto::schema::ScalarField*
-CreateProtoFieldData(const Int64FieldData& field) {
-    auto ret = new proto::schema::ScalarField{};
-    auto& data = field.Data();
-    auto& scalars_data = *(ret->mutable_long_data()->mutable_data());
-    scalars_data.Add(data.begin(), data.end());
-    return ret;
-}
-
-proto::schema::ScalarField*
-CreateProtoFieldData(const FloatFieldData& field) {
-    auto ret = new proto::schema::ScalarField{};
-    auto& data = field.Data();
-    auto& scalars_data = *(ret->mutable_float_data()->mutable_data());
-    scalars_data.Add(data.begin(), data.end());
-    return ret;
-}
-
-proto::schema::ScalarField*
-CreateProtoFieldData(const DoubleFieldData& field) {
-    auto ret = new proto::schema::ScalarField{};
-    auto& data = field.Data();
-    auto& scalars_data = *(ret->mutable_double_data()->mutable_data());
-    scalars_data.Add(data.begin(), data.end());
-    return ret;
-}
-
-proto::schema::ScalarField*
-CreateProtoFieldData(const VarCharFieldData& field) {
-    auto ret = new proto::schema::ScalarField{};
-    auto& data = field.Data();
-    auto& scalars_data = *(ret->mutable_string_data()->mutable_data());
-    scalars_data.Add(data.begin(), data.end());
-    return ret;
-}
-
-proto::schema::ScalarField*
-CreateProtoFieldData(const JSONFieldData& field) {
-    auto ret = new proto::schema::ScalarField{};
-    auto& data = field.Data();
-    auto& scalars_data = *(ret->mutable_json_data());
-    for (const auto& item : data) {
-        scalars_data.add_data(item.dump());
+template <typename V, typename T>
+T*
+CreateProtoScalars(const Field& field, proto::schema::FieldData& proto_field, bool nullable) {
+    auto actual_field = dynamic_cast<const V&>(field);
+    const auto& data = actual_field.Data();
+    auto ret = new T{};
+    if (nullable) {
+        CopyValidData<V>(field, proto_field);
+        for (auto i = 0; i < actual_field.Count(); i++) {
+            if (!actual_field.IsNull(i)) {
+                ret->add_data(actual_field.Value(i));
+            }
+        }
+    } else {
+        ret->mutable_data()->Add(data.begin(), data.end());
     }
     return ret;
 }
 
-proto::schema::ScalarField*
-CreateProtoArrayFieldData(const Field& field) {
-    auto ret = new proto::schema::ScalarField{};
-    auto element_type = field.ElementType();
+template <>
+proto::schema::JSONArray*
+CreateProtoScalars<JSONFieldData, proto::schema::JSONArray>(const Field& field, proto::schema::FieldData& proto_field,
+                                                            bool nullable) {
+    auto actual_field = dynamic_cast<const JSONFieldData&>(field);
+    const auto& data = actual_field.Data();
+    auto ret = new proto::schema::JSONArray{};
+    if (nullable) {
+        CopyValidData<JSONFieldData>(field, proto_field);
+        for (auto i = 0; i < actual_field.Count(); i++) {
+            if (!actual_field.IsNull(i)) {
+                ret->mutable_data()->Add(actual_field.Value(i).dump());
+            }
+        }
+    } else {
+        for (const auto& item : data) {
+            ret->add_data(item.dump());
+        }
+    }
+    return ret;
+}
+
+Status
+CreateProtoArrayField(const FieldDataSchema& data_schema, proto::schema::FieldData& proto_field) {
+    const Field& field = *(data_schema.Data());
+    const FieldSchemaPtr schema = data_schema.Schema();
+    bool nullable_default = schema ? (schema->IsNullable() || !schema->DefaultValue().is_null()) : false;
+
+    auto ret = proto_field.mutable_scalars();
     auto& array_data = *(ret->mutable_array_data());
+    auto element_type = field.ElementType();
     array_data.set_element_type(DataTypeCast(element_type));
 
     switch (element_type) {
         case DataType::BOOL: {
-            const auto& arrayField = dynamic_cast<const ArrayBoolFieldData&>(field);
-            const auto& data = arrayField.Data();
-            for (const auto& row : data) {
-                auto& scalar_field = *(array_data.add_data());
-                auto& scalars_data = *(scalar_field.mutable_bool_data()->mutable_data());
-                scalars_data.Add(row.begin(), row.end());
+            if (nullable_default) {
+                CopyValidData<ArrayBoolFieldData>(field, proto_field);
+            }
+            const auto& actual_field = dynamic_cast<const ArrayBoolFieldData&>(field);
+            for (auto i = 0; i < actual_field.Count(); i++) {
+                if (!actual_field.IsNull(i)) {
+                    auto row = actual_field.Value(i);
+                    auto& scalar_field = *(array_data.add_data());
+                    auto& scalars_data = *(scalar_field.mutable_bool_data()->mutable_data());
+                    scalars_data.Add(row.begin(), row.end());
+                }
             }
             break;
         }
         case DataType::INT8: {
-            const auto& arrayField = dynamic_cast<const ArrayInt8FieldData&>(field);
-            const auto& data = arrayField.Data();
-            for (const auto& row : data) {
-                auto& scalar_field = *(array_data.add_data());
-                auto& scalars_data = *(scalar_field.mutable_int_data()->mutable_data());
-                scalars_data.Add(row.begin(), row.end());
+            if (nullable_default) {
+                CopyValidData<ArrayInt8FieldData>(field, proto_field);
+            }
+            const auto& actual_field = dynamic_cast<const ArrayInt8FieldData&>(field);
+            for (auto i = 0; i < actual_field.Count(); i++) {
+                if (!actual_field.IsNull(i)) {
+                    auto row = actual_field.Value(i);
+                    auto& scalar_field = *(array_data.add_data());
+                    auto& scalars_data = *(scalar_field.mutable_int_data()->mutable_data());
+                    scalars_data.Add(row.begin(), row.end());
+                }
             }
             break;
         }
         case DataType::INT16: {
-            const auto& arrayField = dynamic_cast<const ArrayInt16FieldData&>(field);
-            const auto& data = arrayField.Data();
-            for (const auto& row : data) {
-                auto& scalar_field = *(array_data.add_data());
-                auto& scalars_data = *(scalar_field.mutable_int_data()->mutable_data());
-                scalars_data.Add(row.begin(), row.end());
+            if (nullable_default) {
+                CopyValidData<ArrayInt16FieldData>(field, proto_field);
+            }
+            const auto& actual_field = dynamic_cast<const ArrayInt16FieldData&>(field);
+            for (auto i = 0; i < actual_field.Count(); i++) {
+                if (!actual_field.IsNull(i)) {
+                    auto row = actual_field.Value(i);
+                    auto& scalar_field = *(array_data.add_data());
+                    auto& scalars_data = *(scalar_field.mutable_int_data()->mutable_data());
+                    scalars_data.Add(row.begin(), row.end());
+                }
             }
             break;
         }
         case DataType::INT32: {
-            const auto& arrayField = dynamic_cast<const ArrayInt32FieldData&>(field);
-            const auto& data = arrayField.Data();
-            for (const auto& row : data) {
-                auto& scalar_field = *(array_data.add_data());
-                auto& scalars_data = *(scalar_field.mutable_int_data()->mutable_data());
-                scalars_data.Add(row.begin(), row.end());
+            if (nullable_default) {
+                CopyValidData<ArrayInt32FieldData>(field, proto_field);
+            }
+            const auto& actual_field = dynamic_cast<const ArrayInt32FieldData&>(field);
+            for (auto i = 0; i < actual_field.Count(); i++) {
+                if (!actual_field.IsNull(i)) {
+                    auto row = actual_field.Value(i);
+                    auto& scalar_field = *(array_data.add_data());
+                    auto& scalars_data = *(scalar_field.mutable_int_data()->mutable_data());
+                    scalars_data.Add(row.begin(), row.end());
+                }
             }
             break;
         }
         case DataType::INT64: {
-            const auto& arrayField = dynamic_cast<const ArrayInt64FieldData&>(field);
-            const auto& data = arrayField.Data();
-            for (const auto& row : data) {
-                auto& scalar_field = *(array_data.add_data());
-                auto& scalars_data = *(scalar_field.mutable_long_data()->mutable_data());
-                scalars_data.Add(row.begin(), row.end());
+            if (nullable_default) {
+                CopyValidData<ArrayInt64FieldData>(field, proto_field);
+            }
+            const auto& actual_field = dynamic_cast<const ArrayInt64FieldData&>(field);
+            for (auto i = 0; i < actual_field.Count(); i++) {
+                if (!actual_field.IsNull(i)) {
+                    auto row = actual_field.Value(i);
+                    auto& scalar_field = *(array_data.add_data());
+                    auto& scalars_data = *(scalar_field.mutable_long_data()->mutable_data());
+                    scalars_data.Add(row.begin(), row.end());
+                }
             }
             break;
         }
         case DataType::FLOAT: {
-            const auto& arrayField = dynamic_cast<const ArrayFloatFieldData&>(field);
-            const auto& data = arrayField.Data();
-            for (const auto& row : data) {
-                auto& scalar_field = *(array_data.add_data());
-                auto& scalars_data = *(scalar_field.mutable_float_data()->mutable_data());
-                scalars_data.Add(row.begin(), row.end());
+            if (nullable_default) {
+                CopyValidData<ArrayFloatFieldData>(field, proto_field);
+            }
+            const auto& actual_field = dynamic_cast<const ArrayFloatFieldData&>(field);
+            for (auto i = 0; i < actual_field.Count(); i++) {
+                if (!actual_field.IsNull(i)) {
+                    auto row = actual_field.Value(i);
+                    auto& scalar_field = *(array_data.add_data());
+                    auto& scalars_data = *(scalar_field.mutable_float_data()->mutable_data());
+                    scalars_data.Add(row.begin(), row.end());
+                }
             }
             break;
         }
         case DataType::DOUBLE: {
-            const auto& arrayField = dynamic_cast<const ArrayDoubleFieldData&>(field);
-            const auto& data = arrayField.Data();
-            for (const auto& row : data) {
-                auto& scalar_field = *(array_data.add_data());
-                auto& scalars_data = *(scalar_field.mutable_double_data()->mutable_data());
-                scalars_data.Add(row.begin(), row.end());
+            if (nullable_default) {
+                CopyValidData<ArrayDoubleFieldData>(field, proto_field);
+            }
+            const auto& actual_field = dynamic_cast<const ArrayDoubleFieldData&>(field);
+            for (auto i = 0; i < actual_field.Count(); i++) {
+                if (!actual_field.IsNull(i)) {
+                    auto row = actual_field.Value(i);
+                    auto& scalar_field = *(array_data.add_data());
+                    auto& scalars_data = *(scalar_field.mutable_double_data()->mutable_data());
+                    scalars_data.Add(row.begin(), row.end());
+                }
             }
             break;
         }
         case DataType::VARCHAR: {
-            const auto& arrayField = dynamic_cast<const ArrayVarCharFieldData&>(field);
-            const auto& data = arrayField.Data();
-            for (const auto& row : data) {
-                auto& scalar_field = *(array_data.add_data());
-                auto& scalars_data = *(scalar_field.mutable_string_data()->mutable_data());
-                scalars_data.Add(row.begin(), row.end());
+            if (nullable_default) {
+                CopyValidData<ArrayVarCharFieldData>(field, proto_field);
+            }
+            const auto& actual_field = dynamic_cast<const ArrayVarCharFieldData&>(field);
+            for (auto i = 0; i < actual_field.Count(); i++) {
+                if (!actual_field.IsNull(i)) {
+                    auto row = actual_field.Value(i);
+                    auto& scalar_field = *(array_data.add_data());
+                    auto& scalars_data = *(scalar_field.mutable_string_data()->mutable_data());
+                    scalars_data.Add(row.begin(), row.end());
+                }
             }
             break;
         }
         default:
-            // TODO: should throw error here
-            break;
+            return {StatusCode::NOT_SUPPORTED, "Unsupported array element type: " + std::to_string(element_type)};
     }
-
-    return ret;
+    return Status::OK();
 }
 
-proto::schema::FieldData
-CreateProtoFieldData(const Field& field) {
-    proto::schema::FieldData field_data;
+Status
+CreateProtoFieldData(const FieldDataSchema& data_schema, proto::schema::FieldData& field_data) {
+    const Field& field = *(data_schema.Data());
+    const FieldSchemaPtr schema = data_schema.Schema();
+    bool nullable_default = schema ? (schema->IsNullable() || !schema->DefaultValue().is_null()) : false;
+
+    auto scalar = field_data.mutable_scalars();
     const auto field_type = field.Type();
     field_data.set_field_name(field.Name());
     field_data.set_type(DataTypeCast(field_type));
 
     switch (field_type) {
         case DataType::BINARY_VECTOR:
-            field_data.set_allocated_vectors(CreateProtoFieldData(dynamic_cast<const BinaryVecFieldData&>(field)));
+            field_data.set_allocated_vectors(CreateProtoVectorField(dynamic_cast<const BinaryVecFieldData&>(field)));
             break;
         case DataType::FLOAT_VECTOR:
-            field_data.set_allocated_vectors(CreateProtoFieldData(dynamic_cast<const FloatVecFieldData&>(field)));
+            field_data.set_allocated_vectors(CreateProtoVectorField(dynamic_cast<const FloatVecFieldData&>(field)));
             break;
         case DataType::SPARSE_FLOAT_VECTOR:
-            field_data.set_allocated_vectors(CreateProtoFieldData(dynamic_cast<const SparseFloatVecFieldData&>(field)));
+            field_data.set_allocated_vectors(
+                CreateProtoVectorField(dynamic_cast<const SparseFloatVecFieldData&>(field)));
             break;
         case DataType::FLOAT16_VECTOR:
-            field_data.set_allocated_vectors(CreateProtoFieldData(dynamic_cast<const Float16VecFieldData&>(field)));
+            field_data.set_allocated_vectors(CreateProtoVectorField(dynamic_cast<const Float16VecFieldData&>(field)));
             break;
         case DataType::BFLOAT16_VECTOR:
-            field_data.set_allocated_vectors(CreateProtoFieldData(dynamic_cast<const BFloat16VecFieldData&>(field)));
+            field_data.set_allocated_vectors(CreateProtoVectorField(dynamic_cast<const BFloat16VecFieldData&>(field)));
             break;
         case DataType::BOOL:
-            field_data.set_allocated_scalars(CreateProtoFieldData(dynamic_cast<const BoolFieldData&>(field)));
+            scalar->set_allocated_bool_data(
+                CreateProtoScalars<BoolFieldData, proto::schema::BoolArray>(field, field_data, nullable_default));
             break;
         case DataType::INT8:
-            field_data.set_allocated_scalars(CreateProtoFieldData(dynamic_cast<const Int8FieldData&>(field)));
+            scalar->set_allocated_int_data(
+                CreateProtoScalars<Int8FieldData, proto::schema::IntArray>(field, field_data, nullable_default));
             break;
         case DataType::INT16:
-            field_data.set_allocated_scalars(CreateProtoFieldData(dynamic_cast<const Int16FieldData&>(field)));
+            scalar->set_allocated_int_data(
+                CreateProtoScalars<Int16FieldData, proto::schema::IntArray>(field, field_data, nullable_default));
             break;
         case DataType::INT32:
-            field_data.set_allocated_scalars(CreateProtoFieldData(dynamic_cast<const Int32FieldData&>(field)));
+            scalar->set_allocated_int_data(
+                CreateProtoScalars<Int32FieldData, proto::schema::IntArray>(field, field_data, nullable_default));
             break;
         case DataType::INT64:
-            field_data.set_allocated_scalars(CreateProtoFieldData(dynamic_cast<const Int64FieldData&>(field)));
+            scalar->set_allocated_long_data(
+                CreateProtoScalars<Int64FieldData, proto::schema::LongArray>(field, field_data, nullable_default));
             break;
         case DataType::FLOAT:
-            field_data.set_allocated_scalars(CreateProtoFieldData(dynamic_cast<const FloatFieldData&>(field)));
+            scalar->set_allocated_float_data(
+                CreateProtoScalars<FloatFieldData, proto::schema::FloatArray>(field, field_data, nullable_default));
             break;
         case DataType::DOUBLE:
-            field_data.set_allocated_scalars(CreateProtoFieldData(dynamic_cast<const DoubleFieldData&>(field)));
+            scalar->set_allocated_double_data(
+                CreateProtoScalars<DoubleFieldData, proto::schema::DoubleArray>(field, field_data, nullable_default));
             break;
         case DataType::VARCHAR:
-            field_data.set_allocated_scalars(CreateProtoFieldData(dynamic_cast<const VarCharFieldData&>(field)));
+            scalar->set_allocated_string_data(
+                CreateProtoScalars<VarCharFieldData, proto::schema::StringArray>(field, field_data, nullable_default));
             break;
         case DataType::JSON:
-            field_data.set_allocated_scalars(CreateProtoFieldData(dynamic_cast<const JSONFieldData&>(field)));
+            scalar->set_allocated_json_data(
+                CreateProtoScalars<JSONFieldData, proto::schema::JSONArray>(field, field_data, nullable_default));
             break;
         case DataType::ARRAY:
-            field_data.set_allocated_scalars(CreateProtoArrayFieldData(field));
-            break;
+            return CreateProtoArrayField(data_schema, field_data);
         default:
-            // TODO: should throw error here
-            break;
+            return {StatusCode::NOT_SUPPORTED, "Unsupported field type: " + std::to_string(field_type)};
     }
 
-    return field_data;
+    return Status::OK();
 }
 
 IDArray
@@ -588,11 +624,11 @@ Status
 CheckAndSetBinaryVector(const nlohmann::json& obj, const FieldSchema& fs, proto::schema::VectorField* vf) {
     if (!obj.is_array()) {
         std::string err_msg = "Value type should be array for field: " + fs.Name();
-        return Status{StatusCode::INVALID_AGUMENT, err_msg};
+        return {StatusCode::INVALID_AGUMENT, err_msg};
     }
     if (obj.size() * 8 != static_cast<std::size_t>(fs.Dimension())) {
         std::string err_msg = "Array length is not equal to dimension/8 for field: " + fs.Name();
-        return Status{StatusCode::INVALID_AGUMENT, err_msg};
+        return {StatusCode::INVALID_AGUMENT, err_msg};
     }
 
     vf->set_dim(fs.Dimension());
@@ -607,7 +643,7 @@ CheckAndSetBinaryVector(const nlohmann::json& obj, const FieldSchema& fs, proto:
             data->push_back(static_cast<uint8_t>(val));
         } else {
             std::string err_msg = "Value should be int8 for field: " + fs.Name();
-            return Status{StatusCode::INVALID_AGUMENT, err_msg};
+            return {StatusCode::INVALID_AGUMENT, err_msg};
         }
     }
     return Status::OK();
@@ -617,11 +653,11 @@ Status
 CheckAndSetFloatVector(const nlohmann::json& obj, const FieldSchema& fs, proto::schema::VectorField* vf) {
     if (!obj.is_array()) {
         std::string err_msg = "Value type should be array for field: " + fs.Name();
-        return Status{StatusCode::INVALID_AGUMENT, err_msg};
+        return {StatusCode::INVALID_AGUMENT, err_msg};
     }
     if (obj.size() != static_cast<std::size_t>(fs.Dimension())) {
         std::string err_msg = "Array length is not equal to dimension for field: " + fs.Name();
-        return Status{StatusCode::INVALID_AGUMENT, err_msg};
+        return {StatusCode::INVALID_AGUMENT, err_msg};
     }
 
     vf->set_dim(fs.Dimension());
@@ -629,7 +665,7 @@ CheckAndSetFloatVector(const nlohmann::json& obj, const FieldSchema& fs, proto::
     for (const auto& ele : obj) {
         if (!ele.is_number_float()) {
             std::string err_msg = "Element value should be float for field: " + fs.Name();
-            return Status{StatusCode::INVALID_AGUMENT, err_msg};
+            return {StatusCode::INVALID_AGUMENT, err_msg};
         }
         data->Add(ele.get<float>());
     }
@@ -665,11 +701,11 @@ Status
 CheckAndSetFloat16Vector(const nlohmann::json& obj, const FieldSchema& fs, proto::schema::VectorField* vf) {
     if (!obj.is_array()) {
         std::string err_msg = "Value type should be array for field: " + fs.Name();
-        return Status{StatusCode::INVALID_AGUMENT, err_msg};
+        return {StatusCode::INVALID_AGUMENT, err_msg};
     }
     if (obj.size() != static_cast<std::size_t>(fs.Dimension())) {
         std::string err_msg = "Array length is not equal to dimension for field: " + fs.Name();
-        return Status{StatusCode::INVALID_AGUMENT, err_msg};
+        return {StatusCode::INVALID_AGUMENT, err_msg};
     }
 
     bool is_bf16 = (fs.FieldDataType() == DataType::BFLOAT16_VECTOR);
@@ -679,7 +715,7 @@ CheckAndSetFloat16Vector(const nlohmann::json& obj, const FieldSchema& fs, proto
     for (const auto& ele : obj) {
         if (!ele.is_number_float()) {
             std::string err_msg = "Element value should be float for field: " + fs.Name();
-            return Status{StatusCode::INVALID_AGUMENT, err_msg};
+            return {StatusCode::INVALID_AGUMENT, err_msg};
         }
 
         float fval = ele.get<float>();
@@ -688,7 +724,7 @@ CheckAndSetFloat16Vector(const nlohmann::json& obj, const FieldSchema& fs, proto
         // bfloat16, the range is almost equal to float32, no need to check
         if (!is_bf16 && (fval < -65504.0 || fval > 65504.0)) {
             std::string err_msg = "Value should be in range [-65504, 65504] for field: " + fs.Name();
-            return Status{StatusCode::INVALID_AGUMENT, err_msg};
+            return {StatusCode::INVALID_AGUMENT, err_msg};
         }
         uint16_t val = is_bf16 ? F32toBF16(fval) : F32toF16(fval);
         auto p = reinterpret_cast<int8_t*>(&val);
@@ -701,12 +737,12 @@ CheckAndSetFloat16Vector(const nlohmann::json& obj, const FieldSchema& fs, proto
 Status
 CheckAndSetArray(const nlohmann::json& obj, const FieldSchema& fs, proto::schema::ArrayArray* aa) {
     if (!obj.is_array()) {
-        return Status{StatusCode::INVALID_AGUMENT, "Value type should be array for field: " + fs.Name()};
+        return {StatusCode::INVALID_AGUMENT, "Value type should be array for field: " + fs.Name()};
     }
     if (obj.size() > static_cast<std::size_t>(fs.MaxCapacity())) {
         std::string error_msg =
             "Array length " + std::to_string(obj.size()) + " exceeds max capacity of field: " + fs.Name();
-        return Status{StatusCode::INVALID_AGUMENT, error_msg};
+        return {StatusCode::INVALID_AGUMENT, error_msg};
     }
     if (aa->element_type() == proto::schema::DataType::None) {
         aa->set_element_type(DataTypeCast(fs.ElementType()));
@@ -722,6 +758,50 @@ CheckAndSetArray(const nlohmann::json& obj, const FieldSchema& fs, proto::schema
 }
 
 Status
+CheckAndSetNullableDefaultScalar(const nlohmann::json& obj, const FieldSchema& fs, proto::schema::FieldData& fd) {
+    // nullable and default value check
+    // 1. if the field is nullable, user can input json_null/json_object(for row-based insert)
+    //    1) if user input json_null, this value is replaced by default value
+    //    2) if user input json_object, infer this value by type
+    // 2. if the field is not nullable, user can input json_null/json_object(for row-based insert)
+    //    1) if user input json_null, and default value is null, throw error
+    //    2) if user input json_null, and default value is not null, this value is replaced by default value
+    //    3) if user input json_object, infer this value by type
+    nlohmann::json temp_obj = obj;
+    if (fs.IsNullable()) {
+        if (temp_obj.is_null()) {
+            temp_obj = fs.DefaultValue();  // 1.1
+        }
+    } else {
+        if (temp_obj.is_null()) {
+            if (fs.DefaultValue().is_null()) {
+                std::string msg = "Field " + fs.Name() + " is not nullable but the input value is null";
+                return {StatusCode::INVALID_AGUMENT, msg};  // 2.1
+            } else {
+                temp_obj = fs.DefaultValue();  // 2.2
+            }
+        }
+    }
+
+    // assume we have a value list [1, 2, null, 3, null, 4]
+    // the fd.valid_data is [true, true, false, true, false, true]
+    // the fd.scalars is [1, 2, 3, 4]
+    bool valid = !temp_obj.is_null();
+    fd.mutable_valid_data()->Add(valid);
+
+    // the fd.scalars only stores non-null values
+    if (temp_obj.is_null()) {
+        // for array field, we need to set the element type since CheckAndSetScalar() is not called
+        if (fs.FieldDataType() == DataType::ARRAY) {
+            fd.mutable_scalars()->mutable_array_data()->set_element_type(DataTypeCast(fs.ElementType()));
+        }
+        return Status::OK();
+    }
+
+    return CheckAndSetScalar(temp_obj, fs, fd.mutable_scalars(), false);
+}
+
+Status
 CheckAndSetScalar(const nlohmann::json& obj, const FieldSchema& fs, proto::schema::ScalarField* sf, bool is_array) {
     DataType dt = is_array ? fs.ElementType() : fs.FieldDataType();
     const std::string msg_prefix =
@@ -730,7 +810,7 @@ CheckAndSetScalar(const nlohmann::json& obj, const FieldSchema& fs, proto::schem
         case DataType::BOOL: {
             auto scalars = sf->mutable_bool_data()->mutable_data();
             if (!obj.is_boolean()) {
-                return Status{StatusCode::INVALID_AGUMENT, msg_prefix + "bool"};
+                return {StatusCode::INVALID_AGUMENT, msg_prefix + "bool"};
             }
             scalars->Add(obj.get<bool>());
             break;
@@ -739,7 +819,7 @@ CheckAndSetScalar(const nlohmann::json& obj, const FieldSchema& fs, proto::schem
         case DataType::INT16:
         case DataType::INT32: {
             if (!obj.is_number_integer() && !obj.is_number_unsigned()) {
-                return Status{StatusCode::INVALID_AGUMENT, msg_prefix + "integer"};
+                return {StatusCode::INVALID_AGUMENT, msg_prefix + "integer"};
             }
             auto val = obj.get<int64_t>();
             auto scalars = sf->mutable_int_data()->mutable_data();
@@ -766,7 +846,7 @@ CheckAndSetScalar(const nlohmann::json& obj, const FieldSchema& fs, proto::schem
         }
         case DataType::INT64: {
             if (!obj.is_number_integer() && !obj.is_number_unsigned()) {
-                return Status{StatusCode::INVALID_AGUMENT, msg_prefix + "integer"};
+                return {StatusCode::INVALID_AGUMENT, msg_prefix + "integer"};
             }
             auto scalars = sf->mutable_long_data()->mutable_data();
             scalars->Add(obj.get<int64_t>());
@@ -774,7 +854,7 @@ CheckAndSetScalar(const nlohmann::json& obj, const FieldSchema& fs, proto::schem
         }
         case DataType::FLOAT: {
             if (!obj.is_number()) {
-                return Status{StatusCode::INVALID_AGUMENT, msg_prefix + "numeric"};
+                return {StatusCode::INVALID_AGUMENT, msg_prefix + "numeric"};
             }
             auto val = obj.get<double>();
             auto scalars = sf->mutable_float_data()->mutable_data();
@@ -787,7 +867,7 @@ CheckAndSetScalar(const nlohmann::json& obj, const FieldSchema& fs, proto::schem
         }
         case DataType::DOUBLE: {
             if (!obj.is_number()) {
-                return Status{StatusCode::INVALID_AGUMENT, msg_prefix + "numeric"};
+                return {StatusCode::INVALID_AGUMENT, msg_prefix + "numeric"};
             }
             auto scalars = sf->mutable_double_data()->mutable_data();
             scalars->Add(obj.get<double>());
@@ -795,11 +875,11 @@ CheckAndSetScalar(const nlohmann::json& obj, const FieldSchema& fs, proto::schem
         }
         case DataType::VARCHAR: {
             if (!obj.is_string()) {
-                return Status{StatusCode::INVALID_AGUMENT, msg_prefix + "string"};
+                return {StatusCode::INVALID_AGUMENT, msg_prefix + "string"};
             }
             auto ss = obj.get<std::string>();
             if (ss.size() > fs.MaxLength()) {
-                return Status{StatusCode::INVALID_AGUMENT, "Exceeds max length of field: " + fs.Name()};
+                return {StatusCode::INVALID_AGUMENT, "Exceeds max length of field: " + fs.Name()};
             }
             auto scalars = sf->mutable_string_data()->mutable_data();
             scalars->Add(std::move(ss));
@@ -807,12 +887,12 @@ CheckAndSetScalar(const nlohmann::json& obj, const FieldSchema& fs, proto::schem
         }
         case DataType::JSON: {
             if (!obj.is_object() && !obj.is_array() && !obj.is_primitive()) {
-                return Status{StatusCode::INVALID_AGUMENT, msg_prefix + "JSON"};
+                return {StatusCode::INVALID_AGUMENT, msg_prefix + "JSON"};
             }
             // for dynamic field, the json must be a dict
             // for the case user explicitly input $meta like {"id": 1, "vector": [], "$meta": {}}
             if (fs.Name() == DYNAMIC_FIELD && !obj.is_object()) {
-                return Status{StatusCode::INVALID_AGUMENT, "'$meta' value must be a JSON dict"};
+                return {StatusCode::INVALID_AGUMENT, "'$meta' value must be a JSON dict"};
             }
             auto scalars = sf->mutable_json_data()->mutable_data();
             scalars->Add(obj.dump());
@@ -820,7 +900,7 @@ CheckAndSetScalar(const nlohmann::json& obj, const FieldSchema& fs, proto::schem
         }
         case DataType::ARRAY: {
             if (is_array) {
-                return Status{StatusCode::INVALID_AGUMENT, "Not allow nested array for field: " + fs.Name()};
+                return {StatusCode::INVALID_AGUMENT, "Not allow nested array for field: " + fs.Name()};
             }
             auto status = CheckAndSetArray(obj, fs, sf->mutable_array_data());
             if (!status.IsOk()) {
@@ -832,7 +912,7 @@ CheckAndSetScalar(const nlohmann::json& obj, const FieldSchema& fs, proto::schem
             std::string type_name = std::to_string(static_cast<int>(dt));
             std::string err_msg = is_array ? type_name + " is not supportted for field " + fs.Name()
                                            : type_name + " is not supportted in collection schema";
-            return Status{StatusCode::INVALID_AGUMENT, err_msg};
+            return {StatusCode::INVALID_AGUMENT, err_msg};
         }
     }
     return Status::OK();
@@ -874,7 +954,11 @@ CheckAndSetFieldValue(const nlohmann::json& obj, const FieldSchema& fs, proto::s
             break;
         }
         default:
-            return CheckAndSetScalar(obj, fs, fd.mutable_scalars(), false);
+            if (fs.IsNullable() || !fs.DefaultValue().is_null()) {
+                return CheckAndSetNullableDefaultScalar(obj, fs, fd);
+            } else {
+                return CheckAndSetScalar(obj, fs, fd.mutable_scalars(), false);
+            }
     }
     return Status::OK();
 }
@@ -882,6 +966,15 @@ CheckAndSetFieldValue(const nlohmann::json& obj, const FieldSchema& fs, proto::s
 Status
 CheckAndSetRowData(const EntityRows& rows, const CollectionSchema& schema, bool is_upsert,
                    std::vector<proto::schema::FieldData>& rpc_fields) {
+    std::set<std::string> output_fields;
+    for (const auto& function : schema.Functions()) {
+        if (function) {
+            for (const auto& name : function->OutputFieldNames()) {
+                output_fields.insert(name);
+            }
+        }
+    }
+
     const std::vector<FieldSchema>& schema_fields = schema.Fields();
     std::set<std::string> field_names;
     for (const auto& field_schema : schema_fields) {
@@ -900,31 +993,49 @@ CheckAndSetRowData(const EntityRows& rows, const CollectionSchema& schema, bool 
     for (auto i = 0; i < rows.size(); i++) {
         const auto& row = rows[i];
         if (!row.is_object()) {
-            return Status{StatusCode::INVALID_AGUMENT,
-                          "The No." + std::to_string(i) + " input row is not a JSON dict object"};
+            return {StatusCode::INVALID_AGUMENT,
+                    "The No." + std::to_string(i) + " input row is not a JSON dict object"};
         }
 
         // process values for non-dynamic fields
         for (const auto& field_schema : schema_fields) {
             const std::string& name = field_schema.Name();
+            nlohmann::json field_value;
             if (row.contains(name)) {
-                // from v2.4.10, milvus allows upsert for auto-id pk, no need to check for upsert action
-                if (field_schema.IsPrimaryKey() && field_schema.AutoID() && !is_upsert) {
-                    return Status{StatusCode::INVALID_AGUMENT,
-                                  "The primary key: " + name + " is auto generated, no need to input."};
-                }
-                proto::schema::FieldData& fd = proto_fields[name];
-                auto status = CheckAndSetFieldValue(row[name], field_schema, fd);
-                if (!status.IsOk()) {
-                    return status;
-                }
+                field_value = row[name];
             } else {
+                // if the field is auto-id, no need to provide value for insert, require to provide for upsert
+                if ((field_schema.IsPrimaryKey() && field_schema.AutoID()) && !is_upsert) {
+                    continue;
+                }
+
+                // if the field is an output field of doc-in-doc-out, no need to provide value
+                if (output_fields.find(name) != output_fields.end()) {
+                    continue;
+                }
+
+                // if the field doesn't have default value and is not nullable, require user to provide the value
+                if (!field_schema.IsNullable() && field_schema.DefaultValue().is_null()) {
+                    return {StatusCode::INVALID_AGUMENT, "The field: " + name + " is not provided."};
+                }
+            }
+
+            // from v2.4.10, milvus allows upsert for auto-id pk, no need to check for upsert action
+            if (field_schema.IsPrimaryKey() && field_schema.AutoID() && !is_upsert) {
+                return {StatusCode::INVALID_AGUMENT,
+                        "The primary key: " + name + " is auto generated, no need to input."};
+            }
+
+            proto::schema::FieldData& fd = proto_fields[name];
+            auto status = CheckAndSetFieldValue(field_value, field_schema, fd);
+            if (!status.IsOk()) {
+                return status;
             }
         }
 
         // process values for dynamic fields
         if (schema.EnableDynamicField()) {
-            nlohmann::json dynamic;
+            nlohmann::json dynamic = nlohmann::json::object();
             for (auto it = row.begin(); it != row.end(); ++it) {
                 if (field_names.find(it.key()) == field_names.end()) {
                     dynamic[it.key()] = it.value();
