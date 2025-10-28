@@ -88,9 +88,9 @@ TEST_F(DmlUtilsTest, CreateMilvusFieldDataWithRange_Scalar) {
         CreateMilvusFieldData(CreateProtoFieldData(static_cast<const milvus::Field&>(string_field_data)), 1, 2));
     EXPECT_THAT(string_field_data_ptr->Data(), ElementsAre("b", "c"));
 
-    auto values =
-        std::vector<nlohmann::json>{R"({"name":"aaa","age":18,"score":88})", R"({"name":"bbb","age":19,"score":99})",
-                                    R"({"name":"ccc","age":15,"score":100})"};
+    std::vector<nlohmann::json> values{nlohmann::json::parse(R"({"name":"aaa","age":18,"score":88})"),
+                                       nlohmann::json::parse(R"({"name":"bbb","age":19,"score":99})"),
+                                       nlohmann::json::parse(R"({"name":"ccc","age":15,"score":100})")};
     milvus::JSONFieldData json_field_data{"foo", values};
     const auto json_field_data_ptr = std::dynamic_pointer_cast<const milvus::JSONFieldData>(
         CreateMilvusFieldData(CreateProtoFieldData(static_cast<const milvus::Field&>(json_field_data)), 1, 2));
