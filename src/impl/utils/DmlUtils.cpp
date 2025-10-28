@@ -927,7 +927,7 @@ CheckAndSetRowData(const EntityRows& rows, const CollectionSchema& schema, bool 
 
         // process values for dynamic fields
         if (schema.EnableDynamicField()) {
-            nlohmann::json dynamic;
+            nlohmann::json dynamic = nlohmann::json::object();
             for (auto it = row.begin(); it != row.end(); ++it) {
                 if (field_names.find(it.key()) == field_names.end()) {
                     dynamic[it.key()] = it.value();

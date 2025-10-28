@@ -236,6 +236,7 @@ void
 ConvertCollectionSchema(const CollectionSchema& schema, proto::schema::CollectionSchema& proto_schema) {
     proto_schema.set_name(schema.Name());
     proto_schema.set_description(schema.Description());
+    proto_schema.set_enable_dynamic_field(schema.EnableDynamicField());
 
     for (auto& field : schema.Fields()) {
         auto proto_field = proto_schema.add_fields();
