@@ -174,8 +174,8 @@ TEST_F(FieldDataTest, ScalarFields) {
     }
 
     {
-        auto j1 = R"({"name":"aaa","age":18,"score":88})";
-        auto j2 = R"({"name":"bbb","age":20,"score":99})";
+        auto j1 = nlohmann::json::parse(R"({"name":"aaa","age":18,"score":88})");
+        auto j2 = nlohmann::json::parse(R"({"name":"bbb","age":20,"score":99})");
         milvus::JSONFieldData data{name};
         data.Add(j1);
         data.Add(j2);
