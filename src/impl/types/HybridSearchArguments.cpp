@@ -154,6 +154,39 @@ HybridSearchArguments::SetRerank(const FunctionPtr& rerank) {
     return Status::OK();
 }
 
+std::string
+HybridSearchArguments::GroupByField() const {
+    return group_by_field_;
+}
+
+Status
+HybridSearchArguments::SetGroupByField(const std::string& field_name) {
+    group_by_field_ = field_name;
+    return Status::OK();
+}
+
+uint64_t
+HybridSearchArguments::GroupSize() const {
+    return group_size_;
+}
+
+Status
+HybridSearchArguments::SetGroupSize(uint64_t group_size) {
+    group_size_ = group_size;
+    return Status::OK();
+}
+
+uint64_t
+HybridSearchArguments::StrictGroupSize() const {
+    return strict_group_size_;
+}
+
+Status
+HybridSearchArguments::SetStrictGroupSize(bool strict_group_size) {
+    strict_group_size_ = strict_group_size;
+    return Status::OK();
+}
+
 Status
 HybridSearchArguments::Validate() const {
     for (auto& it : sub_requests_) {
