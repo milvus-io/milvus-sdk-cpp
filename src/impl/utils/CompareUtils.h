@@ -16,6 +16,8 @@
 
 #pragma once
 
+#include <limits>
+
 #include "milvus.pb.h"
 #include "milvus/types/FieldData.h"
 #include "milvus/types/SegmentInfo.h"
@@ -83,6 +85,12 @@ template <typename T, DataType Dt>
 bool
 operator==(const FieldData<T, Dt>& lhs, const Field& rhs) {
     return lhs == dynamic_cast<const FieldData<T, Dt>&>(rhs);
+}
+
+template <typename T>
+bool
+IsNumEquals(T a, T b) {
+    return (std::fabs(a - b) < std::numeric_limits<T>::epsilon());
 }
 
 }  // namespace milvus

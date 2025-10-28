@@ -113,7 +113,17 @@ class FieldData : public Field {
     /**
      * @brief Constructor.
      */
+    FieldData(std::string name, const std::vector<T>& data, const std::vector<bool>& valid_data);
+
+    /**
+     * @brief Constructor.
+     */
     FieldData(std::string name, std::vector<T>&& data);
+
+    /**
+     * @brief Constructor.
+     */
+    FieldData(std::string name, std::vector<T>&& data, std::vector<bool>&& valid_data);
 
     /**
      * @brief Add element to field data.
@@ -126,6 +136,12 @@ class FieldData : public Field {
      */
     virtual StatusCode
     Add(T&& element);
+
+    /**
+     * @brief Add a null element to field data.
+     */
+    virtual StatusCode
+    AddNull();
 
     /**
      * @brief Append elements to field data.
@@ -151,11 +167,27 @@ class FieldData : public Field {
     virtual const std::vector<T>&
     Data() const;
 
+    /**
+     * @brief Get value by position.
+     */
     virtual T
     Value(size_t i) const;
 
+    /**
+     * @brief Is this position null value.
+     */
+    virtual bool
+    IsNull(size_t i) const;
+
+    /**
+     * @brief Bool array to indicate null or non-null elements.
+     */
+    virtual const std::vector<bool>&
+    ValidData() const;
+
  protected:
     std::vector<T> data_;
+    std::vector<bool> valid_data_;
 };
 
 /**
@@ -196,7 +228,18 @@ class ArrayFieldData : public FieldData<std::vector<T>, DataType::ARRAY> {
     /**
      * @brief Constructor.
      */
+    ArrayFieldData(std::string name, const std::vector<ArrayFieldData::ElementT>& data,
+                   const std::vector<bool>& valid_data);
+
+    /**
+     * @brief Constructor.
+     */
     ArrayFieldData(std::string name, std::vector<ArrayFieldData::ElementT>&& data);
+
+    /**
+     * @brief Constructor.
+     */
+    ArrayFieldData(std::string name, std::vector<ArrayFieldData::ElementT>&& data, std::vector<bool>&& valid_data);
 
     /**
      * @brief Add element to field data.
@@ -231,7 +274,18 @@ class BinaryVecFieldData : public FieldData<std::vector<uint8_t>, DataType::BINA
     /**
      * @brief Constructor.
      */
+    BinaryVecFieldData(std::string name, const std::vector<std::vector<uint8_t>>& data,
+                       const std::vector<bool>& valid_data);
+
+    /**
+     * @brief Constructor.
+     */
     BinaryVecFieldData(std::string name, std::vector<std::vector<uint8_t>>&& data);
+
+    /**
+     * @brief Constructor.
+     */
+    BinaryVecFieldData(std::string name, std::vector<std::vector<uint8_t>>&& data, std::vector<bool>&& valid_data);
 
     /**
      * @brief Extra constructor.
@@ -241,7 +295,17 @@ class BinaryVecFieldData : public FieldData<std::vector<uint8_t>, DataType::BINA
     /**
      * @brief Extra constructor.
      */
+    BinaryVecFieldData(std::string name, const std::vector<std::string>& data, const std::vector<bool>& valid_data);
+
+    /**
+     * @brief Extra constructor.
+     */
     BinaryVecFieldData(std::string name, std::vector<std::string>&& data);
+
+    /**
+     * @brief Extra constructor.
+     */
+    BinaryVecFieldData(std::string name, std::vector<std::string>&& data, std::vector<bool>&& valid_data);
 
     /**
      * @brief Extra method to get field elements array.

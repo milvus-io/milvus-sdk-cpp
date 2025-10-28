@@ -16,9 +16,9 @@
 
 #include "SearchIteratorImpl.h"
 
-#include <limits>
 #include <stdexcept>
 
+#include "../utils/CompareUtils.h"
 #include "../utils/Constants.h"
 #include "../utils/DqlUtils.h"
 #include "../utils/GtsDict.h"
@@ -157,12 +157,6 @@ SearchIteratorImpl::initSearchIterator() {
     cache_.emplace_back(std::move(single_result));
 }
 
-template <typename T>
-bool
-isEquals(T a, T b) {
-    return (std::fabs(a - b) < std::numeric_limits<T>::epsilon());
-}
-
 // There might be lot of items with the same distance/score value.
 // The next search will use the last row's distance/score as the range of search.
 // So the next search could return some duplicated ids with the last search.
@@ -179,7 +173,7 @@ SearchIteratorImpl::updateFilteredIds(const SingleResultPtr& results) {
     const auto& ids = results->Ids();
     const auto& scores = results->Scores();
     for (auto i = 0; i < results->GetRowCount(); i++) {
-        if (isEquals(last_distance, static_cast<double>(scores.at(i)))) {
+        if (IsNumEquals(last_distance, static_cast<double>(scores.at(i)))) {
             if (ids.IsIntegerID()) {
                 same_distance_ids.push_back(std::to_string(ids.IntIDArray().at(i)));
             } else {
@@ -188,7 +182,7 @@ SearchIteratorImpl::updateFilteredIds(const SingleResultPtr& results) {
         }
     }
 
-    if (isEquals(last_distance, tail_distance_)) {
+    if (IsNumEquals(last_distance, tail_distance_)) {
         // if all items have the same distance with the last search, append the ids to filtered_ids_
         // An extreme case:
         //   search_1 returns {1:0.5, 2:0.5, 3:0.5}
