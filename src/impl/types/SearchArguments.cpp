@@ -136,6 +136,28 @@ SearchArguments::SetGroupByField(const std::string& field_name) {
     return Status::OK();
 }
 
+uint64_t
+SearchArguments::GroupSize() const {
+    return group_size_;
+}
+
+Status
+SearchArguments::SetGroupSize(uint64_t group_size) {
+    group_size_ = group_size;
+    return Status::OK();
+}
+
+uint64_t
+SearchArguments::StrictGroupSize() const {
+    return strict_group_size_;
+}
+
+Status
+SearchArguments::SetStrictGroupSize(bool strict_group_size) {
+    strict_group_size_ = strict_group_size;
+    return Status::OK();
+}
+
 Status
 SearchArguments::Validate() const {
     // in milvus 2.4+, no need to check index parameters, let the server to check it
