@@ -145,6 +145,30 @@ class SearchArguments : public SearchRequestBase {
     SetGroupByField(const std::string& field_name);
 
     /**
+     * @brief Get size of group by.
+     */
+    uint64_t
+    GroupSize() const;
+
+    /**
+     * @brief Set size of group by.
+     */
+    Status
+    SetGroupSize(uint64_t group_size);
+
+    /**
+     * @brief Get the flag whether to strict group size.
+     */
+    uint64_t
+    StrictGroupSize() const;
+
+    /**
+     * @brief Set the flag whether to strict group size.
+     */
+    Status
+    SetStrictGroupSize(bool strict_group_size);
+
+    /**
      * @brief Validate for search arguments and get name of the target anns field. \n
      * Note: in v2.4+, a collection can have one or more vector fields. If a collection has
      * only one vector field, users can set an empty name in the AddTargetVector(),
@@ -280,10 +304,14 @@ class SearchArguments : public SearchRequestBase {
     std::string collection_name_;
     std::set<std::string> partition_names_;
     std::set<std::string> output_field_names_;
-    std::string group_by_field_;
     int64_t offset_{0};
     int round_decimal_{-1};
     bool ignore_growing_{false};
+
+    // for group by
+    std::string group_by_field_;
+    uint64_t group_size_{1};  // milvus returns one result per group by default
+    bool strict_group_size_{false};
 
     // ConsistencyLevel::NONE means using collection's default level
     ConsistencyLevel consistency_level_{ConsistencyLevel::NONE};
