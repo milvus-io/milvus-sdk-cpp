@@ -35,6 +35,8 @@ extern const char* RANGE_FILTER;
 extern const char* IGNORE_GROWING;
 extern const char* ROUND_DECIMAL;
 extern const char* GROUPBY_FIELD;
+extern const char* GROUPBY_SIZE;
+extern const char* GROUPBY_STRICT_SIZE;
 extern const char* PARAMS;
 extern const char* STRATEGY;
 extern const char* SCORE;

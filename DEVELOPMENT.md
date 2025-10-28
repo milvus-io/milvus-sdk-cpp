@@ -149,6 +149,7 @@ Once the `make test` is done, you will see some executable examples under the pa
 - `./cmake_build/examples/sdk_dynamic_field`: example to show the usage of dynamic fields.
 - `./cmake_build/examples/sdk_full_text_match`: example to show the usage of BM25 function.
 - `./cmake_build/examples/sdk_general`: a general example to show the basic usage.
+- `./cmake_build/examples/sdk_group_by`: a general example to show the usage of grouping search.
 - `./cmake_build/examples/sdk_hybrid_search`: example to show the usage of hybrid search interface.
 - `./cmake_build/examples/sdk_iterator_query`: example to show the usage of query iterator.
 - `./cmake_build/examples/sdk_iterator_search`: example to show the usage of search iterator.

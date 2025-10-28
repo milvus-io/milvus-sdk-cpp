@@ -917,6 +917,10 @@ ConvertSearchRequest(const SearchArguments& arguments, const std::string& curren
     auto group_by_field = arguments.GroupByField();
     if (!group_by_field.empty()) {
         setParamFunc(milvus::GROUPBY_FIELD, arguments.GroupByField());
+        setParamFunc(milvus::GROUPBY_STRICT_SIZE, std::to_string(arguments.StrictGroupSize()));
+        if (arguments.GroupSize() > 0) {
+            setParamFunc(milvus::GROUPBY_SIZE, std::to_string(arguments.GroupSize()));
+        }
     }
 
     // extra params radius/range_filter/nprobe etc.
@@ -1000,6 +1004,12 @@ ConvertHybridSearchRequest(const HybridSearchArguments& arguments, const std::st
         SetExtraParams(sub_request->ExtraParams(), search_req);
     }
 
+    auto setParamFunc = [&rpc_request](const std::string& key, const std::string& value) {
+        auto kv_pair = rpc_request.add_rank_params();
+        kv_pair->set_key(key);
+        kv_pair->set_value(value);
+    };
+
     // set rerank/limit/offset/round decimal
     auto reranker = arguments.Rerank();
     auto params = reranker->Params();
@@ -1009,9 +1019,17 @@ ConvertHybridSearchRequest(const HybridSearchArguments& arguments, const std::st
     params[IGNORE_GROWING] = arguments.IgnoreGrowing() ? "true" : "false";
 
     for (auto& pair : params) {
-        auto kv_pair = rpc_request.add_rank_params();
-        kv_pair->set_key(pair.first);
-        kv_pair->set_value(pair.second);
+        setParamFunc(pair.first, pair.second);
+    }
+
+    // group by
+    auto group_by_field = arguments.GroupByField();
+    if (!group_by_field.empty()) {
+        setParamFunc(milvus::GROUPBY_FIELD, arguments.GroupByField());
+        setParamFunc(milvus::GROUPBY_STRICT_SIZE, std::to_string(arguments.StrictGroupSize()));
+        if (arguments.GroupSize() > 0) {
+            setParamFunc(milvus::GROUPBY_SIZE, std::to_string(arguments.GroupSize()));
+        }
     }
 
     // consistancy level

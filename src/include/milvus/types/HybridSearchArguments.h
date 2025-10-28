@@ -170,6 +170,42 @@ class HybridSearchArguments {
     SetRerank(const FunctionPtr& rerank);
 
     /**
+     * @brief Get group by field name.
+     */
+    std::string
+    GroupByField() const;
+
+    /**
+     * @brief Set group by field name.
+     */
+    Status
+    SetGroupByField(const std::string& field_name);
+
+    /**
+     * @brief Get size of group by.
+     */
+    uint64_t
+    GroupSize() const;
+
+    /**
+     * @brief Set size of group by.
+     */
+    Status
+    SetGroupSize(uint64_t group_size);
+
+    /**
+     * @brief Get the flag whether to strict group size.
+     */
+    uint64_t
+    StrictGroupSize() const;
+
+    /**
+     * @brief Set the flag whether to strict group size.
+     */
+    Status
+    SetStrictGroupSize(bool strict_group_size);
+
+    /**
      * @brief Validate for search arguments
      */
     Status
@@ -187,6 +223,11 @@ class HybridSearchArguments {
     int64_t offset_{0};
     int round_decimal_{-1};
     bool ignore_growing_{false};
+
+    // for group by
+    std::string group_by_field_;
+    uint64_t group_size_{1};  // milvus returns one result per group by default
+    bool strict_group_size_{false};
 
     // ConsistencyLevel::NONE means using collection's default level
     ConsistencyLevel consistency_level_{ConsistencyLevel::NONE};
