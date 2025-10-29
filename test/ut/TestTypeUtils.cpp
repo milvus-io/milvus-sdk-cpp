@@ -221,7 +221,7 @@ TEST_F(TypeUtilsTest, StringFieldCompare) {
 
 TEST_F(TypeUtilsTest, JSONFieldCompare) {
     const std::string field_name = "foo";
-    auto values = std::vector<nlohmann::json>{R"({"name":"aaa","age":18,"score":88})"};
+    auto values = std::vector<nlohmann::json>{nlohmann::json::parse(R"({"name":"aaa","age":18,"score":88})")};
     milvus::JSONFieldData json_field{field_name, values};
     milvus::proto::schema::FieldData proto_field;
     proto_field.set_type(milvus::proto::schema::DataType::JSON);
@@ -240,8 +240,8 @@ TEST_F(TypeUtilsTest, JSONFieldCompare) {
     json_scalars->add_data(values.at(0).dump());
     EXPECT_TRUE(proto_field == json_field);
 
-    nlohmann::json a1 = R"({"name":"aaa","age":18,"score":88})";
-    nlohmann::json a2 = R"({"name":"aaa","age":17,"score":77})";
+    auto a1 = nlohmann::json::parse(R"({"name":"aaa","age":18,"score":88})");
+    auto a2 = nlohmann::json::parse(R"({"name":"aaa","age":17,"score":77})");
     json_field.Add(a1);
     json_scalars->add_data(a2.dump());
     EXPECT_FALSE(proto_field == json_field);
