@@ -262,7 +262,7 @@ TEST_F(TypeUtilsTest, StringFieldNotEquals) {
 }
 
 TEST_F(TypeUtilsTest, JSONFieldEqualsAndCast) {
-    auto values = std::vector<nlohmann::json>{R"({"name":"aaa","age":18,"score":88})"};
+    auto values = std::vector<nlohmann::json>{nlohmann::json::parse(R"({"name":"aaa","age":18,"score":88})")};
     milvus::JSONFieldData json_field_data{"foo", values};
     auto proto_field_data = CreateProtoFieldData(static_cast<const milvus::Field&>(json_field_data));
     auto json_field_data_ptr = CreateMilvusFieldData(proto_field_data);
@@ -273,7 +273,7 @@ TEST_F(TypeUtilsTest, JSONFieldEqualsAndCast) {
 
 TEST_F(TypeUtilsTest, JSONFieldNotEquals) {
     const std::string field_name = "foo";
-    auto values = std::vector<nlohmann::json>{R"({"name":"aaa","age":18,"score":88})"};
+    auto values = std::vector<nlohmann::json>{nlohmann::json::parse(R"({"name":"aaa","age":18,"score":88})")};
     milvus::JSONFieldData json_field{field_name, values};
     milvus::proto::schema::FieldData proto_field;
     proto_field.set_field_name("_");
@@ -291,8 +291,8 @@ TEST_F(TypeUtilsTest, JSONFieldNotEquals) {
     json_scalars->add_data(values.at(0).dump());
     EXPECT_TRUE(proto_field == json_field);
 
-    nlohmann::json a1 = R"({"name":"aaa","age":18,"score":88})";
-    nlohmann::json a2 = R"({"name":"aaa","age":17,"score":77})";
+    auto a1 = nlohmann::json::parse(R"({"name":"aaa","age":18,"score":88})");
+    auto a2 = nlohmann::json::parse(R"({"name":"aaa","age":17,"score":77})");
     json_field.Add(a1);
     json_scalars->add_data(a2.dump());
     EXPECT_FALSE(proto_field == json_field);
