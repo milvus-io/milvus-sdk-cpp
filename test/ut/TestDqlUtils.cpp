@@ -113,9 +113,10 @@ TEST_F(DqlUtilsTest, CopyFieldDataTest) {
         TestCopyFieldData<milvus::VarCharFieldData, std::string>(src_data);
     }
     {
-        std::vector<nlohmann::json> src_data{R"({"name":"aaa","age":18,"score":88})", R"({"flag":true})",
-                                             R"({"name":"bbb","array":[1, 2, 3]})",
-                                             R"({"id":10,"desc":{"flag": false}})", R"({"id":8})"};
+        std::vector<nlohmann::json> src_data{
+            nlohmann::json::parse(R"({"name":"aaa","age":18,"score":88})"), nlohmann::json::parse(R"({"flag":true})"),
+            nlohmann::json::parse(R"({"name":"bbb","array":[1, 2, 3]})"),
+            nlohmann::json::parse(R"({"id":10,"desc":{"flag": false}})"), nlohmann::json::parse(R"({"id":8})")};
         TestCopyFieldData<milvus::JSONFieldData, nlohmann::json>(src_data);
     }
     {

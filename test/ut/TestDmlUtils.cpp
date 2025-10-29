@@ -92,9 +92,9 @@ TEST_F(DmlUtilsTest, CreateMilvusFieldDataWithRange_Scalar) {
     VerifyCreateMilvusFieldData<milvus::DoubleFieldData, double>(std::vector<double>{2.4, 3.4, 1.2});
     VerifyCreateMilvusFieldData<milvus::VarCharFieldData, std::string>(std::vector<std::string>{"a", "b", "c"});
 
-    auto values =
-        std::vector<nlohmann::json>{R"({"name":"aaa","age":18,"score":88})", R"({"name":"bbb","age":19,"score":99})",
-                                    R"({"name":"ccc","age":15,"score":100})"};
+    auto values = std::vector<nlohmann::json>{nlohmann::json::parse(R"({"name":"aaa","age":18,"score":88})"),
+                                              nlohmann::json::parse(R"({"name":"bbb","age":19,"score":99})"),
+                                              nlohmann::json::parse(R"({"name":"ccc","age":15,"score":100})")};
     VerifyCreateMilvusFieldData<milvus::JSONFieldData, nlohmann::json>(values);
 }
 
