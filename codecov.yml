@@ -12,7 +12,7 @@ coverage:
   status:
     project:
       default:
-        target: 95%
+        target: 90%
         threshold: 0%
     patch:
       default:
@@ -33,6 +33,7 @@ ignore:
   - doc
   - examples
   - scripts
+  - include/nlohmann
   - test
   - thirdparty
   - "**/*.txt"

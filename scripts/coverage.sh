@@ -60,8 +60,8 @@ ${LCOV_CMD} -a ${FILE_INFO_BASE} -a ${FILE_INFO_UT} -o ${FILE_INFO_COMBINE}
 ${LCOV_CMD} -r "${FILE_INFO_COMBINE}" -o "${FILE_INFO_OUTPUT}" \
     "/usr/*" \
     "*/install/*" \
-    "*/third_party/*" \
-    "*/src/proto-gen/*" \
+    "*/src/include/nlohmann/*" \
+    "*/thirdparty/*" \
     "*/test/*" \
     "*/_deps/*" \
     "*/examples/*"
