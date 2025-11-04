@@ -31,13 +31,12 @@ QueryIteratorImpl::QueryIteratorImpl(MilvusConnectionPtr& connection, const Quer
     connection_ = connection;
     args_ = args;
     retry_param_ = retry_param;
-
-    // might throw exception
-    init();
 }
 
 Status
 QueryIteratorImpl::Next(QueryResults& results) {
+    results.Clear();
+
     QueryResults temp_results;
     if (cache_.GetRowCount() >= args_.BatchSize()) {
         // return from cache
@@ -113,10 +112,8 @@ QueryIteratorImpl::Next(QueryResults& results) {
     return Status::OK();
 }
 
-///////////////////////////////////////////////////////////////////////////////////
-// internal methods
-void
-QueryIteratorImpl::init() {
+Status
+QueryIteratorImpl::Init() {
     // store the limit/offset values, the args's limit/offset will be changed later
     limit_ = args_.Limit();
     offset_ = args_.Offset();
@@ -126,19 +123,25 @@ QueryIteratorImpl::init() {
 
     // run query to setup the session ts
     QueryResults results;
-    executeQuery(args_.Filter(), 1, false, results);
+    auto status = executeQuery(args_.Filter(), 1, false, results);
+    if (!status.IsOk()) {
+        return status;
+    }
 
     // run query to jump offset
-    seek();
+    return seek();
 }
+
+///////////////////////////////////////////////////////////////////////////////////
+// internal methods
 
 // This method is to handle offset
 // offset value could be larger than 16384, this method might call query multiple
 // times until the "next_id_" is set to the offset position.
-void
+Status
 QueryIteratorImpl::seek() {
     if (offset_ == 0) {
-        return;
+        return Status::OK();
     }
 
     auto offset = offset_;
@@ -148,12 +151,12 @@ QueryIteratorImpl::seek() {
         QueryResults results;
         auto status = executeQuery(filter, batch_size, true, results);
         if (!status.IsOk()) {
-            throw std::runtime_error("Iterator fails to seek, error: " + status.Message());
+            return {status.Code(), "Iterator fails to seek, error: " + status.Message()};
         }
 
         status = updateCursor(results);
         if (!status.IsOk()) {
-            throw std::runtime_error("Iterator fails to seek, error: " + status.Message());
+            return {status.Code(), "Iterator fails to seek, error: " + status.Message()};
         }
 
         auto seeked_count = static_cast<int64_t>(results.GetRowCount());
@@ -163,6 +166,7 @@ QueryIteratorImpl::seek() {
         }
         offset -= seeked_count;
     }
+    return Status::OK();
 }
 
 // This method return a filter expression for the next query.
@@ -202,13 +206,13 @@ QueryIteratorImpl::executeQuery(const std::string& filter, int64_t limit, bool i
         setParamFunc(COLLECTION_ID, std::to_string(args_.CollectionID()));
     }
 
-    // for seeking process, don't set ITERATOR to be true since the server iteration have special reduce logic
+    // for seeking process, don't set ITERATOR_FIELD to be true since the server iteration have special reduce logic
     // ReduceStopForBest is for optimize in iteration reduce logic, depends on user input
     if (is_seek) {
-        setParamFunc(ITERATOR, "False");
+        setParamFunc(ITERATOR_FIELD, "False");
         setParamFunc(REDUCE_STOP_FOR_BEST, "False");
     } else {
-        setParamFunc(ITERATOR, "True");
+        setParamFunc(ITERATOR_FIELD, "True");
         setParamFunc(REDUCE_STOP_FOR_BEST, args_.ReduceStopForBest() ? "True" : "False");
     }
 
@@ -247,9 +251,7 @@ QueryIteratorImpl::executeQuery(const std::string& filter, int64_t limit, bool i
         if (session_ts_ == 0) {
             // for old milvus versions <= 2.4, the session_ts() might return zero
             // failed to get mvccTs from milvus server, use client-side ts instead
-            auto ms = GetNowMs();
-            ms = ms << 18;
-            session_ts_ = static_cast<uint64_t>(ms);
+            session_ts_ = static_cast<uint64_t>(MakeMktsFromNowMs());
         }
     }
 

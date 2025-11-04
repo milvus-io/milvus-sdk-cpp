@@ -15,6 +15,7 @@
 // limitations under the License.
 
 #include <iostream>
+#include <set>
 #include <string>
 
 #include "ExampleUtils.h"
@@ -27,6 +28,21 @@ const char* const field_name = "user_name";
 const char* const field_age = "user_age";
 const char* const field_face = "user_face";
 const uint32_t dimension = 128;
+
+uint64_t
+getRowCount(milvus::MilvusClientPtr& client) {
+    // get row count
+    milvus::QueryArguments q_count{};
+    q_count.SetCollectionName(collection_name);
+    q_count.AddOutputField("count(*)");
+    q_count.SetConsistencyLevel(milvus::ConsistencyLevel::STRONG);
+
+    milvus::QueryResults count_result{};
+    auto status = client->Query(q_count, count_result);
+    util::CheckStatus("query count(*)", status);
+    std::cout << "count(*) = " << count_result.GetRowCount() << std::endl;
+    return count_result.GetRowCount();
+}
 
 void
 buildCollection(milvus::MilvusClientPtr& client, milvus::MetricType index_metric) {
@@ -45,7 +61,8 @@ buildCollection(milvus::MilvusClientPtr& client, milvus::MetricType index_metric
     util::CheckStatus(std::string("create collection: ") + collection_name, status);
 
     // create index
-    milvus::IndexDesc index_vector(field_face, "", milvus::IndexType::AUTOINDEX, index_metric);
+    // Note that we use FLAT here, because other indexes cannot ensure that all entities can be featched by iterator
+    milvus::IndexDesc index_vector(field_face, "", milvus::IndexType::FLAT, index_metric);
     status = client->CreateIndex(collection_name, index_vector);
     util::CheckStatus("create index on vector field", status);
 
@@ -76,37 +93,7 @@ buildCollection(milvus::MilvusClientPtr& client, milvus::MetricType index_metric
         std::cout << dml_results.InsertCount() << " rows inserted." << std::endl;
     }
 
-    {
-        // check row count
-        milvus::QueryArguments q_count{};
-        q_count.SetCollectionName(collection_name);
-        q_count.AddOutputField("count(*)");
-        q_count.SetConsistencyLevel(milvus::ConsistencyLevel::STRONG);
-
-        milvus::QueryResults count_result{};
-        status = client->Query(q_count, count_result);
-        util::CheckStatus("query count(*)", status);
-        std::cout << "count(*) = " << count_result.GetRowCount() << std::endl;
-    }
-}
-
-void
-resetIndexMetric(milvus::MilvusClientPtr& client, milvus::MetricType index_metric) {
-    std::cout << "=====================================================" << std::endl;
-    std::cout << "Reset index metric type to: " << std::to_string(index_metric) << std::endl;
-
-    auto status = client->ReleaseCollection(collection_name);
-    util::CheckStatus(std::string("release collection: ") + collection_name, status);
-
-    status = client->DropIndex(collection_name, field_face);
-    util::CheckStatus("drop index on vector field", status);
-
-    milvus::IndexDesc index_vector(field_face, "", milvus::IndexType::AUTOINDEX, index_metric);
-    status = client->CreateIndex(collection_name, index_vector);
-    util::CheckStatus("create index on vector field", status);
-
-    status = client->LoadCollection(collection_name);
-    util::CheckStatus(std::string("load collection: ") + collection_name, status);
+    getRowCount(client);
 }
 
 // Note: SearchIterator doesn't allow to set offset value
@@ -134,6 +121,7 @@ iterateCollection(milvus::MilvusClientPtr& client, uint64_t batch, int64_t limit
     auto status = client->SearchIterator(arguments, iterator);
     util::CheckStatus("get search iterator", status);
 
+    std::set<int64_t> ids;
     int pages = 0;
     uint64_t total_count = 0;
     while (true) {
@@ -155,10 +143,28 @@ iterateCollection(milvus::MilvusClientPtr& client, uint64_t batch, int64_t limit
                   << std::endl;
         std::cout << "\tthe first row: " << (*rows.begin()).dump() << std::endl;
         std::cout << "\tthe last row: " << (*rows.rbegin()).dump() << std::endl;
-        // for (const auto& row : rows) {
-        //     std::cout << row.dump() << std::endl;
-        // }
+        for (const auto& row : rows) {
+            // std::cout << row.dump() << std::endl;
+            ids.insert(row[field_id].get<int64_t>());
+        }
     }
+
+    // verify the number of returned ids is expected
+    // only check when filter is empty because filtering is unpredictable
+    if (filter.empty()) {
+        auto row_count = static_cast<int64_t>(getRowCount(client));
+        auto expected_count = limit < row_count ? limit : row_count;
+        if (limit < 0) {
+            expected_count = row_count;
+        }
+        if (ids.size() != expected_count) {
+            std::cout << "Returned row count is unexpected: " << std::to_string(ids.size()) << " returned vs "
+                      << "limit " << std::to_string(expected_count) << std::endl;
+            std::cout << "Possible reason: some vectors' distance are equal, search engine could not distinct"
+                      << std::endl;
+        }
+    }
+
     std::cout << "Total fetched rows: " << std::to_string(total_count) << std::endl;
     std::cout << "=====================================================" << std::endl;
 }
@@ -175,9 +181,9 @@ main(int argc, char* argv[]) {
     auto status = client->Connect(connect_param);
     util::CheckStatus("connect milvus server", status);
 
-    buildCollection(client, milvus::MetricType::COSINE);
+    auto iterationFunc = [&](milvus::MetricType metric) {
+        buildCollection(client, metric);
 
-    auto iterationFunc = [&]() {
         // batch 3000, limit 100000
         iterateCollection(client, 3000, 100000, "");
         // batch 25, limit 80
@@ -193,11 +199,8 @@ main(int argc, char* argv[]) {
         iterateCollection(client, 1000, 100000, std::string(field_age) + " in [30, 40, 50]");
     };
 
-    iterationFunc();
-
-    resetIndexMetric(client, milvus::MetricType::L2);
-
-    iterationFunc();
+    iterationFunc(milvus::MetricType::L2);
+    iterationFunc(milvus::MetricType::COSINE);
 
     client->Disconnect();
     return 0;
