@@ -84,4 +84,7 @@ class GtsDict {
 int64_t
 GetNowMs();
 
+int64_t
+MakeMktsFromNowMs();
+
 }  // namespace milvus

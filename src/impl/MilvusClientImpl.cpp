@@ -26,6 +26,7 @@
 #include "rg.pb.h"
 #include "types/QueryIteratorImpl.h"
 #include "types/SearchIteratorImpl.h"
+#include "types/SearchIteratorV2Impl.h"
 #include "utils/Constants.h"
 #include "utils/DmlUtils.h"
 #include "utils/DqlUtils.h"
@@ -1293,13 +1294,21 @@ MilvusClientImpl::SearchIterator(SearchIteratorArguments& arguments, SearchItera
         arguments.SetMetricType(desc.MetricType());
     }
 
-    // iterator constructor might throw exception when it fails to initialize
-    try {
-        iterator = std::make_shared<SearchIteratorImpl>(connection_, arguments, retry_param_);
-    } catch (const std::exception& e) {
-        return {StatusCode::UNKNOWN_ERROR, "Not able to create iterator, error: " + std::string(e.what())};
+    // From SDK v2.5.6, milvus provide a new search iterator implementation in server-side.
+    // SearchIteratorV2 is faster than V1 by 20~30 percent, and the recall is a little better than V1.
+    // sdk attempts to use SearchIteratorV2 if supported by the server, otherwise falls back to V1.
+    auto ptrV2 = std::make_shared<SearchIteratorV2Impl>(connection_, arguments, retry_param_);
+    status = ptrV2->Init();
+    iterator = ptrV2;
+    if (!status.IsOk() && status.Code() == StatusCode::NOT_SUPPORTED) {
+        auto ptrV1 = std::make_shared<SearchIteratorImpl>(connection_, arguments, retry_param_);
+        status = ptrV1->Init();
+        if (!status.IsOk()) {
+            return {status.Code(), "Not able to create search iterator, error: " + status.Message()};
+        }
+        iterator = ptrV1;
     }
-    return Status::OK();
+    return status;
 }
 
 Status
@@ -1352,12 +1361,13 @@ MilvusClientImpl::QueryIterator(QueryIteratorArguments& arguments, QueryIterator
         return status;
     }
 
-    // iterator constructor might throw exception when it fails to initialize
-    try {
-        iterator = std::make_shared<QueryIteratorImpl>(connection_, arguments, retry_param_);
-    } catch (const std::exception& e) {
-        return {StatusCode::UNKNOWN_ERROR, "Not able to create iterator, error: " + std::string(e.what())};
+    // iterator constructor might return error when it fails to initialize
+    auto ptr = std::make_shared<QueryIteratorImpl>(connection_, arguments, retry_param_);
+    status = ptr->Init();
+    if (!status.IsOk()) {
+        return {status.Code(), "Not able to create query iterator, error: " + status.Message()};
     }
+    iterator = ptr;
     return Status::OK();
 }
 
