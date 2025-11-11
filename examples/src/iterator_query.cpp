@@ -15,6 +15,7 @@
 // limitations under the License.
 
 #include <iostream>
+#include <set>
 #include <string>
 
 #include "ExampleUtils.h"
@@ -82,6 +83,7 @@ main(int argc, char* argv[]) {
         std::cout << dml_results.InsertCount() << " rows inserted." << std::endl;
     }
 
+    uint64_t row_count = 0;
     {
         // check row count
         milvus::QueryArguments q_count{};
@@ -93,6 +95,7 @@ main(int argc, char* argv[]) {
         status = client->Query(q_count, count_result);
         util::CheckStatus("query count(*)", status);
         std::cout << "count(*) = " << count_result.GetRowCount() << std::endl;
+        row_count = count_result.GetRowCount();
     }
 
     auto iterationFunc = [&](uint64_t batch, int64_t offset, int64_t limit, const std::string& filter) {
@@ -113,6 +116,7 @@ main(int argc, char* argv[]) {
         auto status = client->QueryIterator(arguments, iterator);
         util::CheckStatus("get query iterator", status);
 
+        std::set<int64_t> ids;
         int pages = 0;
         uint64_t total_count = 0;
         while (true) {
@@ -134,10 +138,26 @@ main(int argc, char* argv[]) {
                       << std::endl;
             std::cout << "\tthe first row: " << (*rows.begin()).dump() << std::endl;
             std::cout << "\tthe last row: " << (*rows.rbegin()).dump() << std::endl;
-            // for (const auto& row : rows) {
-            //     std::cout << row.dump() << std::endl;
-            // }
+            for (const auto& row : rows) {
+                // std::cout << row.dump() << std::endl;
+                ids.insert(row[field_id].get<int64_t>());
+            }
         }
+
+        // verify the number of returned ids is expected
+        // only check when filter is empty because filtering is unpredictable
+        if (filter.empty()) {
+            auto expected_count = limit < (row_count - offset) ? limit : row_count - offset;
+            if (limit < 0) {
+                expected_count = row_count - offset;
+            }
+            if (ids.size() != expected_count) {
+                std::cout << "Returned row count is unexpected: " << std::to_string(ids.size()) << " returned vs "
+                          << "expected " << std::to_string(expected_count) << std::endl;
+                exit(1);
+            }
+        }
+
         std::cout << "Total fetched rows: " << std::to_string(total_count) << std::endl;
         std::cout << "=====================================================" << std::endl;
     };

@@ -33,13 +33,12 @@ SearchIteratorImpl::SearchIteratorImpl(MilvusConnectionPtr& connection, const Se
     connection_ = connection;
     args_ = args;
     retry_param_ = retry_param;
-
-    // might throw exception
-    init();
 }
 
 Status
 SearchIteratorImpl::Next(SingleResult& results) {
+    results.Clear();
+
     if (reachedLimit()) {
         return Status::OK();
     }
@@ -51,7 +50,7 @@ SearchIteratorImpl::Next(SingleResult& results) {
         output_count = std::min(output_count, left_count);
     }
 
-    if (cachedCount() < output_count) {
+    if (SearchIteratorImpl::CachedCount(cache_) < output_count) {
         // if cache is not sufficient, try to fill the result by probing with constant width
         // until finish filling or exceeding max trial time: 10
         auto status = trySearchFill(output_count);
@@ -61,7 +60,7 @@ SearchIteratorImpl::Next(SingleResult& results) {
     }
 
     // return batch from the cache if cache is big enough
-    auto status = fetchPageFromCache(output_count, results);
+    auto status = SearchIteratorImpl::FetchPageFromCache(cache_, args_, output_count, results);
     if (!status.IsOk()) {
         return status;
     }
@@ -73,88 +72,167 @@ SearchIteratorImpl::Next(SingleResult& results) {
     return Status::OK();
 }
 
-///////////////////////////////////////////////////////////////////////////////////
-// internal methods
-void
-SearchIteratorImpl::init() {
+Status
+SearchIteratorImpl::Init() {
     original_limit_ = args_.Limit();
     original_params_ = args_.ExtraParams();
 
-    checkOffset();
-    checkForSpecialIndexParam();
-    checkRangeSearchParameters();
-    initSearchIterator();
-}
-
-void
-SearchIteratorImpl::checkOffset() const {
-    if (args_.Offset() > 0) {
-        throw std::runtime_error("Not support offset when searching iteration");
+    auto status = SearchIteratorImpl::CheckInput(args_);
+    if (!status.IsOk()) {
+        return status;
     }
+
+    status = initSearchIterator();
+    if (!status.IsOk()) {
+        return status;
+    }
+
+    return Status::OK();
 }
 
-void
-SearchIteratorImpl::checkForSpecialIndexParam() const {
-    const auto& params = args_.ExtraParams();
+Status
+SearchIteratorImpl::CheckInput(const SearchIteratorArguments& args) {
+    // check target vector
+    auto vectors = args.TargetVectors();
+    if (vectors == nullptr || vectors->Count() == 0) {
+        return {StatusCode::INVALID_AGUMENT, "vector_data for search cannot be empty"};
+    }
+    if (vectors != nullptr && vectors->Count() > 1) {
+        return {StatusCode::INVALID_AGUMENT, "not support search iteration over multiple vectors at present"};
+    }
+
+    // check offset
+    if (args.Offset() != 0) {
+        return {StatusCode::INVALID_AGUMENT, "not support offset when searching iteration"};
+    }
+
+    // check special index params
+    const auto& params = args.ExtraParams();
     uint64_t ef = 0;
     auto status = ParseParameter<uint64_t>(params, "ef", ef);
-    if (status.IsOk() && ef < args_.BatchSize()) {
-        throw std::runtime_error("When using hnsw index, provided ef must be larger than or equal to batch size");
+    if (status.IsOk() && ef < args.BatchSize()) {
+        return {StatusCode::INVALID_AGUMENT,
+                "when using hnsw index, provided ef must be larger than or equal to batch size"};
     }
-}
 
-void
-SearchIteratorImpl::checkRangeSearchParameters() {
-    auto metric_type = args_.MetricType();
+    // check range search params
+    auto metric_type = args.MetricType();
     if (metric_type == MetricType::DEFAULT) {
-        throw std::runtime_error("Must specify metrics type for search iterator");
+        return {StatusCode::INVALID_AGUMENT, "must specify metrics type for search iterator"};
     }
-
-    const auto& params = args_.ExtraParams();
     double radius = 0.0, range_filter = 0.0;
     auto status_1 = ParseParameter<double>(params, RADIUS, radius);
     auto status_2 = ParseParameter<double>(params, RANGE_FILTER, range_filter);
     if (status_1.IsOk() && status_2.IsOk()) {
-        if (metricsPositiveRelated(metric_type) && radius <= range_filter) {
+        if (SearchIteratorImpl::MetricsPositiveRelated(metric_type) && radius <= range_filter) {
             std::string msg = std::to_string(metric_type) +
                               " metric type, radius must be larger than range_filter, please adjust your parameter";
-            throw std::runtime_error(msg);
+            return {StatusCode::INVALID_AGUMENT, msg};
         }
-        if (!metricsPositiveRelated(metric_type) && radius >= range_filter) {
+        if (!SearchIteratorImpl::MetricsPositiveRelated(metric_type) && radius >= range_filter) {
             std::string msg = std::to_string(metric_type) +
                               " metric type, radius must be smalled than range_filter, please adjust your parameter";
-            throw std::runtime_error(msg);
+            return {StatusCode::INVALID_AGUMENT, msg};
         }
     }
+
+    return Status::OK();
 }
 
+uint64_t
+SearchIteratorImpl::CachedCount(const std::list<SingleResultPtr>& cache) {
+    uint64_t cached_count = 0;
+    for (const auto& item : cache) {
+        cached_count += item->GetRowCount();
+    }
+    return cached_count;
+}
+
+// Try return a page with count from cache.
+// The cache might have multiple SingleResult in a list. This method copy data from
+// the header of the list until the count is meet.
+Status
+SearchIteratorImpl::FetchPageFromCache(std::list<SingleResultPtr>& cache, const SearchIteratorArguments& args,
+                                       int64_t count, SingleResult& results) {
+    auto pkField = args.PkSchema();
+    int64_t row_count = 0;
+
+    while (!cache.empty() && row_count < count) {
+        auto one_cache = cache.front();
+        cache.pop_front();
+
+        if (row_count + one_cache->GetRowCount() <= count) {
+            // this batch is smaller than required, append the entire batch
+            auto status = AppendSearchResult(*one_cache, results);
+            if (!status.IsOk()) {
+                return status;
+            }
+            row_count += one_cache->GetRowCount();
+        } else {
+            // this batch is greater than required, append a part of the batch
+            auto left_count = row_count + one_cache->GetRowCount() - count;
+            auto append_count = one_cache->GetRowCount() - left_count;
+            std::vector<FieldDataPtr> append_data;
+            auto status = CopyFieldsData(one_cache->OutputFields(), 0, append_count, append_data);
+            if (!status.IsOk()) {
+                return status;
+            }
+
+            SingleResult append_result{one_cache->PrimaryKeyName(), one_cache->ScoreName(), std::move(append_data),
+                                       args.OutputFields()};
+            status = AppendSearchResult(append_result, results);
+            if (!status.IsOk()) {
+                return status;
+            }
+            row_count += append_count;
+
+            // keep the left batch in cache, note we push the left batch in the header of the cache
+            if (left_count > 0) {
+                std::vector<FieldDataPtr> left_data;
+                status = CopyFieldsData(one_cache->OutputFields(), append_count, one_cache->GetRowCount(), left_data);
+                if (!status.IsOk()) {
+                    return status;
+                }
+                SingleResultPtr left_batch = std::make_shared<SingleResult>(
+                    one_cache->PrimaryKeyName(), one_cache->ScoreName(), std::move(left_data), args.OutputFields());
+                cache.emplace_front(std::move(left_batch));
+            }
+        }
+    }
+    return Status::OK();
+}
+
+///////////////////////////////////////////////////////////////////////////////////
+// internal methods
 // L2/JACCARD/HAMMING, smallest value is most similar
 // IP/COSINE, largest value is most similar
 bool
-SearchIteratorImpl::metricsPositiveRelated(MetricType metric_type) const {
+SearchIteratorImpl::MetricsPositiveRelated(MetricType metric_type) {
     return (metric_type == MetricType::L2 || metric_type == MetricType::JACCARD || metric_type == MetricType::HAMMING);
 }
 
-void
+Status
 SearchIteratorImpl::initSearchIterator() {
     SingleResultPtr single_result;
     auto status = executeSearch(args_.Filter(), false, single_result);
     if (!status.IsOk()) {
-        throw std::runtime_error("Fail to init search iterator, error: " + status.Message());
+        return {status.Code(), "Fail to init search iterator, error: " + status.Message()};
     }
     if (single_result->GetRowCount() == 0) {
         std::string msg = std::string("Cannot init search iterator because init page contains no matched rows, ") +
                           " please check the radius and range_filter set up by searchParams";
-        throw std::runtime_error(msg);
+        return {StatusCode::UNKNOWN_ERROR, msg};
     }
 
     updateWidth(*single_result);
     updateTailDistance(single_result);
     status = updateFilteredIds(single_result);
     if (!status.IsOk()) {
-        throw std::runtime_error("Fail to init search iterator, error: " + status.Message());
+        return status;
     }
     cache_.emplace_back(std::move(single_result));
+
+    return Status::OK();
 }
 
 // There might be lot of items with the same distance/score value.
@@ -273,7 +351,7 @@ SearchIteratorImpl::executeSearch(const std::string& filter, bool extend_batch_s
         kv_pair->set_key(key);
         kv_pair->set_value(value);
     };
-    setParamFunc(ITERATOR, "True");
+    setParamFunc(ITERATOR_FIELD, "True");
     if (args_.CollectionID() > 0) {
         setParamFunc(COLLECTION_ID, std::to_string(args_.CollectionID()));
     }
@@ -304,10 +382,9 @@ SearchIteratorImpl::executeSearch(const std::string& filter, bool extend_batch_s
 
     if (session_ts_ == 0) {
         // for old milvus versions < 2.5.0, the SearchResults has no session_ts
-        // use client-side ts instead
-        auto ms = GetNowMs();
-        ms = ms << 18;
-        session_ts_ = static_cast<uint64_t>(ms);
+        // use client-side ts instead, else use the ts returned by SearchResults
+        auto ts = rpc_response.session_ts();
+        session_ts_ = (ts == 0) ? static_cast<uint64_t>(MakeMktsFromNowMs()) : ts;
     }
 
     SearchResults search_results;
@@ -317,8 +394,8 @@ SearchIteratorImpl::executeSearch(const std::string& filter, bool extend_batch_s
     }
 
     // nq = 1, the search_results must contains a SingleResult. Otherwise it is a server-side bug.
-    if (search_results.Results().empty()) {
-        return {StatusCode::UNKNOWN_ERROR, "the server returns an empty search result"};
+    if (search_results.Results().size() != 1) {
+        return {StatusCode::UNKNOWN_ERROR, "the server returns an unexpected search result"};
     }
 
     auto& single_result = search_results.Results().at(0);
@@ -334,68 +411,6 @@ SearchIteratorImpl::reachedLimit() const {
     return false;
 }
 
-uint64_t
-SearchIteratorImpl::cachedCount() const {
-    uint64_t cached_count = 0;
-    for (const auto& item : cache_) {
-        cached_count += item->GetRowCount();
-    }
-    return cached_count;
-}
-
-// Try return a page with count from cache.
-// The cache might have multiple SingleResult in a list. This method copy data from
-// the header of the list until the count is meet.
-Status
-SearchIteratorImpl::fetchPageFromCache(int64_t count, SingleResult& results) {
-    auto pkField = args_.PkSchema();
-    int64_t row_count = 0;
-
-    while (!cache_.empty() && row_count < count) {
-        auto one_cache = cache_.front();
-        cache_.pop_front();
-
-        if (row_count + one_cache->GetRowCount() <= count) {
-            // this batch is smaller than required, append the entire batch
-            auto status = AppendSearchResult(*one_cache, results);
-            if (!status.IsOk()) {
-                return status;
-            }
-            row_count += one_cache->GetRowCount();
-        } else {
-            // this batch is greater than required, append a part of the batch
-            auto left_count = row_count + one_cache->GetRowCount() - count;
-            auto append_count = one_cache->GetRowCount() - left_count;
-            std::vector<FieldDataPtr> append_data;
-            auto status = CopyFieldsData(one_cache->OutputFields(), 0, append_count, append_data);
-            if (!status.IsOk()) {
-                return status;
-            }
-
-            SingleResult append_result{one_cache->PrimaryKeyName(), one_cache->ScoreName(), std::move(append_data),
-                                       args_.OutputFields()};
-            status = AppendSearchResult(append_result, results);
-            if (!status.IsOk()) {
-                return status;
-            }
-            row_count += append_count;
-
-            // keep the left batch in cache, note we push the left batch in the header of the cache
-            if (left_count > 0) {
-                std::vector<FieldDataPtr> left_data;
-                status = CopyFieldsData(one_cache->OutputFields(), append_count, one_cache->GetRowCount(), left_data);
-                if (!status.IsOk()) {
-                    return status;
-                }
-                SingleResultPtr left_batch = std::make_shared<SingleResult>(
-                    one_cache->PrimaryKeyName(), one_cache->ScoreName(), std::move(left_data), args_.OutputFields());
-                cache_.emplace_front(std::move(left_batch));
-            }
-        }
-    }
-    return Status::OK();
-}
-
 // This method setups the search range for the next search.
 // If user already inputs radius/range, it ensure that the next range is not out of user range.
 void
@@ -404,7 +419,7 @@ SearchIteratorImpl::nextParams(double range_coefficient) {
     double coefficient = std::max(range_coefficient, 1.0);
     double radius = 0.0;
     auto status = ParseParameter<double>(original_params_, RADIUS, radius);
-    if (metricsPositiveRelated(metric_type)) {
+    if (SearchIteratorImpl::MetricsPositiveRelated(metric_type)) {
         double next_radius = tail_distance_ + width_ * coefficient;
         if (status.IsOk() && next_radius > radius) {
             args_.SetRadius(radius);
@@ -497,7 +512,7 @@ SearchIteratorImpl::trySearchFill(int64_t count) {
         }
 
         // already enough rows
-        if (cachedCount() >= count) {
+        if (SearchIteratorImpl::CachedCount(cache_) >= count) {
             break;
         }
 

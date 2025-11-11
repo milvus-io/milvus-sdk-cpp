@@ -39,9 +39,16 @@ const char* SCORE = "score";
 const char* ENABLE_ANALYZER = "enable_analyzer";
 const char* ENABLE_MATCH = "enable_match";
 const char* ANALYZER_PARAMS = "analyzer_params";
-const char* ITERATOR = "iterator";
-const char* REDUCE_STOP_FOR_BEST = "reduce_stop_for_best";
 const char* COLLECTION_ID = "collection_id";
+const char* GUARANTEE_TIMESTAMP = "guarantee_timestamp";
+
+const char* REDUCE_STOP_FOR_BEST = "reduce_stop_for_best";
+const char* ITERATOR_FIELD = "iterator";
+const char* ITERATOR_SESSION_TS_FIELD = "iterator_session_ts";
+const char* ITER_SEARCH_V2_KEY = "search_iter_v2";
+const char* ITER_SEARCH_BATCH_SIZE_KEY = "search_iter_batch_size";
+const char* ITER_SEARCH_LAST_BOUND_KEY = "search_iter_last_bound";
+const char* ITER_SEARCH_ID_KEY = "search_iter_id";
 
 // const names for external common usage
 const char* INDEX_TYPE = "index_type";

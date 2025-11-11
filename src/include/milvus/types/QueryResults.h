@@ -98,6 +98,12 @@ class QueryResults {
     uint64_t
     GetRowCount() const;
 
+    /**
+     * @brief Clear the result data.
+     */
+    void
+    Clear();
+
  private:
     std::vector<FieldDataPtr> output_fields_;
     std::set<std::string> output_names_;  // output_fields list specified by query()

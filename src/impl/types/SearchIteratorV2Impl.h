@@ -16,53 +16,51 @@
 
 #pragma once
 
+#include <list>
+#include <memory>
+#include <unordered_map>
+
 #include "../MilvusConnection.h"
-#include "milvus/types/FieldSchema.h"
+#include "milvus.pb.h"
 #include "milvus/types/Iterator.h"
 #include "milvus/types/IteratorArguments.h"
 #include "milvus/types/RetryParam.h"
 
 namespace milvus {
-class QueryIteratorImpl : public QueryIterator {
+
+class SearchIteratorV2Impl : public SearchIterator {
  public:
-    QueryIteratorImpl(MilvusConnectionPtr& connection, const QueryIteratorArguments& args,
-                      const RetryParam& retry_param);
+    SearchIteratorV2Impl(MilvusConnectionPtr& connection, const SearchIteratorArguments& args,
+                         const RetryParam& retry_param);
 
     Status
-    Next(QueryResults& results) final;
+    Next(SingleResult& results) final;
 
     Status
     Init();
 
  private:
     Status
-    seek();
-
-    std::string
-    setupNextFilter();
+    probeForCompability();
 
     Status
-    executeQuery(const std::string& filter, int64_t limit, bool is_seek, QueryResults& results);
+    checkTokenExists(proto::milvus::SearchResults& rpc_response);
 
     Status
-    copyResults(const QueryResults& src, uint64_t from, uint64_t to, QueryResults& target);
+    executeSearch(const SearchIteratorArguments& args, proto::milvus::SearchResults& rpc_response, bool is_probe);
 
     Status
-    updateCursor(const QueryResults& results);
+    next(SingleResultPtr& results);
 
  private:
     MilvusConnectionPtr connection_;
-    QueryIteratorArguments args_;
+    SearchIteratorArguments args_;
     RetryParam retry_param_;
 
-    int64_t offset_{0};
-    int64_t limit_{0};
-
+    int64_t original_limit_{0};
+    int64_t returned_count_{0};
     uint64_t session_ts_{0};
-    std::string next_id_;
-    uint64_t returned_count_{0};
-
-    QueryResults cache_;
+    std::list<SingleResultPtr> cache_;
 };
 
 }  // namespace milvus
