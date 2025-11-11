@@ -1,5 +1,20 @@
 # Changelog
 
+## milvus-sdk-cpp 2.4.1 (2025-11-11)
+### Feature
+- Support partition key
+
+### Bug
+- Fix a bug that dynamic fields are missed for row-based insert/upsert
+- Fix a bug that all dynamic fields are displayed for search/query even if the output_fields only contain some of them
+- Fix a bug of dynamic field that describeCollection missed enable_dynamic
+- Fix a bug for insert that incorrect range check of float values
+
+### Improvement
+- Allow to insert dynamic fields for column-based insert/upsert
+- Change default value of shards_num to 1
+
+
 ## milvus-sdk-cpp 2.4.0 (2025-09-19)
 ### Feature
 - Add new index types(DISKANN/AUTOINDEX/SCANN/GPU_IVF_FLAT/GPU_IVF_PQ/GPU_BRUTE_FORCE/GPU_CAGRA/TRIE/STL_SORT/INVERTED/SPARSE_INVERTED_INDEX/SPARSE_WAND)
