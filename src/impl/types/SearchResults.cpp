@@ -142,6 +142,14 @@ SingleResult::GetRowCount() const {
     return 0;
 }
 
+void
+SingleResult::Clear() {
+    pk_name_ = "";
+    score_name_ = "";
+    output_fields_.clear();
+    output_names_.clear();
+}
+
 /////////////////////////////////////////////////////////////////////////////////////////
 SearchResults::SearchResults() = default;
 

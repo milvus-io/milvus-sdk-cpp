@@ -43,10 +43,15 @@ extern const char* SCORE;
 extern const char* ENABLE_ANALYZER;
 extern const char* ENABLE_MATCH;
 extern const char* ANALYZER_PARAMS;
-
-extern const char* ITERATOR;
-extern const char* REDUCE_STOP_FOR_BEST;
 extern const char* COLLECTION_ID;
+extern const char* GUARANTEE_TIMESTAMP;
+extern const char* REDUCE_STOP_FOR_BEST;
+extern const char* ITERATOR_FIELD;
+extern const char* ITERATOR_SESSION_TS_FIELD;
+extern const char* ITER_SEARCH_V2_KEY;
+extern const char* ITER_SEARCH_BATCH_SIZE_KEY;
+extern const char* ITER_SEARCH_LAST_BOUND_KEY;
+extern const char* ITER_SEARCH_ID_KEY;
 
 std::string
 GetBuildVersion();

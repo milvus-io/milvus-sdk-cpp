@@ -28,7 +28,6 @@
 #include "milvus/types/RetryParam.h"
 
 namespace milvus {
-
 class SearchIteratorImpl : public SearchIterator {
  public:
     SearchIteratorImpl(MilvusConnectionPtr& connection, const SearchIteratorArguments& args,
@@ -37,25 +36,24 @@ class SearchIteratorImpl : public SearchIterator {
     Status
     Next(SingleResult& results) final;
 
+    Status
+    Init();
+
+    static Status
+    CheckInput(const SearchIteratorArguments& args);
+
+    static uint64_t
+    CachedCount(const std::list<SingleResultPtr>& cache);
+
+    static Status
+    FetchPageFromCache(std::list<SingleResultPtr>& cache, const SearchIteratorArguments& args, int64_t count,
+                       SingleResult& results);
+
  private:
-    using SingleResultPtr = std::shared_ptr<SingleResult>;
+    static bool
+    MetricsPositiveRelated(MetricType metric_type);
 
-    void
-    init();
-
-    void
-    checkOffset() const;
-
-    void
-    checkForSpecialIndexParam() const;
-
-    void
-    checkRangeSearchParameters();
-
-    bool
-    metricsPositiveRelated(MetricType metric_type) const;
-
-    void
+    Status
     initSearchIterator();
 
     void
@@ -75,12 +73,6 @@ class SearchIteratorImpl : public SearchIterator {
 
     bool
     reachedLimit() const;
-
-    uint64_t
-    cachedCount() const;
-
-    Status
-    fetchPageFromCache(int64_t count, SingleResult& results);
 
     void
     nextParams(double range_coefficient);

@@ -90,4 +90,10 @@ QueryResults::GetRowCount() const {
     return 0;
 }
 
+void
+QueryResults::Clear() {
+    output_fields_.clear();
+    output_names_.clear();
+}
+
 }  // namespace milvus

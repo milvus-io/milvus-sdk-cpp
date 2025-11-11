@@ -36,11 +36,8 @@ using ::testing::_;
 using ::testing::Property;
 using ::testing::UnorderedElementsAreArray;
 
-TEST_F(MilvusMockedTest, SearchIterator) {
-    milvus::ConnectParam connect_param{"127.0.0.1", server_.ListenPort()};
-    auto status = client_->Connect(connect_param);
-    EXPECT_TRUE(status.IsOk());
-
+milvus::Status
+DoSearchIterator(testing::StrictMock<milvus::MilvusMockedService>& service, milvus::MilvusClientPtr& client, bool v1) {
     const std::string collection_name = "Foo";
     milvus::CollectionSchema collection_schema(collection_name);
     milvus::BuildCollectionSchema(collection_schema);
@@ -54,7 +51,7 @@ TEST_F(MilvusMockedTest, SearchIterator) {
         field_names.push_back(field.Name());
     }
 
-    EXPECT_CALL(service_,
+    EXPECT_CALL(service,
                 DescribeCollection(_, Property(&DescribeCollectionRequest::collection_name, collection_name), _))
         .WillOnce([&](::grpc::ServerContext*, const DescribeCollectionRequest*, DescribeCollectionResponse* response) {
             response->set_collectionid(100);
@@ -66,23 +63,38 @@ TEST_F(MilvusMockedTest, SearchIterator) {
         });
 
     const milvus::MetricType metric = milvus::MetricType::COSINE;
+    const milvus::ConsistencyLevel level = milvus::ConsistencyLevel::STRONG;
     const uint64_t batch_size = 3000;
     const int64_t limit = row_count;
     uint64_t current_poz = 0;
-    EXPECT_CALL(service_, Search(_, _, _))
+    bool probe_compability = true;
+    EXPECT_CALL(service, Search(_, _, _))
         .WillRepeatedly([&](::grpc::ServerContext*, const SearchRequest* request, SearchResults* response) {
+            auto token = v1 ? "" : "dummy";
+            response->mutable_results()->mutable_search_iterator_v2_results()->set_token(token);
+            if (probe_compability) {
+                probe_compability = false;
+                return ::grpc::Status{};
+            }
+
             auto params = request->search_params();
             for (auto pair : params) {
                 if (pair.key() == milvus::TOPK) {
                     EXPECT_GE(std::stoul(pair.value()), batch_size);
                 }
-                if (pair.key() == milvus::ITERATOR) {
+                if (pair.key() == milvus::ITERATOR_FIELD) {
                     EXPECT_EQ(pair.value(), "True");
+                }
+                if (pair.key() == milvus::ITER_SEARCH_V2_KEY) {
+                    EXPECT_EQ(pair.value(), "True");
+                }
+                if (pair.key() == milvus::ITER_SEARCH_BATCH_SIZE_KEY) {
+                    EXPECT_EQ(pair.value(), std::to_string(batch_size));
                 }
             }
             EXPECT_THAT(request->output_fields(), UnorderedElementsAreArray(field_names));
             EXPECT_EQ(request->collection_name(), collection_name);
-            EXPECT_EQ(request->consistency_level(), milvus::proto::common::ConsistencyLevel::Strong);
+            EXPECT_EQ(request->consistency_level(), milvus::ConsistencyLevelCast(level));
 
             response->mutable_status()->set_code(milvus::proto::common::ErrorCode::Success);
             auto* results = response->mutable_results();
@@ -125,7 +137,7 @@ TEST_F(MilvusMockedTest, SearchIterator) {
     arguments.SetLimit(limit);
     arguments.SetCollectionName(collection_name);
     arguments.SetFilter("id >= 0");
-    arguments.SetConsistencyLevel(milvus::ConsistencyLevel::STRONG);
+    arguments.SetConsistencyLevel(level);
     arguments.SetMetricType(metric);
     for (const auto& name : field_names) {
         arguments.AddOutputField(name);
@@ -135,11 +147,11 @@ TEST_F(MilvusMockedTest, SearchIterator) {
     for (auto i = 0; i < milvus::T_DIMENSION; i++) {
         vector.push_back(1.0);
     }
-    status = arguments.AddFloat16Vector("f16_vector", vector);
+    auto status = arguments.AddFloat16Vector("f16_vector", vector);
     EXPECT_TRUE(status.IsOk());
 
     milvus::SearchIteratorPtr iterator;
-    status = client_->SearchIterator(arguments, iterator);
+    status = client->SearchIterator(arguments, iterator);
     EXPECT_TRUE(status.IsOk());
 
     milvus::EntityRows total_rows;
@@ -175,4 +187,22 @@ TEST_F(MilvusMockedTest, SearchIterator) {
             break;
         }
     }
+
+    return milvus::Status::OK();
+}
+
+TEST_F(MilvusMockedTest, SearchIteratorV1) {
+    milvus::ConnectParam connect_param{"127.0.0.1", server_.ListenPort()};
+    auto status = client_->Connect(connect_param);
+    EXPECT_TRUE(status.IsOk());
+
+    DoSearchIterator(service_, client_, true);
+}
+
+TEST_F(MilvusMockedTest, SearchIteratorV2) {
+    milvus::ConnectParam connect_param{"127.0.0.1", server_.ListenPort()};
+    auto status = client_->Connect(connect_param);
+    EXPECT_TRUE(status.IsOk());
+
+    DoSearchIterator(service_, client_, false);
 }

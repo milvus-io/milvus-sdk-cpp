@@ -142,12 +142,12 @@ SearchRequestBase::SetMetricType(::milvus::MetricType metric_type) {
 
 Status
 SearchRequestBase::AddExtraParam(const std::string& key, const std::string& value) {
-    extra_params_[key] = value;
     static std::set<std::string> s_ambiguous = {PARAMS, TOPK, ANNS_FIELD, METRIC_TYPE, ROUND_DECIMAL, IGNORE_GROWING};
     if (s_ambiguous.find(key) != s_ambiguous.end()) {
         return Status{StatusCode::INVALID_AGUMENT,
                       "ambiguous parameter: not allow to set '" + key + "' in extra params"};
     }
+    extra_params_[key] = value;
     return Status::OK();
 }
 

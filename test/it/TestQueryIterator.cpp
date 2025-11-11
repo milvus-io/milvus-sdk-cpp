@@ -83,7 +83,7 @@ TEST_F(MilvusMockedTest, QueryIterator) {
                         return ::grpc::Status{};
                     }
                 }
-                if (pair.key() == milvus::ITERATOR && pair.value() == "False") {
+                if (pair.key() == milvus::ITERATOR_FIELD && pair.value() == "False") {
                     is_seek = true;
                 }
             }

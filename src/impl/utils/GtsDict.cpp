@@ -70,4 +70,10 @@ GetNowMs() {
     return now_ms.time_since_epoch().count();
 }
 
+int64_t
+MakeMktsFromNowMs() {
+    auto ms = GetNowMs();
+    return ms << 18;
+}
+
 }  // namespace milvus
