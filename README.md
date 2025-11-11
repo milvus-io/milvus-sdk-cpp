@@ -15,7 +15,7 @@ The following collection shows Milvus versions and recommended milvus-cpp-sdk ve
 | Milvus version | Recommended SDK version |
 |:-----:|:-----:|
 | 2.3.x | 2.3(branch)  |
-| 2.4.x | v2.4.0  |
+| 2.4.x | v2.4.1  |
 
 
 ## Installation
