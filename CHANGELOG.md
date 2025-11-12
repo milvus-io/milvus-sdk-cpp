@@ -1,5 +1,18 @@
 # Changelog
 
+## milvus-sdk-cpp 2.5.0 (2025-11-12)
+### Feature
+- Support nullable field
+- Support default value for field
+- Support clustering key
+- Support BM25 full text search
+- Support text match
+- Support BITMAP/HNSW_SQ/HNSW_PQ/HNSW_PRQ index types
+
+### Improvement
+- Support group_size and strict_group_size for Search() and HybridSearch()
+
+
 ## milvus-sdk-cpp 2.4.1 (2025-11-11)
 ### Feature
 - Support partition key
