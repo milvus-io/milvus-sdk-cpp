@@ -448,6 +448,12 @@ MilvusConnection::Query(const proto::milvus::QueryRequest& request, proto::milvu
 }
 
 Status
+MilvusConnection::RunAnalyzer(const proto::milvus::RunAnalyzerRequest& request,
+                              proto::milvus::RunAnalyzerResponse& response, const GrpcContextOptions& options) {
+    return grpcCall("RunAnalyzer", &Stub::RunAnalyzer, request, response, options);
+}
+
+Status
 MilvusConnection::GetFlushState(const proto::milvus::GetFlushStateRequest& request,
                                 proto::milvus::GetFlushStateResponse& response, const GrpcContextOptions& options) {
     return grpcCall("GetFlushState", &Stub::GetFlushState, request, response, options);
