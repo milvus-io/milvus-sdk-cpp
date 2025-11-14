@@ -20,6 +20,7 @@ Once the `make test` is done, you will see some executable examples under the pa
 - `./cmake_build/examples/sdk_nullalbe_field`: example to show the usage of nullable field.
 - `./cmake_build/examples/sdk_partition_key`: example to show the usage of partition key.
 - `./cmake_build/examples/sdk_rbac`: example to show the usage of RBAC.
+- `./cmake_build/examples/sdk_run_analyzer`: example to show the usage of run_analyzer().
 - `./cmake_build/examples/sdk_text_match`: example to show the usage of TEXT_MATCH.
 - `./cmake_build/examples/sdk_vector_binary`: example to show the usage of BinaryVector field.
 - `./cmake_build/examples/sdk_vector_fp16`: example to show the usage of Float16Vector/BFloat16Vector field.

@@ -234,6 +234,9 @@ class MilvusClientImpl : public MilvusClient {
     QueryIterator(QueryIteratorArguments& arguments, QueryIteratorPtr& iterator) final;
 
     Status
+    RunAnalyzer(const RunAnalyzerArguments& arguments, AnalyzerResults& results) final;
+
+    Status
     Flush(const std::vector<std::string>& collection_names, const ProgressMonitor& progress_monitor) final;
 
     Status

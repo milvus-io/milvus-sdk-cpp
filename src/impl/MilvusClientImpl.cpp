@@ -1372,6 +1372,54 @@ MilvusClientImpl::QueryIterator(QueryIteratorArguments& arguments, QueryIterator
 }
 
 Status
+MilvusClientImpl::RunAnalyzer(const RunAnalyzerArguments& arguments, AnalyzerResults& results) {
+    auto pre = [&arguments](proto::milvus::RunAnalyzerRequest& rpc_request) {
+        rpc_request.set_collection_name(arguments.CollectionName());
+        rpc_request.set_db_name(arguments.DatabaseName());
+        rpc_request.set_field_name(arguments.FieldName());
+        rpc_request.set_analyzer_params(arguments.AnalyzerParams().dump());
+        auto placeholder = rpc_request.mutable_placeholder();
+        for (std::string text : arguments.Texts()) {
+            placeholder->Add(std::move(text));
+        }
+        for (const auto& name : arguments.AnalyzerNames()) {
+            rpc_request.add_analyzer_names(name);
+        }
+        rpc_request.set_with_detail(arguments.IsWithDetail());
+        rpc_request.set_with_hash(arguments.IsWithHash());
+        return Status::OK();
+    };
+
+    auto post = [&results](const proto::milvus::RunAnalyzerResponse& response) {
+        std::vector<AnalyzerResult> results_list;
+        const auto& rpc_results = response.results();
+        for (auto i = 0; i < response.results_size(); i++) {
+            std::vector<AnalyzerToken> tokens;
+            const auto& rpc_tokens = rpc_results[i].tokens();
+            for (auto k = 0; k < rpc_results[i].tokens_size(); k++) {
+                const auto& rpc_token = rpc_tokens[k];
+                AnalyzerToken token;
+                token.token_ = rpc_token.token();
+                token.start_offset_ = rpc_token.start_offset();
+                token.end_offset_ = rpc_token.end_offset();
+                token.position_ = rpc_token.position();
+                token.position_length_ = rpc_token.position_length();
+                token.hash_ = rpc_token.hash();
+                tokens.emplace_back(std::move(token));
+            }
+
+            AnalyzerResult result{std::move(tokens)};
+            results_list.emplace_back(std::move(result));
+        }
+        results = AnalyzerResults(std::move(results_list));
+        return Status::OK();
+    };
+
+    return apiHandler<proto::milvus::RunAnalyzerRequest, proto::milvus::RunAnalyzerResponse>(
+        pre, &MilvusConnection::RunAnalyzer, post);
+}
+
+Status
 MilvusClientImpl::Flush(const std::vector<std::string>& collection_names, const ProgressMonitor& progress_monitor) {
     auto pre = [&collection_names](proto::milvus::FlushRequest& rpc_request) {
         for (const auto& collection_name : collection_names) {
