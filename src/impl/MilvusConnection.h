@@ -243,6 +243,10 @@ class MilvusConnection {
           const GrpcContextOptions& options);
 
     Status
+    RunAnalyzer(const proto::milvus::RunAnalyzerRequest& request, proto::milvus::RunAnalyzerResponse& response,
+                const GrpcContextOptions& options);
+
+    Status
     GetFlushState(const proto::milvus::GetFlushStateRequest& request, proto::milvus::GetFlushStateResponse& response,
                   const GrpcContextOptions& options);
 

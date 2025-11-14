@@ -187,6 +187,9 @@ class MilvusMockedService : public ::milvus::proto::milvus::MilvusService::Servi
     MOCK_METHOD3(Query, ::grpc::Status(::grpc::ServerContext*, const ::milvus::proto::milvus::QueryRequest*,
                                        ::milvus::proto::milvus::QueryResults*));
 
+    MOCK_METHOD3(RunAnalyzer, ::grpc::Status(::grpc::ServerContext*, const ::milvus::proto::milvus::RunAnalyzerRequest*,
+                                             ::milvus::proto::milvus::RunAnalyzerResponse*));
+
     MOCK_METHOD3(GetFlushState,
                  ::grpc::Status(::grpc::ServerContext*, const ::milvus::proto::milvus::GetFlushStateRequest*,
                                 ::milvus::proto::milvus::GetFlushStateResponse*));

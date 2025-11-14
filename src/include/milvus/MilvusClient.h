@@ -20,6 +20,7 @@
 
 #include "Status.h"
 #include "types/AliasDesc.h"
+#include "types/AnalyzerResults.h"
 #include "types/CollectionDesc.h"
 #include "types/CollectionInfo.h"
 #include "types/CollectionSchema.h"
@@ -46,6 +47,7 @@
 #include "types/ResourceGroupDesc.h"
 #include "types/RetryParam.h"
 #include "types/RoleDesc.h"
+#include "types/RunAnalyzerArguments.h"
 #include "types/SearchArguments.h"
 #include "types/SearchResults.h"
 #include "types/SegmentInfo.h"
@@ -727,6 +729,17 @@ class MilvusClient {
      */
     virtual Status
     QueryIterator(QueryIteratorArguments& arguments, QueryIteratorPtr& iterator) = 0;
+
+    /**
+     * @brief Run analyzer. Return result tokens of analysis.
+     * Milvus server supports this interface from v2.5.11
+     *
+     * @param [in] arguments analyzer arguments
+     * @param [out] results analyzer results
+     * @return Status operation successfully or not
+     */
+    virtual Status
+    RunAnalyzer(const RunAnalyzerArguments& arguments, AnalyzerResults& results) = 0;
 
     /**
      * @brief Flush insert buffer into storage.
