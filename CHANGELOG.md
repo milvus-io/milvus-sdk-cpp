@@ -1,5 +1,9 @@
 # Changelog
 
+## milvus-sdk-cpp 2.5.1 (2025-11-21)
+### Feature
+- Support RunAnalyzer()
+
 ## milvus-sdk-cpp 2.5.0 (2025-11-12)
 ### Feature
 - Support nullable field
