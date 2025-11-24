@@ -112,4 +112,7 @@ ConvertResourceGroupConfig(const proto::rg::ResourceGroupConfig& rpc_config, Res
 std::string
 doubleToString(double val);
 
+bool
+IsValidTemplate(const nlohmann::json& filter_template);
+
 }  // namespace milvus

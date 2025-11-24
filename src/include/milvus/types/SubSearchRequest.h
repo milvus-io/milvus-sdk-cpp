@@ -50,6 +50,26 @@ class SearchRequestBase {
     SetFilter(std::string filter);
 
     /**
+     * @brief Add a filter template
+     * Expression template, to improve expression parsing performance in complicated list.
+     * Assume user has a filter = "pk > 3 and city in ["beijing", "shanghai", ......]
+     * The long list of city will increase the time cost to parse this expression.
+     * So, we provide filterTemplate for this purpose, user can set filter like this:
+     *     filter = "pk > {age} and city in {city}"
+     *     filterTemplate = {"age": 3, "city": ["beijing", "shanghai", ......]}
+     * Valid value of a template can be:
+     *     boolean, numeric, string, array
+     */
+    Status
+    AddFilterTemplate(std::string key, const nlohmann::json& filter_template);
+
+    /**
+     * @brief Get filter templates
+     */
+    const std::unordered_map<std::string, nlohmann::json>&
+    FilterTemplates() const;
+
+    /**
      * @brief Get target vectors
      */
     FieldDataPtr
@@ -230,6 +250,7 @@ class SearchRequestBase {
 
     int64_t limit_{10};
     std::string filter_expression_;
+    std::unordered_map<std::string, nlohmann::json> filter_templates_;
 
     ::milvus::MetricType metric_type_{::milvus::MetricType::DEFAULT};
 
