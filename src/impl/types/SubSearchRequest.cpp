@@ -16,7 +16,6 @@
 
 #include "milvus/types/SubSearchRequest.h"
 
-#include <nlohmann/json.hpp>
 #include <utility>
 
 #include "../utils/Constants.h"
@@ -25,7 +24,6 @@
 #include "milvus/utils/FP16.h"
 
 namespace milvus {
-
 const std::string&
 SearchRequestBase::Filter() const {
     return filter_expression_;
@@ -35,6 +33,29 @@ Status
 SearchRequestBase::SetFilter(std::string filter) {
     filter_expression_ = std::move(filter);
     return Status::OK();
+}
+
+Status
+SearchRequestBase::AddFilterTemplate(std::string key, const nlohmann::json& filter_template) {
+    if (filter_template.is_array()) {
+        for (const auto& ele : filter_template) {
+            if (!IsValidTemplate(ele)) {
+                return {milvus::StatusCode::INVALID_AGUMENT, "Filter template element must be boolean/number/string"};
+            }
+        }
+    } else {
+        if (!IsValidTemplate(filter_template)) {
+            return {milvus::StatusCode::INVALID_AGUMENT, "Filter template must be boolean/number/string/array"};
+        }
+    }
+
+    filter_templates_.insert(std::make_pair(key, filter_template));
+    return Status::OK();
+}
+
+const std::unordered_map<std::string, nlohmann::json>&
+SearchRequestBase::FilterTemplates() const {
+    return filter_templates_;
 }
 
 FieldDataPtr
