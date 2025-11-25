@@ -783,6 +783,97 @@ DeduceGuaranteeTimestamp(const ConsistencyLevel& level, const std::string& db_na
     }
 }
 
+Status
+DeduceTemplateArray(const nlohmann::json& array, proto::schema::TemplateArrayValue& rpc_array) {
+    if (array.empty()) {
+        return Status::OK();
+    }
+    const auto& first_ele = array.at(0);
+    if (first_ele.is_boolean()) {
+        for (const auto& ele : array) {
+            if (!ele.is_boolean()) {
+                return {StatusCode::INVALID_AGUMENT,
+                        "Filter expression template is a list, the first value is Boolean, but some elements are not "
+                        "Boolean"};
+            }
+            rpc_array.mutable_bool_data()->add_data(ele.get<bool>());
+        }
+    } else if (first_ele.is_number_integer()) {
+        for (const auto& ele : array) {
+            if (!ele.is_number_integer()) {
+                return {StatusCode::INVALID_AGUMENT,
+                        "Filter expression template is a list, the first value is Integer, but some elements are not "
+                        "Integer"};
+            }
+            rpc_array.mutable_long_data()->add_data(ele.get<int64_t>());
+        }
+    } else if (first_ele.is_number_float()) {
+        for (const auto& ele : array) {
+            if (!ele.is_number_float()) {
+                return {StatusCode::INVALID_AGUMENT,
+                        "Filter expression template is a list, the first value is Double, but some elements are not "
+                        "Double"};
+            }
+            rpc_array.mutable_double_data()->add_data(ele.get<double>());
+        }
+    } else if (first_ele.is_string()) {
+        for (const auto& ele : array) {
+            if (!ele.is_string()) {
+                return {StatusCode::INVALID_AGUMENT,
+                        "Filter expression template is a list, the first value is String, but some elements are not "
+                        "String"};
+            }
+            rpc_array.mutable_string_data()->add_data(ele.get<std::string>());
+        }
+    } else if (first_ele.is_array()) {
+        auto rpc_array_array = rpc_array.mutable_array_data()->add_data();
+        for (const auto& ele : array) {
+            if (!ele.is_array()) {
+                return {
+                    StatusCode::INVALID_AGUMENT,
+                    "Filter expression template is a list, the first value is List, but some elements are not List"};
+            }
+
+            auto sub_array = rpc_array_array->mutable_array_data()->add_data();
+            auto status = DeduceTemplateArray(ele, *sub_array);
+            if (!status.IsOk()) {
+                return status;
+            }
+        }
+    }
+
+    return Status::OK();
+}
+
+Status
+ConvertFilterTemplates(const std::unordered_map<std::string, nlohmann::json>& templates,
+                       ::google::protobuf::Map<std::string, proto::schema::TemplateValue>* rpc_templates) {
+    for (const auto& pair : templates) {
+        proto::schema::TemplateValue value;
+        const auto& temp = pair.second;
+        if (temp.is_array()) {
+            auto array = value.mutable_array_val();
+            auto status = DeduceTemplateArray(temp, *array);
+            if (!status.IsOk()) {
+                return status;
+            }
+        } else if (temp.is_boolean()) {
+            value.set_bool_val(temp.get<bool>());
+        } else if (temp.is_number_integer()) {
+            value.set_int64_val(temp.get<int64_t>());
+        } else if (temp.is_number_float()) {
+            value.set_float_val(temp.get<double>());
+        } else if (temp.is_string()) {
+            value.set_string_val(temp.get<std::string>());
+        } else {
+            return {StatusCode::INVALID_AGUMENT, "Unsupported template type"};
+        }
+        rpc_templates->insert(std::make_pair(pair.first, value));
+    }
+
+    return Status::OK();
+}
+
 // current_db is the actual target db that the request is performed, for setting the GuaranteeTimestamp
 // to compatible with old versions.
 // for examples:
@@ -803,6 +894,15 @@ ConvertQueryRequest(const QueryArguments& arguments, const std::string& current_
     }
 
     rpc_request.set_expr(arguments.Filter());
+    if (!arguments.Filter().empty()) {
+        auto rpc_templates = rpc_request.mutable_expr_template_values();
+        const auto& templates = arguments.FilterTemplates();
+        auto status = ConvertFilterTemplates(templates, rpc_templates);
+        if (!status.IsOk()) {
+            return status;
+        }
+    }
+
     for (const auto& field : arguments.OutputFields()) {
         rpc_request.add_output_fields(field);
     }
@@ -868,6 +968,13 @@ ConvertSearchRequest(const SearchArguments& arguments, const std::string& curren
     rpc_request.set_dsl_type(proto::common::DslType::BoolExprV1);
     if (!arguments.Filter().empty()) {
         rpc_request.set_dsl(arguments.Filter());
+
+        auto rpc_templates = rpc_request.mutable_expr_template_values();
+        const auto& templates = arguments.FilterTemplates();
+        auto status = ConvertFilterTemplates(templates, rpc_templates);
+        if (!status.IsOk()) {
+            return status;
+        }
     }
     for (const auto& partition_name : arguments.PartitionNames()) {
         rpc_request.add_partition_names(partition_name);

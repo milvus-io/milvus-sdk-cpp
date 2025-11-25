@@ -10,6 +10,7 @@ Once the `make test` is done, you will see some executable examples under the pa
 - `./cmake_build/examples/sdk_default_value`: example to show the usage of default value.
 - `./cmake_build/examples/sdk_dml`: example to show the usage of dml interfaces.
 - `./cmake_build/examples/sdk_dynamic_field`: example to show the usage of dynamic fields.
+- `./cmake_build/examples/sdk_filter_template`: example to show the usage of filter template.
 - `./cmake_build/examples/sdk_full_text_match`: example to show the usage of BM25 function.
 - `./cmake_build/examples/sdk_general`: a general example to show the basic usage.
 - `./cmake_build/examples/sdk_group_by`: a general example to show the usage of grouping search.
