@@ -29,16 +29,18 @@
 namespace milvus {
 template class Iterator<SingleResult>;
 
-SearchIteratorV2Impl::SearchIteratorV2Impl(MilvusConnectionPtr& connection, const SearchIteratorArguments& args,
-                                           const RetryParam& retry_param) {
+template <typename T>
+SearchIteratorV2Impl<T>::SearchIteratorV2Impl(const MilvusConnectionPtr& connection, const T& args,
+                                              const RetryParam& retry_param) {
     connection_ = connection;
     args_ = args;
     original_limit_ = args.Limit();
     retry_param_ = retry_param;
 }
 
+template <typename T>
 Status
-SearchIteratorV2Impl::Next(SingleResult& results) {
+SearchIteratorV2Impl<T>::Next(SingleResult& results) {
     results.Clear();
 
     // returned count already meet the limit value
@@ -65,14 +67,14 @@ SearchIteratorV2Impl::Next(SingleResult& results) {
         }
 
         cache_.emplace_back(std::move(single_result));
-        auto cache_count = SearchIteratorImpl::CachedCount(cache_);
+        auto cache_count = SearchIteratorImpl<T>::CachedCount(cache_);
         if (cache_count >= static_cast<uint64_t>(target_len)) {
             break;
         }
     }
 
     // return batch from the cache if cache is big enough
-    auto status = SearchIteratorImpl::FetchPageFromCache(cache_, args_, target_len, results);
+    auto status = SearchIteratorImpl<T>::FetchPageFromCache(cache_, args_.OutputFields(), target_len, results);
     if (!status.IsOk()) {
         return status;
     }
@@ -81,9 +83,11 @@ SearchIteratorV2Impl::Next(SingleResult& results) {
     return Status::OK();
 }
 
+template <typename T>
 Status
-SearchIteratorV2Impl::Init() {
-    auto status = SearchIteratorImpl::CheckInput(args_);
+SearchIteratorV2Impl<T>::Init() {
+    auto status = SearchIteratorImpl<T>::CheckInput(args_.TargetVectors(), args_.ExtraParams(), args_.BatchSize(),
+                                                    args_.MetricType());
     if (!status.IsOk()) {
         return status;
     }
@@ -104,9 +108,10 @@ SearchIteratorV2Impl::Init() {
 
 ///////////////////////////////////////////////////////////////////////////////////
 // internal methods
+template <typename T>
 Status
-SearchIteratorV2Impl::probeForCompability() {
-    SearchIteratorArguments temp_args = args_;
+SearchIteratorV2Impl<T>::probeForCompability() {
+    T temp_args = args_;
     temp_args.SetLimit(1);
     temp_args.AddExtraParam(ITER_SEARCH_BATCH_SIZE_KEY, "1");
     proto::milvus::SearchResults rpc_response;
@@ -118,8 +123,9 @@ SearchIteratorV2Impl::probeForCompability() {
     return checkTokenExists(rpc_response);
 }
 
+template <typename T>
 Status
-SearchIteratorV2Impl::checkTokenExists(proto::milvus::SearchResults& rpc_response) {
+SearchIteratorV2Impl<T>::checkTokenExists(proto::milvus::SearchResults& rpc_response) {
     proto::schema::SearchResultData data = rpc_response.results();
     auto token = data.search_iterator_v2_results().token();
     if (token.empty()) {
@@ -133,15 +139,15 @@ SearchIteratorV2Impl::checkTokenExists(proto::milvus::SearchResults& rpc_respons
     return Status::OK();
 }
 
+template <typename T>
 Status
-SearchIteratorV2Impl::executeSearch(const SearchIteratorArguments& args, proto::milvus::SearchResults& rpc_response,
-                                    bool is_probe) {
+SearchIteratorV2Impl<T>::executeSearch(const T& args, proto::milvus::SearchResults& rpc_response, bool is_probe) {
     uint64_t timeout = connection_->GetConnectParam().RpcDeadlineMs();
     std::string current_db =
         args.DatabaseName().empty() ? connection_->GetConnectParam().DbName() : args.DatabaseName();
 
     proto::milvus::SearchRequest rpc_request;
-    auto status = ConvertSearchRequest(args, current_db, rpc_request);
+    auto status = ConvertSearchRequest<T>(args, current_db, rpc_request);
     if (!status.IsOk()) {
         return status;
     }
@@ -172,8 +178,9 @@ SearchIteratorV2Impl::executeSearch(const SearchIteratorArguments& args, proto::
     return Status::OK();
 }
 
+template <typename T>
 Status
-SearchIteratorV2Impl::next(SingleResultPtr& results) {
+SearchIteratorV2Impl<T>::next(SingleResultPtr& results) {
     proto::milvus::SearchResults rpc_response;
     auto status = executeSearch(args_, rpc_response, false);
     if (!status.IsOk()) {
@@ -211,5 +218,9 @@ SearchIteratorV2Impl::next(SingleResultPtr& results) {
     results = std::make_shared<SingleResult>(single_result);
     return Status::OK();
 }
+
+// explicitly instantiation of template methods to avoid link error
+template class SearchIteratorV2Impl<SearchIteratorArguments>;
+template class SearchIteratorV2Impl<SearchIteratorRequest>;
 
 }  // namespace milvus

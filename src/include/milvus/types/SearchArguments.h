@@ -128,6 +128,7 @@ class SearchArguments : public SearchRequestBase {
 
     /**
      * @brief Set ignore growing segments.
+     * Note: this value is stored in the ExtraParams
      */
     Status
     SetIgnoreGrowing(bool ignore_growing);
@@ -140,6 +141,7 @@ class SearchArguments : public SearchRequestBase {
 
     /**
      * @brief Set group by field name.
+     * Note: this value is stored in the ExtraParams
      */
     Status
     SetGroupByField(const std::string& field_name);
@@ -152,6 +154,7 @@ class SearchArguments : public SearchRequestBase {
 
     /**
      * @brief Set size of group by.
+     * Note: this value is stored in the ExtraParams
      */
     Status
     SetGroupSize(uint64_t group_size);
@@ -164,6 +167,7 @@ class SearchArguments : public SearchRequestBase {
 
     /**
      * @brief Set the flag whether to strict group size.
+     * Note: this value is stored in the ExtraParams
      */
     Status
     SetStrictGroupSize(bool strict_group_size);
@@ -304,14 +308,6 @@ class SearchArguments : public SearchRequestBase {
     std::string collection_name_;
     std::set<std::string> partition_names_;
     std::set<std::string> output_field_names_;
-    int64_t offset_{0};
-    int round_decimal_{-1};
-    bool ignore_growing_{false};
-
-    // for group by
-    std::string group_by_field_;
-    uint64_t group_size_{1};  // milvus returns one result per group by default
-    bool strict_group_size_{false};
 
     // ConsistencyLevel::NONE means using collection's default level
     ConsistencyLevel consistency_level_{ConsistencyLevel::NONE};

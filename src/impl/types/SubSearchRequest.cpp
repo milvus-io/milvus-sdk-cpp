@@ -20,6 +20,7 @@
 
 #include "../utils/Constants.h"
 #include "../utils/DmlUtils.h"
+#include "../utils/DqlUtils.h"
 #include "../utils/TypeUtils.h"
 #include "milvus/utils/FP16.h"
 
@@ -56,6 +57,12 @@ SearchRequestBase::AddFilterTemplate(std::string key, const nlohmann::json& filt
 const std::unordered_map<std::string, nlohmann::json>&
 SearchRequestBase::FilterTemplates() const {
     return filter_templates_;
+}
+
+Status
+SearchRequestBase::SetFilterTemplates(std::unordered_map<std::string, nlohmann::json>&& filter_templates) {
+    filter_templates_ = std::move(filter_templates);
+    return Status::OK();
 }
 
 FieldDataPtr
@@ -163,13 +170,11 @@ SearchRequestBase::SetMetricType(::milvus::MetricType metric_type) {
 
 Status
 SearchRequestBase::AddExtraParam(const std::string& key, const std::string& value) {
-    static std::set<std::string> s_ambiguous = {PARAMS, TOPK, ANNS_FIELD, METRIC_TYPE, ROUND_DECIMAL, IGNORE_GROWING};
-    if (s_ambiguous.find(key) != s_ambiguous.end()) {
-        return Status{StatusCode::INVALID_AGUMENT,
-                      "ambiguous parameter: not allow to set '" + key + "' in extra params"};
+    auto status = IsAmbiguousParam(key);
+    if (status.IsOk()) {
+        extra_params_[key] = value;
     }
-    extra_params_[key] = value;
-    return Status::OK();
+    return status;
 }
 
 const std::unordered_map<std::string, std::string>&
