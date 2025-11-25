@@ -178,6 +178,12 @@ MilvusConnection::UseDatabase(const std::string& db_name) {
 }
 
 Status
+MilvusConnection::CheckHealth(const proto::milvus::CheckHealthRequest& request,
+                              proto::milvus::CheckHealthResponse& response, const GrpcContextOptions& options) {
+    return grpcCall("CheckHealth", &Stub::CheckHealth, request, response, options);
+}
+
+Status
 MilvusConnection::CreateDatabase(const proto::milvus::CreateDatabaseRequest& request, proto::common::Status& response,
                                  const GrpcContextOptions& options) {
     return grpcCall("CreateDatabase", &Stub::CreateDatabase, request, response, options);

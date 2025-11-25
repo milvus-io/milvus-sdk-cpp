@@ -22,16 +22,17 @@
 
 #include "../MilvusConnection.h"
 #include "milvus.pb.h"
+#include "milvus/request/dql/SearchIteratorRequest.h"
 #include "milvus/types/Iterator.h"
 #include "milvus/types/IteratorArguments.h"
 #include "milvus/types/RetryParam.h"
 
 namespace milvus {
 
+template <typename T>
 class SearchIteratorV2Impl : public SearchIterator {
  public:
-    SearchIteratorV2Impl(MilvusConnectionPtr& connection, const SearchIteratorArguments& args,
-                         const RetryParam& retry_param);
+    SearchIteratorV2Impl(const MilvusConnectionPtr& connection, const T& args, const RetryParam& retry_param);
 
     Status
     Next(SingleResult& results) final;
@@ -47,14 +48,14 @@ class SearchIteratorV2Impl : public SearchIterator {
     checkTokenExists(proto::milvus::SearchResults& rpc_response);
 
     Status
-    executeSearch(const SearchIteratorArguments& args, proto::milvus::SearchResults& rpc_response, bool is_probe);
+    executeSearch(const T& args, proto::milvus::SearchResults& rpc_response, bool is_probe);
 
     Status
     next(SingleResultPtr& results);
 
  private:
     MilvusConnectionPtr connection_;
-    SearchIteratorArguments args_;
+    T args_;
     RetryParam retry_param_;
 
     int64_t original_limit_{0};
@@ -62,5 +63,9 @@ class SearchIteratorV2Impl : public SearchIterator {
     uint64_t session_ts_{0};
     std::list<SingleResultPtr> cache_;
 };
+
+// explicitly instantiation of template methods to avoid link error
+extern template class SearchIteratorV2Impl<SearchIteratorArguments>;
+extern template class SearchIteratorV2Impl<SearchIteratorRequest>;
 
 }  // namespace milvus

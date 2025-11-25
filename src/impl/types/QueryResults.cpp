@@ -22,10 +22,6 @@ namespace milvus {
 
 QueryResults::QueryResults() = default;
 
-QueryResults::QueryResults(const QueryResults& src)
-    : output_fields_(src.output_fields_), output_names_(src.output_names_) {
-}
-
 QueryResults::QueryResults(const std::vector<FieldDataPtr>& output_fields, const std::set<std::string>& output_names) {
     output_fields_ = output_fields;
     output_names_ = output_names;

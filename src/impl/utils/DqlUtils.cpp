@@ -513,15 +513,16 @@ SetTargetVectors(const FieldDataPtr& target, milvus::proto::milvus::SearchReques
 
 void
 SetExtraParams(const std::unordered_map<std::string, std::string>& params,
-               milvus::proto::milvus::SearchRequest* rpc_request) {
+               ::google::protobuf::RepeatedPtrField<::milvus::proto::common::KeyValuePair>* kv_pairs) {
     // offet/radius/range_filter/nprobe etc.
     // in old milvus versions, all extra params are under "params"
     // in new milvus versions, all extra params are in the top level
     nlohmann::json json_params;
     for (auto& pair : params) {
-        auto kv_pair = rpc_request->add_search_params();
-        kv_pair->set_key(pair.first);
-        kv_pair->set_value(pair.second);
+        ::milvus::proto::common::KeyValuePair kv_pair;
+        kv_pair.set_key(pair.first);
+        kv_pair.set_value(pair.second);
+        kv_pairs->Add(std::move(kv_pair));
 
         // for radius/range, the value should be a numeric instead a string in the JSON string
         // for example:
@@ -534,9 +535,10 @@ SetExtraParams(const std::unordered_map<std::string, std::string>& params,
         }
     }
     {
-        auto kv_pair = rpc_request->add_search_params();
-        kv_pair->set_key(PARAMS);
-        kv_pair->set_value(json_params.dump());
+        ::milvus::proto::common::KeyValuePair kv_pair;
+        kv_pair.set_key(PARAMS);
+        kv_pair.set_value(json_params.dump());
+        kv_pairs->Add(std::move(kv_pair));
     }
 }
 
@@ -877,53 +879,52 @@ ConvertFilterTemplates(const std::unordered_map<std::string, nlohmann::json>& te
 // current_db is the actual target db that the request is performed, for setting the GuaranteeTimestamp
 // to compatible with old versions.
 // for examples:
-// - the MilvusClient connects to "my_db", the arguments.DatabaseName() is empty, target db is "my_db"
-// - the MilvusClient connects to "", the arguments.DatabaseName() is empty, target db is "default"
-// - the MilvusClient connects to "", the arguments.DatabaseName() is "my_db", target db is "my_db"
-// - the MilvusClient connects to "db_1", the arguments.DatabaseName() is "db_2", target db is "db_2"
+// - the MilvusClient connects to "my_db", the request.DatabaseName() is empty, target db is "my_db"
+// - the MilvusClient connects to "", the request.DatabaseName() is empty, target db is "default"
+// - the MilvusClient connects to "", the request.DatabaseName() is "my_db", target db is "my_db"
+// - the MilvusClient connects to "db_1", the request.DatabaseName() is "db_2", target db is "db_2"
+template <typename T>
 Status
-ConvertQueryRequest(const QueryArguments& arguments, const std::string& current_db,
-                    proto::milvus::QueryRequest& rpc_request) {
-    auto db_name = arguments.DatabaseName();
+ConvertQueryRequest(const T& request, const std::string& current_db, proto::milvus::QueryRequest& rpc_request) {
+    auto db_name = request.DatabaseName();
     if (!db_name.empty()) {
         rpc_request.set_db_name(db_name);
     }
-    rpc_request.set_collection_name(arguments.CollectionName());
-    for (const auto& partition_name : arguments.PartitionNames()) {
+    rpc_request.set_collection_name(request.CollectionName());
+    for (const auto& partition_name : request.PartitionNames()) {
         rpc_request.add_partition_names(partition_name);
     }
 
-    rpc_request.set_expr(arguments.Filter());
-    if (!arguments.Filter().empty()) {
+    rpc_request.set_expr(request.Filter());
+    if (!request.Filter().empty()) {
         auto rpc_templates = rpc_request.mutable_expr_template_values();
-        const auto& templates = arguments.FilterTemplates();
+        const auto& templates = request.FilterTemplates();
         auto status = ConvertFilterTemplates(templates, rpc_templates);
         if (!status.IsOk()) {
             return status;
         }
     }
 
-    for (const auto& field : arguments.OutputFields()) {
+    for (const auto& field : request.OutputFields()) {
         rpc_request.add_output_fields(field);
     }
 
     // limit/offet etc.
-    auto& params = arguments.ExtraParams();
+    auto& params = request.ExtraParams();
     for (auto& pair : params) {
         auto kv_pair = rpc_request.add_query_params();
         kv_pair->set_key(pair.first);
         kv_pair->set_value(pair.second);
     }
 
-    ConsistencyLevel level = arguments.GetConsistencyLevel();
-    uint64_t guarantee_ts = DeduceGuaranteeTimestamp(level, current_db, arguments.CollectionName());
+    ConsistencyLevel level = request.GetConsistencyLevel();
+    uint64_t guarantee_ts = DeduceGuaranteeTimestamp(level, current_db, request.CollectionName());
     rpc_request.set_guarantee_timestamp(guarantee_ts);
-    rpc_request.set_travel_timestamp(arguments.TravelTimestamp());
 
     if (level == ConsistencyLevel::NONE) {
         rpc_request.set_use_default_consistency(true);
     } else {
-        rpc_request.set_consistency_level(ConsistencyLevelCast(arguments.GetConsistencyLevel()));
+        rpc_request.set_consistency_level(ConsistencyLevelCast(level));
     }
     return Status::OK();
 }
@@ -953,38 +954,37 @@ ConvertQueryResults(const proto::milvus::QueryResults& rpc_results, QueryResults
 // current_db is the actual target db that the request is performed, for setting the GuaranteeTimestamp
 // to compatible with old versions.
 // for examples:
-// - the MilvusClient connects to "my_db", the arguments.DatabaseName() is empty, target db is "my_db"
-// - the MilvusClient connects to "", the arguments.DatabaseName() is empty, target db is "default"
-// - the MilvusClient connects to "", the arguments.DatabaseName() is "my_db", target db is "my_db"
-// - the MilvusClient connects to "db_1", the arguments.DatabaseName() is "db_2", target db is "db_2"
+// - the MilvusClient connects to "my_db", the request.DatabaseName() is empty, target db is "my_db"
+// - the MilvusClient connects to "", the request.DatabaseName() is empty, target db is "default"
+// - the MilvusClient connects to "", the request.DatabaseName() is "my_db", target db is "my_db"
+// - the MilvusClient connects to "db_1", the request.DatabaseName() is "db_2", target db is "db_2"
+template <typename T>
 Status
-ConvertSearchRequest(const SearchArguments& arguments, const std::string& current_db,
-                     proto::milvus::SearchRequest& rpc_request) {
-    auto db_name = arguments.DatabaseName();
-    if (!db_name.empty()) {
-        rpc_request.set_db_name(db_name);
+ConvertSearchRequest(const T& request, const std::string& current_db, proto::milvus::SearchRequest& rpc_request) {
+    if (!current_db.empty()) {
+        rpc_request.set_db_name(current_db);
     }
-    rpc_request.set_collection_name(arguments.CollectionName());
+    rpc_request.set_collection_name(request.CollectionName());
     rpc_request.set_dsl_type(proto::common::DslType::BoolExprV1);
-    if (!arguments.Filter().empty()) {
-        rpc_request.set_dsl(arguments.Filter());
+    if (!request.Filter().empty()) {
+        rpc_request.set_dsl(request.Filter());
 
         auto rpc_templates = rpc_request.mutable_expr_template_values();
-        const auto& templates = arguments.FilterTemplates();
+        const auto& templates = request.FilterTemplates();
         auto status = ConvertFilterTemplates(templates, rpc_templates);
         if (!status.IsOk()) {
             return status;
         }
     }
-    for (const auto& partition_name : arguments.PartitionNames()) {
+    for (const auto& partition_name : request.PartitionNames()) {
         rpc_request.add_partition_names(partition_name);
     }
-    for (const auto& output_field : arguments.OutputFields()) {
+    for (const auto& output_field : request.OutputFields()) {
         rpc_request.add_output_fields(output_field);
     }
 
     // set target vectors
-    auto status = SetTargetVectors(arguments.TargetVectors(), &rpc_request);
+    auto status = SetTargetVectors(request.TargetVectors(), &rpc_request);
     if (!status.IsOk()) {
         return status;
     }
@@ -998,156 +998,31 @@ ConvertSearchRequest(const SearchArguments& arguments, const std::string& curren
     // set anns field name, if the name is empty and the collection has only one vector field,
     // milvus server will use the vector field name as anns name. If the collection has multiple
     // vector fields, user needs to explicitly provide an anns field name.
-    auto anns_field = arguments.AnnsField();
+    auto anns_field = request.AnnsField();
     if (!anns_field.empty()) {
         setParamFunc(milvus::ANNS_FIELD, anns_field);
     }
 
     // for history reason, query() requires "limit", search() requires "topk"
-    setParamFunc(milvus::TOPK, std::to_string(arguments.Limit()));
+    setParamFunc(milvus::TOPK, std::to_string(request.Limit()));
 
     // set this value only when client specified, otherwise let server to get it from index parameters
-    if (arguments.MetricType() != MetricType::DEFAULT) {
-        setParamFunc(milvus::METRIC_TYPE, std::to_string(arguments.MetricType()));
+    if (request.MetricType() != MetricType::DEFAULT) {
+        setParamFunc(milvus::METRIC_TYPE, std::to_string(request.MetricType()));
     }
 
-    // offset
-    setParamFunc(milvus::OFFSET, std::to_string(arguments.Offset()));
-
-    // round decimal
-    setParamFunc(milvus::ROUND_DECIMAL, std::to_string(arguments.RoundDecimal()));
-
-    // ignore growing
-    setParamFunc(milvus::IGNORE_GROWING, arguments.IgnoreGrowing() ? "true" : "false");
-
-    // group by
-    auto group_by_field = arguments.GroupByField();
-    if (!group_by_field.empty()) {
-        setParamFunc(milvus::GROUPBY_FIELD, arguments.GroupByField());
-        setParamFunc(milvus::GROUPBY_STRICT_SIZE, std::to_string(arguments.StrictGroupSize()));
-        if (arguments.GroupSize() > 0) {
-            setParamFunc(milvus::GROUPBY_SIZE, std::to_string(arguments.GroupSize()));
-        }
-    }
-
-    // extra params radius/range_filter/nprobe etc.
-    SetExtraParams(arguments.ExtraParams(), &rpc_request);
+    // extra params offset/round_decimal/group_by/radius/range_filter/nprobe etc.
+    SetExtraParams(request.ExtraParams(), rpc_request.mutable_search_params());
 
     // consistency level
-    ConsistencyLevel level = arguments.GetConsistencyLevel();
-    uint64_t guarantee_ts = DeduceGuaranteeTimestamp(level, current_db, arguments.CollectionName());
-    rpc_request.set_guarantee_timestamp(guarantee_ts);
-    rpc_request.set_travel_timestamp(arguments.TravelTimestamp());
-
-    if (level == ConsistencyLevel::NONE) {
-        rpc_request.set_use_default_consistency(true);
-    } else {
-        rpc_request.set_consistency_level(ConsistencyLevelCast(arguments.GetConsistencyLevel()));
-    }
-    return Status::OK();
-}
-
-// current_db is the actual target db that the request is performed, for setting the GuaranteeTimestamp
-// to compatible with old versions.
-// for examples:
-// - the MilvusClient connects to "my_db", the arguments.DatabaseName() is empty, target db is "my_db"
-// - the MilvusClient connects to "", the arguments.DatabaseName() is empty, target db is "default"
-// - the MilvusClient connects to "", the arguments.DatabaseName() is "my_db", target db is "my_db"
-// - the MilvusClient connects to "db_1", the arguments.DatabaseName() is "db_2", target db is "db_2"
-Status
-ConvertHybridSearchRequest(const HybridSearchArguments& arguments, const std::string& current_db,
-                           proto::milvus::HybridSearchRequest& rpc_request) {
-    auto db_name = arguments.DatabaseName();
-    if (!db_name.empty()) {
-        rpc_request.set_db_name(db_name);
-    }
-    rpc_request.set_collection_name(arguments.CollectionName());
-
-    for (const auto& partition_name : arguments.PartitionNames()) {
-        rpc_request.add_partition_names(partition_name);
-    }
-    for (const auto& output_field : arguments.OutputFields()) {
-        rpc_request.add_output_fields(output_field);
-    }
-
-    for (const auto& sub_request : arguments.SubRequests()) {
-        auto search_req = rpc_request.add_requests();
-        auto status = SetTargetVectors(sub_request->TargetVectors(), search_req);
-        if (!status.IsOk()) {
-            return status;
-        }
-
-        // set filter expression
-        search_req->set_dsl_type(proto::common::DslType::BoolExprV1);
-        if (!sub_request->Filter().empty()) {
-            search_req->set_dsl(sub_request->Filter());
-        }
-
-        // set anns field name, if the name is empty and the collection has only one vector field,
-        // milvus server will use the vector field name as anns name. If the collection has multiple
-        // vector fields, user needs to explicitly provide an anns field name.
-        auto anns_field = sub_request->AnnsField();
-        if (!anns_field.empty()) {
-            auto kv_pair = search_req->add_search_params();
-            kv_pair->set_key(milvus::ANNS_FIELD);
-            kv_pair->set_value(anns_field);
-        }
-
-        // for history reason, query() requires "limit", search() requires "topk"
-        {
-            auto kv_pair = search_req->add_search_params();
-            kv_pair->set_key(milvus::TOPK);
-            kv_pair->set_value(std::to_string(sub_request->Limit()));
-        }
-
-        // set this value only when client specified, otherwise let server to get it from index parameters
-        if (sub_request->MetricType() != MetricType::DEFAULT) {
-            auto kv_pair = search_req->add_search_params();
-            kv_pair->set_key(milvus::METRIC_TYPE);
-            kv_pair->set_value(std::to_string(sub_request->MetricType()));
-        }
-
-        // extra params offet/radius/range_filter/nprobe etc.
-        SetExtraParams(sub_request->ExtraParams(), search_req);
-    }
-
-    auto setParamFunc = [&rpc_request](const std::string& key, const std::string& value) {
-        auto kv_pair = rpc_request.add_rank_params();
-        kv_pair->set_key(key);
-        kv_pair->set_value(value);
-    };
-
-    // set rerank/limit/offset/round decimal
-    auto reranker = arguments.Rerank();
-    auto params = reranker->Params();
-    params[LIMIT] = std::to_string(arguments.Limit());  // hybrid search is new interface, requires "limit"
-    params[OFFSET] = std::to_string(arguments.Offset());
-    params[ROUND_DECIMAL] = std::to_string(arguments.RoundDecimal());
-    params[IGNORE_GROWING] = arguments.IgnoreGrowing() ? "true" : "false";
-
-    for (auto& pair : params) {
-        setParamFunc(pair.first, pair.second);
-    }
-
-    // group by
-    auto group_by_field = arguments.GroupByField();
-    if (!group_by_field.empty()) {
-        setParamFunc(milvus::GROUPBY_FIELD, arguments.GroupByField());
-        setParamFunc(milvus::GROUPBY_STRICT_SIZE, std::to_string(arguments.StrictGroupSize()));
-        if (arguments.GroupSize() > 0) {
-            setParamFunc(milvus::GROUPBY_SIZE, std::to_string(arguments.GroupSize()));
-        }
-    }
-
-    // consistancy level
-    ConsistencyLevel level = arguments.GetConsistencyLevel();
-    uint64_t guarantee_ts = DeduceGuaranteeTimestamp(level, current_db, arguments.CollectionName());
+    ConsistencyLevel level = request.GetConsistencyLevel();
+    uint64_t guarantee_ts = DeduceGuaranteeTimestamp(level, current_db, request.CollectionName());
     rpc_request.set_guarantee_timestamp(guarantee_ts);
 
     if (level == ConsistencyLevel::NONE) {
         rpc_request.set_use_default_consistency(true);
     } else {
-        rpc_request.set_consistency_level(ConsistencyLevelCast(arguments.GetConsistencyLevel()));
+        rpc_request.set_consistency_level(ConsistencyLevelCast(level));
     }
     return Status::OK();
 }
@@ -1214,6 +1089,113 @@ ConvertSearchResults(const proto::milvus::SearchResults& rpc_results, const std:
     }
 
     results = SearchResults(std::move(single_results));
+    return Status::OK();
+}
+
+// current_db is the actual target db that the request is performed, for setting the GuaranteeTimestamp
+// to compatible with old versions.
+// for examples:
+// - the MilvusClient connects to "my_db", the request.DatabaseName() is empty, target db is "my_db"
+// - the MilvusClient connects to "", the request.DatabaseName() is empty, target db is "default"
+// - the MilvusClient connects to "", the request.DatabaseName() is "my_db", target db is "my_db"
+// - the MilvusClient connects to "db_1", the request.DatabaseName() is "db_2", target db is "db_2"
+template <typename T>
+Status
+ConvertHybridSearchRequest(const T& request, const std::string& current_db,
+                           proto::milvus::HybridSearchRequest& rpc_request) {
+    auto db_name = request.DatabaseName();
+    if (!db_name.empty()) {
+        rpc_request.set_db_name(db_name);
+    }
+    rpc_request.set_collection_name(request.CollectionName());
+
+    for (const auto& partition_name : request.PartitionNames()) {
+        rpc_request.add_partition_names(partition_name);
+    }
+    for (const auto& output_field : request.OutputFields()) {
+        rpc_request.add_output_fields(output_field);
+    }
+
+    for (const auto& sub_request : request.SubRequests()) {
+        auto search_req = rpc_request.add_requests();
+        auto status = SetTargetVectors(sub_request->TargetVectors(), search_req);
+        if (!status.IsOk()) {
+            return status;
+        }
+
+        // set filter expression
+        search_req->set_dsl_type(proto::common::DslType::BoolExprV1);
+        if (!sub_request->Filter().empty()) {
+            search_req->set_dsl(sub_request->Filter());
+
+            auto rpc_templates = search_req->mutable_expr_template_values();
+            const auto& templates = sub_request->FilterTemplates();
+            auto status = ConvertFilterTemplates(templates, rpc_templates);
+            if (!status.IsOk()) {
+                return status;
+            }
+        }
+
+        // set anns field name, if the name is empty and the collection has only one vector field,
+        // milvus server will use the vector field name as anns name. If the collection has multiple
+        // vector fields, user needs to explicitly provide an anns field name.
+        auto anns_field = sub_request->AnnsField();
+        if (!anns_field.empty()) {
+            auto kv_pair = search_req->add_search_params();
+            kv_pair->set_key(milvus::ANNS_FIELD);
+            kv_pair->set_value(anns_field);
+        }
+
+        // for history reason, query() requires "limit", search() requires "topk"
+        {
+            auto kv_pair = search_req->add_search_params();
+            kv_pair->set_key(milvus::TOPK);
+            kv_pair->set_value(std::to_string(sub_request->Limit()));
+        }
+
+        // set this value only when client specified, otherwise let server to get it from index parameters
+        if (sub_request->MetricType() != MetricType::DEFAULT) {
+            auto kv_pair = search_req->add_search_params();
+            kv_pair->set_key(milvus::METRIC_TYPE);
+            kv_pair->set_value(std::to_string(sub_request->MetricType()));
+        }
+
+        // extra params offet/radius/range_filter/nprobe etc.
+        SetExtraParams(sub_request->ExtraParams(), search_req->mutable_search_params());
+    }
+
+    auto setParamFunc = [&rpc_request](const std::string& key, const std::string& value) {
+        auto kv_pair = rpc_request.add_rank_params();
+        kv_pair->set_key(key);
+        kv_pair->set_value(value);
+    };
+
+    // hybrid search is new interface, requires "limit"
+    setParamFunc(LIMIT, std::to_string(request.Limit()));
+
+    // extra params offset/round_decimal/group_by etc.
+    for (auto& pair : request.ExtraParams()) {
+        auto kv_pair = rpc_request.add_rank_params();
+        kv_pair->set_key(pair.first);
+        kv_pair->set_value(pair.second);
+    }
+
+    // set rerank
+    auto reranker = request.Rerank();
+    for (auto& pair : reranker->Params()) {
+        setParamFunc(pair.first, pair.second);
+    }
+
+    // consistancy level
+    ConsistencyLevel level = request.GetConsistencyLevel();
+    uint64_t guarantee_ts = DeduceGuaranteeTimestamp(level, current_db, request.CollectionName());
+    rpc_request.set_guarantee_timestamp(guarantee_ts);
+
+    if (level == ConsistencyLevel::NONE) {
+        rpc_request.set_use_default_consistency(true);
+    } else {
+        rpc_request.set_consistency_level(ConsistencyLevelCast(level));
+    }
     return Status::OK();
 }
 
@@ -1469,5 +1451,56 @@ AppendSearchResult(const SingleResult& from, SingleResult& to) {
     }
     return Status::OK();
 }
+
+Status
+IsAmbiguousParam(const std::string& key) {
+    static std::set<std::string> s_ambiguous = {PARAMS, TOPK, ANNS_FIELD, METRIC_TYPE};
+    if (s_ambiguous.find(key) != s_ambiguous.end()) {
+        return Status{StatusCode::INVALID_AGUMENT,
+                      "Ambiguous parameter: not allow to set '" + key + "' in extra params"};
+    }
+    return Status::OK();
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// explicitly instantiation of template methods to avoid link error
+// query
+template Status
+ConvertQueryRequest<QueryIteratorArguments>(const QueryIteratorArguments&, const std::string&,
+                                            proto::milvus::QueryRequest&);
+
+template Status
+ConvertQueryRequest<QueryArguments>(const QueryArguments&, const std::string&, proto::milvus::QueryRequest&);
+
+template Status
+ConvertQueryRequest<QueryIteratorRequest>(const QueryIteratorRequest&, const std::string&,
+                                          proto::milvus::QueryRequest&);
+
+template Status
+ConvertQueryRequest<QueryRequest>(const QueryRequest&, const std::string&, proto::milvus::QueryRequest&);
+
+// search
+template Status
+ConvertSearchRequest<SearchIteratorArguments>(const SearchIteratorArguments&, const std::string&,
+                                              proto::milvus::SearchRequest&);
+
+template Status
+ConvertSearchRequest<SearchArguments>(const SearchArguments&, const std::string&, proto::milvus::SearchRequest&);
+
+template Status
+ConvertSearchRequest<SearchIteratorRequest>(const SearchIteratorRequest&, const std::string&,
+                                            proto::milvus::SearchRequest&);
+
+template Status
+ConvertSearchRequest<SearchRequest>(const SearchRequest&, const std::string&, proto::milvus::SearchRequest&);
+
+// hybrid search
+template Status
+ConvertHybridSearchRequest<HybridSearchArguments>(const HybridSearchArguments&, const std::string&,
+                                                  proto::milvus::HybridSearchRequest&);
+
+template Status
+ConvertHybridSearchRequest<HybridSearchRequest>(const HybridSearchRequest&, const std::string&,
+                                                proto::milvus::HybridSearchRequest&);
 
 }  // namespace milvus

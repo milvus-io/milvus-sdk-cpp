@@ -603,6 +603,37 @@ CreateProtoFieldData(const FieldDataSchema& data_schema, proto::schema::FieldDat
     return Status::OK();
 }
 
+Status
+CreateProtoFieldDatas(const CollectionSchema& collection_schema, const std::vector<FieldDataPtr>& fields,
+                      std::vector<proto::schema::FieldData>& rpc_fields) {
+    std::map<std::string, FieldSchema> name_schemas;
+    for (const auto& schema : collection_schema.Fields()) {
+        name_schemas.insert(std::make_pair(schema.Name(), schema));
+    }
+
+    auto enable_dynamic_field = collection_schema.EnableDynamicField();
+    for (const auto& field : fields) {
+        FieldSchemaPtr schema_ptr;
+        auto it = name_schemas.find(field->Name());
+        if (it != name_schemas.end()) {
+            schema_ptr = std::make_shared<FieldSchema>(it->second);  // this is a schema copy
+        }
+
+        FieldDataSchema bridge(field, schema_ptr);
+        proto::schema::FieldData proto_data;
+        auto status = CreateProtoFieldData(bridge, proto_data);
+        if (!status.IsOk()) {
+            return status;
+        }
+        if (enable_dynamic_field && field->Name() == DYNAMIC_FIELD) {
+            proto_data.set_is_dynamic(true);
+        }
+        rpc_fields.emplace_back(std::move(proto_data));
+    }
+
+    return Status::OK();
+}
+
 IDArray
 CreateIDArray(const proto::schema::IDs& ids) {
     if (ids.has_int_id()) {
