@@ -17,6 +17,7 @@
 #include "milvus/types/QueryArguments.h"
 
 #include "../utils/Constants.h"
+#include "../utils/TypeUtils.h"
 
 namespace milvus {
 
@@ -88,6 +89,29 @@ QueryArguments::SetFilter(std::string filter) {
 
     filter_expression_ = std::move(filter);
     return Status::OK();
+}
+
+Status
+QueryArguments::AddFilterTemplate(std::string key, const nlohmann::json& filter_template) {
+    if (filter_template.is_array()) {
+        for (const auto& ele : filter_template) {
+            if (!IsValidTemplate(ele)) {
+                return {milvus::StatusCode::INVALID_AGUMENT, "Filter template element must be boolean/number/string"};
+            }
+        }
+    } else {
+        if (!IsValidTemplate(filter_template)) {
+            return {milvus::StatusCode::INVALID_AGUMENT, "Filter template must be boolean/number/string/array"};
+        }
+    }
+
+    filter_templates_.insert(std::make_pair(key, filter_template));
+    return Status::OK();
+}
+
+const std::unordered_map<std::string, nlohmann::json>&
+QueryArguments::FilterTemplates() const {
+    return filter_templates_;
 }
 
 int64_t
