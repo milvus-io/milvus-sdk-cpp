@@ -25,15 +25,23 @@ include_directories(${CMAKE_SOURCE_DIR}/src/include)
 
 set(example_utils ${CMAKE_CURRENT_SOURCE_DIR}/utils)
 
-function(build_executable src_path)
+function(build_executable src_path ver)
     get_filename_component(filename ${src_path} NAME_WE)
-    set(exe_name sdk_${filename})
+    set(exe_name sdk_${filename}_${ver})
     add_executable(${exe_name} ${src_path})
+    set_target_properties(${exe_name} PROPERTIES
+        RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/examples/${ver}"
+    )
     target_include_directories(${exe_name} PRIVATE ${example_utils})
     target_link_libraries(${exe_name} milvus_sdk)
 endfunction()
 
-file(GLOB src_files ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp)
-foreach(src_file ${src_files})
-    build_executable(${src_file})
+file(GLOB src_files_v1 ${CMAKE_CURRENT_SOURCE_DIR}/src/v1/*.cpp)
+foreach(src_file ${src_files_v1})
+    build_executable(${src_file} "v1")
+endforeach()
+
+file(GLOB src_files_v2 ${CMAKE_CURRENT_SOURCE_DIR}/src/v2/*.cpp)
+foreach(src_file ${src_files_v2})
+    build_executable(${src_file} "v2")
 endforeach()

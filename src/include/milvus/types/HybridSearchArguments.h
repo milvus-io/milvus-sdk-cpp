@@ -196,7 +196,7 @@ class HybridSearchArguments {
     /**
      * @brief Get the flag whether to strict group size.
      */
-    uint64_t
+    bool
     StrictGroupSize() const;
 
     /**
@@ -204,6 +204,18 @@ class HybridSearchArguments {
      */
     Status
     SetStrictGroupSize(bool strict_group_size);
+
+    /**
+     * @brief Add extra param
+     */
+    Status
+    AddExtraParam(const std::string& key, const std::string& value);
+
+    /**
+     * @brief Get extra param
+     */
+    const std::unordered_map<std::string, std::string>&
+    ExtraParams() const;
 
     /**
      * @brief Validate for search arguments
@@ -220,14 +232,7 @@ class HybridSearchArguments {
     FunctionPtr function_;
 
     int64_t limit_{10};
-    int64_t offset_{0};
-    int round_decimal_{-1};
-    bool ignore_growing_{false};
-
-    // for group by
-    std::string group_by_field_;
-    uint64_t group_size_{1};  // milvus returns one result per group by default
-    bool strict_group_size_{false};
+    std::unordered_map<std::string, std::string> extra_params_;
 
     // ConsistencyLevel::NONE means using collection's default level
     ConsistencyLevel consistency_level_{ConsistencyLevel::NONE};

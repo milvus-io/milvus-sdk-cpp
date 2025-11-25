@@ -21,6 +21,7 @@
 #include "../utils/CompareUtils.h"
 #include "../utils/Constants.h"
 #include "../utils/DqlUtils.h"
+#include "../utils/ExtraParamUtils.h"
 #include "../utils/GtsDict.h"
 #include "../utils/RpcUtils.h"
 #include "../utils/TypeUtils.h"
@@ -28,15 +29,17 @@
 namespace milvus {
 template class Iterator<SingleResult>;
 
-SearchIteratorImpl::SearchIteratorImpl(MilvusConnectionPtr& connection, const SearchIteratorArguments& args,
-                                       const RetryParam& retry_param) {
+template <typename T>
+SearchIteratorImpl<T>::SearchIteratorImpl(const MilvusConnectionPtr& connection, const T& args,
+                                          const RetryParam& retry_param) {
     connection_ = connection;
     args_ = args;
     retry_param_ = retry_param;
 }
 
+template <typename T>
 Status
-SearchIteratorImpl::Next(SingleResult& results) {
+SearchIteratorImpl<T>::Next(SingleResult& results) {
     results.Clear();
 
     if (reachedLimit()) {
@@ -46,7 +49,7 @@ SearchIteratorImpl::Next(SingleResult& results) {
     // how many rows should be outputed in this call?
     auto output_count = args_.BatchSize();
     if (original_limit_ > 0) {
-        auto left_count = static_cast<uint64_t>(original_limit_) - returned_count_;
+        auto left_count = original_limit_ - static_cast<int64_t>(returned_count_);
         output_count = std::min(output_count, left_count);
     }
 
@@ -60,7 +63,7 @@ SearchIteratorImpl::Next(SingleResult& results) {
     }
 
     // return batch from the cache if cache is big enough
-    auto status = SearchIteratorImpl::FetchPageFromCache(cache_, args_, output_count, results);
+    auto status = SearchIteratorImpl::FetchPageFromCache(cache_, args_.OutputFields(), output_count, results);
     if (!status.IsOk()) {
         return status;
     }
@@ -72,12 +75,14 @@ SearchIteratorImpl::Next(SingleResult& results) {
     return Status::OK();
 }
 
+template <typename T>
 Status
-SearchIteratorImpl::Init() {
+SearchIteratorImpl<T>::Init() {
     original_limit_ = args_.Limit();
     original_params_ = args_.ExtraParams();
 
-    auto status = SearchIteratorImpl::CheckInput(args_);
+    auto status = SearchIteratorImpl::CheckInput(args_.TargetVectors(), args_.ExtraParams(), args_.BatchSize(),
+                                                 args_.MetricType());
     if (!status.IsOk()) {
         return status;
     }
@@ -90,10 +95,12 @@ SearchIteratorImpl::Init() {
     return Status::OK();
 }
 
+template <typename T>
 Status
-SearchIteratorImpl::CheckInput(const SearchIteratorArguments& args) {
+SearchIteratorImpl<T>::CheckInput(const FieldDataPtr& vectors,
+                                  const std::unordered_map<std::string, std::string>& params, int64_t batch_size,
+                                  MetricType metric_type) {
     // check target vector
-    auto vectors = args.TargetVectors();
     if (vectors == nullptr || vectors->Count() == 0) {
         return {StatusCode::INVALID_AGUMENT, "vector_data for search cannot be empty"};
     }
@@ -101,22 +108,20 @@ SearchIteratorImpl::CheckInput(const SearchIteratorArguments& args) {
         return {StatusCode::INVALID_AGUMENT, "not support search iteration over multiple vectors at present"};
     }
 
-    // check offset
-    if (args.Offset() != 0) {
-        return {StatusCode::INVALID_AGUMENT, "not support offset when searching iteration"};
-    }
-
     // check special index params
-    const auto& params = args.ExtraParams();
-    uint64_t ef = 0;
-    auto status = ParseParameter<uint64_t>(params, "ef", ef);
-    if (status.IsOk() && ef < args.BatchSize()) {
+    int64_t ef = 0;
+    auto status = ParseParameter<int64_t>(params, "ef", ef);
+    if (status.IsOk() && ef < batch_size) {
         return {StatusCode::INVALID_AGUMENT,
                 "when using hnsw index, provided ef must be larger than or equal to batch size"};
     }
 
+    // check offset
+    if (GetExtraInt64(params, "offset", 0) != 0) {
+        return {StatusCode::INVALID_AGUMENT, "not support offset when searching iteration"};
+    }
+
     // check range search params
-    auto metric_type = args.MetricType();
     if (metric_type == MetricType::DEFAULT) {
         return {StatusCode::INVALID_AGUMENT, "must specify metrics type for search iterator"};
     }
@@ -139,8 +144,9 @@ SearchIteratorImpl::CheckInput(const SearchIteratorArguments& args) {
     return Status::OK();
 }
 
+template <typename T>
 uint64_t
-SearchIteratorImpl::CachedCount(const std::list<SingleResultPtr>& cache) {
+SearchIteratorImpl<T>::CachedCount(const std::list<SingleResultPtr>& cache) {
     uint64_t cached_count = 0;
     for (const auto& item : cache) {
         cached_count += item->GetRowCount();
@@ -151,10 +157,10 @@ SearchIteratorImpl::CachedCount(const std::list<SingleResultPtr>& cache) {
 // Try return a page with count from cache.
 // The cache might have multiple SingleResult in a list. This method copy data from
 // the header of the list until the count is meet.
+template <typename T>
 Status
-SearchIteratorImpl::FetchPageFromCache(std::list<SingleResultPtr>& cache, const SearchIteratorArguments& args,
-                                       int64_t count, SingleResult& results) {
-    auto pkField = args.PkSchema();
+SearchIteratorImpl<T>::FetchPageFromCache(std::list<SingleResultPtr>& cache, const std::set<std::string>& output_fields,
+                                          int64_t count, SingleResult& results) {
     int64_t row_count = 0;
 
     while (!cache.empty() && row_count < count) {
@@ -179,7 +185,7 @@ SearchIteratorImpl::FetchPageFromCache(std::list<SingleResultPtr>& cache, const 
             }
 
             SingleResult append_result{one_cache->PrimaryKeyName(), one_cache->ScoreName(), std::move(append_data),
-                                       args.OutputFields()};
+                                       output_fields};
             status = AppendSearchResult(append_result, results);
             if (!status.IsOk()) {
                 return status;
@@ -194,7 +200,7 @@ SearchIteratorImpl::FetchPageFromCache(std::list<SingleResultPtr>& cache, const 
                     return status;
                 }
                 SingleResultPtr left_batch = std::make_shared<SingleResult>(
-                    one_cache->PrimaryKeyName(), one_cache->ScoreName(), std::move(left_data), args.OutputFields());
+                    one_cache->PrimaryKeyName(), one_cache->ScoreName(), std::move(left_data), output_fields);
                 cache.emplace_front(std::move(left_batch));
             }
         }
@@ -206,13 +212,15 @@ SearchIteratorImpl::FetchPageFromCache(std::list<SingleResultPtr>& cache, const 
 // internal methods
 // L2/JACCARD/HAMMING, smallest value is most similar
 // IP/COSINE, largest value is most similar
+template <typename T>
 bool
-SearchIteratorImpl::MetricsPositiveRelated(MetricType metric_type) {
+SearchIteratorImpl<T>::MetricsPositiveRelated(MetricType metric_type) {
     return (metric_type == MetricType::L2 || metric_type == MetricType::JACCARD || metric_type == MetricType::HAMMING);
 }
 
+template <typename T>
 Status
-SearchIteratorImpl::initSearchIterator() {
+SearchIteratorImpl<T>::initSearchIterator() {
     SingleResultPtr single_result;
     auto status = executeSearch(args_.Filter(), false, single_result);
     if (!status.IsOk()) {
@@ -239,8 +247,9 @@ SearchIteratorImpl::initSearchIterator() {
 // The next search will use the last row's distance/score as the range of search.
 // So the next search could return some duplicated ids with the last search.
 // This method returns a filter expression to filter out the duplicated ids for the next search.
+template <typename T>
 Status
-SearchIteratorImpl::updateFilteredIds(const SingleResultPtr& results) {
+SearchIteratorImpl<T>::updateFilteredIds(const SingleResultPtr& results) {
     if (results == nullptr || results->GetRowCount() == 0) {
         return Status::OK();
     }
@@ -290,8 +299,9 @@ SearchIteratorImpl::updateFilteredIds(const SingleResultPtr& results) {
 }
 
 // this method calculates the upper search range for the next search
+template <typename T>
 void
-SearchIteratorImpl::updateTailDistance(const SingleResultPtr& results) {
+SearchIteratorImpl<T>::updateTailDistance(const SingleResultPtr& results) {
     if (results == nullptr || results->GetRowCount() == 0) {
         return;
     }
@@ -299,8 +309,9 @@ SearchIteratorImpl::updateTailDistance(const SingleResultPtr& results) {
     tail_distance_ = *(results->Scores().rbegin());
 }
 
+template <typename T>
 void
-SearchIteratorImpl::updateWidth(const SingleResult& results) {
+SearchIteratorImpl<T>::updateWidth(const SingleResult& results) {
     if (results.GetRowCount() == 0) {
         return;
     }
@@ -319,8 +330,9 @@ SearchIteratorImpl::updateWidth(const SingleResult& results) {
 }
 
 // This method returns a proper limit value for the next search
+template <typename T>
 int64_t
-SearchIteratorImpl::extendLimit(bool extend_batch_size) {
+SearchIteratorImpl<T>::extendLimit(bool extend_batch_size) {
     float extend_rate = 1.0;
     if (extend_batch_size) {
         extend_rate = 10.0;
@@ -340,8 +352,9 @@ SearchIteratorImpl::extendLimit(bool extend_batch_size) {
     return next_batch_size;
 }
 
+template <typename T>
 Status
-SearchIteratorImpl::executeSearch(const std::string& filter, bool extend_batch_size, SingleResultPtr& results) {
+SearchIteratorImpl<T>::executeSearch(const std::string& filter, bool extend_batch_size, SingleResultPtr& results) {
     uint64_t timeout = connection_->GetConnectParam().RpcDeadlineMs();
     std::string current_db =
         args_.DatabaseName().empty() ? connection_->GetConnectParam().DbName() : args_.DatabaseName();
@@ -359,7 +372,7 @@ SearchIteratorImpl::executeSearch(const std::string& filter, bool extend_batch_s
     // reset the limit value since the iterator fetches data batch by batch
     args_.SetLimit(extendLimit(extend_batch_size));
 
-    auto status = ConvertSearchRequest(args_, current_db, rpc_request);
+    auto status = ConvertSearchRequest<T>(args_, current_db, rpc_request);
     if (!status.IsOk()) {
         return status;
     }
@@ -403,8 +416,9 @@ SearchIteratorImpl::executeSearch(const std::string& filter, bool extend_batch_s
     return Status::OK();
 }
 
+template <typename T>
 bool
-SearchIteratorImpl::reachedLimit() const {
+SearchIteratorImpl<T>::reachedLimit() const {
     if (original_limit_ > 0 && returned_count_ >= static_cast<uint64_t>(original_limit_)) {
         return true;
     }
@@ -413,8 +427,9 @@ SearchIteratorImpl::reachedLimit() const {
 
 // This method setups the search range for the next search.
 // If user already inputs radius/range, it ensure that the next range is not out of user range.
+template <typename T>
 void
-SearchIteratorImpl::nextParams(double range_coefficient) {
+SearchIteratorImpl<T>::nextParams(double range_coefficient) {
     auto metric_type = args_.MetricType();
     double coefficient = std::max(range_coefficient, 1.0);
     double radius = 0.0;
@@ -437,8 +452,9 @@ SearchIteratorImpl::nextParams(double range_coefficient) {
     args_.SetRangeFilter(tail_distance_);
 }
 
+template <typename T>
 std::string
-SearchIteratorImpl::filteredDuplicatedResultFilter() {
+SearchIteratorImpl<T>::filteredDuplicatedResultFilter() {
     if (filtered_ids_.empty()) {
         return args_.Filter();
     }
@@ -474,8 +490,9 @@ SearchIteratorImpl::filteredDuplicatedResultFilter() {
 // This method will call search multiple times to fill the cache to ensure the cached rows is larger/equal
 // than the required count. Each time search is called, the radius/range is enlarged and some ids with the same
 // distance will be filtered out.
+template <typename T>
 Status
-SearchIteratorImpl::trySearchFill(int64_t count) {
+SearchIteratorImpl<T>::trySearchFill(int64_t count) {
     int try_time = 0;
     double coefficient = 1.0;
     while (true) {
@@ -525,5 +542,9 @@ SearchIteratorImpl::trySearchFill(int64_t count) {
 
     return Status::OK();
 }
+
+// explicitly instantiation of template methods to avoid link error
+template class SearchIteratorImpl<SearchIteratorArguments>;
+template class SearchIteratorImpl<SearchIteratorRequest>;
 
 }  // namespace milvus

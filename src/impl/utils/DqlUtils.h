@@ -18,8 +18,14 @@
 
 #include "common.pb.h"
 #include "milvus.pb.h"
+#include "milvus/request/dql/HybridSearchRequest.h"
+#include "milvus/request/dql/QueryIteratorRequest.h"
+#include "milvus/request/dql/QueryRequest.h"
+#include "milvus/request/dql/SearchIteratorRequest.h"
+#include "milvus/request/dql/SearchRequest.h"
 #include "milvus/types/FieldData.h"
 #include "milvus/types/HybridSearchArguments.h"
+#include "milvus/types/IteratorArguments.h"
 #include "milvus/types/QueryArguments.h"
 #include "milvus/types/QueryResults.h"
 #include "milvus/types/SearchArguments.h"
@@ -45,7 +51,7 @@ SetTargetVectors(const FieldDataPtr& vectors, milvus::proto::milvus::SearchReque
 
 void
 SetExtraParams(const std::unordered_map<std::string, std::string>& params,
-               milvus::proto::milvus::SearchRequest* rpc_request);
+               ::google::protobuf::RepeatedPtrField<::milvus::proto::common::KeyValuePair>* kv_pairs);
 
 Status
 GetRowsFromFieldsData(const std::vector<FieldDataPtr>& fields, const std::set<std::string>& output_names,
@@ -59,23 +65,28 @@ uint64_t
 DeduceGuaranteeTimestamp(const ConsistencyLevel& level, const std::string& db_name, const std::string& collection_name);
 
 Status
-ConvertQueryRequest(const QueryArguments& arguments, const std::string& current_db,
-                    proto::milvus::QueryRequest& rpc_request);
+ConvertFilterTemplates(const std::unordered_map<std::string, nlohmann::json>& templates,
+                       ::google::protobuf::Map<std::string, proto::schema::TemplateValue>* rpc_templates);
+
+template <typename T>
+Status
+ConvertQueryRequest(const T& request, const std::string& current_db, proto::milvus::QueryRequest& rpc_request);
 
 Status
 ConvertQueryResults(const proto::milvus::QueryResults& rpc_results, QueryResults& results);
 
+template <typename T>
 Status
-ConvertSearchRequest(const SearchArguments& arguments, const std::string& current_db,
-                     proto::milvus::SearchRequest& rpc_request);
-
-Status
-ConvertHybridSearchRequest(const HybridSearchArguments& arguments, const std::string& current_db,
-                           proto::milvus::HybridSearchRequest& rpc_request);
+ConvertSearchRequest(const T& request, const std::string& current_db, proto::milvus::SearchRequest& rpc_request);
 
 Status
 ConvertSearchResults(const proto::milvus::SearchResults& rpc_results, const std::string& pk_name,
                      SearchResults& results);
+
+template <typename T>
+Status
+ConvertHybridSearchRequest(const T& request, const std::string& current_db,
+                           proto::milvus::HybridSearchRequest& rpc_request);
 
 Status
 CopyFieldData(const FieldDataPtr& src, uint64_t from, uint64_t to, FieldDataPtr& target);
@@ -89,25 +100,48 @@ AppendFieldData(const FieldDataPtr& from, FieldDataPtr& to);
 Status
 AppendSearchResult(const SingleResult& from, SingleResult& to);
 
-template <typename T>
 Status
-ParseParameter(const std::unordered_map<std::string, std::string>& params, const std::string& name, T& value) {
-    auto iter = params.find(name);
-    if (iter == params.end()) {
-        return {StatusCode::INVALID_AGUMENT, "no such parameter"};
-    }
-    try {
-        if (std::is_integral<T>::value) {
-            value = static_cast<T>(std::stol(iter->second));
-        } else if (std::is_floating_point<T>::value) {
-            value = static_cast<T>(std::stof(iter->second));
-        } else {
-            return {StatusCode::INVALID_AGUMENT, "can only parse integer and float type value"};
-        }
-    } catch (...) {
-        return {StatusCode::INVALID_AGUMENT, "parameter '" + name + "' value '" + iter->second + "' cannot be parsed"};
-    }
-    return Status::OK();
-}
+IsAmbiguousParam(const std::string& key);
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// explicitly instantiation of template methods to avoid link error
+// query
+extern template Status
+ConvertQueryRequest<QueryIteratorArguments>(const QueryIteratorArguments&, const std::string&,
+                                            proto::milvus::QueryRequest&);
+
+extern template Status
+ConvertQueryRequest<QueryArguments>(const QueryArguments&, const std::string&, proto::milvus::QueryRequest&);
+
+extern template Status
+ConvertQueryRequest<QueryIteratorRequest>(const QueryIteratorRequest&, const std::string&,
+                                          proto::milvus::QueryRequest&);
+
+extern template Status
+ConvertQueryRequest<QueryRequest>(const QueryRequest&, const std::string&, proto::milvus::QueryRequest&);
+
+// search
+extern template Status
+ConvertSearchRequest<SearchIteratorArguments>(const SearchIteratorArguments&, const std::string&,
+                                              proto::milvus::SearchRequest&);
+
+extern template Status
+ConvertSearchRequest<SearchArguments>(const SearchArguments&, const std::string&, proto::milvus::SearchRequest&);
+
+extern template Status
+ConvertSearchRequest<SearchIteratorRequest>(const SearchIteratorRequest&, const std::string&,
+                                            proto::milvus::SearchRequest&);
+
+extern template Status
+ConvertSearchRequest<SearchRequest>(const SearchRequest&, const std::string&, proto::milvus::SearchRequest&);
+
+// hybrid search
+extern template Status
+ConvertHybridSearchRequest<HybridSearchArguments>(const HybridSearchArguments&, const std::string&,
+                                                  proto::milvus::HybridSearchRequest&);
+
+extern template Status
+ConvertHybridSearchRequest<HybridSearchRequest>(const HybridSearchRequest&, const std::string&,
+                                                proto::milvus::HybridSearchRequest&);
 
 }  // namespace milvus

@@ -20,10 +20,8 @@
 #include <memory>
 #include <mutex>
 
-#include "MilvusConnection.h"
-#include "common.pb.h"
 #include "milvus/MilvusClient.h"
-#include "utils/RpcUtils.h"
+#include "utils/ConnectionHandler.h"
 
 /**
  *  @brief namespace milvus
@@ -36,7 +34,7 @@ class MilvusClientImpl : public MilvusClient {
     ~MilvusClientImpl() override;
 
     Status
-    Connect(const ConnectParam& connect_param) final;
+    Connect(const ConnectParam& param) final;
 
     Status
     Disconnect() final;
@@ -356,126 +354,6 @@ class MilvusClientImpl : public MilvusClient {
     RemovePrivilegesFromGroup(const std::string& group_name, const std::vector<std::string>& privileges) final;
 
  private:
-    // This interface is not exposed to users
-    Status
-    getLoadingProgress(const std::string& collection_name, const std::vector<std::string> partition_names,
-                       uint32_t& progress);
-
- private:
-    /**
-     * Internal wait for status query done.
-     *
-     * @param [in] query_function one time query for return Status, return TIMEOUT status if not done
-     * @param [in] progress_monitor timeout setting for waiting progress
-     * @return Status, the final status
-     */
-    static Status
-    WaitForStatus(const std::function<Status(Progress&)>& query_function, const ProgressMonitor& progress_monitor);
-
-    /**
-     * @brief template for public api call
-     *        validate -> pre -> rpc -> wait_for_status -> post
-     */
-    template <typename Request, typename Response>
-    Status
-    apiHandler(const std::function<Status(void)>& validate, std::function<Status(Request&)> pre,
-               Status (MilvusConnection::*rpc)(const Request&, Response&, const GrpcOpts&),
-               std::function<Status(const Response&)> wait_for_status, std::function<Status(const Response&)> post) {
-        if (connection_ == nullptr) {
-            return {StatusCode::NOT_CONNECTED, "Connection is not created!"};
-        }
-
-        // validate input
-        if (validate) {
-            auto status = validate();
-            if (!status.IsOk()) {
-                return status;
-            }
-        }
-
-        // construct rpc request
-        Request rpc_request;
-        if (pre) {
-            auto status = pre(rpc_request);
-            if (!status.IsOk()) {
-                return status;
-            }
-        }
-
-        // call rpc interface
-        Response rpc_response;
-        // the timeout value can be changed by MilvusClient::SetRpcDeadlineMs()
-        uint64_t timeout = connection_->GetConnectParam().RpcDeadlineMs();
-        auto func = std::bind(rpc, connection_.get(), rpc_request, std::placeholders::_1, GrpcOpts{timeout});
-        auto caller = [&func, &rpc_response]() { return func(rpc_response); };
-        auto status = Retry(caller, retry_param_);
-        if (!status.IsOk()) {
-            // response's status already checked in connection class
-            return status;
-        }
-
-        // wait loop
-        if (wait_for_status) {
-            status = wait_for_status(rpc_response);
-            if (!status.IsOk()) {
-                return status;
-            }
-        }
-
-        // process results
-        if (post) {
-            status = post(rpc_response);
-            if (!status.IsOk()) {
-                return status;
-            }
-        }
-        return Status::OK();
-    }
-
-    /**
-     * @brief template for public api call
-     */
-    template <typename Request, typename Response>
-    Status
-    apiHandler(std::function<Status(void)> validate, std::function<Status(Request&)> pre,
-               Status (MilvusConnection::*rpc)(const Request&, Response&, const GrpcOpts&),
-               std::function<Status(const Response&)> post) {
-        return apiHandler(validate, pre, rpc, std::function<Status(const Response&)>{}, post);
-    }
-
-    /**
-     * @brief template for public api call
-     */
-    template <typename Request, typename Response>
-    Status
-    apiHandler(std::function<Status(void)> validate, std::function<Status(Request&)> pre,
-               Status (MilvusConnection::*rpc)(const Request&, Response&, const GrpcOpts&)) {
-        return apiHandler(validate, pre, rpc, std::function<Status(const Response&)>{},
-                          std::function<Status(const Response&)>{});
-    }
-
-    /**
-     * @brief template for public api call
-     */
-    template <typename Request, typename Response>
-    Status
-    apiHandler(std::function<Status(Request&)> pre,
-               Status (MilvusConnection::*rpc)(const Request&, Response&, const GrpcOpts&),
-               std::function<Status(const Response&)> post) {
-        return apiHandler(std::function<Status(void)>{}, pre, rpc, std::function<Status(const Response&)>{}, post);
-    }
-
-    /**
-     * @brief template for public api call
-     */
-    template <typename Request, typename Response>
-    Status
-    apiHandler(std::function<Status(Request&)> pre,
-               Status (MilvusConnection::*rpc)(const Request&, Response&, const GrpcOpts&)) {
-        return apiHandler(std::function<Status(void)>{}, pre, rpc, std::function<Status(const Response&)>{},
-                          std::function<Status(const Response&)>{});
-    }
-
     /**
      * @brief return desc if it is existing, else call describeCollection() and cache it
      */
@@ -494,16 +372,12 @@ class MilvusClientImpl : public MilvusClient {
     void
     removeCollectionDesc(const std::string& collection_name);
 
-    std::string
-    currentDbName(const std::string& overwrite_db_name) const;
-
     template <typename ArgClass>
     Status
     iteratorPrepare(ArgClass& arguments);
 
  private:
-    MilvusConnectionPtr connection_;
-    RetryParam retry_param_;
+    ConnectionHandler connection_;
 
     // cache of collection schemas
     // this cache is db level, once useDatabase() is called, this cache will be cleaned
