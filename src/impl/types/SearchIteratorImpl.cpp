@@ -28,7 +28,7 @@
 namespace milvus {
 template class Iterator<SingleResult>;
 
-SearchIteratorImpl::SearchIteratorImpl(MilvusConnectionPtr& connection, const SearchIteratorArguments& args,
+SearchIteratorImpl::SearchIteratorImpl(const MilvusConnectionPtr& connection, const SearchIteratorArguments& args,
                                        const RetryParam& retry_param) {
     connection_ = connection;
     args_ = args;

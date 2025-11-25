@@ -70,6 +70,12 @@ class SearchRequestBase {
     FilterTemplates() const;
 
     /**
+     * @brief Set filter templates
+     */
+    Status
+    SetFilterTemplates(std::unordered_map<std::string, nlohmann::json>&& filter_templates);
+
+    /**
      * @brief Get target vectors
      */
     FieldDataPtr

@@ -30,7 +30,7 @@ namespace milvus {
 
 class SearchIteratorV2Impl : public SearchIterator {
  public:
-    SearchIteratorV2Impl(MilvusConnectionPtr& connection, const SearchIteratorArguments& args,
+    SearchIteratorV2Impl(const MilvusConnectionPtr& connection, const SearchIteratorArguments& args,
                          const RetryParam& retry_param);
 
     Status

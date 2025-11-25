@@ -24,7 +24,7 @@
 namespace {
 void
 printAnalyzerResults(const milvus::AnalyzerResults& results) {
-    for (const auto& result : results.Results()) {
+    for (const auto& result : results) {
         std::cout << "\t------------------------------" << std::endl;
         for (const auto& token : result.Tokens()) {
             std::cout << "\t{token: " << token.token_ << ", start: " << token.start_offset_

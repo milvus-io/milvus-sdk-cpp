@@ -58,6 +58,12 @@ SearchRequestBase::FilterTemplates() const {
     return filter_templates_;
 }
 
+Status
+SearchRequestBase::SetFilterTemplates(std::unordered_map<std::string, nlohmann::json>&& filter_templates) {
+    filter_templates_ = std::move(filter_templates);
+    return Status::OK();
+}
+
 FieldDataPtr
 SearchRequestBase::TargetVectors() const {
     return target_vectors_;

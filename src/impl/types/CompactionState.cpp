@@ -32,32 +32,42 @@ CompactionState::SetState(CompactionStateCode state) {
 
 int64_t
 CompactionState::ExecutingPlan() const {
-    return executing_plan_;
+    return executing_num_;
 }
 
 void
-CompactionState::SetExecutingPlan(int64_t id) {
-    executing_plan_ = id;
+CompactionState::SetExecutingPlan(int64_t num) {
+    executing_num_ = num;
 }
 
 int64_t
 CompactionState::TimeoutPlan() const {
-    return timeout_plan_;
+    return timeout_num_;
 }
 
 void
-CompactionState::SetTimeoutPlan(int64_t id) {
-    timeout_plan_ = id;
+CompactionState::SetTimeoutPlan(int64_t num) {
+    timeout_num_ = num;
 }
 
 int64_t
 CompactionState::CompletedPlan() const {
-    return completed_plan_;
+    return completed_num_;
 }
 
 void
-CompactionState::SetCompletedPlan(int64_t id) {
-    completed_plan_ = id;
+CompactionState::SetCompletedPlan(int64_t num) {
+    completed_num_ = num;
+}
+
+int64_t
+CompactionState::FailedPlan() const {
+    return failed_num_;
+}
+
+void
+CompactionState::SetFailedPlan(int64_t num) {
+    failed_num_ = num;
 }
 
 }  // namespace milvus
