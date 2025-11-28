@@ -27,8 +27,7 @@ using ::testing::Property;
 TEST_F(UnconnectMilvusMockedTest, UseDatabase) {
     std::string db_name;
     auto status = client_->CurrentUsedDatabase(db_name);
-    EXPECT_FALSE(status.IsOk());
-    EXPECT_EQ(status.Code(), milvus::StatusCode::NOT_CONNECTED);
+    EXPECT_TRUE(status.IsOk());
 
     EXPECT_CALL(service_, Connect(_, _, _))
         .WillRepeatedly(

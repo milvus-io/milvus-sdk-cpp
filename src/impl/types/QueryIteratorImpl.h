@@ -25,7 +25,7 @@
 namespace milvus {
 class QueryIteratorImpl : public QueryIterator {
  public:
-    QueryIteratorImpl(MilvusConnectionPtr& connection, const QueryIteratorArguments& args,
+    QueryIteratorImpl(const MilvusConnectionPtr& connection, const QueryIteratorArguments& args,
                       const RetryParam& retry_param);
 
     Status

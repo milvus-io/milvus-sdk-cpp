@@ -31,7 +31,7 @@ class IDArray {
     /**
      * @brief Constructor
      */
-    IDArray() = delete;
+    IDArray() = default;
 
     /**
      * @brief Constructor

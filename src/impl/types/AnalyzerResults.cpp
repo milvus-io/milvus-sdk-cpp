@@ -34,18 +34,4 @@ AnalyzerResult::AddToken(AnalyzerToken&& token) {
     return Status::OK();
 }
 
-AnalyzerResults::AnalyzerResults(std::vector<AnalyzerResult>&& results) : results_(std::move(results)) {
-}
-
-const std::vector<AnalyzerResult>&
-AnalyzerResults::Results() const {
-    return results_;
-}
-
-Status
-AnalyzerResults::AddResult(AnalyzerResult&& result) {
-    results_.emplace_back(result);
-    return Status::OK();
-}
-
 }  // namespace milvus

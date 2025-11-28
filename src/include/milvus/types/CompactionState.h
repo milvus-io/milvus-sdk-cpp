@@ -55,41 +55,54 @@ class CompactionState {
     ExecutingPlan() const;
 
     /**
-     * @brief Set the executing plan id.
+     * @brief Set the number of executing plans.
      */
     void
-    SetExecutingPlan(int64_t id);
+    SetExecutingPlan(int64_t num);
 
     /**
-     * @brief The timeout plan id.
+     * @brief The number of timeout plans.
      */
     int64_t
     TimeoutPlan() const;
 
     /**
-     * @brief Set the timeout plan id.
+     * @brief Set the number of timeout plans.
      */
     void
-    SetTimeoutPlan(int64_t id);
+    SetTimeoutPlan(int64_t num);
 
     /**
-     * @brief The completed plan id.
+     * @brief The number of completed plans.
      */
     int64_t
     CompletedPlan() const;
 
     /**
-     * @brief Set the completed plan id.
+     * @brief Set number of completed plans.
      */
     void
-    SetCompletedPlan(int64_t id);
+    SetCompletedPlan(int64_t num);
+
+    /**
+     * @brief The number of failed plans.
+     */
+    int64_t
+    FailedPlan() const;
+
+    /**
+     * @brief Set the number of failed plans.
+     */
+    void
+    SetFailedPlan(int64_t num);
 
  private:
     CompactionStateCode state_code_{CompactionStateCode::UNKNOWN};
 
-    int64_t executing_plan_ = 0;
-    int64_t timeout_plan_ = 0;
-    int64_t completed_plan_ = 0;
+    int64_t executing_num_ = 0;
+    int64_t timeout_num_ = 0;
+    int64_t completed_num_ = 0;
+    int64_t failed_num_ = 0;
 };
 
 }  // namespace milvus

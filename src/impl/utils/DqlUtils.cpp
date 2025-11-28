@@ -1081,6 +1081,13 @@ ConvertHybridSearchRequest(const HybridSearchArguments& arguments, const std::st
         search_req->set_dsl_type(proto::common::DslType::BoolExprV1);
         if (!sub_request->Filter().empty()) {
             search_req->set_dsl(sub_request->Filter());
+
+            auto rpc_templates = search_req->mutable_expr_template_values();
+            const auto& templates = sub_request->FilterTemplates();
+            auto status = ConvertFilterTemplates(templates, rpc_templates);
+            if (!status.IsOk()) {
+                return status;
+            }
         }
 
         // set anns field name, if the name is empty and the collection has only one vector field,

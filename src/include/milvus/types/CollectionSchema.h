@@ -17,6 +17,7 @@
 #pragma once
 
 #include <cstdint>
+#include <memory>
 #include <string>
 #include <unordered_set>
 #include <vector>
@@ -129,5 +130,7 @@ class CollectionSchema {
 
     std::vector<FunctionPtr> functions_;
 };
+
+using CollectionSchemaPtr = std::shared_ptr<CollectionSchema>;
 
 }  // namespace milvus

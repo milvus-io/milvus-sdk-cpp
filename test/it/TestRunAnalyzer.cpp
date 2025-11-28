@@ -92,8 +92,8 @@ TEST_F(MilvusMockedTest, RunAnalyzer) {
     auto status = client_->RunAnalyzer(args, results);
     EXPECT_TRUE(status.IsOk());
 
-    EXPECT_EQ(results.Results().size(), 1);
-    milvus::AnalyzerResult result = results.Results().at(0);
+    EXPECT_EQ(results.size(), 1);
+    milvus::AnalyzerResult result = results.at(0);
     EXPECT_EQ(result.Tokens().size(), 2);
 
     milvus::AnalyzerToken token1 = result.Tokens().at(0);

@@ -204,6 +204,22 @@ IndexTypeCast(const std::string& type) {
     return IndexType::INVALID;
 }
 
+LoadState
+LoadStateCast(proto::common::LoadState state) {
+    switch (state) {
+        case proto::common::LoadState::LoadStateNotExist:
+            return LoadState::LOAD_STATE_NOT_EXIST;
+        case proto::common::LoadState::LoadStateNotLoad:
+            return LoadState::LOAD_STATE_NOT_LOAD;
+        case proto::common::LoadState::LoadStateLoading:
+            return LoadState::LOAD_STATE_LOADING;
+        case proto::common::LoadState::LoadStateLoaded:
+            return LoadState::LOAD_STATE_LOADED;
+        default:
+            return LoadState::LOAD_STATE_NOT_EXIST;
+    }
+}
+
 ////////////////////////////////////////////////////////////////////////////////////////
 // methods for schema types converting
 void

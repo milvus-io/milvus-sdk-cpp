@@ -27,6 +27,7 @@
 #include "milvus/types/IDArray.h"
 #include "milvus/types/IndexState.h"
 #include "milvus/types/IndexType.h"
+#include "milvus/types/LoadState.h"
 #include "milvus/types/MetricType.h"
 #include "milvus/types/ResourceGroupConfig.h"
 #include "milvus/types/SearchResults.h"
@@ -54,6 +55,9 @@ MetricTypeCast(const std::string& type);
 
 IndexType
 IndexTypeCast(const std::string& type);
+
+LoadState
+LoadStateCast(proto::common::LoadState state);
 
 void
 ConvertValueFieldSchema(const proto::schema::ValueField& value_field, DataType type, nlohmann::json& val);

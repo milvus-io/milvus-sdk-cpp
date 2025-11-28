@@ -26,7 +26,7 @@
 namespace milvus {
 template class Iterator<QueryResults>;
 
-QueryIteratorImpl::QueryIteratorImpl(MilvusConnectionPtr& connection, const QueryIteratorArguments& args,
+QueryIteratorImpl::QueryIteratorImpl(const MilvusConnectionPtr& connection, const QueryIteratorArguments& args,
                                      const RetryParam& retry_param) {
     connection_ = connection;
     args_ = args;

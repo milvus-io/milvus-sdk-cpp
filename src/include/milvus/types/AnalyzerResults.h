@@ -54,23 +54,6 @@ class AnalyzerResult {
     std::vector<AnalyzerToken> tokens_;
 };
 
-/**
- * @brief Response for MilvusClient::RunAnalyzer().
- */
-class AnalyzerResults {
- public:
-    AnalyzerResults() = default;
-    explicit AnalyzerResults(std::vector<AnalyzerResult>&& results);
-    virtual ~AnalyzerResults() = default;
-
-    const std::vector<AnalyzerResult>&
-    Results() const;
-
-    Status
-    AddResult(AnalyzerResult&& result);
-
- private:
-    std::vector<AnalyzerResult> results_;
-};
+using AnalyzerResults = std::vector<AnalyzerResult>;
 
 }  // namespace milvus
