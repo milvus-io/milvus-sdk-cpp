@@ -22,6 +22,7 @@ UNIT_TEST="OFF"
 SYS_TEST="OFF"
 BUILD_TEST="OFF"
 MAKE_CLEAN="OFF"
+RUN_FORMAT="ON"
 RUN_CPPLINT="OFF"
 BUILD_COVERAGE="OFF"
 MILVUS_SDK_VERSION=${MILVUS_SDK_VERSION:-v2.5.2}
@@ -153,6 +154,10 @@ ${CMAKE_CMD}
 
 if [[ ${MAKE_CLEAN} == "ON" ]]; then
   make clean
+fi
+
+if [[ ${RUN_FORMAT} == "ON" ]]; then
+  find ../src/include/milvus ../src/impl ../test ../examples -iname '*.h' -o -iname '*.cpp' -o -iname '*.hpp' | xargs make clang-format -i
 fi
 
 if [[ ${RUN_CPPLINT} == "ON" ]]; then

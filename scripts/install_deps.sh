@@ -27,7 +27,7 @@ install_deps_for_ubuntu_common() {
     fi
 
     ${SUDO} apt-get -y install python2.7 gpg wget gcc g++ ccache make \
-                       libssl-dev iwyu lcov git python3-pip
+                       libssl-dev iwyu lcov git python3-pip clang-format clang-tidy
     install_linux_cmake_clang_toolchain
 }
 
