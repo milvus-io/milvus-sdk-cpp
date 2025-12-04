@@ -34,11 +34,6 @@ class QueryResults {
     /**
      * @brief Constructor
      */
-    QueryResults(const QueryResults& src);
-
-    /**
-     * @brief Constructor
-     */
     explicit QueryResults(const std::vector<FieldDataPtr>& output_fields, const std::set<std::string>& output_names);
 
     /**

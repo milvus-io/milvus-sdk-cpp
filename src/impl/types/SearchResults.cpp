@@ -153,9 +153,6 @@ SingleResult::Clear() {
 /////////////////////////////////////////////////////////////////////////////////////////
 SearchResults::SearchResults() = default;
 
-SearchResults::SearchResults(const SearchResults& src) : nq_results_(src.nq_results_) {
-}
-
 SearchResults::SearchResults(std::vector<SingleResult>&& results) : nq_results_(std::move(results)) {
 }
 

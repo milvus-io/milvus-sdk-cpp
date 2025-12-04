@@ -20,6 +20,8 @@
 #include <utility>
 
 #include "../utils/Constants.h"
+#include "../utils/DqlUtils.h"
+#include "../utils/ExtraParamUtils.h"
 
 namespace milvus {
 
@@ -90,23 +92,23 @@ HybridSearchArguments::SetLimit(int64_t limit) {
 
 int64_t
 HybridSearchArguments::Offset() const {
-    return offset_;
+    return GetExtraInt64(extra_params_, "offset", 0);
 }
 
 Status
 HybridSearchArguments::SetOffset(int64_t offset) {
-    offset_ = offset;
+    SetExtraInt64(extra_params_, "offset", offset);
     return Status::OK();
 }
 
 int
 HybridSearchArguments::RoundDecimal() const {
-    return round_decimal_;
+    return static_cast<int>(GetExtraInt64(extra_params_, "round_decimal", -1));
 }
 
 Status
 HybridSearchArguments::SetRoundDecimal(int round_decimal) {
-    round_decimal_ = round_decimal;
+    SetExtraInt64(extra_params_, "round_decimal", static_cast<int>(round_decimal));
     return Status::OK();
 }
 
@@ -123,12 +125,12 @@ HybridSearchArguments::SetConsistencyLevel(const ConsistencyLevel& level) {
 
 bool
 HybridSearchArguments::IgnoreGrowing() const {
-    return ignore_growing_;
+    return GetExtraBool(extra_params_, "ignore_growing", false);
 }
 
 Status
 HybridSearchArguments::SetIgnoreGrowing(bool ignore_growing) {
-    ignore_growing_ = ignore_growing;
+    SetExtraBool(extra_params_, "ignore_growing", ignore_growing);
     return Status::OK();
 }
 
@@ -156,35 +158,49 @@ HybridSearchArguments::SetRerank(const FunctionPtr& rerank) {
 
 std::string
 HybridSearchArguments::GroupByField() const {
-    return group_by_field_;
+    return GetExtraStr(extra_params_, "group_by_field", "");
 }
 
 Status
 HybridSearchArguments::SetGroupByField(const std::string& field_name) {
-    group_by_field_ = field_name;
+    SetExtraStr(extra_params_, "group_by_field", field_name);
     return Status::OK();
 }
 
 uint64_t
 HybridSearchArguments::GroupSize() const {
-    return group_size_;
+    return static_cast<uint64_t>(GetExtraInt64(extra_params_, "group_size", 1));
 }
 
 Status
 HybridSearchArguments::SetGroupSize(uint64_t group_size) {
-    group_size_ = group_size;
+    SetExtraInt64(extra_params_, "group_size", static_cast<int64_t>(group_size));
     return Status::OK();
 }
 
-uint64_t
+bool
 HybridSearchArguments::StrictGroupSize() const {
-    return strict_group_size_;
+    return GetExtraBool(extra_params_, "strict_group_size", false);
 }
 
 Status
 HybridSearchArguments::SetStrictGroupSize(bool strict_group_size) {
-    strict_group_size_ = strict_group_size;
+    SetExtraBool(extra_params_, "strict_group_size", strict_group_size);
     return Status::OK();
+}
+
+Status
+HybridSearchArguments::AddExtraParam(const std::string& key, const std::string& value) {
+    auto status = IsAmbiguousParam(key);
+    if (status.IsOk()) {
+        extra_params_[key] = value;
+    }
+    return status;
+}
+
+const std::unordered_map<std::string, std::string>&
+HybridSearchArguments::ExtraParams() const {
+    return extra_params_;
 }
 
 Status
