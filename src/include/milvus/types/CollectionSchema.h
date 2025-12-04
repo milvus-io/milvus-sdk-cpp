@@ -17,6 +17,7 @@
 #pragma once
 
 #include <cstdint>
+#include <memory>
 #include <string>
 #include <unordered_set>
 #include <vector>
@@ -109,6 +110,12 @@ class CollectionSchema {
     AnnsFieldNames() const;
 
     /**
+     * @brief Return the primary key field name.
+     */
+    std::string
+    PrimaryFieldName() const;
+
+    /**
      * @brief Get functions array.
      */
     const std::vector<FunctionPtr>&
@@ -129,5 +136,7 @@ class CollectionSchema {
 
     std::vector<FunctionPtr> functions_;
 };
+
+using CollectionSchemaPtr = std::shared_ptr<CollectionSchema>;
 
 }  // namespace milvus

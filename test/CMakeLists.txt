@@ -34,20 +34,34 @@ set(GTEST_LIBRARIES gtest)
 set(GMOCK_LIBRARIES gmock)
 set(GTEST_MAIN_LIBRARIES gtest_main)
 
-aux_source_directory(${CMAKE_CURRENT_SOURCE_DIR}/ut ut_files)
+set(UT_DIR "${CMAKE_CURRENT_SOURCE_DIR}/ut")
+file(GLOB_RECURSE ut_files
+    "${UT_DIR}/*.cpp"
+    "${UT_DIR}/*.cxx"
+    "${UT_DIR}/*.cc"
+)
 add_executable(testing-ut ${ut_files})
 target_compile_options(testing-ut PRIVATE $<$<CXX_COMPILER_ID:MSVC>:/bigobj>)
 target_link_libraries(testing-ut PRIVATE milvus_sdk ${GTEST_LIBRARIES} ${GMOCK_LIBRARIES} ${GTEST_MAIN_LIBRARIES})
 
-aux_source_directory(${CMAKE_CURRENT_SOURCE_DIR}/it it_files)
-aux_source_directory(${CMAKE_CURRENT_SOURCE_DIR}/it/mocks it_mocks_files)
-add_executable(testing-it ${it_files} ${it_mocks_files})
+set(IT_DIR "${CMAKE_CURRENT_SOURCE_DIR}/it")
+file(GLOB_RECURSE it_files
+    "${IT_DIR}/*.cpp"
+    "${IT_DIR}/*.cxx"
+    "${IT_DIR}/*.cc"
+)
+add_executable(testing-it ${it_files})
 target_compile_options(testing-it PRIVATE $<$<CXX_COMPILER_ID:MSVC>:/bigobj>)
 target_link_libraries(testing-it PRIVATE milvus_sdk ${GTEST_LIBRARIES} ${GMOCK_LIBRARIES} ${GTEST_MAIN_LIBRARIES})
 
 # st only available under linux/macos
 if (CMAKE_SYSTEM_NAME MATCHES "(Linux|Darwin)")
-aux_source_directory(${CMAKE_CURRENT_SOURCE_DIR}/st st_files)
+set(ST_DIR "${CMAKE_CURRENT_SOURCE_DIR}/st")
+file(GLOB_RECURSE st_files
+    "${ST_DIR}/*.cpp"
+    "${ST_DIR}/*.cxx"
+    "${ST_DIR}/*.cc"
+)
 add_executable(testing-st ${st_files})
 target_link_libraries(testing-st PRIVATE milvus_sdk ${GTEST_LIBRARIES} ${GMOCK_LIBRARIES})
 endif()

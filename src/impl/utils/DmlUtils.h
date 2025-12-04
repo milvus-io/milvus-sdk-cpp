@@ -44,6 +44,10 @@ ParseSparseFloatVector(const nlohmann::json& obj, const std::string& field_name,
 Status
 CreateProtoFieldData(const FieldDataSchema& data_schema, proto::schema::FieldData& field_data);
 
+Status
+CreateProtoFieldDatas(const CollectionSchema& collection_schema, const std::vector<FieldDataPtr>& fields,
+                      std::vector<proto::schema::FieldData>& rpc_fields);
+
 IDArray
 CreateIDArray(const proto::schema::IDs& ids);
 

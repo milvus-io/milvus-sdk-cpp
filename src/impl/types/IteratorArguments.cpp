@@ -19,13 +19,13 @@
 #include "../utils/Constants.h"
 
 namespace milvus {
-uint64_t
+int64_t
 IteratorArguments::BatchSize() const {
     return batch_size_;
 }
 
 Status
-IteratorArguments::SetBatchSize(uint64_t batch_size) {
+IteratorArguments::SetBatchSize(int64_t batch_size) {
     if (batch_size == 0) {
         return {StatusCode::INVALID_AGUMENT, "batch size must be greater than zero"};
     }

@@ -67,6 +67,10 @@ class MilvusConnection {
     UseDatabase(const std::string& db_name);
 
     Status
+    CheckHealth(const proto::milvus::CheckHealthRequest& request, proto::milvus::CheckHealthResponse& response,
+                const GrpcContextOptions& options);
+
+    Status
     CreateDatabase(const proto::milvus::CreateDatabaseRequest& request, proto::common::Status& response,
                    const GrpcContextOptions& options);
 

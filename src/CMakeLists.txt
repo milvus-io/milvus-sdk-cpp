@@ -14,11 +14,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-aux_source_directory(${CMAKE_CURRENT_SOURCE_DIR}/impl impl_files)
-aux_source_directory(${CMAKE_CURRENT_SOURCE_DIR}/impl/types impl_types_files)
-aux_source_directory(${CMAKE_CURRENT_SOURCE_DIR}/impl/utils impl_utils_files)
+set(IMPL_DIR "${CMAKE_CURRENT_SOURCE_DIR}/impl")
+file(GLOB_RECURSE impl_files
+    "${IMPL_DIR}/*.cpp"
+    "${IMPL_DIR}/*.cxx"
+    "${IMPL_DIR}/*.cc"
+)
 
-add_library(milvus_sdk ${impl_files} ${impl_types_files} ${impl_utils_files})
+add_library(milvus_sdk ${impl_files})
 
 # add proto gens
 add_milvus_protos(milvus_sdk)

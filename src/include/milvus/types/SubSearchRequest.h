@@ -70,6 +70,12 @@ class SearchRequestBase {
     FilterTemplates() const;
 
     /**
+     * @brief Set filter templates
+     */
+    Status
+    SetFilterTemplates(std::unordered_map<std::string, nlohmann::json>&& filter_templates);
+
+    /**
      * @brief Get target vectors
      */
     FieldDataPtr
@@ -154,7 +160,6 @@ class SearchRequestBase {
 
     /**
      * @brief Set search limit(topk)
-     * Note: this value is stored in the ExtraParams
      */
     Status
     SetLimit(int64_t limit);

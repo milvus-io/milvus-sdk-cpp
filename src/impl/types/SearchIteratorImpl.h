@@ -21,6 +21,7 @@
 #include <unordered_map>
 
 #include "../MilvusConnection.h"
+#include "milvus/request/dql/SearchIteratorRequest.h"
 #include "milvus/types/FieldSchema.h"
 #include "milvus/types/Iterator.h"
 #include "milvus/types/IteratorArguments.h"
@@ -28,10 +29,11 @@
 #include "milvus/types/RetryParam.h"
 
 namespace milvus {
+
+template <typename T>
 class SearchIteratorImpl : public SearchIterator {
  public:
-    SearchIteratorImpl(MilvusConnectionPtr& connection, const SearchIteratorArguments& args,
-                       const RetryParam& retry_param);
+    SearchIteratorImpl(const MilvusConnectionPtr& connection, const T& args, const RetryParam& retry_param);
 
     Status
     Next(SingleResult& results) final;
@@ -40,13 +42,14 @@ class SearchIteratorImpl : public SearchIterator {
     Init();
 
     static Status
-    CheckInput(const SearchIteratorArguments& args);
+    CheckInput(const FieldDataPtr& vectors, const std::unordered_map<std::string, std::string>& params,
+               int64_t batch_size, MetricType metric_type);
 
     static uint64_t
     CachedCount(const std::list<SingleResultPtr>& cache);
 
     static Status
-    FetchPageFromCache(std::list<SingleResultPtr>& cache, const SearchIteratorArguments& args, int64_t count,
+    FetchPageFromCache(std::list<SingleResultPtr>& cache, const std::set<std::string>& output_fields, int64_t count,
                        SingleResult& results);
 
  private:
@@ -85,7 +88,7 @@ class SearchIteratorImpl : public SearchIterator {
 
  private:
     MilvusConnectionPtr connection_;
-    SearchIteratorArguments args_;
+    T args_;
     RetryParam retry_param_;
     std::unordered_map<std::string, std::string> original_params_;
     int64_t original_limit_{0};
@@ -98,5 +101,9 @@ class SearchIteratorImpl : public SearchIterator {
 
     std::list<SingleResultPtr> cache_;
 };
+
+// explicitly instantiation of template methods to avoid link error
+extern template class SearchIteratorImpl<SearchIteratorArguments>;
+extern template class SearchIteratorImpl<SearchIteratorRequest>;
 
 }  // namespace milvus
