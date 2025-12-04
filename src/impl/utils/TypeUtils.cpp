@@ -105,6 +105,10 @@ FunctionTypeCast(FunctionType type) {
     switch (type) {
         case FunctionType::BM25:
             return proto::schema::FunctionType::BM25;
+        case FunctionType::TEXTEMBEDDING:
+            return proto::schema::FunctionType::TextEmbedding;
+        case FunctionType::RERANK:
+            return proto::schema::FunctionType::Rerank;
         default:
             return proto::schema::FunctionType::Unknown;
     }
@@ -115,6 +119,10 @@ FunctionTypeCast(proto::schema::FunctionType type) {
     switch (type) {
         case proto::schema::FunctionType::BM25:
             return FunctionType::BM25;
+        case proto::schema::FunctionType::TextEmbedding:
+            return FunctionType::TEXTEMBEDDING;
+        case proto::schema::FunctionType::Rerank:
+            return FunctionType::RERANK;
         default:
             return FunctionType::UNKNOWN;
     }
@@ -499,6 +507,26 @@ ConvertFunctionSchema(const FunctionPtr& function_schema, proto::schema::Functio
         auto kv = proto_function.add_params();
         kv->set_key(pair.first);
         kv->set_value(pair.second);
+    }
+}
+
+void
+ConvertFunctionScore(const FunctionScorePtr& function_score, proto::schema::FunctionScore& proto_score) {
+    if (function_score == nullptr) {
+        return;
+    }
+
+    const auto& functions = function_score->Functions();
+    for (const auto& function : functions) {
+        auto proto_function = proto_score.add_functions();
+        ConvertFunctionSchema(function, *proto_function);
+    }
+
+    const auto& params = function_score->Params();
+    for (const auto& param : params) {
+        auto kv = proto_score.add_params();
+        kv->set_key(param.first);
+        kv->set_value(param.second.dump());
     }
 }
 

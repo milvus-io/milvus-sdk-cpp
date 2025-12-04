@@ -163,4 +163,84 @@ WeightedRerank::SetWeights(const std::vector<float>& weights) {
     return Status::OK();
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////
+// BoostRerank
+BoostRerank::BoostRerank() {
+    function_type_ = FunctionType::RERANK;
+    params_[RERANKER] = "boost";
+}
+
+// Override SetFunctionType method
+Status
+BoostRerank::SetFunctionType(FunctionType function_type) {
+    if (function_type != FunctionType::RERANK) {
+        return {StatusCode::INVALID_AGUMENT, "BoostRerank only accepts RERANK type!"};
+    }
+    return Function::SetFunctionType(function_type);
+}
+
+void
+BoostRerank::SetFilter(const std::string& filter) {
+    if (!filter.empty()) {
+        AddParam("filter", filter);
+    }
+}
+
+BoostRerank&
+BoostRerank::WithFilter(const std::string& filter) {
+    SetFilter(filter);
+    return *this;
+}
+
+void
+BoostRerank::SetWeight(float weight) {
+    if (weight > 0.0) {
+        AddParam("weight", std::to_string(weight));
+    }
+}
+
+BoostRerank&
+BoostRerank::WithWeight(float weight) {
+    SetWeight(weight);
+    return *this;
+}
+
+void
+BoostRerank::SetRandomScoreField(const std::string& field) {
+    nlohmann::json temp;
+    auto it = params_.find(RANDOM_SCORE);
+    if (it == params_.end()) {
+        temp["field"] = field;
+    } else {
+        temp = nlohmann::json::parse(it->second);
+        temp["field"] = field;
+    }
+    AddParam(RANDOM_SCORE, temp.dump());
+}
+
+BoostRerank&
+BoostRerank::WithRandomScoreField(const std::string& field) {
+    SetRandomScoreField(field);
+    return *this;
+}
+
+void
+BoostRerank::SetRandomScoreSeed(int64_t seed) {
+    nlohmann::json temp;
+    auto it = params_.find(RANDOM_SCORE);
+    if (it == params_.end()) {
+        temp["seed"] = std::to_string(seed);
+    } else {
+        temp = nlohmann::json::parse(it->second);
+        temp["seed"] = std::to_string(seed);
+    }
+    AddParam(RANDOM_SCORE, temp.dump());
+}
+
+BoostRerank&
+BoostRerank::WithRandomScoreSeed(int64_t seed) {
+    SetRandomScoreSeed(seed);
+    return *this;
+}
+
 }  // namespace milvus

@@ -27,6 +27,7 @@ namespace milvus {
 enum class FunctionType {
     UNKNOWN = 0,
     BM25 = 1,
+    TEXTEMBEDDING = 2,
     RERANK = 3,
 };
 }  // namespace milvus

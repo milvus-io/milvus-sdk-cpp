@@ -76,37 +76,37 @@ class Function {
     SetFunctionType(FunctionType function_type);
 
     /**
-     * @brief Get input field names
+     * @brief Get input field names.
      */
     const std::vector<std::string>&
     InputFieldNames() const;
 
     /**
-     * @brief Add input field name
+     * @brief Add input field name.
      */
     Status
     AddInputFieldName(std::string name);
 
     /**
-     * @brief Get output field names
+     * @brief Get output field names.
      */
     const std::vector<std::string>&
     OutputFieldNames() const;
 
     /**
-     * @brief Add output field name
+     * @brief Add output field name.
      */
     Status
     AddOutputFieldName(std::string name);
 
     /**
-     * @brief Add extra param
+     * @brief Add extra param.
      */
     virtual Status
     AddParam(const std::string& key, const std::string& value);
 
     /**
-     * @brief Get extra param
+     * @brief Get extra param.
      */
     virtual const std::unordered_map<std::string, std::string>&
     Params() const;
@@ -134,13 +134,13 @@ class RRFRerank : public Function {
     explicit RRFRerank(int k);
 
     /**
-     * @brief Override this method, only allow to set RERANK function type
+     * @brief Override this method, only allow to set RERANK function type.
      */
     Status
     SetFunctionType(FunctionType function_type) override;
 
     /**
-     * @brief Set K value
+     * @brief Set K value.
      */
     Status
     SetK(int k);
@@ -155,16 +155,79 @@ class WeightedRerank : public Function {
     explicit WeightedRerank(const std::vector<float>& weights);
 
     /**
-     * @brief Override this method, only allow to set RERANK function type
+     * @brief Override this method, only allow to set RERANK function type.
      */
     Status
     SetFunctionType(FunctionType function_type) override;
 
     /**
-     * @brief Set weighted values
+     * @brief Set weighted values.
      */
     Status
     SetWeights(const std::vector<float>& weights);
+};
+
+////////////////////////////////////////////////////////////////////////////////////////////
+/**
+ * @brief Boost rerank function
+ */
+class BoostRerank : public Function {
+ public:
+    BoostRerank();
+
+    /**
+     * @brief Override this method, only allow to set RERANK function type.
+     */
+    Status
+    SetFunctionType(FunctionType function_type) override;
+
+    /**
+     * @brief Set filter.
+     */
+    void
+    SetFilter(const std::string& filter);
+
+    /**
+     * @brief Set filter.
+     */
+    BoostRerank&
+    WithFilter(const std::string& filter);
+
+    /**
+     * @brief Set filter.
+     */
+    void
+    SetWeight(float weight);
+
+    /**
+     * @brief Set filter.
+     */
+    BoostRerank&
+    WithWeight(float weight);
+
+    /**
+     * @brief Set field to do random score.
+     */
+    void
+    SetRandomScoreField(const std::string& field);
+
+    /**
+     * @brief Set field to do random score.
+     */
+    BoostRerank&
+    WithRandomScoreField(const std::string& field);
+
+    /**
+     * @brief Set random score seed.
+     */
+    void
+    SetRandomScoreSeed(int64_t seed);
+
+    /**
+     * @brief Set random score seed.
+     */
+    BoostRerank&
+    WithRandomScoreSeed(int64_t seed);
 };
 
 }  // namespace milvus

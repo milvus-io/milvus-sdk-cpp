@@ -49,6 +49,8 @@ const char* ITER_SEARCH_V2_KEY = "search_iter_v2";
 const char* ITER_SEARCH_BATCH_SIZE_KEY = "search_iter_batch_size";
 const char* ITER_SEARCH_LAST_BOUND_KEY = "search_iter_last_bound";
 const char* ITER_SEARCH_ID_KEY = "search_iter_id";
+const char* RERANKER = "reranker";
+const char* RANDOM_SCORE = "random_score";
 
 // const names for external common usage
 const char* INDEX_TYPE = "index_type";
