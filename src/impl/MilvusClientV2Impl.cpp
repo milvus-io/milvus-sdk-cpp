@@ -1231,6 +1231,11 @@ MilvusClientV2Impl::Search(const SearchRequest& request, SearchResponse& respons
     auto pre = [this, &request](proto::milvus::SearchRequest& rpc_request) {
         auto current_name = connection_.CurrentDbName(request.DatabaseName());
         ConvertSearchRequest<SearchRequest>(request, current_name, rpc_request);
+
+        if (request.Rerank()) {
+            auto function_score = rpc_request.mutable_function_score();
+            ConvertFunctionScore(request.Rerank(), *function_score);
+        }
         return Status::OK();
     };
 

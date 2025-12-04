@@ -363,7 +363,8 @@ TEST_F(TypeUtilsTest, DataTypeCast) {
 }
 
 TEST_F(TypeUtilsTest, FunctionTypeCastTest) {
-    auto values = {milvus::FunctionType::UNKNOWN, milvus::FunctionType::BM25};
+    auto values = {milvus::FunctionType::UNKNOWN, milvus::FunctionType::BM25, milvus::FunctionType::TEXTEMBEDDING,
+                   milvus::FunctionType::RERANK};
     for (auto value : values) {
         EXPECT_EQ(milvus::FunctionTypeCast(milvus::FunctionTypeCast(value)), value);
     }
