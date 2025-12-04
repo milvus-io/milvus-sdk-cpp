@@ -31,7 +31,7 @@ main(int argc, char* argv[]) {
     auto status = client->Connect(connect_param);
     util::CheckStatus("connect milvus server", status);
 
-    const std::string collection_name = "CPP_V1_SPARSE";
+    const std::string collection_name = "CPP_V1_SPARSE_VECTOR";
     const std::string field_id = "pk";
     const std::string field_vector = "sparse";
     const std::string field_text = "text";
