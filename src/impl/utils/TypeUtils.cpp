@@ -137,8 +137,26 @@ MetricTypeCast(const std::string& type) {
     if (type == "JACCARD") {
         return MetricType::JACCARD;
     }
+    if (type == "MHJACCARD") {
+        return MetricType::MHJACCARD;
+    }
     if (type == "BM25") {
         return MetricType::BM25;
+    }
+    if (type == "MAX_SIM_COSINE") {
+        return MetricType::MAX_SIM_COSINE;
+    }
+    if (type == "MAX_SIM_IP") {
+        return MetricType::MAX_SIM_IP;
+    }
+    if (type == "MAX_SIM_L2") {
+        return MetricType::MAX_SIM_L2;
+    }
+    if (type == "MAX_SIM_JACCARD") {
+        return MetricType::MAX_SIM_JACCARD;
+    }
+    if (type == "MAX_SIM_HAMMING") {
+        return MetricType::MAX_SIM_HAMMING;
     }
     return MetricType::DEFAULT;
 }
@@ -160,6 +178,15 @@ IndexTypeCast(const std::string& type) {
     if (type == "HNSW") {
         return IndexType::HNSW;
     }
+    if (type == "HNSW_SQ") {
+        return IndexType::HNSW_SQ;
+    }
+    if (type == "HNSW_PQ") {
+        return IndexType::HNSW_PQ;
+    }
+    if (type == "HNSW_PRQ") {
+        return IndexType::HNSW_PRQ;
+    }
     if (type == "DISKANN") {
         return IndexType::DISKANN;
     }
@@ -168,6 +195,9 @@ IndexTypeCast(const std::string& type) {
     }
     if (type == "SCANN") {
         return IndexType::SCANN;
+    }
+    if (type == "IVF_RABITQ") {
+        return IndexType::IVF_RABITQ;
     }
     if (type == "GPU_IVF_FLAT") {
         return IndexType::GPU_IVF_FLAT;
@@ -187,6 +217,9 @@ IndexTypeCast(const std::string& type) {
     if (type == "BIN_IVF_FLAT") {
         return IndexType::BIN_IVF_FLAT;
     }
+    if (type == "MINHASH_LSH") {
+        return IndexType::MINHASH_LSH;
+    }
     if (type == "Trie") {
         return IndexType::TRIE;
     }
@@ -198,6 +231,9 @@ IndexTypeCast(const std::string& type) {
     }
     if (type == "BITMAP") {
         return IndexType::BITMAP;
+    }
+    if (type == "NGRAM") {
+        return IndexType::NGRAM;
     }
     if (type == "SPARSE_INVERTED_INDEX") {
         return IndexType::SPARSE_INVERTED_INDEX;
@@ -673,8 +709,20 @@ to_string(milvus::MetricType metric_type) {
             return "HAMMING";
         case milvus::MetricType::JACCARD:
             return "JACCARD";
+        case milvus::MetricType::MHJACCARD:
+            return "MHJACCARD";
         case milvus::MetricType::BM25:
             return "BM25";
+        case milvus::MetricType::MAX_SIM_COSINE:
+            return "MAX_SIM_COSINE";
+        case milvus::MetricType::MAX_SIM_IP:
+            return "MAX_SIM_IP";
+        case milvus::MetricType::MAX_SIM_L2:
+            return "MAX_SIM_L2";
+        case milvus::MetricType::MAX_SIM_JACCARD:
+            return "MAX_SIM_JACCARD";
+        case milvus::MetricType::MAX_SIM_HAMMING:
+            return "MAX_SIM_HAMMING";
         default:
             return "DEFAULT";
     }
@@ -692,12 +740,20 @@ to_string(milvus::IndexType index_type) {
             return "IVF_SQ8";
         case milvus::IndexType::HNSW:
             return "HNSW";
+        case milvus::IndexType::HNSW_SQ:
+            return "HNSW_SQ";
+        case milvus::IndexType::HNSW_PQ:
+            return "HNSW_PQ";
+        case milvus::IndexType::HNSW_PRQ:
+            return "HNSW_PRQ";
         case milvus::IndexType::DISKANN:
             return "DISKANN";
         case milvus::IndexType::AUTOINDEX:
             return "AUTOINDEX";
         case milvus::IndexType::SCANN:
             return "SCANN";
+        case milvus::IndexType::IVF_RABITQ:
+            return "IVF_RABITQ";
         case milvus::IndexType::GPU_IVF_FLAT:
             return "GPU_IVF_FLAT";
         case milvus::IndexType::GPU_IVF_PQ:
@@ -710,6 +766,8 @@ to_string(milvus::IndexType index_type) {
             return "BIN_FLAT";
         case milvus::IndexType::BIN_IVF_FLAT:
             return "BIN_IVF_FLAT";
+        case milvus::IndexType::MINHASH_LSH:
+            return "MINHASH_LSH";
         case milvus::IndexType::TRIE:
             return "Trie";
         case milvus::IndexType::STL_SORT:
@@ -718,6 +776,8 @@ to_string(milvus::IndexType index_type) {
             return "INVERTED";
         case milvus::IndexType::BITMAP:
             return "BITMAP";
+        case milvus::IndexType::NGRAM:
+            return "NGRAM";
         case milvus::IndexType::SPARSE_INVERTED_INDEX:
             return "SPARSE_INVERTED_INDEX";
         case milvus::IndexType::SPARSE_WAND:
