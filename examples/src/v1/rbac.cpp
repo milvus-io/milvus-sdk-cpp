@@ -80,7 +80,7 @@ main(int argc, char* argv[]) {
     util::CheckStatus("connect milvus server", status);
 
     // create a collection
-    const std::string collection_name = "my_rbac_collection";
+    const std::string collection_name = "CPP_V1_RBAC";
     milvus::CollectionSchema collection_schema(collection_name);
     collection_schema.AddField({"pk", milvus::DataType::INT64, "", true, true});
     collection_schema.AddField(milvus::FieldSchema("vector", milvus::DataType::FLOAT_VECTOR).WithDimension(8));

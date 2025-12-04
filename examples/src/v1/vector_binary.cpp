@@ -31,7 +31,7 @@ main(int argc, char* argv[]) {
     auto status = client->Connect(connect_param);
     util::CheckStatus("connect milvus server", status);
 
-    const std::string collection_name = "CPP_V1_BINARY";
+    const std::string collection_name = "CPP_V2_BINARY_VECTOR";
     const std::string field_id = "pk";
     const std::string field_vector = "vector";
     const std::string field_text = "text";
