@@ -94,6 +94,9 @@ class MilvusClientV2Impl : public MilvusClientV2 {
     DropCollectionFieldProperties(const DropCollectionFieldPropertiesRequest& request) final;
 
     Status
+    AddCollectionField(const AddCollectionFieldRequest& request) final;
+
+    Status
     CreatePartition(const CreatePartitionRequest& request) final;
 
     Status

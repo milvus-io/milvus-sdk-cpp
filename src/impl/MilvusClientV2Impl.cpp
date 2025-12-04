@@ -434,6 +434,25 @@ MilvusClientV2Impl::DropCollectionFieldProperties(const DropCollectionFieldPrope
 }
 
 Status
+MilvusClientV2Impl::AddCollectionField(const AddCollectionFieldRequest& request) {
+    auto pre = [&request](proto::milvus::AddCollectionFieldRequest& rpc_request) {
+        rpc_request.set_db_name(request.DatabaseName());
+        rpc_request.set_collection_name(request.CollectionName());
+
+        proto::schema::FieldSchema proto_schema;
+        ConvertFieldSchema(request.Field(), proto_schema);
+        std::string binary;
+        proto_schema.SerializeToString(&binary);
+        rpc_request.set_schema(binary);
+
+        return Status::OK();
+    };
+
+    return connection_.Invoke<proto::milvus::AddCollectionFieldRequest, proto::common::Status>(
+        pre, &MilvusConnection::AddCollectionField);
+}
+
+Status
 MilvusClientV2Impl::CreatePartition(const CreatePartitionRequest& request) {
     auto pre = [&request](proto::milvus::CreatePartitionRequest& rpc_request) {
         rpc_request.set_db_name(request.DatabaseName());

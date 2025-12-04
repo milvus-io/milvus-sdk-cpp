@@ -22,6 +22,7 @@
 #include "request/alias/DescribeAliasRequest.h"
 #include "request/alias/DropAliasRequest.h"
 #include "request/alias/ListAliasesRequest.h"
+#include "request/collection/AddCollectionFieldRequest.h"
 #include "request/collection/AlterCollectionFieldPropertiesRequest.h"
 #include "request/collection/AlterCollectionPropertiesRequest.h"
 #include "request/collection/CreateCollectionRequest.h"
@@ -336,6 +337,15 @@ class MilvusClientV2 {
      */
     virtual Status
     DropCollectionFieldProperties(const DropCollectionFieldPropertiesRequest& request) = 0;
+
+    /**
+     * @brief Add a field to an existing collection.
+     *
+     * @param [in] request input parameters
+     * @return Status operation successfully or not
+     */
+    virtual Status
+    AddCollectionField(const AddCollectionFieldRequest& request) = 0;
 
     /**
      * @brief Create a partition in a collection.

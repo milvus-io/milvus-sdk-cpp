@@ -41,6 +41,7 @@ enum class IndexType {
     HNSW_SQ = 9,
     HNSW_PQ = 10,
     HNSW_PRQ = 11,
+    IVF_RABITQ = 12,
 
     // GPU indexes only for float vectors
     GPU_IVF_FLAT = 201,
@@ -51,6 +52,7 @@ enum class IndexType {
     // Indexes for binary vectors
     BIN_FLAT = 1001,
     BIN_IVF_FLAT = 1002,
+    MINHASH_LSH = 1003,
 
     // Only for varchar type field
     TRIE = 1101,
@@ -58,6 +60,9 @@ enum class IndexType {
     STL_SORT = 1102,  // only for numeric type field
     INVERTED = 1103,  // works for all scalar fields except JSON type field
     BITMAP = 1104,    // works for all scalar fields except JSON, FLOAT and DOUBLE type fields
+
+    // Only for varchar type field and json_path of JSON field
+    NGRAM = 1105,
 
     // Only for sparse vectors
     SPARSE_INVERTED_INDEX = 1201,
