@@ -19,55 +19,58 @@
 #include <thread>
 
 #include "ExampleUtils.h"
-#include "milvus/MilvusClient.h"
+#include "milvus/MilvusClientV2.h"
 
 int
 main(int argc, char* argv[]) {
     printf("Example start...\n");
 
-    auto client = milvus::MilvusClient::Create();
+    auto client = milvus::MilvusClientV2::Create();
 
     milvus::ConnectParam connect_param{"localhost", 19530, "root", "Milvus"};
     auto status = client->Connect(connect_param);
     util::CheckStatus("connect milvus server", status);
 
-    const std::string collection_name = "CPP_V1_PARTITION_KEY";
+    const std::string collection_name = "CPP_V2_PARTITION_KEY";
     const std::string field_id = "id";
     const std::string field_name = "name";
     const std::string field_vector = "vector";
     const uint32_t dimension = 128;
 
     // collection schema, drop and create collection
-    milvus::CollectionSchema collection_schema(collection_name);
-    collection_schema.AddField({field_id, milvus::DataType::INT64, "", true, true});
+    milvus::CollectionSchemaPtr collection_schema = std::make_shared<milvus::CollectionSchema>(collection_name);
+    collection_schema->AddField({field_id, milvus::DataType::INT64, "", true, true});
     milvus::FieldSchema name_schema{field_name, milvus::DataType::VARCHAR, "partition key"};
     name_schema.SetMaxLength(100);
     name_schema.SetPartitionKey(true);  // set this field to be partition key
-    collection_schema.AddField(name_schema);
-    collection_schema.AddField(
+    collection_schema->AddField(name_schema);
+    collection_schema->AddField(
         milvus::FieldSchema(field_vector, milvus::DataType::FLOAT_VECTOR, "embedding").WithDimension(dimension));
 
-    status = client->DropCollection(collection_name);
-    status = client->CreateCollection(collection_schema, 8);
+    status = client->DropCollection(milvus::DropCollectionRequest().WithCollectionName(collection_name));
+    status = client->CreateCollection(
+        milvus::CreateCollectionRequest().WithCollectionSchema(collection_schema).WithNumPartitions(8));
     util::CheckStatus("create collection: " + collection_name, status);
 
     // create index (required after 2.2.0)
     milvus::IndexDesc index_vector(field_vector, "", milvus::IndexType::HNSW, milvus::MetricType::IP);
     index_vector.AddExtraParam("M", "64");
     index_vector.AddExtraParam("efConstruction", "100");
-    status = client->CreateIndex(collection_name, index_vector);
+    status = client->CreateIndex(
+        milvus::CreateIndexRequest().WithCollectionName(collection_name).AddIndex(std::move(index_vector)));
     util::CheckStatus("create index on vector field", status);
 
     // tell server prepare to load collection
-    status = client->LoadCollection(collection_name);
+    status = client->LoadCollection(milvus::LoadCollectionRequest().WithCollectionName(collection_name));
     util::CheckStatus("load collection: " + collection_name, status);
 
     // list partitions of the collection
-    milvus::PartitionsInfo partitions_info;
-    status = client->ListPartitions(collection_name, partitions_info);
+    milvus::ListPartitionsResponse resp_list_part;
+    status =
+        client->ListPartitions(milvus::ListPartitionsRequest().WithCollectionName(collection_name), resp_list_part);
     util::CheckStatus("list partitions", status);
     std::cout << "\nPartitions of " << collection_name << ":" << std::endl;
-    for (auto& info : partitions_info) {
+    for (auto& info : resp_list_part.PartitionInfos()) {
         std::cout << "\t" << info.Name() << std::endl;
     }
 
@@ -83,44 +86,45 @@ main(int argc, char* argv[]) {
             rows.emplace_back(std::move(row));
         }
 
-        milvus::DmlResults dml_results;
-        status = client->Insert(collection_name, "", rows, dml_results);
+        milvus::InsertResponse resp_insert;
+        status = client->Insert(
+            milvus::InsertRequest().WithCollectionName(collection_name).WithRowsData(std::move(rows)), resp_insert);
         util::CheckStatus("insert", status);
-        std::cout << dml_results.InsertCount() << " rows inserted by row-based." << std::endl;
+        std::cout << resp_insert.Results().InsertCount() << " rows inserted by row-based." << std::endl;
     }
 
     {
         // verify the row count
         // set to STRONG level to ensure the delete request is done by server
-        milvus::QueryArguments q_count{};
-        q_count.SetCollectionName(collection_name);
-        q_count.AddOutputField("count(*)");
-        q_count.SetConsistencyLevel(milvus::ConsistencyLevel::STRONG);
+        milvus::QueryRequest request;
+        request.SetCollectionName(collection_name);
+        request.AddOutputField("count(*)");
+        request.SetConsistencyLevel(milvus::ConsistencyLevel::STRONG);
 
-        milvus::QueryResults count_result{};
-        status = client->Query(q_count, count_result);
+        milvus::QueryResponse response;
+        status = client->Query(request, response);
         util::CheckStatus("query count(*)", status);
-        std::cout << "count(*) = " << count_result.GetRowCount() << std::endl;
+        std::cout << "count(*) = " << response.Results().GetRowCount() << std::endl;
     }
 
     {
         // query with filter expression, the expression contains the partition key name
         // milvus only scans one partition, faster than scanning in entire collection
-        milvus::QueryArguments q_arguments{};
-        q_arguments.SetCollectionName(collection_name);
-        q_arguments.SetFilter(field_name + " == \"name_3_500\"");
-        q_arguments.AddOutputField(field_id);
-        q_arguments.AddOutputField(field_name);
+        milvus::QueryRequest request;
+        request.SetCollectionName(collection_name);
+        request.SetFilter(field_name + " == \"name_3_500\"");
+        request.AddOutputField(field_id);
+        request.AddOutputField(field_name);
         // set to EVENTUALLY level since the last query uses STRONG level and no data changed
-        q_arguments.SetConsistencyLevel(milvus::ConsistencyLevel::EVENTUALLY);
+        request.SetConsistencyLevel(milvus::ConsistencyLevel::EVENTUALLY);
 
-        std::cout << "\nQuery with expression: " << q_arguments.Filter() << std::endl;
-        milvus::QueryResults query_results{};
-        status = client->Query(q_arguments, query_results);
+        std::cout << "\nQuery with expression: " << request.Filter() << std::endl;
+        milvus::QueryResponse response;
+        status = client->Query(request, response);
         util::CheckStatus("query", status);
 
         milvus::EntityRows output_rows;
-        status = query_results.OutputRows(output_rows);
+        status = response.Results().OutputRows(output_rows);
         util::CheckStatus("get output rows", status);
         std::cout << "Query results:" << std::endl;
         for (const auto& row : output_rows) {
@@ -131,24 +135,24 @@ main(int argc, char* argv[]) {
     {
         // query with filter expression, the expression contains the partition key name
         // milvus only search in one partition, faster than searching in entire collection
-        milvus::SearchArguments s_arguments{};
-        s_arguments.SetCollectionName(collection_name);
-        s_arguments.SetLimit(5);
-        s_arguments.AddExtraParam("ef", "10");
-        s_arguments.AddOutputField(field_id);
-        s_arguments.AddOutputField(field_name);
-        s_arguments.SetFilter(field_name + " == \"name_3_500\"");
+        milvus::SearchRequest request;
+        request.SetCollectionName(collection_name);
+        request.SetLimit(5);
+        request.AddExtraParam("ef", "10");
+        request.AddOutputField(field_id);
+        request.AddOutputField(field_name);
+        request.SetFilter(field_name + " == \"name_3_500\"");
         // set to BOUNDED level to accept data inconsistence within a time window(default is 5 seconds)
-        s_arguments.SetConsistencyLevel(milvus::ConsistencyLevel::BOUNDED);
+        request.SetConsistencyLevel(milvus::ConsistencyLevel::BOUNDED);
 
-        s_arguments.AddFloatVector(field_vector, util::GenerateFloatVector(dimension));
-        std::cout << "\nSearching with expression: " << s_arguments.Filter() << std::endl;
+        request.AddFloatVector(field_vector, util::GenerateFloatVector(dimension));
+        std::cout << "\nSearching with expression: " << request.Filter() << std::endl;
 
-        milvus::SearchResults search_results{};
-        status = client->Search(s_arguments, search_results);
+        milvus::SearchResponse response;
+        status = client->Search(request, response);
         util::CheckStatus("search", status);
 
-        for (auto& result : search_results.Results()) {
+        for (auto& result : response.Results().Results()) {
             milvus::EntityRows output_rows;
             status = result.OutputRows(output_rows);
             util::CheckStatus("get output rows", status);

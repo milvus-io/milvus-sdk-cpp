@@ -648,13 +648,6 @@ ConvertResourceGroupConfig(const proto::rg::ResourceGroupConfig& rpc_config, Res
     }
 }
 
-std::string
-doubleToString(double val) {
-    std::ostringstream stream;
-    stream << std::fixed << std::setprecision(15) << val;
-    return stream.str();
-}
-
 bool
 IsValidTemplate(const nlohmann::json& filter_template) {
     return filter_template.is_boolean() || filter_template.is_number() || filter_template.is_string();

@@ -113,9 +113,6 @@ ConvertResourceGroupConfig(const ResourceGroupConfig& config, proto::rg::Resourc
 void
 ConvertResourceGroupConfig(const proto::rg::ResourceGroupConfig& rpc_config, ResourceGroupConfig& config);
 
-std::string
-doubleToString(double val);
-
 bool
 IsValidTemplate(const nlohmann::json& filter_template);
 

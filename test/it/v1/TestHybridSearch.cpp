@@ -25,6 +25,7 @@
 #include "../mocks/MilvusMockedTest.h"
 #include "utils/CompareUtils.h"
 #include "utils/Constants.h"
+#include "utils/ExtraParamUtils.h"
 #include "utils/TypeUtils.h"
 
 using ::milvus::StatusCode;
@@ -117,8 +118,8 @@ TEST_F(MilvusMockedTest, HybridSearch) {
                                 TestKv(milvus::ANNS_FIELD, sub_req->AnnsField()),
                                 TestKv(milvus::TOPK, std::to_string(sub_req->Limit())),
                                 TestKv(milvus::METRIC_TYPE, std::to_string(sub_req->MetricType())),
-                                TestKv(milvus::RADIUS, milvus::doubleToString(sub_req->Radius())),
-                                TestKv(milvus::RANGE_FILTER, milvus::doubleToString(sub_req->RangeFilter())), _));
+                                TestKv(milvus::RADIUS, milvus::DoubleToString(sub_req->Radius())),
+                                TestKv(milvus::RANGE_FILTER, milvus::DoubleToString(sub_req->RangeFilter())), _));
 
                 const auto& placeholder_group_payload = rpc_sub_req.placeholder_group();
                 milvus::proto::common::PlaceholderGroup placeholder_group;
