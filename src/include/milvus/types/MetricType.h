@@ -29,11 +29,22 @@ enum class MetricType {
     L2 = 1,
     IP = 2,
     COSINE = 3,
-    // The following values are for binary vectors
-    HAMMING = 4,
-    JACCARD = 5,
 
-    BM25 = 6,  // Only for sparse vector with BM25
+    // The following values are for binary vectors
+    HAMMING = 101,
+    JACCARD = 102,
+    MHJACCARD = 103,
+
+    BM25 = 201,  // Only for sparse vector with BM25
+
+    // Only for float vector inside struct
+    MAX_SIM_COSINE = 301,
+    MAX_SIM_IP = 302,
+    MAX_SIM_L2 = 303,
+
+    // Only for binary vector inside struct
+    MAX_SIM_JACCARD = 401,
+    MAX_SIM_HAMMING = 402,
 
     // Note: in milvus 2.4+, TANIMOTO/SUBSTRUCTURE/SUPERSTRUCTURE are no longer supported
 };

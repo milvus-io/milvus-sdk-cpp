@@ -302,6 +302,12 @@ MilvusConnection::AlterCollectionField(const proto::milvus::AlterCollectionField
 }
 
 Status
+MilvusConnection::AddCollectionField(const proto::milvus::AddCollectionFieldRequest& request,
+                                     proto::common::Status& response, const GrpcContextOptions& options) {
+    return grpcCall("AddCollectionField", &Stub::AddCollectionField, request, response, options);
+}
+
+Status
 MilvusConnection::CreatePartition(const proto::milvus::CreatePartitionRequest& request, proto::common::Status& response,
                                   const GrpcContextOptions& options) {
     return grpcCall("CreatePartition", &Stub::CreatePartition, request, response, options);

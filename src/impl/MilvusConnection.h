@@ -147,6 +147,10 @@ class MilvusConnection {
                          const GrpcContextOptions& options);
 
     Status
+    AddCollectionField(const proto::milvus::AddCollectionFieldRequest& request, proto::common::Status& response,
+                       const GrpcContextOptions& options);
+
+    Status
     CreatePartition(const proto::milvus::CreatePartitionRequest& request, proto::common::Status& response,
                     const GrpcContextOptions& options);
 
