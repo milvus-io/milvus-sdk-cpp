@@ -16,7 +16,7 @@
 
 include_guard(GLOBAL)
 
-set(PROTO_VERSION v2.5.19)
+set(PROTO_VERSION v2.6.7)
 set(PROTO_URL https://github.com/milvus-io/milvus-proto/archive/refs/tags/${PROTO_VERSION}.tar.gz)
 
 
