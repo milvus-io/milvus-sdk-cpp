@@ -306,17 +306,26 @@ TEST_F(TypeUtilsTest, FloatVecFieldCompare) {
 }
 
 TEST_F(TypeUtilsTest, MetricTypeCastTest) {
-    for (const auto& name : {"IP", "L2", "COSINE", "HAMMING", "JACCARD", "BM25", "DEFAULT"}) {
+    for (const auto& name : {"DEFAULT", "IP", "L2", "COSINE", "HAMMING", "JACCARD", "MHJACCARD", "BM25",
+                             "MAX_SIM_COSINE", "MAX_SIM_IP", "MAX_SIM_L2", "MAX_SIM_JACCARD", "MAX_SIM_HAMMING"}) {
         EXPECT_EQ(std::to_string(milvus::MetricTypeCast(name)), name);
     }
 }
 
 TEST_F(TypeUtilsTest, IndexTypeCastTest) {
-    for (const auto& name : {"INVALID",    "FLAT",         "IVF_FLAT",     "IVF_SQ8",
-                             "IVF_PQ",     "HNSW",         "DISKANN",      "AUTOINDEX",
-                             "SCANN",      "GPU_IVF_FLAT", "GPU_IVF_PQ",   "GPU_BRUTE_FORCE",
-                             "GPU_CAGRA",  "BIN_FLAT",     "BIN_IVF_FLAT", "Trie",
-                             "STL_SORT",   "INVERTED",     "BITMAP",       "SPARSE_INVERTED_INDEX",
+    for (const auto& name : {"INVALID",      "FLAT",
+                             "IVF_FLAT",     "IVF_SQ8",
+                             "IVF_PQ",       "HNSW",
+                             "HNSW_SQ",      "HNSW_PQ",
+                             "HNSW_PRQ",     "IVF_RABITQ",
+                             "DISKANN",      "AUTOINDEX",
+                             "SCANN",        "GPU_IVF_FLAT",
+                             "GPU_IVF_PQ",   "GPU_BRUTE_FORCE",
+                             "GPU_CAGRA",    "BIN_FLAT",
+                             "BIN_IVF_FLAT", "MINHASH_LSH",
+                             "Trie",         "STL_SORT",
+                             "INVERTED",     "BITMAP",
+                             "NGRAM",        "SPARSE_INVERTED_INDEX",
                              "SPARSE_WAND"}) {
         EXPECT_EQ(std::to_string(milvus::IndexTypeCast(name)), name);
     }
@@ -339,15 +348,17 @@ TEST_F(TypeUtilsTest, DataTypeCast) {
         {milvus::DataType::BINARY_VECTOR, milvus::proto::schema::DataType::BinaryVector},
         {milvus::DataType::FLOAT16_VECTOR, milvus::proto::schema::DataType::Float16Vector},
         {milvus::DataType::BFLOAT16_VECTOR, milvus::proto::schema::DataType::BFloat16Vector},
-        {milvus::DataType::SPARSE_FLOAT_VECTOR, milvus::proto::schema::DataType::SparseFloatVector}};
-
-    for (auto& pair : data_types) {
-        auto dt = milvus::DataTypeCast(milvus::DataType(pair.first));
-        EXPECT_EQ(dt, pair.second);
-    }
-    for (auto& pair : data_types) {
-        auto dt = milvus::DataTypeCast(milvus::proto::schema::DataType(pair.second));
-        EXPECT_EQ(dt, pair.first);
+        {milvus::DataType::SPARSE_FLOAT_VECTOR, milvus::proto::schema::DataType::SparseFloatVector},
+        {milvus::DataType::INT8_VECTOR, milvus::proto::schema::DataType::Int8Vector}};
+    {
+        for (auto& pair : data_types) {
+            auto dt = milvus::DataTypeCast(milvus::DataType(pair.first));
+            EXPECT_EQ(dt, pair.second);
+        }
+        for (auto& pair : data_types) {
+            auto dt = milvus::DataTypeCast(milvus::proto::schema::DataType(pair.second));
+            EXPECT_EQ(dt, pair.first);
+        }
     }
 }
 
@@ -434,6 +445,7 @@ TEST_F(TypeUtilsTest, ConvertValueFieldSchema) {
         {milvus::DataType::FLOAT16_VECTOR, nlohmann::json(1)},
         {milvus::DataType::BFLOAT16_VECTOR, nlohmann::json(1)},
         {milvus::DataType::SPARSE_FLOAT_VECTOR, nlohmann::json(1)},
+        {milvus::DataType::INT8_VECTOR, nlohmann::json(1)},
     };
     for (auto& pair : invalid_pairs) {
         const milvus::FieldSchema field =
