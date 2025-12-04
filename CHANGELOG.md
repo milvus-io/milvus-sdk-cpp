@@ -1,5 +1,9 @@
 # Changelog
 
+## milvus-sdk-cpp 2.5.2 (2025-12-04)
+### Feature
+- Introduce MilvusClientV2 for clean/expanable interfaces
+
 ## milvus-sdk-cpp 2.5.1 (2025-11-21)
 ### Feature
 - Support RunAnalyzer()
