@@ -39,9 +39,16 @@ GetExtraInt64(const ExtraParamsMap& params, const std::string& key, int64_t defa
     return default_val;
 }
 
+inline std::string
+DoubleToString(double val) {
+    std::ostringstream stream;
+    stream << std::fixed << std::setprecision(15) << val;
+    return stream.str();
+}
+
 inline void
 SetExtraDouble(ExtraParamsMap& params, const std::string& key, double val) {
-    params[key] = doubleToString(val);
+    params[key] = DoubleToString(val);
 }
 
 inline double
