@@ -19,38 +19,39 @@
 #include <thread>
 
 #include "ExampleUtils.h"
-#include "milvus/MilvusClient.h"
+#include "milvus/MilvusClientV2.h"
 
 namespace {
-const char* const collection_name = "CPP_V1_TEXT_MATCH";
+const char* const collection_name = "CPP_V2_TEXT_MATCH";
 const char* const field_id = "id";
 const char* const field_vector = "vector";
 const char* const field_text = "text";
 const uint32_t dimension = 128;
 
 void
-buildCollection(milvus::MilvusClientPtr& client) {
+buildCollection(milvus::MilvusClientV2Ptr& client) {
     // collection schema, drop and create collection
-    milvus::CollectionSchema collection_schema(collection_name);
-    collection_schema.AddField({field_id, milvus::DataType::INT64, "", true, false});
-    collection_schema.AddField(
+    milvus::CollectionSchemaPtr collection_schema = std::make_shared<milvus::CollectionSchema>(collection_name);
+    collection_schema->AddField({field_id, milvus::DataType::INT64, "", true, false});
+    collection_schema->AddField(
         milvus::FieldSchema(field_vector, milvus::DataType::FLOAT_VECTOR).WithDimension(dimension));
-    collection_schema.AddField(milvus::FieldSchema(field_text, milvus::DataType::VARCHAR)
-                                   .WithMaxLength(1024)
-                                   .EnableAnalyzer(true)
-                                   .EnableMatch(true));
+    collection_schema->AddField(milvus::FieldSchema(field_text, milvus::DataType::VARCHAR)
+                                    .WithMaxLength(1024)
+                                    .EnableAnalyzer(true)
+                                    .EnableMatch(true));
 
-    auto status = client->DropCollection(collection_name);
-    status = client->CreateCollection(collection_schema);
+    auto status = client->DropCollection(milvus::DropCollectionRequest().WithCollectionName(collection_name));
+    status = client->CreateCollection(milvus::CreateCollectionRequest().WithCollectionSchema(collection_schema));
     util::CheckStatus(std::string("create collection: ") + collection_name, status);
 
     // create index
     milvus::IndexDesc index_vector(field_vector, "", milvus::IndexType::IVF_FLAT, milvus::MetricType::COSINE);
-    status = client->CreateIndex(collection_name, index_vector);
+    status = client->CreateIndex(
+        milvus::CreateIndexRequest().WithCollectionName(collection_name).AddIndex(std::move(index_vector)));
     util::CheckStatus("create index on vector field", status);
 
     // tell server prepare to load collection
-    status = client->LoadCollection(collection_name);
+    status = client->LoadCollection(milvus::LoadCollectionRequest().WithCollectionName(collection_name));
     util::CheckStatus(std::string("load collection: ") + collection_name, status);
 
     // insert some rows by row-based
@@ -76,41 +77,42 @@ buildCollection(milvus::MilvusClientPtr& client) {
         rows.emplace_back(std::move(row));
     }
 
-    milvus::DmlResults dml_results;
-    status = client->Insert(collection_name, "", rows, dml_results);
+    milvus::InsertResponse resp_insert;
+    status = client->Insert(milvus::InsertRequest().WithCollectionName(collection_name).WithRowsData(std::move(rows)),
+                            resp_insert);
     util::CheckStatus("insert", status);
 
     // get row count
-    milvus::QueryArguments q_count{};
-    q_count.SetCollectionName(collection_name);
-    q_count.AddOutputField("count(*)");
-    q_count.SetConsistencyLevel(milvus::ConsistencyLevel::STRONG);
+    milvus::QueryRequest request;
+    request.SetCollectionName(collection_name);
+    request.AddOutputField("count(*)");
+    request.SetConsistencyLevel(milvus::ConsistencyLevel::STRONG);
 
-    milvus::QueryResults count_result{};
-    status = client->Query(q_count, count_result);
+    milvus::QueryResponse response;
+    status = client->Query(request, response);
     util::CheckStatus("query count(*)", status);
-    std::cout << "count(*) = " << count_result.GetRowCount() << std::endl;
+    std::cout << "count(*) = " << response.Results().GetRowCount() << std::endl;
 }
 
 void
-queryWithFilter(milvus::MilvusClientPtr& client, std::string filter) {
+queryWithFilter(milvus::MilvusClientV2Ptr& client, std::string filter) {
     std::cout << "================================================================" << std::endl;
     std::cout << "Query with filter: " << filter << std::endl;
 
-    milvus::QueryArguments q_arguments{};
-    q_arguments.SetCollectionName(collection_name);
-    q_arguments.SetFilter(filter);
-    q_arguments.AddOutputField(field_id);
-    q_arguments.AddOutputField(field_text);
-    q_arguments.SetLimit(50);
-    q_arguments.SetConsistencyLevel(milvus::ConsistencyLevel::BOUNDED);
+    milvus::QueryRequest request;
+    request.SetCollectionName(collection_name);
+    request.SetFilter(filter);
+    request.AddOutputField(field_id);
+    request.AddOutputField(field_text);
+    request.SetLimit(50);
+    request.SetConsistencyLevel(milvus::ConsistencyLevel::BOUNDED);
 
-    milvus::QueryResults query_results{};
-    auto status = client->Query(q_arguments, query_results);
+    milvus::QueryResponse response;
+    auto status = client->Query(request, response);
     util::CheckStatus("query", status);
 
     milvus::EntityRows output_rows;
-    status = query_results.OutputRows(output_rows);
+    status = response.Results().OutputRows(output_rows);
     util::CheckStatus("get output rows", status);
     for (const auto& row : output_rows) {
         std::cout << "\t" << row << std::endl;
@@ -118,24 +120,24 @@ queryWithFilter(milvus::MilvusClientPtr& client, std::string filter) {
 }
 
 void
-searchWithFilter(milvus::MilvusClientPtr& client, std::string filter) {
+searchWithFilter(milvus::MilvusClientV2Ptr& client, std::string filter) {
     std::cout << "================================================================" << std::endl;
     std::cout << "Search with filter: " << filter << std::endl;
 
-    milvus::SearchArguments s_arguments{};
-    s_arguments.SetCollectionName(collection_name);
-    s_arguments.SetFilter(filter);
-    s_arguments.SetLimit(50);
-    s_arguments.AddOutputField(field_id);
-    s_arguments.AddOutputField(field_text);
-    s_arguments.AddFloatVector(field_vector, util::GenerateFloatVector(dimension));
-    s_arguments.SetConsistencyLevel(milvus::ConsistencyLevel::BOUNDED);
+    milvus::SearchRequest request;
+    request.SetCollectionName(collection_name);
+    request.SetFilter(filter);
+    request.SetLimit(50);
+    request.AddOutputField(field_id);
+    request.AddOutputField(field_text);
+    request.AddFloatVector(field_vector, util::GenerateFloatVector(dimension));
+    request.SetConsistencyLevel(milvus::ConsistencyLevel::BOUNDED);
 
-    milvus::SearchResults search_results{};
-    auto status = client->Search(s_arguments, search_results);
+    milvus::SearchResponse response;
+    auto status = client->Search(request, response);
     util::CheckStatus("search", status);
 
-    auto& result = search_results.Results().at(0);
+    auto& result = response.Results().Results().at(0);
     milvus::EntityRows output_rows;
     status = result.OutputRows(output_rows);
     util::CheckStatus("get output rows", status);
@@ -150,7 +152,7 @@ int
 main(int argc, char* argv[]) {
     printf("Example start...\n");
 
-    auto client = milvus::MilvusClient::Create();
+    auto client = milvus::MilvusClientV2::Create();
 
     milvus::ConnectParam connect_param{"localhost", 19530, "root", "Milvus"};
     auto status = client->Connect(connect_param);
@@ -159,7 +161,7 @@ main(int argc, char* argv[]) {
     buildCollection(client);
 
     // TEXT_MATCH requires the data is persisted, technical limitation
-    client->Flush(std::vector<std::string>{collection_name});
+    client->Flush(milvus::FlushRequest().AddCollectionName(collection_name));
 
     // query with TEXT_MATCH
     queryWithFilter(client, R"(TEXT_MATCH(text, "distance"))");

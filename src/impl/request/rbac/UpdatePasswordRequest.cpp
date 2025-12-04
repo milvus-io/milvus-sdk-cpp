@@ -35,18 +35,18 @@ UpdatePasswordRequest::WithUserName(const std::string& name) {
 }
 
 const std::string&
-UpdatePasswordRequest::Password() const {
-    return password_;
+UpdatePasswordRequest::OldPassword() const {
+    return old_password_;
 }
 
 void
-UpdatePasswordRequest::SetPassword(const std::string& password) {
-    password_ = password;
+UpdatePasswordRequest::SetOldPassword(const std::string& password) {
+    old_password_ = password;
 }
 
 UpdatePasswordRequest&
-UpdatePasswordRequest::WithPassword(const std::string& password) {
-    SetPassword(password);
+UpdatePasswordRequest::WithOldPassword(const std::string& password) {
+    SetOldPassword(password);
     return *this;
 }
 
