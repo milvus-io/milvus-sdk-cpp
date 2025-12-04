@@ -53,6 +53,8 @@ DataTypeCast(DataType type) {
             return proto::schema::DataType::Float16Vector;
         case DataType::BFLOAT16_VECTOR:
             return proto::schema::DataType::BFloat16Vector;
+        case DataType::INT8_VECTOR:
+            return proto::schema::DataType::Int8Vector;
         default:
             return proto::schema::DataType::None;
     }
@@ -91,6 +93,8 @@ DataTypeCast(proto::schema::DataType type) {
             return DataType::FLOAT16_VECTOR;
         case proto::schema::DataType::BFloat16Vector:
             return DataType::BFLOAT16_VECTOR;
+        case proto::schema::DataType::Int8Vector:
+            return DataType::INT8_VECTOR;
         default:
             return DataType::UNKNOWN;
     }
@@ -539,7 +543,7 @@ bool
 IsVectorType(DataType type) {
     return (DataType::BINARY_VECTOR == type || DataType::FLOAT_VECTOR == type ||
             DataType::SPARSE_FLOAT_VECTOR == type || DataType::FLOAT16_VECTOR == type ||
-            DataType::BFLOAT16_VECTOR == type);
+            DataType::BFLOAT16_VECTOR == type || DataType::INT8_VECTOR == type);
 }
 
 std::string
@@ -741,6 +745,7 @@ to_string(milvus::DataType data_type) {
         {milvus::DataType::FLOAT16_VECTOR, "FLOAT16_VECTOR"},
         {milvus::DataType::BFLOAT16_VECTOR, "BFLOAT16_VECTOR"},
         {milvus::DataType::SPARSE_FLOAT_VECTOR, "SPARSE_FLOAT_VECTOR"},
+        {milvus::DataType::INT8_VECTOR, "INT8_VECTOR"},
     };
     auto it = name_map.find(data_type);
     if (it == name_map.end()) {
