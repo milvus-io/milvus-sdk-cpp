@@ -18,8 +18,6 @@
 
 #include <nlohmann/json.hpp>
 
-#include "../utils/TypeUtils.h"
-
 namespace milvus {
 
 IndexDesc::IndexDesc() = default;

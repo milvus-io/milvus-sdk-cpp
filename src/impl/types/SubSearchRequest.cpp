@@ -21,6 +21,7 @@
 #include "../utils/Constants.h"
 #include "../utils/DmlUtils.h"
 #include "../utils/DqlUtils.h"
+#include "../utils/ExtraParamUtils.h"
 #include "../utils/TypeUtils.h"
 #include "milvus/utils/FP16.h"
 
@@ -202,7 +203,7 @@ SearchRequestBase::Radius() const {
 
 Status
 SearchRequestBase::SetRadius(double value) {
-    extra_params_[RADIUS] = doubleToString(value);
+    extra_params_[RADIUS] = DoubleToString(value);
     return Status::OK();
 }
 
@@ -217,7 +218,7 @@ SearchRequestBase::RangeFilter() const {
 
 Status
 SearchRequestBase::SetRangeFilter(double value) {
-    extra_params_[RANGE_FILTER] = doubleToString(value);
+    extra_params_[RANGE_FILTER] = DoubleToString(value);
     return Status::OK();
 }
 

@@ -21,6 +21,7 @@
 #include "../utils/CompareUtils.h"
 #include "../utils/Constants.h"
 #include "../utils/DqlUtils.h"
+#include "../utils/ExtraParamUtils.h"
 #include "../utils/GtsDict.h"
 #include "../utils/RpcUtils.h"
 #include "../utils/TypeUtils.h"
@@ -195,7 +196,7 @@ SearchIteratorV2Impl<T>::next(SingleResultPtr& results) {
     // set the bound for the next search, the bound must be a string of double precise
     // you will get bug if you treat it as float
     auto rpc_results = rpc_response.results().search_iterator_v2_results();
-    auto bound = doubleToString(static_cast<double>(rpc_results.last_bound()));
+    auto bound = DoubleToString(static_cast<double>(rpc_results.last_bound()));
     args_.AddExtraParam(ITER_SEARCH_LAST_BOUND_KEY, bound);
 
     const auto& params = args_.ExtraParams();
