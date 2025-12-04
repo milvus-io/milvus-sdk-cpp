@@ -52,19 +52,19 @@ class UpdatePasswordRequest {
      * @brief Password of the user.
      */
     const std::string&
-    Password() const;
+    OldPassword() const;
 
     /**
      * @brief Set password of the user.
      */
     void
-    SetPassword(const std::string& password);
+    SetOldPassword(const std::string& password);
 
     /**
      * @brief Set password of the user.
      */
     UpdatePasswordRequest&
-    WithPassword(const std::string& password);
+    WithOldPassword(const std::string& password);
 
     /**
      * @brief Password of the user.
@@ -86,7 +86,7 @@ class UpdatePasswordRequest {
 
  protected:
     std::string user_name_;
-    std::string password_;
+    std::string old_password_;
     std::string new_password_;
 };
 
