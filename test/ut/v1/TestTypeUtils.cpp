@@ -312,11 +312,29 @@ TEST_F(TypeUtilsTest, MetricTypeCastTest) {
 }
 
 TEST_F(TypeUtilsTest, IndexTypeCastTest) {
-    for (const auto& name : {"INVALID",    "FLAT",         "IVF_FLAT",     "IVF_SQ8",
-                             "IVF_PQ",     "HNSW",         "DISKANN",      "AUTOINDEX",
-                             "SCANN",      "GPU_IVF_FLAT", "GPU_IVF_PQ",   "GPU_BRUTE_FORCE",
-                             "GPU_CAGRA",  "BIN_FLAT",     "BIN_IVF_FLAT", "Trie",
-                             "STL_SORT",   "INVERTED",     "BITMAP",       "SPARSE_INVERTED_INDEX",
+    for (const auto& name : {"INVALID",
+                             "FLAT",
+                             "IVF_FLAT",
+                             "IVF_SQ8",
+                             "IVF_PQ",
+                             "HNSW",
+                             "HNSW_SQ",
+                             "HNSW_PQ",
+                             "HNSW_PRQ",
+                             "DISKANN",
+                             "AUTOINDEX",
+                             "SCANN",
+                             "GPU_IVF_FLAT",
+                             "GPU_IVF_PQ",
+                             "GPU_BRUTE_FORCE",
+                             "GPU_CAGRA",
+                             "BIN_FLAT",
+                             "BIN_IVF_FLAT",
+                             "Trie",
+                             "STL_SORT",
+                             "INVERTED",
+                             "BITMAP",
+                             "SPARSE_INVERTED_INDEX",
                              "SPARSE_WAND"}) {
         EXPECT_EQ(std::to_string(milvus::IndexTypeCast(name)), name);
     }

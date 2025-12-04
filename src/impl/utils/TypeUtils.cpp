@@ -156,6 +156,15 @@ IndexTypeCast(const std::string& type) {
     if (type == "HNSW") {
         return IndexType::HNSW;
     }
+    if (type == "HNSW_SQ") {
+        return IndexType::HNSW_SQ;
+    }
+    if (type == "HNSW_PQ") {
+        return IndexType::HNSW_PQ;
+    }
+    if (type == "HNSW_PRQ") {
+        return IndexType::HNSW_PRQ;
+    }
     if (type == "DISKANN") {
         return IndexType::DISKANN;
     }
@@ -688,6 +697,12 @@ to_string(milvus::IndexType index_type) {
             return "IVF_SQ8";
         case milvus::IndexType::HNSW:
             return "HNSW";
+        case milvus::IndexType::HNSW_SQ:
+            return "HNSW_SQ";
+        case milvus::IndexType::HNSW_PQ:
+            return "HNSW_PQ";
+        case milvus::IndexType::HNSW_PRQ:
+            return "HNSW_PRQ";
         case milvus::IndexType::DISKANN:
             return "DISKANN";
         case milvus::IndexType::AUTOINDEX:
