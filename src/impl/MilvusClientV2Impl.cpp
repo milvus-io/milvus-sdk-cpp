@@ -1453,7 +1453,7 @@ MilvusClientV2Impl::Flush(const FlushRequest& request) {
         // the finished_count is how many segments have been flushed
         uint32_t segment_count = 0, finished_count = 0;
         for (auto& pair : flush_segments) {
-            segment_count += pair.second.size();
+            segment_count += static_cast<uint32_t>(pair.second.size());
         }
         if (segment_count == 0) {
             return Status::OK();
@@ -1472,7 +1472,7 @@ MilvusClientV2Impl::Flush(const FlushRequest& request) {
                     }
 
                     if (flushed) {
-                        finished_count += iter->second.size();
+                        finished_count += static_cast<uint32_t>(iter->second.size());
                         flush_segments.erase(iter++);
                     } else {
                         iter++;
@@ -1665,7 +1665,7 @@ MilvusClientV2Impl::TransferNode(const TransferNodeRequest& request) {
     auto pre = [&request](proto::milvus::TransferNodeRequest& rpc_request) {
         rpc_request.set_source_resource_group(request.SourceGroup());
         rpc_request.set_target_resource_group(request.TargetGroup());
-        rpc_request.set_num_node(request.NumNodes());
+        rpc_request.set_num_node(static_cast<int32_t>(request.NumNodes()));
         return Status::OK();
     };
 
@@ -1759,7 +1759,7 @@ Status
 MilvusClientV2Impl::UpdatePassword(const UpdatePasswordRequest& request) {
     auto pre = [&request](proto::milvus::UpdateCredentialRequest& rpc_request) {
         rpc_request.set_username(request.UserName());
-        rpc_request.set_oldpassword(milvus::Base64Encode(request.Password()));
+        rpc_request.set_oldpassword(milvus::Base64Encode(request.OldPassword()));
         rpc_request.set_newpassword(milvus::Base64Encode(request.NewPassword()));
         return Status::OK();
     };
