@@ -151,11 +151,6 @@ class SearchResults {
     /**
      * @brief Constructor
      */
-    SearchResults(const SearchResults& src);
-
-    /**
-     * @brief Constructor
-     */
     explicit SearchResults(std::vector<SingleResult>&& results);
 
     /**

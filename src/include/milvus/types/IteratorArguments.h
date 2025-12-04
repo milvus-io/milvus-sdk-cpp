@@ -35,14 +35,14 @@ class IteratorArguments {
     /**
      * @brief Get the batch size.
      */
-    uint64_t
+    int64_t
     BatchSize() const;
 
     /**
      * @brief Set the batch size.
      */
     Status
-    SetBatchSize(uint64_t batch_size);
+    SetBatchSize(int64_t batch_size);
 
     /**
      * @brief Get the collection id.
@@ -71,7 +71,7 @@ class IteratorArguments {
     SetPkSchema(const FieldSchema& schema);
 
  private:
-    uint64_t batch_size_{1000};
+    int64_t batch_size_{1000};
     int64_t collection_id_{0};
     FieldSchema pk_schema_;
 };

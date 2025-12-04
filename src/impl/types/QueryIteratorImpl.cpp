@@ -26,15 +26,17 @@
 namespace milvus {
 template class Iterator<QueryResults>;
 
-QueryIteratorImpl::QueryIteratorImpl(MilvusConnectionPtr& connection, const QueryIteratorArguments& args,
-                                     const RetryParam& retry_param) {
+template <typename T>
+QueryIteratorImpl<T>::QueryIteratorImpl(const MilvusConnectionPtr& connection, const T& args,
+                                        const RetryParam& retry_param) {
     connection_ = connection;
     args_ = args;
     retry_param_ = retry_param;
 }
 
+template <typename T>
 Status
-QueryIteratorImpl::Next(QueryResults& results) {
+QueryIteratorImpl<T>::Next(QueryResults& results) {
     results.Clear();
 
     QueryResults temp_results;
@@ -112,8 +114,9 @@ QueryIteratorImpl::Next(QueryResults& results) {
     return Status::OK();
 }
 
+template <typename T>
 Status
-QueryIteratorImpl::Init() {
+QueryIteratorImpl<T>::Init() {
     // store the limit/offset values, the args's limit/offset will be changed later
     limit_ = args_.Limit();
     offset_ = args_.Offset();
@@ -138,8 +141,9 @@ QueryIteratorImpl::Init() {
 // This method is to handle offset
 // offset value could be larger than 16384, this method might call query multiple
 // times until the "next_id_" is set to the offset position.
+template <typename T>
 Status
-QueryIteratorImpl::seek() {
+QueryIteratorImpl<T>::seek() {
     if (offset_ == 0) {
         return Status::OK();
     }
@@ -173,8 +177,9 @@ QueryIteratorImpl::seek() {
 // two cases:
 //   user inputs expression, "(name != 'xxx') and pk > xx"
 //   user doesn't input expression, "pk > xx"
+template <typename T>
 std::string
-QueryIteratorImpl::setupNextFilter() {
+QueryIteratorImpl<T>::setupNextFilter() {
     if (next_id_.empty()) {
         return args_.Filter();
     }
@@ -191,8 +196,9 @@ QueryIteratorImpl::setupNextFilter() {
     return user_filter.empty() ? iter_filter : " ( " + user_filter + " ) " + " and " + iter_filter;
 }
 
+template <typename T>
 Status
-QueryIteratorImpl::executeQuery(const std::string& filter, int64_t limit, bool is_seek, QueryResults& results) {
+QueryIteratorImpl<T>::executeQuery(const std::string& filter, int64_t limit, bool is_seek, QueryResults& results) {
     uint64_t timeout = connection_->GetConnectParam().RpcDeadlineMs();
     std::string current_db =
         args_.DatabaseName().empty() ? connection_->GetConnectParam().DbName() : args_.DatabaseName();
@@ -219,7 +225,7 @@ QueryIteratorImpl::executeQuery(const std::string& filter, int64_t limit, bool i
     // reset the limit value since the iterator fetches data batch by batch
     args_.SetLimit(limit);
 
-    auto status = ConvertQueryRequest(args_, current_db, rpc_request);
+    auto status = ConvertQueryRequest<T>(args_, current_db, rpc_request);
     if (!status.IsOk()) {
         return status;
     }
@@ -258,8 +264,9 @@ QueryIteratorImpl::executeQuery(const std::string& filter, int64_t limit, bool i
     return ConvertQueryResults(rpc_response, results);
 }
 
+template <typename T>
 Status
-QueryIteratorImpl::copyResults(const QueryResults& src, uint64_t from, uint64_t to, QueryResults& target) {
+QueryIteratorImpl<T>::copyResults(const QueryResults& src, uint64_t from, uint64_t to, QueryResults& target) {
     const std::vector<FieldDataPtr>& src_fields = src.OutputFields();
     if ((from == 0 && to == src.GetRowCount()) || src.GetRowCount() == 0) {
         // from begin to end, or the src is empty, no need to copy, return the src
@@ -283,8 +290,9 @@ QueryIteratorImpl::copyResults(const QueryResults& src, uint64_t from, uint64_t 
 
 // This method update the next_id_ to the last rows of the query result.
 // the next_id_ will be used to update the filter expression for the next query.
+template <typename T>
 Status
-QueryIteratorImpl::updateCursor(const QueryResults& results) {
+QueryIteratorImpl<T>::updateCursor(const QueryResults& results) {
     if (results.GetRowCount() == 0) {
         // empty result, no need to set the next_id
         return Status::OK();
@@ -307,5 +315,9 @@ QueryIteratorImpl::updateCursor(const QueryResults& results) {
     }
     return Status::OK();
 }
+
+// explicitly instantiation of template methods to avoid link error
+template class QueryIteratorImpl<QueryIteratorArguments>;
+template class QueryIteratorImpl<QueryIteratorRequest>;
 
 }  // namespace milvus

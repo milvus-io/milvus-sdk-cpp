@@ -17,16 +17,18 @@
 #pragma once
 
 #include "../MilvusConnection.h"
+#include "milvus/request/dql/QueryIteratorRequest.h"
 #include "milvus/types/FieldSchema.h"
 #include "milvus/types/Iterator.h"
 #include "milvus/types/IteratorArguments.h"
 #include "milvus/types/RetryParam.h"
 
 namespace milvus {
+
+template <typename T>
 class QueryIteratorImpl : public QueryIterator {
  public:
-    QueryIteratorImpl(MilvusConnectionPtr& connection, const QueryIteratorArguments& args,
-                      const RetryParam& retry_param);
+    QueryIteratorImpl(const MilvusConnectionPtr& connection, const T& args, const RetryParam& retry_param);
 
     Status
     Next(QueryResults& results) final;
@@ -52,7 +54,7 @@ class QueryIteratorImpl : public QueryIterator {
 
  private:
     MilvusConnectionPtr connection_;
-    QueryIteratorArguments args_;
+    T args_;
     RetryParam retry_param_;
 
     int64_t offset_{0};
@@ -64,5 +66,9 @@ class QueryIteratorImpl : public QueryIterator {
 
     QueryResults cache_;
 };
+
+// explicitly instantiation of template methods to avoid link error
+extern template class QueryIteratorImpl<QueryIteratorArguments>;
+extern template class QueryIteratorImpl<QueryIteratorRequest>;
 
 }  // namespace milvus

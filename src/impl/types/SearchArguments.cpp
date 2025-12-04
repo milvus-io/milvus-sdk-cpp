@@ -22,6 +22,7 @@
 #include "../utils/Constants.h"
 #include "../utils/DmlUtils.h"
 #include "../utils/DqlUtils.h"
+#include "../utils/ExtraParamUtils.h"
 #include "../utils/TypeUtils.h"
 #include "milvus/utils/FP16.h"
 
@@ -83,23 +84,23 @@ SearchArguments::AddOutputField(std::string field_name) {
 
 int64_t
 SearchArguments::Offset() const {
-    return offset_;
+    return GetExtraInt64(extra_params_, "offset", 0);
 }
 
 Status
 SearchArguments::SetOffset(int64_t offset) {
-    offset_ = offset;
+    SetExtraInt64(extra_params_, "offset", offset);
     return Status::OK();
 }
 
 int
 SearchArguments::RoundDecimal() const {
-    return round_decimal_;
+    return GetExtraInt64(extra_params_, "round_decimal", -1);
 }
 
 Status
 SearchArguments::SetRoundDecimal(int round_decimal) {
-    round_decimal_ = round_decimal;
+    SetExtraInt64(extra_params_, "round_decimal", round_decimal);
     return Status::OK();
 }
 
@@ -116,45 +117,45 @@ SearchArguments::SetConsistencyLevel(const ConsistencyLevel& level) {
 
 bool
 SearchArguments::IgnoreGrowing() const {
-    return ignore_growing_;
+    return GetExtraBool(extra_params_, "ignore_growing", false);
 }
 
 Status
 SearchArguments::SetIgnoreGrowing(bool ignore_growing) {
-    ignore_growing_ = ignore_growing;
+    SetExtraBool(extra_params_, "ignore_growing", ignore_growing);
     return Status::OK();
 }
 
 std::string
 SearchArguments::GroupByField() const {
-    return group_by_field_;
+    return GetExtraStr(extra_params_, "group_by_field", "");
 }
 
 Status
 SearchArguments::SetGroupByField(const std::string& field_name) {
-    group_by_field_ = field_name;
+    SetExtraStr(extra_params_, "group_by_field", field_name);
     return Status::OK();
 }
 
 uint64_t
 SearchArguments::GroupSize() const {
-    return group_size_;
+    return GetExtraInt64(extra_params_, "group_size", 1);
 }
 
 Status
 SearchArguments::SetGroupSize(uint64_t group_size) {
-    group_size_ = group_size;
+    SetExtraInt64(extra_params_, "group_size", group_size);
     return Status::OK();
 }
 
 uint64_t
 SearchArguments::StrictGroupSize() const {
-    return strict_group_size_;
+    return GetExtraBool(extra_params_, "strict_group_size", false);
 }
 
 Status
 SearchArguments::SetStrictGroupSize(bool strict_group_size) {
-    strict_group_size_ = strict_group_size;
+    SetExtraBool(extra_params_, "strict_group_size", strict_group_size);
     return Status::OK();
 }
 

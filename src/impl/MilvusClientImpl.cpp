@@ -47,40 +47,22 @@ MilvusClientImpl::~MilvusClientImpl() {
 
 Status
 MilvusClientImpl::Connect(const ConnectParam& param) {
-    if (connection_ != nullptr) {
-        connection_->Disconnect();
-    }
-
-    // TODO: check connect parameter
-    connection_ = std::make_shared<MilvusConnection>();
-    return connection_->Connect(param);
+    return connection_.Connect(param);
 }
 
 Status
 MilvusClientImpl::Disconnect() {
-    if (connection_ != nullptr) {
-        return connection_->Disconnect();
-    }
-
-    return Status::OK();
+    return connection_.Disconnect();
 }
 
 Status
 MilvusClientImpl::SetRpcDeadlineMs(uint64_t timeout_ms) {
-    if (connection_ == nullptr) {
-        return {StatusCode::NOT_CONNECTED, "Connection is not created!"};
-    }
-    connection_->GetConnectParam().SetRpcDeadlineMs(timeout_ms);
-    return Status::OK();
+    return connection_.SetRpcDeadlineMs(timeout_ms);
 }
 
 Status
 MilvusClientImpl::SetRetryParam(const RetryParam& retry_param) {
-    if (connection_ == nullptr) {
-        return {StatusCode::NOT_CONNECTED, "Connection is not created!"};
-    }
-    retry_param_ = retry_param;
-    return Status::OK();
+    return connection_.SetRetryParam(retry_param);
 }
 
 Status
@@ -95,7 +77,7 @@ MilvusClientImpl::GetServerVersion(std::string& version) {
         return Status::OK();
     };
 
-    return apiHandler<proto::milvus::GetVersionRequest, proto::milvus::GetVersionResponse>(
+    return connection_.Invoke<proto::milvus::GetVersionRequest, proto::milvus::GetVersionResponse>(
         nullptr, &MilvusConnection::GetVersion, post);
 }
 
@@ -134,7 +116,7 @@ MilvusClientImpl::CreateCollection(const CollectionSchema& schema, int64_t num_p
         return Status::OK();
     };
 
-    return apiHandler<proto::milvus::CreateCollectionRequest, proto::common::Status>(
+    return connection_.Invoke<proto::milvus::CreateCollectionRequest, proto::common::Status>(
         validate, pre, &MilvusConnection::CreateCollection, nullptr);
 }
 
@@ -151,7 +133,7 @@ MilvusClientImpl::HasCollection(const std::string& collection_name, bool& has) {
         return Status::OK();
     };
 
-    return apiHandler<proto::milvus::HasCollectionRequest, proto::milvus::BoolResponse>(
+    return connection_.Invoke<proto::milvus::HasCollectionRequest, proto::milvus::BoolResponse>(
         pre, &MilvusConnection::HasCollection, post);
 }
 
@@ -167,13 +149,13 @@ MilvusClientImpl::DropCollection(const std::string& collection_name) {
             // compile warning at this line since proto deprecates this method error_code()
             // TODO: if the parameters provides db_name in future, we need to set the correct
             // db_name to RemoveCollectionTs()
-            GtsDict::GetInstance().RemoveCollectionTs(currentDbName(""), collection_name);
+            GtsDict::GetInstance().RemoveCollectionTs(connection_.CurrentDbName(""), collection_name);
             removeCollectionDesc(collection_name);
         }
         return Status::OK();
     };
 
-    return apiHandler<proto::milvus::DropCollectionRequest, proto::common::Status>(
+    return connection_.Invoke<proto::milvus::DropCollectionRequest, proto::common::Status>(
         pre, &MilvusConnection::DropCollection, post);
 }
 
@@ -187,16 +169,17 @@ MilvusClientImpl::LoadCollection(const std::string& collection_name, int replica
     };
 
     auto wait_for_status = [this, &collection_name, &progress_monitor](const proto::common::Status&) {
-        return WaitForStatus(
+        return ConnectionHandler::WaitForStatus(
             [&collection_name, this](Progress& progress) -> Status {
                 progress.total_ = 100;
-                std::vector<std::string> partition_names;
-                return getLoadingProgress(collection_name, partition_names, progress.finished_);
+                auto db_name = connection_.CurrentDbName("");
+                std::set<std::string> partition_names;
+                return connection_.GetLoadingProgress(db_name, collection_name, partition_names, progress.finished_);
             },
             progress_monitor);
     };
 
-    return apiHandler<proto::milvus::LoadCollectionRequest, proto::common::Status>(
+    return connection_.Invoke<proto::milvus::LoadCollectionRequest, proto::common::Status>(
         pre, &MilvusConnection::LoadCollection, wait_for_status);
 }
 
@@ -207,7 +190,7 @@ MilvusClientImpl::ReleaseCollection(const std::string& collection_name) {
         return Status::OK();
     };
 
-    return apiHandler<proto::milvus::ReleaseCollectionRequest, proto::common::Status>(
+    return connection_.Invoke<proto::milvus::ReleaseCollectionRequest, proto::common::Status>(
         pre, &MilvusConnection::ReleaseCollection);
 }
 
@@ -234,7 +217,7 @@ MilvusClientImpl::DescribeCollection(const std::string& collection_name, Collect
         return Status::OK();
     };
 
-    return apiHandler<proto::milvus::DescribeCollectionRequest, proto::milvus::DescribeCollectionResponse>(
+    return connection_.Invoke<proto::milvus::DescribeCollectionRequest, proto::milvus::DescribeCollectionResponse>(
         pre, &MilvusConnection::DescribeCollection, post);
 }
 
@@ -246,7 +229,7 @@ MilvusClientImpl::RenameCollection(const std::string& collection_name, const std
         return Status::OK();
     };
 
-    return apiHandler<proto::milvus::RenameCollectionRequest, proto::common::Status>(
+    return connection_.Invoke<proto::milvus::RenameCollectionRequest, proto::common::Status>(
         pre, &MilvusConnection::RenameCollection);
 }
 
@@ -266,8 +249,9 @@ MilvusClientImpl::GetCollectionStatistics(const std::string& collection_name, Co
         return Status::OK();
     };
 
-    return apiHandler<proto::milvus::GetCollectionStatisticsRequest, proto::milvus::GetCollectionStatisticsResponse>(
-        pre, &MilvusConnection::GetCollectionStatistics, post);
+    return connection_
+        .Invoke<proto::milvus::GetCollectionStatisticsRequest, proto::milvus::GetCollectionStatisticsResponse>(
+            pre, &MilvusConnection::GetCollectionStatistics, post);
 }
 
 Status
@@ -291,7 +275,7 @@ MilvusClientImpl::ListCollections(CollectionsInfo& collections_info, bool only_s
         }
         return Status::OK();
     };
-    return apiHandler<proto::milvus::ShowCollectionsRequest, proto::milvus::ShowCollectionsResponse>(
+    return connection_.Invoke<proto::milvus::ShowCollectionsRequest, proto::milvus::ShowCollectionsResponse>(
         pre, &MilvusConnection::ShowCollections, post);
 }
 
@@ -311,7 +295,7 @@ MilvusClientImpl::GetLoadState(const std::string& collection_name, bool& is_load
         return Status::OK();
     };
 
-    return apiHandler<proto::milvus::GetLoadStateRequest, proto::milvus::GetLoadStateResponse>(
+    return connection_.Invoke<proto::milvus::GetLoadStateRequest, proto::milvus::GetLoadStateResponse>(
         pre, &MilvusConnection::GetLoadState, post);
 }
 
@@ -328,8 +312,8 @@ MilvusClientImpl::AlterCollectionProperties(const std::string& collection_name,
         return Status::OK();
     };
 
-    return apiHandler<proto::milvus::AlterCollectionRequest, proto::common::Status>(pre,
-                                                                                    &MilvusConnection::AlterCollection);
+    return connection_.Invoke<proto::milvus::AlterCollectionRequest, proto::common::Status>(
+        pre, &MilvusConnection::AlterCollection);
 }
 
 Status
@@ -343,8 +327,8 @@ MilvusClientImpl::DropCollectionProperties(const std::string& collection_name,
         return Status::OK();
     };
 
-    return apiHandler<proto::milvus::AlterCollectionRequest, proto::common::Status>(pre,
-                                                                                    &MilvusConnection::AlterCollection);
+    return connection_.Invoke<proto::milvus::AlterCollectionRequest, proto::common::Status>(
+        pre, &MilvusConnection::AlterCollection);
 }
 
 Status
@@ -361,7 +345,7 @@ MilvusClientImpl::AlterCollectionField(const std::string& collection_name, const
         return Status::OK();
     };
 
-    return apiHandler<proto::milvus::AlterCollectionFieldRequest, proto::common::Status>(
+    return connection_.Invoke<proto::milvus::AlterCollectionFieldRequest, proto::common::Status>(
         pre, &MilvusConnection::AlterCollectionField);
 }
 
@@ -373,8 +357,8 @@ MilvusClientImpl::CreatePartition(const std::string& collection_name, const std:
         return Status::OK();
     };
 
-    return apiHandler<proto::milvus::CreatePartitionRequest, proto::common::Status>(pre,
-                                                                                    &MilvusConnection::CreatePartition);
+    return connection_.Invoke<proto::milvus::CreatePartitionRequest, proto::common::Status>(
+        pre, &MilvusConnection::CreatePartition);
 }
 
 Status
@@ -385,8 +369,8 @@ MilvusClientImpl::DropPartition(const std::string& collection_name, const std::s
         return Status::OK();
     };
 
-    return apiHandler<proto::milvus::DropPartitionRequest, proto::common::Status>(pre,
-                                                                                  &MilvusConnection::DropPartition);
+    return connection_.Invoke<proto::milvus::DropPartitionRequest, proto::common::Status>(
+        pre, &MilvusConnection::DropPartition);
 }
 
 Status
@@ -402,7 +386,7 @@ MilvusClientImpl::HasPartition(const std::string& collection_name, const std::st
         return Status::OK();
     };
 
-    return apiHandler<proto::milvus::HasPartitionRequest, proto::milvus::BoolResponse>(
+    return connection_.Invoke<proto::milvus::HasPartitionRequest, proto::milvus::BoolResponse>(
         pre, &MilvusConnection::HasPartition, post);
 }
 
@@ -419,14 +403,20 @@ MilvusClientImpl::LoadPartitions(const std::string& collection_name, const std::
     };
 
     auto wait_for_status = [this, &collection_name, &partition_names, &progress_monitor](const proto::common::Status&) {
-        return WaitForStatus(
+        return ConnectionHandler::WaitForStatus(
             [&collection_name, &partition_names, this](Progress& progress) -> Status {
                 progress.total_ = 100;
-                return getLoadingProgress(collection_name, partition_names, progress.finished_);
+                auto db_name = connection_.CurrentDbName("");
+                std::set<std::string> unique_partition_names;
+                for (const auto& name : partition_names) {
+                    unique_partition_names.insert(name);
+                }
+                return connection_.GetLoadingProgress(db_name, collection_name, unique_partition_names,
+                                                      progress.finished_);
             },
             progress_monitor);
     };
-    return apiHandler<proto::milvus::LoadPartitionsRequest, proto::common::Status>(
+    return connection_.Invoke<proto::milvus::LoadPartitionsRequest, proto::common::Status>(
         nullptr, pre, &MilvusConnection::LoadPartitions, wait_for_status, nullptr);
 }
 
@@ -441,7 +431,7 @@ MilvusClientImpl::ReleasePartitions(const std::string& collection_name,
         return Status::OK();
     };
 
-    return apiHandler<proto::milvus::ReleasePartitionsRequest, proto::common::Status>(
+    return connection_.Invoke<proto::milvus::ReleasePartitionsRequest, proto::common::Status>(
         pre, &MilvusConnection::ReleasePartitions);
 }
 
@@ -462,8 +452,9 @@ MilvusClientImpl::GetPartitionStatistics(const std::string& collection_name, con
         return Status::OK();
     };
 
-    return apiHandler<proto::milvus::GetPartitionStatisticsRequest, proto::milvus::GetPartitionStatisticsResponse>(
-        pre, &MilvusConnection::GetPartitionStatistics, post);
+    return connection_
+        .Invoke<proto::milvus::GetPartitionStatisticsRequest, proto::milvus::GetPartitionStatisticsResponse>(
+            pre, &MilvusConnection::GetPartitionStatistics, post);
 }
 
 Status
@@ -493,7 +484,7 @@ MilvusClientImpl::ListPartitions(const std::string& collection_name, PartitionsI
         return Status::OK();
     };
 
-    return apiHandler<proto::milvus::ShowPartitionsRequest, proto::milvus::ShowPartitionsResponse>(
+    return connection_.Invoke<proto::milvus::ShowPartitionsRequest, proto::milvus::ShowPartitionsResponse>(
         pre, &MilvusConnection::ShowPartitions, post);
 }
 
@@ -505,7 +496,8 @@ MilvusClientImpl::CreateAlias(const std::string& collection_name, const std::str
         return Status::OK();
     };
 
-    return apiHandler<proto::milvus::CreateAliasRequest, proto::common::Status>(pre, &MilvusConnection::CreateAlias);
+    return connection_.Invoke<proto::milvus::CreateAliasRequest, proto::common::Status>(pre,
+                                                                                        &MilvusConnection::CreateAlias);
 }
 
 Status
@@ -515,7 +507,8 @@ MilvusClientImpl::DropAlias(const std::string& alias) {
         return Status::OK();
     };
 
-    return apiHandler<proto::milvus::DropAliasRequest, proto::common::Status>(pre, &MilvusConnection::DropAlias);
+    return connection_.Invoke<proto::milvus::DropAliasRequest, proto::common::Status>(pre,
+                                                                                      &MilvusConnection::DropAlias);
 }
 
 Status
@@ -526,7 +519,8 @@ MilvusClientImpl::AlterAlias(const std::string& collection_name, const std::stri
         return Status::OK();
     };
 
-    return apiHandler<proto::milvus::AlterAliasRequest, proto::common::Status>(pre, &MilvusConnection::AlterAlias);
+    return connection_.Invoke<proto::milvus::AlterAliasRequest, proto::common::Status>(pre,
+                                                                                       &MilvusConnection::AlterAlias);
 }
 
 Status
@@ -543,7 +537,7 @@ MilvusClientImpl::DescribeAlias(const std::string& alias_name, AliasDesc& desc) 
         return Status::OK();
     };
 
-    return apiHandler<proto::milvus::DescribeAliasRequest, proto::milvus::DescribeAliasResponse>(
+    return connection_.Invoke<proto::milvus::DescribeAliasRequest, proto::milvus::DescribeAliasResponse>(
         pre, &MilvusConnection::DescribeAlias, post);
 }
 
@@ -561,29 +555,21 @@ MilvusClientImpl::ListAliases(const std::string& collection_name, std::vector<Al
         return Status::OK();
     };
 
-    return apiHandler<proto::milvus::ListAliasesRequest, proto::milvus::ListAliasesResponse>(
+    return connection_.Invoke<proto::milvus::ListAliasesRequest, proto::milvus::ListAliasesResponse>(
         pre, &MilvusConnection::ListAliases, post);
 }
 
 Status
 MilvusClientImpl::UseDatabase(const std::string& db_name) {
     cleanCollectionDescCache();
-    if (connection_ != nullptr) {
-        return connection_->UseDatabase(db_name);
-    }
-
-    return Status::OK();
+    return connection_.UseDatabase(db_name);
 }
 
 Status
 MilvusClientImpl::CurrentUsedDatabase(std::string& db_name) {
-    if (connection_ == nullptr) {
-        return {StatusCode::NOT_CONNECTED, "Connection is not created!"};
-    }
-
     // the db name is returned from ConnectParam, the default db_name of ConnectParam
     // is an empty string which means the default database named "default".
-    auto name = currentDbName("");
+    auto name = connection_.CurrentDbName("");
     db_name = name.empty() ? "default" : name;
     return Status::OK();
 }
@@ -602,8 +588,8 @@ MilvusClientImpl::CreateDatabase(const std::string& db_name,
         return Status::OK();
     };
 
-    return apiHandler<proto::milvus::CreateDatabaseRequest, proto::common::Status>(pre,
-                                                                                   &MilvusConnection::CreateDatabase);
+    return connection_.Invoke<proto::milvus::CreateDatabaseRequest, proto::common::Status>(
+        pre, &MilvusConnection::CreateDatabase);
 }
 
 Status
@@ -613,7 +599,8 @@ MilvusClientImpl::DropDatabase(const std::string& db_name) {
         return Status::OK();
     };
 
-    return apiHandler<proto::milvus::DropDatabaseRequest, proto::common::Status>(pre, &MilvusConnection::DropDatabase);
+    return connection_.Invoke<proto::milvus::DropDatabaseRequest, proto::common::Status>(
+        pre, &MilvusConnection::DropDatabase);
 }
 
 Status
@@ -625,7 +612,7 @@ MilvusClientImpl::ListDatabases(std::vector<std::string>& names) {
         return Status::OK();
     };
 
-    return apiHandler<proto::milvus::ListDatabasesRequest, proto::milvus::ListDatabasesResponse>(
+    return connection_.Invoke<proto::milvus::ListDatabasesRequest, proto::milvus::ListDatabasesResponse>(
         nullptr, &MilvusConnection::ListDatabases, post);
 }
 
@@ -643,8 +630,8 @@ MilvusClientImpl::AlterDatabaseProperties(const std::string& db_name,
         return Status::OK();
     };
 
-    return apiHandler<proto::milvus::AlterDatabaseRequest, proto::common::Status>(pre,
-                                                                                  &MilvusConnection::AlterDatabase);
+    return connection_.Invoke<proto::milvus::AlterDatabaseRequest, proto::common::Status>(
+        pre, &MilvusConnection::AlterDatabase);
 }
 
 Status
@@ -658,8 +645,8 @@ MilvusClientImpl::DropDatabaseProperties(const std::string& db_name, const std::
         return Status::OK();
     };
 
-    return apiHandler<proto::milvus::AlterDatabaseRequest, proto::common::Status>(pre,
-                                                                                  &MilvusConnection::AlterDatabase);
+    return connection_.Invoke<proto::milvus::AlterDatabaseRequest, proto::common::Status>(
+        pre, &MilvusConnection::AlterDatabase);
 }
 
 Status
@@ -682,7 +669,7 @@ MilvusClientImpl::DescribeDatabase(const std::string& db_name, DatabaseDesc& db_
         return Status::OK();
     };
 
-    return apiHandler<proto::milvus::DescribeDatabaseRequest, proto::milvus::DescribeDatabaseResponse>(
+    return connection_.Invoke<proto::milvus::DescribeDatabaseRequest, proto::milvus::DescribeDatabaseResponse>(
         pre, &MilvusConnection::DescribeDatabase, post);
 }
 
@@ -714,7 +701,7 @@ MilvusClientImpl::CreateIndex(const std::string& collection_name, const IndexDes
     };
 
     auto wait_for_status = [&collection_name, &index_desc, &progress_monitor, this](const proto::common::Status&) {
-        return WaitForStatus(
+        return ConnectionHandler::WaitForStatus(
             [&collection_name, &index_desc, this](Progress& progress) -> Status {
                 IndexDesc index_state;
                 auto status = DescribeIndex(collection_name, index_desc.FieldName(), index_state);
@@ -738,7 +725,7 @@ MilvusClientImpl::CreateIndex(const std::string& collection_name, const IndexDes
             },
             progress_monitor);
     };
-    return apiHandler<proto::milvus::CreateIndexRequest, proto::common::Status>(
+    return connection_.Invoke<proto::milvus::CreateIndexRequest, proto::common::Status>(
         nullptr, pre, &MilvusConnection::CreateIndex, wait_for_status, nullptr);
 }
 
@@ -792,7 +779,7 @@ MilvusClientImpl::DescribeIndex(const std::string& collection_name, const std::s
         return Status::OK();
     };
 
-    return apiHandler<proto::milvus::DescribeIndexRequest, proto::milvus::DescribeIndexResponse>(
+    return connection_.Invoke<proto::milvus::DescribeIndexRequest, proto::milvus::DescribeIndexResponse>(
         pre, &MilvusConnection::DescribeIndex, post);
 }
 
@@ -816,7 +803,7 @@ MilvusClientImpl::ListIndexes(const std::string& collection_name, const std::str
         return Status::OK();
     };
 
-    return apiHandler<proto::milvus::DescribeIndexRequest, proto::milvus::DescribeIndexResponse>(
+    return connection_.Invoke<proto::milvus::DescribeIndexRequest, proto::milvus::DescribeIndexResponse>(
         pre, &MilvusConnection::DescribeIndex, post);
 }
 
@@ -834,7 +821,7 @@ MilvusClientImpl::GetIndexState(const std::string& collection_name, const std::s
         return Status::OK();
     };
 
-    return apiHandler<proto::milvus::GetIndexStateRequest, proto::milvus::GetIndexStateResponse>(
+    return connection_.Invoke<proto::milvus::GetIndexStateRequest, proto::milvus::GetIndexStateResponse>(
         pre, &MilvusConnection::GetIndexState, post);
 }
 
@@ -853,8 +840,9 @@ MilvusClientImpl::GetIndexBuildProgress(const std::string& collection_name, cons
         return Status::OK();
     };
 
-    return apiHandler<proto::milvus::GetIndexBuildProgressRequest, proto::milvus::GetIndexBuildProgressResponse>(
-        pre, &MilvusConnection::GetIndexBuildProgress, post);
+    return connection_
+        .Invoke<proto::milvus::GetIndexBuildProgressRequest, proto::milvus::GetIndexBuildProgressResponse>(
+            pre, &MilvusConnection::GetIndexBuildProgress, post);
 }
 
 Status
@@ -864,7 +852,8 @@ MilvusClientImpl::DropIndex(const std::string& collection_name, const std::strin
         rpc_request.set_index_name(index_name);
         return Status::OK();
     };
-    return apiHandler<proto::milvus::DropIndexRequest, proto::common::Status>(pre, &MilvusConnection::DropIndex);
+    return connection_.Invoke<proto::milvus::DropIndexRequest, proto::common::Status>(pre,
+                                                                                      &MilvusConnection::DropIndex);
 }
 
 Status
@@ -882,7 +871,8 @@ MilvusClientImpl::AlterIndexProperties(const std::string& collection_name, const
         return Status::OK();
     };
 
-    return apiHandler<proto::milvus::AlterIndexRequest, proto::common::Status>(pre, &MilvusConnection::AlterIndex);
+    return connection_.Invoke<proto::milvus::AlterIndexRequest, proto::common::Status>(pre,
+                                                                                       &MilvusConnection::AlterIndex);
 }
 
 Status
@@ -898,15 +888,16 @@ MilvusClientImpl::DropIndexProperties(const std::string& collection_name, const 
         return Status::OK();
     };
 
-    return apiHandler<proto::milvus::AlterIndexRequest, proto::common::Status>(pre, &MilvusConnection::AlterIndex);
+    return connection_.Invoke<proto::milvus::AlterIndexRequest, proto::common::Status>(pre,
+                                                                                       &MilvusConnection::AlterIndex);
 }
 
 Status
 MilvusClientImpl::Insert(const std::string& collection_name, const std::string& partition_name,
                          const std::vector<FieldDataPtr>& fields, DmlResults& results) {
-    bool enable_dynamic_field;
+    std::vector<proto::schema::FieldData> rpc_fields;
     CollectionDescPtr collection_desc;
-    auto validate = [this, &collection_name, &fields, &enable_dynamic_field, &collection_desc]() {
+    auto validate = [this, &collection_name, &fields, &collection_desc, &rpc_fields]() {
         auto status = getCollectionDesc(collection_name, false, collection_desc);
         if (!status.IsOk()) {
             return status;
@@ -923,40 +914,21 @@ MilvusClientImpl::Insert(const std::string& collection_name, const std::string& 
 
             status = CheckInsertInput(collection_desc, fields, false);
         }
-        enable_dynamic_field = collection_desc->Schema().EnableDynamicField();
-        return status;
+
+        return CreateProtoFieldDatas(collection_desc->Schema(), fields, rpc_fields);
     };
 
-    auto pre = [&collection_name, &partition_name, &fields, &enable_dynamic_field,
-                &collection_desc](proto::milvus::InsertRequest& rpc_request) {
-        const auto& collection_schema = collection_desc->Schema();
-        std::map<std::string, FieldSchema> name_schemas;
-        for (const auto& schema : collection_schema.Fields()) {
-            name_schemas.insert(std::make_pair(schema.Name(), schema));
-        }
-
+    auto pre = [&collection_name, &partition_name, &fields, &collection_desc,
+                &rpc_fields](proto::milvus::InsertRequest& rpc_request) {
         auto* mutable_fields = rpc_request.mutable_fields_data();
         rpc_request.set_collection_name(collection_name);
         rpc_request.set_partition_name(partition_name);
-        rpc_request.set_num_rows((*fields.front()).Count());
+        rpc_request.set_num_rows(static_cast<uint32_t>((*fields.front()).Count()));
         rpc_request.set_schema_timestamp(collection_desc->UpdateTime());
-        for (const auto& field : fields) {
-            FieldSchemaPtr schema_ptr;
-            auto it = name_schemas.find(field->Name());
-            if (it != name_schemas.end()) {
-                schema_ptr = std::make_shared<FieldSchema>(it->second);  // this is a schema copy
-            }
-            FieldDataSchema bridge(field, schema_ptr);
-            proto::schema::FieldData proto_data;
-            auto status = CreateProtoFieldData(bridge, proto_data);
-            if (!status.IsOk()) {
-                return status;
-            }
-            if (enable_dynamic_field && field->Name() == DYNAMIC_FIELD) {
-                proto_data.set_is_dynamic(true);
-            }
-            mutable_fields->Add(std::move(proto_data));
+        for (auto& field : rpc_fields) {
+            mutable_fields->Add(std::move(field));
         }
+
         return Status::OK();
     };
 
@@ -972,12 +944,13 @@ MilvusClientImpl::Insert(const std::string& collection_name, const std::string& 
         } else {
             // TODO: if the parameters provides db_name in future, we need to set the correct
             // db_name to UpdateCollectionTs()
-            GtsDict::GetInstance().UpdateCollectionTs(currentDbName(""), collection_name, response.timestamp());
+            auto db_name = connection_.CurrentDbName("");
+            GtsDict::GetInstance().UpdateCollectionTs(db_name, collection_name, response.timestamp());
         }
         return Status::OK();
     };
 
-    auto status = apiHandler<proto::milvus::InsertRequest, proto::milvus::MutationResult>(
+    auto status = connection_.Invoke<proto::milvus::InsertRequest, proto::milvus::MutationResult>(
         validate, pre, &MilvusConnection::Insert, post);
     // If there are multiple clients, the client_A repeatedly do insert, the client_B changes
     // the collection schema. The server might return a special error code "SchemaMismatch".
@@ -1029,12 +1002,13 @@ MilvusClientImpl::Insert(const std::string& collection_name, const std::string& 
         } else {
             // TODO: if the parameters provides db_name in future, we need to set the correct
             // db_name to UpdateCollectionTs()
-            GtsDict::GetInstance().UpdateCollectionTs(currentDbName(""), collection_name, response.timestamp());
+            auto db_name = connection_.CurrentDbName("");
+            GtsDict::GetInstance().UpdateCollectionTs(db_name, collection_name, response.timestamp());
         }
         return Status::OK();
     };
 
-    auto status = apiHandler<proto::milvus::InsertRequest, proto::milvus::MutationResult>(
+    auto status = connection_.Invoke<proto::milvus::InsertRequest, proto::milvus::MutationResult>(
         validate, pre, &MilvusConnection::Insert, post);
     // If there are multiple clients, the client_A repeatedly do insert, the client_B changes
     // the collection schema. The server might return a special error code "SchemaMismatch".
@@ -1084,7 +1058,7 @@ MilvusClientImpl::Upsert(const std::string& collection_name, const std::string& 
         auto* mutable_fields = rpc_request.mutable_fields_data();
         rpc_request.set_collection_name(collection_name);
         rpc_request.set_partition_name(partition_name);
-        rpc_request.set_num_rows((*fields.front()).Count());
+        rpc_request.set_num_rows(static_cast<uint32_t>((*fields.front()).Count()));
         rpc_request.set_schema_timestamp(collection_desc->UpdateTime());
         for (const auto& field : fields) {
             FieldSchemaPtr schema_ptr;
@@ -1118,12 +1092,13 @@ MilvusClientImpl::Upsert(const std::string& collection_name, const std::string& 
         } else {
             // TODO: if the parameters provides db_name in future, we need to set the correct
             // db_name to UpdateCollectionTs()
-            GtsDict::GetInstance().UpdateCollectionTs(currentDbName(""), collection_name, response.timestamp());
+            auto db_name = connection_.CurrentDbName("");
+            GtsDict::GetInstance().UpdateCollectionTs(db_name, collection_name, response.timestamp());
         }
         return Status::OK();
     };
 
-    auto status = apiHandler<proto::milvus::UpsertRequest, proto::milvus::MutationResult>(
+    auto status = connection_.Invoke<proto::milvus::UpsertRequest, proto::milvus::MutationResult>(
         validate, pre, &MilvusConnection::Upsert, post);
     // If there are multiple clients, the client_A repeatedly do insert, the client_B changes
     // the collection schema. The server might return a special error code "SchemaMismatch".
@@ -1174,12 +1149,13 @@ MilvusClientImpl::Upsert(const std::string& collection_name, const std::string& 
         } else {
             // TODO: if the parameters provides db_name in future, we need to set the correct
             // db_name to UpdateCollectionTs()
-            GtsDict::GetInstance().UpdateCollectionTs(currentDbName(""), collection_name, response.timestamp());
+            auto db_name = connection_.CurrentDbName("");
+            GtsDict::GetInstance().UpdateCollectionTs(db_name, collection_name, response.timestamp());
         }
         return Status::OK();
     };
 
-    auto status = apiHandler<proto::milvus::UpsertRequest, proto::milvus::MutationResult>(
+    auto status = connection_.Invoke<proto::milvus::UpsertRequest, proto::milvus::MutationResult>(
         validate, pre, &MilvusConnection::Upsert, post);
     // If there are multiple clients, the client_A repeatedly do insert, the client_B changes
     // the collection schema. The server might return a special error code "SchemaMismatch".
@@ -1211,13 +1187,14 @@ MilvusClientImpl::Delete(const std::string& collection_name, const std::string& 
         if (!IsRealFailure(response.status())) {
             // TODO: if the parameters provides db_name in future, we need to set the correct
             // db_name to UpdateCollectionTs()
-            GtsDict::GetInstance().UpdateCollectionTs(currentDbName(""), collection_name, response.timestamp());
+            auto db_name = connection_.CurrentDbName("");
+            GtsDict::GetInstance().UpdateCollectionTs(db_name, collection_name, response.timestamp());
         }
         return Status::OK();
     };
 
-    return apiHandler<proto::milvus::DeleteRequest, proto::milvus::MutationResult>(pre, &MilvusConnection::Delete,
-                                                                                   post);
+    return connection_.Invoke<proto::milvus::DeleteRequest, proto::milvus::MutationResult>(
+        pre, &MilvusConnection::Delete, post);
 }
 
 Status
@@ -1225,9 +1202,8 @@ MilvusClientImpl::Search(const SearchArguments& arguments, SearchResults& result
     auto validate = [&arguments]() { return arguments.Validate(); };
 
     auto pre = [this, &arguments](proto::milvus::SearchRequest& rpc_request) {
-        auto current_name = currentDbName(arguments.DatabaseName());
-        ConvertSearchRequest(arguments, current_name, rpc_request);
-        return Status::OK();
+        auto current_name = connection_.CurrentDbName(arguments.DatabaseName());
+        return ConvertSearchRequest<SearchArguments>(arguments, current_name, rpc_request);
     };
 
     auto post = [this, &arguments, &results](const proto::milvus::SearchResults& response) {
@@ -1245,7 +1221,7 @@ MilvusClientImpl::Search(const SearchArguments& arguments, SearchResults& result
         return ConvertSearchResults(response, pk_name, results);
     };
 
-    return apiHandler<proto::milvus::SearchRequest, proto::milvus::SearchResults>(
+    return connection_.Invoke<proto::milvus::SearchRequest, proto::milvus::SearchResults>(
         validate, pre, &MilvusConnection::Search, nullptr, post);
 }
 
@@ -1278,10 +1254,10 @@ MilvusClientImpl::SearchIterator(SearchIteratorArguments& arguments, SearchItera
             }
 
             if (vector_field_names.empty()) {
-                return {StatusCode::UNKNOWN_ERROR, "there should be at least one vector field in milvus collection"};
+                return {StatusCode::UNKNOWN_ERROR, "There should be at least one vector field in milvus collection"};
             }
             if (vector_field_names.size() > 1) {
-                return {StatusCode::UNKNOWN_ERROR, "must specify anns_field when there are more than one vector field"};
+                return {StatusCode::UNKNOWN_ERROR, "Must specify anns_field when there are more than one vector field"};
             }
             anns_field = *(vector_field_names.begin());
         }
@@ -1297,14 +1273,16 @@ MilvusClientImpl::SearchIterator(SearchIteratorArguments& arguments, SearchItera
     // From SDK v2.5.6, milvus provide a new search iterator implementation in server-side.
     // SearchIteratorV2 is faster than V1 by 20~30 percent, and the recall is a little better than V1.
     // sdk attempts to use SearchIteratorV2 if supported by the server, otherwise falls back to V1.
-    auto ptrV2 = std::make_shared<SearchIteratorV2Impl>(connection_, arguments, retry_param_);
+    auto ptrV2 = std::make_shared<SearchIteratorV2Impl<SearchIteratorArguments>>(connection_.GetConnection(), arguments,
+                                                                                 connection_.GetRetryParam());
     status = ptrV2->Init();
     iterator = ptrV2;
     if (!status.IsOk() && status.Code() == StatusCode::NOT_SUPPORTED) {
-        auto ptrV1 = std::make_shared<SearchIteratorImpl>(connection_, arguments, retry_param_);
+        auto ptrV1 = std::make_shared<SearchIteratorImpl<SearchIteratorArguments>>(
+            connection_.GetConnection(), arguments, connection_.GetRetryParam());
         status = ptrV1->Init();
         if (!status.IsOk()) {
-            return {status.Code(), "Not able to create search iterator, error: " + status.Message()};
+            return {status.Code(), "Unable to create search iterator, error: " + status.Message()};
         }
         iterator = ptrV1;
     }
@@ -1316,9 +1294,8 @@ MilvusClientImpl::HybridSearch(const HybridSearchArguments& arguments, SearchRes
     auto validate = [&arguments]() { return arguments.Validate(); };
 
     auto pre = [this, &arguments](proto::milvus::HybridSearchRequest& rpc_request) {
-        auto current_name = currentDbName(arguments.DatabaseName());
-        ConvertHybridSearchRequest(arguments, current_name, rpc_request);
-        return Status::OK();
+        auto current_name = connection_.CurrentDbName(arguments.DatabaseName());
+        return ConvertHybridSearchRequest<HybridSearchArguments>(arguments, current_name, rpc_request);
     };
 
     auto post = [this, &arguments, &results](const proto::milvus::SearchResults& response) {
@@ -1336,22 +1313,22 @@ MilvusClientImpl::HybridSearch(const HybridSearchArguments& arguments, SearchRes
         return ConvertSearchResults(response, pk_name, results);
     };
 
-    return apiHandler<proto::milvus::HybridSearchRequest, proto::milvus::SearchResults>(
+    return connection_.Invoke<proto::milvus::HybridSearchRequest, proto::milvus::SearchResults>(
         validate, pre, &MilvusConnection::HybridSearch, nullptr, post);
 }
 
 Status
 MilvusClientImpl::Query(const QueryArguments& arguments, QueryResults& results) {
     auto pre = [this, &arguments](proto::milvus::QueryRequest& rpc_request) {
-        auto current_name = currentDbName(arguments.DatabaseName());
-        ConvertQueryRequest(arguments, current_name, rpc_request);
-        return Status::OK();
+        auto current_name = connection_.CurrentDbName(arguments.DatabaseName());
+        return ConvertQueryRequest<QueryArguments>(arguments, current_name, rpc_request);
     };
 
     auto post = [&results](const proto::milvus::QueryResults& response) {
         return ConvertQueryResults(response, results);
     };
-    return apiHandler<proto::milvus::QueryRequest, proto::milvus::QueryResults>(pre, &MilvusConnection::Query, post);
+    return connection_.Invoke<proto::milvus::QueryRequest, proto::milvus::QueryResults>(pre, &MilvusConnection::Query,
+                                                                                        post);
 }
 
 Status
@@ -1362,10 +1339,11 @@ MilvusClientImpl::QueryIterator(QueryIteratorArguments& arguments, QueryIterator
     }
 
     // iterator constructor might return error when it fails to initialize
-    auto ptr = std::make_shared<QueryIteratorImpl>(connection_, arguments, retry_param_);
+    auto ptr = std::make_shared<QueryIteratorImpl<QueryIteratorArguments>>(connection_.GetConnection(), arguments,
+                                                                           connection_.GetRetryParam());
     status = ptr->Init();
     if (!status.IsOk()) {
-        return {status.Code(), "Not able to create query iterator, error: " + status.Message()};
+        return {status.Code(), "Unable to create query iterator, error: " + status.Message()};
     }
     iterator = ptr;
     return Status::OK();
@@ -1391,7 +1369,7 @@ MilvusClientImpl::RunAnalyzer(const RunAnalyzerArguments& arguments, AnalyzerRes
     };
 
     auto post = [&results](const proto::milvus::RunAnalyzerResponse& response) {
-        std::vector<AnalyzerResult> results_list;
+        results.clear();
         const auto& rpc_results = response.results();
         for (auto i = 0; i < response.results_size(); i++) {
             std::vector<AnalyzerToken> tokens;
@@ -1409,13 +1387,13 @@ MilvusClientImpl::RunAnalyzer(const RunAnalyzerArguments& arguments, AnalyzerRes
             }
 
             AnalyzerResult result{std::move(tokens)};
-            results_list.emplace_back(std::move(result));
+            results.emplace_back(std::move(result));
         }
-        results = AnalyzerResults(std::move(results_list));
+
         return Status::OK();
     };
 
-    return apiHandler<proto::milvus::RunAnalyzerRequest, proto::milvus::RunAnalyzerResponse>(
+    return connection_.Invoke<proto::milvus::RunAnalyzerRequest, proto::milvus::RunAnalyzerResponse>(
         pre, &MilvusConnection::RunAnalyzer, post);
 }
 
@@ -1442,13 +1420,13 @@ MilvusClientImpl::Flush(const std::vector<std::string>& collection_names, const 
         // the finished_count is how many segments have been flushed
         uint32_t segment_count = 0, finished_count = 0;
         for (auto& pair : flush_segments) {
-            segment_count += pair.second.size();
+            segment_count += static_cast<uint32_t>(pair.second.size());
         }
         if (segment_count == 0) {
             return Status::OK();
         }
 
-        return WaitForStatus(
+        return ConnectionHandler::WaitForStatus(
             [&segment_count, &flush_segments, &finished_count, this](Progress& p) -> Status {
                 p.total_ = segment_count;
 
@@ -1461,7 +1439,7 @@ MilvusClientImpl::Flush(const std::vector<std::string>& collection_names, const 
                     }
 
                     if (flushed) {
-                        finished_count += iter->second.size();
+                        finished_count += static_cast<uint32_t>(iter->second.size());
                         flush_segments.erase(iter++);
                     } else {
                         iter++;
@@ -1474,8 +1452,8 @@ MilvusClientImpl::Flush(const std::vector<std::string>& collection_names, const 
             progress_monitor);
     };
 
-    return apiHandler<proto::milvus::FlushRequest, proto::milvus::FlushResponse>(nullptr, pre, &MilvusConnection::Flush,
-                                                                                 wait_for_status, nullptr);
+    return connection_.Invoke<proto::milvus::FlushRequest, proto::milvus::FlushResponse>(
+        nullptr, pre, &MilvusConnection::Flush, wait_for_status, nullptr);
 }
 
 Status
@@ -1492,7 +1470,7 @@ MilvusClientImpl::GetFlushState(const std::vector<int64_t>& segments, bool& flus
         return Status::OK();
     };
 
-    return apiHandler<proto::milvus::GetFlushStateRequest, proto::milvus::GetFlushStateResponse>(
+    return connection_.Invoke<proto::milvus::GetFlushStateRequest, proto::milvus::GetFlushStateResponse>(
         pre, &MilvusConnection::GetFlushState, post);
 }
 
@@ -1511,8 +1489,9 @@ MilvusClientImpl::GetPersistentSegmentInfo(const std::string& collection_name, S
         return Status::OK();
     };
 
-    return apiHandler<proto::milvus::GetPersistentSegmentInfoRequest, proto::milvus::GetPersistentSegmentInfoResponse>(
-        pre, &MilvusConnection::GetPersistentSegmentInfo, post);
+    return connection_
+        .Invoke<proto::milvus::GetPersistentSegmentInfoRequest, proto::milvus::GetPersistentSegmentInfoResponse>(
+            pre, &MilvusConnection::GetPersistentSegmentInfo, post);
 }
 
 Status
@@ -1533,7 +1512,7 @@ MilvusClientImpl::GetQuerySegmentInfo(const std::string& collection_name, QueryS
         }
         return Status::OK();
     };
-    return apiHandler<proto::milvus::GetQuerySegmentInfoRequest, proto::milvus::GetQuerySegmentInfoResponse>(
+    return connection_.Invoke<proto::milvus::GetQuerySegmentInfoRequest, proto::milvus::GetQuerySegmentInfoResponse>(
         pre, &MilvusConnection::GetQuerySegmentInfo, post);
 }
 
@@ -1550,7 +1529,7 @@ MilvusClientImpl::GetMetrics(const std::string& request, std::string& response, 
         return Status::OK();
     };
 
-    return apiHandler<proto::milvus::GetMetricsRequest, proto::milvus::GetMetricsResponse>(
+    return connection_.Invoke<proto::milvus::GetMetricsRequest, proto::milvus::GetMetricsResponse>(
         pre, &MilvusConnection::GetMetrics, post);
 }
 
@@ -1568,8 +1547,8 @@ MilvusClientImpl::LoadBalance(int64_t src_node, const std::vector<int64_t>& dst_
         return Status::OK();
     };
 
-    return apiHandler<proto::milvus::LoadBalanceRequest, proto::common::Status>(pre, &MilvusConnection::LoadBalance,
-                                                                                nullptr);
+    return connection_.Invoke<proto::milvus::LoadBalanceRequest, proto::common::Status>(
+        pre, &MilvusConnection::LoadBalance, nullptr);
 }
 
 Status
@@ -1583,6 +1562,7 @@ MilvusClientImpl::GetCompactionState(int64_t compaction_id, CompactionState& com
         compaction_state.SetExecutingPlan(response.executingplanno());
         compaction_state.SetTimeoutPlan(response.timeoutplanno());
         compaction_state.SetCompletedPlan(response.completedplanno());
+        compaction_state.SetFailedPlan(response.failedplanno());
         switch (response.state()) {
             case proto::common::CompactionState::Completed:
                 compaction_state.SetState(CompactionStateCode::COMPLETED);
@@ -1596,7 +1576,7 @@ MilvusClientImpl::GetCompactionState(int64_t compaction_id, CompactionState& com
         return Status::OK();
     };
 
-    return apiHandler<proto::milvus::GetCompactionStateRequest, proto::milvus::GetCompactionStateResponse>(
+    return connection_.Invoke<proto::milvus::GetCompactionStateRequest, proto::milvus::GetCompactionStateResponse>(
         pre, &MilvusConnection::GetCompactionState, post);
 }
 
@@ -1620,7 +1600,7 @@ MilvusClientImpl::ManualCompaction(const std::string& collection_name, uint64_t 
         return Status::OK();
     };
 
-    return apiHandler<proto::milvus::ManualCompactionRequest, proto::milvus::ManualCompactionResponse>(
+    return connection_.Invoke<proto::milvus::ManualCompactionRequest, proto::milvus::ManualCompactionResponse>(
         pre, &MilvusConnection::ManualCompaction, post);
 }
 
@@ -1642,13 +1622,13 @@ MilvusClientImpl::GetCompactionPlans(int64_t compaction_id, CompactionPlans& pla
         return Status::OK();
     };
 
-    return apiHandler<proto::milvus::GetCompactionPlansRequest, proto::milvus::GetCompactionPlansResponse>(
+    return connection_.Invoke<proto::milvus::GetCompactionPlansRequest, proto::milvus::GetCompactionPlansResponse>(
         pre, &MilvusConnection::GetCompactionPlans, post);
 }
 
 Status
 MilvusClientImpl::CreateCredential(const std::string& username, const std::string& password) {
-    return CreateCredential(username, password);
+    return CreateUser(username, password);
 }
 
 Status
@@ -1678,7 +1658,7 @@ MilvusClientImpl::CreateResourceGroup(const std::string& name, const ResourceGro
         return Status::OK();
     };
 
-    return apiHandler<proto::milvus::CreateResourceGroupRequest, proto::common::Status>(
+    return connection_.Invoke<proto::milvus::CreateResourceGroupRequest, proto::common::Status>(
         pre, &MilvusConnection::CreateResourceGroup, nullptr);
 }
 
@@ -1689,7 +1669,7 @@ MilvusClientImpl::DropResourceGroup(const std::string& name) {
         return Status::OK();
     };
 
-    return apiHandler<proto::milvus::DropResourceGroupRequest, proto::common::Status>(
+    return connection_.Invoke<proto::milvus::DropResourceGroupRequest, proto::common::Status>(
         pre, &MilvusConnection::DropResourceGroup, nullptr);
 }
 
@@ -1704,7 +1684,7 @@ MilvusClientImpl::UpdateResourceGroups(const std::unordered_map<std::string, Res
         return Status::OK();
     };
 
-    return apiHandler<proto::milvus::UpdateResourceGroupsRequest, proto::common::Status>(
+    return connection_.Invoke<proto::milvus::UpdateResourceGroupsRequest, proto::common::Status>(
         pre, &MilvusConnection::UpdateResourceGroups, nullptr);
 }
 
@@ -1717,8 +1697,8 @@ MilvusClientImpl::TransferNode(const std::string& source_group, const std::strin
         return Status::OK();
     };
 
-    return apiHandler<proto::milvus::TransferNodeRequest, proto::common::Status>(pre, &MilvusConnection::TransferNode,
-                                                                                 nullptr);
+    return connection_.Invoke<proto::milvus::TransferNodeRequest, proto::common::Status>(
+        pre, &MilvusConnection::TransferNode, nullptr);
 }
 
 Status
@@ -1733,7 +1713,7 @@ MilvusClientImpl::TransferReplica(const std::string& source_group, const std::st
         return Status::OK();
     };
 
-    return apiHandler<proto::milvus::TransferReplicaRequest, proto::common::Status>(
+    return connection_.Invoke<proto::milvus::TransferReplicaRequest, proto::common::Status>(
         pre, &MilvusConnection::TransferReplica, nullptr);
 }
 
@@ -1746,7 +1726,7 @@ MilvusClientImpl::ListResourceGroups(std::vector<std::string>& group_names) {
         }
         return Status::OK();
     };
-    return apiHandler<proto::milvus::ListResourceGroupsRequest, proto::milvus::ListResourceGroupsResponse>(
+    return connection_.Invoke<proto::milvus::ListResourceGroupsRequest, proto::milvus::ListResourceGroupsResponse>(
         nullptr, &MilvusConnection::ListResourceGroups, post);
 }
 
@@ -1782,8 +1762,9 @@ MilvusClientImpl::DescribeResourceGroup(const std::string& group_name, ResourceG
         }
         return Status::OK();
     };
-    return apiHandler<proto::milvus::DescribeResourceGroupRequest, proto::milvus::DescribeResourceGroupResponse>(
-        pre, &MilvusConnection::DescribeResourceGroup, post);
+    return connection_
+        .Invoke<proto::milvus::DescribeResourceGroupRequest, proto::milvus::DescribeResourceGroupResponse>(
+            pre, &MilvusConnection::DescribeResourceGroup, post);
 }
 
 Status
@@ -1794,7 +1775,7 @@ MilvusClientImpl::CreateUser(const std::string& user_name, const std::string& pa
         return Status::OK();
     };
 
-    return apiHandler<proto::milvus::CreateCredentialRequest, proto::common::Status>(
+    return connection_.Invoke<proto::milvus::CreateCredentialRequest, proto::common::Status>(
         pre, &MilvusConnection::CreateCredential, nullptr);
 }
 
@@ -1808,7 +1789,7 @@ MilvusClientImpl::UpdatePassword(const std::string& user_name, const std::string
         return Status::OK();
     };
 
-    return apiHandler<proto::milvus::UpdateCredentialRequest, proto::common::Status>(
+    return connection_.Invoke<proto::milvus::UpdateCredentialRequest, proto::common::Status>(
         pre, &MilvusConnection::UpdateCredential, nullptr);
 }
 
@@ -1819,7 +1800,7 @@ MilvusClientImpl::DropUser(const std::string& user_name) {
         return Status::OK();
     };
 
-    return apiHandler<proto::milvus::DeleteCredentialRequest, proto::common::Status>(
+    return connection_.Invoke<proto::milvus::DeleteCredentialRequest, proto::common::Status>(
         pre, &MilvusConnection::DeleteCredential, nullptr);
 }
 
@@ -1842,7 +1823,7 @@ MilvusClientImpl::DescribeUser(const std::string& user_name, UserDesc& desc) {
         return Status::OK();
     };
 
-    return apiHandler<proto::milvus::SelectUserRequest, proto::milvus::SelectUserResponse>(
+    return connection_.Invoke<proto::milvus::SelectUserRequest, proto::milvus::SelectUserResponse>(
         pre, &MilvusConnection::SelectUser, post);
 }
 
@@ -1856,7 +1837,7 @@ MilvusClientImpl::ListUsers(std::vector<std::string>& names) {
         return Status::OK();
     };
 
-    return apiHandler<proto::milvus::ListCredUsersRequest, proto::milvus::ListCredUsersResponse>(
+    return connection_.Invoke<proto::milvus::ListCredUsersRequest, proto::milvus::ListCredUsersResponse>(
         nullptr, &MilvusConnection::ListCredUsers, post);
 }
 
@@ -1867,8 +1848,8 @@ MilvusClientImpl::CreateRole(const std::string& role_name) {
         return Status::OK();
     };
 
-    return apiHandler<proto::milvus::CreateRoleRequest, proto::common::Status>(pre, &MilvusConnection::CreateRole,
-                                                                               nullptr);
+    return connection_.Invoke<proto::milvus::CreateRoleRequest, proto::common::Status>(
+        pre, &MilvusConnection::CreateRole, nullptr);
 }
 
 Status
@@ -1879,7 +1860,8 @@ MilvusClientImpl::DropRole(const std::string& role_name, bool force_drop) {
         return Status::OK();
     };
 
-    return apiHandler<proto::milvus::DropRoleRequest, proto::common::Status>(pre, &MilvusConnection::DropRole, nullptr);
+    return connection_.Invoke<proto::milvus::DropRoleRequest, proto::common::Status>(pre, &MilvusConnection::DropRole,
+                                                                                     nullptr);
 }
 
 Status
@@ -1898,7 +1880,7 @@ MilvusClientImpl::DescribeRole(const std::string& role_name, RoleDesc& desc) {
         return Status::OK();
     };
 
-    return apiHandler<proto::milvus::SelectGrantRequest, proto::milvus::SelectGrantResponse>(
+    return connection_.Invoke<proto::milvus::SelectGrantRequest, proto::milvus::SelectGrantResponse>(
         pre, &MilvusConnection::SelectGrant, post);
 }
 
@@ -1917,7 +1899,7 @@ MilvusClientImpl::ListRoles(std::vector<std::string>& names) {
         return Status::OK();
     };
 
-    return apiHandler<proto::milvus::SelectRoleRequest, proto::milvus::SelectRoleResponse>(
+    return connection_.Invoke<proto::milvus::SelectRoleRequest, proto::milvus::SelectRoleResponse>(
         pre, &MilvusConnection::SelectRole, post);
 }
 
@@ -1930,7 +1912,7 @@ MilvusClientImpl::GrantRole(const std::string& user_name, const std::string& rol
         return Status::OK();
     };
 
-    return apiHandler<proto::milvus::OperateUserRoleRequest, proto::common::Status>(
+    return connection_.Invoke<proto::milvus::OperateUserRoleRequest, proto::common::Status>(
         pre, &MilvusConnection::OperateUserRole, nullptr);
 }
 
@@ -1943,7 +1925,7 @@ MilvusClientImpl::RevokeRole(const std::string& user_name, const std::string& ro
         return Status::OK();
     };
 
-    return apiHandler<proto::milvus::OperateUserRoleRequest, proto::common::Status>(
+    return connection_.Invoke<proto::milvus::OperateUserRoleRequest, proto::common::Status>(
         pre, &MilvusConnection::OperateUserRole, nullptr);
 }
 
@@ -1960,7 +1942,7 @@ MilvusClientImpl::GrantPrivilege(const std::string& role_name, const std::string
         return Status::OK();
     };
 
-    return apiHandler<proto::milvus::OperatePrivilegeV2Request, proto::common::Status>(
+    return connection_.Invoke<proto::milvus::OperatePrivilegeV2Request, proto::common::Status>(
         pre, &MilvusConnection::OperatePrivilegeV2, nullptr);
 }
 
@@ -1977,7 +1959,7 @@ MilvusClientImpl::RevokePrivilege(const std::string& role_name, const std::strin
         return Status::OK();
     };
 
-    return apiHandler<proto::milvus::OperatePrivilegeV2Request, proto::common::Status>(
+    return connection_.Invoke<proto::milvus::OperatePrivilegeV2Request, proto::common::Status>(
         pre, &MilvusConnection::OperatePrivilegeV2, nullptr);
 }
 
@@ -1988,7 +1970,7 @@ MilvusClientImpl::CreatePrivilegeGroup(const std::string& group_name) {
         return Status::OK();
     };
 
-    return apiHandler<proto::milvus::CreatePrivilegeGroupRequest, proto::common::Status>(
+    return connection_.Invoke<proto::milvus::CreatePrivilegeGroupRequest, proto::common::Status>(
         pre, &MilvusConnection::CreatePrivilegeGroup, nullptr);
 }
 
@@ -1999,7 +1981,7 @@ MilvusClientImpl::DropPrivilegeGroup(const std::string& group_name) {
         return Status::OK();
     };
 
-    return apiHandler<proto::milvus::DropPrivilegeGroupRequest, proto::common::Status>(
+    return connection_.Invoke<proto::milvus::DropPrivilegeGroupRequest, proto::common::Status>(
         pre, &MilvusConnection::DropPrivilegeGroup, nullptr);
 }
 
@@ -2017,7 +1999,7 @@ MilvusClientImpl::ListPrivilegeGroups(PrivilegeGroupInfos& groups) {
         return Status::OK();
     };
 
-    return apiHandler<proto::milvus::ListPrivilegeGroupsRequest, proto::milvus::ListPrivilegeGroupsResponse>(
+    return connection_.Invoke<proto::milvus::ListPrivilegeGroupsRequest, proto::milvus::ListPrivilegeGroupsResponse>(
         nullptr, &MilvusConnection::ListPrivilegeGroups, post);
 }
 
@@ -2033,7 +2015,7 @@ MilvusClientImpl::AddPrivilegesToGroup(const std::string& group_name, const std:
         return Status::OK();
     };
 
-    return apiHandler<proto::milvus::OperatePrivilegeGroupRequest, proto::common::Status>(
+    return connection_.Invoke<proto::milvus::OperatePrivilegeGroupRequest, proto::common::Status>(
         pre, &MilvusConnection::OperatePrivilegeGroup, nullptr);
 }
 
@@ -2049,72 +2031,12 @@ MilvusClientImpl::RemovePrivilegesFromGroup(const std::string& group_name, const
         return Status::OK();
     };
 
-    return apiHandler<proto::milvus::OperatePrivilegeGroupRequest, proto::common::Status>(
+    return connection_.Invoke<proto::milvus::OperatePrivilegeGroupRequest, proto::common::Status>(
         pre, &MilvusConnection::OperatePrivilegeGroup, nullptr);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // internal used methods
-Status
-MilvusClientImpl::getLoadingProgress(const std::string& collection_name, const std::vector<std::string> partition_names,
-                                     uint32_t& progress) {
-    proto::milvus::GetLoadingProgressRequest progress_req;
-    progress_req.set_collection_name(collection_name);
-    for (const auto& partition_name : partition_names) {
-        progress_req.add_partition_names(partition_name);
-    }
-    proto::milvus::GetLoadingProgressResponse progress_resp;
-    uint64_t timeout = connection_->GetConnectParam().RpcDeadlineMs();
-    auto status = connection_->GetLoadingProgress(progress_req, progress_resp, GrpcOpts{timeout});
-    if (!status.IsOk()) {
-        return status;
-    }
-    progress = static_cast<uint32_t>(progress_resp.progress());
-    return Status::OK();
-}
-
-Status
-MilvusClientImpl::WaitForStatus(const std::function<Status(Progress&)>& query_function,
-                                const ProgressMonitor& progress_monitor) {
-    // no need to check
-    if (progress_monitor.CheckTimeout() == 0) {
-        return Status::OK();
-    }
-
-    std::chrono::time_point<std::chrono::steady_clock> started = std::chrono::steady_clock::now();
-
-    auto calculated_next_wait = started;
-    auto wait_milliseconds = progress_monitor.CheckTimeout() * 1000;
-    auto wait_interval = progress_monitor.CheckInterval();
-    auto final_timeout = started + std::chrono::milliseconds{wait_milliseconds};
-    while (true) {
-        calculated_next_wait += std::chrono::milliseconds{wait_interval};
-        auto next_wait = std::min(calculated_next_wait, final_timeout);
-        std::this_thread::sleep_until(next_wait);
-
-        Progress current_progress;
-        auto status = query_function(current_progress);
-
-        // if the internal check function failed, return error
-        if (!status.IsOk()) {
-            return status;
-        }
-
-        // notify progress
-        progress_monitor.DoProgress(current_progress);
-
-        // if progress all done, break the circle
-        if (current_progress.Done()) {
-            return status;
-        }
-
-        // if time to deadline, return timeout error
-        if (next_wait >= final_timeout) {
-            return Status{StatusCode::TIMEOUT, "time out"};
-        }
-    }
-}
-
 Status
 MilvusClientImpl::getCollectionDesc(const std::string& collection_name, bool force_update,
                                     CollectionDescPtr& desc_ptr) {
@@ -2150,20 +2072,6 @@ void
 MilvusClientImpl::removeCollectionDesc(const std::string& collection_name) {
     std::lock_guard<std::mutex> lock(collection_desc_cache_mtx_);
     collection_desc_cache_.erase(collection_name);
-}
-
-std::string
-MilvusClientImpl::currentDbName(const std::string& overwrite_db_name) const {
-    // if a db name is specified for rpc interface, use this name
-    if (!overwrite_db_name.empty()) {
-        return overwrite_db_name;
-    }
-    // no db name is specified, use the current db name used by this connection
-    if (connection_ != nullptr) {
-        const ConnectParam& param = connection_->GetConnectParam();
-        return param.DbName();
-    }
-    return "";
 }
 
 template <typename ArgClass>

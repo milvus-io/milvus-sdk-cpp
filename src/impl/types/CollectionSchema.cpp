@@ -110,6 +110,17 @@ CollectionSchema::AnnsFieldNames() const {
     return ret;
 }
 
+std::string
+CollectionSchema::PrimaryFieldName() const {
+    for (const auto& field : fields_) {
+        if (field.IsPrimaryKey()) {
+            return field.Name();
+        }
+    }
+
+    return "";
+}
+
 const std::vector<FunctionPtr>&
 CollectionSchema::Functions() const {
     return functions_;
