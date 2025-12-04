@@ -273,7 +273,7 @@ CreateProtoVectorField(const BinaryVecFieldData& field) {
     auto& data = field.Data();
     auto dim = data.front().size() * 8;
     auto& vectors_data = *(ret->mutable_binary_vector());
-    vectors_data.reserve(data.size() * dim);
+    vectors_data.reserve(data.size() * data.front().size());
     for (const auto& item : data) {
         std::copy(item.begin(), item.end(), std::back_inserter(vectors_data));
     }
@@ -335,6 +335,20 @@ CreateProtoVectorField(const BFloat16VecFieldData& field) {
     vectors_data.resize(data.size() * vec_bytes);
     for (size_t i = 0; i < data.size(); i++) {
         std::memcpy(&vectors_data[i * vec_bytes], data[i].data(), vec_bytes);
+    }
+    ret->set_dim(static_cast<int64_t>(dim));
+    return ret;
+}
+
+proto::schema::VectorField*
+CreateProtoVectorField(const Int8VecFieldData& field) {
+    auto ret = new proto::schema::VectorField{};
+    auto& data = field.Data();
+    auto dim = data.front().size();
+    auto& vectors_data = *(ret->mutable_int8_vector());
+    vectors_data.reserve(data.size() * dim);
+    for (const auto& item : data) {
+        std::copy(item.begin(), item.end(), std::back_inserter(vectors_data));
     }
     ret->set_dim(static_cast<int64_t>(dim));
     return ret;
@@ -558,6 +572,9 @@ CreateProtoFieldData(const FieldDataSchema& data_schema, proto::schema::FieldDat
         case DataType::BFLOAT16_VECTOR:
             field_data.set_allocated_vectors(CreateProtoVectorField(dynamic_cast<const BFloat16VecFieldData&>(field)));
             break;
+        case DataType::INT8_VECTOR:
+            field_data.set_allocated_vectors(CreateProtoVectorField(dynamic_cast<const Int8VecFieldData&>(field)));
+            break;
         case DataType::BOOL:
             scalar->set_allocated_bool_data(
                 CreateProtoScalars<BoolFieldData, proto::schema::BoolArray>(field, field_data, nullable_default));
@@ -761,6 +778,38 @@ CheckAndSetFloat16Vector(const nlohmann::json& obj, const FieldSchema& fs, proto
         auto p = reinterpret_cast<int8_t*>(&val);
         data->push_back(p[0]);
         data->push_back(p[1]);
+    }
+    return Status::OK();
+}
+
+Status
+CheckAndSetInt8Vector(const nlohmann::json& obj, const FieldSchema& fs, proto::schema::VectorField* vf) {
+    if (!obj.is_array()) {
+        std::string err_msg = "Value type should be array for field: " + fs.Name();
+        return {StatusCode::INVALID_AGUMENT, err_msg};
+    }
+    if (obj.size() != static_cast<std::size_t>(fs.Dimension())) {
+        std::string err_msg = "Array length is not equal to dimension for field: " + fs.Name();
+        return {StatusCode::INVALID_AGUMENT, err_msg};
+    }
+
+    vf->set_dim(fs.Dimension());
+    auto data = vf->mutable_int8_vector();
+    data->reserve(fs.Dimension());
+    for (const auto& ele : obj) {
+        if (!ele.is_number_integer() && !ele.is_number_unsigned()) {
+            std::string err_msg = "Element value should be integer for field: " + fs.Name();
+            return {StatusCode::INVALID_AGUMENT, err_msg};
+        }
+
+        auto val = ele.get<int16_t>();  // get as int16_t to cover int8/uint8
+        // check value range
+        // int8, the range is [-128, +127]
+        if (val < -128 || val > 127) {
+            std::string err_msg = "Value should be in range [-128, 127] for field: " + fs.Name();
+            return {StatusCode::INVALID_AGUMENT, err_msg};
+        }
+        data->push_back(static_cast<int8_t>(val));
     }
     return Status::OK();
 }
@@ -979,6 +1028,13 @@ CheckAndSetFieldValue(const nlohmann::json& obj, const FieldSchema& fs, proto::s
         case DataType::FLOAT16_VECTOR:
         case DataType::BFLOAT16_VECTOR: {
             auto status = CheckAndSetFloat16Vector(obj, fs, fd.mutable_vectors());
+            if (!status.IsOk()) {
+                return status;
+            }
+            break;
+        }
+        case DataType::INT8_VECTOR: {
+            auto status = CheckAndSetInt8Vector(obj, fs, fd.mutable_vectors());
             if (!status.IsOk()) {
                 return status;
             }

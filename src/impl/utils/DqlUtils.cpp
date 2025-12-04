@@ -285,6 +285,13 @@ CreateMilvusFieldData(const milvus::proto::schema::FieldData& proto_data, size_t
                 std::make_shared<SparseFloatVecFieldData>(std::move(name), std::move(vectors), std::move(valid_data));
             return Status::OK();
         }
+        case proto::schema::DataType::Int8Vector: {
+            const auto& str = proto_vectors.int8_vector();
+            std::vector<Int8VecFieldData::ElementT> vectors =
+                BuildFieldDataVectors<int8_t, char>(proto_vectors.dim(), str.data(), str.size(), offset, count);
+            field_data = std::make_shared<Int8VecFieldData>(std::move(name), std::move(vectors), std::move(valid_data));
+            return Status::OK();
+        }
         case proto::schema::DataType::Bool: {
             std::vector<BoolFieldData::ElementT> values =
                 BuildFieldDataScalars<BoolFieldData::ElementT>(proto_scalars.bool_data().data(), offset, count);
@@ -382,6 +389,11 @@ CreateMilvusFieldData(const milvus::proto::schema::FieldData& proto_data, FieldD
             const auto& content = proto_vectors.sparse_float_vector().contents();
             return CreateMilvusFieldData(proto_data, 0, content.size(), field_data);
         }
+        case proto::schema::DataType::Int8Vector: {
+            size_t len = proto_vectors.dim();
+            size_t count = proto_vectors.int8_vector().size() / len;
+            return CreateMilvusFieldData(proto_data, 0, count, field_data);
+        }
         case proto::schema::DataType::Bool:
             return CreateMilvusFieldData(proto_data, 0, proto_scalars.bool_data().data().size(), field_data);
         case proto::schema::DataType::Int8:
@@ -450,7 +462,7 @@ SetTargetVectors(const FieldDataPtr& target, milvus::proto::milvus::SearchReques
     auto& placeholder_value = *placeholder_group.add_placeholders();
     placeholder_value.set_tag("$0");
     if (target->Type() == DataType::BINARY_VECTOR) {
-        // bins
+        // binary vector
         placeholder_value.set_type(proto::common::PlaceholderType::BinaryVector);
         auto& vectors = dynamic_cast<BinaryVecFieldData&>(*target);
         for (const auto& vector : vectors.Data()) {
@@ -459,7 +471,7 @@ SetTargetVectors(const FieldDataPtr& target, milvus::proto::milvus::SearchReques
         }
         rpc_request->set_nq(static_cast<int64_t>(vectors.Count()));
     } else if (target->Type() == DataType::FLOAT_VECTOR) {
-        // floats
+        // float vector
         placeholder_value.set_type(proto::common::PlaceholderType::FloatVector);
         auto& vectors = dynamic_cast<FloatVecFieldData&>(*target);
         for (const auto& vector : vectors.Data()) {
@@ -468,7 +480,7 @@ SetTargetVectors(const FieldDataPtr& target, milvus::proto::milvus::SearchReques
         }
         rpc_request->set_nq(static_cast<int64_t>(vectors.Count()));
     } else if (target->Type() == DataType::SPARSE_FLOAT_VECTOR) {
-        // sparse
+        // sparse vector
         placeholder_value.set_type(proto::common::PlaceholderType::SparseFloatVector);
         auto& vectors = dynamic_cast<SparseFloatVecFieldData&>(*target);
         for (const auto& sparse : vectors.Data()) {
@@ -477,7 +489,7 @@ SetTargetVectors(const FieldDataPtr& target, milvus::proto::milvus::SearchReques
         }
         rpc_request->set_nq(static_cast<int64_t>(vectors.Count()));
     } else if (target->Type() == DataType::FLOAT16_VECTOR) {
-        // float16
+        // float16 vector
         placeholder_value.set_type(proto::common::PlaceholderType::Float16Vector);
         auto& vectors = dynamic_cast<Float16VecFieldData&>(*target);
         for (const auto& vector : vectors.Data()) {
@@ -487,12 +499,21 @@ SetTargetVectors(const FieldDataPtr& target, milvus::proto::milvus::SearchReques
         }
         rpc_request->set_nq(static_cast<int64_t>(vectors.Count()));
     } else if (target->Type() == DataType::BFLOAT16_VECTOR) {
-        // float16
+        // bfloat16 vector
         placeholder_value.set_type(proto::common::PlaceholderType::BFloat16Vector);
         auto& vectors = dynamic_cast<BFloat16VecFieldData&>(*target);
         for (const auto& vector : vectors.Data()) {
             std::string placeholder_data(reinterpret_cast<const char*>(vector.data()),
                                          vector.size() * sizeof(uint16_t));
+            placeholder_value.add_values(std::move(placeholder_data));
+        }
+        rpc_request->set_nq(static_cast<int64_t>(vectors.Count()));
+    } else if (target->Type() == DataType::INT8_VECTOR) {
+        // int8 vector
+        placeholder_value.set_type(proto::common::PlaceholderType::Int8Vector);
+        auto& vectors = dynamic_cast<Int8VecFieldData&>(*target);
+        for (const auto& vector : vectors.Data()) {
+            std::string placeholder_data(reinterpret_cast<const char*>(vector.data()), vector.size() * sizeof(int8_t));
             placeholder_value.add_values(std::move(placeholder_data));
         }
         rpc_request->set_nq(static_cast<int64_t>(vectors.Count()));
@@ -669,6 +690,10 @@ GenGetters(const std::vector<FieldDataPtr>& fields) {
             }
             case DataType::SPARSE_FLOAT_VECTOR: {
                 getters.insert(std::make_pair(name, std::move(GenGetter<SparseFloatVecFieldData>(field))));
+                break;
+            }
+            case DataType::INT8_VECTOR: {
+                getters.insert(std::make_pair(name, std::move(GenGetter<Int8VecFieldData>(field))));
                 break;
             }
             default:
@@ -1306,6 +1331,9 @@ CopyFieldData(const FieldDataPtr& src, uint64_t from, uint64_t to, FieldDataPtr&
         case DataType::SPARSE_FLOAT_VECTOR: {
             return CopyFieldDataRange<SparseFloatVecFieldData>(src, from, to, target);
         }
+        case DataType::INT8_VECTOR: {
+            return CopyFieldDataRange<Int8VecFieldData>(src, from, to, target);
+        }
         default: {
             return {StatusCode::NOT_SUPPORTED, "Unsupported field type: " + std::to_string(src->Type())};
         }
@@ -1420,6 +1448,9 @@ AppendFieldData(const FieldDataPtr& from, FieldDataPtr& to) {
         }
         case DataType::SPARSE_FLOAT_VECTOR: {
             return Append<SparseFloatVecFieldData>(from, to);
+        }
+        case DataType::INT8_VECTOR: {
+            return Append<Int8VecFieldData>(from, to);
         }
         default: {
             return {StatusCode::NOT_SUPPORTED, "Unsupported field type: " + std::to_string(from->Type())};

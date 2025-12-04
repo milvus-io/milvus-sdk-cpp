@@ -366,6 +366,7 @@ using FloatVecFieldData = FieldData<std::vector<float>, DataType::FLOAT_VECTOR>;
 using SparseFloatVecFieldData = FieldData<std::map<uint32_t, float>, DataType::SPARSE_FLOAT_VECTOR>;
 using Float16VecFieldData = FieldData<std::vector<uint16_t>, DataType::FLOAT16_VECTOR>;
 using BFloat16VecFieldData = FieldData<std::vector<uint16_t>, DataType::BFLOAT16_VECTOR>;
+using Int8VecFieldData = FieldData<std::vector<int8_t>, DataType::INT8_VECTOR>;
 
 using ArrayBoolFieldData = ArrayFieldData<bool, DataType::BOOL>;
 using ArrayInt8FieldData = ArrayFieldData<int8_t, DataType::INT8>;
@@ -390,6 +391,7 @@ using FloatVecFieldDataPtr = std::shared_ptr<FloatVecFieldData>;
 using SparseFloatVecFieldDataPtr = std::shared_ptr<SparseFloatVecFieldData>;
 using Float16VecFieldDataPtr = std::shared_ptr<Float16VecFieldData>;
 using BFloat16VecFieldDataPtr = std::shared_ptr<BFloat16VecFieldData>;
+using Int8VecFieldDataPtr = std::shared_ptr<Int8VecFieldData>;
 
 using ArrayBoolFieldDataPtr = std::shared_ptr<ArrayBoolFieldData>;
 using ArrayInt8FieldDataPtr = std::shared_ptr<ArrayInt8FieldData>;
@@ -414,6 +416,7 @@ extern template class FieldData<std::vector<float>, DataType::FLOAT_VECTOR>;
 extern template class FieldData<std::map<uint32_t, float>, DataType::SPARSE_FLOAT_VECTOR>;
 extern template class FieldData<std::vector<uint16_t>, DataType::FLOAT16_VECTOR>;
 extern template class FieldData<std::vector<uint16_t>, DataType::BFLOAT16_VECTOR>;
+extern template class FieldData<std::vector<int8_t>, DataType::INT8_VECTOR>;
 
 extern template class ArrayFieldData<bool, DataType::BOOL>;
 extern template class ArrayFieldData<int8_t, DataType::INT8>;
