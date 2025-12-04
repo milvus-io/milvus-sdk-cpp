@@ -138,6 +138,11 @@ SearchRequestBase::AddEmbeddedText(std::string field_name, const std::string& te
     return addVector<VarCharFieldData, VarCharFieldData::ElementT>(field_name, DataType::VARCHAR, text);
 }
 
+Status
+SearchRequestBase::AddInt8Vector(std::string field_name, const Int8VecFieldData::ElementT& vector) {
+    return addVector<Int8VecFieldData, Int8VecFieldData::ElementT>(field_name, DataType::INT8_VECTOR, vector);
+}
+
 std::string
 SearchRequestBase::AnnsField() const {
     if (target_vectors_ != nullptr) {

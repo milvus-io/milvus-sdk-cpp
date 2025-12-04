@@ -147,6 +147,12 @@ class SearchRequestBase {
     AddEmbeddedText(std::string field_name, const std::string& text);
 
     /**
+     * @brief Add an int8 vector to search
+     */
+    Status
+    AddInt8Vector(std::string field_name, const Int8VecFieldData::ElementT& vector);
+
+    /**
      * @brief Get anns field name
      */
     std::string

@@ -188,6 +188,28 @@ GenerateBFloat16Vector(int dimension) {
     return vectors[0];
 }
 
+std::vector<std::vector<int8_t>>
+GenerateInt8Vectors(int dimension, int count) {
+    std::random_device rd;
+    std::mt19937 ran(rd());
+    INT_GEN int_gen(0, 256);
+    std::vector<std::vector<int8_t>> vectors(count);
+    for (auto i = 0; i < count; ++i) {
+        std::vector<int8_t> vector(dimension);
+        for (auto d = 0; d < dimension; ++d) {
+            vector[d] = int_gen(ran);
+        }
+        vectors[i] = vector;
+    }
+    return std::move(vectors);
+}
+
+std::vector<int8_t>
+GenerateInt8Vector(int dimension) {
+    std::vector<std::vector<int8_t>> vectors = GenerateInt8Vectors(dimension, 1);
+    return vectors[0];
+}
+
 template <typename T>
 std::vector<T>
 RandomeValues(T min, T max, int count) {
