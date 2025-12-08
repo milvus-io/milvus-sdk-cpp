@@ -419,4 +419,7 @@ template class ArrayFieldData<float, DataType::FLOAT>;
 template class ArrayFieldData<double, DataType::DOUBLE>;
 template class ArrayFieldData<std::string, DataType::VARCHAR>;
 
+// for struct field
+template class ArrayFieldData<nlohmann::json, DataType::STRUCT>;
+
 }  // namespace milvus

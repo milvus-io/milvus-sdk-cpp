@@ -42,6 +42,16 @@ Status
 ParseSparseFloatVector(const nlohmann::json& obj, const std::string& field_name, std::map<uint32_t, float>& pairs);
 
 Status
+PrepareStructProtoFields(const StructFieldSchema& schema, const std::set<std::string>& output_fields,
+                         proto::schema::FieldData& field_data,
+                         std::map<std::string, proto::schema::FieldData*>& proto_sub_fields);
+
+Status
+FillStructProtoFields(const std::vector<nlohmann::json>& dict_list, const StructFieldSchema& schema,
+                      const std::set<std::string>& output_fields,
+                      std::map<std::string, proto::schema::FieldData*>& proto_sub_fields);
+
+Status
 CreateProtoFieldData(const FieldDataSchema& data_schema, proto::schema::FieldData& field_data);
 
 Status
