@@ -32,9 +32,7 @@ const uint32_t dimension = 128;
 uint64_t
 getRowCount(milvus::MilvusClientV2Ptr& client) {
     // get row count
-    milvus::QueryRequest request;
-    request.SetCollectionName(collection_name);
-    request.AddOutputField("count(*)");
+    auto request = milvus::QueryRequest().WithCollectionName(collection_name).AddOutputField("count(*)");
 
     milvus::QueryResponse response;
     auto status = client->Query(request, response);
@@ -107,6 +105,7 @@ iterateCollection(milvus::MilvusClientV2Ptr& client, int64_t batch, int64_t limi
     request.SetCollectionName(collection_name);
     request.SetBatchSize(batch);
     request.SetLimit(limit);
+    request.SetAnnsField(field_face);
     request.SetFilter(filter);
     request.AddOutputField(field_name);
     request.AddOutputField(field_age);
@@ -116,7 +115,7 @@ iterateCollection(milvus::MilvusClientV2Ptr& client, int64_t batch, int64_t limi
     for (auto d = 0; d < dimension; ++d) {
         vector[d] = 1.0f;
     }
-    request.AddFloatVector(field_face, vector);
+    request.AddFloatVector(vector);
 
     milvus::SearchIteratorPtr iterator;
     auto status = client->SearchIterator(request, iterator);

@@ -48,6 +48,8 @@ enum class DataType {
     BFLOAT16_VECTOR = 103,
     SPARSE_FLOAT_VECTOR = 104,
     INT8_VECTOR = 105,
+
+    STRUCT = 201,
 };
 
 }  // namespace milvus

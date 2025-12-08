@@ -70,18 +70,18 @@ HybridSearchRequest::SubRequests() const {
 }
 
 void
-HybridSearchRequest::SetSubRequest(std::vector<SubSearchRequestPtr>&& requests) {
+HybridSearchRequest::SetSubRequests(std::vector<SubSearchRequestPtr>&& requests) {
     sub_requests_ = std::move(requests);
 }
 
 HybridSearchRequest&
-HybridSearchRequest::WithSubRequest(std::vector<SubSearchRequestPtr>&& requests) {
+HybridSearchRequest::WithSubRequests(std::vector<SubSearchRequestPtr>&& requests) {
     sub_requests_ = std::move(requests);
     return *this;
 }
 
 HybridSearchRequest&
-HybridSearchRequest::AddSubRequest(SubSearchRequestPtr&& request) {
+HybridSearchRequest::AddSubRequest(const SubSearchRequestPtr& request) {
     sub_requests_.emplace_back(request);
     return *this;
 }

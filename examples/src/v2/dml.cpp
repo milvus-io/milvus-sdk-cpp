@@ -31,7 +31,7 @@ main(int argc, char* argv[]) {
     auto status = client->Connect(connect_param);
     util::CheckStatus("connect milvus server", status);
 
-    const std::string collection_name = "CPP_V1_DML";
+    const std::string collection_name = "CPP_V2_DML";
     const std::string field_id = "pk";
     const std::string field_vector = "vector";
     const std::string field_text = "text";
@@ -133,15 +133,15 @@ main(int argc, char* argv[]) {
 
     // query the updated items
     std::string expr = field_id + " in [" + std::to_string(new_id_1) + "," + std::to_string(new_id_2) + "]";
-    milvus::QueryRequest request;
-    request.SetCollectionName(collection_name);
-    request.SetFilter(expr);
-    request.AddOutputField(field_id);
-    request.AddOutputField(field_text);
-    request.AddOutputField(field_vector);
-    // the SESSION level ensures that the previous dml change of this process must be
-    // visible to the next query/search of the same process.
-    request.SetConsistencyLevel(milvus::ConsistencyLevel::SESSION);
+    auto request = milvus::QueryRequest()
+                       .WithCollectionName(collection_name)
+                       .WithFilter(expr)
+                       .AddOutputField(field_id)
+                       .AddOutputField(field_text)
+                       .AddOutputField(field_vector)
+                       // the SESSION level ensures that the previous dml change of this process must be
+                       // visible to the next query/search of the same process.
+                       .WithConsistencyLevel(milvus::ConsistencyLevel::SESSION);
 
     std::cout << "Query with expression: " << expr << std::endl;
     milvus::QueryResponse response;
@@ -173,10 +173,10 @@ main(int argc, char* argv[]) {
     // no data changed after the last query, we can use EVENTUALLY level to ignore
     // dml consistency check(in the server side)
     {
-        milvus::QueryRequest request;
-        request.SetCollectionName(collection_name);
-        request.AddOutputField("count(*)");
-        request.SetConsistencyLevel(milvus::ConsistencyLevel::EVENTUALLY);
+        auto request = milvus::QueryRequest()
+                           .WithCollectionName(collection_name)
+                           .AddOutputField("count(*)")
+                           .WithConsistencyLevel(milvus::ConsistencyLevel::EVENTUALLY);
 
         milvus::QueryResponse response;
         status = client->Query(request, response);

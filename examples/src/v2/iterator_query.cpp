@@ -88,9 +88,7 @@ main(int argc, char* argv[]) {
     uint64_t row_count = 0;
     {
         // check row count
-        milvus::QueryRequest request;
-        request.SetCollectionName(collection_name);
-        request.AddOutputField("count(*)");
+        auto request = milvus::QueryRequest().WithCollectionName(collection_name).AddOutputField("count(*)");
 
         milvus::QueryResponse response;
         status = client->Query(request, response);

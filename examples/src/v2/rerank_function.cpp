@@ -96,14 +96,15 @@ searchWithRerank(milvus::MilvusClientV2Ptr& client, const std::vector<float>& ve
         std::cout << "==================== Search without function score ====================" << std::endl;
     }
 
-    milvus::SearchRequest request;
-    request.SetCollectionName(collection_name);
-    request.SetRerank(function_score);
-    request.SetLimit(topk);
-    request.AddOutputField(field_id);
-    request.AddOutputField(field_year);
-    request.AddFloatVector(field_vector, vector);
-    request.SetConsistencyLevel(milvus::ConsistencyLevel::BOUNDED);
+    auto request = milvus::SearchRequest()
+                       .WithCollectionName(collection_name)
+                       .WithRerank(function_score)
+                       .WithLimit(topk)
+                       .WithAnnsField(field_vector)
+                       .AddOutputField(field_id)
+                       .AddOutputField(field_year)
+                       .AddFloatVector(vector)
+                       .WithConsistencyLevel(milvus::ConsistencyLevel::BOUNDED);
 
     milvus::SearchResponse response;
     auto status = client->Search(request, response);
@@ -133,7 +134,8 @@ main(int argc, char* argv[]) {
     buildCollection(client);
 
     // use an all-1.0 vector to search, compare the result of with/without rerankers
-    std::vector<float> vector(dimension);
+    std::vector<float> vector;
+    vector.reserve(dimension);
     for (auto i = 0; i < dimension; i++) {
         vector.push_back(1.0);
     }

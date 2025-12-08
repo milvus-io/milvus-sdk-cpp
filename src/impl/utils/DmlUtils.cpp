@@ -25,10 +25,10 @@
 #include "milvus/types/Constants.h"
 #include "milvus/utils/FP16.h"
 
-namespace milvus {
+namespace {
 
 template <typename V, typename T>
-Status
+milvus::Status
 CheckValueRange(V val, const std::string& field_name) {
     T min = std::numeric_limits<T>::lowest();
     T max = std::numeric_limits<T>::max();
@@ -41,10 +41,30 @@ CheckValueRange(V val, const std::string& field_name) {
         if (!field_name.empty()) {
             err_msg += (" for field: " + field_name);
         }
-        return {StatusCode::INVALID_AGUMENT, err_msg};
+        return {milvus::StatusCode::INVALID_AGUMENT, err_msg};
     }
-    return Status::OK();
+    return milvus::Status::OK();
 }
+
+void
+GetOutputFields(const milvus::CollectionSchema& schema, std::set<std::string>& names) {
+    for (const auto& function : schema.Functions()) {
+        if (function) {
+            for (const auto& name : function->OutputFieldNames()) {
+                names.insert(name);
+            }
+        }
+    }
+}
+
+std::string
+CombineStructFieldName(const std::string& struct_name, const std::string& sub_field_name) {
+    return struct_name + "[" + sub_field_name + "]";
+}
+
+}  // namespace
+
+namespace milvus {
 
 bool
 IsInputField(const FieldSchema& field_schema, bool is_upsert) {
@@ -66,44 +86,30 @@ IsInputField(const FieldSchema& field_schema, bool is_upsert) {
 // and call CheckInsertInput() to check the input again.
 // Other error codes will be treated as failure immediatelly.
 Status
-CheckInsertInput(const CollectionDescPtr& collection_desc, const std::vector<FieldDataPtr>& fields, bool is_upsert) {
+CheckInsertInput(const CollectionDescPtr& collection_desc, const std::vector<FieldDataPtr>& columns, bool is_upsert) {
     bool enable_dynamic_field = collection_desc->Schema().EnableDynamicField();
-    const auto& collection_fields = collection_desc->Schema().Fields();
+    const auto& normal_fields = collection_desc->Schema().Fields();
+    const auto& struct_fields = collection_desc->Schema().StructFields();
+
+    std::set<std::string> output_fields;
+    GetOutputFields(collection_desc->Schema(), output_fields);
 
     // this loop is for "are there any redundant data?"
-    for (const auto& field : fields) {
-        if (field == nullptr) {
+    for (const auto& column : columns) {
+        if (column == nullptr) {
             return {StatusCode::INVALID_AGUMENT, "Null pointer field is not allowed"};
         }
 
-        auto it = std::find_if(collection_fields.begin(), collection_fields.end(),
-                               [&field](const FieldSchema& schema) { return schema.Name() == field->Name(); });
-        if (it != collection_fields.end()) {
-            // the provided field is in collection schema, but it is not a required input
-            // maybe the schema has been changed(primary key from auto-id to non-auto-id)
-            // tell the MilvusClientImpl to update collection schema cache
-            if (!IsInputField(*it, is_upsert)) {
-                return {StatusCode::DATA_UNMATCH_SCHEMA, "No need to provide data for field: " + field->Name()};
-            }
-
-            // the provided field is not consistent with the schema
-            if (field->Type() != it->FieldDataType()) {
-                return {StatusCode::DATA_UNMATCH_SCHEMA, "Field data type mismatch for field: " + field->Name()};
-            } else if (field->Type() == DataType::ARRAY && field->ElementType() != it->ElementType()) {
-                return {StatusCode::DATA_UNMATCH_SCHEMA,
-                        "Element data type mismatch for array field: " + field->Name()};
-            }
-            // accept it
-            continue;
-        }
-        if (field->Name() == DYNAMIC_FIELD) {
+        const auto& column_name = column->Name();
+        auto column_type = column->Type();
+        if (column_name == DYNAMIC_FIELD) {
             // if dynamic field is not JSON type, no need to update collection schema cache
-            if (field->Type() != DataType::JSON) {
-                return {StatusCode::INVALID_AGUMENT, "Require JSON data for dynamic field: " + field->Name()};
+            if (column_type != DataType::JSON) {
+                return {StatusCode::INVALID_AGUMENT, "Require JSON data for dynamic field: " + column_name};
             }
             // if has dynamic field data but enable_dynamic_field is false, maybe the schema cache is out of date
             if (!enable_dynamic_field) {
-                return {StatusCode::DATA_UNMATCH_SCHEMA, "Not a valid field: " + field->Name()};
+                return {StatusCode::DATA_UNMATCH_SCHEMA, "Not a valid field: " + column_name};
             }
             // enable_dynamic_field is true and has dynamic field data
             // maybe the schema cache is out of date(enable_dynamic_field from true to false)
@@ -111,37 +117,88 @@ CheckInsertInput(const CollectionDescPtr& collection_desc, const std::vector<Fie
             continue;
         }
 
+        auto it_normal = std::find_if(normal_fields.begin(), normal_fields.end(),
+                                      [&column](const FieldSchema& schema) { return schema.Name() == column->Name(); });
+        if (it_normal != normal_fields.end()) {
+            // the provided field is in collection schema, but it is not a required input
+            // maybe the schema has been changed(primary key from auto-id to non-auto-id)
+            // tell the MilvusClientImpl to update collection schema cache
+            if (!IsInputField(*it_normal, is_upsert)) {
+                return {StatusCode::DATA_UNMATCH_SCHEMA, "No need to provide data for field: " + column_name};
+            }
+
+            // some fields are filled by functions, no need to input
+            if (output_fields.find(column_name) != output_fields.end()) {
+                return {StatusCode::DATA_UNMATCH_SCHEMA, column_name + " is function output, no need to provide"};
+            }
+
+            // the provided field is not consistent with the schema
+            if (column_type != it_normal->FieldDataType()) {
+                return {StatusCode::DATA_UNMATCH_SCHEMA, "Field data type mismatch for field: " + column_name};
+            } else if (column_type == DataType::ARRAY && column->ElementType() != it_normal->ElementType()) {
+                return {StatusCode::DATA_UNMATCH_SCHEMA, "Element data type mismatch for array field: " + column_name};
+            }
+            // accept it
+            continue;
+        }
+
+        auto it_struct =
+            std::find_if(struct_fields.begin(), struct_fields.end(),
+                         [&column](const StructFieldSchema& schema) { return schema.Name() == column->Name(); });
+        if (it_struct != struct_fields.end()) {
+            // the provided field is not consistent with the schema
+            if (column_type != it_normal->FieldDataType()) {
+                return {StatusCode::DATA_UNMATCH_SCHEMA, "Field data type mismatch for struct field: " + column_name};
+            } else if (column->ElementType() != it_normal->ElementType()) {
+                return {StatusCode::DATA_UNMATCH_SCHEMA, "Element data type mismatch for struct field: " + column_name};
+            }
+            // accept it
+            continue;
+        }
+
         // redundant fields, maybe the schema has been changed(some fields added)
         // tell the MilvusClientImpl to update collection schema cache
-        return {StatusCode::DATA_UNMATCH_SCHEMA, std::string(field->Name() + " is not a valid field")};
+        return {StatusCode::DATA_UNMATCH_SCHEMA, std::string(column_name + " is not a valid field")};
     }
 
     // this loop is for "are there any data missed?"
-    for (const auto& collection_field : collection_fields) {
-        auto it = std::find_if(fields.begin(), fields.end(), [&collection_field](const FieldDataPtr& field) {
-            return field->Name() == collection_field.Name();
+    for (const auto& normal_field : normal_fields) {
+        auto it = std::find_if(columns.begin(), columns.end(), [&normal_field](const FieldDataPtr& field) {
+            return field->Name() == normal_field.Name();
         });
 
-        if (it != fields.end()) {
+        if (it != columns.end()) {
             continue;
         }
 
         // nullable field can be ignored
-        if (collection_field.IsNullable()) {
+        if (normal_field.IsNullable()) {
             continue;
         }
 
         // the field has default value can be ignored
-        if (!collection_field.DefaultValue().is_null()) {
+        if (!normal_field.DefaultValue().is_null()) {
             continue;
         }
 
         // some required fields are not provided, maybe the schema has been changed(some fields deleted)
         // tell the MilvusClientImpl to update collection schema cache
-        if (IsInputField(collection_field, is_upsert)) {
-            return {StatusCode::DATA_UNMATCH_SCHEMA, "Data is missed for field: " + collection_field.Name()};
+        if (IsInputField(normal_field, is_upsert)) {
+            return {StatusCode::DATA_UNMATCH_SCHEMA, "Data is missed for field: " + normal_field.Name()};
         }
     }
+
+    // this loop is for "are there any data missed?"
+    for (const auto& struct_field : struct_fields) {
+        auto it = std::find_if(columns.begin(), columns.end(), [&struct_field](const FieldDataPtr& field) {
+            return field->Name() == struct_field.Name();
+        });
+
+        if (it == columns.end()) {
+            return {StatusCode::DATA_UNMATCH_SCHEMA, "Data is missed for field: " + struct_field.Name()};
+        }
+    }
+
     return Status::OK();
 }
 
@@ -545,6 +602,70 @@ CreateProtoArrayField(const FieldDataSchema& data_schema, proto::schema::FieldDa
 }
 
 Status
+ProcessNormalFieldValues(const EntityRow& row, const std::vector<FieldSchema>& normal_fields,
+                         const std::set<std::string>& output_fields, bool is_upsert,
+                         std::map<std::string, proto::schema::FieldData>& proto_fields) {
+    for (const auto& field_schema : normal_fields) {
+        const std::string& name = field_schema.Name();
+        nlohmann::json field_value;
+        if (row.contains(name)) {
+            field_value = row[name];
+        } else {
+            // if the field is auto-id, no need to provide value for insert, require to provide for upsert
+            if ((field_schema.IsPrimaryKey() && field_schema.AutoID()) && !is_upsert) {
+                continue;
+            }
+
+            // if the field is an output field of doc-in-doc-out, no need to provide value
+            if (output_fields.find(name) != output_fields.end()) {
+                continue;
+            }
+
+            // if the field doesn't have default value and is not nullable, require user to provide the value
+            if (!field_schema.IsNullable() && field_schema.DefaultValue().is_null()) {
+                return {StatusCode::INVALID_AGUMENT, "The field: " + name + " is not provided."};
+            }
+        }
+
+        // from v2.4.10, milvus allows upsert for auto-id pk, no need to check for upsert action
+        if (field_schema.IsPrimaryKey() && field_schema.AutoID() && !is_upsert) {
+            return {StatusCode::INVALID_AGUMENT, "The primary key: " + name + " is auto generated, no need to input."};
+        }
+
+        proto::schema::FieldData& fd = proto_fields[name];
+        auto status = CheckAndSetFieldValue(field_value, field_schema, fd);
+        if (!status.IsOk()) {
+            return status;
+        }
+    }
+    return Status::OK();
+}
+
+Status
+ProcessStructFieldValues(const EntityRow& row, const std::vector<StructFieldSchema>& struct_fields,
+                         const std::set<std::string>& output_fields,
+                         std::map<std::string, proto::schema::FieldData>& proto_fields) {
+    for (const auto& struct_schema : struct_fields) {
+        const std::string& name = struct_schema.Name();
+        if (!row.contains(name)) {
+            return {StatusCode::INVALID_AGUMENT, "The struct field: " + name + " is not provided."};
+        }
+
+        const auto& field_value = row[name];
+        if (!field_value.is_array()) {
+            return {StatusCode::INVALID_AGUMENT, "The value of struct field: " + name + " is not a JSON array."};
+        }
+
+        auto dict_list = field_value.get<std::vector<nlohmann::json>>();
+        auto status = FillStructProtoFields(dict_list, struct_schema, output_fields, proto_fields);
+        if (!status.IsOk()) {
+            return status;
+        }
+    }
+    return Status::OK();
+}
+
+Status
 CreateProtoFieldData(const FieldDataSchema& data_schema, proto::schema::FieldData& field_data) {
     const Field& field = *(data_schema.Data());
     const FieldSchemaPtr schema = data_schema.Schema();
@@ -620,32 +741,165 @@ CreateProtoFieldData(const FieldDataSchema& data_schema, proto::schema::FieldDat
     return Status::OK();
 }
 
+// StructFieldData's data is std::vector<std::vector<nlohmann::json>>
+// Each nlohmann::json represents a struct/dict. each std::vector<nlohmann::json> is a row(a list of structs/dicts)
+// All the nlohmann::json must be consistent with the StructFieldSchema.
+// For example, a struct field schmea is ["A":Varchar, "B":FloatVector(dim=3)]
+// The input StructFieldData has 2 rows, the first row has 2 dicts, the second row has 1 dict
+// [
+//    [{"A":"x", "B":[0.1, 0.1, 0.1]}, {"A":"y", "B":[0.2, 0.2, 0.3]}],
+//    [{"A":"z", "B":[0.3, 0.3, 0.3]}],
+// ]
+//
+// The "field_data" will contains a proto::schema::StructArrayField, and the StructArrayField contains
+// a list of proto::schema::FieldData, each proto::schema::FieldData represents a sub field of the struct.
+// FieldData {
+//   StructArrayField {
+//     FieldData "A" {
+//       ScalarField { ArrayArray{StringArray["x", "y"], StringArray["z"]}}
+//     },
+//     FieldData "B" {
+//       ScalarField { VectorArray{VectorField[0.1, 0.1, 0.1, 0.2, 0.2, 0.3], VectorField[0.3, 0.3, 0.3]} }
+//     }
+//   }
+// }
 Status
-CreateProtoFieldDatas(const CollectionSchema& collection_schema, const std::vector<FieldDataPtr>& fields,
-                      std::vector<proto::schema::FieldData>& rpc_fields) {
-    std::map<std::string, FieldSchema> name_schemas;
-    for (const auto& schema : collection_schema.Fields()) {
-        name_schemas.insert(std::make_pair(schema.Name(), schema));
+FillStructProtoFields(const std::vector<nlohmann::json>& dict_list, const StructFieldSchema& struct_schema,
+                      const std::set<std::string>& output_fields,
+                      std::map<std::string, proto::schema::FieldData>& proto_sub_fields) {
+    if (dict_list.size() > static_cast<std::size_t>(struct_schema.MaxCapacity())) {
+        std::string error_msg = "Array length " + std::to_string(dict_list.size()) + " exceeds max capacity " +
+                                std::to_string(struct_schema.MaxCapacity()) +
+                                " of struct field: " + struct_schema.Name();
+        return {StatusCode::INVALID_AGUMENT, error_msg};
     }
 
-    auto enable_dynamic_field = collection_schema.EnableDynamicField();
-    for (const auto& field : fields) {
-        FieldSchemaPtr schema_ptr;
-        auto it = name_schemas.find(field->Name());
-        if (it != name_schemas.end()) {
-            schema_ptr = std::make_shared<FieldSchema>(it->second);  // this is a schema copy
+    // Assume a struct field is named "st", sub fields are "name" and "vector", the vector field could be BM25 output.
+    // The output_fields contains "st[vector]" means this vector field is no need to be inputed by insert().
+    // proto_sub_fields contains a key "st[vector]", value is proto::schema::FieldData
+    for (const auto& sub_schema : struct_schema.Fields()) {
+        const auto& sub_name = sub_schema.Name();
+        std::string combine_name = CombineStructFieldName(struct_schema.Name(), sub_name);
+        if (output_fields.find(combine_name) != output_fields.end()) {
+            continue;
         }
 
-        FieldDataSchema bridge(field, schema_ptr);
-        proto::schema::FieldData proto_data;
-        auto status = CreateProtoFieldData(bridge, proto_data);
+        bool isVectorType = IsVectorType(sub_schema.FieldDataType());
+
+        proto::schema::FieldData fd;
+        for (const auto& dict : dict_list) {
+            nlohmann::json field_value;
+            if (dict.contains(sub_name)) {
+                field_value = dict[sub_name];
+            }
+
+            auto status = CheckAndSetFieldValue(field_value, sub_schema, fd);
+            if (!status.IsOk()) {
+                return status;
+            }
+        }
+
+        proto::schema::FieldData& proto_field = proto_sub_fields[combine_name];
+        proto_field.set_field_name(sub_name);
+        if (isVectorType) {
+            proto_field.set_type(proto::schema::DataType::ArrayOfVector);
+            auto proto_vector_field = proto_field.mutable_vectors();
+            proto_vector_field->set_dim(static_cast<int64_t>(sub_schema.Dimension()));
+
+            auto proto_vector_array = proto_field.mutable_vectors()->mutable_vector_array();
+            proto_vector_array->set_element_type(DataTypeCast(sub_schema.FieldDataType()));
+            proto_vector_array->set_dim(sub_schema.Dimension());
+
+            proto_vector_array->add_data()->CopyFrom(fd.vectors());
+        } else {
+            proto_field.set_type(proto::schema::DataType::Array);
+
+            auto proto_array = proto_field.mutable_scalars()->mutable_array_data();
+            proto_array->add_data()->CopyFrom(fd.scalars());
+        }
+    }
+
+    return Status::OK();
+}
+
+Status
+CreateProtoStructData(const FieldDataPtr& column, const StructFieldSchema& struct_schema,
+                      const std::set<std::string>& output_fields, proto::schema::FieldData& field_data) {
+    auto actual_data = std::dynamic_pointer_cast<StructFieldData>(column);
+    if (actual_data == nullptr) {
+        return {StatusCode::INVALID_AGUMENT, "Illegal null pointer for field: " + struct_schema.Name()};
+    }
+
+    const auto& rows = actual_data->Data();
+    std::map<std::string, proto::schema::FieldData> proto_fields;
+    for (const auto& dict_list : rows) {
+        auto status = FillStructProtoFields(dict_list, struct_schema, output_fields, proto_fields);
         if (!status.IsOk()) {
             return status;
         }
-        if (enable_dynamic_field && field->Name() == DYNAMIC_FIELD) {
-            proto_data.set_is_dynamic(true);
+    }
+
+    field_data.set_field_name(struct_schema.Name());
+    field_data.set_type(proto::schema::DataType::ArrayOfStruct);
+    auto struct_array = field_data.mutable_struct_arrays();
+    for (const auto& sub_schema : struct_schema.Fields()) {
+        std::string combine_name = CombineStructFieldName(struct_schema.Name(), sub_schema.Name());
+        auto it = proto_fields.find(combine_name);
+        if (it != proto_fields.end()) {
+            struct_array->add_fields()->CopyFrom(it->second);
         }
-        rpc_fields.emplace_back(std::move(proto_data));
+    }
+
+    return Status::OK();
+}
+
+Status
+CreateProtoFieldDatas(const CollectionSchema& collection_schema, const std::vector<FieldDataPtr>& columns,
+                      std::vector<proto::schema::FieldData>& rpc_fields) {
+    std::map<std::string, FieldSchema> normal_fields;
+    for (const auto& schema : collection_schema.Fields()) {
+        normal_fields.insert(std::make_pair(schema.Name(), schema));
+    }
+    std::map<std::string, StructFieldSchema> struct_fields;
+    for (const auto& schema : collection_schema.StructFields()) {
+        struct_fields.insert(std::make_pair(schema.Name(), schema));
+    }
+
+    std::set<std::string> output_fields;
+    GetOutputFields(collection_schema, output_fields);
+
+    auto enable_dynamic_field = collection_schema.EnableDynamicField();
+    for (const auto& column : columns) {
+        if (output_fields.find(column->Name()) != output_fields.end()) {
+            continue;  // function output fields, ignore
+        }
+
+        auto it_normal = normal_fields.find(column->Name());
+        if (it_normal != normal_fields.end()) {
+            FieldSchemaPtr schema_ptr = std::make_shared<FieldSchema>(it_normal->second);  // this is a schema copy
+            FieldDataSchema bridge(column, schema_ptr);
+            proto::schema::FieldData proto_data;
+            auto status = CreateProtoFieldData(bridge, proto_data);
+            if (!status.IsOk()) {
+                return status;
+            }
+            if (enable_dynamic_field && column->Name() == DYNAMIC_FIELD) {
+                proto_data.set_is_dynamic(true);
+            }
+            rpc_fields.emplace_back(std::move(proto_data));
+            continue;
+        }
+
+        auto it_struct = struct_fields.find(column->Name());
+        if (it_struct != struct_fields.end()) {
+            proto::schema::FieldData proto_data;
+            auto status = CreateProtoStructData(column, it_struct->second, output_fields, proto_data);
+            if (!status.IsOk()) {
+                return status;
+            }
+            rpc_fields.emplace_back(std::move(proto_data));
+            continue;
+        }
     }
 
     return Status::OK();
@@ -1054,17 +1308,15 @@ Status
 CheckAndSetRowData(const EntityRows& rows, const CollectionSchema& schema, bool is_upsert,
                    std::vector<proto::schema::FieldData>& rpc_fields) {
     std::set<std::string> output_fields;
-    for (const auto& function : schema.Functions()) {
-        if (function) {
-            for (const auto& name : function->OutputFieldNames()) {
-                output_fields.insert(name);
-            }
-        }
-    }
+    GetOutputFields(schema, output_fields);
 
-    const std::vector<FieldSchema>& schema_fields = schema.Fields();
+    const std::vector<FieldSchema>& normal_fields = schema.Fields();
+    const std::vector<StructFieldSchema>& struct_fields = schema.StructFields();
     std::set<std::string> field_names;
-    for (const auto& field_schema : schema_fields) {
+    for (const auto& field_schema : normal_fields) {
+        field_names.insert(field_schema.Name());
+    }
+    for (const auto& field_schema : struct_fields) {
         field_names.insert(field_schema.Name());
     }
     std::map<std::string, proto::schema::FieldData> proto_fields;
@@ -1072,7 +1324,7 @@ CheckAndSetRowData(const EntityRows& rows, const CollectionSchema& schema, bool 
     // add a dynamic field into the output list if it is enabled
     if (schema.EnableDynamicField()) {
         proto::schema::FieldData dy;
-        dy.set_type(milvus::proto::schema::DataType::JSON);
+        dy.set_type(proto::schema::DataType::JSON);
         dy.set_is_dynamic(true);
         proto_fields[DYNAMIC_FIELD] = dy;
     }
@@ -1084,40 +1336,16 @@ CheckAndSetRowData(const EntityRows& rows, const CollectionSchema& schema, bool 
                     "The No." + std::to_string(i) + " input row is not a JSON dict object"};
         }
 
-        // process values for non-dynamic fields
-        for (const auto& field_schema : schema_fields) {
-            const std::string& name = field_schema.Name();
-            nlohmann::json field_value;
-            if (row.contains(name)) {
-                field_value = row[name];
-            } else {
-                // if the field is auto-id, no need to provide value for insert, require to provide for upsert
-                if ((field_schema.IsPrimaryKey() && field_schema.AutoID()) && !is_upsert) {
-                    continue;
-                }
+        // process values for normal fields
+        auto status = ProcessNormalFieldValues(row, normal_fields, output_fields, is_upsert, proto_fields);
+        if (!status.IsOk()) {
+            return status;
+        }
 
-                // if the field is an output field of doc-in-doc-out, no need to provide value
-                if (output_fields.find(name) != output_fields.end()) {
-                    continue;
-                }
-
-                // if the field doesn't have default value and is not nullable, require user to provide the value
-                if (!field_schema.IsNullable() && field_schema.DefaultValue().is_null()) {
-                    return {StatusCode::INVALID_AGUMENT, "The field: " + name + " is not provided."};
-                }
-            }
-
-            // from v2.4.10, milvus allows upsert for auto-id pk, no need to check for upsert action
-            if (field_schema.IsPrimaryKey() && field_schema.AutoID() && !is_upsert) {
-                return {StatusCode::INVALID_AGUMENT,
-                        "The primary key: " + name + " is auto generated, no need to input."};
-            }
-
-            proto::schema::FieldData& fd = proto_fields[name];
-            auto status = CheckAndSetFieldValue(field_value, field_schema, fd);
-            if (!status.IsOk()) {
-                return status;
-            }
+        // process values for struct fields
+        status = ProcessStructFieldValues(row, struct_fields, output_fields, proto_fields);
+        if (!status.IsOk()) {
+            return status;
         }
 
         // process values for dynamic fields
@@ -1134,8 +1362,31 @@ CheckAndSetRowData(const EntityRows& rows, const CollectionSchema& schema, bool 
         }
     }
 
-    for (auto& n : proto_fields) {
-        rpc_fields.emplace_back(std::move(n.second));
+    // the proto_fields contains FieldData of normal fields and sub fields of struct fields, and dynamic field.
+    // put normal fields and struct fields respectively
+    for (const auto& field_schema : normal_fields) {
+        auto it = proto_fields.find(field_schema.Name());
+        if (it != proto_fields.end()) {
+            rpc_fields.emplace_back(std::move(it->second));
+        }
+    }
+    for (const auto& struct_schema : struct_fields) {
+        proto::schema::FieldData field_data;
+        field_data.set_field_name(struct_schema.Name());
+        field_data.set_type(proto::schema::DataType::ArrayOfStruct);
+        auto struct_array = field_data.mutable_struct_arrays();
+        for (const auto& sub_schema : struct_schema.Fields()) {
+            std::string combine_name = CombineStructFieldName(struct_schema.Name(), sub_schema.Name());
+            auto it = proto_fields.find(combine_name);
+            if (it != proto_fields.end()) {
+                struct_array->add_fields()->CopyFrom(it->second);
+            }
+        }
+        rpc_fields.emplace_back(std::move(field_data));
+    }
+
+    if (proto_fields.find(DYNAMIC_FIELD) != proto_fields.end()) {
+        rpc_fields.emplace_back(std::move(proto_fields[DYNAMIC_FIELD]));
     }
 
     return Status::OK();
