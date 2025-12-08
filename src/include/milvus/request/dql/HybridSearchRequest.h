@@ -112,13 +112,13 @@ class HybridSearchRequest : public DQLRequestBase {
     Rerank() const;
 
     /**
-     * @brief Set rerank, only accept RERANK function type
+     * @brief Set rerank, only accept RRF/Weighted function
      */
     Status
     SetRerank(const FunctionPtr& rerank);
 
     /**
-     * @brief Set rerank, only accept RERANK function type
+     * @brief Set rerank, only accept RRF/Weighted function
      */
     HybridSearchRequest&
     WithRerank(const FunctionPtr& rerank);

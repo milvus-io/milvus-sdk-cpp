@@ -76,37 +76,37 @@ class Function {
     SetFunctionType(FunctionType function_type);
 
     /**
-     * @brief Get input field names
+     * @brief Get input field names.
      */
     const std::vector<std::string>&
     InputFieldNames() const;
 
     /**
-     * @brief Add input field name
+     * @brief Add input field name.
      */
     Status
     AddInputFieldName(std::string name);
 
     /**
-     * @brief Get output field names
+     * @brief Get output field names.
      */
     const std::vector<std::string>&
     OutputFieldNames() const;
 
     /**
-     * @brief Add output field name
+     * @brief Add output field name.
      */
     Status
     AddOutputFieldName(std::string name);
 
     /**
-     * @brief Add extra param
+     * @brief Add extra param.
      */
     virtual Status
     AddParam(const std::string& key, const std::string& value);
 
     /**
-     * @brief Get extra param
+     * @brief Get extra param.
      */
     virtual const std::unordered_map<std::string, std::string>&
     Params() const;
@@ -134,13 +134,13 @@ class RRFRerank : public Function {
     explicit RRFRerank(int k);
 
     /**
-     * @brief Override this method, only allow to set RERANK function type
+     * @brief Override this method, only allow to set RERANK function type.
      */
     Status
     SetFunctionType(FunctionType function_type) override;
 
     /**
-     * @brief Set K value
+     * @brief Set K value.
      */
     Status
     SetK(int k);
@@ -155,16 +155,156 @@ class WeightedRerank : public Function {
     explicit WeightedRerank(const std::vector<float>& weights);
 
     /**
-     * @brief Override this method, only allow to set RERANK function type
+     * @brief Override this method, only allow to set RERANK function type.
      */
     Status
     SetFunctionType(FunctionType function_type) override;
 
     /**
-     * @brief Set weighted values
+     * @brief Set weighted values.
      */
     Status
     SetWeights(const std::vector<float>& weights);
+};
+
+////////////////////////////////////////////////////////////////////////////////////////////
+/**
+ * @brief Boost rerank function
+ */
+class BoostRerank : public Function {
+ public:
+    explicit BoostRerank(std::string name);
+
+    /**
+     * @brief Override this method, only allow to set RERANK function type.
+     */
+    Status
+    SetFunctionType(FunctionType function_type) override;
+
+    /**
+     * @brief Set filter.
+     */
+    void
+    SetFilter(const std::string& filter);
+
+    /**
+     * @brief Set filter.
+     */
+    void
+    SetWeight(float weight);
+
+    /**
+     * @brief Set field to do random score.
+     */
+    void
+    SetRandomScoreField(const std::string& field);
+
+    /**
+     * @brief Set random score seed.
+     */
+    void
+    SetRandomScoreSeed(int64_t seed);
+};
+
+////////////////////////////////////////////////////////////////////////////////////////////
+/**
+ * @brief Decay rerank function
+ */
+class DecayRerank : public Function {
+ public:
+    explicit DecayRerank(std::string name);
+
+    /**
+     * @brief Override this method, only allow to set RERANK function type.
+     */
+    Status
+    SetFunctionType(FunctionType function_type) override;
+
+    /**
+     * @brief Set decay function. "gauss", "exp", or "linear".
+     */
+    void
+    SetFunction(const std::string& name);
+
+    /**
+     * @brief Set the reference point from which decay score is calculated.
+     * Decay function can be applied on INT8/INT16/INT32/INT64/FLOAT/DOUBLE fields,
+     * the origin value can be these types.
+     */
+    template <typename T>
+    void
+    SetOrigin(T val) {
+        AddParam("origin", std::to_string(val));
+    }
+
+    /**
+     * @brief Set a "no-decay zone" around the origin where items maintain full scores.
+     * Decay function can be applied on INT8/INT16/INT32/INT64/FLOAT/DOUBLE fields,
+     * the offset value can be these types.
+     */
+    template <typename T>
+    void
+    SetOffset(T val) {
+        AddParam("offset", std::to_string(val));
+    }
+
+    /**
+     * @brief Set position at which relevance drops to the decay value.
+     * Decay function can be applied on INT8/INT16/INT32/INT64/FLOAT/DOUBLE fields,
+     * the scale value can be these types.
+     */
+    template <typename T>
+    void
+    SetScale(T val) {
+        AddParam("scale", std::to_string(val));
+    }
+
+    /**
+     * @brief Set score value at the "scale" position,
+     */
+    void
+    SetDecay(float val);
+};
+
+////////////////////////////////////////////////////////////////////////////////////////////
+/**
+ * @brief Model rerank function
+ */
+class ModelRerank : public Function {
+ public:
+    explicit ModelRerank(std::string name);
+
+    /**
+     * @brief Override this method, only allow to set RERANK function type.
+     */
+    Status
+    SetFunctionType(FunctionType function_type) override;
+
+    /**
+     * @brief Set the model service provider to use for reranking.
+     */
+    void
+    SetProvider(const std::string& name);
+
+    /**
+     * @brief Set the list of query strings used by the reranking model to calculate relevance scores.
+     * Note: The number of query strings must match exactly the number of queries in your search operation,
+     * even when using query vectors instead of text.
+     */
+    void
+    SetQueries(const std::vector<std::string>& queries);
+
+    /**
+     * @brief Set the URL of the model service.
+     */
+    void
+    SetEndpoint(const std::string& url);
+
+    /**
+     * @brief Set the maximum number of documents to process in a single batch.
+     */
+    void
+    SetMaxClientBatchSize(int64_t val);
 };
 
 }  // namespace milvus

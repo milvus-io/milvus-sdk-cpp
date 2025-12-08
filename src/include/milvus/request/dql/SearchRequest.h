@@ -16,6 +16,7 @@
 
 #pragma once
 
+#include "../../types/FunctionScore.h"
 #include "../../types/SubSearchRequest.h"
 #include "./DQLRequestBase.h"
 
@@ -222,6 +223,30 @@ class SearchRequest : public DQLRequestBase, public SearchRequestBase {
      */
     SearchRequest&
     WithStrictGroupSize(bool strict_group_size);
+
+    /**
+     * @brief Get reranker
+     *
+     */
+    const FunctionScorePtr&
+    Rerank() const;
+
+    /**
+     * @brief Set reranker.
+     * Allows multiple rerank functions such as Boost/Decay/Model, etc
+     */
+    void
+    SetRerank(const FunctionScorePtr& ranker);
+
+    /**
+     * @brief Set reranker.
+     * Allows multiple rerank functions such as Boost/Decay/Model, etc
+     */
+    SearchRequest&
+    WithRerank(const FunctionScorePtr& ranker);
+
+ private:
+    FunctionScorePtr ranker_;
 };
 
 }  // namespace milvus
