@@ -377,6 +377,8 @@ using ArrayFloatFieldData = ArrayFieldData<float, DataType::FLOAT>;
 using ArrayDoubleFieldData = ArrayFieldData<double, DataType::DOUBLE>;
 using ArrayVarCharFieldData = ArrayFieldData<std::string, DataType::VARCHAR>;
 
+using StructFieldData = ArrayFieldData<nlohmann::json, DataType::STRUCT>;
+
 using BoolFieldDataPtr = std::shared_ptr<BoolFieldData>;
 using Int8FieldDataPtr = std::shared_ptr<Int8FieldData>;
 using Int16FieldDataPtr = std::shared_ptr<Int16FieldData>;
@@ -402,6 +404,8 @@ using ArrayFloatFieldDataPtr = std::shared_ptr<ArrayFloatFieldData>;
 using ArrayDoubleFieldDataPtr = std::shared_ptr<ArrayDoubleFieldData>;
 using ArrayVarCharFieldDataPtr = std::shared_ptr<ArrayVarCharFieldData>;
 
+using StructFieldDataPtr = std::shared_ptr<StructFieldData>;
+
 extern template class FieldData<bool, DataType::BOOL>;
 extern template class FieldData<int8_t, DataType::INT8>;
 extern template class FieldData<int16_t, DataType::INT16>;
@@ -426,5 +430,8 @@ extern template class ArrayFieldData<int64_t, DataType::INT64>;
 extern template class ArrayFieldData<float, DataType::FLOAT>;
 extern template class ArrayFieldData<double, DataType::DOUBLE>;
 extern template class ArrayFieldData<std::string, DataType::VARCHAR>;
+
+// for struct field
+extern template class ArrayFieldData<nlohmann::json, DataType::STRUCT>;
 
 }  // namespace milvus

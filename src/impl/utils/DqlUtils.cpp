@@ -124,7 +124,7 @@ BuildFieldDataScalars(const ScalarData& scalar_data) {
 }
 
 Status
-BuildMilvusArrayFieldData(const std::string& name, const milvus::proto::schema::ArrayArray& array_field,
+BuildMilvusArrayFieldData(const std::string& name, const proto::schema::ArrayArray& array_field,
                           std::vector<bool>&& valid_data, size_t offset, size_t count, FieldDataPtr& field_data) {
     field_data = nullptr;
     const auto& scalars_data = array_field.data();
@@ -234,7 +234,7 @@ GetValidData(const google::protobuf::RepeatedField<bool>& proto_valid, size_t of
 }
 
 Status
-CreateMilvusFieldData(const milvus::proto::schema::FieldData& proto_data, size_t offset, size_t count,
+CreateMilvusFieldData(const proto::schema::FieldData& proto_data, size_t offset, size_t count,
                       FieldDataPtr& field_data) {
     field_data = nullptr;
     auto field_type = proto_data.type();
@@ -351,70 +351,242 @@ CreateMilvusFieldData(const milvus::proto::schema::FieldData& proto_data, size_t
             field_data = std::make_shared<JSONFieldData>(std::move(name), std::move(values), std::move(valid_data));
             return Status::OK();
         }
-        case proto::schema::DataType::Array:
+        case proto::schema::DataType::Array: {
             return BuildMilvusArrayFieldData(name, proto_scalars.array_data(), std::move(valid_data), offset, count,
                                              field_data);
+        }
+        case proto::schema::DataType::ArrayOfStruct: {
+            return ConvertStructFieldData(proto_data, offset, count, field_data);
+        }
         default:
             return {StatusCode::NOT_SUPPORTED, "Unsupported field type: " + std::to_string(field_type)};
     }
 }
 
 Status
-CreateMilvusFieldData(const milvus::proto::schema::FieldData& proto_data, FieldDataPtr& field_data) {
+GetFieldDataRowCount(const proto::schema::FieldData& proto_data, size_t& row_count) {
+    row_count = 0;
     auto field_type = proto_data.type();
     const auto& proto_vectors = proto_data.vectors();
     const auto& proto_scalars = proto_data.scalars();
     switch (field_type) {
         case proto::schema::DataType::BinaryVector: {
             size_t len = proto_vectors.dim() / 8;
-            size_t count = proto_vectors.binary_vector().size() / len;
-            return CreateMilvusFieldData(proto_data, 0, count, field_data);
+            row_count = proto_vectors.binary_vector().size() / len;
+            break;
         }
         case proto::schema::DataType::FloatVector: {
             size_t len = proto_vectors.dim();
-            size_t count = proto_vectors.float_vector().data().size() / len;
-            return CreateMilvusFieldData(proto_data, 0, count, field_data);
+            row_count = proto_vectors.float_vector().data().size() / len;
+            break;
         }
         case proto::schema::DataType::Float16Vector: {
             size_t in_len = proto_vectors.dim() * 2;
-            size_t count = proto_vectors.float16_vector().size() / in_len;
-            return CreateMilvusFieldData(proto_data, 0, count, field_data);
+            row_count = proto_vectors.float16_vector().size() / in_len;
+            break;
         }
         case proto::schema::DataType::BFloat16Vector: {
             size_t in_len = proto_vectors.dim() * 2;
-            size_t count = proto_vectors.bfloat16_vector().size() / in_len;
-            return CreateMilvusFieldData(proto_data, 0, count, field_data);
+            row_count = proto_vectors.bfloat16_vector().size() / in_len;
+            break;
         }
         case proto::schema::DataType::SparseFloatVector: {
             const auto& content = proto_vectors.sparse_float_vector().contents();
-            return CreateMilvusFieldData(proto_data, 0, content.size(), field_data);
+            row_count = content.size();
+            break;
         }
         case proto::schema::DataType::Int8Vector: {
             size_t len = proto_vectors.dim();
-            size_t count = proto_vectors.int8_vector().size() / len;
-            return CreateMilvusFieldData(proto_data, 0, count, field_data);
+            row_count = proto_vectors.int8_vector().size() / len;
+            break;
         }
-        case proto::schema::DataType::Bool:
-            return CreateMilvusFieldData(proto_data, 0, proto_scalars.bool_data().data().size(), field_data);
+        case proto::schema::DataType::Bool: {
+            row_count = proto_scalars.bool_data().data().size();
+            break;
+        }
         case proto::schema::DataType::Int8:
         case proto::schema::DataType::Int16:
-        case proto::schema::DataType::Int32:
-            return CreateMilvusFieldData(proto_data, 0, proto_scalars.int_data().data().size(), field_data);
-        case proto::schema::DataType::Int64:
-            return CreateMilvusFieldData(proto_data, 0, proto_scalars.long_data().data().size(), field_data);
-        case proto::schema::DataType::Float:
-            return CreateMilvusFieldData(proto_data, 0, proto_scalars.float_data().data().size(), field_data);
-        case proto::schema::DataType::Double:
-            return CreateMilvusFieldData(proto_data, 0, proto_scalars.double_data().data().size(), field_data);
-        case proto::schema::DataType::VarChar:
-            return CreateMilvusFieldData(proto_data, 0, proto_scalars.string_data().data().size(), field_data);
-        case proto::schema::DataType::JSON:
-            return CreateMilvusFieldData(proto_data, 0, proto_scalars.json_data().data().size(), field_data);
-        case proto::schema::DataType::Array:
-            return CreateMilvusFieldData(proto_data, 0, proto_scalars.array_data().data().size(), field_data);
+        case proto::schema::DataType::Int32: {
+            row_count = proto_scalars.int_data().data().size();
+            break;
+        }
+        case proto::schema::DataType::Int64: {
+            row_count = proto_scalars.long_data().data().size();
+            break;
+        }
+        case proto::schema::DataType::Float: {
+            row_count = proto_scalars.float_data().data().size();
+            break;
+        }
+        case proto::schema::DataType::Double: {
+            row_count = proto_scalars.double_data().data().size();
+            break;
+        }
+        case proto::schema::DataType::VarChar: {
+            row_count = proto_scalars.string_data().data().size();
+            break;
+        }
+        case proto::schema::DataType::JSON: {
+            row_count = proto_scalars.json_data().data().size();
+            break;
+        }
+        case proto::schema::DataType::Array: {
+            row_count = proto_scalars.array_data().data().size();
+            break;
+        }
+        case proto::schema::DataType::ArrayOfVector: {
+            row_count = proto_vectors.vector_array().data_size();
+            break;
+        }
+        case proto::schema::DataType::ArrayOfStruct: {
+            const auto& struct_arrays = proto_data.struct_arrays();
+            if (struct_arrays.fields_size() == 0) {
+                return {StatusCode::UNKNOWN_ERROR, "The returned search result contains an empty StructArrayField"};
+            }
+            return GetFieldDataRowCount(struct_arrays.fields(0), row_count);
+            break;
+        }
         default:
             return {StatusCode::NOT_SUPPORTED, "Unsupported field type: " + std::to_string(field_type)};
     }
+    return Status::OK();
+}
+
+Status
+CreateMilvusFieldData(const proto::schema::FieldData& proto_data, FieldDataPtr& field_data) {
+    auto field_type = proto_data.type();
+    size_t row_count = 0;
+    auto status = GetFieldDataRowCount(proto_data, row_count);
+    if (!status.IsOk()) {
+        return status;
+    }
+
+    if (field_type == proto::schema::DataType::ArrayOfStruct) {
+        return ConvertStructFieldData(proto_data, 0, row_count, field_data);
+    } else {
+        return CreateMilvusFieldData(proto_data, 0, row_count, field_data);
+    }
+}
+
+template <typename T>
+void
+FillStructValue(const FieldDataPtr& array_data, std::vector<std::vector<nlohmann::json>>& structs) {
+    std::shared_ptr<T> actual_ptr = std::static_pointer_cast<T>(array_data);
+    auto actual_count = array_data->Count();
+    for (auto k = 0; k < actual_count; k++) {
+        const auto& arr = actual_ptr->Value(k);
+        if (structs.size() <= k) {
+            structs.emplace_back(std::move(std::vector<nlohmann::json>()));
+            structs[k].resize(arr.size());
+        }
+        for (auto j = 0; j < arr.size(); j++) {
+            structs[k][j][array_data->Name()] = arr[j];
+        }
+    }
+}
+
+Status
+ConvertStructFieldData(const proto::schema::FieldData& proto_data, size_t offset, size_t count,
+                       FieldDataPtr& field_data) {
+    auto sturct_name = proto_data.field_name();
+    std::vector<std::vector<nlohmann::json>> structs;
+    structs.reserve(count);
+    const auto& struct_array = proto_data.struct_arrays();
+    for (auto i = 0; i < struct_array.fields_size(); i++) {
+        const auto& field_data = struct_array.fields(i);
+        auto sub_field_name = field_data.field_name();
+        auto field_type = field_data.type();
+        switch (field_type) {
+            case proto::schema::DataType::Array: {
+                const auto& proto_scalars = field_data.scalars();
+                const auto& proto_valid = field_data.valid_data();
+                std::vector<bool> valid_data;
+                GetValidData(proto_valid, offset, count, valid_data);
+
+                FieldDataPtr array_data;
+                auto status = BuildMilvusArrayFieldData(sub_field_name, proto_scalars.array_data(),
+                                                        std::move(valid_data), offset, count, array_data);
+                if (!status.IsOk()) {
+                    return status;
+                }
+
+                switch (array_data->ElementType()) {
+                    case DataType::BOOL: {
+                        FillStructValue<ArrayBoolFieldData>(array_data, structs);
+                        break;
+                    }
+                    case DataType::INT8: {
+                        FillStructValue<ArrayInt8FieldData>(array_data, structs);
+                        break;
+                    }
+                    case DataType::INT16: {
+                        FillStructValue<ArrayInt16FieldData>(array_data, structs);
+                        break;
+                    }
+                    case DataType::INT32: {
+                        FillStructValue<ArrayInt32FieldData>(array_data, structs);
+                        break;
+                    }
+                    case DataType::INT64: {
+                        FillStructValue<ArrayInt64FieldData>(array_data, structs);
+                        break;
+                    }
+                    case DataType::FLOAT: {
+                        FillStructValue<ArrayFloatFieldData>(array_data, structs);
+                        break;
+                    }
+                    case DataType::DOUBLE: {
+                        FillStructValue<ArrayDoubleFieldData>(array_data, structs);
+                        break;
+                    }
+                    case DataType::VARCHAR: {
+                        FillStructValue<ArrayVarCharFieldData>(array_data, structs);
+                        break;
+                    }
+                    default:
+                        return {StatusCode::NOT_SUPPORTED,
+                                "Unsupported sub field type: " + std::to_string(array_data->ElementType()) +
+                                    " for struct field: " + sturct_name};
+                }
+                break;
+            }
+            case proto::schema::DataType::ArrayOfVector: {
+                const auto& vector_array = field_data.vectors().vector_array();
+                if (vector_array.element_type() != proto::schema::DataType::FloatVector) {
+                    return {StatusCode::NOT_SUPPORTED,
+                            "Unsupported vector field type: " + std::to_string(vector_array.element_type()) +
+                                " for struct field: " + sturct_name};
+                }
+
+                if (offset >= vector_array.data_size() || count == 0) {
+                    break;
+                }
+                if (offset + count > vector_array.data_size()) {
+                    count = vector_array.data_size() - offset;
+                }
+                for (size_t k = offset; k < offset + count; k++) {
+                    const auto& vector_field = vector_array.data(k);
+                    const auto& floats = vector_field.float_vector().data();
+                    std::vector<std::vector<float>> vectors = BuildFieldDataVectors<float, float>(
+                        vector_field.dim() * 4, floats.data(), floats.size(), 0, floats.size());
+                    auto num = k - offset;
+                    if (structs.size() <= num) {
+                        structs.emplace_back(std::move(std::vector<nlohmann::json>()));
+                        structs[num].resize(vectors.size());
+                    }
+                    for (auto j = 0; j < vectors.size(); j++) {
+                        structs[num][j][sub_field_name] = vectors[j];
+                    }
+                }
+                break;
+            }
+            default:
+                return {StatusCode::NOT_SUPPORTED, "Unsupported field type: " + std::to_string(field_type)};
+        }
+    }
+
+    field_data = std::make_shared<StructFieldData>(proto_data.field_name(), std::move(structs));
+    return Status::OK();
 }
 
 FieldDataPtr
@@ -456,7 +628,7 @@ CreateScoreField(const std::string& name, const proto::schema::SearchResultData&
 }
 
 Status
-SetTargetVectors(const FieldDataPtr& target, milvus::proto::milvus::SearchRequest* rpc_request) {
+SetTargetVectors(const FieldDataPtr& target, proto::milvus::SearchRequest* rpc_request) {
     // placeholders
     proto::common::PlaceholderGroup placeholder_group;
     auto& placeholder_value = *placeholder_group.add_placeholders();
@@ -528,19 +700,52 @@ SetTargetVectors(const FieldDataPtr& target, milvus::proto::milvus::SearchReques
     } else {
         return {StatusCode::NOT_SUPPORTED, "Unsupported target type: " + std::to_string(target->Type())};
     }
+
+    rpc_request->set_placeholder_group(std::move(placeholder_group.SerializeAsString()));
+    return Status::OK();
+}
+
+Status
+SetEmbeddingLists(const std::vector<EmbeddingList>& emb_lists, proto::milvus::SearchRequest* rpc_request) {
+    // placeholders
+    proto::common::PlaceholderGroup placeholder_group;
+    auto& placeholder_value = *placeholder_group.add_placeholders();
+    placeholder_value.set_tag("$0");
+
+    for (const auto& emb_list : emb_lists) {
+        auto target = emb_list.TargetVectors();
+        if (target == nullptr) {
+            return {StatusCode::INVALID_AGUMENT, "Embedding list is empty"};
+        }
+        if (target->Type() == DataType::FLOAT_VECTOR) {
+            // so far only support float vector
+            placeholder_value.set_type(proto::common::PlaceholderType::EmbListFloatVector);
+            auto& vectors = dynamic_cast<FloatVecFieldData&>(*target);
+            std::string content;
+            content.reserve(emb_list.Count() * emb_list.Dim() * 4);
+            for (const auto& vector : vectors.Data()) {
+                std::string single_content(reinterpret_cast<const char*>(vector.data()), vector.size() * sizeof(float));
+                content += single_content;
+            }
+            rpc_request->set_nq(static_cast<int64_t>(emb_list.Count()));
+            placeholder_value.add_values(std::move(content));
+        }
+    }
+
+    rpc_request->set_nq(static_cast<int64_t>(emb_lists.size()));
     rpc_request->set_placeholder_group(std::move(placeholder_group.SerializeAsString()));
     return Status::OK();
 }
 
 void
 SetExtraParams(const std::unordered_map<std::string, std::string>& params,
-               ::google::protobuf::RepeatedPtrField<::milvus::proto::common::KeyValuePair>* kv_pairs) {
+               ::google::protobuf::RepeatedPtrField<proto::common::KeyValuePair>* kv_pairs) {
     // offet/radius/range_filter/nprobe etc.
     // in old milvus versions, all extra params are under "params"
     // in new milvus versions, all extra params are in the top level
     nlohmann::json json_params;
     for (auto& pair : params) {
-        ::milvus::proto::common::KeyValuePair kv_pair;
+        proto::common::KeyValuePair kv_pair;
         kv_pair.set_key(pair.first);
         kv_pair.set_value(pair.second);
         kv_pairs->Add(std::move(kv_pair));
@@ -556,7 +761,7 @@ SetExtraParams(const std::unordered_map<std::string, std::string>& params,
         }
     }
     {
-        ::milvus::proto::common::KeyValuePair kv_pair;
+        proto::common::KeyValuePair kv_pair;
         kv_pair.set_key(PARAMS);
         kv_pair.set_value(json_params.dump());
         kv_pairs->Add(std::move(kv_pair));
@@ -663,6 +868,10 @@ GenGetters(const std::vector<FieldDataPtr>& fields) {
                     }
                     case DataType::VARCHAR: {
                         getters.insert(std::make_pair(name, std::move(GenGetter<ArrayVarCharFieldData>(field))));
+                        break;
+                    }
+                    case DataType::STRUCT: {
+                        getters.insert(std::make_pair(name, std::move(GenGetter<StructFieldData>(field))));
                         break;
                     }
                     default:
@@ -1009,9 +1218,16 @@ ConvertSearchRequest(const T& request, const std::string& current_db, proto::mil
     }
 
     // set target vectors
-    auto status = SetTargetVectors(request.TargetVectors(), &rpc_request);
-    if (!status.IsOk()) {
-        return status;
+    if (request.TargetVectors() != nullptr) {
+        auto status = SetTargetVectors(request.TargetVectors(), &rpc_request);
+        if (!status.IsOk()) {
+            return status;
+        }
+    } else {
+        auto status = SetEmbeddingLists(request.EmbeddingLists(), &rpc_request);
+        if (!status.IsOk()) {
+            return status;
+        }
     }
 
     auto setParamFunc = [&rpc_request](const std::string& key, const std::string& value) {
@@ -1143,9 +1359,16 @@ ConvertHybridSearchRequest(const T& request, const std::string& current_db,
 
     for (const auto& sub_request : request.SubRequests()) {
         auto search_req = rpc_request.add_requests();
-        auto status = SetTargetVectors(sub_request->TargetVectors(), search_req);
-        if (!status.IsOk()) {
-            return status;
+        if (sub_request->TargetVectors() != nullptr) {
+            auto status = SetTargetVectors(sub_request->TargetVectors(), search_req);
+            if (!status.IsOk()) {
+                return status;
+            }
+        } else {
+            auto status = SetEmbeddingLists(sub_request->EmbeddingLists(), search_req);
+            if (!status.IsOk()) {
+                return status;
+            }
         }
 
         // set filter expression
@@ -1310,6 +1533,9 @@ CopyFieldData(const FieldDataPtr& src, uint64_t from, uint64_t to, FieldDataPtr&
                 case DataType::VARCHAR: {
                     return CopyFieldDataRange<ArrayVarCharFieldData>(src, from, to, target);
                 }
+                case DataType::STRUCT: {
+                    return CopyFieldDataRange<StructFieldData>(src, from, to, target);
+                }
                 default: {
                     std::string msg = "Unsupported element type: " + std::to_string(src->ElementType());
                     return {StatusCode::NOT_SUPPORTED, msg};
@@ -1427,6 +1653,9 @@ AppendFieldData(const FieldDataPtr& from, FieldDataPtr& to) {
                 }
                 case DataType::VARCHAR: {
                     return Append<ArrayVarCharFieldData>(from, to);
+                }
+                case DataType::STRUCT: {
+                    return Append<StructFieldData>(from, to);
                 }
                 default: {
                     std::string msg = "Unsupported element type: " + std::to_string(from->ElementType());

@@ -117,12 +117,13 @@ main(int argc, char* argv[]) {
 
     {
         // query
-        milvus::QueryRequest request;
-        request.SetCollectionName(collection_name);
-        request.AddOutputField("*");
-        request.SetFilter(field_id + " == 2");
-        // set to strong level so that the query is executed after the inserted data is consumed by server
-        request.SetConsistencyLevel(milvus::ConsistencyLevel::STRONG);
+        auto request =
+            milvus::QueryRequest()
+                .WithCollectionName(collection_name)
+                .AddOutputField("*")
+                .WithFilter(field_id + " == 2")
+                // set to strong level so that the query is executed after the inserted data is consumed by server
+                .WithConsistencyLevel(milvus::ConsistencyLevel::STRONG);
 
         milvus::QueryResponse response;
         status = client->Query(request, response);
@@ -139,15 +140,16 @@ main(int argc, char* argv[]) {
 
     {
         // do search
-        milvus::SearchRequest request;
-        request.SetCollectionName(collection_name);
-        request.SetFilter("a in [4, 7, 13, 18]");  // filter on dynamic field
-        request.SetLimit(10);
-        request.AddOutputField(field_text);
-        request.AddOutputField("a");
-        request.AddOutputField("b");
-        request.AddFloatVector(field_vector, util::GenerateFloatVector(dimension));
-        request.SetConsistencyLevel(milvus::ConsistencyLevel::BOUNDED);
+        auto request = milvus::SearchRequest()
+                           .WithCollectionName(collection_name)
+                           .WithFilter("a in [4, 7, 13, 18]")  // filter on dynamic field
+                           .WithLimit(10)
+                           .WithAnnsField(field_vector)
+                           .AddOutputField(field_text)
+                           .AddOutputField("a")
+                           .AddOutputField("b")
+                           .AddFloatVector(util::GenerateFloatVector(dimension))
+                           .WithConsistencyLevel(milvus::ConsistencyLevel::BOUNDED);
 
         milvus::SearchResponse response;
         status = client->Search(request, response);

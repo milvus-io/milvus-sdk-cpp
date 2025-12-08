@@ -85,25 +85,19 @@ class HybridSearchRequest : public DQLRequestBase {
      * @brief Set sub search requests
      */
     void
-    SetSubRequest(std::vector<SubSearchRequestPtr>&& requests);
+    SetSubRequests(std::vector<SubSearchRequestPtr>&& requests);
 
     /**
      * @brief Set sub search requests
      */
     HybridSearchRequest&
-    WithSubRequest(std::vector<SubSearchRequestPtr>&& requests);
+    WithSubRequests(std::vector<SubSearchRequestPtr>&& requests);
 
     /**
      * @brief Add sub search request
      */
     HybridSearchRequest&
-    AddSubRequest(SubSearchRequestPtr&& request);
-
-    /**
-     * @brief Add sub search request
-     */
-    HybridSearchRequest&
-    WithSubRequest(const SubSearchRequestPtr& request);
+    AddSubRequest(const SubSearchRequestPtr& request);
 
     /**
      * @brief Get rerank
