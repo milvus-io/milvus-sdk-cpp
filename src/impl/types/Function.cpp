@@ -163,4 +163,122 @@ WeightedRerank::SetWeights(const std::vector<float>& weights) {
     return Status::OK();
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////
+// BoostRerank
+BoostRerank::BoostRerank(std::string name) : Function(name, FunctionType::RERANK) {
+    params_[RERANKER] = "boost";
+}
+
+// Override SetFunctionType method
+Status
+BoostRerank::SetFunctionType(FunctionType function_type) {
+    if (function_type != FunctionType::RERANK) {
+        return {StatusCode::INVALID_AGUMENT, "BoostRerank only accepts RERANK type!"};
+    }
+    return Function::SetFunctionType(function_type);
+}
+
+void
+BoostRerank::SetFilter(const std::string& filter) {
+    if (!filter.empty()) {
+        AddParam("filter", filter);
+    }
+}
+
+void
+BoostRerank::SetWeight(float weight) {
+    if (weight > 0.0) {
+        AddParam("weight", std::to_string(weight));
+    }
+}
+
+void
+BoostRerank::SetRandomScoreField(const std::string& field) {
+    nlohmann::json temp;
+    auto it = params_.find(RANDOM_SCORE);
+    if (it == params_.end()) {
+        temp["field"] = field;
+    } else {
+        temp = nlohmann::json::parse(it->second);
+        temp["field"] = field;
+    }
+    AddParam(RANDOM_SCORE, temp.dump());
+}
+
+void
+BoostRerank::SetRandomScoreSeed(int64_t seed) {
+    nlohmann::json temp;
+    auto it = params_.find(RANDOM_SCORE);
+    if (it == params_.end()) {
+        temp["seed"] = std::to_string(seed);
+    } else {
+        temp = nlohmann::json::parse(it->second);
+        temp["seed"] = std::to_string(seed);
+    }
+    AddParam(RANDOM_SCORE, temp.dump());
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////
+// DecayRerank
+DecayRerank::DecayRerank(std::string name) : Function(name, FunctionType::RERANK) {
+    params_[RERANKER] = "decay";
+}
+
+// Override SetFunctionType method
+Status
+DecayRerank::SetFunctionType(FunctionType function_type) {
+    if (function_type != FunctionType::RERANK) {
+        return {StatusCode::INVALID_AGUMENT, "DecayRerank only accepts RERANK type!"};
+    }
+    return Function::SetFunctionType(function_type);
+}
+
+void
+DecayRerank::SetFunction(const std::string& name) {
+    if (!name.empty()) {
+        AddParam("function", name);
+    }
+}
+
+void
+DecayRerank::SetDecay(float val) {
+    AddParam("decay", std::to_string(val));
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////
+// ModelRerank
+ModelRerank::ModelRerank(std::string name) : Function(name, FunctionType::RERANK) {
+    params_[RERANKER] = "decay";
+}
+
+// Override SetFunctionType method
+Status
+ModelRerank::SetFunctionType(FunctionType function_type) {
+    if (function_type != FunctionType::RERANK) {
+        return {StatusCode::INVALID_AGUMENT, "ModelRerank only accepts RERANK type!"};
+    }
+    return Function::SetFunctionType(function_type);
+}
+
+void
+ModelRerank::SetProvider(const std::string& name) {
+    AddParam("provider", name);
+}
+
+void
+ModelRerank::SetQueries(const std::vector<std::string>& queries) {
+    nlohmann::json temp = queries;
+    AddParam("queries", temp.dump());
+}
+
+void
+ModelRerank::SetEndpoint(const std::string& url) {
+    AddParam("endpoint", url);
+}
+
+void
+ModelRerank::SetMaxClientBatchSize(int64_t val) {
+    AddParam("maxBatch", std::to_string(val));
+}
+
 }  // namespace milvus
