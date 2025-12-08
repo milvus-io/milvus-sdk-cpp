@@ -191,4 +191,20 @@ SearchRequest::WithStrictGroupSize(bool strict_group_size) {
     return *this;
 }
 
+const FunctionScorePtr&
+SearchRequest::Rerank() const {
+    return ranker_;
+}
+
+void
+SearchRequest::SetRerank(const FunctionScorePtr& ranker) {
+    ranker_ = ranker;
+}
+
+SearchRequest&
+SearchRequest::WithRerank(const FunctionScorePtr& ranker) {
+    ranker_ = ranker;
+    return *this;
+}
+
 }  // namespace milvus
