@@ -66,6 +66,9 @@ void
 ConvertFieldSchema(const proto::schema::FieldSchema& proto_schema, FieldSchema& schema);
 
 void
+ConvertStructFieldSchema(const proto::schema::StructArrayFieldSchema& proto_schema, StructFieldSchema& field_schema);
+
+void
 ConvertFunctionSchema(const proto::schema::FunctionSchema& proto_function, FunctionPtr& function_schema);
 
 void
@@ -79,6 +82,9 @@ ConvertValueFieldSchema(const nlohmann::json& val, DataType type, proto::schema:
 
 void
 ConvertFieldSchema(const FieldSchema& schema, proto::schema::FieldSchema& proto_schema);
+
+void
+ConvertStructFieldSchema(const proto::schema::StructArrayFieldSchema& proto_schema, StructFieldSchema& schema);
 
 void
 ConvertFunctionSchema(const FunctionPtr& function_schema, proto::schema::FunctionSchema& proto_function);

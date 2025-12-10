@@ -24,6 +24,7 @@
 
 #include "FieldSchema.h"
 #include "Function.h"
+#include "StructFieldSchema.h"
 
 namespace milvus {
 
@@ -104,6 +105,24 @@ class CollectionSchema {
     AddField(FieldSchema&& field_schema);
 
     /**
+     * @brief Struct fields schema array.
+     */
+    const std::vector<StructFieldSchema>&
+    StructFields() const;
+
+    /**
+     * @brief Add a struct field schema.
+     */
+    bool
+    AddStructField(const StructFieldSchema& field_schema);
+
+    /**
+     * @brief Add a struct field schema.
+     */
+    bool
+    AddStructField(StructFieldSchema&& field_schema);
+
+    /**
      * @brief Return Anns field names.
      */
     std::unordered_set<std::string>
@@ -133,6 +152,7 @@ class CollectionSchema {
     int32_t shard_num_ = 1;  // from v2.4, the default shard_num is 1(old version is 2)
     bool enable_dynamic_field_;
     std::vector<FieldSchema> fields_;
+    std::vector<StructFieldSchema> struct_fields_;
 
     std::vector<FunctionPtr> functions_;
 };
