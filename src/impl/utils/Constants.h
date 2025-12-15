@@ -53,6 +53,8 @@ extern const char* ITER_SEARCH_V2_KEY;
 extern const char* ITER_SEARCH_BATCH_SIZE_KEY;
 extern const char* ITER_SEARCH_LAST_BOUND_KEY;
 extern const char* ITER_SEARCH_ID_KEY;
+extern const char* RERANKER;
+extern const char* RANDOM_SCORE;
 
 std::string
 GetBuildVersion();

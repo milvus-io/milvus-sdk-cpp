@@ -23,7 +23,7 @@
 #include "milvus/types/CollectionSchema.h"
 #include "milvus/types/ConsistencyLevel.h"
 #include "milvus/types/FieldData.h"
-#include "milvus/types/Function.h"
+#include "milvus/types/FunctionScore.h"
 #include "milvus/types/IDArray.h"
 #include "milvus/types/IndexState.h"
 #include "milvus/types/IndexType.h"
@@ -82,6 +82,9 @@ ConvertFieldSchema(const FieldSchema& schema, proto::schema::FieldSchema& proto_
 
 void
 ConvertFunctionSchema(const FunctionPtr& function_schema, proto::schema::FunctionSchema& proto_function);
+
+void
+ConvertFunctionScore(const FunctionScorePtr& function_score, proto::schema::FunctionScore& proto_score);
 
 void
 ConvertCollectionSchema(const CollectionSchema& schema, proto::schema::CollectionSchema& proto_schema);
