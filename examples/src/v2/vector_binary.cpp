@@ -108,13 +108,14 @@ main(int argc, char* argv[]) {
         std::string filter = field_id + " in [\"" + q_id_1 + "\", \"" + q_id_2 + "\"]";
         std::cout << "Query with filter expression: " << filter << std::endl;
 
-        milvus::QueryRequest request;
-        request.SetCollectionName(collection_name);
-        request.AddOutputField(field_vector);
-        request.AddOutputField(field_text);
-        request.SetFilter(filter);
-        // set to strong level so that the query is executed after the inserted data is consumed by server
-        request.SetConsistencyLevel(milvus::ConsistencyLevel::STRONG);
+        auto request =
+            milvus::QueryRequest()
+                .WithCollectionName(collection_name)
+                .AddOutputField(field_vector)
+                .AddOutputField(field_text)
+                .WithFilter(filter)
+                // set to strong level so that the query is executed after the inserted data is consumed by server
+                .WithConsistencyLevel(milvus::ConsistencyLevel::STRONG);
 
         milvus::QueryResponse response;
         status = client->Query(request, response);
@@ -133,14 +134,15 @@ main(int argc, char* argv[]) {
         // do search
         auto q_vector_1 = rows[q_number_1][field_vector];
         auto q_vector_2 = rows[q_number_2][field_vector];
-        milvus::SearchRequest request;
-        request.SetCollectionName(collection_name);
-        request.SetLimit(3);
-        request.AddOutputField(field_vector);
-        request.AddOutputField(field_text);
-        request.AddBinaryVector(field_vector, q_vector_1.get<std::vector<uint8_t>>());
-        request.AddBinaryVector(field_vector, q_vector_2.get<std::vector<uint8_t>>());
-        request.SetConsistencyLevel(milvus::ConsistencyLevel::BOUNDED);
+        auto request = milvus::SearchRequest()
+                           .WithCollectionName(collection_name)
+                           .WithLimit(3)
+                           .WithAnnsField(field_vector)
+                           .AddOutputField(field_vector)
+                           .AddOutputField(field_text)
+                           .AddBinaryVector(q_vector_1.get<std::vector<uint8_t>>())
+                           .AddBinaryVector(q_vector_2.get<std::vector<uint8_t>>())
+                           .WithConsistencyLevel(milvus::ConsistencyLevel::BOUNDED);
 
         std::cout << "Searching the ID." << q_number_1 << " binary vector: " << q_vector_1 << std::endl;
         std::cout << "Searching the ID." << q_number_2 << " binary vector: " << q_vector_2 << std::endl;

@@ -47,11 +47,11 @@ FieldDataPtr
 CreateScoreField(const std::string& name, const proto::schema::SearchResultData& data, size_t offset, size_t size);
 
 Status
-SetTargetVectors(const FieldDataPtr& vectors, milvus::proto::milvus::SearchRequest* rpc_request);
+SetTargetVectors(const FieldDataPtr& vectors, proto::milvus::SearchRequest* rpc_request);
 
 void
 SetExtraParams(const std::unordered_map<std::string, std::string>& params,
-               ::google::protobuf::RepeatedPtrField<::milvus::proto::common::KeyValuePair>* kv_pairs);
+               ::google::protobuf::RepeatedPtrField<proto::common::KeyValuePair>* kv_pairs);
 
 Status
 GetRowsFromFieldsData(const std::vector<FieldDataPtr>& fields, const std::set<std::string>& output_names,

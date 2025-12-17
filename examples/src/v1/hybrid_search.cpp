@@ -113,16 +113,16 @@ main(int argc, char* argv[]) {
         auto sub_req1 = std::make_shared<milvus::SubSearchRequest>();
         sub_req1->SetLimit(5);
         sub_req1->SetFilter(field_flag + " == 5");
-        status = sub_req1->AddFloatVector(field_dense, util::GenerateFloatVector(dimension));
-        util::CheckStatus("add vector to SubSearchRequest", status);
+        sub_req1->SetAnnsField(field_dense);
+        sub_req1->AddFloatVector(util::GenerateFloatVector(dimension));
         s_arguments.AddSubRequest(sub_req1);
 
         // sub search request 2 for sparse vector
         auto sub_req2 = std::make_shared<milvus::SubSearchRequest>();
         sub_req2->SetLimit(15);
         sub_req2->SetFilter(field_flag + " in [1, 3]");
-        status = sub_req2->AddSparseVector(field_sparse, util::GenerateSparseVector(50));
-        util::CheckStatus("add vector to SubSearchRequest", status);
+        sub_req2->SetAnnsField(field_sparse);
+        sub_req2->AddSparseVector(util::GenerateSparseVector(50));
         s_arguments.AddSubRequest(sub_req2);
 
         // define reranker

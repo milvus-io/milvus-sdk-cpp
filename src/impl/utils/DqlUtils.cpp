@@ -124,7 +124,7 @@ BuildFieldDataScalars(const ScalarData& scalar_data) {
 }
 
 Status
-BuildMilvusArrayFieldData(const std::string& name, const milvus::proto::schema::ArrayArray& array_field,
+BuildMilvusArrayFieldData(const std::string& name, const proto::schema::ArrayArray& array_field,
                           std::vector<bool>&& valid_data, size_t offset, size_t count, FieldDataPtr& field_data) {
     field_data = nullptr;
     const auto& scalars_data = array_field.data();
@@ -234,7 +234,7 @@ GetValidData(const google::protobuf::RepeatedField<bool>& proto_valid, size_t of
 }
 
 Status
-CreateMilvusFieldData(const milvus::proto::schema::FieldData& proto_data, size_t offset, size_t count,
+CreateMilvusFieldData(const proto::schema::FieldData& proto_data, size_t offset, size_t count,
                       FieldDataPtr& field_data) {
     field_data = nullptr;
     auto field_type = proto_data.type();
@@ -353,7 +353,7 @@ CreateMilvusFieldData(const milvus::proto::schema::FieldData& proto_data, size_t
 }
 
 Status
-CreateMilvusFieldData(const milvus::proto::schema::FieldData& proto_data, FieldDataPtr& field_data) {
+CreateMilvusFieldData(const proto::schema::FieldData& proto_data, FieldDataPtr& field_data) {
     auto field_type = proto_data.type();
     const auto& proto_vectors = proto_data.vectors();
     const auto& proto_scalars = proto_data.scalars();
@@ -444,7 +444,7 @@ CreateScoreField(const std::string& name, const proto::schema::SearchResultData&
 }
 
 Status
-SetTargetVectors(const FieldDataPtr& target, milvus::proto::milvus::SearchRequest* rpc_request) {
+SetTargetVectors(const FieldDataPtr& target, proto::milvus::SearchRequest* rpc_request) {
     // placeholders
     proto::common::PlaceholderGroup placeholder_group;
     auto& placeholder_value = *placeholder_group.add_placeholders();
@@ -513,13 +513,13 @@ SetTargetVectors(const FieldDataPtr& target, milvus::proto::milvus::SearchReques
 
 void
 SetExtraParams(const std::unordered_map<std::string, std::string>& params,
-               ::google::protobuf::RepeatedPtrField<::milvus::proto::common::KeyValuePair>* kv_pairs) {
+               ::google::protobuf::RepeatedPtrField<proto::common::KeyValuePair>* kv_pairs) {
     // offet/radius/range_filter/nprobe etc.
     // in old milvus versions, all extra params are under "params"
     // in new milvus versions, all extra params are in the top level
     nlohmann::json json_params;
     for (auto& pair : params) {
-        ::milvus::proto::common::KeyValuePair kv_pair;
+        proto::common::KeyValuePair kv_pair;
         kv_pair.set_key(pair.first);
         kv_pair.set_value(pair.second);
         kv_pairs->Add(std::move(kv_pair));
@@ -535,7 +535,7 @@ SetExtraParams(const std::unordered_map<std::string, std::string>& params,
         }
     }
     {
-        ::milvus::proto::common::KeyValuePair kv_pair;
+        proto::common::KeyValuePair kv_pair;
         kv_pair.set_key(PARAMS);
         kv_pair.set_value(json_params.dump());
         kv_pairs->Add(std::move(kv_pair));

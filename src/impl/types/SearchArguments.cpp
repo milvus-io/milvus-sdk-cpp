@@ -159,15 +159,6 @@ SearchArguments::SetStrictGroupSize(bool strict_group_size) {
     return Status::OK();
 }
 
-Status
-SearchArguments::Validate() const {
-    // in milvus 2.4+, no need to check index parameters, let the server to check it
-    if (target_vectors_ == nullptr || target_vectors_->Count() == 0) {
-        return {StatusCode::INVALID_AGUMENT, "no target vector is assigned"};
-    }
-    return Status::OK();
-}
-
 ///////////////////////////////////////////////////////////////////////////////////////
 // deprecated methods
 const std::string&

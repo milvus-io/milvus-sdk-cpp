@@ -72,8 +72,20 @@ SearchRequest::WithMetricType(::milvus::MetricType metric_type) {
 }
 
 SearchRequest&
+SearchRequest::AddExtraParam(const std::string& key, const std::string& value) {
+    SearchRequestBase::AddExtraParam(key, value);
+    return *this;
+}
+
+SearchRequest&
 SearchRequest::WithLimit(int64_t limit) {
     SetLimit(limit);
+    return *this;
+}
+
+SearchRequest&
+SearchRequest::WithAnnsField(const std::string& ann_field) {
+    SetAnnsField(ann_field);
     return *this;
 }
 
@@ -188,6 +200,66 @@ SearchRequest::SetStrictGroupSize(bool strict_group_size) {
 SearchRequest&
 SearchRequest::WithStrictGroupSize(bool strict_group_size) {
     SetStrictGroupSize(strict_group_size);
+    return *this;
+}
+
+SearchRequest&
+SearchRequest::AddBinaryVector(const std::string& vector) {
+    SearchRequestBase::AddBinaryVector(vector);
+    return *this;
+}
+
+SearchRequest&
+SearchRequest::AddBinaryVector(const BinaryVecFieldData::ElementT& vector) {
+    SearchRequestBase::AddBinaryVector(vector);
+    return *this;
+}
+
+SearchRequest&
+SearchRequest::AddFloatVector(const FloatVecFieldData::ElementT& vector) {
+    SearchRequestBase::AddFloatVector(vector);
+    return *this;
+}
+
+SearchRequest&
+SearchRequest::AddSparseVector(const SparseFloatVecFieldData::ElementT& vector) {
+    SearchRequestBase::AddSparseVector(vector);
+    return *this;
+}
+
+SearchRequest&
+SearchRequest::AddSparseVector(const nlohmann::json& vector) {
+    SearchRequestBase::AddSparseVector(vector);
+    return *this;
+}
+
+SearchRequest&
+SearchRequest::AddFloat16Vector(const Float16VecFieldData::ElementT& vector) {
+    SearchRequestBase::AddFloat16Vector(vector);
+    return *this;
+}
+
+SearchRequest&
+SearchRequest::AddFloat16Vector(const std::vector<float>& vector) {
+    SearchRequestBase::AddFloat16Vector(vector);
+    return *this;
+}
+
+SearchRequest&
+SearchRequest::AddBFloat16Vector(const BFloat16VecFieldData::ElementT& vector) {
+    SearchRequestBase::AddBFloat16Vector(vector);
+    return *this;
+}
+
+SearchRequest&
+SearchRequest::AddBFloat16Vector(const std::vector<float>& vector) {
+    SearchRequestBase::AddBFloat16Vector(vector);
+    return *this;
+}
+
+SearchRequest&
+SearchRequest::AddEmbeddedText(const std::string& text) {
+    SearchRequestBase::AddEmbeddedText(text);
     return *this;
 }
 

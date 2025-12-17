@@ -16,7 +16,7 @@
 
 #pragma once
 
-#include "../../types/SubSearchRequest.h"
+#include "../../types/SearchRequestBase.h"
 #include "./DQLRequestBase.h"
 
 namespace milvus {
@@ -81,6 +81,12 @@ class SearchRequest : public DQLRequestBase, public SearchRequestBase {
     WithMetricType(::milvus::MetricType metric_type);
 
     /**
+     * @brief Add extra param
+     */
+    SearchRequest&
+    AddExtraParam(const std::string& key, const std::string& value);
+
+    /**
      * @brief Set search limit(topk).
      * Note: this value is stored in the ExtraParams
      */
@@ -92,6 +98,12 @@ class SearchRequest : public DQLRequestBase, public SearchRequestBase {
      */
     SearchRequest&
     WithFilter(std::string filter);
+
+    /**
+     * @brief Set target field of ann search
+     */
+    SearchRequest&
+    WithAnnsField(const std::string& ann_field);
 
     /**
      * @brief Add a filter template. Only take effect when filter is not empty.
@@ -222,6 +234,71 @@ class SearchRequest : public DQLRequestBase, public SearchRequestBase {
      */
     SearchRequest&
     WithStrictGroupSize(bool strict_group_size);
+
+    /**
+     * @brief Add a binary vector to search
+     */
+    SearchRequest&
+    AddBinaryVector(const std::string& vector);
+
+    /**
+     * @brief Add a binary vector to search
+     */
+    SearchRequest&
+    AddBinaryVector(const BinaryVecFieldData::ElementT& vector);
+
+    /**
+     * @brief Add a float vector to search
+     */
+    SearchRequest&
+    AddFloatVector(const FloatVecFieldData::ElementT& vector);
+
+    /**
+     * @brief Add a sparse vector to search
+     */
+    SearchRequest&
+    AddSparseVector(const SparseFloatVecFieldData::ElementT& vector);
+
+    /**
+     * @brief Add a sparse vector to search. \n
+     * We support two patterns of sparse vector: \n
+     *  1. a json dict like {"1": 0.1, "5": 0.2, "8": 0.15}
+     *  2. a json dict like {"indices": [1, 5, 8], "values": [0.1, 0.2, 0.15]}
+     */
+    SearchRequest&
+    AddSparseVector(const nlohmann::json& vector);
+
+    /**
+     * @brief Add a float16 vector to search.
+     */
+    SearchRequest&
+    AddFloat16Vector(const Float16VecFieldData::ElementT& vector);
+
+    /**
+     * @brief Add a float16 vector to search. \n
+     * This method automatically converts the float array to float16 binary
+     */
+    SearchRequest&
+    AddFloat16Vector(const std::vector<float>& vector);
+
+    /**
+     * @brief Add a bfloat16 vector to search.
+     */
+    SearchRequest&
+    AddBFloat16Vector(const BFloat16VecFieldData::ElementT& vector);
+
+    /**
+     * @brief Add a bfloat16 vector to search. \n
+     * This method automatically converts the float array to bfloat16 binary
+     */
+    SearchRequest&
+    AddBFloat16Vector(const std::vector<float>& vector);
+
+    /**
+     * @brief Add a text to search. Only works for BM25 function \n
+     */
+    SearchRequest&
+    AddEmbeddedText(const std::string& text);
 };
 
 }  // namespace milvus

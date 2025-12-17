@@ -16,62 +16,57 @@
 
 #pragma once
 
-#include "SearchRequestBase.h"
+#include <cstdint>
+
+#include "../Status.h"
+#include "FieldData.h"
 
 namespace milvus {
 
 /**
- * @brief Sub request for HybridSearchArguments for MilvusClient::HybridSearch().
+ * @brief A list of embeddings to search for struct field.
  */
-class SubSearchRequest : public SearchRequestBase {
+class EmbeddingList {
  public:
     /**
-     * @brief Specifies the metric type.
+     * @brief Constructor
      */
-    SubSearchRequest&
-    WithMetricType(::milvus::MetricType metric_type);
+    EmbeddingList() = default;
 
     /**
-     * @brief Set search limit(topk).
-     * Note: this value is stored in the ExtraParams
+     * @brief Get target vectors
      */
-    SubSearchRequest&
-    WithLimit(int64_t limit);
+    FieldDataPtr
+    TargetVectors() const;
 
     /**
-     * @brief Set filter expression.
+     * @brief Get count of target vectors
      */
-    SubSearchRequest&
-    WithFilter(std::string filter);
-
-    /**
-     * @brief Set target field of ann search
-     */
-    SubSearchRequest&
-    WithAnnsField(const std::string& ann_field);
+    size_t
+    Count() const;
 
     /**
      * @brief Add a binary vector to search
      */
-    SubSearchRequest&
+    Status
     AddBinaryVector(const std::string& vector);
 
     /**
      * @brief Add a binary vector to search
      */
-    SubSearchRequest&
+    Status
     AddBinaryVector(const BinaryVecFieldData::ElementT& vector);
 
     /**
      * @brief Add a float vector to search
      */
-    SubSearchRequest&
+    Status
     AddFloatVector(const FloatVecFieldData::ElementT& vector);
 
     /**
      * @brief Add a sparse vector to search
      */
-    SubSearchRequest&
+    Status
     AddSparseVector(const SparseFloatVecFieldData::ElementT& vector);
 
     /**
@@ -80,42 +75,55 @@ class SubSearchRequest : public SearchRequestBase {
      *  1. a json dict like {"1": 0.1, "5": 0.2, "8": 0.15}
      *  2. a json dict like {"indices": [1, 5, 8], "values": [0.1, 0.2, 0.15]}
      */
-    SubSearchRequest&
+    Status
     AddSparseVector(const nlohmann::json& vector);
 
     /**
      * @brief Add a float16 vector to search.
      */
-    SubSearchRequest&
+    Status
     AddFloat16Vector(const Float16VecFieldData::ElementT& vector);
 
     /**
      * @brief Add a float16 vector to search. \n
      * This method automatically converts the float array to float16 binary
      */
-    SubSearchRequest&
+    Status
     AddFloat16Vector(const std::vector<float>& vector);
 
     /**
      * @brief Add a bfloat16 vector to search.
      */
-    SubSearchRequest&
+    Status
     AddBFloat16Vector(const BFloat16VecFieldData::ElementT& vector);
 
     /**
      * @brief Add a bfloat16 vector to search. \n
      * This method automatically converts the float array to bfloat16 binary
      */
-    SubSearchRequest&
+    Status
     AddBFloat16Vector(const std::vector<float>& vector);
 
     /**
      * @brief Add a text to search. Only works for BM25 function \n
      */
-    SubSearchRequest&
+    Status
     AddEmbeddedText(const std::string& text);
-};
 
-using SubSearchRequestPtr = std::shared_ptr<SubSearchRequest>;
+    /**
+     * @brief Dimension of the vectors, for embedded text, the value is 0
+     */
+    int64_t
+    Dim() const;
+
+ private:
+    template <typename T, typename V>
+    Status
+    addVector(DataType data_type, const V& vector);
+
+ private:
+    FieldDataPtr target_vectors_;
+    int64_t dim_{0};
+};
 
 }  // namespace milvus

@@ -250,7 +250,7 @@ class FieldSchema {
     WithMaxLength(uint32_t length);
 
     /**
-     * @brief Get max length for a varchar field
+     * @brief Get max capacity of an array field
      */
     uint32_t
     MaxCapacity() const;

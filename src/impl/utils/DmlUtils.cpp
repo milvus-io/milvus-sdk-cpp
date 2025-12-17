@@ -1016,7 +1016,7 @@ CheckAndSetRowData(const EntityRows& rows, const CollectionSchema& schema, bool 
     // add a dynamic field into the output list if it is enabled
     if (schema.EnableDynamicField()) {
         proto::schema::FieldData dy;
-        dy.set_type(milvus::proto::schema::DataType::JSON);
+        dy.set_type(proto::schema::DataType::JSON);
         dy.set_is_dynamic(true);
         proto_fields[DYNAMIC_FIELD] = dy;
     }
