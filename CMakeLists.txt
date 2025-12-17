@@ -51,9 +51,14 @@ set_option_category("Build")
 
 define_option(MILVUS_BUILD_TEST "Build with testing" OFF)
 define_option(MILVUS_BUILD_COVERAGE "Build with coverage" OFF)
-define_option_string(MILVUS_SDK_VERSION
-    "Version for sdk"
-    "2.0.0")
+
+if (DEFINED MILVUS_SDK_VERSION)
+    message("MILVUS_SDK_VERSION = ${MILVUS_SDK_VERSION}")
+else()
+    # MILVUS_SDK_VERSION is defined in the scripts/build.sh, it could be undefined if user build the project with cmake command
+    define_option_string(MILVUS_SDK_VERSION "Version for sdk" "unknown")
+    message("MILVUS_SDK_VERSION = unknown")
+endif()
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/src/impl/version.h.in ${CMAKE_CURRENT_SOURCE_DIR}/src/impl/version.h @ONLY)
 
 set_option_category("Thirdparty")
