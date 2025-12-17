@@ -80,6 +80,12 @@ RunAnalyzerArguments::SetTexts(const std::vector<std::string>& texts) {
 }
 
 RunAnalyzerArguments&
+RunAnalyzerArguments::WithTexts(const std::vector<std::string>& texts) {
+    SetTexts(texts);
+    return *this;
+}
+
+RunAnalyzerArguments&
 RunAnalyzerArguments::AddText(std::string text) {
     texts_.emplace_back(text);
     return *this;

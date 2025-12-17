@@ -177,9 +177,7 @@ main(int argc, char* argv[]) {
 
     {
         // query is ok
-        milvus::QueryRequest request;
-        request.SetCollectionName(collection_name);
-        request.AddOutputField("count(*)");
+        auto request = milvus::QueryRequest().WithCollectionName(collection_name).AddOutputField("count(*)");
 
         milvus::QueryResponse response;
         status = client->Query(request, response);

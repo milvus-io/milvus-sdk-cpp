@@ -100,6 +100,12 @@ class RunAnalyzerArguments {
     SetTexts(const std::vector<std::string>& texts);
 
     /**
+     * @brief Set texts to be analyzed.
+     */
+    RunAnalyzerArguments&
+    WithTexts(const std::vector<std::string>& texts);
+
+    /**
      * @brief Add text for analyze.
      */
     RunAnalyzerArguments&

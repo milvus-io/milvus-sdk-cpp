@@ -1220,17 +1220,14 @@ MilvusClientV2Impl::Delete(const DeleteRequest& request, DeleteResponse& respons
 
 Status
 MilvusClientV2Impl::Search(const SearchRequest& request, SearchResponse& response) {
-    auto validate = [&request]() {
-        if (request.TargetVectors() == nullptr || request.TargetVectors()->Count() == 0) {
-            return Status{StatusCode::INVALID_AGUMENT, "No target vector is assigned"};
-        }
-
-        return Status::OK();
-    };
+    auto validate = [&request]() { return request.Validate(); };
 
     auto pre = [this, &request](proto::milvus::SearchRequest& rpc_request) {
         auto current_name = connection_.CurrentDbName(request.DatabaseName());
-        ConvertSearchRequest<SearchRequest>(request, current_name, rpc_request);
+        auto status = ConvertSearchRequest<SearchRequest>(request, current_name, rpc_request);
+        if (!status.IsOk()) {
+            return status;
+        }
 
         if (request.Rerank()) {
             auto function_score = rpc_request.mutable_function_score();
@@ -1339,8 +1336,7 @@ Status
 MilvusClientV2Impl::HybridSearch(const HybridSearchRequest& request, HybridSearchResponse& response) {
     auto pre = [this, &request](proto::milvus::HybridSearchRequest& rpc_request) {
         auto current_name = connection_.CurrentDbName(request.DatabaseName());
-        ConvertHybridSearchRequest<HybridSearchRequest>(request, current_name, rpc_request);
-        return Status::OK();
+        return ConvertHybridSearchRequest<HybridSearchRequest>(request, current_name, rpc_request);
     };
 
     auto post = [this, &request, &response](const proto::milvus::SearchResults& rpc_response) {
@@ -1369,8 +1365,7 @@ Status
 MilvusClientV2Impl::Query(const QueryRequest& request, QueryResponse& response) {
     auto pre = [this, &request](proto::milvus::QueryRequest& rpc_request) {
         auto current_name = connection_.CurrentDbName(request.DatabaseName());
-        ConvertQueryRequest<QueryRequest>(request, current_name, rpc_request);
-        return Status::OK();
+        return ConvertQueryRequest<QueryRequest>(request, current_name, rpc_request);
     };
 
     auto post = [&response](const proto::milvus::QueryResults& rpc_response) {

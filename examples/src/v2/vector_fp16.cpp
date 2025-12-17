@@ -94,14 +94,14 @@ main(int argc, char* argv[]) {
     {
         // query
         std::string expr = field_id + " in [" + std::to_string(pk_1) + "," + std::to_string(pk_2) + "]";
-        milvus::QueryRequest request;
-        request.SetCollectionName(collection_name);
-        request.SetFilter(expr);
-        request.AddOutputField(field_id);
-        request.AddOutputField(field_text);
-        request.AddOutputField(field_vec_fp16);
-        request.AddOutputField(field_vec_bf16);
-        request.SetConsistencyLevel(milvus::ConsistencyLevel::STRONG);
+        auto request = milvus::QueryRequest()
+                           .WithCollectionName(collection_name)
+                           .WithFilter(expr)
+                           .AddOutputField(field_id)
+                           .AddOutputField(field_text)
+                           .AddOutputField(field_vec_fp16)
+                           .AddOutputField(field_vec_bf16)
+                           .WithConsistencyLevel(milvus::ConsistencyLevel::STRONG);
 
         std::cout << "Query with expression: " << expr << std::endl;
         milvus::QueryResponse response;
@@ -119,15 +119,16 @@ main(int argc, char* argv[]) {
 
     {
         // search
-        milvus::SearchRequest request;
-        request.SetCollectionName(collection_name);
-        request.SetLimit(3);
-        request.AddOutputField(field_vec_fp16);
-        // set to BOUNDED level to accept data inconsistence within a time window(default is 5 seconds)
-        request.SetConsistencyLevel(milvus::ConsistencyLevel::BOUNDED);
-
-        request.AddFloat16Vector(field_vec_fp16, rows[pk_1][field_vec_fp16].get<std::vector<float>>());
-        request.AddFloat16Vector(field_vec_fp16, rows[pk_2][field_vec_fp16].get<std::vector<float>>());
+        auto request =
+            milvus::SearchRequest()
+                .WithCollectionName(collection_name)
+                .WithLimit(3)
+                .WithAnnsField(field_vec_fp16)
+                .AddOutputField(field_vec_fp16)
+                // set to BOUNDED level to accept data inconsistence within a time window(default is 5 seconds)
+                .WithConsistencyLevel(milvus::ConsistencyLevel::BOUNDED)
+                .AddFloat16Vector(rows[pk_1][field_vec_fp16].get<std::vector<float>>())
+                .AddFloat16Vector(rows[pk_2][field_vec_fp16].get<std::vector<float>>());
         std::cout << "Searching the No." << pk_1 << " and No." << pk_2 << " vectors." << std::endl;
 
         milvus::SearchResponse response;

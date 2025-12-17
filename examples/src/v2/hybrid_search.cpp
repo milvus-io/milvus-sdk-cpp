@@ -88,10 +88,10 @@ main(int argc, char* argv[]) {
     {
         // verify the row count of the partition is 999 by query(count(*))
         // set to STRONG level to ensure the delete request is done by server
-        milvus::QueryRequest request;
-        request.SetCollectionName(collection_name);
-        request.AddOutputField("count(*)");
-        request.SetConsistencyLevel(milvus::ConsistencyLevel::STRONG);
+        auto request = milvus::QueryRequest()
+                           .WithCollectionName(collection_name)
+                           .AddOutputField("count(*)")
+                           .WithConsistencyLevel(milvus::ConsistencyLevel::STRONG);
 
         milvus::QueryResponse response;
         status = client->Query(request, response);
@@ -101,30 +101,31 @@ main(int argc, char* argv[]) {
 
     {
         // do hybrid search
-        milvus::HybridSearchRequest request;
-        request.SetCollectionName(collection_name);
-        request.SetLimit(10);
-        request.AddOutputField(field_flag);
-        request.AddOutputField(field_text);
-        // s_arguments.AddOutputField(field_sparse);
-        // set to BOUNDED level to accept data inconsistence within a time window(default is 5 seconds)
-        request.SetConsistencyLevel(milvus::ConsistencyLevel::BOUNDED);
+        auto request =
+            milvus::HybridSearchRequest()
+                .WithCollectionName(collection_name)
+                .WithLimit(10)
+                .AddOutputField(field_flag)
+                .AddOutputField(field_text)
+                // .AddOutputField(field_sparse)
+                // set to BOUNDED level to accept data inconsistence within a time window(default is 5 seconds)
+                .WithConsistencyLevel(milvus::ConsistencyLevel::BOUNDED);
 
         // sub search request 1 for dense vector
-        auto sub_req1 = std::make_shared<milvus::SubSearchRequest>();
-        sub_req1->SetLimit(5);
-        sub_req1->SetFilter(field_flag + " == 5");
-        status = sub_req1->AddFloatVector(field_dense, util::GenerateFloatVector(dimension));
-        util::CheckStatus("add vector to SubSearchRequest", status);
-        request.AddSubRequest(std::move(sub_req1));
+        auto sub_req1 = milvus::SubSearchRequest()
+                            .WithLimit(5)
+                            .WithAnnsField(field_dense)
+                            .WithFilter(field_flag + " == 5")
+                            .AddFloatVector(util::GenerateFloatVector(dimension));
+        request.AddSubRequest(std::make_shared<milvus::SubSearchRequest>(std::move(sub_req1)));
 
         // sub search request 2 for sparse vector
-        auto sub_req2 = std::make_shared<milvus::SubSearchRequest>();
-        sub_req2->SetLimit(15);
-        sub_req2->SetFilter(field_flag + " in [1, 3]");
-        status = sub_req2->AddSparseVector(field_sparse, util::GenerateSparseVector(50));
-        util::CheckStatus("add vector to SubSearchRequest", status);
-        request.AddSubRequest(std::move(sub_req2));
+        auto sub_req2 = milvus::SubSearchRequest()
+                            .WithLimit(15)
+                            .WithAnnsField(field_sparse)
+                            .WithFilter(field_flag + " in [1, 3]")
+                            .AddSparseVector(util::GenerateSparseVector(50));
+        request.AddSubRequest(std::make_shared<milvus::SubSearchRequest>(std::move(sub_req2)));
 
         // define reranker
         auto reranker = std::make_shared<milvus::WeightedRerank>(std::vector<float>{0.5, 0.5});

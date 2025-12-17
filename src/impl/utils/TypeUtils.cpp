@@ -17,6 +17,7 @@
 #include "TypeUtils.h"
 
 #include "./Constants.h"
+#include "milvus/types/Constants.h"
 
 namespace milvus {
 
@@ -55,6 +56,8 @@ DataTypeCast(DataType type) {
             return proto::schema::DataType::BFloat16Vector;
         case DataType::INT8_VECTOR:
             return proto::schema::DataType::Int8Vector;
+        case DataType::STRUCT:
+            return proto::schema::DataType::Struct;
         default:
             return proto::schema::DataType::None;
     }
@@ -95,6 +98,8 @@ DataTypeCast(proto::schema::DataType type) {
             return DataType::BFLOAT16_VECTOR;
         case proto::schema::DataType::Int8Vector:
             return DataType::INT8_VECTOR;
+        case proto::schema::DataType::Struct:
+            return DataType::STRUCT;
         default:
             return DataType::UNKNOWN;
     }
@@ -343,6 +348,27 @@ ConvertFieldSchema(const proto::schema::FieldSchema& proto_schema, FieldSchema& 
 }
 
 void
+ConvertStructFieldSchema(const proto::schema::StructArrayFieldSchema& proto_schema, StructFieldSchema& field_schema) {
+    field_schema.SetName(proto_schema.name());
+    field_schema.SetDescription(proto_schema.description());
+
+    for (auto i = 0; i < proto_schema.fields_size(); i++) {
+        const auto& proto_field = proto_schema.fields(i);
+
+        FieldSchema sub_field;
+        ConvertFieldSchema(proto_field, sub_field);
+        field_schema.SetMaxCapacity(sub_field.MaxCapacity());
+
+        // reset data type of sub fields, convert from array field to normal field
+        sub_field.SetDataType(sub_field.ElementType());
+        sub_field.SetElementType(DataType::UNKNOWN);
+        sub_field.SetMaxCapacity(0);
+
+        field_schema.AddField(sub_field);
+    }
+}
+
+void
 ConvertFunctionSchema(const proto::schema::FunctionSchema& proto_function, FunctionPtr& function_schema) {
     function_schema = std::make_shared<Function>();
     function_schema->SetName(proto_function.name());
@@ -372,6 +398,13 @@ ConvertCollectionSchema(const proto::schema::CollectionSchema& proto_schema, Col
         FieldSchema field_schema;
         ConvertFieldSchema(proto_field, field_schema);
         schema.AddField(std::move(field_schema));
+    }
+
+    for (int i = 0; i < proto_schema.struct_array_fields_size(); ++i) {
+        auto& proto_field = proto_schema.struct_array_fields(i);
+        StructFieldSchema field_schema;
+        ConvertStructFieldSchema(proto_field, field_schema);
+        schema.AddStructField(std::move(field_schema));
     }
 
     for (int i = 0; i < proto_schema.functions_size(); ++i) {
@@ -488,6 +521,28 @@ ConvertFieldSchema(const FieldSchema& schema, proto::schema::FieldSchema& proto_
 }
 
 void
+ConvertStructFieldSchema(const StructFieldSchema& schema, proto::schema::StructArrayFieldSchema& proto_schema) {
+    proto_schema.set_name(schema.Name());
+    proto_schema.set_description(schema.Description());
+
+    for (auto& field : schema.Fields()) {
+        auto proto_field = proto_schema.add_fields();
+        ConvertFieldSchema(field, *proto_field);
+
+        // reset the type to array, each sub field is an array field
+        auto actual_type = proto::schema::DataType::Array;
+        if (IsVectorType(field.FieldDataType())) {
+            actual_type = proto::schema::DataType::ArrayOfVector;
+        }
+        proto_field->set_data_type(actual_type);
+        proto_field->set_element_type(DataTypeCast(field.FieldDataType()));
+        auto pair = proto_field->add_type_params();
+        pair->set_key(MAX_CAPACITY);
+        pair->set_value(std::to_string(schema.MaxCapacity()));
+    }
+}
+
+void
 ConvertFunctionSchema(const FunctionPtr& function_schema, proto::schema::FunctionSchema& proto_function) {
     if (function_schema == nullptr) {
         return;
@@ -539,6 +594,11 @@ ConvertCollectionSchema(const CollectionSchema& schema, proto::schema::Collectio
     for (const auto& field : schema.Fields()) {
         auto proto_field = proto_schema.add_fields();
         ConvertFieldSchema(field, *proto_field);
+    }
+
+    for (const auto& field : schema.StructFields()) {
+        auto proto_field = proto_schema.add_struct_array_fields();
+        ConvertStructFieldSchema(field, *proto_field);
     }
 
     for (const auto& function : schema.Functions()) {
