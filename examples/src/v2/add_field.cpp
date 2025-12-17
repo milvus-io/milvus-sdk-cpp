@@ -119,11 +119,12 @@ main(int argc, char* argv[]) {
 
     {
         // verify the row count is 20
-        milvus::QueryRequest request;
-        request.SetCollectionName(collection_name);
-        request.AddOutputField("count(*)");
-        // set to strong level so that the query is executed after the inserted data is consumed by server
-        request.SetConsistencyLevel(milvus::ConsistencyLevel::STRONG);
+        auto request = milvus::QueryRequest()
+                           .WithCollectionName(collection_name)
+                           .AddOutputField("count(*)")
+                           .WithConsistencyLevel(
+                               milvus::ConsistencyLevel::STRONG);  // set to strong level so that the query is executed
+                                                                   // after the inserted data is consumed by server
 
         milvus::QueryResponse response;
         status = client->Query(request, response);
@@ -133,10 +134,10 @@ main(int argc, char* argv[]) {
 
     {
         // query the 10 rows are default values for the added field
-        milvus::QueryRequest request;
-        request.SetCollectionName(collection_name);
-        request.AddOutputField("*");
-        request.SetFilter("new_1 == 'default text'");
+        auto request = milvus::QueryRequest()
+                           .WithCollectionName(collection_name)
+                           .AddOutputField("*")
+                           .WithFilter("new_1 == 'default text'");
 
         std::cout << "\nQuery with filter: " << request.Filter() << std::endl;
         milvus::QueryResponse response;
@@ -154,10 +155,10 @@ main(int argc, char* argv[]) {
 
     {
         // query the 10 rows inserted by Insert() the added field
-        milvus::QueryRequest request;
-        request.SetCollectionName(collection_name);
-        request.AddOutputField("*");
-        request.SetFilter("ARRAY_LENGTH(new_2) > 0");
+        auto request = milvus::QueryRequest()
+                           .WithCollectionName(collection_name)
+                           .AddOutputField("*")
+                           .WithFilter("ARRAY_LENGTH(new_2) > 0");
 
         std::cout << "\nQuery with filter: " << request.Filter() << std::endl;
         milvus::QueryResponse response;

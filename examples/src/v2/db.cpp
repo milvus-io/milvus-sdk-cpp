@@ -143,11 +143,11 @@ main(int argc, char* argv[]) {
     {
         // verify the row count of the partition is 999 by query(count(*))
         // set to STRONG level to ensure the delete request is done by server
-        milvus::QueryRequest request;
-        request.SetCollectionName(collection_name);
-        request.AddPartitionName(partition_name);
-        request.AddOutputField("count(*)");
-        request.SetConsistencyLevel(milvus::ConsistencyLevel::STRONG);
+        auto request = milvus::QueryRequest()
+                           .WithCollectionName(collection_name)
+                           .AddPartitionName(partition_name)
+                           .AddOutputField("count(*)")
+                           .WithConsistencyLevel(milvus::ConsistencyLevel::STRONG);
 
         milvus::QueryResponse response;
         status = client->Query(request, response);
@@ -163,16 +163,16 @@ main(int argc, char* argv[]) {
 
     {
         // query the deleted item and anthor item
-        milvus::QueryRequest request;
-        request.SetDatabaseName(my_db_name);  // we still can do search with our db name
-        request.SetCollectionName(collection_name);
-        request.AddPartitionName(partition_name);
-        request.SetFilter(field_id + " in [5, 10]");
-        request.AddOutputField(field_id);
-        request.AddOutputField(field_name);
-        request.AddOutputField(field_age);
-        // set to EVENTUALLY level since the last query uses STRONG level and no data changed
-        request.SetConsistencyLevel(milvus::ConsistencyLevel::EVENTUALLY);
+        auto request = milvus::QueryRequest()
+                           .WithDatabaseName(my_db_name)  // we still can do search with our db name
+                           .WithCollectionName(collection_name)
+                           .AddPartitionName(partition_name)
+                           .WithFilter(field_id + " in [5, 10]")
+                           .AddOutputField(field_id)
+                           .AddOutputField(field_name)
+                           .AddOutputField(field_age)
+                           // set to EVENTUALLY level since the last query uses STRONG level and no data changed
+                           .WithConsistencyLevel(milvus::ConsistencyLevel::EVENTUALLY);
 
         std::cout << "Query with expression: " << request.Filter() << std::endl;
         milvus::QueryResponse response;
@@ -187,22 +187,23 @@ main(int argc, char* argv[]) {
     {
         // do search
         // this collection has only one vector field, no need to set the AnnsField name
-        milvus::SearchRequest request;
-        request.SetDatabaseName(my_db_name);  // we still can do search with our db name
-        request.SetCollectionName(collection_name);
-        request.AddPartitionName(partition_name);
-        request.SetLimit(10);
-        request.AddOutputField(field_name);
-        request.AddOutputField(field_age);
         std::string filter_expr = field_age + " > 40";
-        request.SetFilter(filter_expr);
-        // set to BOUNDED level to accept data inconsistence within a time window(default is 5 seconds)
-        request.SetConsistencyLevel(milvus::ConsistencyLevel::BOUNDED);
-
         auto q_number_1 = util::RandomeValue<int64_t>(0, row_count - 1);
         auto q_number_2 = util::RandomeValue<int64_t>(0, row_count - 1);
-        request.AddFloatVector(field_face, insert_vectors[q_number_1]);
-        request.AddFloatVector(field_face, insert_vectors[q_number_2]);
+        auto request =
+            milvus::SearchRequest()
+                .WithDatabaseName(my_db_name)  // we still can do search with our db name
+                .WithCollectionName(collection_name)
+                .AddPartitionName(partition_name)
+                .WithLimit(10)
+                .WithAnnsField(field_face)
+                .AddOutputField(field_name)
+                .AddOutputField(field_age)
+                .WithFilter(filter_expr)
+                // set to BOUNDED level to accept data inconsistence  within a time window(default is 5 seconds)
+                .WithConsistencyLevel(milvus::ConsistencyLevel::BOUNDED)
+                .AddFloatVector(insert_vectors[q_number_1])
+                .AddFloatVector(insert_vectors[q_number_2]);
         std::cout << "Searching the No." << q_number_1 << " and No." << q_number_2
                   << " with expression: " << filter_expr << std::endl;
 

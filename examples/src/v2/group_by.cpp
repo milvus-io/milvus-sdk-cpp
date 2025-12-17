@@ -34,13 +34,14 @@ searchGroupBy(milvus::MilvusClientV2Ptr& client, const std::string& group_field,
               bool strict_group_size) {
     // search with grup by docId
     std::vector<float> target_vector = {0.145292, 0.914725, 0.796505, 0.700925, 0.560520};
-    milvus::SearchRequest request;
-    request.SetCollectionName(collection_name);
-    request.AddFloatVector(field_vector, target_vector);
-    request.SetLimit(limit);
-    request.AddOutputField(field_doc_id);
-    // session level ensure that the data inserted by this client is visible
-    request.SetConsistencyLevel(milvus::ConsistencyLevel::SESSION);
+    auto request = milvus::SearchRequest()
+                       .WithCollectionName(collection_name)
+                       .WithAnnsField(field_vector)
+                       .AddFloatVector(target_vector)
+                       .WithLimit(limit)
+                       .AddOutputField(field_doc_id)
+                       .WithConsistencyLevel(milvus::ConsistencyLevel::SESSION);  // session level ensure that the data
+                                                                                  // inserted by this client is visible
 
     if (!group_field.empty()) {
         request.SetGroupByField(group_field);

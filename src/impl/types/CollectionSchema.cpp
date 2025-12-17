@@ -98,6 +98,23 @@ CollectionSchema::AddField(FieldSchema&& field_schema) {
     return true;
 }
 
+const std::vector<StructFieldSchema>&
+CollectionSchema::StructFields() const {
+    return struct_fields_;
+}
+
+bool
+CollectionSchema::AddStructField(const StructFieldSchema& field_schema) {
+    struct_fields_.push_back(field_schema);
+    return true;
+}
+
+bool
+CollectionSchema::AddStructField(StructFieldSchema&& field_schema) {
+    struct_fields_.emplace_back(std::move(field_schema));
+    return true;
+}
+
 std::unordered_set<std::string>
 CollectionSchema::AnnsFieldNames() const {
     std::unordered_set<std::string> ret;

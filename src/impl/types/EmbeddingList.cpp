@@ -1,0 +1,142 @@
+// Licensed to the LF AI & Data foundation under one
+// or more contributor license agreements. See the NOTICE file
+// distributed with this work for additional information
+// regarding copyright ownership. The ASF licenses this file
+// to you under the Apache License, Version 2.0 (the
+// "License"); you may not use this file except in compliance
+// with the License. You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+#include "milvus/types/EmbeddingList.h"
+
+#include "../utils/DmlUtils.h"
+#include "milvus/utils/FP16.h"
+
+namespace milvus {
+
+FieldDataPtr
+EmbeddingList::TargetVectors() const {
+    return target_vectors_;
+}
+
+size_t
+EmbeddingList::Count() const {
+    return target_vectors_ == nullptr ? 0 : target_vectors_->Count();
+}
+
+Status
+EmbeddingList::AddBinaryVector(const std::string& vector) {
+    return AddBinaryVector(BinaryVecFieldData::ToUnsignedChars(vector));
+}
+
+Status
+EmbeddingList::AddBinaryVector(const BinaryVecFieldData::ElementT& vector) {
+    return addVector<BinaryVecFieldData, BinaryVecFieldData::ElementT>(DataType::BINARY_VECTOR, vector);
+}
+
+Status
+EmbeddingList::AddFloatVector(const FloatVecFieldData::ElementT& vector) {
+    return addVector<FloatVecFieldData, FloatVecFieldData::ElementT>(DataType::FLOAT_VECTOR, vector);
+}
+
+Status
+EmbeddingList::AddSparseVector(const SparseFloatVecFieldData::ElementT& vector) {
+    return addVector<SparseFloatVecFieldData, SparseFloatVecFieldData::ElementT>(DataType::SPARSE_FLOAT_VECTOR, vector);
+}
+
+Status
+EmbeddingList::AddSparseVector(const nlohmann::json& vector) {
+    std::map<uint32_t, float> pairs;
+    auto status = ParseSparseFloatVector(vector, "", pairs);
+    if (!status.IsOk()) {
+        return status;
+    }
+    return AddSparseVector(pairs);
+}
+
+Status
+EmbeddingList::AddFloat16Vector(const Float16VecFieldData::ElementT& vector) {
+    return addVector<Float16VecFieldData, Float16VecFieldData::ElementT>(DataType::FLOAT16_VECTOR, vector);
+}
+
+Status
+EmbeddingList::AddFloat16Vector(const std::vector<float>& vector) {
+    std::vector<uint16_t> binary;
+    binary.reserve(vector.size());
+    for (auto val : vector) {
+        binary.push_back(F32toF16(val));
+    }
+    return AddFloat16Vector(binary);
+}
+
+Status
+EmbeddingList::AddBFloat16Vector(const BFloat16VecFieldData::ElementT& vector) {
+    return addVector<BFloat16VecFieldData, BFloat16VecFieldData::ElementT>(DataType::BFLOAT16_VECTOR, vector);
+}
+
+Status
+EmbeddingList::AddBFloat16Vector(const std::vector<float>& vector) {
+    std::vector<uint16_t> binary;
+    binary.reserve(vector.size());
+    for (auto val : vector) {
+        binary.push_back(F32toBF16(val));
+    }
+    return AddBFloat16Vector(binary);
+}
+
+Status
+EmbeddingList::AddEmbeddedText(const std::string& text) {
+    return addVector<VarCharFieldData, VarCharFieldData::ElementT>(DataType::VARCHAR, text);
+}
+
+Status
+EmbeddingList::AddInt8Vector(const Int8VecFieldData::ElementT& vector) {
+    return addVector<Int8VecFieldData, Int8VecFieldData::ElementT>(DataType::INT8_VECTOR, vector);
+}
+
+int64_t
+EmbeddingList::Dim() const {
+    return dim_;
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////////////
+template <typename T, typename V>
+Status
+EmbeddingList::addVector(DataType data_type, const V& vector) {
+    if (target_vectors_ != nullptr && target_vectors_->Type() != data_type) {
+        return {StatusCode::INVALID_AGUMENT, "Target vector must be the same type!"};
+    }
+
+    StatusCode code = StatusCode::OK;
+    if (nullptr == target_vectors_) {
+        std::shared_ptr<T> vectors = std::make_shared<T>("");
+        target_vectors_ = vectors;
+        code = vectors->Add(vector);
+        dim_ = vector.size();
+    } else {
+        // dimensions must be equal, except text
+        if (data_type != DataType::VARCHAR && dim_ != vector.size()) {
+            std::string msg =
+                "Vector size mismatch, first: " + std::to_string(dim_) + ", current: " + std::to_string(vector.size());
+            return {StatusCode::INVALID_AGUMENT, msg};
+        }
+
+        std::shared_ptr<T> vectors = std::static_pointer_cast<T>(target_vectors_);
+        code = vectors->Add(vector);
+    }
+
+    if (code != StatusCode::OK) {
+        return {code, "Failed to add " + std::to_string(data_type)};
+    }
+
+    return Status::OK();
+}
+
+}  // namespace milvus

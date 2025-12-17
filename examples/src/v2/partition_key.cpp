@@ -96,10 +96,10 @@ main(int argc, char* argv[]) {
     {
         // verify the row count
         // set to STRONG level to ensure the delete request is done by server
-        milvus::QueryRequest request;
-        request.SetCollectionName(collection_name);
-        request.AddOutputField("count(*)");
-        request.SetConsistencyLevel(milvus::ConsistencyLevel::STRONG);
+        auto request = milvus::QueryRequest()
+                           .WithCollectionName(collection_name)
+                           .AddOutputField("count(*)")
+                           .WithConsistencyLevel(milvus::ConsistencyLevel::STRONG);
 
         milvus::QueryResponse response;
         status = client->Query(request, response);
@@ -110,13 +110,13 @@ main(int argc, char* argv[]) {
     {
         // query with filter expression, the expression contains the partition key name
         // milvus only scans one partition, faster than scanning in entire collection
-        milvus::QueryRequest request;
-        request.SetCollectionName(collection_name);
-        request.SetFilter(field_name + " == \"name_3_500\"");
-        request.AddOutputField(field_id);
-        request.AddOutputField(field_name);
-        // set to EVENTUALLY level since the last query uses STRONG level and no data changed
-        request.SetConsistencyLevel(milvus::ConsistencyLevel::EVENTUALLY);
+        auto request = milvus::QueryRequest()
+                           .WithCollectionName(collection_name)
+                           .WithFilter(field_name + " == \"name_3_500\"")
+                           .AddOutputField(field_id)
+                           .AddOutputField(field_name)
+                           // set to EVENTUALLY level since the last query uses STRONG level and no data changed
+                           .WithConsistencyLevel(milvus::ConsistencyLevel::EVENTUALLY);
 
         std::cout << "\nQuery with expression: " << request.Filter() << std::endl;
         milvus::QueryResponse response;
@@ -135,17 +135,18 @@ main(int argc, char* argv[]) {
     {
         // query with filter expression, the expression contains the partition key name
         // milvus only search in one partition, faster than searching in entire collection
-        milvus::SearchRequest request;
-        request.SetCollectionName(collection_name);
-        request.SetLimit(5);
-        request.AddExtraParam("ef", "10");
-        request.AddOutputField(field_id);
-        request.AddOutputField(field_name);
-        request.SetFilter(field_name + " == \"name_3_500\"");
-        // set to BOUNDED level to accept data inconsistence within a time window(default is 5 seconds)
-        request.SetConsistencyLevel(milvus::ConsistencyLevel::BOUNDED);
-
-        request.AddFloatVector(field_vector, util::GenerateFloatVector(dimension));
+        auto request =
+            milvus::SearchRequest()
+                .WithCollectionName(collection_name)
+                .WithLimit(5)
+                .WithAnnsField(field_vector)
+                .AddExtraParam("ef", "10")
+                .AddOutputField(field_id)
+                .AddOutputField(field_name)
+                .WithFilter(field_name + " == \"name_3_500\"")
+                // set to BOUNDED level to accept data inconsistence within a time window(default is 5 seconds)
+                .WithConsistencyLevel(milvus::ConsistencyLevel::BOUNDED)
+                .AddFloatVector(util::GenerateFloatVector(dimension));
         std::cout << "\nSearching with expression: " << request.Filter() << std::endl;
 
         milvus::SearchResponse response;

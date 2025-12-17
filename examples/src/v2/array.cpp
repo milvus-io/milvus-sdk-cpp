@@ -115,27 +115,29 @@ main(int argc, char* argv[]) {
     }
 
     milvus::InsertResponse resp_insert;
-    status = client->Insert(milvus::InsertRequest().WithCollectionName(collection_name).WithRowsData(std::move(rows)),
-                            resp_insert);
+    milvus::EntityRows rows_copy = rows;  // the rows are used for search later, make a copy here
+    status = client->Insert(
+        milvus::InsertRequest().WithCollectionName(collection_name).WithRowsData(std::move(rows_copy)), resp_insert);
     util::CheckStatus("insert", status);
     std::cout << resp_insert.Results().IdArray().StrIDArray().size() << " rows inserted." << std::endl;
 
     {
         // query some items wihtout filtering
-        milvus::QueryRequest request;
-        request.SetCollectionName(collection_name);
-        request.AddOutputField(field_id);
-        request.AddOutputField(field_array_bool);
-        request.AddOutputField(field_array_int8);
-        request.AddOutputField(field_array_int16);
-        request.AddOutputField(field_array_int32);
-        request.AddOutputField(field_array_int64);
-        request.AddOutputField(field_array_float);
-        request.AddOutputField(field_array_double);
-        request.AddOutputField(field_array_varchar);
-        request.SetLimit(5);
-        // set to strong level so that the query is executed after the inserted data is consumed by server
-        request.SetConsistencyLevel(milvus::ConsistencyLevel::STRONG);
+        auto request =
+            milvus::QueryRequest()
+                .WithCollectionName(collection_name)
+                .AddOutputField(field_id)
+                .AddOutputField(field_array_bool)
+                .AddOutputField(field_array_int8)
+                .AddOutputField(field_array_int16)
+                .AddOutputField(field_array_int32)
+                .AddOutputField(field_array_int64)
+                .AddOutputField(field_array_float)
+                .AddOutputField(field_array_double)
+                .AddOutputField(field_array_varchar)
+                .WithLimit(5)
+                // set to strong level so that the query is executed after the inserted data is consumed by server
+                .WithConsistencyLevel(milvus::ConsistencyLevel::STRONG);
 
         milvus::QueryResponse response;
         status = client->Query(request, response);
@@ -152,23 +154,23 @@ main(int argc, char* argv[]) {
 
     {
         // do search
-        milvus::SearchRequest request;
-        request.SetCollectionName(collection_name);
-        request.SetLimit(3);
-        request.AddOutputField(field_id);
-        request.AddOutputField(field_array_bool);
-        request.AddOutputField(field_array_int8);
-        request.AddOutputField(field_array_int16);
-        request.AddOutputField(field_array_int32);
-        request.AddOutputField(field_array_int64);
-        request.AddOutputField(field_array_float);
-        request.AddOutputField(field_array_double);
-        request.AddOutputField(field_array_varchar);
-
         auto q_number_1 = util::RandomeValue<int64_t>(0, row_count - 1);
         auto q_number_2 = util::RandomeValue<int64_t>(0, row_count - 1);
-        request.AddFloatVector(field_vector, rows[q_number_1][field_vector]);
-        request.AddFloatVector(field_vector, rows[q_number_2][field_vector]);
+        auto request = milvus::SearchRequest()
+                           .WithCollectionName(collection_name)
+                           .WithLimit(3)
+                           .WithAnnsField(field_vector)
+                           .AddOutputField(field_id)
+                           .AddOutputField(field_array_bool)
+                           .AddOutputField(field_array_int8)
+                           .AddOutputField(field_array_int16)
+                           .AddOutputField(field_array_int32)
+                           .AddOutputField(field_array_int64)
+                           .AddOutputField(field_array_float)
+                           .AddOutputField(field_array_double)
+                           .AddOutputField(field_array_varchar)
+                           .AddFloatVector(rows[q_number_1][field_vector])
+                           .AddFloatVector(rows[q_number_2][field_vector]);
         std::cout << "Searching the No." << q_number_1 << " and No." << q_number_2 << std::endl;
 
         milvus::SearchResponse response;
