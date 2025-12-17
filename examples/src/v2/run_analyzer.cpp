@@ -52,11 +52,11 @@ runAnalyzer(milvus::MilvusClientV2Ptr& client, const nlohmann::json& analyzer_pa
         "Milvus supports L2 distance and IP similarity for float vector.",
     };
 
-    milvus::RunAnalyzerRequest request;
-    request.SetTexts(text_content);
-    request.SetAnalyzerParams(analyzer_params);
-    request.WithDetail(true);
-    request.WithHash(true);
+    auto request = milvus::RunAnalyzerRequest()
+                       .WithTexts(text_content)
+                       .WithAnalyzerParams(analyzer_params)
+                       .WithDetail(true)
+                       .WithHash(true);
 
     milvus::RunAnalyzerResponse response;
     auto status = client->RunAnalyzer(request, response);

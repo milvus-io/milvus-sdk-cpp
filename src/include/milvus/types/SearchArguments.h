@@ -25,7 +25,7 @@
 #include "Constants.h"
 #include "FieldData.h"
 #include "MetricType.h"
-#include "SubSearchRequest.h"
+#include "SearchRequestBase.h"
 
 namespace milvus {
 
@@ -171,19 +171,6 @@ class SearchArguments : public SearchRequestBase {
      */
     Status
     SetStrictGroupSize(bool strict_group_size);
-
-    /**
-     * @brief Validate for search arguments and get name of the target anns field. \n
-     * Note: in v2.4+, a collection can have one or more vector fields. If a collection has
-     * only one vector field, users can set an empty name in the AddTargetVector(),
-     * the server can know the vector field name.
-     * But if the collection has multiple vector fields, users need to provide a non-empty name
-     * in the AddTargetVector() method, and if users call AddTargetVector() mutiple times, he must
-     * ensure that the name is the same, otherwise the Validate() method will return an error.
-     * The Validate() method is called before Search().
-     */
-    Status
-    Validate() const;
 
     ///////////////////////////////////////////////////////////////////////////////////////
     // deprecated methods

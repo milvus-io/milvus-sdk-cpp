@@ -84,13 +84,14 @@ main(int argc, char* argv[]) {
         std::vector<int64_t> filter_ids(begin, end);
         nlohmann::json filter_template = filter_ids;
 
-        milvus::QueryRequest request;
-        request.SetCollectionName(collection_name);
-        request.AddOutputField(field_text);
-        request.SetFilter(filter);
-        request.AddFilterTemplate("my_ids", filter_template);  // filter template
-        // set to strong level so that the query is executed after the inserted data is consumed by server
-        request.SetConsistencyLevel(milvus::ConsistencyLevel::STRONG);
+        auto request =
+            milvus::QueryRequest()
+                .WithCollectionName(collection_name)
+                .AddOutputField(field_text)
+                .WithFilter(filter)
+                .AddFilterTemplate("my_ids", filter_template)  // filter template
+                // set to strong level so that the query is executed after the inserted data is consumed by server
+                .WithConsistencyLevel(milvus::ConsistencyLevel::STRONG);
 
         milvus::QueryResponse response;
         status = client->Query(request, response);
@@ -114,15 +115,16 @@ main(int argc, char* argv[]) {
         }
         nlohmann::json filter_template = texts;
 
-        milvus::SearchRequest request;
-        request.SetCollectionName(collection_name);
-        request.SetLimit(static_cast<int64_t>(texts.size()));
-        request.SetFilter(filter);
-        request.AddFilterTemplate("my_texts", filter_template);
-        request.AddOutputField(field_text);
-        request.AddFloatVector(field_vector, util::GenerateFloatVector(dimension));
-        request.AddFloatVector(field_vector, util::GenerateFloatVector(dimension));
-        request.SetConsistencyLevel(milvus::ConsistencyLevel::BOUNDED);
+        auto request = milvus::SearchRequest()
+                           .WithCollectionName(collection_name)
+                           .WithLimit(static_cast<int64_t>(texts.size()))
+                           .WithFilter(filter)
+                           .WithAnnsField(field_vector)
+                           .AddFilterTemplate("my_texts", filter_template)
+                           .AddOutputField(field_text)
+                           .AddFloatVector(util::GenerateFloatVector(dimension))
+                           .AddFloatVector(util::GenerateFloatVector(dimension))
+                           .WithConsistencyLevel(milvus::ConsistencyLevel::BOUNDED);
 
         milvus::SearchResponse response;
         status = client->Search(request, response);

@@ -83,10 +83,10 @@ buildCollection(milvus::MilvusClientV2Ptr& client) {
     util::CheckStatus("insert", status);
 
     // get row count
-    milvus::QueryRequest request;
-    request.SetCollectionName(collection_name);
-    request.AddOutputField("count(*)");
-    request.SetConsistencyLevel(milvus::ConsistencyLevel::STRONG);
+    auto request = milvus::QueryRequest()
+                       .WithCollectionName(collection_name)
+                       .AddOutputField("count(*)")
+                       .WithConsistencyLevel(milvus::ConsistencyLevel::STRONG);
 
     milvus::QueryResponse response;
     status = client->Query(request, response);
@@ -99,13 +99,13 @@ queryWithFilter(milvus::MilvusClientV2Ptr& client, std::string filter) {
     std::cout << "================================================================" << std::endl;
     std::cout << "Query with filter: " << filter << std::endl;
 
-    milvus::QueryRequest request;
-    request.SetCollectionName(collection_name);
-    request.SetFilter(filter);
-    request.AddOutputField(field_id);
-    request.AddOutputField(field_text);
-    request.SetLimit(50);
-    request.SetConsistencyLevel(milvus::ConsistencyLevel::BOUNDED);
+    auto request = milvus::QueryRequest()
+                       .WithCollectionName(collection_name)
+                       .WithFilter(filter)
+                       .AddOutputField(field_id)
+                       .AddOutputField(field_text)
+                       .WithLimit(50)
+                       .WithConsistencyLevel(milvus::ConsistencyLevel::BOUNDED);
 
     milvus::QueryResponse response;
     auto status = client->Query(request, response);
@@ -124,14 +124,15 @@ searchWithFilter(milvus::MilvusClientV2Ptr& client, std::string filter) {
     std::cout << "================================================================" << std::endl;
     std::cout << "Search with filter: " << filter << std::endl;
 
-    milvus::SearchRequest request;
-    request.SetCollectionName(collection_name);
-    request.SetFilter(filter);
-    request.SetLimit(50);
-    request.AddOutputField(field_id);
-    request.AddOutputField(field_text);
-    request.AddFloatVector(field_vector, util::GenerateFloatVector(dimension));
-    request.SetConsistencyLevel(milvus::ConsistencyLevel::BOUNDED);
+    auto request = milvus::SearchRequest()
+                       .WithCollectionName(collection_name)
+                       .WithFilter(filter)
+                       .WithLimit(50)
+                       .WithAnnsField(field_vector)
+                       .AddOutputField(field_id)
+                       .AddOutputField(field_text)
+                       .AddFloatVector(util::GenerateFloatVector(dimension))
+                       .WithConsistencyLevel(milvus::ConsistencyLevel::BOUNDED);
 
     milvus::SearchResponse response;
     auto status = client->Search(request, response);

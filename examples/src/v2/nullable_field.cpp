@@ -142,13 +142,14 @@ main(int argc, char* argv[]) {
 
     {
         // query
-        milvus::QueryRequest request;
-        request.SetCollectionName(collection_name);
-        request.AddPartitionName(partition_1);
-        request.AddOutputField("*");
-        request.SetFilter(field_name + " is null");  // query entity whose name is null value
-        // set to strong level so that the query is executed after the inserted data is consumed by server
-        request.SetConsistencyLevel(milvus::ConsistencyLevel::STRONG);
+        auto request =
+            milvus::QueryRequest()
+                .WithCollectionName(collection_name)
+                .AddPartitionName(partition_1)
+                .AddOutputField("*")
+                .WithFilter(field_name + " is null")  // query entity whose name is null value
+                // set to strong level so that the query is executed after the inserted data is consumed by server
+                .WithConsistencyLevel(milvus::ConsistencyLevel::STRONG);
 
         std::cout << "\nQuery with filter: " << request.Filter() << " in " << partition_1 << std::endl;
         milvus::QueryResponse response;
@@ -166,17 +167,18 @@ main(int argc, char* argv[]) {
 
     {
         // search
-        milvus::SearchRequest request;
-        request.SetCollectionName(collection_name);
-        request.AddPartitionName(partition_2);
-        request.SetFilter(field_age + " is not null");  // search entitiies whose age is not null value
-        request.SetLimit(10);
-        request.AddOutputField(field_name);
-        request.AddOutputField(field_age);
-        request.AddOutputField(field_array);
-        request.AddFloatVector(field_vector, util::GenerateFloatVector(dimension));
-        request.AddFloatVector(field_vector, util::GenerateFloatVector(dimension));
-        request.SetConsistencyLevel(milvus::ConsistencyLevel::BOUNDED);
+        auto request = milvus::SearchRequest()
+                           .WithCollectionName(collection_name)
+                           .AddPartitionName(partition_2)
+                           .WithFilter(field_age + " is not null")  // search entitiies whose age is not null value
+                           .WithLimit(10)
+                           .WithAnnsField(field_vector)
+                           .AddOutputField(field_name)
+                           .AddOutputField(field_age)
+                           .AddOutputField(field_array)
+                           .AddFloatVector(util::GenerateFloatVector(dimension))
+                           .AddFloatVector(util::GenerateFloatVector(dimension))
+                           .WithConsistencyLevel(milvus::ConsistencyLevel::BOUNDED);
 
         std::cout << "\nSearch with filter: " << request.Filter() << " in " << partition_2 << std::endl;
         milvus::SearchResponse response;

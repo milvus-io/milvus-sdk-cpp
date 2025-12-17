@@ -63,9 +63,9 @@ TEST_F(MilvusMockedTest, HybridSearch) {
     sub_req1->SetMetricType(milvus::MetricType::COSINE);
     sub_req1->SetRadius(0.7);
     sub_req1->SetRangeFilter(1.0);
+    sub_req1->SetAnnsField("dense");
     auto dense_vector = std::vector<float>{0.1f, 0.2f, 0.3f, 0.4f};
-    auto status = sub_req1->AddFloatVector("dense", dense_vector);
-    EXPECT_TRUE(status.IsOk());
+    sub_req1->AddFloatVector(dense_vector);
     search_arg.AddSubRequest(sub_req1);
 
     auto sub_req2 = std::make_shared<milvus::SubSearchRequest>();
@@ -74,9 +74,9 @@ TEST_F(MilvusMockedTest, HybridSearch) {
     sub_req2->SetMetricType(milvus::MetricType::HAMMING);
     sub_req2->SetRadius(3.7);
     sub_req2->SetRangeFilter(2.0);
+    sub_req2->SetAnnsField("bin");
     auto bin_vector = std::vector<uint8_t>{1, 2, 3, 4};
-    status = sub_req2->AddBinaryVector("bin", bin_vector);
-    EXPECT_TRUE(status.IsOk());
+    sub_req2->AddBinaryVector(bin_vector);
     search_arg.AddSubRequest(sub_req2);
 
     auto reranker = std::make_shared<milvus::RRFRerank>(90);
@@ -175,7 +175,7 @@ TEST_F(MilvusMockedTest, HybridSearch) {
         });
 
     milvus::SearchResults search_results;
-    status = client_->HybridSearch(search_arg, search_results);
+    auto status = client_->HybridSearch(search_arg, search_results);
 
     EXPECT_TRUE(status.IsOk());
     auto& results = search_results.Results();
