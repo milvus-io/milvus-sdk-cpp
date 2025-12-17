@@ -1,15 +1,13 @@
-misc:
-  - branch: &BRANCHES
-      #  In this pull request, the changes are based on the master branch
-      - &MASTER_BRANCH base=master
-      #  In this pull request, the changes are based on the 2.x branch
-      - &2X_BRANCH base~=2\.\d
-
 pull_request_rules:
   - name: Add needs-dco label when DCO check failed
     conditions:
       # branch condition: in this pull request, the changes are based on any branch referenced by BRANCHES
-      - or: *BRANCHES
+      - or: &BRANCHES
+      #  In this pull request, the changes are based on the master branch
+          - &MASTER_BRANCH base=master
+      #  In this pull request, the changes are based on the 2.x branch
+          - &2X_BRANCH base~=2\.\d
+
       - -status-success=DCO
     actions:
       label:
@@ -37,12 +35,12 @@ pull_request_rules:
     conditions:
       - or: *BRANCHES
       - and:
-        - "check-success=Build and test AMD64 Ubuntu 20.04"
-        - "check-success=Build and test AMD64 Ubuntu 22.04"
-        - "check-success=Build and test AMD64 Fedora 38"
-        - "check-success=Build and test AMD64 Fedora 39"
-        - "check-success=Build and test macOS 13"
-        - "check-success=Build and test windows"
+          - "check-success=Build and test AMD64 Ubuntu 20.04"
+          - "check-success=Build and test AMD64 Ubuntu 22.04"
+          - "check-success=Build and test AMD64 Fedora 38"
+          - "check-success=Build and test AMD64 Fedora 39"
+          - "check-success=Build and test macOS 13"
+          - "check-success=Build and test windows"
     actions:
       label:
         add:
@@ -52,12 +50,12 @@ pull_request_rules:
     conditions:
       - or: *BRANCHES
       - or:
-        - "check-failure=Build and test AMD64 Ubuntu 20.04"
-        - "check-failure=Build and test AMD64 Ubuntu 22.04"
-        - "check-failure=Build and test AMD64 Fedora 38"
-        - "check-failure=Build and test AMD64 Fedora 39"
-        - "check-failure=Build and test macOS 13"
-        - "check-failure=Build and test windows"
+          - "check-failure=Build and test AMD64 Ubuntu 20.04"
+          - "check-failure=Build and test AMD64 Ubuntu 22.04"
+          - "check-failure=Build and test AMD64 Fedora 38"
+          - "check-failure=Build and test AMD64 Fedora 39"
+          - "check-failure=Build and test macOS 13"
+          - "check-failure=Build and test windows"
     actions:
       label:
         remove:
