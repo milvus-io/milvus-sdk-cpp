@@ -1,7 +1,7 @@
 Name: libmilvus
-Version: 2.0.0
+Version: 2.x
 Release: 1%{?dist}
-Summary: C++ client for milvus 2.0
+Summary: C++ client for milvus 2.x
 Requires: openssl
 
 BuildRequires: openssl-devel
@@ -24,7 +24,7 @@ VCS: {{{ git_dir_vcs }}}
 Source: {{{ git_dir_pack }}}
 
 %description
-C++ client for milvus 2.0
+C++ client for milvus 2.x
 
 %prep
 {{{ git_dir_setup_macro }}}
@@ -47,11 +47,11 @@ make install
 %{_libdir}/libmilvus_sdk.so
 
 %package devel
-Summary: C++ client headers for milvus 2.0
+Summary: C++ client headers for milvus 2.x
 Requires: libmilvus
 
 %description devel
-C++ client headers for milvus 2.0
+C++ client headers for milvus 2.x
 
 %files devel
 %{_includedir}/milvus
