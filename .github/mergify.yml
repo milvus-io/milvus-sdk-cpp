@@ -39,7 +39,7 @@ pull_request_rules:
           - "check-success=Build and test AMD64 Ubuntu 22.04"
           - "check-success=Build and test AMD64 Fedora 38"
           - "check-success=Build and test AMD64 Fedora 39"
-          - "check-success=Build and test macOS 15"
+          - "check-success=Build and test macOS 14"
           - "check-success=Build and test windows"
     actions:
       label:
@@ -54,7 +54,7 @@ pull_request_rules:
           - "check-failure=Build and test AMD64 Ubuntu 22.04"
           - "check-failure=Build and test AMD64 Fedora 38"
           - "check-failure=Build and test AMD64 Fedora 39"
-          - "check-failure=Build and test macOS 15"
+          - "check-failure=Build and test macOS 14"
           - "check-failure=Build and test windows"
     actions:
       label:
