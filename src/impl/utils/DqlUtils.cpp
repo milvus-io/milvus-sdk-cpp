@@ -201,10 +201,20 @@ BuildMilvusArrayFieldData(const std::string& name, const proto::schema::ArrayArr
                 std::make_shared<ArrayDoubleFieldData>(std::move(field_name), std::move(arr), std::move(valid_data));
             return Status::OK();
         }
-        case proto::schema::DataType::VarChar: {
+        case proto::schema::DataType::VarChar:
+        case proto::schema::DataType::Timestamptz: {
             std::vector<ArrayVarCharFieldData::ElementT> arr;
             for (; begin != end && std::distance(head, begin) < total; begin++) {
                 arr.emplace_back(std::move(BuildFieldDataScalars<std::string>((*begin).string_data().data())));
+            }
+            field_data =
+                std::make_shared<ArrayVarCharFieldData>(std::move(field_name), std::move(arr), std::move(valid_data));
+            return Status::OK();
+        }
+        case proto::schema::DataType::Geometry: {
+            std::vector<ArrayVarCharFieldData::ElementT> arr;
+            for (; begin != end && std::distance(head, begin) < total; begin++) {
+                arr.emplace_back(std::move(BuildFieldDataScalars<std::string>((*begin).geometry_wkt_data().data())));
             }
             field_data =
                 std::make_shared<ArrayVarCharFieldData>(std::move(field_name), std::move(arr), std::move(valid_data));
@@ -334,9 +344,16 @@ CreateMilvusFieldData(const proto::schema::FieldData& proto_data, size_t offset,
             field_data = std::make_shared<DoubleFieldData>(std::move(name), std::move(values), std::move(valid_data));
             return Status::OK();
         }
-        case proto::schema::DataType::VarChar: {
+        case proto::schema::DataType::VarChar:
+        case proto::schema::DataType::Timestamptz: {
             std::vector<VarCharFieldData::ElementT> values =
                 BuildFieldDataScalars<VarCharFieldData::ElementT>(proto_scalars.string_data().data(), offset, count);
+            field_data = std::make_shared<VarCharFieldData>(std::move(name), std::move(values), std::move(valid_data));
+            return Status::OK();
+        }
+        case proto::schema::DataType::Geometry: {
+            std::vector<VarCharFieldData::ElementT> values = BuildFieldDataScalars<VarCharFieldData::ElementT>(
+                proto_scalars.geometry_wkt_data().data(), offset, count);
             field_data = std::make_shared<VarCharFieldData>(std::move(name), std::move(values), std::move(valid_data));
             return Status::OK();
         }
@@ -422,8 +439,13 @@ GetFieldDataRowCount(const proto::schema::FieldData& proto_data, size_t& row_cou
             row_count = proto_scalars.double_data().data().size();
             break;
         }
-        case proto::schema::DataType::VarChar: {
+        case proto::schema::DataType::VarChar:
+        case proto::schema::DataType::Timestamptz: {
             row_count = proto_scalars.string_data().data().size();
+            break;
+        }
+        case proto::schema::DataType::Geometry: {
+            row_count = proto_scalars.geometry_wkt_data().data().size();
             break;
         }
         case proto::schema::DataType::JSON: {
@@ -828,7 +850,9 @@ GenGetters(const std::vector<FieldDataPtr>& fields) {
                 getters.insert(std::make_pair(name, std::move(GenGetter<DoubleFieldData>(field))));
                 break;
             }
-            case DataType::VARCHAR: {
+            case DataType::VARCHAR:
+            case DataType::GEOMETRY:
+            case DataType::TIMESTAMPTZ: {
                 getters.insert(std::make_pair(name, std::move(GenGetter<VarCharFieldData>(field))));
                 break;
             }
@@ -866,7 +890,9 @@ GenGetters(const std::vector<FieldDataPtr>& fields) {
                         getters.insert(std::make_pair(name, std::move(GenGetter<ArrayDoubleFieldData>(field))));
                         break;
                     }
-                    case DataType::VARCHAR: {
+                    case DataType::VARCHAR:
+                    case DataType::GEOMETRY:
+                    case DataType::TIMESTAMPTZ: {
                         getters.insert(std::make_pair(name, std::move(GenGetter<ArrayVarCharFieldData>(field))));
                         break;
                     }
@@ -1501,7 +1527,9 @@ CopyFieldData(const FieldDataPtr& src, uint64_t from, uint64_t to, FieldDataPtr&
         case DataType::DOUBLE: {
             return CopyFieldDataRange<DoubleFieldData>(src, from, to, target);
         }
-        case DataType::VARCHAR: {
+        case DataType::VARCHAR:
+        case DataType::GEOMETRY:
+        case DataType::TIMESTAMPTZ: {
             return CopyFieldDataRange<VarCharFieldData>(src, from, to, target);
         }
         case DataType::JSON: {
@@ -1530,7 +1558,9 @@ CopyFieldData(const FieldDataPtr& src, uint64_t from, uint64_t to, FieldDataPtr&
                 case DataType::DOUBLE: {
                     return CopyFieldDataRange<ArrayDoubleFieldData>(src, from, to, target);
                 }
-                case DataType::VARCHAR: {
+                case DataType::VARCHAR:
+                case DataType::GEOMETRY:
+                case DataType::TIMESTAMPTZ: {
                     return CopyFieldDataRange<ArrayVarCharFieldData>(src, from, to, target);
                 }
                 case DataType::STRUCT: {
@@ -1622,7 +1652,9 @@ AppendFieldData(const FieldDataPtr& from, FieldDataPtr& to) {
         case DataType::DOUBLE: {
             return Append<DoubleFieldData>(from, to);
         }
-        case DataType::VARCHAR: {
+        case DataType::VARCHAR:
+        case DataType::GEOMETRY:
+        case DataType::TIMESTAMPTZ: {
             return Append<VarCharFieldData>(from, to);
         }
         case DataType::JSON: {
@@ -1651,7 +1683,9 @@ AppendFieldData(const FieldDataPtr& from, FieldDataPtr& to) {
                 case DataType::DOUBLE: {
                     return Append<ArrayDoubleFieldData>(from, to);
                 }
-                case DataType::VARCHAR: {
+                case DataType::VARCHAR:
+                case DataType::GEOMETRY:
+                case DataType::TIMESTAMPTZ: {
                     return Append<ArrayVarCharFieldData>(from, to);
                 }
                 case DataType::STRUCT: {

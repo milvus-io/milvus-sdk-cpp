@@ -45,6 +45,12 @@ SubSearchRequest::WithAnnsField(const std::string& ann_field) {
 }
 
 SubSearchRequest&
+SubSearchRequest::WithTimezone(const std::string& timezone) {
+    SetTimezone(timezone);
+    return *this;
+}
+
+SubSearchRequest&
 SubSearchRequest::AddBinaryVector(const std::string& vector) {
     SearchRequestBase::AddBinaryVector(vector);
     return *this;

@@ -343,6 +343,8 @@ TEST_F(TypeUtilsTest, DataTypeCast) {
         {milvus::DataType::DOUBLE, milvus::proto::schema::DataType::Double},
         {milvus::DataType::VARCHAR, milvus::proto::schema::DataType::VarChar},
         {milvus::DataType::JSON, milvus::proto::schema::DataType::JSON},
+        {milvus::DataType::GEOMETRY, milvus::proto::schema::DataType::Geometry},
+        {milvus::DataType::TIMESTAMPTZ, milvus::proto::schema::DataType::Timestamptz},
         {milvus::DataType::ARRAY, milvus::proto::schema::DataType::Array},
         {milvus::DataType::FLOAT_VECTOR, milvus::proto::schema::DataType::FloatVector},
         {milvus::DataType::BINARY_VECTOR, milvus::proto::schema::DataType::BinaryVector},
@@ -406,6 +408,8 @@ TEST_F(TypeUtilsTest, ConvertValueFieldSchema) {
         {milvus::DataType::DOUBLE, nlohmann::json(9.99)},
         {milvus::DataType::DOUBLE, nlohmann::json(9)},
         {milvus::DataType::VARCHAR, nlohmann::json("ok")},
+        {milvus::DataType::GEOMETRY, nlohmann::json("POINT(1, 1)")},
+        {milvus::DataType::TIMESTAMPTZ, nlohmann::json("2025-01-01T00:00:00+08:00")},
         {milvus::DataType::JSON, nlohmann::json(R"([1, 2, 3, 4])")},
     };
     for (auto& pair : valid_pairs) {
@@ -441,6 +445,8 @@ TEST_F(TypeUtilsTest, ConvertValueFieldSchema) {
         {milvus::DataType::DOUBLE, nlohmann::json("ok")},
         {milvus::DataType::VARCHAR, nlohmann::json(1)},
         {milvus::DataType::VARCHAR, nlohmann::json(false)},
+        {milvus::DataType::GEOMETRY, nlohmann::json(1)},
+        {milvus::DataType::TIMESTAMPTZ, nlohmann::json(1)},
         {milvus::DataType::BINARY_VECTOR, nlohmann::json(1)},
         {milvus::DataType::FLOAT_VECTOR, nlohmann::json(1)},
         {milvus::DataType::FLOAT16_VECTOR, nlohmann::json(1)},

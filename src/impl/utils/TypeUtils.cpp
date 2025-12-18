@@ -44,6 +44,10 @@ DataTypeCast(DataType type) {
             return proto::schema::DataType::JSON;
         case DataType::ARRAY:
             return proto::schema::DataType::Array;
+        case DataType::GEOMETRY:
+            return proto::schema::DataType::Geometry;
+        case DataType::TIMESTAMPTZ:
+            return proto::schema::DataType::Timestamptz;
         case DataType::BINARY_VECTOR:
             return proto::schema::DataType::BinaryVector;
         case DataType::FLOAT_VECTOR:
@@ -86,6 +90,10 @@ DataTypeCast(proto::schema::DataType type) {
             return DataType::JSON;
         case proto::schema::DataType::Array:
             return DataType::ARRAY;
+        case proto::schema::DataType::Geometry:
+            return DataType::GEOMETRY;
+        case proto::schema::DataType::Timestamptz:
+            return DataType::TIMESTAMPTZ;
         case proto::schema::DataType::BinaryVector:
             return DataType::BINARY_VECTOR;
         case proto::schema::DataType::FloatVector:
@@ -306,6 +314,8 @@ ConvertValueFieldSchema(const proto::schema::ValueField& value_field, DataType t
             }
             return;
         case DataType::VARCHAR:
+        case DataType::GEOMETRY:
+        case DataType::TIMESTAMPTZ:
             if (value_field.has_string_data()) {
                 val = value_field.string_data();
             }
@@ -446,6 +456,8 @@ CheckDefaultValue(const FieldSchema& schema) {
             }
             break;
         case DataType::VARCHAR:
+        case DataType::GEOMETRY:
+        case DataType::TIMESTAMPTZ:
             if (!val.is_string()) {
                 return {StatusCode::INVALID_AGUMENT, "Field type is VARCHAR but default value is not string"};
             }
@@ -484,6 +496,8 @@ ConvertValueFieldSchema(const nlohmann::json& val, DataType type, proto::schema:
             value_field.set_double_data(val.get<double>());
             return;
         case DataType::VARCHAR:
+        case DataType::GEOMETRY:
+        case DataType::TIMESTAMPTZ:
             value_field.set_string_data(val.get<std::string>());
             return;
         case DataType::JSON:
@@ -888,6 +902,8 @@ to_string(milvus::DataType data_type) {
         {milvus::DataType::VARCHAR, "VARCHAR"},
         {milvus::DataType::JSON, "JSON"},
         {milvus::DataType::ARRAY, "ARRAY"},
+        {milvus::DataType::GEOMETRY, "GEOMETRY"},
+        {milvus::DataType::TIMESTAMPTZ, "TIMESTAMPTZ"},
         {milvus::DataType::BINARY_VECTOR, "BINARY_VECTOR"},
         {milvus::DataType::FLOAT_VECTOR, "FLOAT_VECTOR"},
         {milvus::DataType::FLOAT16_VECTOR, "FLOAT16_VECTOR"},
