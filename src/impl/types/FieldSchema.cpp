@@ -205,7 +205,9 @@ FieldSchema::MaxLength() const {
     if (iter != type_params_.end()) {
         return std::strtol(iter->second.c_str(), nullptr, 10);
     }
-    return 0;
+
+    // set a default value so that the Geometry/Timestamptz fields no need to set max_length
+    return 65535;
 }
 
 void
@@ -225,6 +227,9 @@ FieldSchema::MaxCapacity() const {
     if (iter != type_params_.end()) {
         return std::strtol(iter->second.c_str(), nullptr, 10);
     }
+
+    // server requires max_capacity value for struct/array fields,
+    // we don't have a proper default value, user must manually configure this value.
     return 0;
 }
 

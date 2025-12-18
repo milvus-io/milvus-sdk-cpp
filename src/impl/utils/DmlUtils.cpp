@@ -580,7 +580,9 @@ CreateProtoArrayField(const FieldDataSchema& data_schema, proto::schema::FieldDa
             }
             break;
         }
-        case DataType::VARCHAR: {
+        case DataType::VARCHAR:
+        case DataType::GEOMETRY:
+        case DataType::TIMESTAMPTZ: {
             if (nullable_default) {
                 CopyValidData<ArrayVarCharFieldData>(field, proto_field);
             }
@@ -725,6 +727,8 @@ CreateProtoFieldData(const FieldDataSchema& data_schema, proto::schema::FieldDat
                 CreateProtoScalars<DoubleFieldData, proto::schema::DoubleArray>(field, field_data, nullable_default));
             break;
         case DataType::VARCHAR:
+        case DataType::GEOMETRY:
+        case DataType::TIMESTAMPTZ:
             scalar->set_allocated_string_data(
                 CreateProtoScalars<VarCharFieldData, proto::schema::StringArray>(field, field_data, nullable_default));
             break;
@@ -1207,7 +1211,8 @@ CheckAndSetScalar(const nlohmann::json& obj, const FieldSchema& fs, proto::schem
             scalars->Add(obj.get<double>());
             break;
         }
-        case DataType::VARCHAR: {
+        case DataType::VARCHAR:
+        case DataType::TIMESTAMPTZ: {
             if (!obj.is_string()) {
                 return {StatusCode::INVALID_AGUMENT, msg_prefix + "string"};
             }
@@ -1216,6 +1221,18 @@ CheckAndSetScalar(const nlohmann::json& obj, const FieldSchema& fs, proto::schem
                 return {StatusCode::INVALID_AGUMENT, "Exceeds max length of field: " + fs.Name()};
             }
             auto scalars = sf->mutable_string_data()->mutable_data();
+            scalars->Add(std::move(ss));
+            break;
+        }
+        case DataType::GEOMETRY: {
+            if (!obj.is_string()) {
+                return {StatusCode::INVALID_AGUMENT, msg_prefix + "string"};
+            }
+            auto ss = obj.get<std::string>();
+            if (ss.size() > fs.MaxLength()) {
+                return {StatusCode::INVALID_AGUMENT, "Exceeds max length of field: " + fs.Name()};
+            }
+            auto scalars = sf->mutable_geometry_wkt_data()->mutable_data();
             scalars->Add(std::move(ss));
             break;
         }

@@ -163,4 +163,20 @@ QueryRequest::ExtraParams() const {
     return extra_params_;
 }
 
+std::string
+QueryRequest::Timezone() const {
+    return GetExtraStr(extra_params_, "timezone", "");
+}
+
+void
+QueryRequest::SetTimezone(const std::string& timezone) {
+    SetExtraStr(extra_params_, "timezone", timezone);
+}
+
+QueryRequest&
+QueryRequest::WithTimezone(const std::string& timezone) {
+    SetTimezone(timezone);
+    return *this;
+}
+
 }  // namespace milvus

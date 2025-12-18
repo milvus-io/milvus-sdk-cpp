@@ -258,6 +258,12 @@ class SearchRequest : public DQLRequestBase, public SearchRequestBase {
     WithRerank(const FunctionScorePtr& ranker);
 
     /**
+     * @brief Set timezone, takes effect for Timestamptz field.
+     */
+    SearchRequest&
+    WithTimezone(const std::string& timezone);
+
+    /**
      * @brief Add a binary vector to search
      */
     SearchRequest&
