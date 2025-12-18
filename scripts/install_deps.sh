@@ -9,8 +9,19 @@ check_sudo() {
 }
 
 install_linux_cmake_clang_toolchain() {
+    echo 'Pip install clang toolchain.'
     pip3 install --user -U pip scikit-build wheel
     pip3 install --user cmake clang-tidy~=17.0 clang-format~=17.0
+}
+
+# Starting from macOS 14(Sonoma), Apple implemented stricter security measures,
+# that prevent standard package managers like pip from modifying system-owned directories, even with sudo.
+# We have to use python virtual environments to install the packages.
+# Note that "pip3 install --user" doesn't work for virtual environments.
+install_mac_cmake_clang_toolchain() {
+    echo 'Pip install clang toolchain.'
+    pip3 install -U pip scikit-build wheel
+    pip3 install cmake clang-tidy~=17.0 clang-format~=17.0
 }
 
 install_deps_for_ubuntu_common() {
@@ -73,7 +84,7 @@ install_deps_for_macos() {
         echo 'Detect using macos but brew seems not installed.'
         exit 1
     fi
-    install_linux_cmake_clang_toolchain
+    install_mac_cmake_clang_toolchain
 }
 
 if uname | grep -wq Linux ; then

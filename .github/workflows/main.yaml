@@ -130,7 +130,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        macos: [15]
+        macos: [14]
     env:
       CCACHE_DIR: ${{ github.workspace }}/.ccache
       CCACHE_COMPILERCHECK: content
@@ -150,6 +150,9 @@ jobs:
           restore-keys: macos-${{ matrix.macos }}-ccache-
       - name: Prepare
         run: |
+          mkdir ~/.venv
+          python3 -m venv ~/.venv
+          source ~/.venv/bin/activate
           sh scripts/install_deps.sh
       - name: Unit Testing
         run: |
