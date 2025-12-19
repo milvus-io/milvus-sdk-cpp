@@ -87,26 +87,41 @@ main(int argc, char* argv[]) {
     collection_schema->AddField(
         milvus::FieldSchema(field_face, milvus::DataType::FLOAT_VECTOR, "face signature").WithDimension(dimension));
 
+    // define indexes
+    milvus::IndexDesc index_vector(field_face, "", milvus::IndexType::IVF_FLAT, milvus::MetricType::COSINE);
+    index_vector.AddExtraParam(milvus::NLIST, "100");
+    milvus::IndexDesc index_sort(field_age, "", milvus::IndexType::STL_SORT);
+    milvus::IndexDesc index_varchar(field_name, "", milvus::IndexType::TRIE);
+
+    // drop collection if it exists, the CreateCollectionRequest with indexes will automatically create indexes
+    // for this collection and load the collection
     status = client->DropCollection(
         milvus::DropCollectionRequest().WithCollectionName(collection_name).WithDatabaseName(db_name));
     status = client->CreateCollection(milvus::CreateCollectionRequest()
                                           .WithCollectionSchema(collection_schema)
                                           .WithDatabaseName(db_name)
+                                          .AddIndex(std::move(index_vector))
+                                          .AddIndex(std::move(index_sort))
+                                          .AddIndex(std::move(index_varchar))
+                                          .AddProperty("my_prop", "dummy")              // add a customized property
+                                          .AddProperty("collection.ttl.seconds", "60")  // configure a built-in property
                                           .WithConsistencyLevel(milvus::ConsistencyLevel::STRONG));
     util::CheckStatus("create collection: " + collection_name + " in database: " + db_name, status);
 
-    // create index
-    milvus::IndexDesc index_vector(field_face, "", milvus::IndexType::IVF_FLAT, milvus::MetricType::COSINE);
-    index_vector.AddExtraParam(milvus::NLIST, "100");
-    milvus::IndexDesc index_sort(field_age, "", milvus::IndexType::STL_SORT);
-    milvus::IndexDesc index_varchar(field_name, "", milvus::IndexType::TRIE);
-    status = client->CreateIndex(milvus::CreateIndexRequest()
-                                     .WithCollectionName(collection_name)
-                                     .WithDatabaseName(db_name)
-                                     .AddIndex(std::move(index_vector))
-                                     .AddIndex(std::move(index_sort))
-                                     .AddIndex(std::move(index_varchar)));
-    util::CheckStatus("create indexes on collection", status);
+    {
+        // describe the collection
+        milvus::DescribeCollectionResponse desc_response;
+        status = client->DescribeCollection(
+            milvus::DescribeCollectionRequest().WithCollectionName(collection_name).WithDatabaseName(db_name),
+            desc_response);
+        util::CheckStatus("describe collection: " + collection_name, status);
+
+        std::cout << "\tCollection ID: " << desc_response.Desc().ID() << std::endl;
+        auto properties = desc_response.Desc().Properties();
+        std::map<std::string, std::string> temp_properties(properties.begin(), properties.end());
+        std::cout << "\tCollection properties: ";
+        util::PrintMap(temp_properties);
+    }
 
     // create a partition
     std::string partition_name = "Year_2022";
@@ -115,13 +130,6 @@ main(int argc, char* argv[]) {
                                          .WithCollectionName(collection_name)
                                          .WithPartitionName(partition_name));
     util::CheckStatus("create partition: " + partition_name, status);
-
-    // tell server prepare to load collection
-    status = client->LoadCollection(milvus::LoadCollectionRequest()
-                                        .WithDatabaseName(db_name)
-                                        .WithCollectionName(collection_name)
-                                        .WithReplicaNum(1));
-    util::CheckStatus("load collection: " + collection_name, status);
 
     // list collections
     milvus::ListCollectionsResponse resp_list_coll;
@@ -232,6 +240,31 @@ main(int argc, char* argv[]) {
         status = client->Query(request, response);
         util::CheckStatus("query count(*) on partition", status);
         std::cout << "partition count(*) = " << response.Results().GetRowCount() << std::endl;
+    }
+
+    {
+        // call flush() here just to persist the data so that indexnode can build index on a new segment
+        // Note: in practice, no need to call flush() manually since milvus automatically trigger flush actions
+        status = client->Flush(milvus::FlushRequest().AddCollectionName(collection_name));
+        util::CheckStatus("flush collection", status);
+
+        // describe an index
+        milvus::DescribeIndexResponse desc_response;
+        status = client->DescribeIndex(milvus::DescribeIndexRequest()
+                                           .WithCollectionName(collection_name)
+                                           .WithDatabaseName(db_name)
+                                           .WithFieldName(field_face),
+                                       desc_response);
+        util::CheckStatus("describe index on field: " + field_face, status);
+
+        for (const auto& desc : desc_response.Descs()) {
+            std::cout << "\tIndexName: " << desc.IndexName() << std::endl;
+            std::cout << "\tIndexType: " << std::to_string(desc.IndexType()) << std::endl;
+            std::cout << "\tMetricType: " << std::to_string(desc.MetricType()) << std::endl;
+            std::cout << "\tTotalRows: " << std::to_string(desc.TotalRows()) << std::endl;
+            std::cout << "\tIndexedRows: " << std::to_string(desc.IndexedRows()) << std::endl;
+            std::cout << "\tPendingRows: " << std::to_string(desc.PendingRows()) << std::endl;
+        }
     }
 
     {

@@ -20,6 +20,7 @@
 
 #include "../../types/CollectionSchema.h"
 #include "../../types/ConsistencyLevel.h"
+#include "../../types/IndexDesc.h"
 
 namespace milvus {
 
@@ -129,12 +130,37 @@ class CreateCollectionRequest {
     CreateCollectionRequest&
     AddProperty(const std::string& key, const std::string& property);
 
+    /**
+     * @brief Get indexes.
+     */
+    const std::vector<IndexDesc>&
+    Indexes() const;
+
+    /**
+     * @brief Set indexes to be created.
+     */
+    void
+    SetIndexes(std::vector<IndexDesc>&& indexes);
+
+    /**
+     * @brief Set indexes to be created.
+     */
+    CreateCollectionRequest&
+    WithIndexes(std::vector<IndexDesc>&& indexes);
+
+    /**
+     * @brief Add an index to be created.
+     */
+    CreateCollectionRequest&
+    AddIndex(IndexDesc&& index);
+
  private:
     std::string db_name_;
     CollectionSchemaPtr schema_;
     int64_t num_partitions_{0};
     ConsistencyLevel level_{ConsistencyLevel::BOUNDED};
     std::unordered_map<std::string, std::string> properties_;
+    std::vector<IndexDesc> indexes_;
 };
 
 }  // namespace milvus

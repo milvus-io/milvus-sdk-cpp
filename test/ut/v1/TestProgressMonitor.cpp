@@ -31,7 +31,7 @@ TEST_F(ProgressMonitorTest, DefaultSetting) {
     EXPECT_EQ(no_wait.CheckTimeout(), 0);
 
     auto forever = milvus::ProgressMonitor::Forever();
-    EXPECT_EQ(forever.CheckTimeout(), std::numeric_limits<uint32_t>::max());
+    EXPECT_EQ(forever.CheckTimeout(), std::numeric_limits<uint32_t>::max() / 1000);
 }
 
 TEST_F(ProgressMonitorTest, Setting) {

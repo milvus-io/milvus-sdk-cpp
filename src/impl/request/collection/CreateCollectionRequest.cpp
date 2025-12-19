@@ -106,4 +106,26 @@ CreateCollectionRequest::AddProperty(const std::string& key, const std::string& 
     return *this;
 }
 
+const std::vector<IndexDesc>&
+CreateCollectionRequest::Indexes() const {
+    return indexes_;
+}
+
+void
+CreateCollectionRequest::SetIndexes(std::vector<IndexDesc>&& indexes) {
+    indexes_ = std::move(indexes);
+}
+
+CreateCollectionRequest&
+CreateCollectionRequest::WithIndexes(std::vector<IndexDesc>&& indexes) {
+    SetIndexes(std::move(indexes));
+    return *this;
+}
+
+CreateCollectionRequest&
+CreateCollectionRequest::AddIndex(IndexDesc&& index) {
+    indexes_.emplace_back(std::move(index));
+    return *this;
+}
+
 }  // namespace milvus
