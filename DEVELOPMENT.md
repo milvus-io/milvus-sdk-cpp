@@ -174,6 +174,7 @@ Examples for MilvusClientV2:
 - `./cmake_build/examples/v2/sdk_filter_template_v2`: example to show the usage of filter template.
 - `./cmake_build/examples/v2/sdk_full_text_match_v2`: example to show the usage of BM25 function.
 - `./cmake_build/examples/v2/sdk_general_v2`: a general example to show the basic usage.
+- `./cmake_build/examples/v2/sdk_geometry_v2`: a general example to show the usage of Geometry field.
 - `./cmake_build/examples/v2/sdk_group_by_v2`: a general example to show the usage of grouping search.
 - `./cmake_build/examples/v2/sdk_hybrid_search_v2`: example to show the usage of hybrid search interface.
 - `./cmake_build/examples/v2/sdk_iterator_query_v2`: example to show the usage of query iterator.
@@ -186,6 +187,7 @@ Examples for MilvusClientV2:
 - `./cmake_build/examples/v2/sdk_run_analyzer_v2`: example to show the usage of run_analyzer().
 - `./cmake_build/examples/v2/sdk_struct_field_v2`: example to show the usage of struct field.
 - `./cmake_build/examples/v2/sdk_text_match_v2`: example to show the usage of TEXT_MATCH.
+- `./cmake_build/examples/v2/sdk_timestamptz_field_v2`: example to show the usage of Timestamptz field.
 - `./cmake_build/examples/v2/sdk_vector_binary_v2`: example to show the usage of BinaryVector field.
 - `./cmake_build/examples/v2/sdk_vector_fp16_v2`: example to show the usage of Float16Vector/BFloat16Vector field.
 - `./cmake_build/examples/v2/sdk_vector_sparse_v2`: example to show the usage of SparseVector field.

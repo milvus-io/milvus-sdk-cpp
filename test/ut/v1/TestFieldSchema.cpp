@@ -62,7 +62,7 @@ TEST_F(FieldSchemaTest, TestWithDimention) {
 
 TEST_F(FieldSchemaTest, TestForMaxLength) {
     auto schema = milvus::FieldSchema("name", milvus::DataType::VARCHAR, "");
-    EXPECT_EQ(0, schema.MaxLength());
+    EXPECT_EQ(65535, schema.MaxLength());
     schema = milvus::FieldSchema("name", milvus::DataType::VARCHAR, "").WithMaxLength(200);
     EXPECT_EQ("200", schema.TypeParams().at(milvus::MAX_LENGTH));
     schema.SetMaxLength(300);

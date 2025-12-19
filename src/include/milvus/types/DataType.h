@@ -41,6 +41,8 @@ enum class DataType {
 
     ARRAY = 22,
     JSON = 23,
+    GEOMETRY = 24,
+    TIMESTAMPTZ = 26,
 
     BINARY_VECTOR = 100,
     FLOAT_VECTOR = 101,

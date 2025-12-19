@@ -197,19 +197,6 @@ SearchRequestBase::ExtraParams() const {
     return extra_params_;
 }
 
-Status
-SearchRequestBase::Validate() const {
-    if (this->TargetVectors() != nullptr && !embedding_lists_.empty()) {
-        return Status{StatusCode::INVALID_AGUMENT, "Not allow to set both embedding list and target vector"};
-    }
-
-    // in milvus 2.4+, no need to check index parameters, let the server to check it
-    if (target_vectors_.Count() == 0 && embedding_lists_.empty()) {
-        return Status{StatusCode::INVALID_AGUMENT, "No target vector is assigned"};
-    }
-    return Status::OK();
-}
-
 double
 SearchRequestBase::Radius() const {
     auto it = extra_params_.find(RADIUS);
@@ -252,6 +239,33 @@ SearchRequestBase::SetRange(double range_filter, double radius) {
         return status;
     }
 
+    return Status::OK();
+}
+
+std::string
+SearchRequestBase::Timezone() const {
+    auto it = extra_params_.find("timezone");
+    if (it != extra_params_.end()) {
+        return it->second;
+    }
+    return "";
+}
+
+Status
+SearchRequestBase::SetTimezone(const std::string& timezone) {
+    return AddExtraParam("timezone", timezone);
+}
+
+Status
+SearchRequestBase::Validate() const {
+    if (this->TargetVectors() != nullptr && !embedding_lists_.empty()) {
+        return Status{StatusCode::INVALID_AGUMENT, "Not allow to set both embedding list and target vector"};
+    }
+
+    // in milvus 2.4+, no need to check index parameters, let the server to check it
+    if (target_vectors_.Count() == 0 && embedding_lists_.empty()) {
+        return Status{StatusCode::INVALID_AGUMENT, "No target vector is assigned"};
+    }
     return Status::OK();
 }
 
