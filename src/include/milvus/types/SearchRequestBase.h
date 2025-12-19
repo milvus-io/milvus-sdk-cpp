@@ -255,6 +255,20 @@ class SearchRequestBase {
     SetRange(double range_filter, double radius);
 
     /**
+     * @brief Get timezone, takes effect for Timestamptz field.
+     * Note: this value is stored in the ExtraParams
+     */
+    std::string
+    Timezone() const;
+
+    /**
+     * @brief Set timezone, takes effect for Timestamptz field.
+     * Note: this value is stored in the ExtraParams
+     */
+    Status
+    SetTimezone(const std::string& timezone);
+
+    /**
      * @brief Validate for search arguments and get name of the target anns field
      * Note: in v2.4+, a collection can have one or more vector fields. If a collection has
      * only one vector field, users can set an empty name in the AddTargetVector(),

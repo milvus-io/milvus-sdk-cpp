@@ -220,6 +220,12 @@ SearchRequest::WithRerank(const FunctionScorePtr& ranker) {
 }
 
 SearchRequest&
+SearchRequest::WithTimezone(const std::string& timezone) {
+    SetTimezone(timezone);
+    return *this;
+}
+
+SearchRequest&
 SearchRequest::AddBinaryVector(const std::string& vector) {
     SearchRequestBase::AddBinaryVector(vector);
     return *this;

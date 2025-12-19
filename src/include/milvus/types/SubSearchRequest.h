@@ -51,6 +51,12 @@ class SubSearchRequest : public SearchRequestBase {
     WithAnnsField(const std::string& ann_field);
 
     /**
+     * @brief Set timezone, takes effect for Timestamptz field.
+     */
+    SubSearchRequest&
+    WithTimezone(const std::string& timezone);
+
+    /**
      * @brief Add a binary vector to search
      */
     SubSearchRequest&

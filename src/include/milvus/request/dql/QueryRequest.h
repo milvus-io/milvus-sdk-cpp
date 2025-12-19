@@ -198,6 +198,27 @@ class QueryRequest : public DQLRequestBase {
     const std::unordered_map<std::string, std::string>&
     ExtraParams() const;
 
+    /**
+     * @brief Get timezone, takes effect for Timestamptz field.
+     * Note: this value is stored in the ExtraParams
+     */
+    std::string
+    Timezone() const;
+
+    /**
+     * @brief Set timezone, takes effect for Timestamptz field.
+     * Note: this value is stored in the ExtraParams
+     */
+    void
+    SetTimezone(const std::string& timezone);
+
+    /**
+     * @brief Set timezone, takes effect for Timestamptz field.
+     * Note: this value is stored in the ExtraParams
+     */
+    QueryRequest&
+    WithTimezone(const std::string& timezone);
+
  private:
     std::string filter_;
     std::unordered_map<std::string, nlohmann::json> filter_templates_;
