@@ -79,7 +79,7 @@ class CreateIndexRequest : public IndexRequestBase {
     Sync() const;
 
     /**
-     * @brief Set sync mode.
+     * @brief Set sync mode. Default value is true.
      * True: wait the indexes are ready.
      * False: return immediately no matter the indexes are ready or not.
      */
@@ -87,7 +87,7 @@ class CreateIndexRequest : public IndexRequestBase {
     SetSync(bool sync);
 
     /**
-     * @brief Set sync mode.
+     * @brief Set sync mode. Default value is true.
      * True: wait the indexes are ready.
      * False: return immediately no matter the indexes are ready or not.
      */
@@ -101,13 +101,21 @@ class CreateIndexRequest : public IndexRequestBase {
     TimeoutMs() const;
 
     /**
-     * @brief Set timeout in milliseconds.
+     * @brief Set timeout in milliseconds. Default value is 60000ms. Only work when Sync() is true.
+     * If the TimeoutMs is zero, the CreateIndex() will call DescribeIndex() to loading state,
+     * until the index is fully built.
+     * If the TimeoutMs is larger than zero, the CreateIndex() will break the loop after a certain of time span
+     * and return a status saying the process is timeout.
      */
     void
     SetTimeoutMs(int64_t timeout_ms);
 
     /**
-     * @brief Set timeout in milliseconds.
+     * @brief Set timeout in milliseconds. Default value is 60000ms. Only work when Sync() is true.
+     * If the TimeoutMs is zero, the CreateIndex() will call DescribeIndex() to index state,
+     * until the index is fully built.
+     * If the TimeoutMs is larger than zero, the CreateIndex() will break the loop after a certain of time span
+     * and return a status saying the process is timeout.
      */
     CreateIndexRequest&
     WithTimeoutMs(int64_t timeout_ms);
