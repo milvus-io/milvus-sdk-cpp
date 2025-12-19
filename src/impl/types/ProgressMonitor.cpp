@@ -72,7 +72,10 @@ ProgressMonitor::NoWait() {
 
 ProgressMonitor
 ProgressMonitor::Forever() {
-    return ProgressMonitor{std::numeric_limits<uint32_t>::max()};
+    // unit of timeout is second, which will be converted to millisecond.
+    // set max_uint32/1000 to avoid overflow in ConnectionHandler::WaitForStatus()
+    uint32_t val = std::numeric_limits<uint32_t>::max() / 1000;
+    return ProgressMonitor{val};
 }
 
 }  // namespace milvus
