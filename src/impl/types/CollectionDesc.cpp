@@ -88,4 +88,14 @@ CollectionDesc::SetUpdateTime(uint64_t ts) {
     update_timestamp_ = ts;
 }
 
+const std::unordered_map<std::string, std::string>&
+CollectionDesc::Properties() const {
+    return properties_;
+}
+
+void
+CollectionDesc::SetProperties(std::unordered_map<std::string, std::string>&& properties) {
+    properties_ = std::move(properties);
+}
+
 }  // namespace milvus

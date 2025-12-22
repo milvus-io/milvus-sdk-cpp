@@ -75,7 +75,7 @@ class LoadCollectionRequest : public CollectionRequestBase {
     Sync() const;
 
     /**
-     * @brief Set sync mode.
+     * @brief Set sync mode. Default value is true.
      * True: wait the collection to be fully loaded.
      * False: return immediately no matter the collection is fully loaded or not.
      */
@@ -83,7 +83,7 @@ class LoadCollectionRequest : public CollectionRequestBase {
     SetSync(bool sync);
 
     /**
-     * @brief Set sync mode.
+     * @brief Set sync mode. Default value is true.
      * True: wait the collection to be fully loaded.
      * False: return immediately no matter the collection is fully loaded or not.
      */
@@ -115,13 +115,21 @@ class LoadCollectionRequest : public CollectionRequestBase {
     TimeoutMs() const;
 
     /**
-     * @brief Set timeout in milliseconds.
+     * @brief Set timeout in milliseconds. Default value is 60000ms. Only work when Sync() is true.
+     * If the WaitFlushedMs is zero, the LoadCollection() will call GetLoadingProgress() to loading state,
+     * until the collection is fully loaded into memory.
+     * If the WaitFlushedMs is larger than zero, the LoadCollection() will break the loop after a certain of time span
+     * and return a status saying the process is timeout.
      */
     void
     SetTimeoutMs(int64_t timeout_ms);
 
     /**
-     * @brief Set timeout in milliseconds.
+     * @brief Set timeout in milliseconds. Default value is 60000ms. Only work when Sync() is true.
+     * If the WaitFlushedMs is zero, the LoadCollection() will call GetLoadingProgress() to loading state,
+     * until the collection is fully loaded into memory.
+     * If the WaitFlushedMs is larger than zero, the LoadCollection() will break the loop after a certain of time span
+     * and return a status saying the process is timeout.
      */
     LoadCollectionRequest&
     WithTimeoutMs(int64_t timeout_ms);
