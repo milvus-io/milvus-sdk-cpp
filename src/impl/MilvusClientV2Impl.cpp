@@ -152,8 +152,33 @@ MilvusClientV2Impl::CreateCollection(const CreateCollectionRequest& request) {
         return Status::OK();
     };
 
+    auto post = [this, &request, &schema](const proto::common::Status& rpc_response) {
+        if (request.Indexes().empty()) {
+            return Status::OK();
+        }
+
+        // if user has defined indexes, create indexes immediately after collection is created.
+        // note that Sync is false since the new collection empty, no need to wait index.
+        const auto& descs = request.Indexes();
+        for (const auto& desc : descs) {
+            auto status = createIndex(request.DatabaseName(), schema.Name(), desc, false, 0);
+            if (!status.IsOk()) {
+                return status;
+            }
+        }
+
+        // load collection automatically
+        LoadCollectionRequest load_req =
+            LoadCollectionRequest()
+                .WithDatabaseName(request.DatabaseName())
+                .WithCollectionName(schema.Name())
+                .WithSync(false);  // set sync to false since no need to wait loading progress
+
+        return LoadCollection(load_req);
+    };
+
     return connection_.Invoke<proto::milvus::CreateCollectionRequest, proto::common::Status>(
-        validate, pre, &MilvusConnection::CreateCollection, nullptr);
+        validate, pre, &MilvusConnection::CreateCollection, post);
 }
 
 Status
@@ -185,11 +210,9 @@ MilvusClientV2Impl::DropCollection(const DropCollectionRequest& request) {
     auto post = [this, &request](const proto::common::Status& status) {
         if (status.error_code() == proto::common::ErrorCode::Success && status.code() == 0) {
             // compile warning at this line since proto deprecates this method error_code()
-            // TODO: if the parameters provides db_name in future, we need to set the correct
-            // db_name to RemoveCollectionTs()
             auto db_name = connection_.CurrentDbName(request.DatabaseName());
             auto collection_name = request.CollectionName();
-            GtsDict::GetInstance().RemoveCollectionTs(connection_.CurrentDbName(db_name), collection_name);
+            GtsDict::GetInstance().RemoveCollectionTs(db_name, collection_name);
             removeCollectionDesc(db_name, collection_name);
         }
         return Status::OK();
@@ -222,8 +245,15 @@ MilvusClientV2Impl::LoadCollection(const LoadCollectionRequest& request) {
             pre, &MilvusConnection::LoadCollection);
     }
 
-    // TODO: check timeout value in sync mode
+    // wait loading progress, check load state in interval 500ms, until the time cost exceeds request.TimeoutMs()
+    // ProgressMonitor timeout unit is second, it is a history problem.
+    // request.TimeoutMs() 0ms is treated as 0 second, which means "forever".
+    // request.TimeoutMs() in [1, 1000] is treated as 1 second, request.
+    // request.TimeoutMs() in [1001, 2000] is treated as 2 seconds, etc.
     ProgressMonitor progress_monitor = ProgressMonitor::Forever();
+    if (request.TimeoutMs() > 0) {
+        progress_monitor = ProgressMonitor{static_cast<uint32_t>(request.TimeoutMs() + 999) / 1000};
+    }
     auto wait_for_status = [this, &request, &progress_monitor](const proto::common::Status&) {
         return ConnectionHandler::WaitForStatus(
             [&request, this](Progress& progress) -> Status {
@@ -274,9 +304,14 @@ MilvusClientV2Impl::DescribeCollection(const DescribeCollectionRequest& request,
         aliases.insert(aliases.end(), rpc_response.aliases().begin(), rpc_response.aliases().end());
         collection_desc.SetAlias(std::move(aliases));
 
-        response.SetDesc(std::move(collection_desc));
+        std::unordered_map<std::string, std::string> properties;
+        for (int i = 0; i < rpc_response.properties_size(); i++) {
+            const auto& prop = rpc_response.properties(i);
+            properties[prop.key()] = prop.value();
+        }
+        collection_desc.SetProperties(std::move(properties));
 
-        // TODO: set properties
+        response.SetDesc(std::move(collection_desc));
         return Status::OK();
     };
 
@@ -356,10 +391,21 @@ MilvusClientV2Impl::GetLoadState(const GetLoadStateRequest& request, GetLoadStat
         return Status::OK();
     };
 
-    auto post = [&response](const proto::milvus::GetLoadStateResponse& rpc_response) {
-        response.SetState(LoadStateCast(rpc_response.state()));
+    auto post = [this, &request, &response](const proto::milvus::GetLoadStateResponse& rpc_response) {
+        auto state = rpc_response.state();
+        response.SetState(LoadStateCast(state));
 
-        // TODO: set progress percent if state is LoadStateLoading
+        if (state == proto::common::LoadState::LoadStateLoading) {
+            uint32_t progress = 0;
+            auto status = connection_.GetLoadingProgress(request.DatabaseName(), request.CollectionName(),
+                                                         request.PartitionNames(), progress);
+            if (!status.IsOk()) {
+                return status;
+            }
+            response.SetProgress(progress);
+        } else if (state == proto::common::LoadState::LoadStateLoaded) {
+            response.SetProgress(100);
+        }
         return Status::OK();
     };
 
@@ -522,8 +568,15 @@ MilvusClientV2Impl::LoadPartitions(const LoadPartitionsRequest& request) {
             pre, &MilvusConnection::LoadPartitions);
     }
 
-    // TODO: check timeout value in sync mode
+    // wait loading progress, check load state in interval 500ms, until the time cost exceeds request.TimeoutMs()
+    // ProgressMonitor timeout unit is second, it is a history problem.
+    // request.TimeoutMs() 0ms is treated as 0 second, which means "forever".
+    // request.TimeoutMs() in [1, 1000] is treated as 1 second, request.
+    // request.TimeoutMs() in [1001, 2000] is treated as 2 seconds, etc.
     ProgressMonitor progress_monitor = ProgressMonitor::Forever();
+    if (request.TimeoutMs() > 0) {
+        progress_monitor = ProgressMonitor{static_cast<uint32_t>(request.TimeoutMs() + 999) / 1000};
+    }
     auto wait_for_status = [this, &request, &progress_monitor](const proto::common::Status&) {
         return ConnectionHandler::WaitForStatus(
             [&request, this](Progress& progress) -> Status {
@@ -801,7 +854,7 @@ MilvusClientV2Impl::DescribeDatabase(const DescribeDatabaseRequest& request, Des
             const auto& prop = rpc_response.properties(i);
             properties[prop.key()] = prop.value();
         }
-        db_desc.SetProperties(properties);
+        db_desc.SetProperties(std::move(properties));
 
         response.SetDesc(std::move(db_desc));
         return Status::OK();
@@ -815,13 +868,13 @@ Status
 MilvusClientV2Impl::CreateIndex(const CreateIndexRequest& request) {
     const auto& descs = request.Indexes();
     for (const auto& desc : descs) {
-        auto status = createIndex(request.DatabaseName(), request.CollectionName(), desc, request.Sync());
+        auto status =
+            createIndex(request.DatabaseName(), request.CollectionName(), desc, request.Sync(), request.TimeoutMs());
         if (!status.IsOk()) {
             return status;
         }
-
-        // TODO: check timeout value in sync mode
     }
+
     return Status::OK();
 }
 
@@ -841,9 +894,15 @@ MilvusClientV2Impl::DescribeIndex(const DescribeIndexRequest& request, DescribeI
             return Status{StatusCode::SERVER_FAILED, "Index not found:" + request.FieldName()};
         }
 
+        // althought we have specified the field_name, the server returns all the indexes of the collection,
+        // pick the correct index from the list.
         std::vector<IndexDesc> descs;
         for (auto i = 0; i < count; i++) {
-            auto rpc_desc = rpc_response.index_descriptions(0);
+            auto rpc_desc = rpc_response.index_descriptions(i);
+            if (rpc_desc.field_name() != request.FieldName()) {
+                continue;
+            }
+
             IndexDesc index_desc;
             index_desc.SetFieldName(rpc_desc.field_name());
             index_desc.SetIndexName(rpc_desc.index_name());
@@ -1456,8 +1515,15 @@ MilvusClientV2Impl::Flush(const FlushRequest& request) {
         return Status::OK();
     };
 
-    // TODO: check timeout value in sync mode
+    // wait flush progress, check flush state in interval 500ms, until the time cost exceeds request.WaitFlushedMs()
+    // ProgressMonitor timeout unit is second, it is a history problem.
+    // request.WaitFlushedMs() 0ms is treated as 0 second, which means "forever".
+    // request.WaitFlushedMs() in [1, 1000] is treated as 1 second, request.
+    // request.WaitFlushedMs() in [1001, 2000] is treated as 2 seconds, etc.
     ProgressMonitor progress_monitor = ProgressMonitor::Forever();
+    if (request.WaitFlushedMs() > 0) {
+        progress_monitor = ProgressMonitor{static_cast<uint32_t>(request.WaitFlushedMs() + 999) / 1000};
+    }
     auto wait_for_status = [this, &progress_monitor](const proto::milvus::FlushResponse& response) {
         std::map<std::string, std::vector<int64_t>> flush_segments;
         for (const auto& iter : response.coll_segids()) {
@@ -2042,7 +2108,7 @@ MilvusClientV2Impl::RemovePrivilegesFromGroup(const RemovePrivilegesFromGroupReq
 // internal used methods
 Status
 MilvusClientV2Impl::createIndex(const std::string& db_name, const std::string& collection_name, const IndexDesc& desc,
-                                bool sync) {
+                                bool sync, int64_t timeout_ms) {
     auto pre = [&db_name, &collection_name, &desc](proto::milvus::CreateIndexRequest& rpc_request) {
         rpc_request.set_db_name(db_name);
         rpc_request.set_collection_name(collection_name);
@@ -2074,7 +2140,16 @@ MilvusClientV2Impl::createIndex(const std::string& db_name, const std::string& c
             pre, &MilvusConnection::CreateIndex);
     }
 
+    // wait index progress, check index state in interval 500ms, until the time cost exceeds timeout_ms
+    // ProgressMonitor timeout unit is second, it is a history problem.
+    // timeout_ms 0ms is treated as 0 second, which means "forever".
+    // timeout_ms in [1, 1000] is treated as 1 second, request.
+    // timeout_ms in [1001, 2000] is treated as 2 seconds, etc.
+    // Note: wait timeout_ms for each index, means N indexes will wait N * timeout_ms.
     ProgressMonitor progress_monitor = ProgressMonitor::Forever();
+    if (timeout_ms > 0) {
+        progress_monitor = ProgressMonitor{static_cast<uint32_t>(timeout_ms + 999) / 1000};
+    }
     auto wait_for_status = [&db_name, &collection_name, &desc, &progress_monitor, this](const proto::common::Status&) {
         return ConnectionHandler::WaitForStatus(
             [&db_name, &collection_name, &desc, this](Progress& progress) -> Status {
@@ -2140,6 +2215,16 @@ combineDbCollectionName(const std::string& db_name, const std::string& collectio
 Status
 MilvusClientV2Impl::getCollectionDesc(const std::string& db_name, const std::string& collection_name, bool force_update,
                                       CollectionDescPtr& desc_ptr) {
+    // if connection is connected to "", equals "default" db, the input db_name is "", actual_db is "default"
+    // if connection is connected to "default", the input db_name is "" or "default", actual_db is "default"
+    // if connection is connected to "A" but the input db_name is "B", actual_db is "B"
+    // if connection is connected to "A" but the input db_name is "", actual_db is "A"
+    // if connection is connected to "A" but the input db_name is "A", actual_db is "A"
+    auto actual_db = connection_.CurrentDbName(db_name);
+    if (actual_db.empty()) {
+        actual_db = "default";
+    }
+
     // this lock locks the entire section, including the call of DescribeCollection()
     // the reason is: describeCollection() could be limited by server-side(DDL request throttling is enabled)
     // we don't intend to allow too many threads run into describeCollection() in this method
@@ -2153,12 +2238,12 @@ MilvusClientV2Impl::getCollectionDesc(const std::string& db_name, const std::str
     }
 
     DescribeCollectionRequest rquest =
-        DescribeCollectionRequest().WithDatabaseName(db_name).WithCollectionName(collection_name);
+        DescribeCollectionRequest().WithDatabaseName(actual_db).WithCollectionName(collection_name);
     DescribeCollectionResponse response;
     auto status = DescribeCollection(rquest, response);
     if (status.IsOk()) {
         desc_ptr = std::make_shared<CollectionDesc>(response.Desc());
-        auto name = combineDbCollectionName(db_name, collection_name);
+        auto name = combineDbCollectionName(actual_db, collection_name);
         collection_desc_cache_[name] = desc_ptr;
         return status;
     }
@@ -2173,7 +2258,17 @@ MilvusClientV2Impl::cleanCollectionDescCache() {
 
 void
 MilvusClientV2Impl::removeCollectionDesc(const std::string& db_name, const std::string& collection_name) {
-    auto name = combineDbCollectionName(db_name, collection_name);
+    // if connection is connected to "", equals "default" db, the input db_name is "", actual_db is "default"
+    // if connection is connected to "default", the input db_name is "" or "default", actual_db is "default"
+    // if connection is connected to "A" but the input db_name is "B", actual_db is "B"
+    // if connection is connected to "A" but the input db_name is "", actual_db is "A"
+    // if connection is connected to "A" but the input db_name is "A", actual_db is "A"
+    auto actual_db = connection_.CurrentDbName(db_name);
+    if (actual_db.empty()) {
+        actual_db = "default";
+    }
+
+    auto name = combineDbCollectionName(actual_db, collection_name);
     std::lock_guard<std::mutex> lock(collection_desc_cache_mtx_);
     collection_desc_cache_.erase(name);
 }

@@ -114,6 +114,18 @@ class CollectionDesc {
     void
     SetUpdateTime(uint64_t ts);
 
+    /**
+     * @brief Collection properties.
+     */
+    const std::unordered_map<std::string, std::string>&
+    Properties() const;
+
+    /**
+     * @brief Set properties of the collection.
+     */
+    void
+    SetProperties(std::unordered_map<std::string, std::string>&& properties);
+
  private:
     std::string db_name_;
     CollectionSchema schema_;
@@ -121,6 +133,7 @@ class CollectionDesc {
     std::vector<std::string> alias_;
     uint64_t created_utc_timestamp_ = 0;
     uint64_t update_timestamp_ = 0;
+    std::unordered_map<std::string, std::string> properties_;
 };
 
 using CollectionDescPtr = std::shared_ptr<CollectionDesc>;

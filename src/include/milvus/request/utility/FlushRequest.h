@@ -80,17 +80,21 @@ class FlushRequest {
     WaitFlushedMs() const;
 
     /**
-     * @brief Set milliseconds to wait the flush action done.
-     * If the WaitFlushedMs is larger than zero, the Flush() will call GetFlushState() to check related segments state,
-     * to make sure the buffer persisted successfully.
+     * @brief Set milliseconds to wait the flush action done.. Default value is 0.
+     * If the WaitFlushedMs is zero, the Flush() will call GetFlushState() to check related segments state,
+     * until all the segments are flushed to make sure the buffer persisted successfully.
+     * If the WaitFlushedMs is larger than zero, the GetFlushState() will break the loop after a certain of time span
+     * and return a status saying the process is timeout.
      */
     void
     SetWaitFlushedMs(int64_t ms);
 
     /**
-     * @brief Set milliseconds to wait the flush action done.
-     * If the WaitFlushedMs is larger than zero, the Flush() will call GetFlushState() to check related segments state,
-     * to make sure the buffer persisted successfully.
+     * @brief Set milliseconds to wait the flush action done. Default value is 0.
+     * If the WaitFlushedMs is zero, the Flush() will call GetFlushState() to check related segments state,
+     * until all the segments are flushed to make sure the buffer persisted successfully.
+     * If the WaitFlushedMs is larger than zero, the GetFlushState() will break the loop after a certain of time span
+     * and return a status saying the process is timeout.
      */
     FlushRequest&
     WithWaitFlushedMs(int64_t ms);
@@ -98,7 +102,7 @@ class FlushRequest {
  private:
     std::string db_name_;
     std::set<std::string> collection_names_;
-    int64_t wait_flushed_ms_;
+    int64_t wait_flushed_ms_{0};
 };
 
 }  // namespace milvus

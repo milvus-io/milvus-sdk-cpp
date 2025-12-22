@@ -101,6 +101,10 @@ ConnectionHandler::CurrentDbName(const std::string& overwrite_db_name) const {
 Status
 ConnectionHandler::GetLoadingProgress(const std::string& db_name, const std::string& collection_name,
                                       const std::set<std::string> partition_names, uint32_t& progress) {
+    if (connection_ == nullptr) {
+        return {StatusCode::NOT_CONNECTED, "Connection is not created!"};
+    }
+
     proto::milvus::GetLoadingProgressRequest progress_req;
     progress_req.set_db_name(db_name);
     progress_req.set_collection_name(collection_name);
@@ -109,9 +113,7 @@ ConnectionHandler::GetLoadingProgress(const std::string& db_name, const std::str
     }
     proto::milvus::GetLoadingProgressResponse progress_resp;
     uint64_t timeout = GetRpcDeadlineMs();
-    if (connection_ == nullptr) {
-        return {StatusCode::NOT_CONNECTED, "Connection is not created!"};
-    }
+
     auto status = connection_->GetLoadingProgress(progress_req, progress_resp, GrpcOpts{timeout});
     if (!status.IsOk()) {
         return status;

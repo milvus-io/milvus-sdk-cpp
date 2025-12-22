@@ -98,7 +98,7 @@ class LoadPartitionsRequest {
     Sync() const;
 
     /**
-     * @brief Set sync mode.
+     * @brief Set sync mode. Default value is true.
      * True: wait the partitions to be fully loaded.
      * False: return immediately no matter the partitions are fully loaded or not.
      */
@@ -106,7 +106,7 @@ class LoadPartitionsRequest {
     SetSync(bool sync);
 
     /**
-     * @brief Set sync mode.
+     * @brief Set sync mode. Default value is true.
      * True: wait the partitions to be fully loaded.
      * False: return immediately no matter the partitions are fully loaded or not.
      */
@@ -138,13 +138,22 @@ class LoadPartitionsRequest {
     TimeoutMs() const;
 
     /**
-     * @brief Set timeout in milliseconds.
+     * @brief Set timeout in milliseconds. Default value is 60000ms. Only work when Sync() is true.
+     * If the WaitFlushedMs is zero, the LoadPartitions() will call GetLoadingProgress() to loading state,
+     * until the collection is fully loaded into memory.
+     * If the WaitFlushedMs is larger than zero, the LoadPartitions() will break the loop after a certain of time span
+     * and return a status saying the process is timeout.
+     *
      */
     void
     SetTimeoutMs(int64_t timeout_ms);
 
     /**
-     * @brief Set timeout in milliseconds.
+     * @brief Set timeout in milliseconds. Default value is 60000ms. Only work when Sync() is true.
+     * If the WaitFlushedMs is zero, the LoadPartitions() will call GetLoadingProgress() to loading state,
+     * until the collection is fully loaded into memory.
+     * If the WaitFlushedMs is larger than zero, the LoadPartitions() will break the loop after a certain of time span
+     * and return a status saying the process is timeout.
      */
     LoadPartitionsRequest&
     WithTimeoutMs(int64_t timeout_ms);

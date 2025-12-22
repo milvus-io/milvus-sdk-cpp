@@ -297,7 +297,8 @@ class MilvusClientV2Impl : public MilvusClientV2 {
 
  private:
     Status
-    createIndex(const std::string& db_name, const std::string& collection_name, const IndexDesc& desc, bool sync);
+    createIndex(const std::string& db_name, const std::string& collection_name, const IndexDesc& desc, bool sync,
+                int64_t timeout_ms);
 
     Status
     getFlushState(const std::vector<int64_t>& segments, bool& flushed);
