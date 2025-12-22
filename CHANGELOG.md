@@ -1,5 +1,49 @@
 # Changelog
 
+## milvus-sdk-cpp 2.6.0 (2025-12-22)
+### Feature
+- Support Int8Vector field
+- Support Struct field
+- Support Geometry field
+- Support Timestamptz field
+- Support index types: HNSW_SQ/HNSW_PQ/HNSW_PRQ/IVF_RABITQ/MINHASH_LSH/NGRAM
+- Support metric types: MHJACCARD/MAX_SIM_COSINE/MAX_SIM_IP/MAX_SIM_L2/MAX_SIM_JACCARD/MAX_SIM_HAMMING
+- Support AddCollectionField()
+- Support CreateCollection with indexes
+- Support Rerank for SearchRequest
+
+### Improvement
+- Replace AddXXXVector(fieldName, vector) of SearchRequest/SubSearchRequest with WithFieldName() + AddXXXVector(vector)
+- LoadCollection/LoadPartitions with timeout setting, for waiting loading progress
+- CreateIndex with timeout setting, for waiting index progress
+- Flush with timeout setting, for waiting flush action complete
+- DescribeCollection outputs properties
+- GetLoadState returns loading progress percent
+- Change default value of enable_dynamic_schema from false to true
+
+## Bug
+- Fix a bug that DescribeIndex() always returns all indexes no matter field_name is specified or not
+
+## milvus-sdk-cpp 2.5.3 (2025-12-22)
+### Feature
+- Support CreateCollection with indexes
+
+### Improvement
+- Replace AddXXXVector(fieldName, vector) of SearchRequest/SubSearchRequest with WithFieldName() + AddXXXVector(vector)
+- LoadCollection/LoadPartitions with timeout setting, for waiting loading progress
+- CreateIndex with timeout setting, for waiting index progress
+- Flush with timeout setting, for waiting flush action complete
+- DescribeCollection outputs properties
+- GetLoadState returns loading progress percent
+- Change default value of enable_dynamic_schema from false to true
+
+## Bug
+- Fix a bug that DescribeIndex() always returns all indexes no matter field_name is specified or not
+
+## milvus-sdk-cpp 2.5.2 (2025-12-04)
+### Feature
+- Introduce MilvusClientV2 for clean/expanable interfaces
+
 ## milvus-sdk-cpp 2.5.1 (2025-11-21)
 ### Feature
 - Support RunAnalyzer()
