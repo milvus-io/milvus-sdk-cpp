@@ -1,0 +1,92 @@
+\hypertarget{classmilvus_1_1_run_analyzer_arguments}{}\doxysection{milvus\+::Run\+Analyzer\+Arguments Class Reference}
+\label{classmilvus_1_1_run_analyzer_arguments}\index{milvus::RunAnalyzerArguments@{milvus::RunAnalyzerArguments}}
+
+
+Arguments for \mbox{\hyperlink{classmilvus_1_1_milvus_client_a6fc4ad8b8b0acfcf1302495779dc54c4}{Milvus\+Client\+::\+Run\+Analyzer()}}.  
+
+
+
+
+{\ttfamily \#include $<$Run\+Analyzer\+Arguments.\+h$>$}
+
+\doxysubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{classmilvus_1_1_run_analyzer_arguments_af813ab2e4363b4f78f295302ab8dd7ef}\label{classmilvus_1_1_run_analyzer_arguments_af813ab2e4363b4f78f295302ab8dd7ef}} 
+const std\+::string \& \mbox{\hyperlink{classmilvus_1_1_run_analyzer_arguments_af813ab2e4363b4f78f295302ab8dd7ef}{Database\+Name}} () const
+\begin{DoxyCompactList}\small\item\em Get the target db name. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_run_analyzer_arguments_a464eaccf289b46ef78a7ba80bdf4d301}\label{classmilvus_1_1_run_analyzer_arguments_a464eaccf289b46ef78a7ba80bdf4d301}} 
+\mbox{\hyperlink{classmilvus_1_1_status}{Status}} \mbox{\hyperlink{classmilvus_1_1_run_analyzer_arguments_a464eaccf289b46ef78a7ba80bdf4d301}{Set\+Database\+Name}} (const std\+::string \&db\+\_\+name)
+\begin{DoxyCompactList}\small\item\em Set target db name, default is empty, means use the db name of \mbox{\hyperlink{classmilvus_1_1_milvus_client}{Milvus\+Client}}. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_run_analyzer_arguments_a4640dd6af6d14db51f2e8e8492a5dae4}\label{classmilvus_1_1_run_analyzer_arguments_a4640dd6af6d14db51f2e8e8492a5dae4}} 
+\mbox{\hyperlink{classmilvus_1_1_run_analyzer_arguments}{Run\+Analyzer\+Arguments}} \& \mbox{\hyperlink{classmilvus_1_1_run_analyzer_arguments_a4640dd6af6d14db51f2e8e8492a5dae4}{With\+Database\+Name}} (const std\+::string \&db\+\_\+name)
+\begin{DoxyCompactList}\small\item\em Set target db name, default is empty, means use the db name of \mbox{\hyperlink{classmilvus_1_1_milvus_client}{Milvus\+Client}}. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_run_analyzer_arguments_a04cbc12b272235409385d5efcf9c6877}\label{classmilvus_1_1_run_analyzer_arguments_a04cbc12b272235409385d5efcf9c6877}} 
+const std\+::string \& \mbox{\hyperlink{classmilvus_1_1_run_analyzer_arguments_a04cbc12b272235409385d5efcf9c6877}{Collection\+Name}} () const
+\begin{DoxyCompactList}\small\item\em Get name of the target collection. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_run_analyzer_arguments_ad612005cab0511afe0bf63d0676aacaf}\label{classmilvus_1_1_run_analyzer_arguments_ad612005cab0511afe0bf63d0676aacaf}} 
+\mbox{\hyperlink{classmilvus_1_1_status}{Status}} \mbox{\hyperlink{classmilvus_1_1_run_analyzer_arguments_ad612005cab0511afe0bf63d0676aacaf}{Set\+Collection\+Name}} (std\+::string collection\+\_\+name)
+\begin{DoxyCompactList}\small\item\em Set name of this collection, cannot be empty. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_run_analyzer_arguments_a0ebd521ba03111932677162c73bbdf46}\label{classmilvus_1_1_run_analyzer_arguments_a0ebd521ba03111932677162c73bbdf46}} 
+\mbox{\hyperlink{classmilvus_1_1_run_analyzer_arguments}{Run\+Analyzer\+Arguments}} \& \mbox{\hyperlink{classmilvus_1_1_run_analyzer_arguments_a0ebd521ba03111932677162c73bbdf46}{With\+Collection\+Name}} (std\+::string collection\+\_\+name)
+\begin{DoxyCompactList}\small\item\em Set name of this collection, cannot be empty. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_run_analyzer_arguments_adf8a00b335f81687c2f5bf3b33589a80}\label{classmilvus_1_1_run_analyzer_arguments_adf8a00b335f81687c2f5bf3b33589a80}} 
+const std\+::string \& \mbox{\hyperlink{classmilvus_1_1_run_analyzer_arguments_adf8a00b335f81687c2f5bf3b33589a80}{Field\+Name}} () const
+\begin{DoxyCompactList}\small\item\em Get name of the target field. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_run_analyzer_arguments_abc5ef4933ada60195b9dc700c2153b3c}\label{classmilvus_1_1_run_analyzer_arguments_abc5ef4933ada60195b9dc700c2153b3c}} 
+\mbox{\hyperlink{classmilvus_1_1_status}{Status}} \mbox{\hyperlink{classmilvus_1_1_run_analyzer_arguments_abc5ef4933ada60195b9dc700c2153b3c}{Set\+Field\+Name}} (std\+::string field\+\_\+name)
+\begin{DoxyCompactList}\small\item\em Set name of the target field, cannot be empty. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_run_analyzer_arguments_af13c0a69db7d65bf536af2e020ee97cc}\label{classmilvus_1_1_run_analyzer_arguments_af13c0a69db7d65bf536af2e020ee97cc}} 
+\mbox{\hyperlink{classmilvus_1_1_run_analyzer_arguments}{Run\+Analyzer\+Arguments}} \& \mbox{\hyperlink{classmilvus_1_1_run_analyzer_arguments_af13c0a69db7d65bf536af2e020ee97cc}{With\+Field\+Name}} (std\+::string field\+\_\+name)
+\begin{DoxyCompactList}\small\item\em Set name of the target field, cannot be empty. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_run_analyzer_arguments_a3c5dd48d82fad4cc2dcb4b4ecd69e035}\label{classmilvus_1_1_run_analyzer_arguments_a3c5dd48d82fad4cc2dcb4b4ecd69e035}} 
+const std\+::vector$<$ std\+::string $>$ \& \mbox{\hyperlink{classmilvus_1_1_run_analyzer_arguments_a3c5dd48d82fad4cc2dcb4b4ecd69e035}{Texts}} () const
+\begin{DoxyCompactList}\small\item\em Get texts to be analyzed. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_run_analyzer_arguments_ad6c246813fa4b7fa22c2364a4f9282fd}\label{classmilvus_1_1_run_analyzer_arguments_ad6c246813fa4b7fa22c2364a4f9282fd}} 
+\mbox{\hyperlink{classmilvus_1_1_status}{Status}} \mbox{\hyperlink{classmilvus_1_1_run_analyzer_arguments_ad6c246813fa4b7fa22c2364a4f9282fd}{Set\+Texts}} (const std\+::vector$<$ std\+::string $>$ \&texts)
+\begin{DoxyCompactList}\small\item\em Set texts to be analyzed. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_run_analyzer_arguments_a825905527afeeef64da6500bf35fc951}\label{classmilvus_1_1_run_analyzer_arguments_a825905527afeeef64da6500bf35fc951}} 
+\mbox{\hyperlink{classmilvus_1_1_run_analyzer_arguments}{Run\+Analyzer\+Arguments}} \& \mbox{\hyperlink{classmilvus_1_1_run_analyzer_arguments_a825905527afeeef64da6500bf35fc951}{With\+Texts}} (const std\+::vector$<$ std\+::string $>$ \&texts)
+\begin{DoxyCompactList}\small\item\em Set texts to be analyzed. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_run_analyzer_arguments_a97a2b0a877e0c82734256d18ea3343ae}\label{classmilvus_1_1_run_analyzer_arguments_a97a2b0a877e0c82734256d18ea3343ae}} 
+\mbox{\hyperlink{classmilvus_1_1_run_analyzer_arguments}{Run\+Analyzer\+Arguments}} \& \mbox{\hyperlink{classmilvus_1_1_run_analyzer_arguments_a97a2b0a877e0c82734256d18ea3343ae}{Add\+Text}} (std\+::string text)
+\begin{DoxyCompactList}\small\item\em Add text for analyze. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_run_analyzer_arguments_a1fe6727cf9ec5f70f3b08351aacd56e5}\label{classmilvus_1_1_run_analyzer_arguments_a1fe6727cf9ec5f70f3b08351aacd56e5}} 
+const std\+::vector$<$ std\+::string $>$ \& \mbox{\hyperlink{classmilvus_1_1_run_analyzer_arguments_a1fe6727cf9ec5f70f3b08351aacd56e5}{Analyzer\+Names}} () const
+\begin{DoxyCompactList}\small\item\em Get analyzer names. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_run_analyzer_arguments_a9c936862a751ee7325b5c79e7a33ccd1}\label{classmilvus_1_1_run_analyzer_arguments_a9c936862a751ee7325b5c79e7a33ccd1}} 
+\mbox{\hyperlink{classmilvus_1_1_status}{Status}} \mbox{\hyperlink{classmilvus_1_1_run_analyzer_arguments_a9c936862a751ee7325b5c79e7a33ccd1}{Set\+Analyzer\+Names}} (const std\+::vector$<$ std\+::string $>$ \&names)
+\begin{DoxyCompactList}\small\item\em Set analyzer names. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_run_analyzer_arguments_ad2ee46aadab564018731645ec021654e}\label{classmilvus_1_1_run_analyzer_arguments_ad2ee46aadab564018731645ec021654e}} 
+\mbox{\hyperlink{classmilvus_1_1_run_analyzer_arguments}{Run\+Analyzer\+Arguments}} \& \mbox{\hyperlink{classmilvus_1_1_run_analyzer_arguments_ad2ee46aadab564018731645ec021654e}{Add\+Analyzer\+Name}} (std\+::string name)
+\begin{DoxyCompactList}\small\item\em Specify an analyzer. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_run_analyzer_arguments_a12e968c31f4e049c02f6c5814c44da29}\label{classmilvus_1_1_run_analyzer_arguments_a12e968c31f4e049c02f6c5814c44da29}} 
+const nlohmann\+::json \& \mbox{\hyperlink{classmilvus_1_1_run_analyzer_arguments_a12e968c31f4e049c02f6c5814c44da29}{Analyzer\+Params}} () const
+\begin{DoxyCompactList}\small\item\em Get analyzer parameters. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_run_analyzer_arguments_ae0ddae3b583a5a2e93ee2144bd1022c3}\label{classmilvus_1_1_run_analyzer_arguments_ae0ddae3b583a5a2e93ee2144bd1022c3}} 
+\mbox{\hyperlink{classmilvus_1_1_status}{Status}} \mbox{\hyperlink{classmilvus_1_1_run_analyzer_arguments_ae0ddae3b583a5a2e93ee2144bd1022c3}{Set\+Analyzer\+Params}} (const nlohmann\+::json \&params)
+\begin{DoxyCompactList}\small\item\em Set analyzer parameters. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_run_analyzer_arguments_a9ea519d237915c3af4211dc3cc55f3f5}\label{classmilvus_1_1_run_analyzer_arguments_a9ea519d237915c3af4211dc3cc55f3f5}} 
+\mbox{\hyperlink{classmilvus_1_1_run_analyzer_arguments}{Run\+Analyzer\+Arguments}} \& \mbox{\hyperlink{classmilvus_1_1_run_analyzer_arguments_a9ea519d237915c3af4211dc3cc55f3f5}{With\+Analyzer\+Params}} (const nlohmann\+::json \&params)
+\begin{DoxyCompactList}\small\item\em Set analyzer parameters. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_run_analyzer_arguments_abed9e3faadee19c2110fd31780615473}\label{classmilvus_1_1_run_analyzer_arguments_abed9e3faadee19c2110fd31780615473}} 
+bool \mbox{\hyperlink{classmilvus_1_1_run_analyzer_arguments_abed9e3faadee19c2110fd31780615473}{Is\+With\+Detail}} () const
+\begin{DoxyCompactList}\small\item\em Return details or not. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_run_analyzer_arguments_a5495416c3e9cbe8f62a1a3774c8dbc81}\label{classmilvus_1_1_run_analyzer_arguments_a5495416c3e9cbe8f62a1a3774c8dbc81}} 
+\mbox{\hyperlink{classmilvus_1_1_run_analyzer_arguments}{Run\+Analyzer\+Arguments}} \& \mbox{\hyperlink{classmilvus_1_1_run_analyzer_arguments_a5495416c3e9cbe8f62a1a3774c8dbc81}{With\+Detail}} (bool with\+\_\+detail)
+\begin{DoxyCompactList}\small\item\em Include details in the results. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_run_analyzer_arguments_ad4434395bea3d98608c2e96f78328d16}\label{classmilvus_1_1_run_analyzer_arguments_ad4434395bea3d98608c2e96f78328d16}} 
+bool \mbox{\hyperlink{classmilvus_1_1_run_analyzer_arguments_ad4434395bea3d98608c2e96f78328d16}{Is\+With\+Hash}} () const
+\begin{DoxyCompactList}\small\item\em Return hash values or not. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_run_analyzer_arguments_a5f69f7e8162b7acbdecb644dbbe048d4}\label{classmilvus_1_1_run_analyzer_arguments_a5f69f7e8162b7acbdecb644dbbe048d4}} 
+\mbox{\hyperlink{classmilvus_1_1_run_analyzer_arguments}{Run\+Analyzer\+Arguments}} \& \mbox{\hyperlink{classmilvus_1_1_run_analyzer_arguments_a5f69f7e8162b7acbdecb644dbbe048d4}{With\+Hash}} (bool with\+\_\+hash)
+\begin{DoxyCompactList}\small\item\em Include hash values in the results. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+Arguments for \mbox{\hyperlink{classmilvus_1_1_milvus_client_a6fc4ad8b8b0acfcf1302495779dc54c4}{Milvus\+Client\+::\+Run\+Analyzer()}}. 
+
+The documentation for this class was generated from the following files\+:\begin{DoxyCompactItemize}
+\item 
+src/include/milvus/types/Run\+Analyzer\+Arguments.\+h\item 
+src/impl/types/Run\+Analyzer\+Arguments.\+cpp\end{DoxyCompactItemize}

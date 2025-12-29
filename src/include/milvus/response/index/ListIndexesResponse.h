@@ -30,10 +30,15 @@ class ListIndexesResponse : public DescribeIndexResponse {
      */
     ListIndexesResponse() = default;
 
-    // Getter and Setter for index_names_
+    /**
+     * @brief Get index names.
+     */
     const std::vector<std::string>&
     IndexNames() const;
 
+    /**
+     * @brief Set index names.
+     */
     void
     SetIndexNames(std::vector<std::string>&& names);
 

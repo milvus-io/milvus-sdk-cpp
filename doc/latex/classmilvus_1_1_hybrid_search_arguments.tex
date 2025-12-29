@@ -1,0 +1,116 @@
+\hypertarget{classmilvus_1_1_hybrid_search_arguments}{}\doxysection{milvus\+::Hybrid\+Search\+Arguments Class Reference}
+\label{classmilvus_1_1_hybrid_search_arguments}\index{milvus::HybridSearchArguments@{milvus::HybridSearchArguments}}
+
+
+Arguments for \mbox{\hyperlink{classmilvus_1_1_milvus_client_ae9d21a873b892ff0e7a13ea522e32ce9}{Milvus\+Client\+::\+Hybrid\+Search()}}.  
+
+
+
+
+{\ttfamily \#include $<$Hybrid\+Search\+Arguments.\+h$>$}
+
+\doxysubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{classmilvus_1_1_hybrid_search_arguments_ae4d428f86b9a9a9b597eac73cd6f888d}\label{classmilvus_1_1_hybrid_search_arguments_ae4d428f86b9a9a9b597eac73cd6f888d}} 
+const std\+::string \& \mbox{\hyperlink{classmilvus_1_1_hybrid_search_arguments_ae4d428f86b9a9a9b597eac73cd6f888d}{Database\+Name}} () const
+\begin{DoxyCompactList}\small\item\em Get the target db name. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_hybrid_search_arguments_a030a132422597731b51ea3fa57c90eac}\label{classmilvus_1_1_hybrid_search_arguments_a030a132422597731b51ea3fa57c90eac}} 
+\mbox{\hyperlink{classmilvus_1_1_status}{Status}} \mbox{\hyperlink{classmilvus_1_1_hybrid_search_arguments_a030a132422597731b51ea3fa57c90eac}{Set\+Database\+Name}} (const std\+::string \&db\+\_\+name)
+\begin{DoxyCompactList}\small\item\em Set target db name, default is empty, means use the db name of \mbox{\hyperlink{classmilvus_1_1_milvus_client}{Milvus\+Client}}. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_hybrid_search_arguments_a3db5c0de349da7c3b26598a7396a0273}\label{classmilvus_1_1_hybrid_search_arguments_a3db5c0de349da7c3b26598a7396a0273}} 
+const std\+::string \& \mbox{\hyperlink{classmilvus_1_1_hybrid_search_arguments_a3db5c0de349da7c3b26598a7396a0273}{Collection\+Name}} () const
+\begin{DoxyCompactList}\small\item\em Get name of the target collection. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_hybrid_search_arguments_a58ce207df16f5d2e0eb1c9e6681f8a10}\label{classmilvus_1_1_hybrid_search_arguments_a58ce207df16f5d2e0eb1c9e6681f8a10}} 
+\mbox{\hyperlink{classmilvus_1_1_status}{Status}} \mbox{\hyperlink{classmilvus_1_1_hybrid_search_arguments_a58ce207df16f5d2e0eb1c9e6681f8a10}{Set\+Collection\+Name}} (std\+::string collection\+\_\+name)
+\begin{DoxyCompactList}\small\item\em Set name of this collection, cannot be empty. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_hybrid_search_arguments_a0785c6faae7538f87cbaa60263938708}\label{classmilvus_1_1_hybrid_search_arguments_a0785c6faae7538f87cbaa60263938708}} 
+const std\+::set$<$ std\+::string $>$ \& \mbox{\hyperlink{classmilvus_1_1_hybrid_search_arguments_a0785c6faae7538f87cbaa60263938708}{Partition\+Names}} () const
+\begin{DoxyCompactList}\small\item\em Get partition names. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_hybrid_search_arguments_a842f6235a51ee743985863325919f30b}\label{classmilvus_1_1_hybrid_search_arguments_a842f6235a51ee743985863325919f30b}} 
+\mbox{\hyperlink{classmilvus_1_1_status}{Status}} \mbox{\hyperlink{classmilvus_1_1_hybrid_search_arguments_a842f6235a51ee743985863325919f30b}{Add\+Partition\+Name}} (std\+::string partition\+\_\+name)
+\begin{DoxyCompactList}\small\item\em Specify partition name to control search scope, the name cannot be empty. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_hybrid_search_arguments_a0769bb361c27c50588233e724a276ad2}\label{classmilvus_1_1_hybrid_search_arguments_a0769bb361c27c50588233e724a276ad2}} 
+const std\+::set$<$ std\+::string $>$ \& \mbox{\hyperlink{classmilvus_1_1_hybrid_search_arguments_a0769bb361c27c50588233e724a276ad2}{Output\+Fields}} () const
+\begin{DoxyCompactList}\small\item\em Get output field names. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_hybrid_search_arguments_aa19d22e010de1b48a4afca192055d2f4}\label{classmilvus_1_1_hybrid_search_arguments_aa19d22e010de1b48a4afca192055d2f4}} 
+\mbox{\hyperlink{classmilvus_1_1_status}{Status}} \mbox{\hyperlink{classmilvus_1_1_hybrid_search_arguments_aa19d22e010de1b48a4afca192055d2f4}{Add\+Output\+Field}} (std\+::string field\+\_\+name)
+\begin{DoxyCompactList}\small\item\em Specify output field names to return field data, the name cannot be empty. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_hybrid_search_arguments_af5fc495fe590b380eab77fbd77bc5ba7}\label{classmilvus_1_1_hybrid_search_arguments_af5fc495fe590b380eab77fbd77bc5ba7}} 
+int64\+\_\+t \mbox{\hyperlink{classmilvus_1_1_hybrid_search_arguments_af5fc495fe590b380eab77fbd77bc5ba7}{Limit}} () const
+\begin{DoxyCompactList}\small\item\em Get search limit(topk). \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_hybrid_search_arguments_a6632ab9dc7853d892c012cd95dc2f016}\label{classmilvus_1_1_hybrid_search_arguments_a6632ab9dc7853d892c012cd95dc2f016}} 
+\mbox{\hyperlink{classmilvus_1_1_status}{Status}} \mbox{\hyperlink{classmilvus_1_1_hybrid_search_arguments_a6632ab9dc7853d892c012cd95dc2f016}{Set\+Limit}} (int64\+\_\+t limit)
+\begin{DoxyCompactList}\small\item\em Set search limit(topk). Note\+: this value is stored in the Extra\+Params. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_hybrid_search_arguments_a741eac46e768fbcdd58e1860bb7d4111}\label{classmilvus_1_1_hybrid_search_arguments_a741eac46e768fbcdd58e1860bb7d4111}} 
+int64\+\_\+t \mbox{\hyperlink{classmilvus_1_1_hybrid_search_arguments_a741eac46e768fbcdd58e1860bb7d4111}{Offset}} () const
+\begin{DoxyCompactList}\small\item\em Get offset value. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_hybrid_search_arguments_aeeb5c8a13b5a7e80cea88413087855d0}\label{classmilvus_1_1_hybrid_search_arguments_aeeb5c8a13b5a7e80cea88413087855d0}} 
+\mbox{\hyperlink{classmilvus_1_1_status}{Status}} \mbox{\hyperlink{classmilvus_1_1_hybrid_search_arguments_aeeb5c8a13b5a7e80cea88413087855d0}{Set\+Offset}} (int64\+\_\+t offset)
+\begin{DoxyCompactList}\small\item\em Set offset value. Note\+: this value is stored in the Extra\+Params. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_hybrid_search_arguments_a36477d9264d24f3c7ec86dc07193a174}\label{classmilvus_1_1_hybrid_search_arguments_a36477d9264d24f3c7ec86dc07193a174}} 
+int \mbox{\hyperlink{classmilvus_1_1_hybrid_search_arguments_a36477d9264d24f3c7ec86dc07193a174}{Round\+Decimal}} () const
+\begin{DoxyCompactList}\small\item\em Get the decimal place of the returned results. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_hybrid_search_arguments_af43f3e71064dd805c0aa4106d68a194d}\label{classmilvus_1_1_hybrid_search_arguments_af43f3e71064dd805c0aa4106d68a194d}} 
+\mbox{\hyperlink{classmilvus_1_1_status}{Status}} \mbox{\hyperlink{classmilvus_1_1_hybrid_search_arguments_af43f3e71064dd805c0aa4106d68a194d}{Set\+Round\+Decimal}} (int round\+\_\+decimal)
+\begin{DoxyCompactList}\small\item\em Specifies the decimal place of the returned results. Note\+: this value is stored in the Extra\+Params. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_hybrid_search_arguments_afd5a716950475753cfcdf8576f7f9a15}\label{classmilvus_1_1_hybrid_search_arguments_afd5a716950475753cfcdf8576f7f9a15}} 
+\mbox{\hyperlink{namespacemilvus_a26e8c5ec421df0853e145d04d0fbb414}{Consistency\+Level}} \mbox{\hyperlink{classmilvus_1_1_hybrid_search_arguments_afd5a716950475753cfcdf8576f7f9a15}{Get\+Consistency\+Level}} () const
+\begin{DoxyCompactList}\small\item\em Get consistency level. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_hybrid_search_arguments_ada59b348e7ff926e46369893e5b4b50a}\label{classmilvus_1_1_hybrid_search_arguments_ada59b348e7ff926e46369893e5b4b50a}} 
+\mbox{\hyperlink{classmilvus_1_1_status}{Status}} \mbox{\hyperlink{classmilvus_1_1_hybrid_search_arguments_ada59b348e7ff926e46369893e5b4b50a}{Set\+Consistency\+Level}} (const \mbox{\hyperlink{namespacemilvus_a26e8c5ec421df0853e145d04d0fbb414}{Consistency\+Level}} \&level)
+\begin{DoxyCompactList}\small\item\em Set consistency level. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_hybrid_search_arguments_a227a6670433d7ab66221ecf44809f905}\label{classmilvus_1_1_hybrid_search_arguments_a227a6670433d7ab66221ecf44809f905}} 
+bool \mbox{\hyperlink{classmilvus_1_1_hybrid_search_arguments_a227a6670433d7ab66221ecf44809f905}{Ignore\+Growing}} () const
+\begin{DoxyCompactList}\small\item\em Get ignore growing segments. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_hybrid_search_arguments_a68ab1d1017758ee7f35811f8d61ae704}\label{classmilvus_1_1_hybrid_search_arguments_a68ab1d1017758ee7f35811f8d61ae704}} 
+\mbox{\hyperlink{classmilvus_1_1_status}{Status}} \mbox{\hyperlink{classmilvus_1_1_hybrid_search_arguments_a68ab1d1017758ee7f35811f8d61ae704}{Set\+Ignore\+Growing}} (bool ignore\+\_\+growing)
+\begin{DoxyCompactList}\small\item\em Set ignore growing segments. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_hybrid_search_arguments_a2e0b13ca68e914423109e19bab5cb50e}\label{classmilvus_1_1_hybrid_search_arguments_a2e0b13ca68e914423109e19bab5cb50e}} 
+const std\+::vector$<$ Sub\+Search\+Request\+Ptr $>$ \& \mbox{\hyperlink{classmilvus_1_1_hybrid_search_arguments_a2e0b13ca68e914423109e19bab5cb50e}{Sub\+Requests}} () const
+\begin{DoxyCompactList}\small\item\em Get sub search requests. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_hybrid_search_arguments_a8fadee7a13d0619ce59f3d696adfe5ec}\label{classmilvus_1_1_hybrid_search_arguments_a8fadee7a13d0619ce59f3d696adfe5ec}} 
+\mbox{\hyperlink{classmilvus_1_1_status}{Status}} \mbox{\hyperlink{classmilvus_1_1_hybrid_search_arguments_a8fadee7a13d0619ce59f3d696adfe5ec}{Add\+Sub\+Request}} (const Sub\+Search\+Request\+Ptr \&request)
+\begin{DoxyCompactList}\small\item\em Add sub search request. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_hybrid_search_arguments_a3a24bbf7fa8ed244e0fda6599ba84c94}\label{classmilvus_1_1_hybrid_search_arguments_a3a24bbf7fa8ed244e0fda6599ba84c94}} 
+Function\+Ptr \mbox{\hyperlink{classmilvus_1_1_hybrid_search_arguments_a3a24bbf7fa8ed244e0fda6599ba84c94}{Rerank}} () const
+\begin{DoxyCompactList}\small\item\em Get rerank. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_hybrid_search_arguments_adc188d2a29b24e716ed707d7e1a3bf58}\label{classmilvus_1_1_hybrid_search_arguments_adc188d2a29b24e716ed707d7e1a3bf58}} 
+\mbox{\hyperlink{classmilvus_1_1_status}{Status}} \mbox{\hyperlink{classmilvus_1_1_hybrid_search_arguments_adc188d2a29b24e716ed707d7e1a3bf58}{Set\+Rerank}} (const Function\+Ptr \&rerank)
+\begin{DoxyCompactList}\small\item\em Set rerank, only accept RERANK function type. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_hybrid_search_arguments_af56cbf73569f7a0e540d686530b23074}\label{classmilvus_1_1_hybrid_search_arguments_af56cbf73569f7a0e540d686530b23074}} 
+std\+::string \mbox{\hyperlink{classmilvus_1_1_hybrid_search_arguments_af56cbf73569f7a0e540d686530b23074}{Group\+By\+Field}} () const
+\begin{DoxyCompactList}\small\item\em Get group by field name. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_hybrid_search_arguments_a6fc2d779e401b0a72fea550168145367}\label{classmilvus_1_1_hybrid_search_arguments_a6fc2d779e401b0a72fea550168145367}} 
+\mbox{\hyperlink{classmilvus_1_1_status}{Status}} \mbox{\hyperlink{classmilvus_1_1_hybrid_search_arguments_a6fc2d779e401b0a72fea550168145367}{Set\+Group\+By\+Field}} (const std\+::string \&field\+\_\+name)
+\begin{DoxyCompactList}\small\item\em Set group by field name. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_hybrid_search_arguments_a0e0684915b7fcecbaa746f5f9aef85fd}\label{classmilvus_1_1_hybrid_search_arguments_a0e0684915b7fcecbaa746f5f9aef85fd}} 
+uint64\+\_\+t \mbox{\hyperlink{classmilvus_1_1_hybrid_search_arguments_a0e0684915b7fcecbaa746f5f9aef85fd}{Group\+Size}} () const
+\begin{DoxyCompactList}\small\item\em Get size of group by. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_hybrid_search_arguments_a982971b52d023f7cf4e9ccd2b87e1b52}\label{classmilvus_1_1_hybrid_search_arguments_a982971b52d023f7cf4e9ccd2b87e1b52}} 
+\mbox{\hyperlink{classmilvus_1_1_status}{Status}} \mbox{\hyperlink{classmilvus_1_1_hybrid_search_arguments_a982971b52d023f7cf4e9ccd2b87e1b52}{Set\+Group\+Size}} (uint64\+\_\+t group\+\_\+size)
+\begin{DoxyCompactList}\small\item\em Set size of group by. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_hybrid_search_arguments_ad2eb611833afd2ef2900aed0349d1be4}\label{classmilvus_1_1_hybrid_search_arguments_ad2eb611833afd2ef2900aed0349d1be4}} 
+bool \mbox{\hyperlink{classmilvus_1_1_hybrid_search_arguments_ad2eb611833afd2ef2900aed0349d1be4}{Strict\+Group\+Size}} () const
+\begin{DoxyCompactList}\small\item\em Get the flag whether to strict group size. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_hybrid_search_arguments_af992408c4dec444ab70c933678637340}\label{classmilvus_1_1_hybrid_search_arguments_af992408c4dec444ab70c933678637340}} 
+\mbox{\hyperlink{classmilvus_1_1_status}{Status}} \mbox{\hyperlink{classmilvus_1_1_hybrid_search_arguments_af992408c4dec444ab70c933678637340}{Set\+Strict\+Group\+Size}} (bool strict\+\_\+group\+\_\+size)
+\begin{DoxyCompactList}\small\item\em Set the flag whether to strict group size. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_hybrid_search_arguments_ab8fdb3dbef78a646cb2a14ba532cac5b}\label{classmilvus_1_1_hybrid_search_arguments_ab8fdb3dbef78a646cb2a14ba532cac5b}} 
+\mbox{\hyperlink{classmilvus_1_1_status}{Status}} \mbox{\hyperlink{classmilvus_1_1_hybrid_search_arguments_ab8fdb3dbef78a646cb2a14ba532cac5b}{Add\+Extra\+Param}} (const std\+::string \&key, const std\+::string \&value)
+\begin{DoxyCompactList}\small\item\em Add extra param. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_hybrid_search_arguments_afcb6db0eb3277755d66708620cd2eddf}\label{classmilvus_1_1_hybrid_search_arguments_afcb6db0eb3277755d66708620cd2eddf}} 
+const std\+::unordered\+\_\+map$<$ std\+::string, std\+::string $>$ \& \mbox{\hyperlink{classmilvus_1_1_hybrid_search_arguments_afcb6db0eb3277755d66708620cd2eddf}{Extra\+Params}} () const
+\begin{DoxyCompactList}\small\item\em Get extra param. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_hybrid_search_arguments_ad18907ef565412be3a0a303e933dc509}\label{classmilvus_1_1_hybrid_search_arguments_ad18907ef565412be3a0a303e933dc509}} 
+\mbox{\hyperlink{classmilvus_1_1_status}{Status}} \mbox{\hyperlink{classmilvus_1_1_hybrid_search_arguments_ad18907ef565412be3a0a303e933dc509}{Validate}} () const
+\begin{DoxyCompactList}\small\item\em Validate for search arguments. \mbox{\hyperlink{classmilvus_1_1_milvus_client}{Milvus\+Client}} calls this method internally, users no need to mamually call it. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+Arguments for \mbox{\hyperlink{classmilvus_1_1_milvus_client_ae9d21a873b892ff0e7a13ea522e32ce9}{Milvus\+Client\+::\+Hybrid\+Search()}}. 
+
+The documentation for this class was generated from the following files\+:\begin{DoxyCompactItemize}
+\item 
+src/include/milvus/types/Hybrid\+Search\+Arguments.\+h\item 
+src/impl/types/Hybrid\+Search\+Arguments.\+cpp\end{DoxyCompactItemize}

@@ -32,10 +32,15 @@ class DescribeIndexResponse {
      */
     DescribeIndexResponse() = default;
 
-    // Getter and Setter for descs_
+    /**
+     * @brief Get index description.
+     */
     const std::vector<IndexDesc>&
     Descs() const;
 
+    /**
+     * @brief Set index description.
+     */
     void
     SetDescs(std::vector<IndexDesc>&& descs);
 

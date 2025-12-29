@@ -30,10 +30,15 @@ class DescribeDatabaseResponse {
      */
     DescribeDatabaseResponse() = default;
 
-    // Getter and Setter for desc_
+    /**
+     * @brief Get database descriptions.
+     */
     const DatabaseDesc&
     Desc() const;
 
+    /**
+     * @brief Set  database descriptions.
+     */
     void
     SetDesc(DatabaseDesc&& desc);
 

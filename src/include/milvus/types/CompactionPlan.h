@@ -27,8 +27,7 @@ namespace milvus {
 class CompactionPlan {
  public:
     /**
-     * @brief Construct a new Compaction Plan object
-     *
+     * @brief Construct a new Compaction Plan object.
      */
     CompactionPlan();
 

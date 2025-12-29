@@ -89,8 +89,8 @@ class SearchArguments : public SearchRequestBase {
     Offset() const;
 
     /**
-     * @brief Set offset value. \n
-     * Note: this value is stored in the ExtraParams
+     * @brief Set offset value.
+     * Note: this value is stored in the ExtraParams.
      */
     Status
     SetOffset(int64_t offset);
@@ -102,8 +102,8 @@ class SearchArguments : public SearchRequestBase {
     RoundDecimal() const;
 
     /**
-     * @brief Specifies the decimal place of the returned results. \n
-     * Note: this value is stored in the ExtraParams
+     * @brief Specifies the decimal place of the returned results.
+     * Note: this value is stored in the ExtraParams.
      */
     Status
     SetRoundDecimal(int round_decimal);
@@ -128,7 +128,7 @@ class SearchArguments : public SearchRequestBase {
 
     /**
      * @brief Set ignore growing segments.
-     * Note: this value is stored in the ExtraParams
+     * Note: this value is stored in the ExtraParams.
      */
     Status
     SetIgnoreGrowing(bool ignore_growing);
@@ -141,7 +141,7 @@ class SearchArguments : public SearchRequestBase {
 
     /**
      * @brief Set group by field name.
-     * Note: this value is stored in the ExtraParams
+     * Note: this value is stored in the ExtraParams.
      */
     Status
     SetGroupByField(const std::string& field_name);
@@ -154,7 +154,7 @@ class SearchArguments : public SearchRequestBase {
 
     /**
      * @brief Set size of group by.
-     * Note: this value is stored in the ExtraParams
+     * Note: this value is stored in the ExtraParams.
      */
     Status
     SetGroupSize(uint64_t group_size);
@@ -167,7 +167,7 @@ class SearchArguments : public SearchRequestBase {
 
     /**
      * @brief Set the flag whether to strict group size.
-     * Note: this value is stored in the ExtraParams
+     * Note: this value is stored in the ExtraParams.
      */
     Status
     SetStrictGroupSize(bool strict_group_size);
@@ -260,7 +260,7 @@ class SearchArguments : public SearchRequestBase {
 
     /**
      * @brief Specify an absolute timestamp in a search to get results based on a data view at a specified point in
-     * time. \n
+     * time.
      * Default value is 0, server executes search on a full data view.
      * @deprecated Deprecated in 2.4, replaced by ConsistencyLevel
      */
@@ -269,23 +269,23 @@ class SearchArguments : public SearchRequestBase {
 
     /**
      * @brief Get guarantee timestamp.
-     * @deprecated Deprecated in 2.4, replaced by ConsistencyLevel, this value is not used anymore
+     * @deprecated Deprecated in 2.4, replaced by ConsistencyLevel, this value is not used anymore.
      */
     uint64_t
     GuaranteeTimestamp() const;
 
     /**
      * @brief Instructs server to see insert/delete operations performed before a provided timestamp.
-     * If no such timestamp is specified, the server will wait for the latest operation to finish and search. \n
+     * If no such timestamp is specified, the server will wait for the latest operation to finish and search.
      *
      * Note: The timestamp is not an absolute timestamp, it is a hybrid value combined by UTC time and internal flags.
-     * \n We call it TSO, for more information please refer to: \n
+     * We call it TSO, for more information please refer to:
      * https://github.com/milvus-io/milvus/blob/master/docs/design_docs/milvus_hybrid_ts_en.md.
      * You can get a TSO from insert/delete results. Use an operation's TSO to set this parameter,
-     * the server will execute search after this operation is finished. \n
+     * the server will execute search after this operation is finished.
      *
      * Default value is 1, server executes search immediately.
-     * @deprecated Deprecated in 2.4, replaced by ConsistencyLevel
+     * @deprecated Deprecated in 2.4, replaced by ConsistencyLevel.
      */
     Status
     SetGuaranteeTimestamp(uint64_t timestamp);

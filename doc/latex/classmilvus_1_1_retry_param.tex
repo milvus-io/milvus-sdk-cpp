@@ -1,0 +1,164 @@
+\hypertarget{classmilvus_1_1_retry_param}{}\doxysection{milvus\+::Retry\+Param Class Reference}
+\label{classmilvus_1_1_retry_param}\index{milvus::RetryParam@{milvus::RetryParam}}
+
+
+Parameters for RPC interfaces retry machinery. For some special server error codes, such as Rate\+Limit, SDK will continue retry RPC call until the server return response. For network error or unrecoverable error, SDK will slip retry and return errors.  
+
+
+
+
+{\ttfamily \#include $<$Retry\+Param.\+h$>$}
+
+\doxysubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{classmilvus_1_1_retry_param_a2b1d0c234916558bc4e0b31b131436f3}\label{classmilvus_1_1_retry_param_a2b1d0c234916558bc4e0b31b131436f3}} 
+uint64\+\_\+t \mbox{\hyperlink{classmilvus_1_1_retry_param_a2b1d0c234916558bc4e0b31b131436f3}{Max\+Retry\+Times}} () const
+\begin{DoxyCompactList}\small\item\em Get max retry times. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_retry_param_aa3bbca1f2a72a8f474ae1e1493039dd7}\label{classmilvus_1_1_retry_param_aa3bbca1f2a72a8f474ae1e1493039dd7}} 
+void \mbox{\hyperlink{classmilvus_1_1_retry_param_aa3bbca1f2a72a8f474ae1e1493039dd7}{Set\+Max\+Retry\+Times}} (uint64\+\_\+t max\+\_\+retry\+\_\+times)
+\begin{DoxyCompactList}\small\item\em Set max retry times. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_retry_param_a15eda7446204ca00ddd17483e58bcdfc}\label{classmilvus_1_1_retry_param_a15eda7446204ca00ddd17483e58bcdfc}} 
+\mbox{\hyperlink{classmilvus_1_1_retry_param}{Retry\+Param}} \& \mbox{\hyperlink{classmilvus_1_1_retry_param_a15eda7446204ca00ddd17483e58bcdfc}{With\+Max\+Retry\+Times}} (uint64\+\_\+t max\+\_\+retry\+\_\+times)
+\begin{DoxyCompactList}\small\item\em Set max retry times. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_retry_param_a3a82d61dd720409ecdd04fd4cc9437bf}\label{classmilvus_1_1_retry_param_a3a82d61dd720409ecdd04fd4cc9437bf}} 
+uint64\+\_\+t \mbox{\hyperlink{classmilvus_1_1_retry_param_a3a82d61dd720409ecdd04fd4cc9437bf}{Max\+Retry\+Timeout\+Ms}} () const
+\begin{DoxyCompactList}\small\item\em Get maximum retry timeout in milliseconds. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_retry_param_a79267216d956ed37e99db86efcd0a390}\label{classmilvus_1_1_retry_param_a79267216d956ed37e99db86efcd0a390}} 
+void \mbox{\hyperlink{classmilvus_1_1_retry_param_a79267216d956ed37e99db86efcd0a390}{Set\+Max\+Retry\+Timeout\+Ms}} (uint64\+\_\+t max\+\_\+retry\+\_\+timeout\+\_\+ms)
+\begin{DoxyCompactList}\small\item\em Set maximum retry timeout in milliseconds. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_retry_param_a14a57c357457bb31dac3765473763531}\label{classmilvus_1_1_retry_param_a14a57c357457bb31dac3765473763531}} 
+\mbox{\hyperlink{classmilvus_1_1_retry_param}{Retry\+Param}} \& \mbox{\hyperlink{classmilvus_1_1_retry_param_a14a57c357457bb31dac3765473763531}{With\+Max\+Retry\+Timeout\+Ms}} (uint64\+\_\+t max\+\_\+retry\+\_\+timeout\+\_\+ms)
+\begin{DoxyCompactList}\small\item\em Set maximum retry timeout in milliseconds. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_retry_param_a9b0f8c7baea915dc77dc33bfefd6bc3a}\label{classmilvus_1_1_retry_param_a9b0f8c7baea915dc77dc33bfefd6bc3a}} 
+uint64\+\_\+t \mbox{\hyperlink{classmilvus_1_1_retry_param_a9b0f8c7baea915dc77dc33bfefd6bc3a}{Initial\+Back\+Off\+Ms}} () const
+\begin{DoxyCompactList}\small\item\em Get initial back\+Off in milliseconds. \end{DoxyCompactList}\item 
+void \mbox{\hyperlink{classmilvus_1_1_retry_param_a811c877a9d777cee09c5768c9be1c0be}{Set\+Initial\+Back\+Off\+Ms}} (uint64\+\_\+t initial\+\_\+backoff\+\_\+ms)
+\begin{DoxyCompactList}\small\item\em Set initial back\+Off in milliseconds. \end{DoxyCompactList}\item 
+\mbox{\hyperlink{classmilvus_1_1_retry_param}{Retry\+Param}} \& \mbox{\hyperlink{classmilvus_1_1_retry_param_ae67da7f0d1862eb217a8774af75f9a7f}{With\+Initial\+Back\+Off\+Ms}} (uint64\+\_\+t initial\+\_\+backoff\+\_\+ms)
+\begin{DoxyCompactList}\small\item\em Set initial back\+Off in milliseconds. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_retry_param_af1aa954fd46efea0aca4ac8848cf4283}\label{classmilvus_1_1_retry_param_af1aa954fd46efea0aca4ac8848cf4283}} 
+uint64\+\_\+t \mbox{\hyperlink{classmilvus_1_1_retry_param_af1aa954fd46efea0aca4ac8848cf4283}{Max\+Back\+Off\+Ms}} () const
+\begin{DoxyCompactList}\small\item\em Get maximum back\+Off in milliseconds. \end{DoxyCompactList}\item 
+void \mbox{\hyperlink{classmilvus_1_1_retry_param_a02ae3161976b3e7d32e034b33ecc3138}{Set\+Max\+Back\+Off\+Ms}} (uint64\+\_\+t max\+\_\+backoff\+\_\+ms)
+\begin{DoxyCompactList}\small\item\em Set maximum back\+Off in milliseconds. \end{DoxyCompactList}\item 
+\mbox{\hyperlink{classmilvus_1_1_retry_param}{Retry\+Param}} \& \mbox{\hyperlink{classmilvus_1_1_retry_param_a05e48f2f53400d0f791ab802c4fde13c}{With\+Max\+Back\+Off\+Ms}} (uint64\+\_\+t max\+\_\+backoff\+\_\+ms)
+\begin{DoxyCompactList}\small\item\em Set maximum back\+Off in milliseconds. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_retry_param_acb636987cac9a74b768781881812d82b}\label{classmilvus_1_1_retry_param_acb636987cac9a74b768781881812d82b}} 
+uint64\+\_\+t \mbox{\hyperlink{classmilvus_1_1_retry_param_acb636987cac9a74b768781881812d82b}{Back\+Off\+Multiplier}} () const
+\begin{DoxyCompactList}\small\item\em Get back\+Off multiplier. \end{DoxyCompactList}\item 
+void \mbox{\hyperlink{classmilvus_1_1_retry_param_a92ec0b4b58c1562741796dfaa055cc7a}{Set\+Back\+Off\+Multiplier}} (uint64\+\_\+t backoff\+\_\+multiplier)
+\begin{DoxyCompactList}\small\item\em Set back\+Off multiplier, automatically increase the time interval between retry calls. \end{DoxyCompactList}\item 
+\mbox{\hyperlink{classmilvus_1_1_retry_param}{Retry\+Param}} \& \mbox{\hyperlink{classmilvus_1_1_retry_param_a4a170bb8d8e233583a2ae8aff57badd0}{With\+Back\+Off\+Multiplier}} (uint64\+\_\+t backoff\+\_\+multiplier)
+\begin{DoxyCompactList}\small\item\em Set back\+Off multiplier, automatically increase the time interval between retry calls. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_retry_param_a8b85ea7a82cb99e997a2bbd911e9f14d}\label{classmilvus_1_1_retry_param_a8b85ea7a82cb99e997a2bbd911e9f14d}} 
+bool \mbox{\hyperlink{classmilvus_1_1_retry_param_a8b85ea7a82cb99e997a2bbd911e9f14d}{Retry\+On\+Rate\+Limit}} () const
+\begin{DoxyCompactList}\small\item\em Get retry for ratelimit or not. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_retry_param_a09074f4ff93b89658a4f097244d65bff}\label{classmilvus_1_1_retry_param_a09074f4ff93b89658a4f097244d65bff}} 
+void \mbox{\hyperlink{classmilvus_1_1_retry_param_a09074f4ff93b89658a4f097244d65bff}{Set\+Retry\+On\+Rate\+Limit}} (bool retry\+\_\+on\+\_\+ratelimit)
+\begin{DoxyCompactList}\small\item\em Set retry for ratelimit. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_retry_param_ac2e9bff270585b6712e264836be11628}\label{classmilvus_1_1_retry_param_ac2e9bff270585b6712e264836be11628}} 
+\mbox{\hyperlink{classmilvus_1_1_retry_param}{Retry\+Param}} \& \mbox{\hyperlink{classmilvus_1_1_retry_param_ac2e9bff270585b6712e264836be11628}{With\+Retry\+On\+Rate\+Limit}} (bool retry\+\_\+on\+\_\+ratelimit)
+\begin{DoxyCompactList}\small\item\em Set retry for ratelimit. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+Parameters for RPC interfaces retry machinery. For some special server error codes, such as Rate\+Limit, SDK will continue retry RPC call until the server return response. For network error or unrecoverable error, SDK will slip retry and return errors. 
+
+\doxysubsection{Member Function Documentation}
+\mbox{\Hypertarget{classmilvus_1_1_retry_param_a92ec0b4b58c1562741796dfaa055cc7a}\label{classmilvus_1_1_retry_param_a92ec0b4b58c1562741796dfaa055cc7a}} 
+\index{milvus::RetryParam@{milvus::RetryParam}!SetBackOffMultiplier@{SetBackOffMultiplier}}
+\index{SetBackOffMultiplier@{SetBackOffMultiplier}!milvus::RetryParam@{milvus::RetryParam}}
+\doxysubsubsection{\texorpdfstring{SetBackOffMultiplier()}{SetBackOffMultiplier()}}
+{\footnotesize\ttfamily void milvus\+::\+Retry\+Param\+::\+Set\+Back\+Off\+Multiplier (\begin{DoxyParamCaption}\item[{uint64\+\_\+t}]{backoff\+\_\+multiplier }\end{DoxyParamCaption})}
+
+
+
+Set back\+Off multiplier, automatically increase the time interval between retry calls. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em backoff\+\_\+multiplier} & the multiplier for time interval between retry calls, must be greater than 0. \\
+\hline
+\end{DoxyParams}
+\mbox{\Hypertarget{classmilvus_1_1_retry_param_a811c877a9d777cee09c5768c9be1c0be}\label{classmilvus_1_1_retry_param_a811c877a9d777cee09c5768c9be1c0be}} 
+\index{milvus::RetryParam@{milvus::RetryParam}!SetInitialBackOffMs@{SetInitialBackOffMs}}
+\index{SetInitialBackOffMs@{SetInitialBackOffMs}!milvus::RetryParam@{milvus::RetryParam}}
+\doxysubsubsection{\texorpdfstring{SetInitialBackOffMs()}{SetInitialBackOffMs()}}
+{\footnotesize\ttfamily void milvus\+::\+Retry\+Param\+::\+Set\+Initial\+Back\+Off\+Ms (\begin{DoxyParamCaption}\item[{uint64\+\_\+t}]{initial\+\_\+backoff\+\_\+ms }\end{DoxyParamCaption})}
+
+
+
+Set initial back\+Off in milliseconds. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em initial\+\_\+backoff\+\_\+ms} & the initial time interval between retry calls, must be greater than 0. \\
+\hline
+\end{DoxyParams}
+\mbox{\Hypertarget{classmilvus_1_1_retry_param_a02ae3161976b3e7d32e034b33ecc3138}\label{classmilvus_1_1_retry_param_a02ae3161976b3e7d32e034b33ecc3138}} 
+\index{milvus::RetryParam@{milvus::RetryParam}!SetMaxBackOffMs@{SetMaxBackOffMs}}
+\index{SetMaxBackOffMs@{SetMaxBackOffMs}!milvus::RetryParam@{milvus::RetryParam}}
+\doxysubsubsection{\texorpdfstring{SetMaxBackOffMs()}{SetMaxBackOffMs()}}
+{\footnotesize\ttfamily void milvus\+::\+Retry\+Param\+::\+Set\+Max\+Back\+Off\+Ms (\begin{DoxyParamCaption}\item[{uint64\+\_\+t}]{max\+\_\+backoff\+\_\+ms }\end{DoxyParamCaption})}
+
+
+
+Set maximum back\+Off in milliseconds. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em max\+\_\+backoff\+\_\+ms} & the maximum time interval between retry calls, must be greater than 0. \\
+\hline
+\end{DoxyParams}
+\mbox{\Hypertarget{classmilvus_1_1_retry_param_a4a170bb8d8e233583a2ae8aff57badd0}\label{classmilvus_1_1_retry_param_a4a170bb8d8e233583a2ae8aff57badd0}} 
+\index{milvus::RetryParam@{milvus::RetryParam}!WithBackOffMultiplier@{WithBackOffMultiplier}}
+\index{WithBackOffMultiplier@{WithBackOffMultiplier}!milvus::RetryParam@{milvus::RetryParam}}
+\doxysubsubsection{\texorpdfstring{WithBackOffMultiplier()}{WithBackOffMultiplier()}}
+{\footnotesize\ttfamily \mbox{\hyperlink{classmilvus_1_1_retry_param}{Retry\+Param}} \& milvus\+::\+Retry\+Param\+::\+With\+Back\+Off\+Multiplier (\begin{DoxyParamCaption}\item[{uint64\+\_\+t}]{backoff\+\_\+multiplier }\end{DoxyParamCaption})}
+
+
+
+Set back\+Off multiplier, automatically increase the time interval between retry calls. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em backoff\+\_\+multiplier} & the multiplier for time interval between retry calls, must be greater than 0. \\
+\hline
+\end{DoxyParams}
+\mbox{\Hypertarget{classmilvus_1_1_retry_param_ae67da7f0d1862eb217a8774af75f9a7f}\label{classmilvus_1_1_retry_param_ae67da7f0d1862eb217a8774af75f9a7f}} 
+\index{milvus::RetryParam@{milvus::RetryParam}!WithInitialBackOffMs@{WithInitialBackOffMs}}
+\index{WithInitialBackOffMs@{WithInitialBackOffMs}!milvus::RetryParam@{milvus::RetryParam}}
+\doxysubsubsection{\texorpdfstring{WithInitialBackOffMs()}{WithInitialBackOffMs()}}
+{\footnotesize\ttfamily \mbox{\hyperlink{classmilvus_1_1_retry_param}{Retry\+Param}} \& milvus\+::\+Retry\+Param\+::\+With\+Initial\+Back\+Off\+Ms (\begin{DoxyParamCaption}\item[{uint64\+\_\+t}]{initial\+\_\+backoff\+\_\+ms }\end{DoxyParamCaption})}
+
+
+
+Set initial back\+Off in milliseconds. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em initial\+\_\+backoff\+\_\+ms} & the initial time interval between retry calls, must be greater than 0. \\
+\hline
+\end{DoxyParams}
+\mbox{\Hypertarget{classmilvus_1_1_retry_param_a05e48f2f53400d0f791ab802c4fde13c}\label{classmilvus_1_1_retry_param_a05e48f2f53400d0f791ab802c4fde13c}} 
+\index{milvus::RetryParam@{milvus::RetryParam}!WithMaxBackOffMs@{WithMaxBackOffMs}}
+\index{WithMaxBackOffMs@{WithMaxBackOffMs}!milvus::RetryParam@{milvus::RetryParam}}
+\doxysubsubsection{\texorpdfstring{WithMaxBackOffMs()}{WithMaxBackOffMs()}}
+{\footnotesize\ttfamily \mbox{\hyperlink{classmilvus_1_1_retry_param}{Retry\+Param}} \& milvus\+::\+Retry\+Param\+::\+With\+Max\+Back\+Off\+Ms (\begin{DoxyParamCaption}\item[{uint64\+\_\+t}]{max\+\_\+backoff\+\_\+ms }\end{DoxyParamCaption})}
+
+
+
+Set maximum back\+Off in milliseconds. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em max\+\_\+backoff\+\_\+ms} & the maximum time interval between retry calls, must be greater than 0. \\
+\hline
+\end{DoxyParams}
+
+
+The documentation for this class was generated from the following files\+:\begin{DoxyCompactItemize}
+\item 
+src/include/milvus/types/Retry\+Param.\+h\item 
+src/impl/types/Retry\+Param.\+cpp\end{DoxyCompactItemize}

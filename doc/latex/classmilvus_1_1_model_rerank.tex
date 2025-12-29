@@ -1,0 +1,42 @@
+\hypertarget{classmilvus_1_1_model_rerank}{}\doxysection{milvus\+::Model\+Rerank Class Reference}
+\label{classmilvus_1_1_model_rerank}\index{milvus::ModelRerank@{milvus::ModelRerank}}
+
+
+Model rerank function.  
+
+
+
+
+{\ttfamily \#include $<$Function.\+h$>$}
+
+
+
+Inherits \mbox{\hyperlink{classmilvus_1_1_function}{milvus\+::\+Function}}.
+
+\doxysubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{classmilvus_1_1_model_rerank_a2c106242ffd867f76178ea7507b4c5a9}\label{classmilvus_1_1_model_rerank_a2c106242ffd867f76178ea7507b4c5a9}} 
+\mbox{\hyperlink{classmilvus_1_1_status}{Status}} \mbox{\hyperlink{classmilvus_1_1_model_rerank_a2c106242ffd867f76178ea7507b4c5a9}{Set\+Function\+Type}} (\mbox{\hyperlink{namespacemilvus_ab0f6557077e3b6e18925d278f984badd}{Function\+Type}} function\+\_\+type) override
+\begin{DoxyCompactList}\small\item\em Override this method, only allow to set RERANK function type. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_model_rerank_a3c97a77ca77474f77920d96f138f48c5}\label{classmilvus_1_1_model_rerank_a3c97a77ca77474f77920d96f138f48c5}} 
+void \mbox{\hyperlink{classmilvus_1_1_model_rerank_a3c97a77ca77474f77920d96f138f48c5}{Set\+Provider}} (const std\+::string \&name)
+\begin{DoxyCompactList}\small\item\em Set the model service provider to use for reranking. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_model_rerank_a206ff6b0a4905de8bd7d1c3f9f2bf296}\label{classmilvus_1_1_model_rerank_a206ff6b0a4905de8bd7d1c3f9f2bf296}} 
+void \mbox{\hyperlink{classmilvus_1_1_model_rerank_a206ff6b0a4905de8bd7d1c3f9f2bf296}{Set\+Queries}} (const std\+::vector$<$ std\+::string $>$ \&queries)
+\begin{DoxyCompactList}\small\item\em Set the list of query strings used by the reranking model to calculate relevance scores. Note\+: The number of query strings must match exactly the number of queries in your search operation, even when using query vectors instead of text. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_model_rerank_aa6fc7f661236c70dd224f65a1baeb5b2}\label{classmilvus_1_1_model_rerank_aa6fc7f661236c70dd224f65a1baeb5b2}} 
+void \mbox{\hyperlink{classmilvus_1_1_model_rerank_aa6fc7f661236c70dd224f65a1baeb5b2}{Set\+Endpoint}} (const std\+::string \&url)
+\begin{DoxyCompactList}\small\item\em Set the URL of the model service. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_model_rerank_a0d0c07b0684caadcc9b6fee2ee0030e6}\label{classmilvus_1_1_model_rerank_a0d0c07b0684caadcc9b6fee2ee0030e6}} 
+void \mbox{\hyperlink{classmilvus_1_1_model_rerank_a0d0c07b0684caadcc9b6fee2ee0030e6}{Set\+Max\+Client\+Batch\+Size}} (int64\+\_\+t val)
+\begin{DoxyCompactList}\small\item\em Set the maximum number of documents to process in a single batch. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+Model rerank function. 
+
+The documentation for this class was generated from the following files\+:\begin{DoxyCompactItemize}
+\item 
+src/include/milvus/types/Function.\+h\item 
+src/impl/types/Function.\+cpp\end{DoxyCompactItemize}

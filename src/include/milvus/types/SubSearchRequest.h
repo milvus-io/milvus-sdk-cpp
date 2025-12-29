@@ -33,7 +33,7 @@ class SubSearchRequest : public SearchRequestBase {
 
     /**
      * @brief Set search limit(topk).
-     * Note: this value is stored in the ExtraParams
+     * Note: this value is stored in the ExtraParams.
      */
     SubSearchRequest&
     WithLimit(int64_t limit);
@@ -45,7 +45,7 @@ class SubSearchRequest : public SearchRequestBase {
     WithFilter(std::string filter);
 
     /**
-     * @brief Set target field of ann search
+     * @brief Set target field of ann search.
      */
     SubSearchRequest&
     WithAnnsField(const std::string& ann_field);
@@ -57,34 +57,34 @@ class SubSearchRequest : public SearchRequestBase {
     WithTimezone(const std::string& timezone);
 
     /**
-     * @brief Add a binary vector to search
+     * @brief Add a binary vector to search.
      */
     SubSearchRequest&
     AddBinaryVector(const std::string& vector);
 
     /**
-     * @brief Add a binary vector to search
+     * @brief Add a binary vector to search.
      */
     SubSearchRequest&
     AddBinaryVector(const BinaryVecFieldData::ElementT& vector);
 
     /**
-     * @brief Add a float vector to search
+     * @brief Add a float vector to search.
      */
     SubSearchRequest&
     AddFloatVector(const FloatVecFieldData::ElementT& vector);
 
     /**
-     * @brief Add a sparse vector to search
+     * @brief Add a sparse vector to search.
      */
     SubSearchRequest&
     AddSparseVector(const SparseFloatVecFieldData::ElementT& vector);
 
     /**
-     * @brief Add a sparse vector to search. \n
-     * We support two patterns of sparse vector: \n
-     *  1. a json dict like {"1": 0.1, "5": 0.2, "8": 0.15}
-     *  2. a json dict like {"indices": [1, 5, 8], "values": [0.1, 0.2, 0.15]}
+     * @brief Add a sparse vector to search.
+     * We support two patterns of sparse vector:
+     *  1. a json dict like {"1": 0.1, "5": 0.2, "8": 0.15}.
+     *  2. a json dict like {"indices": [1, 5, 8], "values": [0.1, 0.2, 0.15]}.
      */
     SubSearchRequest&
     AddSparseVector(const nlohmann::json& vector);
@@ -96,8 +96,8 @@ class SubSearchRequest : public SearchRequestBase {
     AddFloat16Vector(const Float16VecFieldData::ElementT& vector);
 
     /**
-     * @brief Add a float16 vector to search. \n
-     * This method automatically converts the float array to float16 binary
+     * @brief Add a float16 vector to search.
+     * This method automatically converts the float array to float16 binary.
      */
     SubSearchRequest&
     AddFloat16Vector(const std::vector<float>& vector);
@@ -109,26 +109,26 @@ class SubSearchRequest : public SearchRequestBase {
     AddBFloat16Vector(const BFloat16VecFieldData::ElementT& vector);
 
     /**
-     * @brief Add a bfloat16 vector to search. \n
-     * This method automatically converts the float array to bfloat16 binary
+     * @brief Add a bfloat16 vector to search.
+     * This method automatically converts the float array to bfloat16 binary.
      */
     SubSearchRequest&
     AddBFloat16Vector(const std::vector<float>& vector);
 
     /**
-     * @brief Add a text to search. Only works for BM25 function \n
+     * @brief Add a text to search. Only works for BM25 function.
      */
     SubSearchRequest&
     AddEmbeddedText(const std::string& text);
 
     /**
-     * @brief Add an int8 vector to search
+     * @brief Add an int8 vector to search.
      */
     SubSearchRequest&
     AddInt8Vector(const Int8VecFieldData::ElementT& vector);
 
     /**
-     * @brief Add an embedding list to search on struct field
+     * @brief Add an embedding list to search on struct field.
      */
     SubSearchRequest&
     AddEmbeddingList(EmbeddingList&& emb_list);

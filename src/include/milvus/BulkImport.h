@@ -24,15 +24,24 @@ namespace milvus {
 
 class BulkImport {
  public:
+    /**
+     * @brief Create an import job by restful api.
+     */
     static nlohmann::json
     CreateImportJobs(const std::string& url, const std::string& collection_name, const std::vector<std::string>& files,
                      const std::string& db_name = "default", const std::string& api_key = "",
                      const std::string& partition_name = "", const nlohmann::json& options = nlohmann::json{});
 
+    /**
+     * @brief List all import jobs by restful api.
+     */
     static nlohmann::json
     ListImportJobs(const std::string& url, const std::string& collection_name, const std::string& db_name = "default",
                    const std::string& api_key = "");
 
+    /**
+     * @brief Get import job progress by restful api.
+     */
     static nlohmann::json
     GetImportJobProgress(const std::string& url, const std::string& job_id, const std::string& db_name = "default",
                          const std::string& api_key = "");

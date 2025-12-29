@@ -35,17 +35,17 @@ struct NodeInfo {
     NodeInfo(int64_t id, const std::string& address, const std::string& hostname);
 
     /**
-     * @brief id of this node
+     * @brief id of this node.
      */
     int64_t id_{0};
 
     /**
-     * @brief address of this node
+     * @brief address of this node.
      */
     std::string address_;
 
     /**
-     * @brief hostname of this node
+     * @brief hostname of this node.
      */
     std::string hostname_;
 };

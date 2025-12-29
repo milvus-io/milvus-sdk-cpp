@@ -24,6 +24,7 @@ namespace milvus {
 
 /**
  * @brief Notify progress of a request, returned by callback function of ProgressMonitor
+ * @deprecated no longer used in MilvusClientV2
  */
 struct Progress {
     Progress();
@@ -34,35 +35,35 @@ struct Progress {
     Progress(uint32_t finished, uint32_t total);
 
     /**
-     * @brief The progress is done or not
+     * @brief The progress is done or not.
      */
     bool
     Done() const;
 
     /**
-     * @brief How much work is finished
+     * @brief How much work is finished.
      */
     uint32_t finished_ = 0;
 
     /**
-     * @brief Totally how much work it is
+     * @brief Totally how much work it is.
      */
     uint32_t total_ = 0;
 };
 
 /**
- * @brief To test two Progress are equal
+ * @brief To test two Progress are equal.
  */
 bool
 operator==(const Progress& a, const Progress& b);
 
 /**
- * @brief Monitor progress of a request
+ * @brief Monitor progress of a request.
  */
 class ProgressMonitor {
  public:
     /**
-     * @brief The call back function definition to receive progress notification
+     * @brief The call back function definition to receive progress notification.
      */
     using CallbackFunc = std::function<void(Progress&)>;
 
@@ -100,7 +101,7 @@ class ProgressMonitor {
     SetCheckInterval(uint32_t check_interval);
 
     /**
-     * @brief Trigger the call back function to notify progress
+     * @brief Trigger the call back function to notify progress.
      */
     void
     DoProgress(Progress& p) const;
@@ -114,13 +115,13 @@ class ProgressMonitor {
     SetCallbackFunc(CallbackFunc func);
 
     /**
-     * @brief Immediately return without waiting request finished
+     * @brief Immediately return without waiting request finished.
      */
     static ProgressMonitor
     NoWait();
 
     /**
-     * @brief A monitor to wait request until it is finished
+     * @brief A monitor to wait request until it is finished.
      */
     static ProgressMonitor
     Forever();

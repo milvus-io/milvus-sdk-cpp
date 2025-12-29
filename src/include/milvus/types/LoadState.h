@@ -19,7 +19,7 @@
 namespace milvus {
 
 /**
- * @brief State Code for load process
+ * @brief State code for load process
  */
 enum class LoadState {
     LOAD_STATE_NOT_EXIST = 0,

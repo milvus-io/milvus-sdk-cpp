@@ -31,24 +31,39 @@ class CheckHealthResponse {
      */
     CheckHealthResponse() = default;
 
-    // Getter and Setter for is_healthy_
+    /**
+     * @brief Get whether the milvus server is healthy or not.
+     */
     bool
     IsHealthy() const;
 
+    /**
+     * @brief Set whether the milvus server is healthy or not.
+     */
     void
     SetIsHealthy(bool healthy);
 
-    // Getter and Setter for reasons_
+    /**
+     * @brief Get the reasons why the milvus server is unhealthy.
+     */
     const std::vector<std::string>&
     Reasons() const;
 
+    /**
+     * @brief Set the reasons why the milvus server is unhealthy.
+     */
     void
     SetReasons(std::vector<std::string>&& reasons);
 
-    // Getter and Setter for quota_states_
+    /**
+     * @brief Get the quota states why the milvus server is unable service.
+     */
     const std::vector<std::string>&
     QuotaStates() const;
 
+    /**
+     * @brief Set the quota states why the milvus server is unable service.
+     */
     void
     SetQuotaStates(std::vector<std::string>&& states);
 

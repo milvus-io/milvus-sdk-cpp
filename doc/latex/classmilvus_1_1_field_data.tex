@@ -1,0 +1,114 @@
+\hypertarget{classmilvus_1_1_field_data}{}\doxysection{milvus\+::Field\+Data$<$ T, Dt $>$ Class Template Reference}
+\label{classmilvus_1_1_field_data}\index{milvus::FieldData$<$ T, Dt $>$@{milvus::FieldData$<$ T, Dt $>$}}
+
+
+Template class represents column-\/based data of a field. Available inheritance classes\+: ~\newline
+ Bool\+Field\+Data for boolean scalar field ~\newline
+ Int8\+Field\+Data for 8-\/bits integer scalar field ~\newline
+ Int16\+Field\+Data for 16-\/bits integer scalar field ~\newline
+ Int32\+Field\+Data for 32-\/bits integer scalar field ~\newline
+ Int64\+Field\+Data for 64-\/bits integer scalar field ~\newline
+ Float\+Field\+Data for float scalar field ~\newline
+ Double\+Field\+Data for double scalar field ~\newline
+ Var\+Char\+Field\+Data for string scalar field ~\newline
+ JSONField\+Data for json scalar field (supportted in 2.\+4) ~\newline
+ Binary\+Vec\+Field\+Data for float vector field ~\newline
+ Float\+Vec\+Field\+Data for binary vector field ~\newline
+ Sparse\+Float\+Vec\+Field\+Data for sparse vector field ~\newline
+ Float16\+Vec\+Field\+Data for float16 vector field ~\newline
+ BFloat16\+Vec\+Field\+Data for bfloat16 vector field ~\newline
+.  
+
+
+
+
+{\ttfamily \#include $<$Field\+Data.\+h$>$}
+
+
+
+Inherits milvus\+::\+Field.
+
+\doxysubsection*{Public Types}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{classmilvus_1_1_field_data_a921c839e5d8df646cb7a20029ddb17f6}\label{classmilvus_1_1_field_data_a921c839e5d8df646cb7a20029ddb17f6}} 
+using \mbox{\hyperlink{classmilvus_1_1_field_data_a921c839e5d8df646cb7a20029ddb17f6}{ElementT}} = T
+\begin{DoxyCompactList}\small\item\em Field element type. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\doxysubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{classmilvus_1_1_field_data_a07a2afd71e1f0c672e4169e5fa5bd70c}\label{classmilvus_1_1_field_data_a07a2afd71e1f0c672e4169e5fa5bd70c}} 
+\mbox{\hyperlink{classmilvus_1_1_field_data_a07a2afd71e1f0c672e4169e5fa5bd70c}{Field\+Data}} ()
+\begin{DoxyCompactList}\small\item\em Constructor. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_field_data_a4bab530adbc0f02791389ac2fa6c2352}\label{classmilvus_1_1_field_data_a4bab530adbc0f02791389ac2fa6c2352}} 
+\mbox{\hyperlink{classmilvus_1_1_field_data_a4bab530adbc0f02791389ac2fa6c2352}{Field\+Data}} (std\+::string name)
+\begin{DoxyCompactList}\small\item\em Constructor. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_field_data_aad3f17e2fcaf30112ab21becc2c6721f}\label{classmilvus_1_1_field_data_aad3f17e2fcaf30112ab21becc2c6721f}} 
+\mbox{\hyperlink{classmilvus_1_1_field_data_aad3f17e2fcaf30112ab21becc2c6721f}{Field\+Data}} (std\+::string name, const std\+::vector$<$ T $>$ \&data)
+\begin{DoxyCompactList}\small\item\em Constructor. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_field_data_a86e47a889a29cb0ac75b78a04e5c8574}\label{classmilvus_1_1_field_data_a86e47a889a29cb0ac75b78a04e5c8574}} 
+\mbox{\hyperlink{classmilvus_1_1_field_data_a86e47a889a29cb0ac75b78a04e5c8574}{Field\+Data}} (std\+::string name, const std\+::vector$<$ T $>$ \&data, const std\+::vector$<$ bool $>$ \&valid\+\_\+data)
+\begin{DoxyCompactList}\small\item\em Constructor. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_field_data_ad397e907413fd3590074f857a48afb7f}\label{classmilvus_1_1_field_data_ad397e907413fd3590074f857a48afb7f}} 
+\mbox{\hyperlink{classmilvus_1_1_field_data_ad397e907413fd3590074f857a48afb7f}{Field\+Data}} (std\+::string name, std\+::vector$<$ T $>$ \&\&data)
+\begin{DoxyCompactList}\small\item\em Constructor. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_field_data_a35787bf3cfc3c2077639663ff0367ce2}\label{classmilvus_1_1_field_data_a35787bf3cfc3c2077639663ff0367ce2}} 
+\mbox{\hyperlink{classmilvus_1_1_field_data_a35787bf3cfc3c2077639663ff0367ce2}{Field\+Data}} (std\+::string name, std\+::vector$<$ T $>$ \&\&data, std\+::vector$<$ bool $>$ \&\&valid\+\_\+data)
+\begin{DoxyCompactList}\small\item\em Constructor. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_field_data_a7d47878b5dd868ba848ceb5684052374}\label{classmilvus_1_1_field_data_a7d47878b5dd868ba848ceb5684052374}} 
+virtual \mbox{\hyperlink{namespacemilvus_ad8f8a6a0abb456a62ed9fec3f2ff1f23}{Status\+Code}} \mbox{\hyperlink{classmilvus_1_1_field_data_a7d47878b5dd868ba848ceb5684052374}{Add}} (const T \&element)
+\begin{DoxyCompactList}\small\item\em Add element to field data. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_field_data_a4d219023550deeda8f49f0851176e4d8}\label{classmilvus_1_1_field_data_a4d219023550deeda8f49f0851176e4d8}} 
+virtual \mbox{\hyperlink{namespacemilvus_ad8f8a6a0abb456a62ed9fec3f2ff1f23}{Status\+Code}} \mbox{\hyperlink{classmilvus_1_1_field_data_a4d219023550deeda8f49f0851176e4d8}{Add}} (T \&\&element)
+\begin{DoxyCompactList}\small\item\em Add element to field data. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_field_data_a945b15ad647910c89fc78a6c6d38a41a}\label{classmilvus_1_1_field_data_a945b15ad647910c89fc78a6c6d38a41a}} 
+virtual \mbox{\hyperlink{namespacemilvus_ad8f8a6a0abb456a62ed9fec3f2ff1f23}{Status\+Code}} \mbox{\hyperlink{classmilvus_1_1_field_data_a945b15ad647910c89fc78a6c6d38a41a}{Add\+Null}} ()
+\begin{DoxyCompactList}\small\item\em Add a null element to field data. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_field_data_a099d1a46577cdd42f16ee589af128777}\label{classmilvus_1_1_field_data_a099d1a46577cdd42f16ee589af128777}} 
+virtual \mbox{\hyperlink{namespacemilvus_ad8f8a6a0abb456a62ed9fec3f2ff1f23}{Status\+Code}} \mbox{\hyperlink{classmilvus_1_1_field_data_a099d1a46577cdd42f16ee589af128777}{Append}} (const std\+::vector$<$ T $>$ \&elements)
+\begin{DoxyCompactList}\small\item\em Append elements to field data. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_field_data_a1764d48b5ea51236dc31dc5b2e9473d3}\label{classmilvus_1_1_field_data_a1764d48b5ea51236dc31dc5b2e9473d3}} 
+size\+\_\+t \mbox{\hyperlink{classmilvus_1_1_field_data_a1764d48b5ea51236dc31dc5b2e9473d3}{Count}} () const final
+\begin{DoxyCompactList}\small\item\em Total number of field elements. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_field_data_a8800b9a72d22bd2b3a7e7e05dca457ec}\label{classmilvus_1_1_field_data_a8800b9a72d22bd2b3a7e7e05dca457ec}} 
+void \mbox{\hyperlink{classmilvus_1_1_field_data_a8800b9a72d22bd2b3a7e7e05dca457ec}{Reserve}} (size\+\_\+t count) final
+\begin{DoxyCompactList}\small\item\em Pre-\/allocate a space for number of elements. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_field_data_adefcc22e8043d6e90a235a4cbdfe5ce8}\label{classmilvus_1_1_field_data_adefcc22e8043d6e90a235a4cbdfe5ce8}} 
+virtual const std\+::vector$<$ T $>$ \& \mbox{\hyperlink{classmilvus_1_1_field_data_adefcc22e8043d6e90a235a4cbdfe5ce8}{Data}} () const
+\begin{DoxyCompactList}\small\item\em Field elements array. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_field_data_aeef6cd1d5a3555cddaafae5a11c8c277}\label{classmilvus_1_1_field_data_aeef6cd1d5a3555cddaafae5a11c8c277}} 
+virtual T \mbox{\hyperlink{classmilvus_1_1_field_data_aeef6cd1d5a3555cddaafae5a11c8c277}{Value}} (size\+\_\+t i) const
+\begin{DoxyCompactList}\small\item\em Get value by position. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_field_data_a3d55b2ce0f7ad68f0e7b6e76e1962ded}\label{classmilvus_1_1_field_data_a3d55b2ce0f7ad68f0e7b6e76e1962ded}} 
+virtual bool \mbox{\hyperlink{classmilvus_1_1_field_data_a3d55b2ce0f7ad68f0e7b6e76e1962ded}{Is\+Null}} (size\+\_\+t i) const
+\begin{DoxyCompactList}\small\item\em Is this position null value. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_field_data_a63c81a34447ca5daac5a103f95d8e67f}\label{classmilvus_1_1_field_data_a63c81a34447ca5daac5a103f95d8e67f}} 
+virtual const std\+::vector$<$ bool $>$ \& \mbox{\hyperlink{classmilvus_1_1_field_data_a63c81a34447ca5daac5a103f95d8e67f}{Valid\+Data}} () const
+\begin{DoxyCompactList}\small\item\em Bool array to indicate null or non-\/null elements. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+\subsubsection*{template$<$typename T, Data\+Type Dt$>$\newline
+class milvus\+::\+Field\+Data$<$ T, Dt $>$}
+
+Template class represents column-\/based data of a field. Available inheritance classes\+: ~\newline
+ Bool\+Field\+Data for boolean scalar field ~\newline
+ Int8\+Field\+Data for 8-\/bits integer scalar field ~\newline
+ Int16\+Field\+Data for 16-\/bits integer scalar field ~\newline
+ Int32\+Field\+Data for 32-\/bits integer scalar field ~\newline
+ Int64\+Field\+Data for 64-\/bits integer scalar field ~\newline
+ Float\+Field\+Data for float scalar field ~\newline
+ Double\+Field\+Data for double scalar field ~\newline
+ Var\+Char\+Field\+Data for string scalar field ~\newline
+ JSONField\+Data for json scalar field (supportted in 2.\+4) ~\newline
+ Binary\+Vec\+Field\+Data for float vector field ~\newline
+ Float\+Vec\+Field\+Data for binary vector field ~\newline
+ Sparse\+Float\+Vec\+Field\+Data for sparse vector field ~\newline
+ Float16\+Vec\+Field\+Data for float16 vector field ~\newline
+ BFloat16\+Vec\+Field\+Data for bfloat16 vector field ~\newline
+. 
+
+The documentation for this class was generated from the following files\+:\begin{DoxyCompactItemize}
+\item 
+src/include/milvus/types/Field\+Data.\+h\item 
+src/impl/types/Field\+Data.\+cpp\end{DoxyCompactItemize}

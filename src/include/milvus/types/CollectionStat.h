@@ -34,27 +34,24 @@ class CollectionStat {
 
     /**
      * @brief Return row count of this collection.
-     *
      */
     uint64_t
     RowCount() const;
 
     /**
-     * @brief Set collection name
-     *
+     * @brief Set collection name.
      */
     void
     SetName(std::string name);
 
     /**
-     * @brief Get collection name
-     *
+     * @brief Get collection name.
      */
     const std::string&
     Name() const;
 
     /**
-     * @brief add key/value pair for collection statistics
+     * @brief add key/value pair for collection statistics.
      */
     void
     Emplace(std::string key, std::string value);

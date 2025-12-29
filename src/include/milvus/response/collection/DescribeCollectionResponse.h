@@ -34,9 +34,15 @@ class DescribeCollectionResponse {
      */
     DescribeCollectionResponse() = default;
 
-    // Getter and Setter for desc_
+    /**
+     * @brief Get collection description.
+     */
     const CollectionDesc&
     Desc() const;
+
+    /**
+     * @brief Set collection description.
+     */
     void
     SetDesc(CollectionDesc&& desc);
 
