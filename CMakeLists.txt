@@ -56,8 +56,19 @@ if (DEFINED MILVUS_SDK_VERSION)
     message("MILVUS_SDK_VERSION = ${MILVUS_SDK_VERSION}")
 else()
     # MILVUS_SDK_VERSION is defined in the scripts/build.sh, it could be undefined if user build the project with cmake command
-    define_option_string(MILVUS_SDK_VERSION "Version for sdk" "unknown")
-    message("MILVUS_SDK_VERSION = unknown")
+    message("Reset MILVUS_SDK_VERSION by git command")
+    execute_process(
+        COMMAND git describe --tags --abbrev=0
+        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+        OUTPUT_VARIABLE MILVUS_SDK_VERSION
+        OUTPUT_STRIP_TRAILING_WHITESPACE
+        ERROR_QUIET
+    )
+    if (NOT MILVUS_SDK_VERSION)
+        set(MILVUS_SDK_VERSION "Unknown")
+        message("Git command failed, using fallback version: ${MILVUS_SDK_VERSION}")
+    endif()
+    message("MILVUS_SDK_VERSION = ${MILVUS_SDK_VERSION}")
 endif()
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/src/impl/version.h.in ${CMAKE_CURRENT_SOURCE_DIR}/src/impl/version.h @ONLY)
 
