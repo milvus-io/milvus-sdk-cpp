@@ -28,9 +28,15 @@ class HasPartitionResponse {
      */
     HasPartitionResponse() = default;
 
-    // Getter and Setter for has_
+    /**
+     * @brief Get whether the partition exists or not.
+     */
     bool
     Has() const;
+
+    /**
+     * @brief Set whether the partition exists or not.
+     */
     void
     SetHas(bool has);
 

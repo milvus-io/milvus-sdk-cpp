@@ -1,0 +1,185 @@
+\hypertarget{classmilvus_1_1_search_request}{}\doxysection{milvus\+::Search\+Request Class Reference}
+\label{classmilvus_1_1_search_request}\index{milvus::SearchRequest@{milvus::SearchRequest}}
+
+
+Used by \mbox{\hyperlink{classmilvus_1_1_milvus_client_v2_a73d98aca0639840ba941c3693a87f054}{Milvus\+Client\+V2\+::\+Search()}}  
+
+
+
+
+{\ttfamily \#include $<$Search\+Request.\+h$>$}
+
+
+
+Inherits \mbox{\hyperlink{classmilvus_1_1_d_q_l_request_base}{milvus\+::\+DQLRequest\+Base}}, and \mbox{\hyperlink{classmilvus_1_1_search_request_base}{milvus\+::\+Search\+Request\+Base}}.
+
+
+
+Inherited by \mbox{\hyperlink{classmilvus_1_1_search_iterator_request}{milvus\+::\+Search\+Iterator\+Request}}.
+
+\doxysubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{classmilvus_1_1_search_request_a8d7e58bb238e2d1e2965bc49cb80f83f}\label{classmilvus_1_1_search_request_a8d7e58bb238e2d1e2965bc49cb80f83f}} 
+\mbox{\hyperlink{classmilvus_1_1_search_request_a8d7e58bb238e2d1e2965bc49cb80f83f}{Search\+Request}} ()=default
+\begin{DoxyCompactList}\small\item\em Constructor. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_search_request_a2579a4f7d75a6a5582966a58ffcc9ebc}\label{classmilvus_1_1_search_request_a2579a4f7d75a6a5582966a58ffcc9ebc}} 
+\mbox{\hyperlink{classmilvus_1_1_search_request}{Search\+Request}} \& \mbox{\hyperlink{classmilvus_1_1_search_request_a2579a4f7d75a6a5582966a58ffcc9ebc}{With\+Database\+Name}} (const std\+::string \&db\+\_\+name)
+\begin{DoxyCompactList}\small\item\em Set database name in which the collection is created. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_search_request_af142501ffc249d18d22de1892e5477e6}\label{classmilvus_1_1_search_request_af142501ffc249d18d22de1892e5477e6}} 
+\mbox{\hyperlink{classmilvus_1_1_search_request}{Search\+Request}} \& \mbox{\hyperlink{classmilvus_1_1_search_request_af142501ffc249d18d22de1892e5477e6}{With\+Collection\+Name}} (const std\+::string \&collection\+\_\+name)
+\begin{DoxyCompactList}\small\item\em Set name of the collection. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_search_request_a17ca2a94fd34eb3ddc3bec5a3cbce003}\label{classmilvus_1_1_search_request_a17ca2a94fd34eb3ddc3bec5a3cbce003}} 
+\mbox{\hyperlink{classmilvus_1_1_search_request}{Search\+Request}} \& \mbox{\hyperlink{classmilvus_1_1_search_request_a17ca2a94fd34eb3ddc3bec5a3cbce003}{With\+Partition\+Names}} (std\+::set$<$ std\+::string $>$ \&\&partition\+\_\+names)
+\begin{DoxyCompactList}\small\item\em Set the partition names. If partition nemes are empty, will query in the entire collection. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_search_request_a05d98f528fb2a24178bcf23fa82dfce7}\label{classmilvus_1_1_search_request_a05d98f528fb2a24178bcf23fa82dfce7}} 
+\mbox{\hyperlink{classmilvus_1_1_search_request}{Search\+Request}} \& \mbox{\hyperlink{classmilvus_1_1_search_request_a05d98f528fb2a24178bcf23fa82dfce7}{Add\+Partition\+Name}} (const std\+::string \&partition\+\_\+name)
+\begin{DoxyCompactList}\small\item\em Add a partition name. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_search_request_a0a4109d162e0f722bf1bd3f4bdecf198}\label{classmilvus_1_1_search_request_a0a4109d162e0f722bf1bd3f4bdecf198}} 
+\mbox{\hyperlink{classmilvus_1_1_search_request}{Search\+Request}} \& \mbox{\hyperlink{classmilvus_1_1_search_request_a0a4109d162e0f722bf1bd3f4bdecf198}{With\+Output\+Fields}} (std\+::set$<$ std\+::string $>$ \&\&output\+\_\+field\+\_\+names)
+\begin{DoxyCompactList}\small\item\em Set the output field names. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_search_request_a661327b36c5f0df26ccf3332effbca0e}\label{classmilvus_1_1_search_request_a661327b36c5f0df26ccf3332effbca0e}} 
+\mbox{\hyperlink{classmilvus_1_1_search_request}{Search\+Request}} \& \mbox{\hyperlink{classmilvus_1_1_search_request_a661327b36c5f0df26ccf3332effbca0e}{Add\+Output\+Field}} (const std\+::string \&output\+\_\+field)
+\begin{DoxyCompactList}\small\item\em Add an output field. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_search_request_ac4e61fba7f8ef92be6c873d69c050755}\label{classmilvus_1_1_search_request_ac4e61fba7f8ef92be6c873d69c050755}} 
+\mbox{\hyperlink{classmilvus_1_1_search_request}{Search\+Request}} \& \mbox{\hyperlink{classmilvus_1_1_search_request_ac4e61fba7f8ef92be6c873d69c050755}{With\+Consistency\+Level}} (\mbox{\hyperlink{namespacemilvus_a26e8c5ec421df0853e145d04d0fbb414}{Consistency\+Level}} consistency\+\_\+level)
+\begin{DoxyCompactList}\small\item\em Set the consistency level. Read the doc for more info\+: \href{https://milvus.io/docs/consistency.md\#Consistency-Level}{\texttt{ https\+://milvus.\+io/docs/consistency.\+md\#\+Consistency-\/\+Level}}. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_search_request_a099d55b3e5650036df37ab5f3e185ab8}\label{classmilvus_1_1_search_request_a099d55b3e5650036df37ab5f3e185ab8}} 
+\mbox{\hyperlink{classmilvus_1_1_search_request}{Search\+Request}} \& \mbox{\hyperlink{classmilvus_1_1_search_request_a099d55b3e5650036df37ab5f3e185ab8}{With\+Metric\+Type}} (\+::\mbox{\hyperlink{namespacemilvus_a188c0c4910c0aaa1d67c0f089b55c00e}{milvus\+::\+Metric\+Type}} metric\+\_\+type)
+\begin{DoxyCompactList}\small\item\em Specifies the metric type. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_search_request_a3594a51387062359e220b903b12da551}\label{classmilvus_1_1_search_request_a3594a51387062359e220b903b12da551}} 
+\mbox{\hyperlink{classmilvus_1_1_search_request}{Search\+Request}} \& \mbox{\hyperlink{classmilvus_1_1_search_request_a3594a51387062359e220b903b12da551}{Add\+Extra\+Param}} (const std\+::string \&key, const std\+::string \&value)
+\begin{DoxyCompactList}\small\item\em Add extra parameters such as \char`\"{}nlist\char`\"{}, \char`\"{}ef\char`\"{}. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_search_request_a60de01f2b6f79304bcecf2053dc7ef0b}\label{classmilvus_1_1_search_request_a60de01f2b6f79304bcecf2053dc7ef0b}} 
+\mbox{\hyperlink{classmilvus_1_1_search_request}{Search\+Request}} \& \mbox{\hyperlink{classmilvus_1_1_search_request_a60de01f2b6f79304bcecf2053dc7ef0b}{With\+Limit}} (int64\+\_\+t limit)
+\begin{DoxyCompactList}\small\item\em Set search limit(topk). Note\+: this value is stored in the Extra\+Params. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_search_request_a7cce34897e7cc6026c09950168465b9e}\label{classmilvus_1_1_search_request_a7cce34897e7cc6026c09950168465b9e}} 
+\mbox{\hyperlink{classmilvus_1_1_search_request}{Search\+Request}} \& \mbox{\hyperlink{classmilvus_1_1_search_request_a7cce34897e7cc6026c09950168465b9e}{With\+Filter}} (std\+::string filter)
+\begin{DoxyCompactList}\small\item\em Set filter expression. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_search_request_aa45cdf5158a8396fd7025babf5a1a51d}\label{classmilvus_1_1_search_request_aa45cdf5158a8396fd7025babf5a1a51d}} 
+\mbox{\hyperlink{classmilvus_1_1_search_request}{Search\+Request}} \& \mbox{\hyperlink{classmilvus_1_1_search_request_aa45cdf5158a8396fd7025babf5a1a51d}{With\+Anns\+Field}} (const std\+::string \&ann\+\_\+field)
+\begin{DoxyCompactList}\small\item\em Set target field of ann search. \end{DoxyCompactList}\item 
+\mbox{\hyperlink{classmilvus_1_1_search_request}{Search\+Request}} \& \mbox{\hyperlink{classmilvus_1_1_search_request_a853ef7f55289563416466c60b5908368}{Add\+Filter\+Template}} (std\+::string key, const nlohmann\+::json \&filter\+\_\+template)
+\begin{DoxyCompactList}\small\item\em Add a filter template. Only take effect when filter is not empty. Expression template, to improve expression parsing performance in complicated list. Assume user has a filter = \char`\"{}pk $>$ 3 and city in \mbox{[}\char`\"{}beijing\char`\"{}, \char`\"{}shanghai"{}, ......\mbox{]} The long list of city will increase the time cost to parse this expression. So, we provide filter\+Template for this purpose, user can set filter like this\+: filter = \char`\"{}pk $>$ \{age\} and city in \{city\}\char`\"{} filter\+Template = \{\char`\"{}age\char`\"{}\+: 3, \char`\"{}city\char`\"{}\+: \mbox{[}\char`\"{}beijing\char`\"{}, \char`\"{}shanghai\char`\"{}, ......\mbox{]}\} Valid value of a template can be\+: boolean, numeric, string, array. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_search_request_ae7614af502971df47905cdfbb7ac68b1}\label{classmilvus_1_1_search_request_ae7614af502971df47905cdfbb7ac68b1}} 
+\mbox{\hyperlink{classmilvus_1_1_search_request}{Search\+Request}} \& \mbox{\hyperlink{classmilvus_1_1_search_request_ae7614af502971df47905cdfbb7ac68b1}{With\+Filter\+Templates}} (std\+::unordered\+\_\+map$<$ std\+::string, nlohmann\+::json $>$ \&\&filter\+\_\+templates)
+\begin{DoxyCompactList}\small\item\em Set filter templates. Only take effect when filter is not empty. Read the doc for more info\+: \href{https://milvus.io/docs/filtering-templating.md\#Filter-Templating}{\texttt{ https\+://milvus.\+io/docs/filtering-\/templating.\+md\#\+Filter-\/\+Templating}}. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_search_request_aa8617bb9080425d5af180d8df27b6447}\label{classmilvus_1_1_search_request_aa8617bb9080425d5af180d8df27b6447}} 
+int64\+\_\+t \mbox{\hyperlink{classmilvus_1_1_search_request_aa8617bb9080425d5af180d8df27b6447}{Offset}} () const
+\begin{DoxyCompactList}\small\item\em Get offset value. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_search_request_ad33bc226baee2874e048bf6ad0e31ee3}\label{classmilvus_1_1_search_request_ad33bc226baee2874e048bf6ad0e31ee3}} 
+void \mbox{\hyperlink{classmilvus_1_1_search_request_ad33bc226baee2874e048bf6ad0e31ee3}{Set\+Offset}} (int64\+\_\+t offset)
+\begin{DoxyCompactList}\small\item\em Set offset value. Note\+: this value is stored in the \mbox{\hyperlink{classmilvus_1_1_search_request_base_a005d263c1d59d32522de9893f174ffdd}{Sub\+Search\+Request\+::\+Extra\+Params}}. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_search_request_a80b1d8d3e499271dc21987652897c741}\label{classmilvus_1_1_search_request_a80b1d8d3e499271dc21987652897c741}} 
+\mbox{\hyperlink{classmilvus_1_1_search_request}{Search\+Request}} \& \mbox{\hyperlink{classmilvus_1_1_search_request_a80b1d8d3e499271dc21987652897c741}{With\+Offset}} (int64\+\_\+t offset)
+\begin{DoxyCompactList}\small\item\em Set offset value. Note\+: this value is stored in the \mbox{\hyperlink{classmilvus_1_1_search_request_base_a005d263c1d59d32522de9893f174ffdd}{Sub\+Search\+Request\+::\+Extra\+Params}}. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_search_request_af9e78b60e441299960891bf5f2b2280d}\label{classmilvus_1_1_search_request_af9e78b60e441299960891bf5f2b2280d}} 
+int64\+\_\+t \mbox{\hyperlink{classmilvus_1_1_search_request_af9e78b60e441299960891bf5f2b2280d}{Round\+Decimal}} () const
+\begin{DoxyCompactList}\small\item\em Get round decimal value. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_search_request_a104612705bf65a49de22d6df0ac9fa12}\label{classmilvus_1_1_search_request_a104612705bf65a49de22d6df0ac9fa12}} 
+void \mbox{\hyperlink{classmilvus_1_1_search_request_a104612705bf65a49de22d6df0ac9fa12}{Set\+Round\+Decimal}} (int64\+\_\+t round\+\_\+decimal)
+\begin{DoxyCompactList}\small\item\em Set round decimal value. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_search_request_a1033ee77d27063978cd49fafc85926e8}\label{classmilvus_1_1_search_request_a1033ee77d27063978cd49fafc85926e8}} 
+\mbox{\hyperlink{classmilvus_1_1_search_request}{Search\+Request}} \& \mbox{\hyperlink{classmilvus_1_1_search_request_a1033ee77d27063978cd49fafc85926e8}{With\+Round\+Decimal}} (int64\+\_\+t round\+\_\+decimal)
+\begin{DoxyCompactList}\small\item\em Set round decimal value. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_search_request_a08b44be4257cc71eb4d57664e4cf4138}\label{classmilvus_1_1_search_request_a08b44be4257cc71eb4d57664e4cf4138}} 
+bool \mbox{\hyperlink{classmilvus_1_1_search_request_a08b44be4257cc71eb4d57664e4cf4138}{Ignore\+Growing}} () const
+\begin{DoxyCompactList}\small\item\em Get ignore growing flag. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_search_request_ac2d60592c42806cca89b5d922ee021b1}\label{classmilvus_1_1_search_request_ac2d60592c42806cca89b5d922ee021b1}} 
+void \mbox{\hyperlink{classmilvus_1_1_search_request_ac2d60592c42806cca89b5d922ee021b1}{Set\+Ignore\+Growing}} (bool ignore\+\_\+growing)
+\begin{DoxyCompactList}\small\item\em Set ignore growing flag. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_search_request_ae672e93b4229bddb19ba2d77e9bb42e5}\label{classmilvus_1_1_search_request_ae672e93b4229bddb19ba2d77e9bb42e5}} 
+\mbox{\hyperlink{classmilvus_1_1_search_request}{Search\+Request}} \& \mbox{\hyperlink{classmilvus_1_1_search_request_ae672e93b4229bddb19ba2d77e9bb42e5}{With\+Ignore\+Growing}} (bool ignore\+\_\+growing)
+\begin{DoxyCompactList}\small\item\em Set ignore growing flag. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_search_request_a547375101624bd2f4b9a2580faeb6642}\label{classmilvus_1_1_search_request_a547375101624bd2f4b9a2580faeb6642}} 
+std\+::string \mbox{\hyperlink{classmilvus_1_1_search_request_a547375101624bd2f4b9a2580faeb6642}{Group\+By\+Field}} () const
+\begin{DoxyCompactList}\small\item\em Get group by field value. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_search_request_a05e7fc2c2d07d94de7e27cec92189269}\label{classmilvus_1_1_search_request_a05e7fc2c2d07d94de7e27cec92189269}} 
+void \mbox{\hyperlink{classmilvus_1_1_search_request_a05e7fc2c2d07d94de7e27cec92189269}{Set\+Group\+By\+Field}} (const std\+::string \&field\+\_\+name)
+\begin{DoxyCompactList}\small\item\em Set group by field value. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_search_request_ace7426df871a6fc98c22f49dd5783ffb}\label{classmilvus_1_1_search_request_ace7426df871a6fc98c22f49dd5783ffb}} 
+\mbox{\hyperlink{classmilvus_1_1_search_request}{Search\+Request}} \& \mbox{\hyperlink{classmilvus_1_1_search_request_ace7426df871a6fc98c22f49dd5783ffb}{With\+Group\+By\+Field}} (const std\+::string \&field\+\_\+name)
+\begin{DoxyCompactList}\small\item\em Set group by field value. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_search_request_aa3464b0aca4d70335d74a74f44a6e5fc}\label{classmilvus_1_1_search_request_aa3464b0aca4d70335d74a74f44a6e5fc}} 
+int64\+\_\+t \mbox{\hyperlink{classmilvus_1_1_search_request_aa3464b0aca4d70335d74a74f44a6e5fc}{Group\+Size}} () const
+\begin{DoxyCompactList}\small\item\em Get group size value. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_search_request_a1bdf7103d2aa544e7774e117d8945dac}\label{classmilvus_1_1_search_request_a1bdf7103d2aa544e7774e117d8945dac}} 
+void \mbox{\hyperlink{classmilvus_1_1_search_request_a1bdf7103d2aa544e7774e117d8945dac}{Set\+Group\+Size}} (int64\+\_\+t group\+\_\+size)
+\begin{DoxyCompactList}\small\item\em Set group size value. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_search_request_ae8f0a8103497504b835ea2faf86cc37b}\label{classmilvus_1_1_search_request_ae8f0a8103497504b835ea2faf86cc37b}} 
+\mbox{\hyperlink{classmilvus_1_1_search_request}{Search\+Request}} \& \mbox{\hyperlink{classmilvus_1_1_search_request_ae8f0a8103497504b835ea2faf86cc37b}{With\+Group\+Size}} (int64\+\_\+t group\+\_\+size)
+\begin{DoxyCompactList}\small\item\em Set group size value. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_search_request_a66b5460acbefdc1aa8e33af4a57a6c41}\label{classmilvus_1_1_search_request_a66b5460acbefdc1aa8e33af4a57a6c41}} 
+bool \mbox{\hyperlink{classmilvus_1_1_search_request_a66b5460acbefdc1aa8e33af4a57a6c41}{Strict\+Group\+Size}} () const
+\begin{DoxyCompactList}\small\item\em Get strict group size flag. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_search_request_a1dd2d7da9bee8f0a2976abc6c1c5cb82}\label{classmilvus_1_1_search_request_a1dd2d7da9bee8f0a2976abc6c1c5cb82}} 
+void \mbox{\hyperlink{classmilvus_1_1_search_request_a1dd2d7da9bee8f0a2976abc6c1c5cb82}{Set\+Strict\+Group\+Size}} (bool strict\+\_\+group\+\_\+size)
+\begin{DoxyCompactList}\small\item\em Set strict group size flag. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_search_request_a09595f09e9636b176e6bef651479e59f}\label{classmilvus_1_1_search_request_a09595f09e9636b176e6bef651479e59f}} 
+\mbox{\hyperlink{classmilvus_1_1_search_request}{Search\+Request}} \& \mbox{\hyperlink{classmilvus_1_1_search_request_a09595f09e9636b176e6bef651479e59f}{With\+Strict\+Group\+Size}} (bool strict\+\_\+group\+\_\+size)
+\begin{DoxyCompactList}\small\item\em Set strict group size flag. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_search_request_afad45b6ffeecec0a4ec0c9cf37f72fe4}\label{classmilvus_1_1_search_request_afad45b6ffeecec0a4ec0c9cf37f72fe4}} 
+\mbox{\hyperlink{classmilvus_1_1_search_request}{Search\+Request}} \& \mbox{\hyperlink{classmilvus_1_1_search_request_afad45b6ffeecec0a4ec0c9cf37f72fe4}{Add\+Binary\+Vector}} (const std\+::string \&vector)
+\begin{DoxyCompactList}\small\item\em Add a binary vector to search. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_search_request_a294a859e708ba4d4acee5d1962a6356a}\label{classmilvus_1_1_search_request_a294a859e708ba4d4acee5d1962a6356a}} 
+\mbox{\hyperlink{classmilvus_1_1_search_request}{Search\+Request}} \& \mbox{\hyperlink{classmilvus_1_1_search_request_a294a859e708ba4d4acee5d1962a6356a}{Add\+Binary\+Vector}} (const Binary\+Vec\+Field\+Data\+::\+ElementT \&vector)
+\begin{DoxyCompactList}\small\item\em Add a binary vector to search. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_search_request_a4b830ea69aebd5ebfe35df17f20dd9af}\label{classmilvus_1_1_search_request_a4b830ea69aebd5ebfe35df17f20dd9af}} 
+\mbox{\hyperlink{classmilvus_1_1_search_request}{Search\+Request}} \& \mbox{\hyperlink{classmilvus_1_1_search_request_a4b830ea69aebd5ebfe35df17f20dd9af}{Add\+Float\+Vector}} (const \mbox{\hyperlink{classmilvus_1_1_field_data_a921c839e5d8df646cb7a20029ddb17f6}{Float\+Vec\+Field\+Data\+::\+ElementT}} \&vector)
+\begin{DoxyCompactList}\small\item\em Add a float vector to search. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_search_request_ac6da024711eba70961501717c6da4525}\label{classmilvus_1_1_search_request_ac6da024711eba70961501717c6da4525}} 
+\mbox{\hyperlink{classmilvus_1_1_search_request}{Search\+Request}} \& \mbox{\hyperlink{classmilvus_1_1_search_request_ac6da024711eba70961501717c6da4525}{Add\+Sparse\+Vector}} (const \mbox{\hyperlink{classmilvus_1_1_field_data_a921c839e5d8df646cb7a20029ddb17f6}{Sparse\+Float\+Vec\+Field\+Data\+::\+ElementT}} \&vector)
+\begin{DoxyCompactList}\small\item\em Add a sparse vector to search. \end{DoxyCompactList}\item 
+\mbox{\hyperlink{classmilvus_1_1_search_request}{Search\+Request}} \& \mbox{\hyperlink{classmilvus_1_1_search_request_a0bf43f73d818e6e77b334d6491dc0ed4}{Add\+Sparse\+Vector}} (const nlohmann\+::json \&vector)
+\begin{DoxyCompactList}\small\item\em Add a sparse vector to search. We support two patterns of sparse vector\+: \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_search_request_ad9f69f00a11eb3fcdee2a9141db0d055}\label{classmilvus_1_1_search_request_ad9f69f00a11eb3fcdee2a9141db0d055}} 
+\mbox{\hyperlink{classmilvus_1_1_search_request}{Search\+Request}} \& \mbox{\hyperlink{classmilvus_1_1_search_request_ad9f69f00a11eb3fcdee2a9141db0d055}{Add\+Float16\+Vector}} (const \mbox{\hyperlink{classmilvus_1_1_field_data_a921c839e5d8df646cb7a20029ddb17f6}{Float16\+Vec\+Field\+Data\+::\+ElementT}} \&vector)
+\begin{DoxyCompactList}\small\item\em Add a float16 vector to search. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_search_request_aa061629a9b2ef96d9c44131d7a7eea7e}\label{classmilvus_1_1_search_request_aa061629a9b2ef96d9c44131d7a7eea7e}} 
+\mbox{\hyperlink{classmilvus_1_1_search_request}{Search\+Request}} \& \mbox{\hyperlink{classmilvus_1_1_search_request_aa061629a9b2ef96d9c44131d7a7eea7e}{Add\+Float16\+Vector}} (const std\+::vector$<$ float $>$ \&vector)
+\begin{DoxyCompactList}\small\item\em Add a float16 vector to search. This method automatically converts the float array to float16 binary. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_search_request_a5a92d537c1d0c542707938e1b6198f08}\label{classmilvus_1_1_search_request_a5a92d537c1d0c542707938e1b6198f08}} 
+\mbox{\hyperlink{classmilvus_1_1_search_request}{Search\+Request}} \& \mbox{\hyperlink{classmilvus_1_1_search_request_a5a92d537c1d0c542707938e1b6198f08}{Add\+BFloat16\+Vector}} (const \mbox{\hyperlink{classmilvus_1_1_field_data_a921c839e5d8df646cb7a20029ddb17f6}{BFloat16\+Vec\+Field\+Data\+::\+ElementT}} \&vector)
+\begin{DoxyCompactList}\small\item\em Add a bfloat16 vector to search. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_search_request_adef5699cb03fa1d153e1242a96716357}\label{classmilvus_1_1_search_request_adef5699cb03fa1d153e1242a96716357}} 
+\mbox{\hyperlink{classmilvus_1_1_search_request}{Search\+Request}} \& \mbox{\hyperlink{classmilvus_1_1_search_request_adef5699cb03fa1d153e1242a96716357}{Add\+BFloat16\+Vector}} (const std\+::vector$<$ float $>$ \&vector)
+\begin{DoxyCompactList}\small\item\em Add a bfloat16 vector to search. This method automatically converts the float array to bfloat16 binary. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_search_request_aa5aa593fa2377554a79952cec3b25bb5}\label{classmilvus_1_1_search_request_aa5aa593fa2377554a79952cec3b25bb5}} 
+\mbox{\hyperlink{classmilvus_1_1_search_request}{Search\+Request}} \& \mbox{\hyperlink{classmilvus_1_1_search_request_aa5aa593fa2377554a79952cec3b25bb5}{Add\+Embedded\+Text}} (const std\+::string \&text)
+\begin{DoxyCompactList}\small\item\em Add a text to search. Only works for BM25 function. Read the doc for more info\+: \href{https://milvus.io/docs/full-text-search.md\#Full-Text-Search}{\texttt{ https\+://milvus.\+io/docs/full-\/text-\/search.\+md\#\+Full-\/\+Text-\/\+Search}}. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+Used by \mbox{\hyperlink{classmilvus_1_1_milvus_client_v2_a73d98aca0639840ba941c3693a87f054}{Milvus\+Client\+V2\+::\+Search()}} 
+
+\doxysubsection{Member Function Documentation}
+\mbox{\Hypertarget{classmilvus_1_1_search_request_a853ef7f55289563416466c60b5908368}\label{classmilvus_1_1_search_request_a853ef7f55289563416466c60b5908368}} 
+\index{milvus::SearchRequest@{milvus::SearchRequest}!AddFilterTemplate@{AddFilterTemplate}}
+\index{AddFilterTemplate@{AddFilterTemplate}!milvus::SearchRequest@{milvus::SearchRequest}}
+\doxysubsubsection{\texorpdfstring{AddFilterTemplate()}{AddFilterTemplate()}}
+{\footnotesize\ttfamily \mbox{\hyperlink{classmilvus_1_1_search_request}{Search\+Request}} \& milvus\+::\+Search\+Request\+::\+Add\+Filter\+Template (\begin{DoxyParamCaption}\item[{std\+::string}]{key,  }\item[{const nlohmann\+::json \&}]{filter\+\_\+template }\end{DoxyParamCaption})}
+
+
+
+Add a filter template. Only take effect when filter is not empty. Expression template, to improve expression parsing performance in complicated list. Assume user has a filter = \char`\"{}pk $>$ 3 and city in \mbox{[}\char`\"{}beijing\char`\"{}, \char`\"{}shanghai"{}, ......\mbox{]} The long list of city will increase the time cost to parse this expression. So, we provide filter\+Template for this purpose, user can set filter like this\+: filter = \char`\"{}pk $>$ \{age\} and city in \{city\}\char`\"{} filter\+Template = \{\char`\"{}age\char`\"{}\+: 3, \char`\"{}city\char`\"{}\+: \mbox{[}\char`\"{}beijing\char`\"{}, \char`\"{}shanghai\char`\"{}, ......\mbox{]}\} Valid value of a template can be\+: boolean, numeric, string, array. 
+
+Read the doc for more info\+: \href{https://milvus.io/docs/filtering-templating.md\#Filter-Templating}{\texttt{ https\+://milvus.\+io/docs/filtering-\/templating.\+md\#\+Filter-\/\+Templating}} \mbox{\Hypertarget{classmilvus_1_1_search_request_a0bf43f73d818e6e77b334d6491dc0ed4}\label{classmilvus_1_1_search_request_a0bf43f73d818e6e77b334d6491dc0ed4}} 
+\index{milvus::SearchRequest@{milvus::SearchRequest}!AddSparseVector@{AddSparseVector}}
+\index{AddSparseVector@{AddSparseVector}!milvus::SearchRequest@{milvus::SearchRequest}}
+\doxysubsubsection{\texorpdfstring{AddSparseVector()}{AddSparseVector()}}
+{\footnotesize\ttfamily \mbox{\hyperlink{classmilvus_1_1_search_request}{Search\+Request}} \& milvus\+::\+Search\+Request\+::\+Add\+Sparse\+Vector (\begin{DoxyParamCaption}\item[{const nlohmann\+::json \&}]{vector }\end{DoxyParamCaption})}
+
+
+
+Add a sparse vector to search. We support two patterns of sparse vector\+: 
+
+
+\begin{DoxyEnumerate}
+\item a json dict like \{\char`\"{}1\char`\"{}\+: 0.\+1, \char`\"{}5\char`\"{}\+: 0.\+2, \char`\"{}8\char`\"{}\+: 0.\+15\}.
+\item a json dict like \{\char`\"{}indices\char`\"{}\+: \mbox{[}1, 5, 8\mbox{]}, \char`\"{}values\char`\"{}\+: \mbox{[}0.\+1, 0.\+2, 0.\+15\mbox{]}\}. 
+\end{DoxyEnumerate}
+
+The documentation for this class was generated from the following files\+:\begin{DoxyCompactItemize}
+\item 
+src/include/milvus/request/dql/Search\+Request.\+h\item 
+src/impl/request/dql/Search\+Request.\+cpp\end{DoxyCompactItemize}

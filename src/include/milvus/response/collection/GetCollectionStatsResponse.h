@@ -30,9 +30,15 @@ class GetCollectionStatsResponse {
      */
     GetCollectionStatsResponse() = default;
 
-    // Getter and Setter for stats_
+    /**
+     * @brief Get collection stats.
+     */
     const CollectionStat&
     Stats() const;
+
+    /**
+     * @brief Set collection stats.
+     */
     void
     SetStats(CollectionStat&& stats);
 

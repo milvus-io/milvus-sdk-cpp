@@ -34,25 +34,25 @@ class UpdateResourceGroupsRequest {
     UpdateResourceGroupsRequest() = default;
 
     /**
-     * @brief Get the resource groups to be updaed.
+     * @brief Get the resource groups to be updated.
      */
     const std::unordered_map<std::string, ResourceGroupConfig>&
     Groups() const;
 
     /**
-     * @brief Set the resource groups to be updaed.
+     * @brief Set the resource groups to be updated.
      */
     void
     SetGroups(std::unordered_map<std::string, ResourceGroupConfig>&& groups);
 
     /**
-     * @brief Set the resource groups to be updaed.
+     * @brief Set the resource groups to be updated.
      */
     UpdateResourceGroupsRequest&
     WithGroups(std::unordered_map<std::string, ResourceGroupConfig>&& groups);
 
     /**
-     * @brief Add a resource group to be updaed.
+     * @brief Add a resource group to be updated.
      */
     UpdateResourceGroupsRequest&
     AddGroup(const std::string& name, ResourceGroupConfig&& config);

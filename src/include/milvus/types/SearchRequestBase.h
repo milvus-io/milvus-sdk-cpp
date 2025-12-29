@@ -38,19 +38,19 @@ class SearchRequestBase {
 
  public:
     /**
-     * @brief Get filter expression
+     * @brief Get filter expression.
      */
     const std::string&
     Filter() const;
 
     /**
-     * @brief Set filter expression
+     * @brief Set filter expression.
      */
     Status
     SetFilter(std::string filter);
 
     /**
-     * @brief Add a filter template
+     * @brief Add a filter template.
      * Expression template, to improve expression parsing performance in complicated list.
      * Assume user has a filter = "pk > 3 and city in ["beijing", "shanghai", ......]
      * The long list of city will increase the time cost to parse this expression.
@@ -58,58 +58,68 @@ class SearchRequestBase {
      *     filter = "pk > {age} and city in {city}"
      *     filterTemplate = {"age": 3, "city": ["beijing", "shanghai", ......]}
      * Valid value of a template can be:
-     *     boolean, numeric, string, array
+     *     boolean, numeric, string, array.
      */
     Status
     AddFilterTemplate(std::string key, const nlohmann::json& filter_template);
 
     /**
-     * @brief Get filter templates
+     * @brief Get filter templates.
      */
     const std::unordered_map<std::string, nlohmann::json>&
     FilterTemplates() const;
 
     /**
-     * @brief Set filter templates
+     * @brief Set filter templates.
      */
     Status
     SetFilterTemplates(std::unordered_map<std::string, nlohmann::json>&& filter_templates);
 
     /**
-     * @brief Get target vectors
+     * @brief Get target vectors.
      */
     FieldDataPtr
     TargetVectors() const;
 
     /**
+<<<<<<< HEAD
      * @brief Add a binary vector to search
+=======
+     * @brief Get embedding lists for struct field ann search.
+     */
+    const std::vector<EmbeddingList>&
+    EmbeddingLists() const;
+
+    /**
+     * @brief Add a binary vector to search.
+>>>>>>> 0932a50 (Add doc (#406))
      */
     Status
     AddBinaryVector(const std::string& vector);
 
     /**
-     * @brief Add a binary vector to search
+     * @brief Add a binary vector to search.
      */
     Status
     AddBinaryVector(const BinaryVecFieldData::ElementT& vector);
 
     /**
-     * @brief Add a float vector to search
+     * @brief Add a float vector to search.
      */
     Status
     AddFloatVector(const FloatVecFieldData::ElementT& vector);
 
     /**
-     * @brief Add a sparse vector to search
+     * @brief Add a sparse vector to search.
      */
     Status
     AddSparseVector(const SparseFloatVecFieldData::ElementT& vector);
 
     /**
-     * @brief Add a sparse vector to search. \n
-     * We support two patterns of sparse vector: \n
-     *  1. a json dict like {"1": 0.1, "5": 0.2, "8": 0.15}
-     *  2. a json dict like {"indices": [1, 5, 8], "values": [0.1, 0.2, 0.15]}
+     * @brief Add a sparse vector to search.
+     * We support two patterns of sparse vector:
+     *  1. a json dict like {"1": 0.1, "5": 0.2, "8": 0.15}.
+     *  2. a json dict like {"indices": [1, 5, 8], "values": [0.1, 0.2, 0.15]}.
      */
     Status
     AddSparseVector(const nlohmann::json& vector);
@@ -121,8 +131,8 @@ class SearchRequestBase {
     AddFloat16Vector(const Float16VecFieldData::ElementT& vector);
 
     /**
-     * @brief Add a float16 vector to search. \n
-     * This method automatically converts the float array to float16 binary
+     * @brief Add a float16 vector to search.
+     * This method automatically converts the float array to float16 binary.
      */
     Status
     AddFloat16Vector(const std::vector<float>& vector);
@@ -134,14 +144,14 @@ class SearchRequestBase {
     AddBFloat16Vector(const BFloat16VecFieldData::ElementT& vector);
 
     /**
-     * @brief Add a bfloat16 vector to search. \n
-     * This method automatically converts the float array to bfloat16 binary
+     * @brief Add a bfloat16 vector to search.
+     * This method automatically converts the float array to bfloat16 binary.
      */
     Status
     AddBFloat16Vector(const std::vector<float>& vector);
 
     /**
-     * @brief Add a text to search. Only works for BM25 function \n
+     * @brief Add a text to search. Only works for BM25 function.
      */
     Status
     AddEmbeddedText(const std::string& text);
@@ -153,81 +163,81 @@ class SearchRequestBase {
     AnnsField() const;
 
     /**
-     * @brief Set target field of ann search
+     * @brief Set target field of ann search.
      */
     Status
     SetAnnsField(const std::string& ann_field);
 
     /**
-     * @brief Get search limit(topk)
+     * @brief Get search limit(topk).
      */
     int64_t
     Limit() const;
 
     /**
-     * @brief Set search limit(topk)
+     * @brief Set search limit(topk).
      */
     Status
     SetLimit(int64_t limit);
 
     /**
-     * @brief Get the metric type
+     * @brief Get the metric type.
      */
     ::milvus::MetricType
     MetricType() const;
 
     /**
-     * @brief Specifies the metric type
+     * @brief Specifies the metric type.
      */
     Status
     SetMetricType(::milvus::MetricType metric_type);
 
     /**
-     * @brief Add extra param
-     * Note: int v2.4, we redefine this method, old client code might be affected
+     * @brief Add extra param.
+     * Note: int v2.4, we redefine this method, old client code might be affected.
      */
     Status
     AddExtraParam(const std::string& key, const std::string& value);
 
     /**
-     * @brief Get extra param
-     * Note: int v2.4, we redefine this method, old client code might be affected
+     * @brief Get extra param.
+     * Note: int v2.4, we redefine this method, old client code might be affected.
      */
     const std::unordered_map<std::string, std::string>&
     ExtraParams() const;
 
     /**
-     * @brief Get range radius
+     * @brief Get range radius.
      * @return
      */
     double
     Radius() const;
 
     /**
-     * @brief Set range radius
-     * Note: this value is stored in the ExtraParams
+     * @brief Set range radius.
+     * Note: this value is stored in the ExtraParams.
      * @return
      */
     Status
     SetRadius(double value);
 
     /**
-     * @brief Get range filter
+     * @brief Get range filter.
      * @return
      */
     double
     RangeFilter() const;
 
     /**
-     * @brief Set range filter
-     * Note: this value is stored in the ExtraParams
+     * @brief Set range filter.
+     * Note: this value is stored in the ExtraParams.
      * @return
      */
     Status
     SetRangeFilter(double value);
 
     /**
-     * @brief Set range radius
+     * @brief Set range radius.
      * @param range_filter while radius sets the outer limit of the search, range_filter can be optionally used to
      * define an inner boundary, creating a distance range within which vectors must fall to be considered matches.
      * @param radius defines the outer boundary of your search space. Only vectors that are within this distance from
@@ -252,38 +262,38 @@ class SearchRequestBase {
     ///////////////////////////////////////////////////////////////////////////////////////
     // deprecated methods
     /**
-     * @brief Add a binary vector to search
+     * @brief Add a binary vector to search.
      * @deprecated replaced by same name method without field_name parameter, use SetAnnField() to set ann field name.
      */
     Status
     AddBinaryVector(std::string field_name, const std::string& vector);
 
     /**
-     * @brief Add a binary vector to search
+     * @brief Add a binary vector to search.
      * @deprecated replaced by same name method without field_name parameter
      */
     Status
     AddBinaryVector(std::string field_name, const BinaryVecFieldData::ElementT& vector);
 
     /**
-     * @brief Add a float vector to search
+     * @brief Add a float vector to search.
      * @deprecated replaced by same name method without field_name parameter, use SetAnnField() to set ann field name.
      */
     Status
     AddFloatVector(std::string field_name, const FloatVecFieldData::ElementT& vector);
 
     /**
-     * @brief Add a sparse vector to search
+     * @brief Add a sparse vector to search.
      * @deprecated replaced by same name method without field_name parameter, use SetAnnField() to set ann field name.
      */
     Status
     AddSparseVector(std::string field_name, const SparseFloatVecFieldData::ElementT& vector);
 
     /**
-     * @brief Add a sparse vector to search. \n
-     * We support two patterns of sparse vector: \n
-     *  1. a json dict like {"1": 0.1, "5": 0.2, "8": 0.15}
-     *  2. a json dict like {"indices": [1, 5, 8], "values": [0.1, 0.2, 0.15]}
+     * @brief Add a sparse vector to search.
+     * We support two patterns of sparse vector:
+     *  1. a json dict like {"1": 0.1, "5": 0.2, "8": 0.15}.
+     *  2. a json dict like {"indices": [1, 5, 8], "values": [0.1, 0.2, 0.15]}.
      * @deprecated replaced by same name method without field_name parameter, use SetAnnField() to set ann field name.
      */
     Status
@@ -297,8 +307,8 @@ class SearchRequestBase {
     AddFloat16Vector(std::string field_name, const Float16VecFieldData::ElementT& vector);
 
     /**
-     * @brief Add a float16 vector to search. \n
-     * This method automatically converts the float array to float16 binary
+     * @brief Add a float16 vector to search.
+     * This method automatically converts the float array to float16 binary.
      * @deprecated replaced by same name method without field_name parameter, use SetAnnField() to set ann field name.
      */
     Status
@@ -312,15 +322,15 @@ class SearchRequestBase {
     AddBFloat16Vector(std::string field_name, const BFloat16VecFieldData::ElementT& vector);
 
     /**
-     * @brief Add a bfloat16 vector to search. \n
-     * This method automatically converts the float array to bfloat16 binary
+     * @brief Add a bfloat16 vector to search.
+     * This method automatically converts the float array to bfloat16 binary.
      * @deprecated replaced by same name method without field_name parameter, use SetAnnField() to set ann field name.
      */
     Status
     AddBFloat16Vector(std::string field_name, const std::vector<float>& vector);
 
     /**
-     * @brief Add a text to search. Only works for BM25 function \n
+     * @brief Add a text to search. Only works for BM25 function.
      * @deprecated replaced by same name method without field_name parameter, use SetAnnField() to set ann field name.
      */
     Status

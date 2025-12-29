@@ -32,15 +32,27 @@ class GetLoadStateResponse {
      */
     GetLoadStateResponse() = default;
 
-    // Getter and Setter for state_
+    /**
+     * @brief Get loading state.
+     */
     LoadState
     State() const;
+
+    /**
+     * @brief Set loading state.
+     */
     void
     SetState(LoadState state);
 
-    // Getter and Setter for progress_
+    /**
+     * @brief Get percent value of loading progress.
+     */
     int64_t
     Progress() const;
+
+    /**
+     * @brief Set percent value of loading progress.
+     */
     void
     SetProgress(int64_t progress);
 

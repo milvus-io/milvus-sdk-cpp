@@ -30,10 +30,15 @@ class GetCompactionStateResponse {
      */
     GetCompactionStateResponse() = default;
 
-    // Getter and Setter for state_
+    /**
+     * @brief Get state of the compaction.
+     */
     const CompactionState&
     State() const;
 
+    /**
+     * @brief Set state of the compaction.
+     */
     void
     SetState(const CompactionState& state);
 

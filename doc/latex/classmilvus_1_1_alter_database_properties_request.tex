@@ -1,0 +1,47 @@
+\hypertarget{classmilvus_1_1_alter_database_properties_request}{}\doxysection{milvus\+::Alter\+Database\+Properties\+Request Class Reference}
+\label{classmilvus_1_1_alter_database_properties_request}\index{milvus::AlterDatabasePropertiesRequest@{milvus::AlterDatabasePropertiesRequest}}
+
+
+Used by \mbox{\hyperlink{classmilvus_1_1_milvus_client_v2_a7ced323735235f88a218515de06da197}{Milvus\+Client\+V2\+::\+Alter\+Database\+Properties()}}  
+
+
+
+
+{\ttfamily \#include $<$Alter\+Database\+Properties\+Request.\+h$>$}
+
+\doxysubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{classmilvus_1_1_alter_database_properties_request_aa474b142f50d4becee4fc9e8b3a82dbd}\label{classmilvus_1_1_alter_database_properties_request_aa474b142f50d4becee4fc9e8b3a82dbd}} 
+\mbox{\hyperlink{classmilvus_1_1_alter_database_properties_request_aa474b142f50d4becee4fc9e8b3a82dbd}{Alter\+Database\+Properties\+Request}} ()=default
+\begin{DoxyCompactList}\small\item\em Constructor. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_alter_database_properties_request_afe6dcef10f7d600635d32f3fedf4fdfb}\label{classmilvus_1_1_alter_database_properties_request_afe6dcef10f7d600635d32f3fedf4fdfb}} 
+const std\+::string \& \mbox{\hyperlink{classmilvus_1_1_alter_database_properties_request_afe6dcef10f7d600635d32f3fedf4fdfb}{Database\+Name}} () const
+\begin{DoxyCompactList}\small\item\em Database name. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_alter_database_properties_request_a5c4061e814e058db5e8958d3052d6bc0}\label{classmilvus_1_1_alter_database_properties_request_a5c4061e814e058db5e8958d3052d6bc0}} 
+void \mbox{\hyperlink{classmilvus_1_1_alter_database_properties_request_a5c4061e814e058db5e8958d3052d6bc0}{Set\+Database\+Name}} (const std\+::string \&db\+\_\+name)
+\begin{DoxyCompactList}\small\item\em Set database name. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_alter_database_properties_request_a141d42e28a93dab02e82517392e62487}\label{classmilvus_1_1_alter_database_properties_request_a141d42e28a93dab02e82517392e62487}} 
+\mbox{\hyperlink{classmilvus_1_1_alter_database_properties_request}{Alter\+Database\+Properties\+Request}} \& \mbox{\hyperlink{classmilvus_1_1_alter_database_properties_request_a141d42e28a93dab02e82517392e62487}{With\+Database\+Name}} (const std\+::string \&db\+\_\+name)
+\begin{DoxyCompactList}\small\item\em Set database name. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_alter_database_properties_request_a2d16a9507af59187891dbfe043ac8ea5}\label{classmilvus_1_1_alter_database_properties_request_a2d16a9507af59187891dbfe043ac8ea5}} 
+const std\+::unordered\+\_\+map$<$ std\+::string, std\+::string $>$ \& \mbox{\hyperlink{classmilvus_1_1_alter_database_properties_request_a2d16a9507af59187891dbfe043ac8ea5}{Properties}} () const
+\begin{DoxyCompactList}\small\item\em Get altered properties. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_alter_database_properties_request_a6d3cb2ab697506b0b9451446256ad6fd}\label{classmilvus_1_1_alter_database_properties_request_a6d3cb2ab697506b0b9451446256ad6fd}} 
+void \mbox{\hyperlink{classmilvus_1_1_alter_database_properties_request_a6d3cb2ab697506b0b9451446256ad6fd}{Set\+Properties}} (std\+::unordered\+\_\+map$<$ std\+::string, std\+::string $>$ \&\&properties)
+\begin{DoxyCompactList}\small\item\em Set altered properties of this database. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_alter_database_properties_request_af397a4ef7ef019a0b2bc5bb52913641f}\label{classmilvus_1_1_alter_database_properties_request_af397a4ef7ef019a0b2bc5bb52913641f}} 
+\mbox{\hyperlink{classmilvus_1_1_alter_database_properties_request}{Alter\+Database\+Properties\+Request}} \& \mbox{\hyperlink{classmilvus_1_1_alter_database_properties_request_af397a4ef7ef019a0b2bc5bb52913641f}{With\+Properties}} (std\+::unordered\+\_\+map$<$ std\+::string, std\+::string $>$ \&\&properties)
+\begin{DoxyCompactList}\small\item\em Set altered properties of this database. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_alter_database_properties_request_aff2e8f189b13378e5fe431323d7f1484}\label{classmilvus_1_1_alter_database_properties_request_aff2e8f189b13378e5fe431323d7f1484}} 
+\mbox{\hyperlink{classmilvus_1_1_alter_database_properties_request}{Alter\+Database\+Properties\+Request}} \& \mbox{\hyperlink{classmilvus_1_1_alter_database_properties_request_aff2e8f189b13378e5fe431323d7f1484}{Add\+Property}} (const std\+::string \&key, const std\+::string \&property)
+\begin{DoxyCompactList}\small\item\em Add a property of this database. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+Used by \mbox{\hyperlink{classmilvus_1_1_milvus_client_v2_a7ced323735235f88a218515de06da197}{Milvus\+Client\+V2\+::\+Alter\+Database\+Properties()}} 
+
+The documentation for this class was generated from the following files\+:\begin{DoxyCompactItemize}
+\item 
+src/include/milvus/request/database/Alter\+Database\+Properties\+Request.\+h\item 
+src/impl/request/database/Alter\+Database\+Properties\+Request.\+cpp\end{DoxyCompactItemize}

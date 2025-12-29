@@ -1,0 +1,58 @@
+\hypertarget{classmilvus_1_1_alter_index_properties_request}{}\doxysection{milvus\+::Alter\+Index\+Properties\+Request Class Reference}
+\label{classmilvus_1_1_alter_index_properties_request}\index{milvus::AlterIndexPropertiesRequest@{milvus::AlterIndexPropertiesRequest}}
+
+
+Used by \mbox{\hyperlink{classmilvus_1_1_milvus_client_v2_ab25296300c83964a19610ebe2443b5bc}{Milvus\+Client\+V2\+::\+Alter\+Index\+Properties()}}  
+
+
+
+
+{\ttfamily \#include $<$Alter\+Index\+Properties\+Request.\+h$>$}
+
+
+
+Inherits \mbox{\hyperlink{classmilvus_1_1_index_request_base}{milvus\+::\+Index\+Request\+Base}}.
+
+\doxysubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{classmilvus_1_1_alter_index_properties_request_ae5d0a3c6de8d6245e144185247ce1ceb}\label{classmilvus_1_1_alter_index_properties_request_ae5d0a3c6de8d6245e144185247ce1ceb}} 
+\mbox{\hyperlink{classmilvus_1_1_alter_index_properties_request_ae5d0a3c6de8d6245e144185247ce1ceb}{Alter\+Index\+Properties\+Request}} ()=default
+\begin{DoxyCompactList}\small\item\em Constructor. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_alter_index_properties_request_a825088b7717c6e8782ea8157aad894cf}\label{classmilvus_1_1_alter_index_properties_request_a825088b7717c6e8782ea8157aad894cf}} 
+\mbox{\hyperlink{classmilvus_1_1_alter_index_properties_request}{Alter\+Index\+Properties\+Request}} \& \mbox{\hyperlink{classmilvus_1_1_alter_index_properties_request_a825088b7717c6e8782ea8157aad894cf}{With\+Database\+Name}} (const std\+::string \&db\+\_\+name)
+\begin{DoxyCompactList}\small\item\em Set database name in which the collection is created. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_alter_index_properties_request_a96167b1928e2d6b7f0ca89f99820aeb2}\label{classmilvus_1_1_alter_index_properties_request_a96167b1928e2d6b7f0ca89f99820aeb2}} 
+\mbox{\hyperlink{classmilvus_1_1_alter_index_properties_request}{Alter\+Index\+Properties\+Request}} \& \mbox{\hyperlink{classmilvus_1_1_alter_index_properties_request_a96167b1928e2d6b7f0ca89f99820aeb2}{With\+Collection\+Name}} (const std\+::string \&collection\+\_\+name)
+\begin{DoxyCompactList}\small\item\em Set name of the collection. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_alter_index_properties_request_ac74fc8a788beb92f09efd2a696fa2d4d}\label{classmilvus_1_1_alter_index_properties_request_ac74fc8a788beb92f09efd2a696fa2d4d}} 
+const std\+::string \& \mbox{\hyperlink{classmilvus_1_1_alter_index_properties_request_ac74fc8a788beb92f09efd2a696fa2d4d}{Field\+Name}} () const
+\begin{DoxyCompactList}\small\item\em Name of the field, or name of the index. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_alter_index_properties_request_aa1de10d2640f03c0f1722e1a6338c1dc}\label{classmilvus_1_1_alter_index_properties_request_aa1de10d2640f03c0f1722e1a6338c1dc}} 
+void \mbox{\hyperlink{classmilvus_1_1_alter_index_properties_request_aa1de10d2640f03c0f1722e1a6338c1dc}{Set\+Field\+Name}} (const std\+::string \&field\+\_\+name)
+\begin{DoxyCompactList}\small\item\em Set name of the field, or name of the index. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_alter_index_properties_request_aa77b43b5ce9b54ef46fb68fdaf391aa0}\label{classmilvus_1_1_alter_index_properties_request_aa77b43b5ce9b54ef46fb68fdaf391aa0}} 
+\mbox{\hyperlink{classmilvus_1_1_alter_index_properties_request}{Alter\+Index\+Properties\+Request}} \& \mbox{\hyperlink{classmilvus_1_1_alter_index_properties_request_aa77b43b5ce9b54ef46fb68fdaf391aa0}{With\+Field\+Name}} (const std\+::string \&field\+\_\+name)
+\begin{DoxyCompactList}\small\item\em Set name of the field, or name of the index. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_alter_index_properties_request_a7140be5bdb2148f9b1b09ef6f537b49e}\label{classmilvus_1_1_alter_index_properties_request_a7140be5bdb2148f9b1b09ef6f537b49e}} 
+const std\+::unordered\+\_\+map$<$ std\+::string, std\+::string $>$ \& \mbox{\hyperlink{classmilvus_1_1_alter_index_properties_request_a7140be5bdb2148f9b1b09ef6f537b49e}{Properties}} () const
+\begin{DoxyCompactList}\small\item\em Get altered properties. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_alter_index_properties_request_a1bc64410eac724169223d56e4cf4ee78}\label{classmilvus_1_1_alter_index_properties_request_a1bc64410eac724169223d56e4cf4ee78}} 
+void \mbox{\hyperlink{classmilvus_1_1_alter_index_properties_request_a1bc64410eac724169223d56e4cf4ee78}{Set\+Properties}} (std\+::unordered\+\_\+map$<$ std\+::string, std\+::string $>$ \&\&properties)
+\begin{DoxyCompactList}\small\item\em Set altered properties of this index. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_alter_index_properties_request_ab416d99d85d32a9e5459e7e7af14f0d4}\label{classmilvus_1_1_alter_index_properties_request_ab416d99d85d32a9e5459e7e7af14f0d4}} 
+\mbox{\hyperlink{classmilvus_1_1_alter_index_properties_request}{Alter\+Index\+Properties\+Request}} \& \mbox{\hyperlink{classmilvus_1_1_alter_index_properties_request_ab416d99d85d32a9e5459e7e7af14f0d4}{With\+Properties}} (std\+::unordered\+\_\+map$<$ std\+::string, std\+::string $>$ \&\&properties)
+\begin{DoxyCompactList}\small\item\em Set altered properties of this index. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_alter_index_properties_request_a2fbd633ac5579600262da240fec2ad7c}\label{classmilvus_1_1_alter_index_properties_request_a2fbd633ac5579600262da240fec2ad7c}} 
+\mbox{\hyperlink{classmilvus_1_1_alter_index_properties_request}{Alter\+Index\+Properties\+Request}} \& \mbox{\hyperlink{classmilvus_1_1_alter_index_properties_request_a2fbd633ac5579600262da240fec2ad7c}{Add\+Property}} (const std\+::string \&key, const std\+::string \&property)
+\begin{DoxyCompactList}\small\item\em Add a property of this index. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\doxysubsection*{Additional Inherited Members}
+
+
+\doxysubsection{Detailed Description}
+Used by \mbox{\hyperlink{classmilvus_1_1_milvus_client_v2_ab25296300c83964a19610ebe2443b5bc}{Milvus\+Client\+V2\+::\+Alter\+Index\+Properties()}} 
+
+The documentation for this class was generated from the following files\+:\begin{DoxyCompactItemize}
+\item 
+src/include/milvus/request/index/Alter\+Index\+Properties\+Request.\+h\item 
+src/impl/request/index/Alter\+Index\+Properties\+Request.\+cpp\end{DoxyCompactItemize}

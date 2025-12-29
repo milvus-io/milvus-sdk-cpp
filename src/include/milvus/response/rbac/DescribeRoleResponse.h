@@ -30,10 +30,15 @@ class DescribeRoleResponse {
      */
     DescribeRoleResponse() = default;
 
-    // Getter and Setter for desc_
+    /**
+     * @brief Get role description.
+     */
     const RoleDesc&
     Desc() const;
 
+    /**
+     * @brief Set role description.
+     */
     void
     SetDesc(RoleDesc&& descs);
 

@@ -153,7 +153,7 @@ class MilvusClientV2 {
     Connect(const ConnectParam& connect_param) = 0;
 
     /**
-     * @brief Break connections between client and server.
+     * @brief Close connections between client and server.
      *
      * @return Status operation successfully or not
      */
@@ -234,8 +234,9 @@ class MilvusClientV2 {
 
     /**
      * @brief Load collection data into CPU memory of query node.
-     * This api will check collection's loading progress,
-     * waiting until the collection completely loaded into query node.
+     * If the request is sync mode, this api will check collection's loading progress,
+     * waiting until the collection completely loaded into query node. Otherwise, it will
+     * return immediately.
      *
      * @param [in] request input parameters
      * @return Status operation successfully or not
@@ -253,7 +254,7 @@ class MilvusClientV2 {
     ReleaseCollection(const ReleaseCollectionRequest& request) = 0;
 
     /**
-     * @brief Get collection description, including its schema.
+     * @brief Get collection description, including its schema and properties.
      *
      * @param [in] request input parameters
      * @param [out] response output results
@@ -303,6 +304,7 @@ class MilvusClientV2 {
 
     /**
      * @brief Alter a collection's properties.
+     * Read the doc for more info: https://milvus.io/docs/modify-collection.md#Set-Collection-Properties
      *
      * @param [in] request input parameters
      * @return Status operation successfully or not
@@ -321,6 +323,7 @@ class MilvusClientV2 {
 
     /**
      * @brief Alter a field's properties.
+     * Read the doc for more info: https://milvus.io/docs/alter-collection-field.md
      *
      * @param [in] request input parameters
      * @return Status operation successfully or not
@@ -367,8 +370,9 @@ class MilvusClientV2 {
 
     /**
      * @brief Load specific partitions data of one collection into query nodes.
-     * This api will check partition's loading progress,
-     * waiting until all the partitions completely loaded into query node.
+     * If the request is sync mode, this api will check partition's loading progress,
+     * waiting until all the partitions completely loaded into query node. Otherwise,
+     * it will return immediately.
      *
      * @param [in] request input parameters
      * @return Status operation successfully or not
@@ -463,7 +467,7 @@ class MilvusClientV2 {
     UseDatabase(const std::string& db_name) = 0;
 
     /**
-     * @brief Get current used database name.
+     * @brief Get current used database name of the MilvusClient.
      * This API is useful in multi-database scenarios.
      *
      * @param [out] db_name name of the current used database
@@ -523,7 +527,7 @@ class MilvusClientV2 {
     DropDatabaseProperties(const DropDatabasePropertiesRequest& request) = 0;
 
     /**
-     * @brief Describe a database.
+     * @brief Describe a database, including its properties.
      *
      * @param [in] request input parameters
      * @param [out] response output results
@@ -533,7 +537,8 @@ class MilvusClientV2 {
     DescribeDatabase(const DescribeDatabaseRequest& request, DescribeDatabaseResponse& response) = 0;
 
     /**
-     * @brief Create an index on a field. Currently only support index on vector field.
+     * @brief Create indexes on vectir fields or scalar fields. You can specify multiple indexes in one call.
+     * Read the doc for more info: https://milvus.io/docs/index-explained.md
      *
      * @param [in] request input parameters
      * @return Status operation successfully or not
@@ -572,6 +577,7 @@ class MilvusClientV2 {
 
     /**
      * @brief Alter an index's properties.
+     * Read the doc for more info: https://milvus.io/docs/mmap.md#Index-specific-mmap-settings
      *
      * @param [in] request input parameters
      * @return Status operation successfully or not
@@ -589,7 +595,7 @@ class MilvusClientV2 {
     DropIndexProperties(const DropIndexPropertiesRequest& request) = 0;
 
     /**
-     * @brief Insert data into a collection.
+     * @brief Insert data into a collection.You can input column-based data or row-based data.
      *
      * @param [in] request input parameters
      * @param [out] response output results
@@ -599,7 +605,7 @@ class MilvusClientV2 {
     Insert(const InsertRequest& request, InsertResponse& response) = 0;
 
     /**
-     * @brief Upsert entities into a collection.
+     * @brief Upsert entities of a collection.You can input column-based data or row-based data.
      *
      * @param [in] request input parameters
      * @param [out] response output results
@@ -609,7 +615,7 @@ class MilvusClientV2 {
     Upsert(const UpsertRequest& request, UpsertResponse& response) = 0;
 
     /**
-     * @brief Delete entities by filtering condition.
+     * @brief Delete entities by filtering expression or ID array.
      *
      * @param [in] request input parameters
      * @param [out] response output results
@@ -629,10 +635,12 @@ class MilvusClientV2 {
     Search(const SearchRequest& request, SearchResponse& response) = 0;
 
     /**
-     * @brief Get SearchIterator object based on scalar field(s) filtered by boolean expression.
+     * @brief Get SearchIterator object based on scalar field(s) by filtering expression.
+     * Don't disconnect the MilvusClientV2 when the iterator is in using.
      * Note that the order of the returned entities cannot be guaranteed.
+     * Read the doc for more info: https://milvus.io/docs/with-iterators.md
      *
-     * @param [in] request input parameters the input is not const because this interface internally need to
+     * @param [in] request input parameters, the input is not const because this interface internally need to
      * assign the primary key field name to request.
      * @param [out] response output results
      * @return Status operation successfully or not
@@ -642,6 +650,7 @@ class MilvusClientV2 {
 
     /**
      * @brief Hybrid search a collection based on the given parameters and return results.
+     * Read the doc for more info: https://milvus.io/docs/multi-vector-search.md
      *
      * @param [in] request input parameters
      * @param [out] response output results
@@ -661,7 +670,9 @@ class MilvusClientV2 {
     Query(const QueryRequest& request, QueryResponse& response) = 0;
 
     /**
-     * @brief Get QueryIterator object based on scalar field(s) filtered by boolean expression.
+     * @brief Get QueryIterator object based on scalar field(s) by filtering expression.
+     * Don't disconnect the MilvusClientV2 when the iterator is in using.
+     * Read the doc for more info: https://milvus.io/docs/get-and-scalar-query.md#Use-QueryIterator
      *
      * @param [in] request input parameters, the input is not const because this interface internally need to
      * assign the primary key field name to request.
@@ -673,7 +684,8 @@ class MilvusClientV2 {
 
     /**
      * @brief Run analyzer. Return result tokens of analysis.
-     * Milvus server supports this interface from v2.5.11
+     * Milvus server supports this interface from v2.5.11.
+     * Read the doc for more info: https://milvus.io/docs/analyzer-overview.md
      *
      * @param [in] request input parameters
      * @param [out] response output results
@@ -683,11 +695,12 @@ class MilvusClientV2 {
     RunAnalyzer(const RunAnalyzerRequest& request, RunAnalyzerResponse& response) = 0;
 
     /**
-     * @brief Flush insert buffer into storage.
+     * @brief Flush insert buffer data into storage.
      * If the FlushRequest.WaitFlushedMs is larger than zero, it will check related segments state in a loop,
-     * to make sure the buffer persisted successfully.
-     * Flush is a heavy operation, it is not recommended to call it frequently.
-     * The milvus server might limit its frequency.
+     * to make sure the data persisted successfully.
+     * Flush is a heavy operation, it is not recommended to call it frequently. Just let the milvus server
+     * automatically triggers flush action.
+     * By default, the call frequency of Flush() is limited by milvus server-side rate-limit configuration.
      *
      * @param [in] request input parameters
      * @return Status operation successfully or not
@@ -696,7 +709,7 @@ class MilvusClientV2 {
     Flush(const FlushRequest& request) = 0;
 
     /**
-     * @brief Retrieve information of persistent segments from data nodes.
+     * @brief Retrieve information of persisted segments from data nodes.
      *
      * @param [in] request input parameters
      * @param [out] response output results
@@ -706,7 +719,7 @@ class MilvusClientV2 {
     ListPersistentSegments(const ListPersistentSegmentsRequest& request, ListPersistentSegmentsResponse& response) = 0;
 
     /**
-     * @brief Retrieve information of segments from query nodes.
+     * @brief Retrieve information of loaded segments from query nodes.
      *
      * @param [in] request input parameters
      * @param [out] response output results
@@ -717,6 +730,8 @@ class MilvusClientV2 {
 
     /**
      * @brief Manually trigger a compaction action.
+     * Normally, user no need to call this API sicne milvus automatically triggers compactions internally.
+     * It is mainly used for some maintainance or debug purpose.
      *
      * @param [in] request input parameters
      * @param [out] response output results
@@ -746,7 +761,8 @@ class MilvusClientV2 {
     GetCompactionPlans(const GetCompactionPlansRequest& request, GetCompactionPlansResponse& response) = 0;
 
     /**
-     * @brief Create a resource group.
+     * @brief Create a resource group. A resource group to physically isolate certain query nodes from others.
+     * Read the doc for more info: https://milvus.io/docs/resource_group.md#Manage-Resource-Groups
      *
      * @param [in] request input parameters
      * @return Status operation successfully or not
@@ -773,7 +789,7 @@ class MilvusClientV2 {
     UpdateResourceGroups(const UpdateResourceGroupsRequest& request) = 0;
 
     /**
-     * @brief Transfer nodes to another resource groups.
+     * @brief Transfer query nodes to another resource groups.
      *
      * @param [in] request input parameters
      * @return Status operation successfully or not
@@ -782,7 +798,7 @@ class MilvusClientV2 {
     TransferNode(const TransferNodeRequest& request) = 0;
 
     /**
-     * @brief Transfer replicas of a collection from source group to target group.
+     * @brief Transfer replicas of a collection from a resource group to another.
      *
      * @param [in] request input parameters
      * @return Status operation successfully or not
@@ -811,7 +827,8 @@ class MilvusClientV2 {
     DescribeResourceGroup(const DescribeResourceGroupRequest& request, DescribeResourceGroupResponse& response) = 0;
 
     /**
-     * @brief Create an user.
+     * @brief Create an user with username and password to login milvus.
+     * Read the doc for more info: https://milvus.io/docs/users_and_roles.md
      *
      * @param [in] request input parameters
      * @return Status operation successfully or not
@@ -858,7 +875,8 @@ class MilvusClientV2 {
     ListUsers(const ListUsersRequest& request, ListUsersResponse& response) = 0;
 
     /**
-     * @brief Create a role.
+     * @brief Create a role with specific privileges.
+     * Read the doc for more info: https://milvus.io/docs/users_and_roles.md
      *
      * @param [in] request input parameters
      * @return Status operation successfully or not
@@ -916,7 +934,7 @@ class MilvusClientV2 {
     /**
      * @brief Grant a privilege or a privilege group to a role.
      * This is V2 proto interface, the V1 interface is no longer used.
-     * For more info: https://milvus.io/docs/v2.5.x/grant_privileges.md
+     * Read the doc for more info: https://milvus.io/docs/v2.5.x/grant_privileges.md
      *
      * @param [in] request input parameters
      * @return Status operation successfully or not
@@ -927,7 +945,7 @@ class MilvusClientV2 {
     /**
      * @brief Revoke a privilege or a privilege group from a role.
      * This is V2 proto interface, the V1 interface is no longer used.
-     * For more info: https://milvus.io/docs/v2.5.x/grant_privileges.md
+     * Read the doc for more info: https://milvus.io/docs/v2.5.x/grant_privileges.md
      *
      * @param [in] request input parameters
      * @return Status operation successfully or not
@@ -937,6 +955,7 @@ class MilvusClientV2 {
 
     /**
      * @brief Create a privilege group.
+     * Read the doc for more info: https://milvus.io/docs/privilege_group.md
      *
      * @param [in] request input parameters
      * @return Status operation successfully or not

@@ -1,0 +1,48 @@
+\hypertarget{classmilvus_1_1_iterator}{}\doxysection{milvus\+::Iterator$<$ T $>$ Class Template Reference}
+\label{classmilvus_1_1_iterator}\index{milvus::Iterator$<$ T $>$@{milvus::Iterator$<$ T $>$}}
+
+
+Base class for \mbox{\hyperlink{classmilvus_1_1_milvus_client_a08058fb22987cbc589b738f3782a59b5}{Milvus\+Client\+::\+Query\+Iterator()}} and Search\+Iterator().  
+
+
+
+
+{\ttfamily \#include $<$Iterator.\+h$>$}
+
+
+
+Inherited by milvus\+::\+Query\+Iterator\+Impl$<$ T $>$, milvus\+::\+Search\+Iterator\+Impl$<$ T $>$, and milvus\+::\+Search\+Iterator\+V2\+Impl$<$ T $>$.
+
+\doxysubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+virtual \mbox{\hyperlink{classmilvus_1_1_status}{Status}} \mbox{\hyperlink{classmilvus_1_1_iterator_a5f3e94555b667524d523c68e581b97d8}{Next}} (T \&results)=0
+\begin{DoxyCompactList}\small\item\em Get next batch of results. Note\+: this method is not designed to be called in multi-\/thread, it is not thread-\/safe. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+\subsubsection*{template$<$typename T$>$\newline
+class milvus\+::\+Iterator$<$ T $>$}
+
+Base class for \mbox{\hyperlink{classmilvus_1_1_milvus_client_a08058fb22987cbc589b738f3782a59b5}{Milvus\+Client\+::\+Query\+Iterator()}} and Search\+Iterator(). 
+
+\doxysubsection{Member Function Documentation}
+\mbox{\Hypertarget{classmilvus_1_1_iterator_a5f3e94555b667524d523c68e581b97d8}\label{classmilvus_1_1_iterator_a5f3e94555b667524d523c68e581b97d8}} 
+\index{milvus::Iterator$<$ T $>$@{milvus::Iterator$<$ T $>$}!Next@{Next}}
+\index{Next@{Next}!milvus::Iterator$<$ T $>$@{milvus::Iterator$<$ T $>$}}
+\doxysubsubsection{\texorpdfstring{Next()}{Next()}}
+{\footnotesize\ttfamily template$<$typename T $>$ \\
+virtual \mbox{\hyperlink{classmilvus_1_1_status}{Status}} \mbox{\hyperlink{classmilvus_1_1_iterator}{milvus\+::\+Iterator}}$<$ T $>$\+::Next (\begin{DoxyParamCaption}\item[{T \&}]{results }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [pure virtual]}}
+
+
+
+Get next batch of results. Note\+: this method is not designed to be called in multi-\/thread, it is not thread-\/safe. 
+
+\begin{DoxyReturn}{Returns}
+\mbox{\hyperlink{classmilvus_1_1_query_results}{Query\+Results}} or \mbox{\hyperlink{structmilvus_1_1_single_result}{Single\+Result}} 
+\end{DoxyReturn}
+
+
+The documentation for this class was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+src/include/milvus/types/Iterator.\+h\end{DoxyCompactItemize}

@@ -1,0 +1,50 @@
+\hypertarget{classmilvus_1_1_status}{}\doxysection{milvus\+::Status Class Reference}
+\label{classmilvus_1_1_status}\index{milvus::Status@{milvus::Status}}
+
+
+\mbox{\hyperlink{classmilvus_1_1_status}{Status}} code and message returned by SDK interface.  
+
+
+
+
+{\ttfamily \#include $<$Status.\+h$>$}
+
+\doxysubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{classmilvus_1_1_status_a1b8101049d5500cb09220a49f45c5f8e}\label{classmilvus_1_1_status_a1b8101049d5500cb09220a49f45c5f8e}} 
+\mbox{\hyperlink{classmilvus_1_1_status_a1b8101049d5500cb09220a49f45c5f8e}{Status}} (\mbox{\hyperlink{namespacemilvus_ad8f8a6a0abb456a62ed9fec3f2ff1f23}{Status\+Code}} code, std\+::string msg)
+\begin{DoxyCompactList}\small\item\em Constructor of \mbox{\hyperlink{classmilvus_1_1_status}{Status}}. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_status_af59a4a5d84d08b6c0840b36909ccb0cc}\label{classmilvus_1_1_status_af59a4a5d84d08b6c0840b36909ccb0cc}} 
+bool \mbox{\hyperlink{classmilvus_1_1_status_af59a4a5d84d08b6c0840b36909ccb0cc}{Is\+Ok}} () const
+\begin{DoxyCompactList}\small\item\em Indicate the status is ok. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_status_a0e4901da3d451686abeaf1cc3d7847c2}\label{classmilvus_1_1_status_a0e4901da3d451686abeaf1cc3d7847c2}} 
+\mbox{\hyperlink{namespacemilvus_ad8f8a6a0abb456a62ed9fec3f2ff1f23}{Status\+Code}} \mbox{\hyperlink{classmilvus_1_1_status_a0e4901da3d451686abeaf1cc3d7847c2}{Code}} () const
+\begin{DoxyCompactList}\small\item\em Return the status code(general client-\/side error code). \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_status_a411b3c769fc95da8479c9bd615d3eebc}\label{classmilvus_1_1_status_a411b3c769fc95da8479c9bd615d3eebc}} 
+const std\+::string \& \mbox{\hyperlink{classmilvus_1_1_status_a411b3c769fc95da8479c9bd615d3eebc}{Message}} () const
+\begin{DoxyCompactList}\small\item\em Return the error message. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_status_ae10aab1cfc1c74fd0a3597e0b2740dd6}\label{classmilvus_1_1_status_ae10aab1cfc1c74fd0a3597e0b2740dd6}} 
+int32\+\_\+t \mbox{\hyperlink{classmilvus_1_1_status_ae10aab1cfc1c74fd0a3597e0b2740dd6}{Rpc\+Err\+Code}} () const
+\begin{DoxyCompactList}\small\item\em The error code from g\+RPC lib, which are listed here\+: \href{https://grpc.github.io/grpc/cpp/md_doc_statuscodes.html}{\texttt{ https\+://grpc.\+github.\+io/grpc/cpp/md\+\_\+doc\+\_\+statuscodes.\+html}}. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_status_ad9398cd895a6e1d9a90bf4c270ffdf0e}\label{classmilvus_1_1_status_ad9398cd895a6e1d9a90bf4c270ffdf0e}} 
+int32\+\_\+t \mbox{\hyperlink{classmilvus_1_1_status_ad9398cd895a6e1d9a90bf4c270ffdf0e}{Server\+Code}} () const
+\begin{DoxyCompactList}\small\item\em The server-\/side error code of milvus v2.\+4 and later versions. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_status_a27a6099d1352986e8e4947c0dc5121f1}\label{classmilvus_1_1_status_a27a6099d1352986e8e4947c0dc5121f1}} 
+int32\+\_\+t \mbox{\hyperlink{classmilvus_1_1_status_a27a6099d1352986e8e4947c0dc5121f1}{Legacy\+Server\+Code}} () const
+\begin{DoxyCompactList}\small\item\em The legacy server-\/side error code of milvus v2.\+2/v2.3. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\doxysubsection*{Static Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{classmilvus_1_1_status_a801f8a92aea9ed1f2c97ac634cbe4873}\label{classmilvus_1_1_status_a801f8a92aea9ed1f2c97ac634cbe4873}} 
+static \mbox{\hyperlink{classmilvus_1_1_status}{Status}} \mbox{\hyperlink{classmilvus_1_1_status_a801f8a92aea9ed1f2c97ac634cbe4873}{OK}} ()
+\begin{DoxyCompactList}\small\item\em A success status. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+\mbox{\hyperlink{classmilvus_1_1_status}{Status}} code and message returned by SDK interface. 
+
+The documentation for this class was generated from the following files\+:\begin{DoxyCompactItemize}
+\item 
+src/include/milvus/Status.\+h\item 
+src/impl/Status.\+cpp\end{DoxyCompactItemize}

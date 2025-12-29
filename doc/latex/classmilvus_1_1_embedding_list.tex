@@ -1,0 +1,81 @@
+\hypertarget{classmilvus_1_1_embedding_list}{}\doxysection{milvus\+::Embedding\+List Class Reference}
+\label{classmilvus_1_1_embedding_list}\index{milvus::EmbeddingList@{milvus::EmbeddingList}}
+
+
+A list of embeddings to search for struct field.  
+
+
+
+
+{\ttfamily \#include $<$Embedding\+List.\+h$>$}
+
+\doxysubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{classmilvus_1_1_embedding_list_a9ef28c9f5253471187644722db35dc7e}\label{classmilvus_1_1_embedding_list_a9ef28c9f5253471187644722db35dc7e}} 
+\mbox{\hyperlink{classmilvus_1_1_embedding_list_a9ef28c9f5253471187644722db35dc7e}{Embedding\+List}} ()=default
+\begin{DoxyCompactList}\small\item\em Constructor. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_embedding_list_acc896256b657a9732858c4e49c8c4a34}\label{classmilvus_1_1_embedding_list_acc896256b657a9732858c4e49c8c4a34}} 
+Field\+Data\+Ptr \mbox{\hyperlink{classmilvus_1_1_embedding_list_acc896256b657a9732858c4e49c8c4a34}{Target\+Vectors}} () const
+\begin{DoxyCompactList}\small\item\em Get target vectors. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_embedding_list_a345a2bffaa5d208d64f8bca4636a7de5}\label{classmilvus_1_1_embedding_list_a345a2bffaa5d208d64f8bca4636a7de5}} 
+size\+\_\+t \mbox{\hyperlink{classmilvus_1_1_embedding_list_a345a2bffaa5d208d64f8bca4636a7de5}{Count}} () const
+\begin{DoxyCompactList}\small\item\em Get count of target vectors. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_embedding_list_a6f9a590984453eb3d9475336887b3cb6}\label{classmilvus_1_1_embedding_list_a6f9a590984453eb3d9475336887b3cb6}} 
+\mbox{\hyperlink{classmilvus_1_1_status}{Status}} \mbox{\hyperlink{classmilvus_1_1_embedding_list_a6f9a590984453eb3d9475336887b3cb6}{Add\+Binary\+Vector}} (const std\+::string \&vector)
+\begin{DoxyCompactList}\small\item\em Add a binary vector to search. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_embedding_list_aade2cec6011e8fc4c7a2458102842fe0}\label{classmilvus_1_1_embedding_list_aade2cec6011e8fc4c7a2458102842fe0}} 
+\mbox{\hyperlink{classmilvus_1_1_status}{Status}} \mbox{\hyperlink{classmilvus_1_1_embedding_list_aade2cec6011e8fc4c7a2458102842fe0}{Add\+Binary\+Vector}} (const Binary\+Vec\+Field\+Data\+::\+ElementT \&vector)
+\begin{DoxyCompactList}\small\item\em Add a binary vector to search. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_embedding_list_aadcd59ac81c2a56fc2d4814f960039cd}\label{classmilvus_1_1_embedding_list_aadcd59ac81c2a56fc2d4814f960039cd}} 
+\mbox{\hyperlink{classmilvus_1_1_status}{Status}} \mbox{\hyperlink{classmilvus_1_1_embedding_list_aadcd59ac81c2a56fc2d4814f960039cd}{Add\+Float\+Vector}} (const \mbox{\hyperlink{classmilvus_1_1_field_data_a921c839e5d8df646cb7a20029ddb17f6}{Float\+Vec\+Field\+Data\+::\+ElementT}} \&vector)
+\begin{DoxyCompactList}\small\item\em Add a float vector to search. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_embedding_list_a09e3647873ce1d98dc275f9f77c49fa1}\label{classmilvus_1_1_embedding_list_a09e3647873ce1d98dc275f9f77c49fa1}} 
+\mbox{\hyperlink{classmilvus_1_1_status}{Status}} \mbox{\hyperlink{classmilvus_1_1_embedding_list_a09e3647873ce1d98dc275f9f77c49fa1}{Add\+Sparse\+Vector}} (const \mbox{\hyperlink{classmilvus_1_1_field_data_a921c839e5d8df646cb7a20029ddb17f6}{Sparse\+Float\+Vec\+Field\+Data\+::\+ElementT}} \&vector)
+\begin{DoxyCompactList}\small\item\em Add a sparse vector to search. \end{DoxyCompactList}\item 
+\mbox{\hyperlink{classmilvus_1_1_status}{Status}} \mbox{\hyperlink{classmilvus_1_1_embedding_list_aa14a3530dd69128d8c9d7e1ed66c6b3b}{Add\+Sparse\+Vector}} (const nlohmann\+::json \&vector)
+\begin{DoxyCompactList}\small\item\em Add a sparse vector to search. We support two patterns of sparse vector\+: \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_embedding_list_a7a299ef105287d57c496a008e764bc9f}\label{classmilvus_1_1_embedding_list_a7a299ef105287d57c496a008e764bc9f}} 
+\mbox{\hyperlink{classmilvus_1_1_status}{Status}} \mbox{\hyperlink{classmilvus_1_1_embedding_list_a7a299ef105287d57c496a008e764bc9f}{Add\+Float16\+Vector}} (const \mbox{\hyperlink{classmilvus_1_1_field_data_a921c839e5d8df646cb7a20029ddb17f6}{Float16\+Vec\+Field\+Data\+::\+ElementT}} \&vector)
+\begin{DoxyCompactList}\small\item\em Add a float16 vector to search. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_embedding_list_a0454208c295b18794bd717cdb5af762f}\label{classmilvus_1_1_embedding_list_a0454208c295b18794bd717cdb5af762f}} 
+\mbox{\hyperlink{classmilvus_1_1_status}{Status}} \mbox{\hyperlink{classmilvus_1_1_embedding_list_a0454208c295b18794bd717cdb5af762f}{Add\+Float16\+Vector}} (const std\+::vector$<$ float $>$ \&vector)
+\begin{DoxyCompactList}\small\item\em Add a float16 vector to search. This method automatically converts the float array to float16 binary. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_embedding_list_a0408febec5c23d875b3ae174cb0138de}\label{classmilvus_1_1_embedding_list_a0408febec5c23d875b3ae174cb0138de}} 
+\mbox{\hyperlink{classmilvus_1_1_status}{Status}} \mbox{\hyperlink{classmilvus_1_1_embedding_list_a0408febec5c23d875b3ae174cb0138de}{Add\+BFloat16\+Vector}} (const \mbox{\hyperlink{classmilvus_1_1_field_data_a921c839e5d8df646cb7a20029ddb17f6}{BFloat16\+Vec\+Field\+Data\+::\+ElementT}} \&vector)
+\begin{DoxyCompactList}\small\item\em Add a bfloat16 vector to search. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_embedding_list_a0f0d764969f49f893cc4e2b5da05129c}\label{classmilvus_1_1_embedding_list_a0f0d764969f49f893cc4e2b5da05129c}} 
+\mbox{\hyperlink{classmilvus_1_1_status}{Status}} \mbox{\hyperlink{classmilvus_1_1_embedding_list_a0f0d764969f49f893cc4e2b5da05129c}{Add\+BFloat16\+Vector}} (const std\+::vector$<$ float $>$ \&vector)
+\begin{DoxyCompactList}\small\item\em Add a bfloat16 vector to search. This method automatically converts the float array to bfloat16 binary. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_embedding_list_a0e1ea96005945f85b6cfd98f8bc731e1}\label{classmilvus_1_1_embedding_list_a0e1ea96005945f85b6cfd98f8bc731e1}} 
+\mbox{\hyperlink{classmilvus_1_1_status}{Status}} \mbox{\hyperlink{classmilvus_1_1_embedding_list_a0e1ea96005945f85b6cfd98f8bc731e1}{Add\+Embedded\+Text}} (const std\+::string \&text)
+\begin{DoxyCompactList}\small\item\em Add a text to search. Only works for BM25 function. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_embedding_list_aa50eeec8d875cbcbddff92850efc7c1f}\label{classmilvus_1_1_embedding_list_aa50eeec8d875cbcbddff92850efc7c1f}} 
+int64\+\_\+t \mbox{\hyperlink{classmilvus_1_1_embedding_list_aa50eeec8d875cbcbddff92850efc7c1f}{Dim}} () const
+\begin{DoxyCompactList}\small\item\em Dimension of the vectors, for embedded text, the value is 0. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+A list of embeddings to search for struct field. 
+
+\doxysubsection{Member Function Documentation}
+\mbox{\Hypertarget{classmilvus_1_1_embedding_list_aa14a3530dd69128d8c9d7e1ed66c6b3b}\label{classmilvus_1_1_embedding_list_aa14a3530dd69128d8c9d7e1ed66c6b3b}} 
+\index{milvus::EmbeddingList@{milvus::EmbeddingList}!AddSparseVector@{AddSparseVector}}
+\index{AddSparseVector@{AddSparseVector}!milvus::EmbeddingList@{milvus::EmbeddingList}}
+\doxysubsubsection{\texorpdfstring{AddSparseVector()}{AddSparseVector()}}
+{\footnotesize\ttfamily \mbox{\hyperlink{classmilvus_1_1_status}{Status}} milvus\+::\+Embedding\+List\+::\+Add\+Sparse\+Vector (\begin{DoxyParamCaption}\item[{const nlohmann\+::json \&}]{vector }\end{DoxyParamCaption})}
+
+
+
+Add a sparse vector to search. We support two patterns of sparse vector\+: 
+
+
+\begin{DoxyEnumerate}
+\item a json dict like \{\char`\"{}1\char`\"{}\+: 0.\+1, \char`\"{}5\char`\"{}\+: 0.\+2, \char`\"{}8\char`\"{}\+: 0.\+15\}.
+\item a json dict like \{\char`\"{}indices\char`\"{}\+: \mbox{[}1, 5, 8\mbox{]}, \char`\"{}values\char`\"{}\+: \mbox{[}0.\+1, 0.\+2, 0.\+15\mbox{]}\}. 
+\end{DoxyEnumerate}
+
+The documentation for this class was generated from the following files\+:\begin{DoxyCompactItemize}
+\item 
+src/include/milvus/types/Embedding\+List.\+h\item 
+src/impl/types/Embedding\+List.\+cpp\end{DoxyCompactItemize}

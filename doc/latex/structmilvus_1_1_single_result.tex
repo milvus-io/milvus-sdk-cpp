@@ -1,0 +1,81 @@
+\hypertarget{structmilvus_1_1_single_result}{}\doxysection{milvus\+::Single\+Result Struct Reference}
+\label{structmilvus_1_1_single_result}\index{milvus::SingleResult@{milvus::SingleResult}}
+
+
+Topk results for one target vector of \mbox{\hyperlink{classmilvus_1_1_milvus_client_a46c70fc2b7c386003babd90e02b299d1}{Milvus\+Client\+::\+Search()}}  
+
+
+
+
+{\ttfamily \#include $<$Search\+Results.\+h$>$}
+
+\doxysubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{structmilvus_1_1_single_result_a6cb62b15a390fae9d9c82accc48dc9ef}\label{structmilvus_1_1_single_result_a6cb62b15a390fae9d9c82accc48dc9ef}} 
+\mbox{\hyperlink{structmilvus_1_1_single_result_a6cb62b15a390fae9d9c82accc48dc9ef}{Single\+Result}} (const \mbox{\hyperlink{structmilvus_1_1_single_result}{Single\+Result}} \&src)
+\begin{DoxyCompactList}\small\item\em Constructor. \end{DoxyCompactList}\item 
+\mbox{\hyperlink{structmilvus_1_1_single_result_af487ad13dec0d4b6d0b20100aa2a2eb2}{Single\+Result}} (const std\+::string \&pk\+\_\+name, const std\+::string \&score\+\_\+name, std\+::vector$<$ Field\+Data\+Ptr $>$ \&\&output\+\_\+fields, const std\+::set$<$ std\+::string $>$ \&output\+\_\+names)
+\begin{DoxyCompactList}\small\item\em Constructor Note\+: this constructor might throw exception in the cases of\+: \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{structmilvus_1_1_single_result_a48ddef97433ce5160f176dfb0d0493de}\label{structmilvus_1_1_single_result_a48ddef97433ce5160f176dfb0d0493de}} 
+const std\+::vector$<$ float $>$ \& \mbox{\hyperlink{structmilvus_1_1_single_result_a48ddef97433ce5160f176dfb0d0493de}{Scores}} () const
+\begin{DoxyCompactList}\small\item\em Distances/scores array of one target vector. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{structmilvus_1_1_single_result_ae5df5ea9378e521e88028dcb988d509a}\label{structmilvus_1_1_single_result_ae5df5ea9378e521e88028dcb988d509a}} 
+\mbox{\hyperlink{classmilvus_1_1_i_d_array}{IDArray}} \mbox{\hyperlink{structmilvus_1_1_single_result_ae5df5ea9378e521e88028dcb988d509a}{Ids}} () const
+\begin{DoxyCompactList}\small\item\em Topk id array of one target vector. Note\+: the returned \mbox{\hyperlink{classmilvus_1_1_i_d_array}{IDArray}} is a temporary object copied from \mbox{\hyperlink{classmilvus_1_1_field_data}{Field\+Data}}. It is recommended to use \mbox{\hyperlink{structmilvus_1_1_single_result_affd01238acb6cb6866c6e1231344d973}{Output\+Field()}} method like this\+: Field\+Data\+Ptr ids = result.\+Output\+Field(result.\+Primary\+Key\+Name());. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{structmilvus_1_1_single_result_a46cabd2b95fa13b4d5969aac7cefa40c}\label{structmilvus_1_1_single_result_a46cabd2b95fa13b4d5969aac7cefa40c}} 
+const std\+::string \& \mbox{\hyperlink{structmilvus_1_1_single_result_a46cabd2b95fa13b4d5969aac7cefa40c}{Primary\+Key\+Name}} () const
+\begin{DoxyCompactList}\small\item\em The primary key name. Sometimes the caller of Search() doesn\textquotesingle{}t know the pk name, the server returns this name, so that you don\textquotesingle{}t need to describe the collection again. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{structmilvus_1_1_single_result_a0c169582b532a1762e7ef9280aba9291}\label{structmilvus_1_1_single_result_a0c169582b532a1762e7ef9280aba9291}} 
+const std\+::string \& \mbox{\hyperlink{structmilvus_1_1_single_result_a0c169582b532a1762e7ef9280aba9291}{Score\+Name}} () const
+\begin{DoxyCompactList}\small\item\em Score field name in search result. Note\+: the default score name is \char`\"{}score\char`\"{}, but if your collection schema already has a \char`\"{}score\char`\"{} field, and the \char`\"{}score\char`\"{} field is an output field, the score name will be changed to \char`\"{}\+\_\+score\char`\"{}. If \char`\"{}\+\_\+socre\char`\"{} is also duplicated, then the score name will be changed to \char`\"{}\+\_\+\+\_\+score\char`\"{}, etc. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{structmilvus_1_1_single_result_a66128504b76ecc8161b55bc9c65c050e}\label{structmilvus_1_1_single_result_a66128504b76ecc8161b55bc9c65c050e}} 
+const std\+::vector$<$ Field\+Data\+Ptr $>$ \& \mbox{\hyperlink{structmilvus_1_1_single_result_a66128504b76ecc8161b55bc9c65c050e}{Output\+Fields}} () const
+\begin{DoxyCompactList}\small\item\em Output fields data. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{structmilvus_1_1_single_result_affd01238acb6cb6866c6e1231344d973}\label{structmilvus_1_1_single_result_affd01238acb6cb6866c6e1231344d973}} 
+Field\+Data\+Ptr \mbox{\hyperlink{structmilvus_1_1_single_result_affd01238acb6cb6866c6e1231344d973}{Output\+Field}} (const std\+::string \&name) const
+\begin{DoxyCompactList}\small\item\em Get an output field by name. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{structmilvus_1_1_single_result_a5f848a86ceb4cd746a2c4ecfde1ba2ee}\label{structmilvus_1_1_single_result_a5f848a86ceb4cd746a2c4ecfde1ba2ee}} 
+{\footnotesize template$<$typename T $>$ }\\std\+::shared\+\_\+ptr$<$ T $>$ \mbox{\hyperlink{structmilvus_1_1_single_result_a5f848a86ceb4cd746a2c4ecfde1ba2ee}{Output\+Field}} (const std\+::string \&name) const
+\begin{DoxyCompactList}\small\item\em Get an output field by name and cast to specific pointer. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{structmilvus_1_1_single_result_acf18b68f407ecf1e4bad101e8b388317}\label{structmilvus_1_1_single_result_acf18b68f407ecf1e4bad101e8b388317}} 
+const std\+::set$<$ std\+::string $>$ \& \mbox{\hyperlink{structmilvus_1_1_single_result_acf18b68f407ecf1e4bad101e8b388317}{Output\+Field\+Names}} () const
+\begin{DoxyCompactList}\small\item\em Output field names specified by search(). \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{structmilvus_1_1_single_result_a1de33ad188ffaf13d88ce3c395dbdfa6}\label{structmilvus_1_1_single_result_a1de33ad188ffaf13d88ce3c395dbdfa6}} 
+\mbox{\hyperlink{classmilvus_1_1_status}{Status}} \mbox{\hyperlink{structmilvus_1_1_single_result_a1de33ad188ffaf13d88ce3c395dbdfa6}{Output\+Rows}} (Entity\+Rows \&rows) const
+\begin{DoxyCompactList}\small\item\em Get all output rows. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{structmilvus_1_1_single_result_adebf9068c60360c56f922474c6e9f00a}\label{structmilvus_1_1_single_result_adebf9068c60360c56f922474c6e9f00a}} 
+\mbox{\hyperlink{classmilvus_1_1_status}{Status}} \mbox{\hyperlink{structmilvus_1_1_single_result_adebf9068c60360c56f922474c6e9f00a}{Output\+Row}} (int i, Entity\+Row \&row) const
+\begin{DoxyCompactList}\small\item\em Get row data. Throw exception if the i is out of bound. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{structmilvus_1_1_single_result_ab5d1b69d1c54e912d0e71376b057bf5e}\label{structmilvus_1_1_single_result_ab5d1b69d1c54e912d0e71376b057bf5e}} 
+uint64\+\_\+t \mbox{\hyperlink{structmilvus_1_1_single_result_ab5d1b69d1c54e912d0e71376b057bf5e}{Get\+Row\+Count}} () const
+\begin{DoxyCompactList}\small\item\em Get row count of the result. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{structmilvus_1_1_single_result_a4f457cd09bc795c3664f7c1730d4c2c0}\label{structmilvus_1_1_single_result_a4f457cd09bc795c3664f7c1730d4c2c0}} 
+void \mbox{\hyperlink{structmilvus_1_1_single_result_a4f457cd09bc795c3664f7c1730d4c2c0}{Clear}} ()
+\begin{DoxyCompactList}\small\item\em Clear the result data. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+Topk results for one target vector of \mbox{\hyperlink{classmilvus_1_1_milvus_client_a46c70fc2b7c386003babd90e02b299d1}{Milvus\+Client\+::\+Search()}} 
+
+\doxysubsection{Constructor \& Destructor Documentation}
+\mbox{\Hypertarget{structmilvus_1_1_single_result_af487ad13dec0d4b6d0b20100aa2a2eb2}\label{structmilvus_1_1_single_result_af487ad13dec0d4b6d0b20100aa2a2eb2}} 
+\index{milvus::SingleResult@{milvus::SingleResult}!SingleResult@{SingleResult}}
+\index{SingleResult@{SingleResult}!milvus::SingleResult@{milvus::SingleResult}}
+\doxysubsubsection{\texorpdfstring{SingleResult()}{SingleResult()}}
+{\footnotesize\ttfamily milvus\+::\+Single\+Result\+::\+Single\+Result (\begin{DoxyParamCaption}\item[{const std\+::string \&}]{pk\+\_\+name,  }\item[{const std\+::string \&}]{score\+\_\+name,  }\item[{std\+::vector$<$ Field\+Data\+Ptr $>$ \&\&}]{output\+\_\+fields,  }\item[{const std\+::set$<$ std\+::string $>$ \&}]{output\+\_\+names }\end{DoxyParamCaption})}
+
+
+
+Constructor Note\+: this constructor might throw exception in the cases of\+: 
+
+
+\begin{DoxyEnumerate}
+\item the pk\+\_\+name or score\+\_\+name is empty.
+\item row count of fields are unequal. 
+\end{DoxyEnumerate}
+
+The documentation for this struct was generated from the following files\+:\begin{DoxyCompactItemize}
+\item 
+src/include/milvus/types/Search\+Results.\+h\item 
+src/impl/types/Search\+Results.\+cpp\end{DoxyCompactItemize}

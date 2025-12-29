@@ -1,0 +1,56 @@
+\hypertarget{classmilvus_1_1_release_partitions_request}{}\doxysection{milvus\+::Release\+Partitions\+Request Class Reference}
+\label{classmilvus_1_1_release_partitions_request}\index{milvus::ReleasePartitionsRequest@{milvus::ReleasePartitionsRequest}}
+
+
+Used by \mbox{\hyperlink{classmilvus_1_1_milvus_client_v2_afef171a5ef84e422b6faf0bee8b8d5ac}{Milvus\+Client\+V2\+::\+Release\+Partitions()}}  
+
+
+
+
+{\ttfamily \#include $<$Release\+Partitions\+Request.\+h$>$}
+
+\doxysubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{classmilvus_1_1_release_partitions_request_a9f015aa5726e94fcdacd734ad3605003}\label{classmilvus_1_1_release_partitions_request_a9f015aa5726e94fcdacd734ad3605003}} 
+\mbox{\hyperlink{classmilvus_1_1_release_partitions_request_a9f015aa5726e94fcdacd734ad3605003}{Release\+Partitions\+Request}} ()=default
+\begin{DoxyCompactList}\small\item\em Constructor. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_release_partitions_request_a8cda1a6ad9cb9de9572d3f4425c2bbad}\label{classmilvus_1_1_release_partitions_request_a8cda1a6ad9cb9de9572d3f4425c2bbad}} 
+const std\+::string \& \mbox{\hyperlink{classmilvus_1_1_release_partitions_request_a8cda1a6ad9cb9de9572d3f4425c2bbad}{Database\+Name}} () const
+\begin{DoxyCompactList}\small\item\em Database name in which the collection is created. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_release_partitions_request_a7e5d6e920fa116ee755d2bfc1ac24371}\label{classmilvus_1_1_release_partitions_request_a7e5d6e920fa116ee755d2bfc1ac24371}} 
+void \mbox{\hyperlink{classmilvus_1_1_release_partitions_request_a7e5d6e920fa116ee755d2bfc1ac24371}{Set\+Database\+Name}} (const std\+::string \&db\+\_\+name)
+\begin{DoxyCompactList}\small\item\em Set database name in which the collection is created. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_release_partitions_request_afd879f666a4a29d61e3b2492bf40899e}\label{classmilvus_1_1_release_partitions_request_afd879f666a4a29d61e3b2492bf40899e}} 
+\mbox{\hyperlink{classmilvus_1_1_release_partitions_request}{Release\+Partitions\+Request}} \& \mbox{\hyperlink{classmilvus_1_1_release_partitions_request_afd879f666a4a29d61e3b2492bf40899e}{With\+Database\+Name}} (const std\+::string \&db\+\_\+name)
+\begin{DoxyCompactList}\small\item\em Set database name in which the collection is created. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_release_partitions_request_a2a8bb75eab8c2729b92277624c6f0d2d}\label{classmilvus_1_1_release_partitions_request_a2a8bb75eab8c2729b92277624c6f0d2d}} 
+const std\+::string \& \mbox{\hyperlink{classmilvus_1_1_release_partitions_request_a2a8bb75eab8c2729b92277624c6f0d2d}{Collection\+Name}} () const
+\begin{DoxyCompactList}\small\item\em Name of the collection. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_release_partitions_request_a21db266eca7f5547f82379541e5a4138}\label{classmilvus_1_1_release_partitions_request_a21db266eca7f5547f82379541e5a4138}} 
+void \mbox{\hyperlink{classmilvus_1_1_release_partitions_request_a21db266eca7f5547f82379541e5a4138}{Set\+Collection\+Name}} (const std\+::string \&collection\+\_\+name)
+\begin{DoxyCompactList}\small\item\em Set name of the collection. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_release_partitions_request_a85044a51101ec957c159d33fb2eb1eef}\label{classmilvus_1_1_release_partitions_request_a85044a51101ec957c159d33fb2eb1eef}} 
+\mbox{\hyperlink{classmilvus_1_1_release_partitions_request}{Release\+Partitions\+Request}} \& \mbox{\hyperlink{classmilvus_1_1_release_partitions_request_a85044a51101ec957c159d33fb2eb1eef}{With\+Collection\+Name}} (const std\+::string \&collection\+\_\+name)
+\begin{DoxyCompactList}\small\item\em Set name of the collection. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_release_partitions_request_a3394d83a3f70ca589727329f2b8a1225}\label{classmilvus_1_1_release_partitions_request_a3394d83a3f70ca589727329f2b8a1225}} 
+const std\+::set$<$ std\+::string $>$ \& \mbox{\hyperlink{classmilvus_1_1_release_partitions_request_a3394d83a3f70ca589727329f2b8a1225}{Partition\+Names}} () const
+\begin{DoxyCompactList}\small\item\em Name of the partitions. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_release_partitions_request_a75798c1893e96fee7ea9a7fdd12175ba}\label{classmilvus_1_1_release_partitions_request_a75798c1893e96fee7ea9a7fdd12175ba}} 
+void \mbox{\hyperlink{classmilvus_1_1_release_partitions_request_a75798c1893e96fee7ea9a7fdd12175ba}{Set\+Partition\+Names}} (const std\+::set$<$ std\+::string $>$ \&partition\+\_\+names)
+\begin{DoxyCompactList}\small\item\em Set name of the partitions. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_release_partitions_request_ae3d249982ee835b57f5fb594764f08da}\label{classmilvus_1_1_release_partitions_request_ae3d249982ee835b57f5fb594764f08da}} 
+\mbox{\hyperlink{classmilvus_1_1_release_partitions_request}{Release\+Partitions\+Request}} \& \mbox{\hyperlink{classmilvus_1_1_release_partitions_request_ae3d249982ee835b57f5fb594764f08da}{With\+Partition\+Names}} (const std\+::set$<$ std\+::string $>$ \&partition\+\_\+names)
+\begin{DoxyCompactList}\small\item\em Set new name of the partitions. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_release_partitions_request_afcb686d0c24bfe4671f3026e1ba00cc5}\label{classmilvus_1_1_release_partitions_request_afcb686d0c24bfe4671f3026e1ba00cc5}} 
+\mbox{\hyperlink{classmilvus_1_1_release_partitions_request}{Release\+Partitions\+Request}} \& \mbox{\hyperlink{classmilvus_1_1_release_partitions_request_afcb686d0c24bfe4671f3026e1ba00cc5}{Add\+Partition\+Name}} (const std\+::string \&partition\+\_\+name)
+\begin{DoxyCompactList}\small\item\em Add a partition to be released. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+Used by \mbox{\hyperlink{classmilvus_1_1_milvus_client_v2_afef171a5ef84e422b6faf0bee8b8d5ac}{Milvus\+Client\+V2\+::\+Release\+Partitions()}} 
+
+The documentation for this class was generated from the following files\+:\begin{DoxyCompactItemize}
+\item 
+src/include/milvus/request/partition/Release\+Partitions\+Request.\+h\item 
+src/impl/request/partition/Release\+Partitions\+Request.\+cpp\end{DoxyCompactItemize}

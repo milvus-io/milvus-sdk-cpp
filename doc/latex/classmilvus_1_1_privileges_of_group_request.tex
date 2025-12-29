@@ -1,0 +1,47 @@
+\hypertarget{classmilvus_1_1_privileges_of_group_request}{}\doxysection{milvus\+::Privileges\+Of\+Group\+Request Class Reference}
+\label{classmilvus_1_1_privileges_of_group_request}\index{milvus::PrivilegesOfGroupRequest@{milvus::PrivilegesOfGroupRequest}}
+
+
+Used by \mbox{\hyperlink{classmilvus_1_1_milvus_client_v2_a31d859e203fb5e18c7d14b52f7fffd79}{Milvus\+Client\+V2\+::\+Add\+Privileges\+To\+Group()}} and Remove\+Privileges\+From\+Group().  
+
+
+
+
+{\ttfamily \#include $<$Privileges\+Of\+Group\+Request.\+h$>$}
+
+\doxysubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{classmilvus_1_1_privileges_of_group_request_a78eb80fd13eb21caa97d80b765ec5419}\label{classmilvus_1_1_privileges_of_group_request_a78eb80fd13eb21caa97d80b765ec5419}} 
+\mbox{\hyperlink{classmilvus_1_1_privileges_of_group_request_a78eb80fd13eb21caa97d80b765ec5419}{Privileges\+Of\+Group\+Request}} ()=default
+\begin{DoxyCompactList}\small\item\em Constructor. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_privileges_of_group_request_a087a49d7f79589f370eff21e899ba6de}\label{classmilvus_1_1_privileges_of_group_request_a087a49d7f79589f370eff21e899ba6de}} 
+const std\+::string \& \mbox{\hyperlink{classmilvus_1_1_privileges_of_group_request_a087a49d7f79589f370eff21e899ba6de}{Group\+Name}} () const
+\begin{DoxyCompactList}\small\item\em Name of the privilege group. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_privileges_of_group_request_a09441c4b186cc24a8ada485dbf4f799f}\label{classmilvus_1_1_privileges_of_group_request_a09441c4b186cc24a8ada485dbf4f799f}} 
+void \mbox{\hyperlink{classmilvus_1_1_privileges_of_group_request_a09441c4b186cc24a8ada485dbf4f799f}{Set\+Group\+Name}} (const std\+::string \&name)
+\begin{DoxyCompactList}\small\item\em Set name of the privilege group.. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_privileges_of_group_request_a5fc3102c4476af9d41c06855427c27d3}\label{classmilvus_1_1_privileges_of_group_request_a5fc3102c4476af9d41c06855427c27d3}} 
+\mbox{\hyperlink{classmilvus_1_1_privileges_of_group_request}{Privileges\+Of\+Group\+Request}} \& \mbox{\hyperlink{classmilvus_1_1_privileges_of_group_request_a5fc3102c4476af9d41c06855427c27d3}{With\+Group\+Name}} (const std\+::string \&name)
+\begin{DoxyCompactList}\small\item\em Set name of the privilege group.. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_privileges_of_group_request_a087873517f3c9fc44f625b83fe5275f3}\label{classmilvus_1_1_privileges_of_group_request_a087873517f3c9fc44f625b83fe5275f3}} 
+const std\+::set$<$ std\+::string $>$ \& \mbox{\hyperlink{classmilvus_1_1_privileges_of_group_request_a087873517f3c9fc44f625b83fe5275f3}{Privileges}} () const
+\begin{DoxyCompactList}\small\item\em Get privileges of the group to be added or removed. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_privileges_of_group_request_ad0dcc07c24f5ac11be63f802b20f9b8f}\label{classmilvus_1_1_privileges_of_group_request_ad0dcc07c24f5ac11be63f802b20f9b8f}} 
+void \mbox{\hyperlink{classmilvus_1_1_privileges_of_group_request_ad0dcc07c24f5ac11be63f802b20f9b8f}{Set\+Privileges}} (std\+::set$<$ std\+::string $>$ \&\&privileges)
+\begin{DoxyCompactList}\small\item\em Set privileges of the group to be added or removed. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_privileges_of_group_request_ae6c99ca73ec403d318d53d48a64dbc53}\label{classmilvus_1_1_privileges_of_group_request_ae6c99ca73ec403d318d53d48a64dbc53}} 
+\mbox{\hyperlink{classmilvus_1_1_privileges_of_group_request}{Privileges\+Of\+Group\+Request}} \& \mbox{\hyperlink{classmilvus_1_1_privileges_of_group_request_ae6c99ca73ec403d318d53d48a64dbc53}{With\+Privileges}} (std\+::set$<$ std\+::string $>$ \&\&privileges)
+\begin{DoxyCompactList}\small\item\em Set privileges of the group to be added or removed. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_privileges_of_group_request_ac5b6c7e00e35698d78c259181c1163ea}\label{classmilvus_1_1_privileges_of_group_request_ac5b6c7e00e35698d78c259181c1163ea}} 
+\mbox{\hyperlink{classmilvus_1_1_privileges_of_group_request}{Privileges\+Of\+Group\+Request}} \& \mbox{\hyperlink{classmilvus_1_1_privileges_of_group_request_ac5b6c7e00e35698d78c259181c1163ea}{Add\+Privilege}} (const std\+::string \&privilege)
+\begin{DoxyCompactList}\small\item\em Add a privileges of the group to be added or removed. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+Used by \mbox{\hyperlink{classmilvus_1_1_milvus_client_v2_a31d859e203fb5e18c7d14b52f7fffd79}{Milvus\+Client\+V2\+::\+Add\+Privileges\+To\+Group()}} and Remove\+Privileges\+From\+Group(). 
+
+The documentation for this class was generated from the following files\+:\begin{DoxyCompactItemize}
+\item 
+src/include/milvus/request/rbac/Privileges\+Of\+Group\+Request.\+h\item 
+src/impl/request/rbac/Privileges\+Of\+Group\+Request.\+cpp\end{DoxyCompactItemize}

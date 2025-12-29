@@ -23,7 +23,7 @@
 namespace milvus {
 
 /**
- * @brief ID array, each ID could be int64 type or string type. \n
+ * @brief ID array, each ID could be int64 type or string type.
  * Note: v2.0 only support int64 type id.
  */
 class IDArray {

@@ -1,0 +1,53 @@
+\hypertarget{classmilvus_1_1_compaction_state}{}\doxysection{milvus\+::Compaction\+State Class Reference}
+\label{classmilvus_1_1_compaction_state}\index{milvus::CompactionState@{milvus::CompactionState}}
+
+
+Compaction state. Used by \mbox{\hyperlink{classmilvus_1_1_milvus_client_a8041cd363470774d2cdb3c295307e1d9}{Milvus\+Client\+::\+Get\+Compaction\+State()}}.  
+
+
+
+
+{\ttfamily \#include $<$Compaction\+State.\+h$>$}
+
+\doxysubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{classmilvus_1_1_compaction_state_a84d5b95e1c7bf8971b86e474bca0ab76}\label{classmilvus_1_1_compaction_state_a84d5b95e1c7bf8971b86e474bca0ab76}} 
+\mbox{\hyperlink{namespacemilvus_ae2c03b3dbf792fba6a8ab10cb3a7cc5a}{Compaction\+State\+Code}} \mbox{\hyperlink{classmilvus_1_1_compaction_state_a84d5b95e1c7bf8971b86e474bca0ab76}{State}} () const
+\begin{DoxyCompactList}\small\item\em Compaction state code. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_compaction_state_ae21178d189dc04f51eec8f472de8e720}\label{classmilvus_1_1_compaction_state_ae21178d189dc04f51eec8f472de8e720}} 
+void \mbox{\hyperlink{classmilvus_1_1_compaction_state_ae21178d189dc04f51eec8f472de8e720}{Set\+State}} (\mbox{\hyperlink{namespacemilvus_ae2c03b3dbf792fba6a8ab10cb3a7cc5a}{Compaction\+State\+Code}} state)
+\begin{DoxyCompactList}\small\item\em Set compaction state code. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_compaction_state_a522ce82dee2e229be6e310110a64ce5b}\label{classmilvus_1_1_compaction_state_a522ce82dee2e229be6e310110a64ce5b}} 
+int64\+\_\+t \mbox{\hyperlink{classmilvus_1_1_compaction_state_a522ce82dee2e229be6e310110a64ce5b}{Executing\+Plan}} () const
+\begin{DoxyCompactList}\small\item\em The executing plan id. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_compaction_state_a07acedb6aca7d34d96da530023d2afb8}\label{classmilvus_1_1_compaction_state_a07acedb6aca7d34d96da530023d2afb8}} 
+void \mbox{\hyperlink{classmilvus_1_1_compaction_state_a07acedb6aca7d34d96da530023d2afb8}{Set\+Executing\+Plan}} (int64\+\_\+t num)
+\begin{DoxyCompactList}\small\item\em Set the number of executing plans. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_compaction_state_a745a4d7d2f595991a5e15e40af95bb5a}\label{classmilvus_1_1_compaction_state_a745a4d7d2f595991a5e15e40af95bb5a}} 
+int64\+\_\+t \mbox{\hyperlink{classmilvus_1_1_compaction_state_a745a4d7d2f595991a5e15e40af95bb5a}{Timeout\+Plan}} () const
+\begin{DoxyCompactList}\small\item\em The number of timeout plans. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_compaction_state_a8fbe102fa46ed5246cf58ae6ed79bad4}\label{classmilvus_1_1_compaction_state_a8fbe102fa46ed5246cf58ae6ed79bad4}} 
+void \mbox{\hyperlink{classmilvus_1_1_compaction_state_a8fbe102fa46ed5246cf58ae6ed79bad4}{Set\+Timeout\+Plan}} (int64\+\_\+t num)
+\begin{DoxyCompactList}\small\item\em Set the number of timeout plans. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_compaction_state_a6ca8b8639ba81f1cc601f7853c3a5c5c}\label{classmilvus_1_1_compaction_state_a6ca8b8639ba81f1cc601f7853c3a5c5c}} 
+int64\+\_\+t \mbox{\hyperlink{classmilvus_1_1_compaction_state_a6ca8b8639ba81f1cc601f7853c3a5c5c}{Completed\+Plan}} () const
+\begin{DoxyCompactList}\small\item\em The number of completed plans. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_compaction_state_a741f49692420366a9b0478488b358b9a}\label{classmilvus_1_1_compaction_state_a741f49692420366a9b0478488b358b9a}} 
+void \mbox{\hyperlink{classmilvus_1_1_compaction_state_a741f49692420366a9b0478488b358b9a}{Set\+Completed\+Plan}} (int64\+\_\+t num)
+\begin{DoxyCompactList}\small\item\em Set number of completed plans. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_compaction_state_aa60f727a5bacae161f81d206be310594}\label{classmilvus_1_1_compaction_state_aa60f727a5bacae161f81d206be310594}} 
+int64\+\_\+t \mbox{\hyperlink{classmilvus_1_1_compaction_state_aa60f727a5bacae161f81d206be310594}{Failed\+Plan}} () const
+\begin{DoxyCompactList}\small\item\em The number of failed plans. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_compaction_state_abbe4bc654c91ab64fe99a8270b99a0ee}\label{classmilvus_1_1_compaction_state_abbe4bc654c91ab64fe99a8270b99a0ee}} 
+void \mbox{\hyperlink{classmilvus_1_1_compaction_state_abbe4bc654c91ab64fe99a8270b99a0ee}{Set\+Failed\+Plan}} (int64\+\_\+t num)
+\begin{DoxyCompactList}\small\item\em Set the number of failed plans. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+Compaction state. Used by \mbox{\hyperlink{classmilvus_1_1_milvus_client_a8041cd363470774d2cdb3c295307e1d9}{Milvus\+Client\+::\+Get\+Compaction\+State()}}. 
+
+The documentation for this class was generated from the following files\+:\begin{DoxyCompactItemize}
+\item 
+src/include/milvus/types/Compaction\+State.\+h\item 
+src/impl/types/Compaction\+State.\+cpp\end{DoxyCompactItemize}

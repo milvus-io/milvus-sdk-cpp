@@ -1,0 +1,49 @@
+\hypertarget{classmilvus_1_1_drop_collection_properties_request}{}\doxysection{milvus\+::Drop\+Collection\+Properties\+Request Class Reference}
+\label{classmilvus_1_1_drop_collection_properties_request}\index{milvus::DropCollectionPropertiesRequest@{milvus::DropCollectionPropertiesRequest}}
+
+
+Used by \mbox{\hyperlink{classmilvus_1_1_milvus_client_v2_a5e3e7e70f3b056664d177fdf59f7236c}{Milvus\+Client\+V2\+::\+Drop\+Collection\+Properties()}}  
+
+
+
+
+{\ttfamily \#include $<$Drop\+Collection\+Properties\+Request.\+h$>$}
+
+
+
+Inherits \mbox{\hyperlink{classmilvus_1_1_collection_request_base}{milvus\+::\+Collection\+Request\+Base}}.
+
+\doxysubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{classmilvus_1_1_drop_collection_properties_request_a1dbb878783873fec584b93d28c20e898}\label{classmilvus_1_1_drop_collection_properties_request_a1dbb878783873fec584b93d28c20e898}} 
+\mbox{\hyperlink{classmilvus_1_1_drop_collection_properties_request_a1dbb878783873fec584b93d28c20e898}{Drop\+Collection\+Properties\+Request}} ()=default
+\begin{DoxyCompactList}\small\item\em Constructor. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_drop_collection_properties_request_a82a576060e6ecd4c39422321c2660f10}\label{classmilvus_1_1_drop_collection_properties_request_a82a576060e6ecd4c39422321c2660f10}} 
+\mbox{\hyperlink{classmilvus_1_1_drop_collection_properties_request}{Drop\+Collection\+Properties\+Request}} \& \mbox{\hyperlink{classmilvus_1_1_drop_collection_properties_request_a82a576060e6ecd4c39422321c2660f10}{With\+Database\+Name}} (const std\+::string \&db\+\_\+name)
+\begin{DoxyCompactList}\small\item\em Set database name in which the collection is created. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_drop_collection_properties_request_ab60c3960c7257ca3da9af02f570f95e2}\label{classmilvus_1_1_drop_collection_properties_request_ab60c3960c7257ca3da9af02f570f95e2}} 
+\mbox{\hyperlink{classmilvus_1_1_drop_collection_properties_request}{Drop\+Collection\+Properties\+Request}} \& \mbox{\hyperlink{classmilvus_1_1_drop_collection_properties_request_ab60c3960c7257ca3da9af02f570f95e2}{With\+Collection\+Name}} (const std\+::string \&collection\+\_\+name)
+\begin{DoxyCompactList}\small\item\em Set name of the collection. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_drop_collection_properties_request_a31d1e0e285cf5577ffe4dca2bd8ff0a6}\label{classmilvus_1_1_drop_collection_properties_request_a31d1e0e285cf5577ffe4dca2bd8ff0a6}} 
+const std\+::set$<$ std\+::string $>$ \& \mbox{\hyperlink{classmilvus_1_1_drop_collection_properties_request_a31d1e0e285cf5577ffe4dca2bd8ff0a6}{Property\+Keys}} () const
+\begin{DoxyCompactList}\small\item\em Get deleted keys. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_drop_collection_properties_request_aa17a3005c75c6c1555c0497827f66d31}\label{classmilvus_1_1_drop_collection_properties_request_aa17a3005c75c6c1555c0497827f66d31}} 
+void \mbox{\hyperlink{classmilvus_1_1_drop_collection_properties_request_aa17a3005c75c6c1555c0497827f66d31}{Set\+Property\+Keys}} (std\+::set$<$ std\+::string $>$ \&\&keys)
+\begin{DoxyCompactList}\small\item\em Set deleted keys of this database. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_drop_collection_properties_request_afa8e82a6ae59739e3f9b6ca5be108f35}\label{classmilvus_1_1_drop_collection_properties_request_afa8e82a6ae59739e3f9b6ca5be108f35}} 
+\mbox{\hyperlink{classmilvus_1_1_drop_collection_properties_request}{Drop\+Collection\+Properties\+Request}} \& \mbox{\hyperlink{classmilvus_1_1_drop_collection_properties_request_afa8e82a6ae59739e3f9b6ca5be108f35}{With\+Property\+Keys}} (std\+::set$<$ std\+::string $>$ \&\&keys)
+\begin{DoxyCompactList}\small\item\em Set deleted keys of this database. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_drop_collection_properties_request_ace867d85f4bc8636fa46a936f24bae2a}\label{classmilvus_1_1_drop_collection_properties_request_ace867d85f4bc8636fa46a936f24bae2a}} 
+\mbox{\hyperlink{classmilvus_1_1_drop_collection_properties_request}{Drop\+Collection\+Properties\+Request}} \& \mbox{\hyperlink{classmilvus_1_1_drop_collection_properties_request_ace867d85f4bc8636fa46a936f24bae2a}{Add\+Property\+Key}} (const std\+::string \&key)
+\begin{DoxyCompactList}\small\item\em Add a key to be deleted. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\doxysubsection*{Additional Inherited Members}
+
+
+\doxysubsection{Detailed Description}
+Used by \mbox{\hyperlink{classmilvus_1_1_milvus_client_v2_a5e3e7e70f3b056664d177fdf59f7236c}{Milvus\+Client\+V2\+::\+Drop\+Collection\+Properties()}} 
+
+The documentation for this class was generated from the following files\+:\begin{DoxyCompactItemize}
+\item 
+src/include/milvus/request/collection/Drop\+Collection\+Properties\+Request.\+h\item 
+src/impl/request/collection/Drop\+Collection\+Properties\+Request.\+cpp\end{DoxyCompactItemize}

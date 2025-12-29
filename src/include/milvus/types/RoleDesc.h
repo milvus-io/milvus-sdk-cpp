@@ -32,32 +32,32 @@ struct GrantItem {
               const std::string& role_name, const std::string& grantor_name, const std::string& privilege);
 
     /**
-     * @brief privilege type
+     * @brief privilege type.
      */
     std::string object_type_;
 
     /**
-     * @brief privilege name
+     * @brief privilege name.
      */
     std::string object_name_;
 
     /**
-     * @brief in which database take effect
+     * @brief in which database take effect.
      */
     std::string db_name_;
 
     /**
-     * @brief grant to which role
+     * @brief grant to which role.
      */
     std::string role_name_;
 
     /**
-     * @brief privilege
+     * @brief privilege.
      */
     std::string privilege_;
 
     /**
-     * @brief grantor name
+     * @brief grantor name.
      */
     std::string grantor_name_;
 };
@@ -68,24 +68,36 @@ struct GrantItem {
 class RoleDesc {
  public:
     /**
-     * @brief Construct a new RoleDesc object
+     * @brief Construct a new RoleDesc object.
      */
     RoleDesc();
 
     /**
-     * @brief Construct a new RoleDesc object
+     * @brief Construct a new RoleDesc object.
      */
     RoleDesc(const std::string& name, std::vector<GrantItem>&& grant_items);
 
+    /**
+     * @brief Set name of the role.
+     */
     void
     SetName(const std::string& name);
 
+    /**
+     * @brief Get name of the role.
+     */
     const std::string&
     Name() const;
 
+    /**
+     * @brief Add a privilege item for the role.
+     */
     void
     AddGrantItem(GrantItem&& grant_item);
 
+    /**
+     * @brief Get privilege items of the role.
+     */
     const std::vector<GrantItem>&
     GrantItems() const;
 

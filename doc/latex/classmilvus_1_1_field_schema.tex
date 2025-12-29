@@ -1,0 +1,240 @@
+\hypertarget{classmilvus_1_1_field_schema}{}\doxysection{milvus\+::Field\+Schema Class Reference}
+\label{classmilvus_1_1_field_schema}\index{milvus::FieldSchema@{milvus::FieldSchema}}
+
+
+Field schema used by \mbox{\hyperlink{classmilvus_1_1_collection_schema}{Collection\+Schema}}.  
+
+
+
+
+{\ttfamily \#include $<$Field\+Schema.\+h$>$}
+
+\doxysubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{classmilvus_1_1_field_schema_aaf6350916be5c8ad616eabfbd7180ade}\label{classmilvus_1_1_field_schema_aaf6350916be5c8ad616eabfbd7180ade}} 
+\mbox{\hyperlink{classmilvus_1_1_field_schema_aaf6350916be5c8ad616eabfbd7180ade}{Field\+Schema}} (std\+::string name, \mbox{\hyperlink{namespacemilvus_a3bdf02cc09dcb59a1e1d2f287d90788b}{Data\+Type}} data\+\_\+type, std\+::string description=\char`\"{}\char`\"{}, bool is\+\_\+primary\+\_\+key=false, bool auto\+\_\+id=false)
+\begin{DoxyCompactList}\small\item\em Constructor. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_field_schema_a19297a8cf5f763975d392f5a037d7554}\label{classmilvus_1_1_field_schema_a19297a8cf5f763975d392f5a037d7554}} 
+const std\+::string \& \mbox{\hyperlink{classmilvus_1_1_field_schema_a19297a8cf5f763975d392f5a037d7554}{Name}} () const
+\begin{DoxyCompactList}\small\item\em Name of this field, cannot be empty. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_field_schema_a3791af0c64ae2d330838dca5a7d716a4}\label{classmilvus_1_1_field_schema_a3791af0c64ae2d330838dca5a7d716a4}} 
+void \mbox{\hyperlink{classmilvus_1_1_field_schema_a3791af0c64ae2d330838dca5a7d716a4}{Set\+Name}} (std\+::string name)
+\begin{DoxyCompactList}\small\item\em Set name of the field. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_field_schema_a9f42dd0faa3a3106ca5385caa858a1cd}\label{classmilvus_1_1_field_schema_a9f42dd0faa3a3106ca5385caa858a1cd}} 
+\mbox{\hyperlink{classmilvus_1_1_field_schema}{Field\+Schema}} \& \mbox{\hyperlink{classmilvus_1_1_field_schema_a9f42dd0faa3a3106ca5385caa858a1cd}{With\+Name}} (std\+::string name)
+\begin{DoxyCompactList}\small\item\em Set name of the field. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_field_schema_ac7dda81e52fab80763e0f1e2517ef134}\label{classmilvus_1_1_field_schema_ac7dda81e52fab80763e0f1e2517ef134}} 
+const std\+::string \& \mbox{\hyperlink{classmilvus_1_1_field_schema_ac7dda81e52fab80763e0f1e2517ef134}{Description}} () const
+\begin{DoxyCompactList}\small\item\em Description of this field, can be empty. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_field_schema_ae9675f63bf585fe3f3f0419e65f15cf1}\label{classmilvus_1_1_field_schema_ae9675f63bf585fe3f3f0419e65f15cf1}} 
+void \mbox{\hyperlink{classmilvus_1_1_field_schema_ae9675f63bf585fe3f3f0419e65f15cf1}{Set\+Description}} (std\+::string description)
+\begin{DoxyCompactList}\small\item\em Set description of the field. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_field_schema_acd56f7dcf27255ff667e6de38a0d5c7c}\label{classmilvus_1_1_field_schema_acd56f7dcf27255ff667e6de38a0d5c7c}} 
+\mbox{\hyperlink{classmilvus_1_1_field_schema}{Field\+Schema}} \& \mbox{\hyperlink{classmilvus_1_1_field_schema_acd56f7dcf27255ff667e6de38a0d5c7c}{With\+Description}} (std\+::string description)
+\begin{DoxyCompactList}\small\item\em Set description of the field. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_field_schema_a7fdfe0d44e25b598b491f9529d170227}\label{classmilvus_1_1_field_schema_a7fdfe0d44e25b598b491f9529d170227}} 
+\mbox{\hyperlink{namespacemilvus_a3bdf02cc09dcb59a1e1d2f287d90788b}{Data\+Type}} \mbox{\hyperlink{classmilvus_1_1_field_schema_a7fdfe0d44e25b598b491f9529d170227}{Field\+Data\+Type}} () const
+\begin{DoxyCompactList}\small\item\em Field data type. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_field_schema_a12d8e5ff54f2988cee23e85e2fd43582}\label{classmilvus_1_1_field_schema_a12d8e5ff54f2988cee23e85e2fd43582}} 
+void \mbox{\hyperlink{classmilvus_1_1_field_schema_a12d8e5ff54f2988cee23e85e2fd43582}{Set\+Data\+Type}} (\mbox{\hyperlink{namespacemilvus_a3bdf02cc09dcb59a1e1d2f287d90788b}{Data\+Type}} dt)
+\begin{DoxyCompactList}\small\item\em Set field data type. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_field_schema_a2d3d267902e7768f85bf1efa0366a00a}\label{classmilvus_1_1_field_schema_a2d3d267902e7768f85bf1efa0366a00a}} 
+\mbox{\hyperlink{classmilvus_1_1_field_schema}{Field\+Schema}} \& \mbox{\hyperlink{classmilvus_1_1_field_schema_a2d3d267902e7768f85bf1efa0366a00a}{With\+Data\+Type}} (\mbox{\hyperlink{namespacemilvus_a3bdf02cc09dcb59a1e1d2f287d90788b}{Data\+Type}} dt)
+\begin{DoxyCompactList}\small\item\em Set field data type. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_field_schema_a3b9426e400469f707235a0c376249d1b}\label{classmilvus_1_1_field_schema_a3b9426e400469f707235a0c376249d1b}} 
+\mbox{\hyperlink{namespacemilvus_a3bdf02cc09dcb59a1e1d2f287d90788b}{Data\+Type}} \mbox{\hyperlink{classmilvus_1_1_field_schema_a3b9426e400469f707235a0c376249d1b}{Element\+Type}} () const
+\begin{DoxyCompactList}\small\item\em Element type of array field. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_field_schema_aa3a29fdecf9fbd50944940dd253ae3f2}\label{classmilvus_1_1_field_schema_aa3a29fdecf9fbd50944940dd253ae3f2}} 
+void \mbox{\hyperlink{classmilvus_1_1_field_schema_aa3a29fdecf9fbd50944940dd253ae3f2}{Set\+Element\+Type}} (\mbox{\hyperlink{namespacemilvus_a3bdf02cc09dcb59a1e1d2f287d90788b}{Data\+Type}} dt)
+\begin{DoxyCompactList}\small\item\em Set element type for array field. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_field_schema_ac3432ec9a1b3051227346464c9fad962}\label{classmilvus_1_1_field_schema_ac3432ec9a1b3051227346464c9fad962}} 
+\mbox{\hyperlink{classmilvus_1_1_field_schema}{Field\+Schema}} \& \mbox{\hyperlink{classmilvus_1_1_field_schema_ac3432ec9a1b3051227346464c9fad962}{With\+Element\+Type}} (\mbox{\hyperlink{namespacemilvus_a3bdf02cc09dcb59a1e1d2f287d90788b}{Data\+Type}} dt)
+\begin{DoxyCompactList}\small\item\em Set element type for array field. \end{DoxyCompactList}\item 
+bool \mbox{\hyperlink{classmilvus_1_1_field_schema_a5f0f254379db440e1acfc18b61f35fa3}{Is\+Primary\+Key}} () const
+\begin{DoxyCompactList}\small\item\em The field is primary key or not. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_field_schema_af564ad9a7a8eadfa0c6348566bd2ad8f}\label{classmilvus_1_1_field_schema_af564ad9a7a8eadfa0c6348566bd2ad8f}} 
+void \mbox{\hyperlink{classmilvus_1_1_field_schema_af564ad9a7a8eadfa0c6348566bd2ad8f}{Set\+Primary\+Key}} (bool is\+\_\+primary\+\_\+key)
+\begin{DoxyCompactList}\small\item\em Set field to be primary key. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_field_schema_a3913f75136529802119ea52d80f9358d}\label{classmilvus_1_1_field_schema_a3913f75136529802119ea52d80f9358d}} 
+\mbox{\hyperlink{classmilvus_1_1_field_schema}{Field\+Schema}} \& \mbox{\hyperlink{classmilvus_1_1_field_schema_a3913f75136529802119ea52d80f9358d}{With\+Primary\+Key}} (bool is\+\_\+primary\+\_\+key)
+\begin{DoxyCompactList}\small\item\em Set field to be primary key. \end{DoxyCompactList}\item 
+bool \mbox{\hyperlink{classmilvus_1_1_field_schema_ae18e54e3d2c90e10a1abdd7426743e75}{Auto\+ID}} () const
+\begin{DoxyCompactList}\small\item\em Field item\textquotesingle{}s id is auto-\/generated or not. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_field_schema_abf644dc4321561c41781bd115e019009}\label{classmilvus_1_1_field_schema_abf644dc4321561c41781bd115e019009}} 
+void \mbox{\hyperlink{classmilvus_1_1_field_schema_abf644dc4321561c41781bd115e019009}{Set\+Auto\+ID}} (bool auto\+\_\+id)
+\begin{DoxyCompactList}\small\item\em Set field item\textquotesingle{}s id to be auto-\/generated. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_field_schema_a72edae274b608587bfd051c0e9f30735}\label{classmilvus_1_1_field_schema_a72edae274b608587bfd051c0e9f30735}} 
+\mbox{\hyperlink{classmilvus_1_1_field_schema}{Field\+Schema}} \& \mbox{\hyperlink{classmilvus_1_1_field_schema_a72edae274b608587bfd051c0e9f30735}{With\+Auto\+ID}} (bool auto\+\_\+id)
+\begin{DoxyCompactList}\small\item\em Set field item\textquotesingle{}s id to be auto-\/generated. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_field_schema_a1cfe9c30eebd72b2e0b9473bf83c2de9}\label{classmilvus_1_1_field_schema_a1cfe9c30eebd72b2e0b9473bf83c2de9}} 
+bool \mbox{\hyperlink{classmilvus_1_1_field_schema_a1cfe9c30eebd72b2e0b9473bf83c2de9}{Is\+Partition\+Key}} () const
+\begin{DoxyCompactList}\small\item\em Field item\textquotesingle{}s id is partition key or not. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_field_schema_a4264f7206df159ddf9ebdfaa9390e39b}\label{classmilvus_1_1_field_schema_a4264f7206df159ddf9ebdfaa9390e39b}} 
+void \mbox{\hyperlink{classmilvus_1_1_field_schema_a4264f7206df159ddf9ebdfaa9390e39b}{Set\+Partition\+Key}} (bool partition\+\_\+key)
+\begin{DoxyCompactList}\small\item\em Set field item\textquotesingle{}s id to be partition key. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_field_schema_a39237f0cb03e1d1682a8f7196de80ea8}\label{classmilvus_1_1_field_schema_a39237f0cb03e1d1682a8f7196de80ea8}} 
+\mbox{\hyperlink{classmilvus_1_1_field_schema}{Field\+Schema}} \& \mbox{\hyperlink{classmilvus_1_1_field_schema_a39237f0cb03e1d1682a8f7196de80ea8}{With\+Partition\+Key}} (bool partition\+\_\+key)
+\begin{DoxyCompactList}\small\item\em Set field item\textquotesingle{}s id to be partition key. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_field_schema_ab6f4931f50e6f4b5c082f69b98cd3818}\label{classmilvus_1_1_field_schema_ab6f4931f50e6f4b5c082f69b98cd3818}} 
+bool \mbox{\hyperlink{classmilvus_1_1_field_schema_ab6f4931f50e6f4b5c082f69b98cd3818}{Is\+Clustering\+Key}} () const
+\begin{DoxyCompactList}\small\item\em Field item\textquotesingle{}s id is clustering key or not. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_field_schema_ab66fb8773f67cdc860a3a2b88be02457}\label{classmilvus_1_1_field_schema_ab66fb8773f67cdc860a3a2b88be02457}} 
+void \mbox{\hyperlink{classmilvus_1_1_field_schema_ab66fb8773f67cdc860a3a2b88be02457}{Set\+Clustering\+Key}} (bool clustering\+\_\+key)
+\begin{DoxyCompactList}\small\item\em Set field item\textquotesingle{}s id to be clustering key. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_field_schema_aaebca60443e0d4909e49453e6f7128cb}\label{classmilvus_1_1_field_schema_aaebca60443e0d4909e49453e6f7128cb}} 
+\mbox{\hyperlink{classmilvus_1_1_field_schema}{Field\+Schema}} \& \mbox{\hyperlink{classmilvus_1_1_field_schema_aaebca60443e0d4909e49453e6f7128cb}{With\+Clustering\+Key}} (bool clustering\+\_\+key)
+\begin{DoxyCompactList}\small\item\em Set field item\textquotesingle{}s id to be clustering key. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_field_schema_add87581f46c9cae95d0b815d6f4a6998}\label{classmilvus_1_1_field_schema_add87581f46c9cae95d0b815d6f4a6998}} 
+const std\+::map$<$ std\+::string, std\+::string $>$ \& \mbox{\hyperlink{classmilvus_1_1_field_schema_add87581f46c9cae95d0b815d6f4a6998}{Type\+Params}} () const
+\begin{DoxyCompactList}\small\item\em Extra key-\/value pair setting for this field. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_field_schema_a0983320f5d1510a5f81583e70eff63ff}\label{classmilvus_1_1_field_schema_a0983320f5d1510a5f81583e70eff63ff}} 
+void \mbox{\hyperlink{classmilvus_1_1_field_schema_a0983320f5d1510a5f81583e70eff63ff}{Set\+Type\+Params}} (const std\+::map$<$ std\+::string, std\+::string $>$ \&params)
+\begin{DoxyCompactList}\small\item\em Set extra key-\/value pair setting for this field. Note\+: the values inputted by Set\+Dimension/\+Set\+Max\+Length/\+Set\+Max\+Capacity are stored in type\+Params as a map. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_field_schema_a2e85d1229a2a1a84f9771bab95d4b471}\label{classmilvus_1_1_field_schema_a2e85d1229a2a1a84f9771bab95d4b471}} 
+void \mbox{\hyperlink{classmilvus_1_1_field_schema_a2e85d1229a2a1a84f9771bab95d4b471}{Set\+Type\+Params}} (std\+::map$<$ std\+::string, std\+::string $>$ \&\&params)
+\begin{DoxyCompactList}\small\item\em Set extra key-\/value pair setting for this field Note\+: the values inputted by Set\+Dimension/\+Set\+Max\+Length/\+Set\+Max\+Capacity are stored in type\+Params as a map. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_field_schema_afe4cfe65bb0b33f2ad0996b1e540af45}\label{classmilvus_1_1_field_schema_afe4cfe65bb0b33f2ad0996b1e540af45}} 
+uint32\+\_\+t \mbox{\hyperlink{classmilvus_1_1_field_schema_afe4cfe65bb0b33f2ad0996b1e540af45}{Dimension}} () const
+\begin{DoxyCompactList}\small\item\em Get dimension for a vector field. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_field_schema_a814d15d24fbf01b281168affdc2419a6}\label{classmilvus_1_1_field_schema_a814d15d24fbf01b281168affdc2419a6}} 
+bool \mbox{\hyperlink{classmilvus_1_1_field_schema_a814d15d24fbf01b281168affdc2419a6}{Set\+Dimension}} (uint32\+\_\+t dimension)
+\begin{DoxyCompactList}\small\item\em Quickly set dimension for a vector field. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_field_schema_a96aff5bef8aad71658d692b001bcc5ae}\label{classmilvus_1_1_field_schema_a96aff5bef8aad71658d692b001bcc5ae}} 
+\mbox{\hyperlink{classmilvus_1_1_field_schema}{Field\+Schema}} \& \mbox{\hyperlink{classmilvus_1_1_field_schema_a96aff5bef8aad71658d692b001bcc5ae}{With\+Dimension}} (uint32\+\_\+t dimension)
+\begin{DoxyCompactList}\small\item\em Quickly set dimension for a vector field. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_field_schema_a5fb3b1800e02765942ad72fd336498c9}\label{classmilvus_1_1_field_schema_a5fb3b1800e02765942ad72fd336498c9}} 
+uint32\+\_\+t \mbox{\hyperlink{classmilvus_1_1_field_schema_a5fb3b1800e02765942ad72fd336498c9}{Max\+Length}} () const
+\begin{DoxyCompactList}\small\item\em Get max length for a varchar field. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_field_schema_aaef87b98a9d6715078baa40fa1f61199}\label{classmilvus_1_1_field_schema_aaef87b98a9d6715078baa40fa1f61199}} 
+void \mbox{\hyperlink{classmilvus_1_1_field_schema_aaef87b98a9d6715078baa40fa1f61199}{Set\+Max\+Length}} (uint32\+\_\+t length)
+\begin{DoxyCompactList}\small\item\em Quickly set max length for a varchar field. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_field_schema_a1d660904f1b8237fcecf8370599ea02a}\label{classmilvus_1_1_field_schema_a1d660904f1b8237fcecf8370599ea02a}} 
+\mbox{\hyperlink{classmilvus_1_1_field_schema}{Field\+Schema}} \& \mbox{\hyperlink{classmilvus_1_1_field_schema_a1d660904f1b8237fcecf8370599ea02a}{With\+Max\+Length}} (uint32\+\_\+t length)
+\begin{DoxyCompactList}\small\item\em Quickly set max length for a varchar field. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_field_schema_ae52846bcf91362e135b9004d4a208f7d}\label{classmilvus_1_1_field_schema_ae52846bcf91362e135b9004d4a208f7d}} 
+uint32\+\_\+t \mbox{\hyperlink{classmilvus_1_1_field_schema_ae52846bcf91362e135b9004d4a208f7d}{Max\+Capacity}} () const
+\begin{DoxyCompactList}\small\item\em Get max capacity of an array field. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_field_schema_a0792becd4a7920a9b0de41fa3bd9d734}\label{classmilvus_1_1_field_schema_a0792becd4a7920a9b0de41fa3bd9d734}} 
+void \mbox{\hyperlink{classmilvus_1_1_field_schema_a0792becd4a7920a9b0de41fa3bd9d734}{Set\+Max\+Capacity}} (uint32\+\_\+t capacity)
+\begin{DoxyCompactList}\small\item\em Quickly set max capacity for an array field. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_field_schema_a865a96026fdd0ef30361bf8a6e302379}\label{classmilvus_1_1_field_schema_a865a96026fdd0ef30361bf8a6e302379}} 
+\mbox{\hyperlink{classmilvus_1_1_field_schema}{Field\+Schema}} \& \mbox{\hyperlink{classmilvus_1_1_field_schema_a865a96026fdd0ef30361bf8a6e302379}{With\+Max\+Capacity}} (uint32\+\_\+t capacity)
+\begin{DoxyCompactList}\small\item\em Quickly set max capacity for an array field. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_field_schema_a78889220a3c46f0b4ee5c9f25dfd38b5}\label{classmilvus_1_1_field_schema_a78889220a3c46f0b4ee5c9f25dfd38b5}} 
+\mbox{\hyperlink{classmilvus_1_1_field_schema}{Field\+Schema}} \& \mbox{\hyperlink{classmilvus_1_1_field_schema_a78889220a3c46f0b4ee5c9f25dfd38b5}{Enable\+Analyzer}} (bool enable\+Analyzer)
+\begin{DoxyCompactList}\small\item\em Enable enable text analysis/tokenize for varchar field. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_field_schema_ae25945b2f239d34ac82d4cc38d29b1bc}\label{classmilvus_1_1_field_schema_ae25945b2f239d34ac82d4cc38d29b1bc}} 
+bool \mbox{\hyperlink{classmilvus_1_1_field_schema_ae25945b2f239d34ac82d4cc38d29b1bc}{Is\+Enable\+Analyzer}} () const
+\begin{DoxyCompactList}\small\item\em Get the flag whether enable analyzer. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_field_schema_ac2f9a37e9e4f91d30e6afa6c5502540c}\label{classmilvus_1_1_field_schema_ac2f9a37e9e4f91d30e6afa6c5502540c}} 
+\mbox{\hyperlink{classmilvus_1_1_field_schema}{Field\+Schema}} \& \mbox{\hyperlink{classmilvus_1_1_field_schema_ac2f9a37e9e4f91d30e6afa6c5502540c}{Enable\+Match}} (bool enable\+Match)
+\begin{DoxyCompactList}\small\item\em Enable text match for varchar field. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_field_schema_ada04216239c758722dcb4dd15ec70e62}\label{classmilvus_1_1_field_schema_ada04216239c758722dcb4dd15ec70e62}} 
+bool \mbox{\hyperlink{classmilvus_1_1_field_schema_ada04216239c758722dcb4dd15ec70e62}{Is\+Enable\+Match}} () const
+\begin{DoxyCompactList}\small\item\em Get the flag whether enable text match. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_field_schema_abb52b8c2550e974fff3763c6fd7ee4b6}\label{classmilvus_1_1_field_schema_abb52b8c2550e974fff3763c6fd7ee4b6}} 
+void \mbox{\hyperlink{classmilvus_1_1_field_schema_abb52b8c2550e974fff3763c6fd7ee4b6}{Set\+Analyzer\+Params}} (const nlohmann\+::json \&params)
+\begin{DoxyCompactList}\small\item\em Set analyzer parameters. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_field_schema_ab57e2a4e4c4bce967dbcc342f0556ac3}\label{classmilvus_1_1_field_schema_ab57e2a4e4c4bce967dbcc342f0556ac3}} 
+\mbox{\hyperlink{classmilvus_1_1_field_schema}{Field\+Schema}} \& \mbox{\hyperlink{classmilvus_1_1_field_schema_ab57e2a4e4c4bce967dbcc342f0556ac3}{With\+Analyzer\+Params}} (const nlohmann\+::json \&params)
+\begin{DoxyCompactList}\small\item\em Set analyzer parameters. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_field_schema_aff45d1760dc423d178dcf483502f3e4d}\label{classmilvus_1_1_field_schema_aff45d1760dc423d178dcf483502f3e4d}} 
+nlohmann\+::json \mbox{\hyperlink{classmilvus_1_1_field_schema_aff45d1760dc423d178dcf483502f3e4d}{Analyzer\+Params}} () const
+\begin{DoxyCompactList}\small\item\em Get analyzer parameters. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_field_schema_ae27ca10d1d078491d138cc54b9ea275d}\label{classmilvus_1_1_field_schema_ae27ca10d1d078491d138cc54b9ea275d}} 
+bool \mbox{\hyperlink{classmilvus_1_1_field_schema_ae27ca10d1d078491d138cc54b9ea275d}{Is\+Nullable}} () const
+\begin{DoxyCompactList}\small\item\em Get the flag whether the field value is nullable. \end{DoxyCompactList}\item 
+void \mbox{\hyperlink{classmilvus_1_1_field_schema_ae63640bc3905266676ab95e986eaae2b}{Set\+Nullable}} (bool nullable)
+\begin{DoxyCompactList}\small\item\em Set field value can be nullable or not. \end{DoxyCompactList}\item 
+\mbox{\hyperlink{classmilvus_1_1_field_schema}{Field\+Schema}} \& \mbox{\hyperlink{classmilvus_1_1_field_schema_a33fe0f4dacf3892d9107d56a58de5a1c}{With\+Nullable}} (bool nullable)
+\begin{DoxyCompactList}\small\item\em Set field value can be nullable or not. \end{DoxyCompactList}\item 
+void \mbox{\hyperlink{classmilvus_1_1_field_schema_a1d176a87975bf0bb300f1d6ff4e8705a}{Set\+Default\+Value}} (const nlohmann\+::json \&val)
+\begin{DoxyCompactList}\small\item\em Set default value of this field. \end{DoxyCompactList}\item 
+\mbox{\hyperlink{classmilvus_1_1_field_schema}{Field\+Schema}} \& \mbox{\hyperlink{classmilvus_1_1_field_schema_aa05290f4fd900d379eed8eef55d8c0de}{With\+Default\+Value}} (const nlohmann\+::json \&val)
+\begin{DoxyCompactList}\small\item\em Set default value of this field. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_field_schema_a7c921feb3a9a469980e345df584c6fbb}\label{classmilvus_1_1_field_schema_a7c921feb3a9a469980e345df584c6fbb}} 
+const nlohmann\+::json \& \mbox{\hyperlink{classmilvus_1_1_field_schema_a7c921feb3a9a469980e345df584c6fbb}{Default\+Value}} () const
+\begin{DoxyCompactList}\small\item\em Get default value of this field. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+Field schema used by \mbox{\hyperlink{classmilvus_1_1_collection_schema}{Collection\+Schema}}. 
+
+\doxysubsection{Member Function Documentation}
+\mbox{\Hypertarget{classmilvus_1_1_field_schema_ae18e54e3d2c90e10a1abdd7426743e75}\label{classmilvus_1_1_field_schema_ae18e54e3d2c90e10a1abdd7426743e75}} 
+\index{milvus::FieldSchema@{milvus::FieldSchema}!AutoID@{AutoID}}
+\index{AutoID@{AutoID}!milvus::FieldSchema@{milvus::FieldSchema}}
+\doxysubsubsection{\texorpdfstring{AutoID()}{AutoID()}}
+{\footnotesize\ttfamily bool milvus\+::\+Field\+Schema\+::\+Auto\+ID (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption}) const}
+
+
+
+Field item\textquotesingle{}s id is auto-\/generated or not. 
+
+If ths flag is true, server will generate id when data is inserted. Else the client must provide id for each entity when insert data. \mbox{\Hypertarget{classmilvus_1_1_field_schema_a5f0f254379db440e1acfc18b61f35fa3}\label{classmilvus_1_1_field_schema_a5f0f254379db440e1acfc18b61f35fa3}} 
+\index{milvus::FieldSchema@{milvus::FieldSchema}!IsPrimaryKey@{IsPrimaryKey}}
+\index{IsPrimaryKey@{IsPrimaryKey}!milvus::FieldSchema@{milvus::FieldSchema}}
+\doxysubsubsection{\texorpdfstring{IsPrimaryKey()}{IsPrimaryKey()}}
+{\footnotesize\ttfamily bool milvus\+::\+Field\+Schema\+::\+Is\+Primary\+Key (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption}) const}
+
+
+
+The field is primary key or not. 
+
+Each collection only has one primary key. Currently only int64 type field can be primary key. \mbox{\Hypertarget{classmilvus_1_1_field_schema_a1d176a87975bf0bb300f1d6ff4e8705a}\label{classmilvus_1_1_field_schema_a1d176a87975bf0bb300f1d6ff4e8705a}} 
+\index{milvus::FieldSchema@{milvus::FieldSchema}!SetDefaultValue@{SetDefaultValue}}
+\index{SetDefaultValue@{SetDefaultValue}!milvus::FieldSchema@{milvus::FieldSchema}}
+\doxysubsubsection{\texorpdfstring{SetDefaultValue()}{SetDefaultValue()}}
+{\footnotesize\ttfamily void milvus\+::\+Field\+Schema\+::\+Set\+Default\+Value (\begin{DoxyParamCaption}\item[{const nlohmann\+::json \&}]{val }\end{DoxyParamCaption})}
+
+
+
+Set default value of this field. 
+
+Note\+: JSON and Array fields do not support default values. 
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ in}}  & {\em val} & only accept JSON primitive types. \\
+\hline
+\end{DoxyParams}
+\mbox{\Hypertarget{classmilvus_1_1_field_schema_ae63640bc3905266676ab95e986eaae2b}\label{classmilvus_1_1_field_schema_ae63640bc3905266676ab95e986eaae2b}} 
+\index{milvus::FieldSchema@{milvus::FieldSchema}!SetNullable@{SetNullable}}
+\index{SetNullable@{SetNullable}!milvus::FieldSchema@{milvus::FieldSchema}}
+\doxysubsubsection{\texorpdfstring{SetNullable()}{SetNullable()}}
+{\footnotesize\ttfamily void milvus\+::\+Field\+Schema\+::\+Set\+Nullable (\begin{DoxyParamCaption}\item[{bool}]{nullable }\end{DoxyParamCaption})}
+
+
+
+Set field value can be nullable or not. 
+
+Note\+: all scalar fields, excluding the primary field, support nullable. \mbox{\Hypertarget{classmilvus_1_1_field_schema_aa05290f4fd900d379eed8eef55d8c0de}\label{classmilvus_1_1_field_schema_aa05290f4fd900d379eed8eef55d8c0de}} 
+\index{milvus::FieldSchema@{milvus::FieldSchema}!WithDefaultValue@{WithDefaultValue}}
+\index{WithDefaultValue@{WithDefaultValue}!milvus::FieldSchema@{milvus::FieldSchema}}
+\doxysubsubsection{\texorpdfstring{WithDefaultValue()}{WithDefaultValue()}}
+{\footnotesize\ttfamily \mbox{\hyperlink{classmilvus_1_1_field_schema}{Field\+Schema}} \& milvus\+::\+Field\+Schema\+::\+With\+Default\+Value (\begin{DoxyParamCaption}\item[{const nlohmann\+::json \&}]{val }\end{DoxyParamCaption})}
+
+
+
+Set default value of this field. 
+
+Note\+: JSON and Array fields do not support default values. 
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ in}}  & {\em val} & only accept JSON primitive types. \\
+\hline
+\end{DoxyParams}
+\mbox{\Hypertarget{classmilvus_1_1_field_schema_a33fe0f4dacf3892d9107d56a58de5a1c}\label{classmilvus_1_1_field_schema_a33fe0f4dacf3892d9107d56a58de5a1c}} 
+\index{milvus::FieldSchema@{milvus::FieldSchema}!WithNullable@{WithNullable}}
+\index{WithNullable@{WithNullable}!milvus::FieldSchema@{milvus::FieldSchema}}
+\doxysubsubsection{\texorpdfstring{WithNullable()}{WithNullable()}}
+{\footnotesize\ttfamily \mbox{\hyperlink{classmilvus_1_1_field_schema}{Field\+Schema}} \& milvus\+::\+Field\+Schema\+::\+With\+Nullable (\begin{DoxyParamCaption}\item[{bool}]{nullable }\end{DoxyParamCaption})}
+
+
+
+Set field value can be nullable or not. 
+
+Note\+: all scalar fields, excluding the primary field, support nullable. 
+
+The documentation for this class was generated from the following files\+:\begin{DoxyCompactItemize}
+\item 
+src/include/milvus/types/Field\+Schema.\+h\item 
+src/impl/types/Field\+Schema.\+cpp\end{DoxyCompactItemize}

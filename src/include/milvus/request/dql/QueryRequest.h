@@ -46,7 +46,7 @@ class QueryRequest : public DQLRequestBase {
     WithCollectionName(const std::string& collection_name);
 
     /**
-     * @brief Set the partition names
+     * @brief Set the partition names.
      * If partition nemes are empty, will query in the entire collection.
      */
     QueryRequest&
@@ -59,7 +59,7 @@ class QueryRequest : public DQLRequestBase {
     AddPartitionName(const std::string& partition_name);
 
     /**
-     * @brief Set the output field names
+     * @brief Set the output field names.
      */
     QueryRequest&
     WithOutputFields(std::set<std::string>&& output_field_names);
@@ -71,7 +71,8 @@ class QueryRequest : public DQLRequestBase {
     AddOutputField(const std::string& output_field);
 
     /**
-     * @brief Set the consistency level
+     * @brief Set the consistency level.
+     * Read the doc for more info: https://milvus.io/docs/consistency.md#Consistency-Level
      */
     QueryRequest&
     WithConsistencyLevel(ConsistencyLevel consistency_level);
@@ -89,19 +90,20 @@ class QueryRequest : public DQLRequestBase {
     SetFilter(std::string filter);
 
     /**
-     * @brief Set filter expression
+     * @brief Set filter expression.
      */
     QueryRequest&
     WithFilter(std::string filter);
 
     /**
-     * @brief Get filter templates
+     * @brief Get filter templates.
      */
     const std::unordered_map<std::string, nlohmann::json>&
     FilterTemplates() const;
 
     /**
-     * @brief Set filter templates
+     * @brief Set filter templates.
+     * Read the doc for more info: https://milvus.io/docs/filtering-templating.md#Filter-Templating
      */
     void
     SetFilterTemplates(std::unordered_map<std::string, nlohmann::json>&& filter_templates);
@@ -115,13 +117,15 @@ class QueryRequest : public DQLRequestBase {
      *     filter = "pk > {age} and city in {city}"
      *     filterTemplate = {"age": 3, "city": ["beijing", "shanghai", ......]}
      * Valid value of a template can be:
-     *     boolean, numeric, string, array
+     *     boolean, numeric, string, array.
+     * Read the doc for more info: https://milvus.io/docs/filtering-templating.md#Filter-Templating
      */
     QueryRequest&
     AddFilterTemplate(std::string key, const nlohmann::json& filter_template);
 
     /**
      * @brief Set filter templates. Only take effect when filter is not empty.
+     * Read the doc for more info: https://milvus.io/docs/filtering-templating.md#Filter-Templating
      */
     QueryRequest&
     WithFilterTemplates(std::unordered_map<std::string, nlohmann::json>&& filter_templates);
@@ -134,14 +138,14 @@ class QueryRequest : public DQLRequestBase {
 
     /**
      * @brief Set limit value, only avaiable when expression is empty. \n
-     * Note: this value is stored in the ExtraParams
+     * Note: this value is stored in the ExtraParams.
      */
     void
     SetLimit(int64_t limit);
 
     /**
      * @brief Set limit value, only avaiable when expression is empty. \n
-     * Note: this value is stored in the ExtraParams
+     * Note: this value is stored in the ExtraParams.
      */
     QueryRequest&
     WithLimit(int64_t limit);
@@ -154,14 +158,14 @@ class QueryRequest : public DQLRequestBase {
 
     /**
      * @brief Set offset value, only avaiable when expression is empty. \n
-     * Note: this value is stored in the ExtraParams
+     * Note: this value is stored in the ExtraParams.
      */
     void
     SetOffset(int64_t offset);
 
     /**
      * @brief Set offset value, only avaiable when expression is empty. \n
-     * Note: this value is stored in the ExtraParams
+     * Note: this value is stored in the ExtraParams.
      */
     QueryRequest&
     WithOffset(int64_t offset);
@@ -174,26 +178,26 @@ class QueryRequest : public DQLRequestBase {
 
     /**
      * @brief Set ignore growing segments.
-     * Note: this value is stored in the ExtraParams
+     * Note: this value is stored in the ExtraParams.
      */
     void
     SetIgnoreGrowing(bool ignore_growing);
 
     /**
      * @brief Set ignore growing segments.
-     * Note: this value is stored in the ExtraParams
+     * Note: this value is stored in the ExtraParams.
      */
     QueryRequest&
     WithIgnoreGrowing(bool ignore_growing);
 
     /**
-     * @brief Add extra param
+     * @brief Add extra param.
      */
     QueryRequest&
     AddExtraParam(const std::string& key, const std::string& value);
 
     /**
-     * @brief Get extra param
+     * @brief Get extra param.
      */
     const std::unordered_map<std::string, std::string>&
     ExtraParams() const;

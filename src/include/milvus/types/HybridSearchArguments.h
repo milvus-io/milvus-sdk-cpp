@@ -35,62 +35,62 @@ namespace milvus {
 class HybridSearchArguments {
  public:
     /**
-     * @brief Get the target db name
+     * @brief Get the target db name.
      */
     const std::string&
     DatabaseName() const;
 
     /**
-     * @brief Set target db name, default is empty, means use the db name of MilvusClient
+     * @brief Set target db name, default is empty, means use the db name of MilvusClient.
      */
     Status
     SetDatabaseName(const std::string& db_name);
 
     /**
-     * @brief Get name of the target collection
+     * @brief Get name of the target collection.
      */
     const std::string&
     CollectionName() const;
 
     /**
-     * @brief Set name of this collection, cannot be empty
+     * @brief Set name of this collection, cannot be empty.
      */
     Status
     SetCollectionName(std::string collection_name);
 
     /**
-     * @brief Get partition names
+     * @brief Get partition names.
      */
     const std::set<std::string>&
     PartitionNames() const;
 
     /**
-     * @brief Specify partition name to control search scope, the name cannot be empty
+     * @brief Specify partition name to control search scope, the name cannot be empty.
      */
     Status
     AddPartitionName(std::string partition_name);
 
     /**
-     * @brief Get output field names
+     * @brief Get output field names.
      */
     const std::set<std::string>&
     OutputFields() const;
 
     /**
-     * @brief Specify output field names to return field data, the name cannot be empty
+     * @brief Specify output field names to return field data, the name cannot be empty.
      */
     Status
     AddOutputField(std::string field_name);
 
     /**
-     * @brief Get search limit(topk)
+     * @brief Get search limit(topk).
      */
     int64_t
     Limit() const;
 
     /**
-     * @brief Set search limit(topk)
-     * Note: this value is stored in the ExtraParams
+     * @brief Set search limit(topk).
+     * Note: this value is stored in the ExtraParams.
      */
     Status
     SetLimit(int64_t limit);
@@ -102,33 +102,33 @@ class HybridSearchArguments {
     Offset() const;
 
     /**
-     * @brief Set offset value
-     * Note: this value is stored in the ExtraParams
+     * @brief Set offset value.
+     * Note: this value is stored in the ExtraParams.
      */
     Status
     SetOffset(int64_t offset);
 
     /**
-     * @brief Get the decimal place of the returned results
+     * @brief Get the decimal place of the returned results.
      */
     int
     RoundDecimal() const;
 
     /**
      * @brief Specifies the decimal place of the returned results.
-     * Note: this value is stored in the ExtraParams
+     * Note: this value is stored in the ExtraParams.
      */
     Status
     SetRoundDecimal(int round_decimal);
 
     /**
-     * @brief Get consistency level
+     * @brief Get consistency level.
      */
     ConsistencyLevel
     GetConsistencyLevel() const;
 
     /**
-     * @brief Set consistency level
+     * @brief Set consistency level.
      */
     Status
     SetConsistencyLevel(const ConsistencyLevel& level);
@@ -146,25 +146,25 @@ class HybridSearchArguments {
     SetIgnoreGrowing(bool ignore_growing);
 
     /**
-     * @brief Get sub search requests
+     * @brief Get sub search requests.
      */
     const std::vector<SubSearchRequestPtr>&
     SubRequests() const;
 
     /**
-     * @brief Add sub search request
+     * @brief Add sub search request.
      */
     Status
     AddSubRequest(const SubSearchRequestPtr& request);
 
     /**
-     * @brief Get rerank
+     * @brief Get rerank.
      */
     FunctionPtr
     Rerank() const;
 
     /**
-     * @brief Set rerank, only accept RERANK function type
+     * @brief Set rerank, only accept RERANK function type.
      */
     Status
     SetRerank(const FunctionPtr& rerank);
@@ -206,19 +206,20 @@ class HybridSearchArguments {
     SetStrictGroupSize(bool strict_group_size);
 
     /**
-     * @brief Add extra param
+     * @brief Add extra param.
      */
     Status
     AddExtraParam(const std::string& key, const std::string& value);
 
     /**
-     * @brief Get extra param
+     * @brief Get extra param.
      */
     const std::unordered_map<std::string, std::string>&
     ExtraParams() const;
 
     /**
-     * @brief Validate for search arguments
+     * @brief Validate for search arguments.
+     * MilvusClient calls this method internally, users no need to mamually call it.
      */
     Status
     Validate() const;

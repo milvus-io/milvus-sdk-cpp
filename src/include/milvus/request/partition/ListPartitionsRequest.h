@@ -38,14 +38,14 @@ class ListPartitionsRequest {
 
     /**
      * @brief Set database name.
-     * If database name is empty, will list collections of the default database
+     * If database name is empty, will list collections of the default database.
      */
     void
     SetDatabaseName(const std::string& db_name);
 
     /**
      * @brief Set database name.
-     * If database name is empty, will list collections of the default database
+     * If database name is empty, will list collections of the default database.
      */
     ListPartitionsRequest&
     WithDatabaseName(const std::string& db_name);
