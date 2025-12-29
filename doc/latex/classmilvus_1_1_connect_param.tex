@@ -1,0 +1,161 @@
+\hypertarget{classmilvus_1_1_connect_param}{}\doxysection{milvus\+::Connect\+Param Class Reference}
+\label{classmilvus_1_1_connect_param}\index{milvus::ConnectParam@{milvus::ConnectParam}}
+
+
+Connection parameters. Used by \mbox{\hyperlink{classmilvus_1_1_milvus_client_a617f8dbeb20e2bd3da0736f38927d2bb}{Milvus\+Client\+::\+Connect()}}  
+
+
+
+
+{\ttfamily \#include $<$Connect\+Param.\+h$>$}
+
+\doxysubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{classmilvus_1_1_connect_param_a1aa8a859d021328320c19a3b3930ff72}\label{classmilvus_1_1_connect_param_a1aa8a859d021328320c19a3b3930ff72}} 
+\mbox{\hyperlink{classmilvus_1_1_connect_param_a1aa8a859d021328320c19a3b3930ff72}{Connect\+Param}} (std\+::string host, uint16\+\_\+t port)
+\begin{DoxyCompactList}\small\item\em Constructor. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_connect_param_aac6f1beb992b82d39b1dc0517f1ae032}\label{classmilvus_1_1_connect_param_aac6f1beb992b82d39b1dc0517f1ae032}} 
+\mbox{\hyperlink{classmilvus_1_1_connect_param_aac6f1beb992b82d39b1dc0517f1ae032}{Connect\+Param}} (std\+::string host, uint16\+\_\+t port, const std\+::string \&token)
+\begin{DoxyCompactList}\small\item\em Constructor. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_connect_param_a9db93643e84952947d07847ed99305de}\label{classmilvus_1_1_connect_param_a9db93643e84952947d07847ed99305de}} 
+\mbox{\hyperlink{classmilvus_1_1_connect_param_a9db93643e84952947d07847ed99305de}{Connect\+Param}} (std\+::string host, uint16\+\_\+t port, std\+::string username, std\+::string password)
+\begin{DoxyCompactList}\small\item\em Constructor. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_connect_param_aa012d832e6c8276a72c29b667e5999e1}\label{classmilvus_1_1_connect_param_aa012d832e6c8276a72c29b667e5999e1}} 
+const std\+::string \& \mbox{\hyperlink{classmilvus_1_1_connect_param_aa012d832e6c8276a72c29b667e5999e1}{Host}} () const
+\begin{DoxyCompactList}\small\item\em IP of the milvus proxy. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_connect_param_a3865c62e27d546cde694637dd4fb2d62}\label{classmilvus_1_1_connect_param_a3865c62e27d546cde694637dd4fb2d62}} 
+uint16\+\_\+t \mbox{\hyperlink{classmilvus_1_1_connect_param_a3865c62e27d546cde694637dd4fb2d62}{Port}} () const
+\begin{DoxyCompactList}\small\item\em Port of the milvus proxy. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_connect_param_aae0f9f0a2226a16462690750a78ee9a1}\label{classmilvus_1_1_connect_param_aae0f9f0a2226a16462690750a78ee9a1}} 
+std\+::string \mbox{\hyperlink{classmilvus_1_1_connect_param_aae0f9f0a2226a16462690750a78ee9a1}{Uri}} () const
+\begin{DoxyCompactList}\small\item\em Uri for connecting to the milvus. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_connect_param_a209298b3fb7227d821652ffb5397a192}\label{classmilvus_1_1_connect_param_a209298b3fb7227d821652ffb5397a192}} 
+const std\+::string \& \mbox{\hyperlink{classmilvus_1_1_connect_param_a209298b3fb7227d821652ffb5397a192}{Authorizations}} () const
+\begin{DoxyCompactList}\small\item\em Authorizations header value for connecting to the milvus. \mbox{\hyperlink{classmilvus_1_1_connect_param_a209298b3fb7227d821652ffb5397a192}{Authorizations()}} = base64(\textquotesingle{}username\+:password\textquotesingle{}). \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_connect_param_a5f838d977fd78122fd135916d2d9498a}\label{classmilvus_1_1_connect_param_a5f838d977fd78122fd135916d2d9498a}} 
+void \mbox{\hyperlink{classmilvus_1_1_connect_param_a5f838d977fd78122fd135916d2d9498a}{Set\+Authorizations}} (std\+::string username, std\+::string password)
+\begin{DoxyCompactList}\small\item\em Set\+Authorizations set username and password for connecting to the milvus. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_connect_param_adf8e819bb532db5ba532fbfebdf1578b}\label{classmilvus_1_1_connect_param_adf8e819bb532db5ba532fbfebdf1578b}} 
+\mbox{\hyperlink{classmilvus_1_1_connect_param}{Connect\+Param}} \& \mbox{\hyperlink{classmilvus_1_1_connect_param_adf8e819bb532db5ba532fbfebdf1578b}{With\+Authorizations}} (std\+::string username, std\+::string password)
+\begin{DoxyCompactList}\small\item\em Set\+Authorizations set username and password for connecting to the milvus. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_connect_param_a39168544935605479f4bc570feb77f2b}\label{classmilvus_1_1_connect_param_a39168544935605479f4bc570feb77f2b}} 
+uint64\+\_\+t \mbox{\hyperlink{classmilvus_1_1_connect_param_a39168544935605479f4bc570feb77f2b}{Connect\+Timeout}} () const
+\begin{DoxyCompactList}\small\item\em Connect timeout in milliseconds. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_connect_param_abd05de7e2b6e7095140afdcf20a6cef0}\label{classmilvus_1_1_connect_param_abd05de7e2b6e7095140afdcf20a6cef0}} 
+void \mbox{\hyperlink{classmilvus_1_1_connect_param_abd05de7e2b6e7095140afdcf20a6cef0}{Set\+Connect\+Timeout}} (uint64\+\_\+t connect\+\_\+timeout\+\_\+ms)
+\begin{DoxyCompactList}\small\item\em Set connect timeout in milliseconds. It is the timeout value to wait grpc channel to ready. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_connect_param_ada997ba80426faebd254a6bf93812e5a}\label{classmilvus_1_1_connect_param_ada997ba80426faebd254a6bf93812e5a}} 
+\mbox{\hyperlink{classmilvus_1_1_connect_param}{Connect\+Param}} \& \mbox{\hyperlink{classmilvus_1_1_connect_param_ada997ba80426faebd254a6bf93812e5a}{With\+Connect\+Timeout}} (uint64\+\_\+t connect\+\_\+timeout\+\_\+ms)
+\begin{DoxyCompactList}\small\item\em Set connect timeout in milliseconds. It is the timeout value to wait grpc channel to ready. \end{DoxyCompactList}\item 
+uint64\+\_\+t \mbox{\hyperlink{classmilvus_1_1_connect_param_a10facc28d0ff6a623ab05602a4202c3b}{Keepalive\+Time\+Ms}} () const
+\begin{DoxyCompactList}\small\item\em Get keepalive time value milliseconds. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_connect_param_a8cecca154cb2843f22ac4f62677d277f}\label{classmilvus_1_1_connect_param_a8cecca154cb2843f22ac4f62677d277f}} 
+void \mbox{\hyperlink{classmilvus_1_1_connect_param_a8cecca154cb2843f22ac4f62677d277f}{Set\+Keepalive\+Time\+Ms}} (uint64\+\_\+t keepalive\+\_\+time\+\_\+ms)
+\begin{DoxyCompactList}\small\item\em Set keepalive time value in milliseconds. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_connect_param_a1820fda2545b36e151117f4f8b009b85}\label{classmilvus_1_1_connect_param_a1820fda2545b36e151117f4f8b009b85}} 
+\mbox{\hyperlink{classmilvus_1_1_connect_param}{Connect\+Param}} \& \mbox{\hyperlink{classmilvus_1_1_connect_param_a1820fda2545b36e151117f4f8b009b85}{With\+Keepalive\+Time\+Ms}} (uint64\+\_\+t keepalive\+\_\+time\+\_\+ms)
+\begin{DoxyCompactList}\small\item\em Set keepalive time value in milliseconds. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_connect_param_ae9794a9332132275b20025e48b2339de}\label{classmilvus_1_1_connect_param_ae9794a9332132275b20025e48b2339de}} 
+uint64\+\_\+t \mbox{\hyperlink{classmilvus_1_1_connect_param_ae9794a9332132275b20025e48b2339de}{Keepalive\+Timeout\+Ms}} () const
+\begin{DoxyCompactList}\small\item\em Get keepalive timeout value milliseconds. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_connect_param_a4a4028b93bb93fc6d1ddfbe87bd23fbd}\label{classmilvus_1_1_connect_param_a4a4028b93bb93fc6d1ddfbe87bd23fbd}} 
+void \mbox{\hyperlink{classmilvus_1_1_connect_param_a4a4028b93bb93fc6d1ddfbe87bd23fbd}{Set\+Keepalive\+Timeout\+Ms}} (uint64\+\_\+t keepalive\+\_\+timeout\+\_\+ms)
+\begin{DoxyCompactList}\small\item\em Set keepalive timeout value in milliseconds. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_connect_param_a30150d5168518bd51e606ef4455459bd}\label{classmilvus_1_1_connect_param_a30150d5168518bd51e606ef4455459bd}} 
+\mbox{\hyperlink{classmilvus_1_1_connect_param}{Connect\+Param}} \& \mbox{\hyperlink{classmilvus_1_1_connect_param_a30150d5168518bd51e606ef4455459bd}{With\+Keepalive\+Timeout\+Ms}} (uint64\+\_\+t keepalive\+\_\+timeout\+\_\+ms)
+\begin{DoxyCompactList}\small\item\em Set keepalive timeout value in milliseconds. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_connect_param_a6dbca8ef7f15678a44ce74ea86b2eec2}\label{classmilvus_1_1_connect_param_a6dbca8ef7f15678a44ce74ea86b2eec2}} 
+bool \mbox{\hyperlink{classmilvus_1_1_connect_param_a6dbca8ef7f15678a44ce74ea86b2eec2}{Keepalive\+Without\+Calls}} () const
+\begin{DoxyCompactList}\small\item\em Get keepalive without calls value. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_connect_param_a69f7e29e14e5a8a947512919662f23f4}\label{classmilvus_1_1_connect_param_a69f7e29e14e5a8a947512919662f23f4}} 
+void \mbox{\hyperlink{classmilvus_1_1_connect_param_a69f7e29e14e5a8a947512919662f23f4}{Set\+Keepalive\+Without\+Calls}} (bool keepalive\+\_\+without\+\_\+calls)
+\begin{DoxyCompactList}\small\item\em Set keepalive without calls or not. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_connect_param_ae0e6751aeb7f72b7bb708808cd90a815}\label{classmilvus_1_1_connect_param_ae0e6751aeb7f72b7bb708808cd90a815}} 
+\mbox{\hyperlink{classmilvus_1_1_connect_param}{Connect\+Param}} \& \mbox{\hyperlink{classmilvus_1_1_connect_param_ae0e6751aeb7f72b7bb708808cd90a815}{With\+Keepalive\+Without\+Calls}} (bool keepalive\+\_\+without\+\_\+calls)
+\begin{DoxyCompactList}\small\item\em Set keepalive without calls or not. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_connect_param_a493640d0514a2603e2911082e897d67a}\label{classmilvus_1_1_connect_param_a493640d0514a2603e2911082e897d67a}} 
+uint64\+\_\+t \mbox{\hyperlink{classmilvus_1_1_connect_param_a493640d0514a2603e2911082e897d67a}{Rpc\+Deadline\+Ms}} () const
+\begin{DoxyCompactList}\small\item\em Get deadline value of rpc call in milliseconds. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_connect_param_a9dfa53723efe530a003b20e67d816f7c}\label{classmilvus_1_1_connect_param_a9dfa53723efe530a003b20e67d816f7c}} 
+void \mbox{\hyperlink{classmilvus_1_1_connect_param_a9dfa53723efe530a003b20e67d816f7c}{Set\+Rpc\+Deadline\+Ms}} (uint64\+\_\+t rpc\+\_\+deadline\+\_\+ms)
+\begin{DoxyCompactList}\small\item\em Set deadline value of rpc call in milliseconds. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_connect_param_a69ab3536d61376cbd96d0ed800f4b489}\label{classmilvus_1_1_connect_param_a69ab3536d61376cbd96d0ed800f4b489}} 
+\mbox{\hyperlink{classmilvus_1_1_connect_param}{Connect\+Param}} \& \mbox{\hyperlink{classmilvus_1_1_connect_param_a69ab3536d61376cbd96d0ed800f4b489}{With\+Rpc\+Deadline\+Ms}} (uint64\+\_\+t rpc\+\_\+deadline\+\_\+ms)
+\begin{DoxyCompactList}\small\item\em Set deadline value of rpc call in milliseconds. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_connect_param_a24f79029adc464a5d1856646b001de94}\label{classmilvus_1_1_connect_param_a24f79029adc464a5d1856646b001de94}} 
+\mbox{\hyperlink{classmilvus_1_1_connect_param}{Connect\+Param}} \& \mbox{\hyperlink{classmilvus_1_1_connect_param_a24f79029adc464a5d1856646b001de94}{With\+Tls}} ()
+\begin{DoxyCompactList}\small\item\em With ssl. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_connect_param_a6c3415047f4084919d992365a0f45ce1}\label{classmilvus_1_1_connect_param_a6c3415047f4084919d992365a0f45ce1}} 
+void \mbox{\hyperlink{classmilvus_1_1_connect_param_a6c3415047f4084919d992365a0f45ce1}{Enable\+Tls}} ()
+\begin{DoxyCompactList}\small\item\em Enable ssl. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_connect_param_a55984c069453406fbf1ccc96e913f3b5}\label{classmilvus_1_1_connect_param_a55984c069453406fbf1ccc96e913f3b5}} 
+\mbox{\hyperlink{classmilvus_1_1_connect_param}{Connect\+Param}} \& \mbox{\hyperlink{classmilvus_1_1_connect_param_a55984c069453406fbf1ccc96e913f3b5}{With\+Tls}} (const std\+::string \&server\+\_\+name, const std\+::string \&ca\+\_\+cert)
+\begin{DoxyCompactList}\small\item\em With ssl. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_connect_param_a3f245dac9dd0101cab9f4001ed0472f1}\label{classmilvus_1_1_connect_param_a3f245dac9dd0101cab9f4001ed0472f1}} 
+void \mbox{\hyperlink{classmilvus_1_1_connect_param_a3f245dac9dd0101cab9f4001ed0472f1}{Enable\+Tls}} (const std\+::string \&server\+\_\+name, const std\+::string \&ca\+\_\+cert)
+\begin{DoxyCompactList}\small\item\em Enable ssl. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_connect_param_ae7498257190e50d1834532244d50ae1e}\label{classmilvus_1_1_connect_param_ae7498257190e50d1834532244d50ae1e}} 
+\mbox{\hyperlink{classmilvus_1_1_connect_param}{Connect\+Param}} \& \mbox{\hyperlink{classmilvus_1_1_connect_param_ae7498257190e50d1834532244d50ae1e}{With\+Tls}} (const std\+::string \&server\+\_\+name, const std\+::string \&cert, const std\+::string \&key, const std\+::string \&ca\+\_\+cert)
+\begin{DoxyCompactList}\small\item\em With ssl and provides certificates. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_connect_param_ac3310a44bace962142fbb3a989303d50}\label{classmilvus_1_1_connect_param_ac3310a44bace962142fbb3a989303d50}} 
+void \mbox{\hyperlink{classmilvus_1_1_connect_param_ac3310a44bace962142fbb3a989303d50}{Enable\+Tls}} (const std\+::string \&server\+\_\+name, const std\+::string \&cert, const std\+::string \&key, const std\+::string \&ca\+\_\+cert)
+\begin{DoxyCompactList}\small\item\em Enable ssl and provides certificates. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_connect_param_aaea6edde0caf57f11a0375198d2c56f9}\label{classmilvus_1_1_connect_param_aaea6edde0caf57f11a0375198d2c56f9}} 
+void \mbox{\hyperlink{classmilvus_1_1_connect_param_aaea6edde0caf57f11a0375198d2c56f9}{Disable\+Tls}} ()
+\begin{DoxyCompactList}\small\item\em Disable ssl. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_connect_param_a00f6a5ee1e4289d8ac194583b2f70672}\label{classmilvus_1_1_connect_param_a00f6a5ee1e4289d8ac194583b2f70672}} 
+bool \mbox{\hyperlink{classmilvus_1_1_connect_param_a00f6a5ee1e4289d8ac194583b2f70672}{Tls\+Enabled}} () const
+\begin{DoxyCompactList}\small\item\em Tls\+Enabled. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_connect_param_a1b78fb59077fdff1be944d57f3950512}\label{classmilvus_1_1_connect_param_a1b78fb59077fdff1be944d57f3950512}} 
+const std\+::string \& \mbox{\hyperlink{classmilvus_1_1_connect_param_a1b78fb59077fdff1be944d57f3950512}{Server\+Name}} () const
+\begin{DoxyCompactList}\small\item\em Server\+Name tls hostname. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_connect_param_a95b80fc621b597dde1aab70c59c3030b}\label{classmilvus_1_1_connect_param_a95b80fc621b597dde1aab70c59c3030b}} 
+const std\+::string \& \mbox{\hyperlink{classmilvus_1_1_connect_param_a95b80fc621b597dde1aab70c59c3030b}{Cert}} () const
+\begin{DoxyCompactList}\small\item\em Cert tls cert file. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_connect_param_a607b569e8a419db7074afd0e2e5a2873}\label{classmilvus_1_1_connect_param_a607b569e8a419db7074afd0e2e5a2873}} 
+const std\+::string \& \mbox{\hyperlink{classmilvus_1_1_connect_param_a607b569e8a419db7074afd0e2e5a2873}{Key}} () const
+\begin{DoxyCompactList}\small\item\em Key tls key file. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_connect_param_ace00bd541bf579c5fab8942e7a02b514}\label{classmilvus_1_1_connect_param_ace00bd541bf579c5fab8942e7a02b514}} 
+const std\+::string \& \mbox{\hyperlink{classmilvus_1_1_connect_param_ace00bd541bf579c5fab8942e7a02b514}{Ca\+Cert}} () const
+\begin{DoxyCompactList}\small\item\em Ca\+Cert tls ca cert file. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_connect_param_a1b3d8c71f72751cd3d3c1beae1359622}\label{classmilvus_1_1_connect_param_a1b3d8c71f72751cd3d3c1beae1359622}} 
+const std\+::string \& \mbox{\hyperlink{classmilvus_1_1_connect_param_a1b3d8c71f72751cd3d3c1beae1359622}{Username}} () const
+\begin{DoxyCompactList}\small\item\em Return user name. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_connect_param_af2402342f29e1d63d073cc86415fd11a}\label{classmilvus_1_1_connect_param_af2402342f29e1d63d073cc86415fd11a}} 
+void \mbox{\hyperlink{classmilvus_1_1_connect_param_af2402342f29e1d63d073cc86415fd11a}{Set\+Token}} (const std\+::string \&token)
+\begin{DoxyCompactList}\small\item\em Set token for connection. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_connect_param_acc4d46631f17b4cd4021c7fb82814300}\label{classmilvus_1_1_connect_param_acc4d46631f17b4cd4021c7fb82814300}} 
+\mbox{\hyperlink{classmilvus_1_1_connect_param}{Connect\+Param}} \& \mbox{\hyperlink{classmilvus_1_1_connect_param_acc4d46631f17b4cd4021c7fb82814300}{With\+Token}} (const std\+::string \&token)
+\begin{DoxyCompactList}\small\item\em Set token for connection. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_connect_param_a552fe654e28446bf642f2f1d0caf69eb}\label{classmilvus_1_1_connect_param_a552fe654e28446bf642f2f1d0caf69eb}} 
+const std\+::string \& \mbox{\hyperlink{classmilvus_1_1_connect_param_a552fe654e28446bf642f2f1d0caf69eb}{Db\+Name}} () const
+\begin{DoxyCompactList}\small\item\em Return the current used database name. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_connect_param_a27e7e0ec521dea86d5281ea8de2c7a84}\label{classmilvus_1_1_connect_param_a27e7e0ec521dea86d5281ea8de2c7a84}} 
+void \mbox{\hyperlink{classmilvus_1_1_connect_param_a27e7e0ec521dea86d5281ea8de2c7a84}{Set\+Db\+Name}} (const std\+::string \&db\+\_\+name)
+\begin{DoxyCompactList}\small\item\em Set the current used database name. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_connect_param_a1dc7ec43806e10e41d1c415c90205e60}\label{classmilvus_1_1_connect_param_a1dc7ec43806e10e41d1c415c90205e60}} 
+\mbox{\hyperlink{classmilvus_1_1_connect_param}{Connect\+Param}} \& \mbox{\hyperlink{classmilvus_1_1_connect_param_a1dc7ec43806e10e41d1c415c90205e60}{With\+Db\+Name}} (const std\+::string \&db\+\_\+name)
+\begin{DoxyCompactList}\small\item\em Set the current used database name. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+Connection parameters. Used by \mbox{\hyperlink{classmilvus_1_1_milvus_client_a617f8dbeb20e2bd3da0736f38927d2bb}{Milvus\+Client\+::\+Connect()}} 
+
+\doxysubsection{Member Function Documentation}
+\mbox{\Hypertarget{classmilvus_1_1_connect_param_a10facc28d0ff6a623ab05602a4202c3b}\label{classmilvus_1_1_connect_param_a10facc28d0ff6a623ab05602a4202c3b}} 
+\index{milvus::ConnectParam@{milvus::ConnectParam}!KeepaliveTimeMs@{KeepaliveTimeMs}}
+\index{KeepaliveTimeMs@{KeepaliveTimeMs}!milvus::ConnectParam@{milvus::ConnectParam}}
+\doxysubsubsection{\texorpdfstring{KeepaliveTimeMs()}{KeepaliveTimeMs()}}
+{\footnotesize\ttfamily uint64\+\_\+t milvus\+::\+Connect\+Param\+::\+Keepalive\+Time\+Ms (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption}) const}
+
+
+
+Get keepalive time value milliseconds. 
+
+Note\+: teke effect when is true read the grpc doc for more info\+: \href{https://github.com/grpc/grpc/blob/master/doc/keepalive.md}{\texttt{ https\+://github.\+com/grpc/grpc/blob/master/doc/keepalive.\+md}} 
+
+The documentation for this class was generated from the following files\+:\begin{DoxyCompactItemize}
+\item 
+src/include/milvus/types/Connect\+Param.\+h\item 
+src/impl/types/Connect\+Param.\+cpp\end{DoxyCompactItemize}

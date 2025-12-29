@@ -41,7 +41,7 @@ extern const char* DATABASE_RESOURCE_GROUPS;
 /////////////////////////////////////////////////////////////////////////////////
 // the following methods are reserved to compatible with old client code
 /**
- * @brief Global definition for row count label
+ * @brief Global definition for row count label.
  */
 inline std::string
 KeyRowCount() {
@@ -49,7 +49,7 @@ KeyRowCount() {
 }
 
 /**
- * @brief Global definition for index type label
+ * @brief Global definition for index type label.
  */
 inline std::string
 KeyIndexType() {
@@ -57,7 +57,7 @@ KeyIndexType() {
 }
 
 /**
- * @brief Global definition for metric type label
+ * @brief Global definition for metric type label.
  */
 inline std::string
 KeyMetricType() {
@@ -65,7 +65,7 @@ KeyMetricType() {
 }
 
 /**
- * @brief Global definition for metric type label
+ * @brief Global definition for metric type label.
  */
 inline std::string
 KeyParams() {
@@ -73,7 +73,7 @@ KeyParams() {
 }
 
 /**
- * @brief Global definition for vector dimension label
+ * @brief Global definition for vector dimension label.
  */
 inline std::string
 FieldDim() {
@@ -81,7 +81,7 @@ FieldDim() {
 }
 
 /**
- * @brief Max length field name for varchar field
+ * @brief Max length field name for varchar field.
  */
 inline std::string
 FieldMaxLength() {
@@ -89,7 +89,7 @@ FieldMaxLength() {
 }
 
 /**
- * @brief Global definition for strong guarantee timestamp
+ * @brief Global definition for strong guarantee timestamp.
  */
 inline uint64_t
 GuaranteeStrongTs() {
@@ -97,7 +97,7 @@ GuaranteeStrongTs() {
 }
 
 /**
- * @brief Global definition for eventually guarantee timestamp
+ * @brief Global definition for eventually guarantee timestamp.
  */
 inline uint64_t
 GuaranteeEventuallyTs() {

@@ -78,14 +78,14 @@ class RetryParam {
 
     /**
      * @brief Set initial backOff in milliseconds.
-     * @param initial_backoff_ms the initial time interval between retry calls, must be greater than 0
+     * @param initial_backoff_ms the initial time interval between retry calls, must be greater than 0.
      */
     void
     SetInitialBackOffMs(uint64_t initial_backoff_ms);
 
     /**
      * @brief Set initial backOff in milliseconds.
-     * @param initial_backoff_ms the initial time interval between retry calls, must be greater than 0
+     * @param initial_backoff_ms the initial time interval between retry calls, must be greater than 0.
      */
     RetryParam&
     WithInitialBackOffMs(uint64_t initial_backoff_ms);
@@ -98,14 +98,14 @@ class RetryParam {
 
     /**
      * @brief Set maximum backOff in milliseconds.
-     * @param max_backoff_ms the maximum time interval between retry calls, must be greater than 0
+     * @param max_backoff_ms the maximum time interval between retry calls, must be greater than 0.
      */
     void
     SetMaxBackOffMs(uint64_t max_backoff_ms);
 
     /**
      * @brief Set maximum backOff in milliseconds.
-     * @param max_backoff_ms the maximum time interval between retry calls, must be greater than 0
+     * @param max_backoff_ms the maximum time interval between retry calls, must be greater than 0.
      */
     RetryParam&
     WithMaxBackOffMs(uint64_t max_backoff_ms);
@@ -118,14 +118,14 @@ class RetryParam {
 
     /**
      * @brief Set backOff multiplier, automatically increase the time interval between retry calls.
-     * @param backoff_multiplier the multiplier for time interval between retry calls, must be greater than 0
+     * @param backoff_multiplier the multiplier for time interval between retry calls, must be greater than 0.
      */
     void
     SetBackOffMultiplier(uint64_t backoff_multiplier);
 
     /**
      * @brief Set backOff multiplier, automatically increase the time interval between retry calls.
-     * @param backoff_multiplier the multiplier for time interval between retry calls, must be greater than 0
+     * @param backoff_multiplier the multiplier for time interval between retry calls, must be greater than 0.
      */
     RetryParam&
     WithBackOffMultiplier(uint64_t backoff_multiplier);

@@ -27,24 +27,36 @@ namespace milvus {
 class UserDesc {
  public:
     /**
-     * @brief Construct a new UserDesc object
+     * @brief Construct a new UserDesc object.
      */
     UserDesc();
 
     /**
-     * @brief Construct a new UserDesc object
+     * @brief Construct a new UserDesc object.
      */
     UserDesc(const std::string& name, std::vector<std::string>&& roles);
 
+    /**
+     * @brief Set the name of the user.
+     */
     void
     SetName(const std::string& name);
 
+    /**
+     * @brief Get the name of the user.
+     */
     const std::string&
     Name() const;
 
+    /**
+     * @brief Add a role name for the user.
+     */
     void
     AddRole(const std::string& role_name);
 
+    /**
+     * @brief Get role names of the user.
+     */
     const std::vector<std::string>&
     Roles() const;
 

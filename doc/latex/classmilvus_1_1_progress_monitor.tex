@@ -1,0 +1,107 @@
+\hypertarget{classmilvus_1_1_progress_monitor}{}\doxysection{milvus\+::Progress\+Monitor Class Reference}
+\label{classmilvus_1_1_progress_monitor}\index{milvus::ProgressMonitor@{milvus::ProgressMonitor}}
+
+
+Monitor progress of a request.  
+
+
+
+
+{\ttfamily \#include $<$Progress\+Monitor.\+h$>$}
+
+\doxysubsection*{Public Types}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{classmilvus_1_1_progress_monitor_a8d463fa6891b76c10e1088294f64d81f}\label{classmilvus_1_1_progress_monitor_a8d463fa6891b76c10e1088294f64d81f}} 
+using \mbox{\hyperlink{classmilvus_1_1_progress_monitor_a8d463fa6891b76c10e1088294f64d81f}{Callback\+Func}} = std\+::function$<$ void(\mbox{\hyperlink{structmilvus_1_1_progress}{Progress}} \&)$>$
+\begin{DoxyCompactList}\small\item\em The call back function definition to receive progress notification. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\doxysubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{classmilvus_1_1_progress_monitor_aa702e92c695d3824bae1919d636c5fc9}{Progress\+Monitor}} (uint32\+\_\+t check\+\_\+timeout)
+\begin{DoxyCompactList}\small\item\em Constructor to set time duration to wait the progress complete. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_progress_monitor_a56efabc65858bd172aaaa4ebc93e5ca6}\label{classmilvus_1_1_progress_monitor_a56efabc65858bd172aaaa4ebc93e5ca6}} 
+\mbox{\hyperlink{classmilvus_1_1_progress_monitor_a56efabc65858bd172aaaa4ebc93e5ca6}{Progress\+Monitor}} ()
+\begin{DoxyCompactList}\small\item\em Default progress setting. Default timeout value\+: 60 seconds. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_progress_monitor_a09f423d9f0c9b1707d778d870f434f9e}\label{classmilvus_1_1_progress_monitor_a09f423d9f0c9b1707d778d870f434f9e}} 
+uint32\+\_\+t \mbox{\hyperlink{classmilvus_1_1_progress_monitor_a09f423d9f0c9b1707d778d870f434f9e}{Check\+Timeout}} () const
+\begin{DoxyCompactList}\small\item\em time duration to wait the progress complete. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_progress_monitor_a8ed6631cb23206cbe261801ddcd3d7ea}\label{classmilvus_1_1_progress_monitor_a8ed6631cb23206cbe261801ddcd3d7ea}} 
+uint32\+\_\+t \mbox{\hyperlink{classmilvus_1_1_progress_monitor_a8ed6631cb23206cbe261801ddcd3d7ea}{Check\+Interval}} () const
+\begin{DoxyCompactList}\small\item\em time interval to check the progress state. \end{DoxyCompactList}\item 
+void \mbox{\hyperlink{classmilvus_1_1_progress_monitor_adee24b68d0ced028bb961043e69faed9}{Set\+Check\+Interval}} (uint32\+\_\+t check\+\_\+interval)
+\begin{DoxyCompactList}\small\item\em Set time interval to check the progress state. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_progress_monitor_a1cd0daacb59bb661921da644e4e836a4}\label{classmilvus_1_1_progress_monitor_a1cd0daacb59bb661921da644e4e836a4}} 
+void \mbox{\hyperlink{classmilvus_1_1_progress_monitor_a1cd0daacb59bb661921da644e4e836a4}{Do\+Progress}} (\mbox{\hyperlink{structmilvus_1_1_progress}{Progress}} \&p) const
+\begin{DoxyCompactList}\small\item\em Trigger the call back function to notify progress. \end{DoxyCompactList}\item 
+void \mbox{\hyperlink{classmilvus_1_1_progress_monitor_aa09517fc3e97addcafc7a1dafeced06b}{Set\+Callback\+Func}} (\mbox{\hyperlink{classmilvus_1_1_progress_monitor_a8d463fa6891b76c10e1088294f64d81f}{Callback\+Func}} func)
+\begin{DoxyCompactList}\small\item\em Set call back function to receive progress notification. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\doxysubsection*{Static Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{classmilvus_1_1_progress_monitor_abdcdb9f357de11ea5713dc33f27a6ff5}\label{classmilvus_1_1_progress_monitor_abdcdb9f357de11ea5713dc33f27a6ff5}} 
+static \mbox{\hyperlink{classmilvus_1_1_progress_monitor}{Progress\+Monitor}} \mbox{\hyperlink{classmilvus_1_1_progress_monitor_abdcdb9f357de11ea5713dc33f27a6ff5}{No\+Wait}} ()
+\begin{DoxyCompactList}\small\item\em Immediately return without waiting request finished. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_progress_monitor_a32e432222660a1123871442c72bb68da}\label{classmilvus_1_1_progress_monitor_a32e432222660a1123871442c72bb68da}} 
+static \mbox{\hyperlink{classmilvus_1_1_progress_monitor}{Progress\+Monitor}} \mbox{\hyperlink{classmilvus_1_1_progress_monitor_a32e432222660a1123871442c72bb68da}{Forever}} ()
+\begin{DoxyCompactList}\small\item\em A monitor to wait request until it is finished. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+Monitor progress of a request. 
+
+\doxysubsection{Constructor \& Destructor Documentation}
+\mbox{\Hypertarget{classmilvus_1_1_progress_monitor_aa702e92c695d3824bae1919d636c5fc9}\label{classmilvus_1_1_progress_monitor_aa702e92c695d3824bae1919d636c5fc9}} 
+\index{milvus::ProgressMonitor@{milvus::ProgressMonitor}!ProgressMonitor@{ProgressMonitor}}
+\index{ProgressMonitor@{ProgressMonitor}!milvus::ProgressMonitor@{milvus::ProgressMonitor}}
+\doxysubsubsection{\texorpdfstring{ProgressMonitor()}{ProgressMonitor()}}
+{\footnotesize\ttfamily milvus\+::\+Progress\+Monitor\+::\+Progress\+Monitor (\begin{DoxyParamCaption}\item[{uint32\+\_\+t}]{check\+\_\+timeout }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [explicit]}}
+
+
+
+Constructor to set time duration to wait the progress complete. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ in}}  & {\em check\+\_\+timeout} & set the value to controls the time duration to wait the progress. Unit\+: second. \\
+\hline
+\end{DoxyParams}
+
+
+\doxysubsection{Member Function Documentation}
+\mbox{\Hypertarget{classmilvus_1_1_progress_monitor_aa09517fc3e97addcafc7a1dafeced06b}\label{classmilvus_1_1_progress_monitor_aa09517fc3e97addcafc7a1dafeced06b}} 
+\index{milvus::ProgressMonitor@{milvus::ProgressMonitor}!SetCallbackFunc@{SetCallbackFunc}}
+\index{SetCallbackFunc@{SetCallbackFunc}!milvus::ProgressMonitor@{milvus::ProgressMonitor}}
+\doxysubsubsection{\texorpdfstring{SetCallbackFunc()}{SetCallbackFunc()}}
+{\footnotesize\ttfamily void milvus\+::\+Progress\+Monitor\+::\+Set\+Callback\+Func (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{classmilvus_1_1_progress_monitor_a8d463fa6891b76c10e1088294f64d81f}{Callback\+Func}}}]{func }\end{DoxyParamCaption})}
+
+
+
+Set call back function to receive progress notification. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ in}}  & {\em func} & call back function to receive progress notification. \\
+\hline
+\end{DoxyParams}
+\mbox{\Hypertarget{classmilvus_1_1_progress_monitor_adee24b68d0ced028bb961043e69faed9}\label{classmilvus_1_1_progress_monitor_adee24b68d0ced028bb961043e69faed9}} 
+\index{milvus::ProgressMonitor@{milvus::ProgressMonitor}!SetCheckInterval@{SetCheckInterval}}
+\index{SetCheckInterval@{SetCheckInterval}!milvus::ProgressMonitor@{milvus::ProgressMonitor}}
+\doxysubsubsection{\texorpdfstring{SetCheckInterval()}{SetCheckInterval()}}
+{\footnotesize\ttfamily void milvus\+::\+Progress\+Monitor\+::\+Set\+Check\+Interval (\begin{DoxyParamCaption}\item[{uint32\+\_\+t}]{check\+\_\+interval }\end{DoxyParamCaption})}
+
+
+
+Set time interval to check the progress state. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ in}}  & {\em check\+\_\+interval} & set value to controls the time interval to check progress state. Unit\+: millisecond. Default value\+: 500 milliseconds. \\
+\hline
+\end{DoxyParams}
+
+
+The documentation for this class was generated from the following files\+:\begin{DoxyCompactItemize}
+\item 
+src/include/milvus/types/Progress\+Monitor.\+h\item 
+src/impl/types/Progress\+Monitor.\+cpp\end{DoxyCompactItemize}

@@ -44,9 +44,15 @@ class AnalyzerResult {
  public:
     explicit AnalyzerResult(std::vector<AnalyzerToken>&& tokens);
 
+    /**
+     * @brief Set tokens to be analyzed.
+     */
     const std::vector<AnalyzerToken>&
     Tokens() const;
 
+    /**
+     * @brief Add a token to be analyzed.
+     */
     Status
     AddToken(AnalyzerToken&& token);
 

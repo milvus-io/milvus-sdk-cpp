@@ -30,10 +30,15 @@ class DescribeResourceGroupResponse {
      */
     DescribeResourceGroupResponse() = default;
 
-    // Getter and Setter for desc_
+    /**
+     * @brief Get resource group description.
+     */
     const ResourceGroupDesc&
     Desc() const;
 
+    /**
+     * @brief Set resource group description.
+     */
     void
     SetDesc(ResourceGroupDesc&& desc);
 

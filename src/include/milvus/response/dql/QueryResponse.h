@@ -30,10 +30,15 @@ class QueryResponse {
      */
     QueryResponse() = default;
 
-    // Getter and Setter for results_
+    /**
+     * @brief Get result of query operation.
+     */
     const QueryResults&
     Results() const;
 
+    /**
+     * @brief Set result of query operation.
+     */
     void
     SetResults(QueryResults&& results);
 

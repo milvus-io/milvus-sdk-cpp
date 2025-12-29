@@ -1,0 +1,60 @@
+\hypertarget{classmilvus_1_1_upsert_request}{}\doxysection{milvus\+::Upsert\+Request Class Reference}
+\label{classmilvus_1_1_upsert_request}\index{milvus::UpsertRequest@{milvus::UpsertRequest}}
+
+
+Used by \mbox{\hyperlink{classmilvus_1_1_milvus_client_v2_a34854f80532d73c837b08e1ebd8511cb}{Milvus\+Client\+V2\+::\+Upsert()}}  
+
+
+
+
+{\ttfamily \#include $<$Upsert\+Request.\+h$>$}
+
+
+
+Inherits \mbox{\hyperlink{classmilvus_1_1_insert_request}{milvus\+::\+Insert\+Request}}.
+
+\doxysubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{classmilvus_1_1_upsert_request_a35959be81f0e13fded02bf8d4b119c26}\label{classmilvus_1_1_upsert_request_a35959be81f0e13fded02bf8d4b119c26}} 
+\mbox{\hyperlink{classmilvus_1_1_upsert_request_a35959be81f0e13fded02bf8d4b119c26}{Upsert\+Request}} ()=default
+\begin{DoxyCompactList}\small\item\em Constructor. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_upsert_request_a8440f6ffc0b23ac444ece31ce7f2f690}\label{classmilvus_1_1_upsert_request_a8440f6ffc0b23ac444ece31ce7f2f690}} 
+\mbox{\hyperlink{classmilvus_1_1_upsert_request}{Upsert\+Request}} \& \mbox{\hyperlink{classmilvus_1_1_upsert_request_a8440f6ffc0b23ac444ece31ce7f2f690}{With\+Database\+Name}} (const std\+::string \&db\+\_\+name)
+\begin{DoxyCompactList}\small\item\em Set database name. If database name is empty, will list collections of the default database. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_upsert_request_a25fc9109cdf1935d8848c5f647ae6a2b}\label{classmilvus_1_1_upsert_request_a25fc9109cdf1935d8848c5f647ae6a2b}} 
+\mbox{\hyperlink{classmilvus_1_1_upsert_request}{Upsert\+Request}} \& \mbox{\hyperlink{classmilvus_1_1_upsert_request_a25fc9109cdf1935d8848c5f647ae6a2b}{With\+Collection\+Name}} (const std\+::string \&collection\+\_\+name)
+\begin{DoxyCompactList}\small\item\em Set name of the collection. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_upsert_request_a7b3c412ee231968e62d5292ab4b9442a}\label{classmilvus_1_1_upsert_request_a7b3c412ee231968e62d5292ab4b9442a}} 
+\mbox{\hyperlink{classmilvus_1_1_upsert_request}{Upsert\+Request}} \& \mbox{\hyperlink{classmilvus_1_1_upsert_request_a7b3c412ee231968e62d5292ab4b9442a}{With\+Partition\+Name}} (const std\+::string \&partition\+\_\+name)
+\begin{DoxyCompactList}\small\item\em Set new name of the partition. If partition name is empty, it will insert data into the default partition. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_upsert_request_a95d1a7873286d4cedd71bf63fec2e055}\label{classmilvus_1_1_upsert_request_a95d1a7873286d4cedd71bf63fec2e055}} 
+\mbox{\hyperlink{classmilvus_1_1_upsert_request}{Upsert\+Request}} \& \mbox{\hyperlink{classmilvus_1_1_upsert_request_a95d1a7873286d4cedd71bf63fec2e055}{With\+Columns\+Data}} (std\+::vector$<$ Field\+Data\+Ptr $>$ \&\&columns\+\_\+data)
+\begin{DoxyCompactList}\small\item\em Set fields data with fluent interface. Not allow to set Columns\+Data and Rows\+Data both. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_upsert_request_a5ece3823bb6d4dc0b3376a0a6c24ef85}\label{classmilvus_1_1_upsert_request_a5ece3823bb6d4dc0b3376a0a6c24ef85}} 
+\mbox{\hyperlink{classmilvus_1_1_upsert_request}{Upsert\+Request}} \& \mbox{\hyperlink{classmilvus_1_1_upsert_request_a5ece3823bb6d4dc0b3376a0a6c24ef85}{Add\+Column\+Data}} (const Field\+Data\+Ptr \&column\+\_\+data)
+\begin{DoxyCompactList}\small\item\em Set a field data with fluent interface. Not allow to set Columns\+Data and Rows\+Data both. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_upsert_request_a7b0277e2c0182c958c0bc027a0edc04e}\label{classmilvus_1_1_upsert_request_a7b0277e2c0182c958c0bc027a0edc04e}} 
+\mbox{\hyperlink{classmilvus_1_1_upsert_request}{Upsert\+Request}} \& \mbox{\hyperlink{classmilvus_1_1_upsert_request_a7b0277e2c0182c958c0bc027a0edc04e}{With\+Rows\+Data}} (Entity\+Rows \&\&rows\+\_\+data)
+\begin{DoxyCompactList}\small\item\em Set entity rows with fluent interface. Not allow to set Columns\+Data and Rows\+Data both. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_upsert_request_afa3b5fbb1df5995f372f171bad3ad46d}\label{classmilvus_1_1_upsert_request_afa3b5fbb1df5995f372f171bad3ad46d}} 
+\mbox{\hyperlink{classmilvus_1_1_upsert_request}{Upsert\+Request}} \& \mbox{\hyperlink{classmilvus_1_1_upsert_request_afa3b5fbb1df5995f372f171bad3ad46d}{Add\+Row\+Data}} (Entity\+Row \&\&row\+\_\+data)
+\begin{DoxyCompactList}\small\item\em Add en entity rows with fluent interface. Not allow to set Columns\+Data and Rows\+Data both. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_upsert_request_a3be39ffa856a7e761391b501f0d98425}\label{classmilvus_1_1_upsert_request_a3be39ffa856a7e761391b501f0d98425}} 
+bool \mbox{\hyperlink{classmilvus_1_1_upsert_request_a3be39ffa856a7e761391b501f0d98425}{Partial\+Update}} () const
+\begin{DoxyCompactList}\small\item\em Get partial update or not. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_upsert_request_a2d11d847783707a81aace9ddb90f75bc}\label{classmilvus_1_1_upsert_request_a2d11d847783707a81aace9ddb90f75bc}} 
+void \mbox{\hyperlink{classmilvus_1_1_upsert_request_a2d11d847783707a81aace9ddb90f75bc}{Set\+Partial\+Update}} (bool partial\+\_\+update)
+\begin{DoxyCompactList}\small\item\em Set partial update. If True, only the specified fields will be updated while others remain unchanged. Default is False. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_upsert_request_afba9c3d64a1a8e71b5d063752085e6e5}\label{classmilvus_1_1_upsert_request_afba9c3d64a1a8e71b5d063752085e6e5}} 
+\mbox{\hyperlink{classmilvus_1_1_upsert_request}{Upsert\+Request}} \& \mbox{\hyperlink{classmilvus_1_1_upsert_request_afba9c3d64a1a8e71b5d063752085e6e5}{With\+Partial\+Update}} (bool partial\+\_\+update)
+\begin{DoxyCompactList}\small\item\em Set database name. If True, only the specified fields will be updated while others remain unchanged. Default is False. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+Used by \mbox{\hyperlink{classmilvus_1_1_milvus_client_v2_a34854f80532d73c837b08e1ebd8511cb}{Milvus\+Client\+V2\+::\+Upsert()}} 
+
+The documentation for this class was generated from the following files\+:\begin{DoxyCompactItemize}
+\item 
+src/include/milvus/request/dml/Upsert\+Request.\+h\item 
+src/impl/request/dml/Upsert\+Request.\+cpp\end{DoxyCompactItemize}

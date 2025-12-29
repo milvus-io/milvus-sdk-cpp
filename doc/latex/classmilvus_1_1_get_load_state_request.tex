@@ -1,0 +1,49 @@
+\hypertarget{classmilvus_1_1_get_load_state_request}{}\doxysection{milvus\+::Get\+Load\+State\+Request Class Reference}
+\label{classmilvus_1_1_get_load_state_request}\index{milvus::GetLoadStateRequest@{milvus::GetLoadStateRequest}}
+
+
+Used by \mbox{\hyperlink{classmilvus_1_1_milvus_client_v2_a9992a99c616943a6083b1d57b292d24b}{Milvus\+Client\+V2\+::\+Get\+Load\+State()}}  
+
+
+
+
+{\ttfamily \#include $<$Get\+Load\+State\+Request.\+h$>$}
+
+
+
+Inherits \mbox{\hyperlink{classmilvus_1_1_collection_request_base}{milvus\+::\+Collection\+Request\+Base}}.
+
+\doxysubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{classmilvus_1_1_get_load_state_request_a0e2732028d5e92e2d847b4496d5f0a2a}\label{classmilvus_1_1_get_load_state_request_a0e2732028d5e92e2d847b4496d5f0a2a}} 
+\mbox{\hyperlink{classmilvus_1_1_get_load_state_request_a0e2732028d5e92e2d847b4496d5f0a2a}{Get\+Load\+State\+Request}} ()=default
+\begin{DoxyCompactList}\small\item\em Constructor. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_get_load_state_request_a4eb41d0b9246d4e0d8bb90e70391d6c2}\label{classmilvus_1_1_get_load_state_request_a4eb41d0b9246d4e0d8bb90e70391d6c2}} 
+\mbox{\hyperlink{classmilvus_1_1_get_load_state_request}{Get\+Load\+State\+Request}} \& \mbox{\hyperlink{classmilvus_1_1_get_load_state_request_a4eb41d0b9246d4e0d8bb90e70391d6c2}{With\+Database\+Name}} (const std\+::string \&db\+\_\+name)
+\begin{DoxyCompactList}\small\item\em Set database name in which the collection is created. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_get_load_state_request_a952eaf393bbd32c6e9c730a2e08874c6}\label{classmilvus_1_1_get_load_state_request_a952eaf393bbd32c6e9c730a2e08874c6}} 
+\mbox{\hyperlink{classmilvus_1_1_get_load_state_request}{Get\+Load\+State\+Request}} \& \mbox{\hyperlink{classmilvus_1_1_get_load_state_request_a952eaf393bbd32c6e9c730a2e08874c6}{With\+Collection\+Name}} (const std\+::string \&collection\+\_\+name)
+\begin{DoxyCompactList}\small\item\em Set name of the collection. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_get_load_state_request_aae276a4295a10498ae3ce7433c73a509}\label{classmilvus_1_1_get_load_state_request_aae276a4295a10498ae3ce7433c73a509}} 
+const std\+::set$<$ std\+::string $>$ \& \mbox{\hyperlink{classmilvus_1_1_get_load_state_request_aae276a4295a10498ae3ce7433c73a509}{Partition\+Names}} () const
+\begin{DoxyCompactList}\small\item\em Get partition names to get load state. If partition name list is empty, will get load state of the collection. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_get_load_state_request_a587e7e5057d4812b3726b0c2563b16aa}\label{classmilvus_1_1_get_load_state_request_a587e7e5057d4812b3726b0c2563b16aa}} 
+void \mbox{\hyperlink{classmilvus_1_1_get_load_state_request_a587e7e5057d4812b3726b0c2563b16aa}{Set\+Partition\+Names}} (std\+::set$<$ std\+::string $>$ \&\&partition\+\_\+names)
+\begin{DoxyCompactList}\small\item\em Set partition names to get load state of the partition. If partition name list is empty, will get load state of the collection. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_get_load_state_request_a6ce047f33f28d52e263fe0c87bb6c92a}\label{classmilvus_1_1_get_load_state_request_a6ce047f33f28d52e263fe0c87bb6c92a}} 
+\mbox{\hyperlink{classmilvus_1_1_get_load_state_request}{Get\+Load\+State\+Request}} \& \mbox{\hyperlink{classmilvus_1_1_get_load_state_request_a6ce047f33f28d52e263fe0c87bb6c92a}{With\+Partition\+Names}} (std\+::set$<$ std\+::string $>$ \&\&partition\+\_\+names)
+\begin{DoxyCompactList}\small\item\em Set partition names to get load state of the partition. If partition name list is empty, will get load state of the collection. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_get_load_state_request_ab0ae72a5d0c0022ead9a0e512ab8a70e}\label{classmilvus_1_1_get_load_state_request_ab0ae72a5d0c0022ead9a0e512ab8a70e}} 
+\mbox{\hyperlink{classmilvus_1_1_get_load_state_request}{Get\+Load\+State\+Request}} \& \mbox{\hyperlink{classmilvus_1_1_get_load_state_request_ab0ae72a5d0c0022ead9a0e512ab8a70e}{Add\+Partition\+Name}} (const std\+::string \&partition\+\_\+name)
+\begin{DoxyCompactList}\small\item\em Add a partition name to get load state. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\doxysubsection*{Additional Inherited Members}
+
+
+\doxysubsection{Detailed Description}
+Used by \mbox{\hyperlink{classmilvus_1_1_milvus_client_v2_a9992a99c616943a6083b1d57b292d24b}{Milvus\+Client\+V2\+::\+Get\+Load\+State()}} 
+
+The documentation for this class was generated from the following files\+:\begin{DoxyCompactItemize}
+\item 
+src/include/milvus/request/collection/Get\+Load\+State\+Request.\+h\item 
+src/impl/request/collection/Get\+Load\+State\+Request.\+cpp\end{DoxyCompactItemize}

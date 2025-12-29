@@ -28,9 +28,15 @@ class HasCollectionResponse {
      */
     HasCollectionResponse() = default;
 
-    // Getter and Setter for has_
+    /**
+     * @brief Get whether the collection exists or not.
+     */
     bool
     Has() const;
+
+    /**
+     * @brief Set whether the collection exists or not.
+     */
     void
     SetHas(bool has);
 

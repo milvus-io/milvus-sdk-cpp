@@ -1,0 +1,47 @@
+\hypertarget{classmilvus_1_1_compaction_plan}{}\doxysection{milvus\+::Compaction\+Plan Class Reference}
+\label{classmilvus_1_1_compaction_plan}\index{milvus::CompactionPlan@{milvus::CompactionPlan}}
+
+
+Compaction plan information. Used by \mbox{\hyperlink{classmilvus_1_1_milvus_client_a39d54736f4b08bba8d6b055277aa71ea}{Milvus\+Client\+::\+Get\+Compaction\+Plans()}}.  
+
+
+
+
+{\ttfamily \#include $<$Compaction\+Plan.\+h$>$}
+
+\doxysubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{classmilvus_1_1_compaction_plan_a7b530d73a72251e01e7b1757c6c15532}\label{classmilvus_1_1_compaction_plan_a7b530d73a72251e01e7b1757c6c15532}} 
+\mbox{\hyperlink{classmilvus_1_1_compaction_plan_a7b530d73a72251e01e7b1757c6c15532}{Compaction\+Plan}} ()
+\begin{DoxyCompactList}\small\item\em Construct a new Compaction Plan object. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_compaction_plan_ab56141041265c330f352923081a4af35}\label{classmilvus_1_1_compaction_plan_ab56141041265c330f352923081a4af35}} 
+\mbox{\hyperlink{classmilvus_1_1_compaction_plan_ab56141041265c330f352923081a4af35}{Compaction\+Plan}} (const std\+::vector$<$ int64\+\_\+t $>$ \&segments, int64\+\_\+t dst\+\_\+segment)
+\begin{DoxyCompactList}\small\item\em Constructor. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_compaction_plan_a71d0a329ce6789c3d989439aad07625b}\label{classmilvus_1_1_compaction_plan_a71d0a329ce6789c3d989439aad07625b}} 
+\mbox{\hyperlink{classmilvus_1_1_compaction_plan_a71d0a329ce6789c3d989439aad07625b}{Compaction\+Plan}} (std\+::vector$<$ int64\+\_\+t $>$ \&\&segments, int64\+\_\+t dst\+\_\+segment)
+\begin{DoxyCompactList}\small\item\em Constructor. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_compaction_plan_aee31841a64b8f91a464e3b94c581704c}\label{classmilvus_1_1_compaction_plan_aee31841a64b8f91a464e3b94c581704c}} 
+const std\+::vector$<$ int64\+\_\+t $>$ \& \mbox{\hyperlink{classmilvus_1_1_compaction_plan_aee31841a64b8f91a464e3b94c581704c}{Source\+Segments}} () const
+\begin{DoxyCompactList}\small\item\em Segment id array to be merged. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_compaction_plan_a2adb630c514a2d8262ef9f9333883bc0}\label{classmilvus_1_1_compaction_plan_a2adb630c514a2d8262ef9f9333883bc0}} 
+void \mbox{\hyperlink{classmilvus_1_1_compaction_plan_a2adb630c514a2d8262ef9f9333883bc0}{Set\+Source\+Segments}} (const std\+::vector$<$ int64\+\_\+t $>$ \&segments)
+\begin{DoxyCompactList}\small\item\em Set segment id array to be merged. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_compaction_plan_a2929a97a02802fe807c9a99b5758c625}\label{classmilvus_1_1_compaction_plan_a2929a97a02802fe807c9a99b5758c625}} 
+void \mbox{\hyperlink{classmilvus_1_1_compaction_plan_a2929a97a02802fe807c9a99b5758c625}{Set\+Source\+Segments}} (std\+::vector$<$ int64\+\_\+t $>$ \&\&segments)
+\begin{DoxyCompactList}\small\item\em Set segment id array to be merged. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_compaction_plan_a0765051a47792bb18045190d5751998a}\label{classmilvus_1_1_compaction_plan_a0765051a47792bb18045190d5751998a}} 
+int64\+\_\+t \mbox{\hyperlink{classmilvus_1_1_compaction_plan_a0765051a47792bb18045190d5751998a}{Destiny\+Segemnt}} () const
+\begin{DoxyCompactList}\small\item\em New generated segment id after merging. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_compaction_plan_aa7e24bf3960613e661f0f281ba9ef298}\label{classmilvus_1_1_compaction_plan_aa7e24bf3960613e661f0f281ba9ef298}} 
+void \mbox{\hyperlink{classmilvus_1_1_compaction_plan_aa7e24bf3960613e661f0f281ba9ef298}{Set\+Destiny\+Segemnt}} (int64\+\_\+t id)
+\begin{DoxyCompactList}\small\item\em Set segment id. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+Compaction plan information. Used by \mbox{\hyperlink{classmilvus_1_1_milvus_client_a39d54736f4b08bba8d6b055277aa71ea}{Milvus\+Client\+::\+Get\+Compaction\+Plans()}}. 
+
+The documentation for this class was generated from the following files\+:\begin{DoxyCompactItemize}
+\item 
+src/include/milvus/types/Compaction\+Plan.\+h\item 
+src/impl/types/Compaction\+Plan.\+cpp\end{DoxyCompactItemize}

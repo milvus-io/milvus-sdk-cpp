@@ -1,0 +1,56 @@
+\hypertarget{classmilvus_1_1_flush_request}{}\doxysection{milvus\+::Flush\+Request Class Reference}
+\label{classmilvus_1_1_flush_request}\index{milvus::FlushRequest@{milvus::FlushRequest}}
+
+
+Used by \mbox{\hyperlink{classmilvus_1_1_milvus_client_v2_a99f4e48414549c69b11e3dbe6b0427c3}{Milvus\+Client\+V2\+::\+Flush()}}  
+
+
+
+
+{\ttfamily \#include $<$Flush\+Request.\+h$>$}
+
+\doxysubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{classmilvus_1_1_flush_request_a25906f6cfefcdffe2da599ee697c954e}\label{classmilvus_1_1_flush_request_a25906f6cfefcdffe2da599ee697c954e}} 
+\mbox{\hyperlink{classmilvus_1_1_flush_request_a25906f6cfefcdffe2da599ee697c954e}{Flush\+Request}} ()=default
+\begin{DoxyCompactList}\small\item\em Constructor. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_flush_request_aad091f2f50482235399d8fb5ea714498}\label{classmilvus_1_1_flush_request_aad091f2f50482235399d8fb5ea714498}} 
+const std\+::string \& \mbox{\hyperlink{classmilvus_1_1_flush_request_aad091f2f50482235399d8fb5ea714498}{Database\+Name}} () const
+\begin{DoxyCompactList}\small\item\em Database name in which the collections are created. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_flush_request_a4a1a6bd870f70fc52d9d96d34f3311f0}\label{classmilvus_1_1_flush_request_a4a1a6bd870f70fc52d9d96d34f3311f0}} 
+void \mbox{\hyperlink{classmilvus_1_1_flush_request_a4a1a6bd870f70fc52d9d96d34f3311f0}{Set\+Database\+Name}} (const std\+::string \&db\+\_\+name)
+\begin{DoxyCompactList}\small\item\em Set database name in which the collections are created. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_flush_request_a4404da0e560b303202e636151a8d3dc3}\label{classmilvus_1_1_flush_request_a4404da0e560b303202e636151a8d3dc3}} 
+\mbox{\hyperlink{classmilvus_1_1_flush_request}{Flush\+Request}} \& \mbox{\hyperlink{classmilvus_1_1_flush_request_a4404da0e560b303202e636151a8d3dc3}{With\+Database\+Name}} (const std\+::string \&db\+\_\+name)
+\begin{DoxyCompactList}\small\item\em Set database name in which the collections are created. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_flush_request_ad1832ca13565a71eeccce38924a7f25d}\label{classmilvus_1_1_flush_request_ad1832ca13565a71eeccce38924a7f25d}} 
+const std\+::set$<$ std\+::string $>$ \& \mbox{\hyperlink{classmilvus_1_1_flush_request_ad1832ca13565a71eeccce38924a7f25d}{Collection\+Names}} () const
+\begin{DoxyCompactList}\small\item\em Get collection names to be flushed. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_flush_request_a9b09cbab58dd0ad44281cf31b055dbdb}\label{classmilvus_1_1_flush_request_a9b09cbab58dd0ad44281cf31b055dbdb}} 
+void \mbox{\hyperlink{classmilvus_1_1_flush_request_a9b09cbab58dd0ad44281cf31b055dbdb}{Set\+Collection\+Names}} (std\+::set$<$ std\+::string $>$ \&\&names)
+\begin{DoxyCompactList}\small\item\em Set collection names to be flushed. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_flush_request_a4d6175c54cd67dd3b7e3e17344f3ee29}\label{classmilvus_1_1_flush_request_a4d6175c54cd67dd3b7e3e17344f3ee29}} 
+\mbox{\hyperlink{classmilvus_1_1_flush_request}{Flush\+Request}} \& \mbox{\hyperlink{classmilvus_1_1_flush_request_a4d6175c54cd67dd3b7e3e17344f3ee29}{With\+Collection\+Names}} (std\+::set$<$ std\+::string $>$ \&\&names)
+\begin{DoxyCompactList}\small\item\em Set collection names to be flushed. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_flush_request_ae215a4f6bafcc6311599884d8fe5b2cb}\label{classmilvus_1_1_flush_request_ae215a4f6bafcc6311599884d8fe5b2cb}} 
+\mbox{\hyperlink{classmilvus_1_1_flush_request}{Flush\+Request}} \& \mbox{\hyperlink{classmilvus_1_1_flush_request_ae215a4f6bafcc6311599884d8fe5b2cb}{Add\+Collection\+Name}} (const std\+::string \&name)
+\begin{DoxyCompactList}\small\item\em Add a collection name to be flushed. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_flush_request_aaa9b9dd3d8863064b00db70cc66bcb25}\label{classmilvus_1_1_flush_request_aaa9b9dd3d8863064b00db70cc66bcb25}} 
+int64\+\_\+t \mbox{\hyperlink{classmilvus_1_1_flush_request_aaa9b9dd3d8863064b00db70cc66bcb25}{Wait\+Flushed\+Ms}} () const
+\begin{DoxyCompactList}\small\item\em Get milliseconds to wait the flush action done. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_flush_request_a9e9526c971faa5f8dadbc9c5e0faa428}\label{classmilvus_1_1_flush_request_a9e9526c971faa5f8dadbc9c5e0faa428}} 
+void \mbox{\hyperlink{classmilvus_1_1_flush_request_a9e9526c971faa5f8dadbc9c5e0faa428}{Set\+Wait\+Flushed\+Ms}} (int64\+\_\+t ms)
+\begin{DoxyCompactList}\small\item\em Set milliseconds to wait the flush action done.. Default value is 0. If the Wait\+Flushed\+Ms is zero, the Flush() will call Get\+Flush\+State() to check related segments state, until all the segments are flushed to make sure the buffer persisted successfully. If the Wait\+Flushed\+Ms is larger than zero, the Get\+Flush\+State() will break the loop after a certain of time span and return a status saying the process is timeout. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_flush_request_a03532406ac13a6e6ac03d626f2551a59}\label{classmilvus_1_1_flush_request_a03532406ac13a6e6ac03d626f2551a59}} 
+\mbox{\hyperlink{classmilvus_1_1_flush_request}{Flush\+Request}} \& \mbox{\hyperlink{classmilvus_1_1_flush_request_a03532406ac13a6e6ac03d626f2551a59}{With\+Wait\+Flushed\+Ms}} (int64\+\_\+t ms)
+\begin{DoxyCompactList}\small\item\em Set milliseconds to wait the flush action done. Default value is 0. If the Wait\+Flushed\+Ms is zero, the Flush() will call Get\+Flush\+State() to check related segments state, until all the segments are flushed to make sure the buffer persisted successfully. If the Wait\+Flushed\+Ms is larger than zero, the Get\+Flush\+State() will break the loop after a certain of time span and return a status saying the process is timeout. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+Used by \mbox{\hyperlink{classmilvus_1_1_milvus_client_v2_a99f4e48414549c69b11e3dbe6b0427c3}{Milvus\+Client\+V2\+::\+Flush()}} 
+
+The documentation for this class was generated from the following files\+:\begin{DoxyCompactItemize}
+\item 
+src/include/milvus/request/utility/Flush\+Request.\+h\item 
+src/impl/request/utility/Flush\+Request.\+cpp\end{DoxyCompactItemize}

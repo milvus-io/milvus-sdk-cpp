@@ -73,25 +73,27 @@ class IndexState {
 class IndexProgress {
  public:
     /**
-     * @brief Row count already indexed.
+     * @brief Get number of indexed rows.
+     * Note that indexed rows could be larger than total rows, because some segments will be reindexed
+     * after compaction.
      */
     int64_t
     IndexedRows() const;
 
     /**
-     * @brief Set Row count already indexed.
+     * @brief Set number of indexed rows.
      */
     void
     SetIndexedRows(int64_t indexed_rows);
 
     /**
-     * @brief Total rows need to be indxed.
+     * @brief Get number of total rows.
      */
     int64_t
     TotalRows() const;
 
     /**
-     * @brief Set total rows need to be indexed.
+     * @brief Set number of total rows.
      */
     void
     SetTotalRows(int64_t total_rows);
