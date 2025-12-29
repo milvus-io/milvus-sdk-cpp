@@ -30,10 +30,15 @@ class DmlResponse {
      */
     DmlResponse() = default;
 
-    // Getter and Setter for results_
+    /**
+     * @brief Get result of dml operation.
+     */
     const DmlResults&
     Results() const;
 
+    /**
+     * @brief Set result of dml operation.
+     */
     void
     SetResults(DmlResults&& results);
 

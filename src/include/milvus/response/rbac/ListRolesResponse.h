@@ -31,10 +31,15 @@ class ListRolesResponse {
      */
     ListRolesResponse() = default;
 
-    // Getter and Setter for role_names_
+    /**
+     * @brief Get names of roles.
+     */
     const std::vector<std::string>&
     RoleNames() const;
 
+    /**
+     * @brief Set names of roles.
+     */
     void
     SetRoleNames(std::vector<std::string>&& roles);
 

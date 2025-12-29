@@ -30,10 +30,15 @@ class DescribeUserResponse {
      */
     DescribeUserResponse() = default;
 
-    // Getter and Setter for desc_
+    /**
+     * @brief Get user description.
+     */
     const UserDesc&
     Desc() const;
 
+    /**
+     * @brief Set user description.
+     */
     void
     SetDesc(UserDesc&& descs);
 

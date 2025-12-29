@@ -1,0 +1,42 @@
+\hypertarget{structmilvus_1_1_progress}{}\doxysection{milvus\+::Progress Struct Reference}
+\label{structmilvus_1_1_progress}\index{milvus::Progress@{milvus::Progress}}
+
+
+Notify progress of a request, returned by callback function of \mbox{\hyperlink{classmilvus_1_1_progress_monitor}{Progress\+Monitor}}.  
+
+
+
+
+{\ttfamily \#include $<$Progress\+Monitor.\+h$>$}
+
+\doxysubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{structmilvus_1_1_progress_abf6d5a5b9aaa561f51249474df8cd77a}\label{structmilvus_1_1_progress_abf6d5a5b9aaa561f51249474df8cd77a}} 
+\mbox{\hyperlink{structmilvus_1_1_progress_abf6d5a5b9aaa561f51249474df8cd77a}{Progress}} (uint32\+\_\+t finished, uint32\+\_\+t total)
+\begin{DoxyCompactList}\small\item\em Constructor. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{structmilvus_1_1_progress_ae174f74ae642d62f5e0b3f7108d5c8ba}\label{structmilvus_1_1_progress_ae174f74ae642d62f5e0b3f7108d5c8ba}} 
+bool \mbox{\hyperlink{structmilvus_1_1_progress_ae174f74ae642d62f5e0b3f7108d5c8ba}{Done}} () const
+\begin{DoxyCompactList}\small\item\em The progress is done or not. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\doxysubsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{structmilvus_1_1_progress_ab9d156bb65f7594a0bd00a3a3b858680}\label{structmilvus_1_1_progress_ab9d156bb65f7594a0bd00a3a3b858680}} 
+uint32\+\_\+t \mbox{\hyperlink{structmilvus_1_1_progress_ab9d156bb65f7594a0bd00a3a3b858680}{finished\+\_\+}} = 0
+\begin{DoxyCompactList}\small\item\em How much work is finished. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{structmilvus_1_1_progress_a091a9e8bfd2de0e132da7312a47b53cb}\label{structmilvus_1_1_progress_a091a9e8bfd2de0e132da7312a47b53cb}} 
+uint32\+\_\+t \mbox{\hyperlink{structmilvus_1_1_progress_a091a9e8bfd2de0e132da7312a47b53cb}{total\+\_\+}} = 0
+\begin{DoxyCompactList}\small\item\em Totally how much work it is. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+Notify progress of a request, returned by callback function of \mbox{\hyperlink{classmilvus_1_1_progress_monitor}{Progress\+Monitor}}. 
+
+\begin{DoxyRefDesc}{Deprecated}
+\item[\mbox{\hyperlink{deprecated__deprecated000011}{Deprecated}}]no longer used in \mbox{\hyperlink{classmilvus_1_1_milvus_client_v2}{Milvus\+Client\+V2}} \end{DoxyRefDesc}
+
+
+The documentation for this struct was generated from the following files\+:\begin{DoxyCompactItemize}
+\item 
+src/include/milvus/types/Progress\+Monitor.\+h\item 
+src/impl/types/Progress\+Monitor.\+cpp\end{DoxyCompactItemize}

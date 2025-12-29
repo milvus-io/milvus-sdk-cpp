@@ -33,15 +33,27 @@ class ListPartitionsResponse {
      */
     ListPartitionsResponse() = default;
 
-    // Getter and Setter for partition_names_
+    /**
+     * @brief Get partition names.
+     */
     const std::vector<std::string>&
     PartitionsNames() const;
+
+    /**
+     * @brief Set partition names.
+     */
     void
     SetPartitionNames(std::vector<std::string>&& names);
 
-    // Getter and Setter for partition_infos_
+    /**
+     * @brief Get informations of partitions.
+     */
     const std::vector<PartitionInfo>&
     PartitionInfos() const;
+
+    /**
+     * @brief Set informations of partitions.
+     */
     void
     SetPartitionInfos(std::vector<PartitionInfo>&& infos);
 

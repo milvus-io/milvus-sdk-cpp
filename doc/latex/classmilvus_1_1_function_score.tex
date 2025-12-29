@@ -1,0 +1,50 @@
+\hypertarget{classmilvus_1_1_function_score}{}\doxysection{milvus\+::Function\+Score Class Reference}
+\label{classmilvus_1_1_function_score}\index{milvus::FunctionScore@{milvus::FunctionScore}}
+
+
+\mbox{\hyperlink{classmilvus_1_1_function}{Function}} container class for search rerank.  
+
+
+
+
+{\ttfamily \#include $<$Function\+Score.\+h$>$}
+
+\doxysubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{classmilvus_1_1_function_score_a0d0dc5b7da527ae8ff1ef8d8fd671200}\label{classmilvus_1_1_function_score_a0d0dc5b7da527ae8ff1ef8d8fd671200}} 
+\mbox{\hyperlink{classmilvus_1_1_function_score_a0d0dc5b7da527ae8ff1ef8d8fd671200}{Function\+Score}} ()=default
+\begin{DoxyCompactList}\small\item\em Constructor. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_function_score_aca3cc1bb3a89395c37d7ed1b4900b751}\label{classmilvus_1_1_function_score_aca3cc1bb3a89395c37d7ed1b4900b751}} 
+const std\+::vector$<$ Function\+Ptr $>$ \& \mbox{\hyperlink{classmilvus_1_1_function_score_aca3cc1bb3a89395c37d7ed1b4900b751}{Functions}} () const
+\begin{DoxyCompactList}\small\item\em Get fuctions. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_function_score_a767435569a4a69723891e94672ab2c5e}\label{classmilvus_1_1_function_score_a767435569a4a69723891e94672ab2c5e}} 
+void \mbox{\hyperlink{classmilvus_1_1_function_score_a767435569a4a69723891e94672ab2c5e}{Set\+Functions}} (std\+::vector$<$ Function\+Ptr $>$ \&\&functions)
+\begin{DoxyCompactList}\small\item\em Set fuctions. For Search(), the functions can be Boost/\+Decay/\+Model, etc. For Hybrid\+Search(), the functions can be RRF/\+Weighted, etc. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_function_score_ac9a3fc39bbf2fa933757ab3e95abf3eb}\label{classmilvus_1_1_function_score_ac9a3fc39bbf2fa933757ab3e95abf3eb}} 
+\mbox{\hyperlink{classmilvus_1_1_function_score}{Function\+Score}} \& \mbox{\hyperlink{classmilvus_1_1_function_score_ac9a3fc39bbf2fa933757ab3e95abf3eb}{With\+Functions}} (std\+::vector$<$ Function\+Ptr $>$ \&\&functions)
+\begin{DoxyCompactList}\small\item\em Set fuctions. For Search(), the functions can be Boost/\+Decay/\+Model, etc. For Hybrid\+Search(), the functions can be RRF/\+Weighted, etc. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_function_score_ae8375032409074bf6e5e8c69497c6f22}\label{classmilvus_1_1_function_score_ae8375032409074bf6e5e8c69497c6f22}} 
+\mbox{\hyperlink{classmilvus_1_1_function_score}{Function\+Score}} \& \mbox{\hyperlink{classmilvus_1_1_function_score_ae8375032409074bf6e5e8c69497c6f22}{Add\+Function}} (const Function\+Ptr \&function)
+\begin{DoxyCompactList}\small\item\em Add a fuction. For Search(), the functions can be Boost/\+Decay/\+Model, etc. For Hybrid\+Search(), the functions can be RRF/\+Weighted, etc. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_function_score_af6bc426f1f5a5f7c976a29411fb5795f}\label{classmilvus_1_1_function_score_af6bc426f1f5a5f7c976a29411fb5795f}} 
+const std\+::unordered\+\_\+map$<$ std\+::string, nlohmann\+::json $>$ \& \mbox{\hyperlink{classmilvus_1_1_function_score_af6bc426f1f5a5f7c976a29411fb5795f}{Params}} () const
+\begin{DoxyCompactList}\small\item\em Get extra params. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_function_score_a0b413be30bedeaeedb4fc5a28e9e6313}\label{classmilvus_1_1_function_score_a0b413be30bedeaeedb4fc5a28e9e6313}} 
+void \mbox{\hyperlink{classmilvus_1_1_function_score_a0b413be30bedeaeedb4fc5a28e9e6313}{Set\+Params}} (std\+::unordered\+\_\+map$<$ std\+::string, nlohmann\+::json $>$ \&\&params)
+\begin{DoxyCompactList}\small\item\em Set extra params. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_function_score_a587e2aee09f38720a6cb6506b693c326}\label{classmilvus_1_1_function_score_a587e2aee09f38720a6cb6506b693c326}} 
+\mbox{\hyperlink{classmilvus_1_1_function_score}{Function\+Score}} \& \mbox{\hyperlink{classmilvus_1_1_function_score_a587e2aee09f38720a6cb6506b693c326}{With\+Params}} (std\+::unordered\+\_\+map$<$ std\+::string, nlohmann\+::json $>$ \&\&params)
+\begin{DoxyCompactList}\small\item\em Set extra params. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_function_score_a08cf133dc79f98b24ebda4a9ea95a718}\label{classmilvus_1_1_function_score_a08cf133dc79f98b24ebda4a9ea95a718}} 
+\mbox{\hyperlink{classmilvus_1_1_function_score}{Function\+Score}} \& \mbox{\hyperlink{classmilvus_1_1_function_score_a08cf133dc79f98b24ebda4a9ea95a718}{Add\+Param}} (const std\+::string \&key, nlohmann\+::json \&\&param)
+\begin{DoxyCompactList}\small\item\em Add an extra param. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+\mbox{\hyperlink{classmilvus_1_1_function}{Function}} container class for search rerank. 
+
+The documentation for this class was generated from the following files\+:\begin{DoxyCompactItemize}
+\item 
+src/include/milvus/types/Function\+Score.\+h\item 
+src/impl/types/Function\+Score.\+cpp\end{DoxyCompactItemize}

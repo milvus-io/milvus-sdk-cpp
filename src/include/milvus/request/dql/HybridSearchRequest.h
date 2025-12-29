@@ -45,7 +45,7 @@ class HybridSearchRequest : public DQLRequestBase {
     WithCollectionName(const std::string& collection_name);
 
     /**
-     * @brief Set the partition names
+     * @brief Set the partition names.
      * If partition nemes are empty, will query in the entire collection.
      */
     HybridSearchRequest&
@@ -58,7 +58,7 @@ class HybridSearchRequest : public DQLRequestBase {
     AddPartitionName(const std::string& partition_name);
 
     /**
-     * @brief Set the output field names
+     * @brief Set the output field names.
      */
     HybridSearchRequest&
     WithOutputFields(std::set<std::string>&& output_field_names);
@@ -70,31 +70,32 @@ class HybridSearchRequest : public DQLRequestBase {
     AddOutputField(const std::string& output_field);
 
     /**
-     * @brief Set the consistency level
+     * @brief Set the consistency level.
+     * Read the doc for more info: https://milvus.io/docs/consistency.md#Consistency-Level
      */
     HybridSearchRequest&
     WithConsistencyLevel(ConsistencyLevel consistency_level);
 
     /**
-     * @brief Get sub search requests
+     * @brief Get sub search requests.
      */
     const std::vector<SubSearchRequestPtr>&
     SubRequests() const;
 
     /**
-     * @brief Set sub search requests
+     * @brief Set sub search requests.
      */
     void
     SetSubRequests(std::vector<SubSearchRequestPtr>&& requests);
 
     /**
-     * @brief Set sub search requests
+     * @brief Set sub search requests.
      */
     HybridSearchRequest&
     WithSubRequests(std::vector<SubSearchRequestPtr>&& requests);
 
     /**
-     * @brief Add sub search request
+     * @brief Add sub search request.
      */
     HybridSearchRequest&
     AddSubRequest(const SubSearchRequestPtr& request);
@@ -106,13 +107,15 @@ class HybridSearchRequest : public DQLRequestBase {
     Rerank() const;
 
     /**
-     * @brief Set rerank, only accept RRF/Weighted function
+     * @brief Set rerank, such as RRF/Weighted function.
+     * Read the doc for more info: https://milvus.io/docs/reranking.md
      */
     Status
     SetRerank(const FunctionPtr& rerank);
 
     /**
-     * @brief Set rerank, only accept RRF/Weighted function
+     * @brief Set rerank, suc as RRF/Weighted function.
+     * Read the doc for more info: https://milvus.io/docs/reranking.md
      */
     HybridSearchRequest&
     WithRerank(const FunctionPtr& rerank);
@@ -192,7 +195,7 @@ class HybridSearchRequest : public DQLRequestBase {
     WithIgnoreGrowing(bool ignore_growing);
 
     /**
-     * @brief Add extra param
+     * @brief Add extra parameters such as "nlist", "ef".
      */
     HybridSearchRequest&
     AddExtraParam(const std::string& key, const std::string& value);

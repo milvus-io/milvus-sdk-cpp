@@ -49,13 +49,13 @@ class QueryResults {
     GetFieldByName(const std::string& name);
 
     /**
-     * @brief Get an output field by name
+     * @brief Get an output field by name.
      */
     FieldDataPtr
     OutputField(const std::string& name) const;
 
     /**
-     * @brief Get an output field by name and cast to specific pointer
+     * @brief Get an output field by name and cast to specific pointer.
      */
     template <typename T>
     std::shared_ptr<T>

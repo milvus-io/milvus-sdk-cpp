@@ -31,10 +31,15 @@ class ListResourceGroupsResponse {
      */
     ListResourceGroupsResponse() = default;
 
-    // Getter and Setter for group_names_
+    /**
+     * @brief Get names of resource groups.
+     */
     const std::vector<std::string>&
     GroupNames() const;
 
+    /**
+     * @brief Set names of resource groups.
+     */
     void
     SetGroupNames(std::vector<std::string>&& names);
 

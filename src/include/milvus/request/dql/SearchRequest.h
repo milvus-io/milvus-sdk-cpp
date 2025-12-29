@@ -71,6 +71,7 @@ class SearchRequest : public DQLRequestBase, public SearchRequestBase {
 
     /**
      * @brief Set the consistency level.
+     * Read the doc for more info: https://milvus.io/docs/consistency.md#Consistency-Level
      */
     SearchRequest&
     WithConsistencyLevel(ConsistencyLevel consistency_level);
@@ -82,14 +83,14 @@ class SearchRequest : public DQLRequestBase, public SearchRequestBase {
     WithMetricType(::milvus::MetricType metric_type);
 
     /**
-     * @brief Add extra param
+     * @brief Add extra parameters such as "nlist", "ef".
      */
     SearchRequest&
     AddExtraParam(const std::string& key, const std::string& value);
 
     /**
      * @brief Set search limit(topk).
-     * Note: this value is stored in the ExtraParams
+     * Note: this value is stored in the ExtraParams.
      */
     SearchRequest&
     WithLimit(int64_t limit);
@@ -101,7 +102,7 @@ class SearchRequest : public DQLRequestBase, public SearchRequestBase {
     WithFilter(std::string filter);
 
     /**
-     * @brief Set target field of ann search
+     * @brief Set target field of ann search.
      */
     SearchRequest&
     WithAnnsField(const std::string& ann_field);
@@ -115,13 +116,16 @@ class SearchRequest : public DQLRequestBase, public SearchRequestBase {
      *     filter = "pk > {age} and city in {city}"
      *     filterTemplate = {"age": 3, "city": ["beijing", "shanghai", ......]}
      * Valid value of a template can be:
-     *     boolean, numeric, string, array
+     *     boolean, numeric, string, array.
+     *
+     * Read the doc for more info: https://milvus.io/docs/filtering-templating.md#Filter-Templating
      */
     SearchRequest&
     AddFilterTemplate(std::string key, const nlohmann::json& filter_template);
 
     /**
      * @brief Set filter templates. Only take effect when filter is not empty.
+     * Read the doc for more info: https://milvus.io/docs/filtering-templating.md#Filter-Templating
      */
     SearchRequest&
     WithFilterTemplates(std::unordered_map<std::string, nlohmann::json>&& filter_templates);
@@ -237,7 +241,7 @@ class SearchRequest : public DQLRequestBase, public SearchRequestBase {
     WithStrictGroupSize(bool strict_group_size);
 
     /**
-     * @brief Get reranker
+     * @brief Get reranker.
      *
      */
     const FunctionScorePtr&
@@ -245,53 +249,57 @@ class SearchRequest : public DQLRequestBase, public SearchRequestBase {
 
     /**
      * @brief Set reranker.
-     * Allows multiple rerank functions such as Boost/Decay/Model, etc
+     * Allows multiple rerank functions such as Boost/Decay/Model, etc.
+     * Read the doc for more info: https://milvus.io/docs/boost-ranker.md
      */
     void
     SetRerank(const FunctionScorePtr& ranker);
 
     /**
      * @brief Set reranker.
-     * Allows multiple rerank functions such as Boost/Decay/Model, etc
+     * Allows multiple rerank functions such as Boost/Decay/Model, etc.
+     * Read the doc for more info: https://milvus.io/docs/boost-ranker.md
      */
     SearchRequest&
     WithRerank(const FunctionScorePtr& ranker);
 
     /**
      * @brief Set timezone, takes effect for Timestamptz field.
+     * Read the doc for more info:
+     * https://milvus.io/docs/single-vector-search.md#Temporarily-set-a-timezone-for-a-search
      */
     SearchRequest&
     WithTimezone(const std::string& timezone);
 
     /**
-     * @brief Add a binary vector to search
+     * @brief Add a binary vector to search.
      */
     SearchRequest&
     AddBinaryVector(const std::string& vector);
 
     /**
-     * @brief Add a binary vector to search
+     * @brief Add a binary vector to search.
      */
     SearchRequest&
     AddBinaryVector(const BinaryVecFieldData::ElementT& vector);
 
     /**
-     * @brief Add a float vector to search
+     * @brief Add a float vector to search.
      */
     SearchRequest&
     AddFloatVector(const FloatVecFieldData::ElementT& vector);
 
     /**
-     * @brief Add a sparse vector to search
+     * @brief Add a sparse vector to search.
      */
     SearchRequest&
     AddSparseVector(const SparseFloatVecFieldData::ElementT& vector);
 
     /**
-     * @brief Add a sparse vector to search. \n
-     * We support two patterns of sparse vector: \n
-     *  1. a json dict like {"1": 0.1, "5": 0.2, "8": 0.15}
-     *  2. a json dict like {"indices": [1, 5, 8], "values": [0.1, 0.2, 0.15]}
+     * @brief Add a sparse vector to search.
+     * We support two patterns of sparse vector:
+     *  1. a json dict like {"1": 0.1, "5": 0.2, "8": 0.15}.
+     *  2. a json dict like {"indices": [1, 5, 8], "values": [0.1, 0.2, 0.15]}.
      */
     SearchRequest&
     AddSparseVector(const nlohmann::json& vector);
@@ -303,8 +311,8 @@ class SearchRequest : public DQLRequestBase, public SearchRequestBase {
     AddFloat16Vector(const Float16VecFieldData::ElementT& vector);
 
     /**
-     * @brief Add a float16 vector to search. \n
-     * This method automatically converts the float array to float16 binary
+     * @brief Add a float16 vector to search.
+     * This method automatically converts the float array to float16 binary.
      */
     SearchRequest&
     AddFloat16Vector(const std::vector<float>& vector);
@@ -316,26 +324,27 @@ class SearchRequest : public DQLRequestBase, public SearchRequestBase {
     AddBFloat16Vector(const BFloat16VecFieldData::ElementT& vector);
 
     /**
-     * @brief Add a bfloat16 vector to search. \n
-     * This method automatically converts the float array to bfloat16 binary
+     * @brief Add a bfloat16 vector to search.
+     * This method automatically converts the float array to bfloat16 binary.
      */
     SearchRequest&
     AddBFloat16Vector(const std::vector<float>& vector);
 
     /**
-     * @brief Add a text to search. Only works for BM25 function \n
+     * @brief Add a text to search. Only works for BM25 function.
+     * Read the doc for more info: https://milvus.io/docs/full-text-search.md#Full-Text-Search
      */
     SearchRequest&
     AddEmbeddedText(const std::string& text);
 
     /**
-     * @brief Add an int8 vector to search
+     * @brief Add an int8 vector to search.
      */
     SearchRequest&
     AddInt8Vector(const Int8VecFieldData::ElementT& vector);
 
     /**
-     * @brief Add an embedding list to search on struct field
+     * @brief Add an embedding list to search on struct field.
      */
     SearchRequest&
     AddEmbeddingList(EmbeddingList&& emb_list);

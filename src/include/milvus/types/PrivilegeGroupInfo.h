@@ -27,35 +27,35 @@ namespace milvus {
 class PrivilegeGroupInfo {
  public:
     /**
-     * @brief Construct a new PrivilegeGroupInfo object
+     * @brief Construct a new PrivilegeGroupInfo object.
      */
     PrivilegeGroupInfo();
 
     /**
-     * @brief Construct a new PrivilegeGroupInfo object
+     * @brief Construct a new PrivilegeGroupInfo object.
      */
     PrivilegeGroupInfo(const std::string& name, std::vector<std::string>&& privileges);
 
     /**
-     * @brief Name of the group
+     * @brief Name of the group.
      */
     const std::string&
     Name() const;
 
     /**
-     * @brief Set name of the group
+     * @brief Set name of the group.
      */
     void
     SetName(const std::string& name);
 
     /**
-     * @brief Privileges if the group
+     * @brief Privileges if the group.
      */
     const std::vector<std::string>&
     Privileges() const;
 
     /**
-     * @brief Add a privilege name into the info
+     * @brief Add a privilege name into the info.
      */
     void
     AddPrivilege(const std::string& privilege);

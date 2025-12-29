@@ -19,7 +19,8 @@
 namespace milvus {
 
 /**
- * @brief Consistency level for search/query
+ * @brief Consistency level for search/query.
+ * Read the doc for more info: https://milvus.io/docs/consistency.md#Consistency-Level
  */
 enum class ConsistencyLevel {
     NONE = -1,

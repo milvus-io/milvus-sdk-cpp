@@ -30,17 +30,27 @@ class CompactResponse {
      */
     CompactResponse() = default;
 
-    // Getter and Setter for compaction_id_
+    /**
+     * @brief Get ID of the compaction action.
+     */
     int64_t
     CompactionID() const;
 
+    /**
+     * @brief Set ID of the compaction action.
+     */
     void
     SetCompactionID(int64_t id);
 
-    // Getter and Setter for compaction_plan_count_
+    /**
+     * @brief Get number of plans of the compaction.
+     */
     int64_t
     CompactionPlanCount() const;
 
+    /**
+     * @brief Set number of plans of the compaction.
+     */
     void
     SetCompactionPlanCount(int64_t id);
 

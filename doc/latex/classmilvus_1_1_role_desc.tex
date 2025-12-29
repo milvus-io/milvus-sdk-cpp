@@ -1,0 +1,41 @@
+\hypertarget{classmilvus_1_1_role_desc}{}\doxysection{milvus\+::Role\+Desc Class Reference}
+\label{classmilvus_1_1_role_desc}\index{milvus::RoleDesc@{milvus::RoleDesc}}
+
+
+Role description. Used by \mbox{\hyperlink{classmilvus_1_1_milvus_client_a1a684ef474f0f4eac1f6e6566dd77d35}{Milvus\+Client\+::\+Describe\+Role()}}.  
+
+
+
+
+{\ttfamily \#include $<$Role\+Desc.\+h$>$}
+
+\doxysubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{classmilvus_1_1_role_desc_a5f935088891b5af78016ca96b473e596}\label{classmilvus_1_1_role_desc_a5f935088891b5af78016ca96b473e596}} 
+\mbox{\hyperlink{classmilvus_1_1_role_desc_a5f935088891b5af78016ca96b473e596}{Role\+Desc}} ()
+\begin{DoxyCompactList}\small\item\em Construct a new \mbox{\hyperlink{classmilvus_1_1_role_desc}{Role\+Desc}} object. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_role_desc_adae3aad96793074da8ee989ea7a830cc}\label{classmilvus_1_1_role_desc_adae3aad96793074da8ee989ea7a830cc}} 
+\mbox{\hyperlink{classmilvus_1_1_role_desc_adae3aad96793074da8ee989ea7a830cc}{Role\+Desc}} (const std\+::string \&name, std\+::vector$<$ \mbox{\hyperlink{structmilvus_1_1_grant_item}{Grant\+Item}} $>$ \&\&grant\+\_\+items)
+\begin{DoxyCompactList}\small\item\em Construct a new \mbox{\hyperlink{classmilvus_1_1_role_desc}{Role\+Desc}} object. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_role_desc_a1f4ea267a5b891cfdbcd2c15ed21cffb}\label{classmilvus_1_1_role_desc_a1f4ea267a5b891cfdbcd2c15ed21cffb}} 
+void \mbox{\hyperlink{classmilvus_1_1_role_desc_a1f4ea267a5b891cfdbcd2c15ed21cffb}{Set\+Name}} (const std\+::string \&name)
+\begin{DoxyCompactList}\small\item\em Set name of the role. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_role_desc_a1b433512db4fa8cb7c03dae2cc630216}\label{classmilvus_1_1_role_desc_a1b433512db4fa8cb7c03dae2cc630216}} 
+const std\+::string \& \mbox{\hyperlink{classmilvus_1_1_role_desc_a1b433512db4fa8cb7c03dae2cc630216}{Name}} () const
+\begin{DoxyCompactList}\small\item\em Get name of the role. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_role_desc_a5c8fb7f82b77cc1a4aaa0f038c0030a7}\label{classmilvus_1_1_role_desc_a5c8fb7f82b77cc1a4aaa0f038c0030a7}} 
+void \mbox{\hyperlink{classmilvus_1_1_role_desc_a5c8fb7f82b77cc1a4aaa0f038c0030a7}{Add\+Grant\+Item}} (\mbox{\hyperlink{structmilvus_1_1_grant_item}{Grant\+Item}} \&\&grant\+\_\+item)
+\begin{DoxyCompactList}\small\item\em Add a privilege item for the role. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_role_desc_a011a21032fe3bb544baafef3e5e9f6b4}\label{classmilvus_1_1_role_desc_a011a21032fe3bb544baafef3e5e9f6b4}} 
+const std\+::vector$<$ \mbox{\hyperlink{structmilvus_1_1_grant_item}{Grant\+Item}} $>$ \& \mbox{\hyperlink{classmilvus_1_1_role_desc_a011a21032fe3bb544baafef3e5e9f6b4}{Grant\+Items}} () const
+\begin{DoxyCompactList}\small\item\em Get privilege items of the role. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+Role description. Used by \mbox{\hyperlink{classmilvus_1_1_milvus_client_a1a684ef474f0f4eac1f6e6566dd77d35}{Milvus\+Client\+::\+Describe\+Role()}}. 
+
+The documentation for this class was generated from the following files\+:\begin{DoxyCompactItemize}
+\item 
+src/include/milvus/types/Role\+Desc.\+h\item 
+src/impl/types/Role\+Desc.\+cpp\end{DoxyCompactItemize}

@@ -31,10 +31,15 @@ class ListUsersResponse {
      */
     ListUsersResponse() = default;
 
-    // Getter and Setter for user_names_
+    /**
+     * @brief Get names of users.
+     */
     const std::vector<std::string>&
     UserNames() const;
 
+    /**
+     * @brief Set names of users.
+     */
     void
     SetUserNames(std::vector<std::string>&& users);
 

@@ -1,0 +1,45 @@
+\hypertarget{classmilvus_1_1_decay_rerank}{}\doxysection{milvus\+::Decay\+Rerank Class Reference}
+\label{classmilvus_1_1_decay_rerank}\index{milvus::DecayRerank@{milvus::DecayRerank}}
+
+
+Decay rerank function.  
+
+
+
+
+{\ttfamily \#include $<$Function.\+h$>$}
+
+
+
+Inherits \mbox{\hyperlink{classmilvus_1_1_function}{milvus\+::\+Function}}.
+
+\doxysubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{classmilvus_1_1_decay_rerank_a8f17f30481e98b732eaa9b90d4a6afa8}\label{classmilvus_1_1_decay_rerank_a8f17f30481e98b732eaa9b90d4a6afa8}} 
+\mbox{\hyperlink{classmilvus_1_1_status}{Status}} \mbox{\hyperlink{classmilvus_1_1_decay_rerank_a8f17f30481e98b732eaa9b90d4a6afa8}{Set\+Function\+Type}} (\mbox{\hyperlink{namespacemilvus_ab0f6557077e3b6e18925d278f984badd}{Function\+Type}} function\+\_\+type) override
+\begin{DoxyCompactList}\small\item\em Override this method, only allow to set RERANK function type. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_decay_rerank_a7cc24f3301975c582f61f27c8652d2a1}\label{classmilvus_1_1_decay_rerank_a7cc24f3301975c582f61f27c8652d2a1}} 
+void \mbox{\hyperlink{classmilvus_1_1_decay_rerank_a7cc24f3301975c582f61f27c8652d2a1}{Set\+Function}} (const std\+::string \&name)
+\begin{DoxyCompactList}\small\item\em Set decay function. \char`\"{}gauss\char`\"{}, \char`\"{}exp\char`\"{}, or \char`\"{}linear\char`\"{}. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_decay_rerank_aa8bae3f034bae4df1bd15e41114caed3}\label{classmilvus_1_1_decay_rerank_aa8bae3f034bae4df1bd15e41114caed3}} 
+{\footnotesize template$<$typename T $>$ }\\void \mbox{\hyperlink{classmilvus_1_1_decay_rerank_aa8bae3f034bae4df1bd15e41114caed3}{Set\+Origin}} (T val)
+\begin{DoxyCompactList}\small\item\em Set the reference point from which decay score is calculated. Decay function can be applied on INT8/\+INT16/\+INT32/\+INT64/\+FLOAT/\+DOUBLE fields, the origin value can be these types. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_decay_rerank_a6688f8505fed699372413353fe3a7087}\label{classmilvus_1_1_decay_rerank_a6688f8505fed699372413353fe3a7087}} 
+{\footnotesize template$<$typename T $>$ }\\void \mbox{\hyperlink{classmilvus_1_1_decay_rerank_a6688f8505fed699372413353fe3a7087}{Set\+Offset}} (T val)
+\begin{DoxyCompactList}\small\item\em Set a \char`\"{}no-\/decay zone\char`\"{} around the origin where items maintain full scores. Decay function can be applied on INT8/\+INT16/\+INT32/\+INT64/\+FLOAT/\+DOUBLE fields, the offset value can be these types. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_decay_rerank_a081e48ad7245e86bf7e1c5a347075a89}\label{classmilvus_1_1_decay_rerank_a081e48ad7245e86bf7e1c5a347075a89}} 
+{\footnotesize template$<$typename T $>$ }\\void \mbox{\hyperlink{classmilvus_1_1_decay_rerank_a081e48ad7245e86bf7e1c5a347075a89}{Set\+Scale}} (T val)
+\begin{DoxyCompactList}\small\item\em Set position at which relevance drops to the decay value. Decay function can be applied on INT8/\+INT16/\+INT32/\+INT64/\+FLOAT/\+DOUBLE fields, the scale value can be these types. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_decay_rerank_a1bab17cd818f84336bc8e766cfcd790d}\label{classmilvus_1_1_decay_rerank_a1bab17cd818f84336bc8e766cfcd790d}} 
+void \mbox{\hyperlink{classmilvus_1_1_decay_rerank_a1bab17cd818f84336bc8e766cfcd790d}{Set\+Decay}} (float val)
+\begin{DoxyCompactList}\small\item\em Set score value at the \char`\"{}scale\char`\"{} position,. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+Decay rerank function. 
+
+The documentation for this class was generated from the following files\+:\begin{DoxyCompactItemize}
+\item 
+src/include/milvus/types/Function.\+h\item 
+src/impl/types/Function.\+cpp\end{DoxyCompactItemize}

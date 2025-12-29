@@ -40,20 +40,20 @@ struct SingleResult {
     /**
      * @brief Constructor
      * Note: this constructor might throw exception in the cases of:
-     *   1. the pk_name or score_name is empty
-     *   2. row count of fields are unequal
+     *   1. the pk_name or score_name is empty.
+     *   2. row count of fields are unequal.
      */
     SingleResult(const std::string& pk_name, const std::string& score_name, std::vector<FieldDataPtr>&& output_fields,
                  const std::set<std::string>& output_names);
 
     /**
-     * @brief Distances/scores array of one target vector
+     * @brief Distances/scores array of one target vector.
      */
     const std::vector<float>&
     Scores() const;
 
     /**
-     * @brief Topk id array of one target vector
+     * @brief Topk id array of one target vector.
      * Note: the returned IDArray is a temporary object copied from FieldData. It is recommended to
      * use OutputField() method like this:
      *    FieldDataPtr ids = result.OutputField(result.PrimaryKeyName());
@@ -62,15 +62,15 @@ struct SingleResult {
     Ids() const;
 
     /**
-     * @brief The primary key name
-     * Sometimes the caller of Search() doesn't know the pk name, the server returns this name
+     * @brief The primary key name.
+     * Sometimes the caller of Search() doesn't know the pk name, the server returns this name,
      * so that you don't need to describe the collection again.
      */
     const std::string&
     PrimaryKeyName() const;
 
     /**
-     * @brief Score field name in search result
+     * @brief Score field name in search result.
      * Note: the default score name is "score", but if your collection schema already has a "score" field,
      * and the "score" field is an output field, the score name will be changed to "_score". If "_socre" is
      * also duplicated, then the score name will be changed to "__score", etc.
@@ -79,19 +79,19 @@ struct SingleResult {
     ScoreName() const;
 
     /**
-     * @brief Output fields data
+     * @brief Output fields data.
      */
     const std::vector<FieldDataPtr>&
     OutputFields() const;
 
     /**
-     * @brief Get an output field by name
+     * @brief Get an output field by name.
      */
     FieldDataPtr
     OutputField(const std::string& name) const;
 
     /**
-     * @brief Get an output field by name and cast to specific pointer
+     * @brief Get an output field by name and cast to specific pointer.
      */
     template <typename T>
     std::shared_ptr<T>
@@ -100,7 +100,7 @@ struct SingleResult {
     }
 
     /**
-     * @brief Output field names specified by search()
+     * @brief Output field names specified by search().
      */
     const std::set<std::string>&
     OutputFieldNames() const;

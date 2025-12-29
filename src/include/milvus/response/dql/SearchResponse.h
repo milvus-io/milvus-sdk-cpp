@@ -30,10 +30,15 @@ class SearchResponse {
      */
     SearchResponse() = default;
 
-    // Getter and Setter for results_
+    /**
+     * @brief Get result of search operation.
+     */
     const SearchResults&
     Results() const;
 
+    /**
+     * @brief Set result of search operation.
+     */
     void
     SetResults(SearchResults&& results);
 

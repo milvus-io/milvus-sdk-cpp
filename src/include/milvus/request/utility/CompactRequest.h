@@ -75,7 +75,7 @@ class CompactRequest {
     /**
      * @brief Set cluserting compaction flag.
      * True: do cluserting compaction, report error if no clustering key.
-     * False: do normal compaction
+     * False: do normal compaction.
      */
     void
     SetClusteringCompaction(bool clustering_compaction);
@@ -83,7 +83,7 @@ class CompactRequest {
     /**
      * @brief Set cluserting compaction flag.
      * True: do cluserting compaction, report error if no clustering key.
-     * False: do normal compaction
+     * False: do normal compaction.
      */
     CompactRequest&
     WithClusteringCompaction(bool clustering_compaction);

@@ -89,7 +89,7 @@ class UpsertRequest : public InsertRequest {
 
     /**
      * @brief Set partial update.
-     * If True, only the specified fields will be updated while others remain unchanged
+     * If True, only the specified fields will be updated while others remain unchanged.
      * Default is False.
      */
     void
@@ -97,7 +97,7 @@ class UpsertRequest : public InsertRequest {
 
     /**
      * @brief Set database name.
-     * If True, only the specified fields will be updated while others remain unchanged
+     * If True, only the specified fields will be updated while others remain unchanged.
      * Default is False.
      */
     UpsertRequest&

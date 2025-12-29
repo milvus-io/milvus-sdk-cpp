@@ -1,0 +1,2257 @@
+\hypertarget{classmilvus_1_1_milvus_client}{}\doxysection{milvus\+::Milvus\+Client Class Reference}
+\label{classmilvus_1_1_milvus_client}\index{milvus::MilvusClient@{milvus::MilvusClient}}
+
+
+Milvus client abstract class, provide \mbox{\hyperlink{classmilvus_1_1_milvus_client_a2fadefe95c16f9a5ea11bc899fc878bd}{Create()}} method to create an implementation instance.  
+
+
+
+
+{\ttfamily \#include $<$Milvus\+Client.\+h$>$}
+
+
+
+Inherited by milvus\+::\+Milvus\+Client\+Impl.
+
+\doxysubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+virtual \mbox{\hyperlink{classmilvus_1_1_status}{Status}} \mbox{\hyperlink{classmilvus_1_1_milvus_client_a617f8dbeb20e2bd3da0736f38927d2bb}{Connect}} (const \mbox{\hyperlink{classmilvus_1_1_connect_param}{Connect\+Param}} \&connect\+\_\+param)=0
+\begin{DoxyCompactList}\small\item\em Connect to Milvus server. \end{DoxyCompactList}\item 
+virtual \mbox{\hyperlink{classmilvus_1_1_status}{Status}} \mbox{\hyperlink{classmilvus_1_1_milvus_client_abe131f2af91521e7cac18695470d9e67}{Disconnect}} ()=0
+\begin{DoxyCompactList}\small\item\em Break connections between client and server. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_milvus_client_ab7d72136b33977028cca437e5cfad806}\label{classmilvus_1_1_milvus_client_ab7d72136b33977028cca437e5cfad806}} 
+virtual \mbox{\hyperlink{classmilvus_1_1_status}{Status}} \mbox{\hyperlink{classmilvus_1_1_milvus_client_ab7d72136b33977028cca437e5cfad806}{Set\+Rpc\+Deadline\+Ms}} (uint64\+\_\+t timeout\+\_\+ms)=0
+\begin{DoxyCompactList}\small\item\em Change timeout value in milliseconds for each RPC call. \end{DoxyCompactList}\item 
+virtual \mbox{\hyperlink{classmilvus_1_1_status}{Status}} \mbox{\hyperlink{classmilvus_1_1_milvus_client_aa2cfc59c60a4e0c376ce136b1a2148ee}{Set\+Retry\+Param}} (const \mbox{\hyperlink{classmilvus_1_1_retry_param}{Retry\+Param}} \&retry\+\_\+param)=0
+\begin{DoxyCompactList}\small\item\em Reset retry rules for each RPC call. \end{DoxyCompactList}\item 
+virtual \mbox{\hyperlink{classmilvus_1_1_status}{Status}} \mbox{\hyperlink{classmilvus_1_1_milvus_client_afc0de98530d68126bbb878819b411d3f}{Get\+Version}} (std\+::string \&version)=0
+\begin{DoxyCompactList}\small\item\em Get milvus server version. \end{DoxyCompactList}\item 
+virtual \mbox{\hyperlink{classmilvus_1_1_status}{Status}} \mbox{\hyperlink{classmilvus_1_1_milvus_client_a8564247d9aafbdc082f372ec04b2c5a0}{Get\+Server\+Version}} (std\+::string \&version)=0
+\begin{DoxyCompactList}\small\item\em Get milvus server version. \end{DoxyCompactList}\item 
+virtual \mbox{\hyperlink{classmilvus_1_1_status}{Status}} \mbox{\hyperlink{classmilvus_1_1_milvus_client_a542f9909ca520bca5207af0368aed7d4}{Get\+SDKVersion}} (std\+::string \&version)=0
+\begin{DoxyCompactList}\small\item\em Get SDK version. \end{DoxyCompactList}\item 
+virtual \mbox{\hyperlink{classmilvus_1_1_status}{Status}} \mbox{\hyperlink{classmilvus_1_1_milvus_client_a6d466744ed60dbdd68edc5f13373b8db}{Create\+Collection}} (const \mbox{\hyperlink{classmilvus_1_1_collection_schema}{Collection\+Schema}} \&schema, int64\+\_\+t num\+\_\+partitions=0)=0
+\begin{DoxyCompactList}\small\item\em Create a collection with schema. \end{DoxyCompactList}\item 
+virtual \mbox{\hyperlink{classmilvus_1_1_status}{Status}} \mbox{\hyperlink{classmilvus_1_1_milvus_client_a2881d16fd038e6d742f7ce4c8a836270}{Has\+Collection}} (const std\+::string \&collection\+\_\+name, bool \&has)=0
+\begin{DoxyCompactList}\small\item\em Check existence of a collection. \end{DoxyCompactList}\item 
+virtual \mbox{\hyperlink{classmilvus_1_1_status}{Status}} \mbox{\hyperlink{classmilvus_1_1_milvus_client_a95855ea21b38da54b65ce04f650b03ba}{Drop\+Collection}} (const std\+::string \&collection\+\_\+name)=0
+\begin{DoxyCompactList}\small\item\em Drop a collection, with all its partitions, index and segments. \end{DoxyCompactList}\item 
+virtual \mbox{\hyperlink{classmilvus_1_1_status}{Status}} \mbox{\hyperlink{classmilvus_1_1_milvus_client_a249cd3c0a23821b8282420f736d9b9bf}{Load\+Collection}} (const std\+::string \&collection\+\_\+name, int replica\+\_\+number=1, const \mbox{\hyperlink{classmilvus_1_1_progress_monitor}{Progress\+Monitor}} \&progress\+\_\+monitor=\mbox{\hyperlink{classmilvus_1_1_progress_monitor_a32e432222660a1123871442c72bb68da}{Progress\+Monitor\+::\+Forever}}())=0
+\begin{DoxyCompactList}\small\item\em Load collection data into CPU memory of query node. This api will check collection\textquotesingle{}s loading progress, waiting until the collection completely loaded into query node. \end{DoxyCompactList}\item 
+virtual \mbox{\hyperlink{classmilvus_1_1_status}{Status}} \mbox{\hyperlink{classmilvus_1_1_milvus_client_aab31131eca6dffbdd9e3257ae9f7f87f}{Release\+Collection}} (const std\+::string \&collection\+\_\+name)=0
+\begin{DoxyCompactList}\small\item\em Release collection data from query node. \end{DoxyCompactList}\item 
+virtual \mbox{\hyperlink{classmilvus_1_1_status}{Status}} \mbox{\hyperlink{classmilvus_1_1_milvus_client_a5bdc7d4afdf9c84b7b50b4a8b4508c6e}{Describe\+Collection}} (const std\+::string \&collection\+\_\+name, \mbox{\hyperlink{classmilvus_1_1_collection_desc}{Collection\+Desc}} \&collection\+\_\+desc)=0
+\begin{DoxyCompactList}\small\item\em Get collection description, including its schema. \end{DoxyCompactList}\item 
+virtual \mbox{\hyperlink{classmilvus_1_1_status}{Status}} \mbox{\hyperlink{classmilvus_1_1_milvus_client_afe19cf06cf9ee596315b26d4fa619316}{Rename\+Collection}} (const std\+::string \&collection\+\_\+name, const std\+::string \&new\+\_\+collection\+\_\+name)=0
+\begin{DoxyCompactList}\small\item\em Rename\+Collection rename a collection. \end{DoxyCompactList}\item 
+virtual \mbox{\hyperlink{classmilvus_1_1_status}{Status}} \mbox{\hyperlink{classmilvus_1_1_milvus_client_a0c49e2a5728a70f203118232c16ba47f}{Get\+Collection\+Statistics}} (const std\+::string \&collection\+\_\+name, \mbox{\hyperlink{classmilvus_1_1_collection_stat}{Collection\+Stat}} \&collection\+\_\+stat, const \mbox{\hyperlink{classmilvus_1_1_progress_monitor}{Progress\+Monitor}} \&progress\+\_\+monitor=\mbox{\hyperlink{classmilvus_1_1_progress_monitor_a32e432222660a1123871442c72bb68da}{Progress\+Monitor\+::\+Forever}}())=0
+\begin{DoxyCompactList}\small\item\em Get collection statistics, currently only return row count. If the timeout is specified, this api will call \mbox{\hyperlink{classmilvus_1_1_milvus_client_ada4afa4d852dce6a8e8bffc112816276}{Flush()}} and wait all segments persisted into storage. \end{DoxyCompactList}\item 
+virtual \mbox{\hyperlink{classmilvus_1_1_status}{Status}} \mbox{\hyperlink{classmilvus_1_1_milvus_client_a8c5d625d72056a6e4f2f98607ebd0051}{Show\+Collections}} (const std\+::vector$<$ std\+::string $>$ \&collection\+\_\+names, \mbox{\hyperlink{namespacemilvus_aca75f624e858185d26527e9c47b40ed6}{Collections\+Info}} \&collections\+\_\+info)=0
+\begin{DoxyCompactList}\small\item\em If the collection\+\_\+names is empty, list all collections brief information\textquotesingle{}s. If the collection\+\_\+names is specified, return the specified collection\textquotesingle{}s loading process state. \end{DoxyCompactList}\item 
+virtual \mbox{\hyperlink{classmilvus_1_1_status}{Status}} \mbox{\hyperlink{classmilvus_1_1_milvus_client_a23d8be8f5fe079419de91b0b3a9825b0}{List\+Collections}} (\mbox{\hyperlink{namespacemilvus_aca75f624e858185d26527e9c47b40ed6}{Collections\+Info}} \&collections\+\_\+info, bool only\+\_\+show\+\_\+loaded=false)=0
+\begin{DoxyCompactList}\small\item\em List all collections brief information\textquotesingle{}s. \end{DoxyCompactList}\item 
+virtual \mbox{\hyperlink{classmilvus_1_1_status}{Status}} \mbox{\hyperlink{classmilvus_1_1_milvus_client_a23f7c6286b991672712c7efb5af5787f}{Get\+Load\+State}} (const std\+::string \&collection\+\_\+name, bool \&is\+\_\+loaded, const std\+::vector$<$ std\+::string $>$ partition\+\_\+names=\{\})=0
+\begin{DoxyCompactList}\small\item\em Get load state of collection or partitions. \end{DoxyCompactList}\item 
+virtual \mbox{\hyperlink{classmilvus_1_1_status}{Status}} \mbox{\hyperlink{classmilvus_1_1_milvus_client_ab3f33b86189ea82c416afad8ea6d0c10}{Alter\+Collection\+Properties}} (const std\+::string \&collection\+\_\+name, const std\+::unordered\+\_\+map$<$ std\+::string, std\+::string $>$ \&properties)=0
+\begin{DoxyCompactList}\small\item\em Alter a collection\textquotesingle{}s properties. \end{DoxyCompactList}\item 
+virtual \mbox{\hyperlink{classmilvus_1_1_status}{Status}} \mbox{\hyperlink{classmilvus_1_1_milvus_client_af7cfd45c201c14469108f44040b8c7d6}{Drop\+Collection\+Properties}} (const std\+::string \&collection\+\_\+name, const std\+::set$<$ std\+::string $>$ \&property\+\_\+keys)=0
+\begin{DoxyCompactList}\small\item\em Drop a collection\textquotesingle{}s properties. \end{DoxyCompactList}\item 
+virtual \mbox{\hyperlink{classmilvus_1_1_status}{Status}} \mbox{\hyperlink{classmilvus_1_1_milvus_client_ae52306ebb23f32a8fe3869bc879f1ead}{Alter\+Collection\+Field}} (const std\+::string \&collection\+\_\+name, const std\+::string \&field\+\_\+name, const std\+::unordered\+\_\+map$<$ std\+::string, std\+::string $>$ \&properties)=0
+\begin{DoxyCompactList}\small\item\em Alter a field\textquotesingle{}s properties. \end{DoxyCompactList}\item 
+virtual \mbox{\hyperlink{classmilvus_1_1_status}{Status}} \mbox{\hyperlink{classmilvus_1_1_milvus_client_ac6faae944235d8beb57afc6338b58e71}{Create\+Partition}} (const std\+::string \&collection\+\_\+name, const std\+::string \&partition\+\_\+name)=0
+\begin{DoxyCompactList}\small\item\em Create a partition in a collection. \end{DoxyCompactList}\item 
+virtual \mbox{\hyperlink{classmilvus_1_1_status}{Status}} \mbox{\hyperlink{classmilvus_1_1_milvus_client_ace9cde4343f511d94549fd4505401a34}{Drop\+Partition}} (const std\+::string \&collection\+\_\+name, const std\+::string \&partition\+\_\+name)=0
+\begin{DoxyCompactList}\small\item\em Drop a partition, with its index and segments. \end{DoxyCompactList}\item 
+virtual \mbox{\hyperlink{classmilvus_1_1_status}{Status}} \mbox{\hyperlink{classmilvus_1_1_milvus_client_ab98f1437e7b1848faef879569ff0e119}{Has\+Partition}} (const std\+::string \&collection\+\_\+name, const std\+::string \&partition\+\_\+name, bool \&has)=0
+\begin{DoxyCompactList}\small\item\em Check existence of a partition. \end{DoxyCompactList}\item 
+virtual \mbox{\hyperlink{classmilvus_1_1_status}{Status}} \mbox{\hyperlink{classmilvus_1_1_milvus_client_a3b1f0922aa7724880aa2bd933956e94b}{Load\+Partitions}} (const std\+::string \&collection\+\_\+name, const std\+::vector$<$ std\+::string $>$ \&partition\+\_\+names, int replica\+\_\+number=1, const \mbox{\hyperlink{classmilvus_1_1_progress_monitor}{Progress\+Monitor}} \&progress\+\_\+monitor=\mbox{\hyperlink{classmilvus_1_1_progress_monitor_a32e432222660a1123871442c72bb68da}{Progress\+Monitor\+::\+Forever}}())=0
+\begin{DoxyCompactList}\small\item\em Load specific partitions data of one collection into query nodes. This api will check partition\textquotesingle{}s loading progress, waiting until all the partitions completely loaded into query node. \end{DoxyCompactList}\item 
+virtual \mbox{\hyperlink{classmilvus_1_1_status}{Status}} \mbox{\hyperlink{classmilvus_1_1_milvus_client_a24576d00b4baa08d13de0d9eecffc7bd}{Release\+Partitions}} (const std\+::string \&collection\+\_\+name, const std\+::vector$<$ std\+::string $>$ \&partition\+\_\+names)=0
+\begin{DoxyCompactList}\small\item\em Release specific partitions data of one collection into query nodes. \end{DoxyCompactList}\item 
+virtual \mbox{\hyperlink{classmilvus_1_1_status}{Status}} \mbox{\hyperlink{classmilvus_1_1_milvus_client_a91ad7ca6b18c8c1eafd10ea0d6af1c61}{Get\+Partition\+Statistics}} (const std\+::string \&collection\+\_\+name, const std\+::string \&partition\+\_\+name, \mbox{\hyperlink{classmilvus_1_1_partition_stat}{Partition\+Stat}} \&partition\+\_\+stat, const \mbox{\hyperlink{classmilvus_1_1_progress_monitor}{Progress\+Monitor}} \&progress\+\_\+monitor=\mbox{\hyperlink{classmilvus_1_1_progress_monitor_a32e432222660a1123871442c72bb68da}{Progress\+Monitor\+::\+Forever}}())=0
+\begin{DoxyCompactList}\small\item\em Get partition statistics, currently only return row count. If the timeout is specified, this api will call \mbox{\hyperlink{classmilvus_1_1_milvus_client_ada4afa4d852dce6a8e8bffc112816276}{Flush()}} and wait all segments persisted into storage. \end{DoxyCompactList}\item 
+virtual \mbox{\hyperlink{classmilvus_1_1_status}{Status}} \mbox{\hyperlink{classmilvus_1_1_milvus_client_a12b481158b57a806f8d341178348f735}{Show\+Partitions}} (const std\+::string \&collection\+\_\+name, const std\+::vector$<$ std\+::string $>$ \&partition\+\_\+names, \mbox{\hyperlink{namespacemilvus_affb31ba1d459f7fa231ffda305c08733}{Partitions\+Info}} \&partitions\+\_\+info)=0
+\begin{DoxyCompactList}\small\item\em If the partition\+\_\+names is empty, list all partitions brief information\textquotesingle{}s. If the partition\+\_\+names is specified, return the specified partition\textquotesingle{}s loading process state. \end{DoxyCompactList}\item 
+virtual \mbox{\hyperlink{classmilvus_1_1_status}{Status}} \mbox{\hyperlink{classmilvus_1_1_milvus_client_ad7dd61f9c3127a88c330d7250ae7dad8}{List\+Partitions}} (const std\+::string \&collection\+\_\+name, \mbox{\hyperlink{namespacemilvus_affb31ba1d459f7fa231ffda305c08733}{Partitions\+Info}} \&partitions\+\_\+info, bool only\+\_\+show\+\_\+loaded=false)=0
+\begin{DoxyCompactList}\small\item\em If the partition\+\_\+names is empty, list all partitions brief information\textquotesingle{}s. \end{DoxyCompactList}\item 
+virtual \mbox{\hyperlink{classmilvus_1_1_status}{Status}} \mbox{\hyperlink{classmilvus_1_1_milvus_client_ac60416ac8d3a1acee393d9d0194cc14e}{Create\+Alias}} (const std\+::string \&collection\+\_\+name, const std\+::string \&alias)=0
+\begin{DoxyCompactList}\small\item\em Create an alias for a collection. Alias can be used in search or query to replace the collection name. For more information\+: \href{https://wiki.lfaidata.foundation/display/MIL/MEP+10+&ndash;+Support+Collection+Alias}{\texttt{ https\+://wiki.\+lfaidata.\+foundation/display/\+MIL/\+MEP+10+--+\+Support+\+Collection+\+Alias}}. \end{DoxyCompactList}\item 
+virtual \mbox{\hyperlink{classmilvus_1_1_status}{Status}} \mbox{\hyperlink{classmilvus_1_1_milvus_client_aef2fe7b13010cc57f5ae7235cf75252d}{Drop\+Alias}} (const std\+::string \&alias)=0
+\begin{DoxyCompactList}\small\item\em Drop an alias. \end{DoxyCompactList}\item 
+virtual \mbox{\hyperlink{classmilvus_1_1_status}{Status}} \mbox{\hyperlink{classmilvus_1_1_milvus_client_a0ffc68fca8e0e8756598336552406d9c}{Alter\+Alias}} (const std\+::string \&collection\+\_\+name, const std\+::string \&alias)=0
+\begin{DoxyCompactList}\small\item\em Change an alias from a collection to another. \end{DoxyCompactList}\item 
+virtual \mbox{\hyperlink{classmilvus_1_1_status}{Status}} \mbox{\hyperlink{classmilvus_1_1_milvus_client_a40d6f3d0a9facb1524be151a0f94ee59}{Describe\+Alias}} (const std\+::string \&alias\+\_\+name, \mbox{\hyperlink{classmilvus_1_1_alias_desc}{Alias\+Desc}} \&desc)=0
+\begin{DoxyCompactList}\small\item\em Describe an alias. \end{DoxyCompactList}\item 
+virtual \mbox{\hyperlink{classmilvus_1_1_status}{Status}} \mbox{\hyperlink{classmilvus_1_1_milvus_client_ac7fad69f7eb8c174b1df31481dcf62b4}{List\+Aliases}} (const std\+::string \&collection\+\_\+name, std\+::vector$<$ \mbox{\hyperlink{classmilvus_1_1_alias_desc}{Alias\+Desc}} $>$ \&descs)=0
+\begin{DoxyCompactList}\small\item\em List all aliases of a collection. \end{DoxyCompactList}\item 
+virtual \mbox{\hyperlink{classmilvus_1_1_status}{Status}} \mbox{\hyperlink{classmilvus_1_1_milvus_client_ace5a955cc9e661c52400928cf288e997}{Use\+Database}} (const std\+::string \&db\+\_\+name)=0
+\begin{DoxyCompactList}\small\item\em Switch connection to another database. \end{DoxyCompactList}\item 
+virtual \mbox{\hyperlink{classmilvus_1_1_status}{Status}} \mbox{\hyperlink{classmilvus_1_1_milvus_client_adf90fe7afbc830bf09de0cf1375adb52}{Current\+Used\+Database}} (std\+::string \&db\+\_\+name)=0
+\begin{DoxyCompactList}\small\item\em Get current used database name. This API is useful in multi-\/database scenarios. \end{DoxyCompactList}\item 
+virtual \mbox{\hyperlink{classmilvus_1_1_status}{Status}} \mbox{\hyperlink{classmilvus_1_1_milvus_client_af94e0af678c1d54867ae4324316e0493}{Create\+Database}} (const std\+::string \&db\+\_\+name, const std\+::unordered\+\_\+map$<$ std\+::string, std\+::string $>$ \&properties)=0
+\begin{DoxyCompactList}\small\item\em Create a new database. \end{DoxyCompactList}\item 
+virtual \mbox{\hyperlink{classmilvus_1_1_status}{Status}} \mbox{\hyperlink{classmilvus_1_1_milvus_client_a6b7bd8728c37ceb01d028a48c17fc254}{Drop\+Database}} (const std\+::string \&db\+\_\+name)=0
+\begin{DoxyCompactList}\small\item\em Drop a database. \end{DoxyCompactList}\item 
+virtual \mbox{\hyperlink{classmilvus_1_1_status}{Status}} \mbox{\hyperlink{classmilvus_1_1_milvus_client_a88944b390c8e8255d3089513095a890a}{List\+Databases}} (std\+::vector$<$ std\+::string $>$ \&names)=0
+\begin{DoxyCompactList}\small\item\em Drop a database. \end{DoxyCompactList}\item 
+virtual \mbox{\hyperlink{classmilvus_1_1_status}{Status}} \mbox{\hyperlink{classmilvus_1_1_milvus_client_aa7fda0732f189d6b0bcdc9afddd89d34}{Alter\+Database\+Properties}} (const std\+::string \&db\+\_\+name, const std\+::unordered\+\_\+map$<$ std\+::string, std\+::string $>$ \&properties)=0
+\begin{DoxyCompactList}\small\item\em Alter a database\textquotesingle{}s properties. \end{DoxyCompactList}\item 
+virtual \mbox{\hyperlink{classmilvus_1_1_status}{Status}} \mbox{\hyperlink{classmilvus_1_1_milvus_client_aeff4aefb97f7d857a337aee13b4853ec}{Drop\+Database\+Properties}} (const std\+::string \&db\+\_\+name, const std\+::vector$<$ std\+::string $>$ \&properties)=0
+\begin{DoxyCompactList}\small\item\em Drop a database\textquotesingle{}s properties. \end{DoxyCompactList}\item 
+virtual \mbox{\hyperlink{classmilvus_1_1_status}{Status}} \mbox{\hyperlink{classmilvus_1_1_milvus_client_a34b2261f9b18156ea90e36c7bcc4e3d9}{Describe\+Database}} (const std\+::string \&db\+\_\+name, \mbox{\hyperlink{classmilvus_1_1_database_desc}{Database\+Desc}} \&db\+\_\+desc)=0
+\begin{DoxyCompactList}\small\item\em Describe a database. \end{DoxyCompactList}\item 
+virtual \mbox{\hyperlink{classmilvus_1_1_status}{Status}} \mbox{\hyperlink{classmilvus_1_1_milvus_client_a9d56f35a497504a7dee610d368d22b7a}{Create\+Index}} (const std\+::string \&collection\+\_\+name, const \mbox{\hyperlink{classmilvus_1_1_index_desc}{Index\+Desc}} \&index\+\_\+desc, const \mbox{\hyperlink{classmilvus_1_1_progress_monitor}{Progress\+Monitor}} \&progress\+\_\+monitor=\mbox{\hyperlink{classmilvus_1_1_progress_monitor_a32e432222660a1123871442c72bb68da}{Progress\+Monitor\+::\+Forever}}())=0
+\begin{DoxyCompactList}\small\item\em Create an index on a field. Currently only support index on vector field. \end{DoxyCompactList}\item 
+virtual \mbox{\hyperlink{classmilvus_1_1_status}{Status}} \mbox{\hyperlink{classmilvus_1_1_milvus_client_a58ed7015339719ab8dc7d6acad90d9a1}{Describe\+Index}} (const std\+::string \&collection\+\_\+name, const std\+::string \&field\+\_\+name, \mbox{\hyperlink{classmilvus_1_1_index_desc}{Index\+Desc}} \&index\+\_\+desc)=0
+\begin{DoxyCompactList}\small\item\em Get index descriptions and parameters. \end{DoxyCompactList}\item 
+virtual \mbox{\hyperlink{classmilvus_1_1_status}{Status}} \mbox{\hyperlink{classmilvus_1_1_milvus_client_a7e94151b0b96f2172b6cd2a6916cd982}{List\+Indexes}} (const std\+::string \&collection\+\_\+name, const std\+::string \&field\+\_\+name, std\+::vector$<$ std\+::string $>$ \&index\+\_\+names)=0
+\begin{DoxyCompactList}\small\item\em Get index names of a collection. \end{DoxyCompactList}\item 
+virtual \mbox{\hyperlink{classmilvus_1_1_status}{Status}} \mbox{\hyperlink{classmilvus_1_1_milvus_client_ad4abd1fc1153cd777a5080aa2ad8ca2b}{Get\+Index\+State}} (const std\+::string \&collection\+\_\+name, const std\+::string \&field\+\_\+name, \mbox{\hyperlink{classmilvus_1_1_index_state}{Index\+State}} \&state)=0
+\begin{DoxyCompactList}\small\item\em Get state of an index. From the state client can know whether the index has finished or in-\/progress. \end{DoxyCompactList}\item 
+virtual \mbox{\hyperlink{classmilvus_1_1_status}{Status}} \mbox{\hyperlink{classmilvus_1_1_milvus_client_ace67cf6baedb06fe67badb5e499a3c45}{Get\+Index\+Build\+Progress}} (const std\+::string \&collection\+\_\+name, const std\+::string \&field\+\_\+name, \mbox{\hyperlink{classmilvus_1_1_index_progress}{Index\+Progress}} \&progress)=0
+\begin{DoxyCompactList}\small\item\em Get progress of an index. From the progress client can how many rows have been indexed. \end{DoxyCompactList}\item 
+virtual \mbox{\hyperlink{classmilvus_1_1_status}{Status}} \mbox{\hyperlink{classmilvus_1_1_milvus_client_a1fd3b1c60f159cf5c0cc64bde567dd2d}{Drop\+Index}} (const std\+::string \&collection\+\_\+name, const std\+::string \&field\+\_\+name)=0
+\begin{DoxyCompactList}\small\item\em Drop index of a field. \end{DoxyCompactList}\item 
+virtual \mbox{\hyperlink{classmilvus_1_1_status}{Status}} \mbox{\hyperlink{classmilvus_1_1_milvus_client_aca68a80bdfbc626ccacaa8fdae62a6c7}{Alter\+Index\+Properties}} (const std\+::string \&collection\+\_\+name, const std\+::string \&index\+\_\+name, const std\+::unordered\+\_\+map$<$ std\+::string, std\+::string $>$ \&properties)=0
+\begin{DoxyCompactList}\small\item\em Alter an index\textquotesingle{}s properties. \end{DoxyCompactList}\item 
+virtual \mbox{\hyperlink{classmilvus_1_1_status}{Status}} \mbox{\hyperlink{classmilvus_1_1_milvus_client_aef0a4157db92fe17f1c9900ee733d34b}{Drop\+Index\+Properties}} (const std\+::string \&collection\+\_\+name, const std\+::string \&index\+\_\+name, const std\+::set$<$ std\+::string $>$ \&property\+\_\+keys)=0
+\begin{DoxyCompactList}\small\item\em Drop an index\textquotesingle{}s properties. \end{DoxyCompactList}\item 
+virtual \mbox{\hyperlink{classmilvus_1_1_status}{Status}} \mbox{\hyperlink{classmilvus_1_1_milvus_client_a64a2dca576e0933571a6889910d56390}{Insert}} (const std\+::string \&collection\+\_\+name, const std\+::string \&partition\+\_\+name, const std\+::vector$<$ Field\+Data\+Ptr $>$ \&fields, \mbox{\hyperlink{classmilvus_1_1_dml_results}{Dml\+Results}} \&results)=0
+\begin{DoxyCompactList}\small\item\em Insert data into a collection by column-\/based. \end{DoxyCompactList}\item 
+virtual \mbox{\hyperlink{classmilvus_1_1_status}{Status}} \mbox{\hyperlink{classmilvus_1_1_milvus_client_ac42188c18f68ae8462de128b3ea668b4}{Insert}} (const std\+::string \&collection\+\_\+name, const std\+::string \&partition\+\_\+name, const Entity\+Rows \&rows, \mbox{\hyperlink{classmilvus_1_1_dml_results}{Dml\+Results}} \&results)=0
+\begin{DoxyCompactList}\small\item\em Insert data into a collection by row-\/based. \end{DoxyCompactList}\item 
+virtual \mbox{\hyperlink{classmilvus_1_1_status}{Status}} \mbox{\hyperlink{classmilvus_1_1_milvus_client_afb04bce18eb5b65899f7510d710a8448}{Upsert}} (const std\+::string \&collection\+\_\+name, const std\+::string \&partition\+\_\+name, const std\+::vector$<$ Field\+Data\+Ptr $>$ \&fields, \mbox{\hyperlink{classmilvus_1_1_dml_results}{Dml\+Results}} \&results)=0
+\begin{DoxyCompactList}\small\item\em Upsert entities into a collection. \end{DoxyCompactList}\item 
+virtual \mbox{\hyperlink{classmilvus_1_1_status}{Status}} \mbox{\hyperlink{classmilvus_1_1_milvus_client_addf0736a66a40f073ab39e4b8181fbd6}{Upsert}} (const std\+::string \&collection\+\_\+name, const std\+::string \&partition\+\_\+name, const Entity\+Rows \&rows, \mbox{\hyperlink{classmilvus_1_1_dml_results}{Dml\+Results}} \&results)=0
+\begin{DoxyCompactList}\small\item\em Upsert rows into a collection. \end{DoxyCompactList}\item 
+virtual \mbox{\hyperlink{classmilvus_1_1_status}{Status}} \mbox{\hyperlink{classmilvus_1_1_milvus_client_a271b16333636621f24aaf89993c72301}{Delete}} (const std\+::string \&collection\+\_\+name, const std\+::string \&partition\+\_\+name, const std\+::string \&expression, \mbox{\hyperlink{classmilvus_1_1_dml_results}{Dml\+Results}} \&results)=0
+\begin{DoxyCompactList}\small\item\em Delete entities by filtering condition. \end{DoxyCompactList}\item 
+virtual \mbox{\hyperlink{classmilvus_1_1_status}{Status}} \mbox{\hyperlink{classmilvus_1_1_milvus_client_a46c70fc2b7c386003babd90e02b299d1}{Search}} (const \mbox{\hyperlink{classmilvus_1_1_search_arguments}{Search\+Arguments}} \&arguments, \mbox{\hyperlink{classmilvus_1_1_search_results}{Search\+Results}} \&results)=0
+\begin{DoxyCompactList}\small\item\em Search a collection based on the given parameters and return results. \end{DoxyCompactList}\item 
+virtual \mbox{\hyperlink{classmilvus_1_1_status}{Status}} \mbox{\hyperlink{classmilvus_1_1_milvus_client_af64141205e7d5279a598ece74e2c4c3a}{Search\+Iterator}} (\mbox{\hyperlink{classmilvus_1_1_search_iterator_arguments}{Search\+Iterator\+Arguments}} \&arguments, Search\+Iterator\+Ptr \&iterator)=0
+\begin{DoxyCompactList}\small\item\em Get Search\+Iterator object based on scalar field(s) filtered by boolean expression. Note that the order of the returned entities cannot be guaranteed. \end{DoxyCompactList}\item 
+virtual \mbox{\hyperlink{classmilvus_1_1_status}{Status}} \mbox{\hyperlink{classmilvus_1_1_milvus_client_ae9d21a873b892ff0e7a13ea522e32ce9}{Hybrid\+Search}} (const \mbox{\hyperlink{classmilvus_1_1_hybrid_search_arguments}{Hybrid\+Search\+Arguments}} \&arguments, \mbox{\hyperlink{classmilvus_1_1_search_results}{Search\+Results}} \&results)=0
+\begin{DoxyCompactList}\small\item\em Hybrid search a collection based on the given parameters and return results. \end{DoxyCompactList}\item 
+virtual \mbox{\hyperlink{classmilvus_1_1_status}{Status}} \mbox{\hyperlink{classmilvus_1_1_milvus_client_a2c27e3b681313329ccf491867d717182}{Query}} (const \mbox{\hyperlink{classmilvus_1_1_query_arguments}{Query\+Arguments}} \&arguments, \mbox{\hyperlink{classmilvus_1_1_query_results}{Query\+Results}} \&results)=0
+\begin{DoxyCompactList}\small\item\em Query with a set of criteria, and results in a list of records that match the query exactly. \end{DoxyCompactList}\item 
+virtual \mbox{\hyperlink{classmilvus_1_1_status}{Status}} \mbox{\hyperlink{classmilvus_1_1_milvus_client_a08058fb22987cbc589b738f3782a59b5}{Query\+Iterator}} (\mbox{\hyperlink{classmilvus_1_1_query_iterator_arguments}{Query\+Iterator\+Arguments}} \&arguments, Query\+Iterator\+Ptr \&iterator)=0
+\begin{DoxyCompactList}\small\item\em Get Query\+Iterator object based on scalar field(s) filtered by boolean expression. \end{DoxyCompactList}\item 
+virtual \mbox{\hyperlink{classmilvus_1_1_status}{Status}} \mbox{\hyperlink{classmilvus_1_1_milvus_client_a6fc4ad8b8b0acfcf1302495779dc54c4}{Run\+Analyzer}} (const \mbox{\hyperlink{classmilvus_1_1_run_analyzer_arguments}{Run\+Analyzer\+Arguments}} \&arguments, Analyzer\+Results \&results)=0
+\begin{DoxyCompactList}\small\item\em Run analyzer. Return result tokens of analysis. Milvus server supports this interface from v2.\+5.\+11. \end{DoxyCompactList}\item 
+virtual \mbox{\hyperlink{classmilvus_1_1_status}{Status}} \mbox{\hyperlink{classmilvus_1_1_milvus_client_ada4afa4d852dce6a8e8bffc112816276}{Flush}} (const std\+::vector$<$ std\+::string $>$ \&collection\+\_\+names, const \mbox{\hyperlink{classmilvus_1_1_progress_monitor}{Progress\+Monitor}} \&progress\+\_\+monitor=\mbox{\hyperlink{classmilvus_1_1_progress_monitor_a32e432222660a1123871442c72bb68da}{Progress\+Monitor\+::\+Forever}}())=0
+\begin{DoxyCompactList}\small\item\em Flush insert buffer into storage. To make sure the buffer persisted successfully, it calls \mbox{\hyperlink{classmilvus_1_1_milvus_client_a0feac35352d6877ed620e428f609023b}{Get\+Flush\+State()}} to check related segments state. \end{DoxyCompactList}\item 
+virtual \mbox{\hyperlink{classmilvus_1_1_status}{Status}} \mbox{\hyperlink{classmilvus_1_1_milvus_client_a0feac35352d6877ed620e428f609023b}{Get\+Flush\+State}} (const std\+::vector$<$ int64\+\_\+t $>$ \&segments, bool \&flushed)=0
+\begin{DoxyCompactList}\small\item\em Get flush state of specified segments. \end{DoxyCompactList}\item 
+virtual \mbox{\hyperlink{classmilvus_1_1_status}{Status}} \mbox{\hyperlink{classmilvus_1_1_milvus_client_a383e2ef16d4add6af450170775869604}{Get\+Persistent\+Segment\+Info}} (const std\+::string \&collection\+\_\+name, \mbox{\hyperlink{namespacemilvus_ac4d75d0f392eb243587a67248164636b}{Segments\+Info}} \&segments\+\_\+info)=0
+\begin{DoxyCompactList}\small\item\em Retrieve information of persistent segments from data nodes. \end{DoxyCompactList}\item 
+virtual \mbox{\hyperlink{classmilvus_1_1_status}{Status}} \mbox{\hyperlink{classmilvus_1_1_milvus_client_a7a5a78cb57e5d80adea1f1b0bffe5ba0}{Get\+Query\+Segment\+Info}} (const std\+::string \&collection\+\_\+name, \mbox{\hyperlink{namespacemilvus_a12c0975ef69afebb6673596a78f0c1c6}{Query\+Segments\+Info}} \&segments\+\_\+info)=0
+\begin{DoxyCompactList}\small\item\em Retrieve information of segments from query nodes. \end{DoxyCompactList}\item 
+virtual \mbox{\hyperlink{classmilvus_1_1_status}{Status}} \mbox{\hyperlink{classmilvus_1_1_milvus_client_a438488cdb507bc9715a79fec644c7065}{Get\+Metrics}} (const std\+::string \&request, std\+::string \&response, std\+::string \&component\+\_\+name)=0
+\begin{DoxyCompactList}\small\item\em Get server runtime statistics. \end{DoxyCompactList}\item 
+virtual \mbox{\hyperlink{classmilvus_1_1_status}{Status}} \mbox{\hyperlink{classmilvus_1_1_milvus_client_a2f56b370148934a1efd1f3ba48ec1b09}{Load\+Balance}} (int64\+\_\+t src\+\_\+node, const std\+::vector$<$ int64\+\_\+t $>$ \&dst\+\_\+nodes, const std\+::vector$<$ int64\+\_\+t $>$ \&segments)=0
+\begin{DoxyCompactList}\small\item\em Rebalanced sealed segments from one query node to others. \end{DoxyCompactList}\item 
+virtual \mbox{\hyperlink{classmilvus_1_1_status}{Status}} \mbox{\hyperlink{classmilvus_1_1_milvus_client_a8041cd363470774d2cdb3c295307e1d9}{Get\+Compaction\+State}} (int64\+\_\+t compaction\+\_\+id, \mbox{\hyperlink{classmilvus_1_1_compaction_state}{Compaction\+State}} \&compaction\+\_\+state)=0
+\begin{DoxyCompactList}\small\item\em Get compaction action state. \end{DoxyCompactList}\item 
+virtual \mbox{\hyperlink{classmilvus_1_1_status}{Status}} \mbox{\hyperlink{classmilvus_1_1_milvus_client_aded6fdc88693663dd6f501d6191658d3}{Manual\+Compaction}} (const std\+::string \&collection\+\_\+name, uint64\+\_\+t travel\+\_\+timestamp, int64\+\_\+t \&compaction\+\_\+id)=0
+\begin{DoxyCompactList}\small\item\em Manually trigger a compaction action. \end{DoxyCompactList}\item 
+virtual \mbox{\hyperlink{classmilvus_1_1_status}{Status}} \mbox{\hyperlink{classmilvus_1_1_milvus_client_a39d54736f4b08bba8d6b055277aa71ea}{Get\+Compaction\+Plans}} (int64\+\_\+t compaction\+\_\+id, \mbox{\hyperlink{namespacemilvus_ae8e1cc7774a3ff7a1c5d564c1937bec8}{Compaction\+Plans}} \&plans)=0
+\begin{DoxyCompactList}\small\item\em Get plans of a compaction action. \end{DoxyCompactList}\item 
+virtual \mbox{\hyperlink{classmilvus_1_1_status}{Status}} \mbox{\hyperlink{classmilvus_1_1_milvus_client_a54fcf962deef1aa39d4bbb3eeacec7a1}{Create\+Credential}} (const std\+::string \&username, const std\+::string \&password)=0
+\begin{DoxyCompactList}\small\item\em Create Credential. \end{DoxyCompactList}\item 
+virtual \mbox{\hyperlink{classmilvus_1_1_status}{Status}} \mbox{\hyperlink{classmilvus_1_1_milvus_client_ac53676eb10e84a04d3e0f9f2d69bf3f5}{Update\+Credential}} (const std\+::string \&username, const std\+::string \&old\+\_\+password, const std\+::string \&new\+\_\+password)=0
+\begin{DoxyCompactList}\small\item\em Update Credential. \end{DoxyCompactList}\item 
+virtual \mbox{\hyperlink{classmilvus_1_1_status}{Status}} \mbox{\hyperlink{classmilvus_1_1_milvus_client_a14105e69922cd45347fd472b25753533}{Delete\+Credential}} (const std\+::string \&username)=0
+\begin{DoxyCompactList}\small\item\em Delete Credential. \end{DoxyCompactList}\item 
+virtual \mbox{\hyperlink{classmilvus_1_1_status}{Status}} \mbox{\hyperlink{classmilvus_1_1_milvus_client_aac191536b781ffff8de14f2fd26d102d}{List\+Cred\+Users}} (std\+::vector$<$ std\+::string $>$ \&names)=0
+\begin{DoxyCompactList}\small\item\em List Users. \end{DoxyCompactList}\item 
+virtual \mbox{\hyperlink{classmilvus_1_1_status}{Status}} \mbox{\hyperlink{classmilvus_1_1_milvus_client_a879a0b051b7b96e1d687df0c021c8a48}{Create\+Resource\+Group}} (const std\+::string \&name, const \mbox{\hyperlink{classmilvus_1_1_resource_group_config}{Resource\+Group\+Config}} \&config)=0
+\begin{DoxyCompactList}\small\item\em Create a resource group. \end{DoxyCompactList}\item 
+virtual \mbox{\hyperlink{classmilvus_1_1_status}{Status}} \mbox{\hyperlink{classmilvus_1_1_milvus_client_ae59d3170fa55ea56ffcf6718ebe8e253}{Drop\+Resource\+Group}} (const std\+::string \&name)=0
+\begin{DoxyCompactList}\small\item\em Drop a resource group. \end{DoxyCompactList}\item 
+virtual \mbox{\hyperlink{classmilvus_1_1_status}{Status}} \mbox{\hyperlink{classmilvus_1_1_milvus_client_a32a92e5a53188904b98d2c09232d5a23}{Update\+Resource\+Groups}} (const std\+::unordered\+\_\+map$<$ std\+::string, \mbox{\hyperlink{classmilvus_1_1_resource_group_config}{Resource\+Group\+Config}} $>$ \&groups)=0
+\begin{DoxyCompactList}\small\item\em Update resource groups. \end{DoxyCompactList}\item 
+virtual \mbox{\hyperlink{classmilvus_1_1_status}{Status}} \mbox{\hyperlink{classmilvus_1_1_milvus_client_af232cbfe6275bc98f1a2764c2891233b}{Transfer\+Node}} (const std\+::string \&source\+\_\+group, const std\+::string \&target\+\_\+group, uint32\+\_\+t num\+\_\+nodes)=0
+\begin{DoxyCompactList}\small\item\em Transfer nodes to another resource groups. \end{DoxyCompactList}\item 
+virtual \mbox{\hyperlink{classmilvus_1_1_status}{Status}} \mbox{\hyperlink{classmilvus_1_1_milvus_client_a6118885bcfe233db5d4a8d49f7457fb8}{Transfer\+Replica}} (const std\+::string \&source\+\_\+group, const std\+::string \&target\+\_\+group, const std\+::string \&collection\+\_\+name, uint32\+\_\+t num\+\_\+replicas)=0
+\begin{DoxyCompactList}\small\item\em Transfer replicas of a collection from source group to target group. \end{DoxyCompactList}\item 
+virtual \mbox{\hyperlink{classmilvus_1_1_status}{Status}} \mbox{\hyperlink{classmilvus_1_1_milvus_client_ab5dfe1f5ff18dd5667376b6767482314}{List\+Resource\+Groups}} (std\+::vector$<$ std\+::string $>$ \&group\+\_\+names)=0
+\begin{DoxyCompactList}\small\item\em List all the resource groups under the current database. \end{DoxyCompactList}\item 
+virtual \mbox{\hyperlink{classmilvus_1_1_status}{Status}} \mbox{\hyperlink{classmilvus_1_1_milvus_client_a445cff20f09056a77db475c8a5983fce}{Describe\+Resource\+Group}} (const std\+::string \&group\+\_\+name, \mbox{\hyperlink{classmilvus_1_1_resource_group_desc}{Resource\+Group\+Desc}} \&desc)=0
+\begin{DoxyCompactList}\small\item\em Describe a resource group. \end{DoxyCompactList}\item 
+virtual \mbox{\hyperlink{classmilvus_1_1_status}{Status}} \mbox{\hyperlink{classmilvus_1_1_milvus_client_af34599912d16e25d32d549d364fa0d1f}{Create\+User}} (const std\+::string \&user\+\_\+name, const std\+::string \&password)=0
+\begin{DoxyCompactList}\small\item\em Create an user. \end{DoxyCompactList}\item 
+virtual \mbox{\hyperlink{classmilvus_1_1_status}{Status}} \mbox{\hyperlink{classmilvus_1_1_milvus_client_a2652488359729a6ba8cc17d3a8b98b31}{Update\+Password}} (const std\+::string \&user\+\_\+name, const std\+::string \&old\+\_\+password, const std\+::string \&new\+\_\+password)=0
+\begin{DoxyCompactList}\small\item\em Update password of an user. \end{DoxyCompactList}\item 
+virtual \mbox{\hyperlink{classmilvus_1_1_status}{Status}} \mbox{\hyperlink{classmilvus_1_1_milvus_client_a83d14ad1e8479badfc64bb9fe1944c42}{Drop\+User}} (const std\+::string \&user\+\_\+name)=0
+\begin{DoxyCompactList}\small\item\em Drop an user. \end{DoxyCompactList}\item 
+virtual \mbox{\hyperlink{classmilvus_1_1_status}{Status}} \mbox{\hyperlink{classmilvus_1_1_milvus_client_aca55cca77c8cc962ed44ba5d5baa5541}{Describe\+User}} (const std\+::string \&user\+\_\+name, \mbox{\hyperlink{classmilvus_1_1_user_desc}{User\+Desc}} \&desc)=0
+\begin{DoxyCompactList}\small\item\em Describe an user. \end{DoxyCompactList}\item 
+virtual \mbox{\hyperlink{classmilvus_1_1_status}{Status}} \mbox{\hyperlink{classmilvus_1_1_milvus_client_ac670bb063648b1a33d99d18802deb656}{List\+Users}} (std\+::vector$<$ std\+::string $>$ \&names)=0
+\begin{DoxyCompactList}\small\item\em List users. \end{DoxyCompactList}\item 
+virtual \mbox{\hyperlink{classmilvus_1_1_status}{Status}} \mbox{\hyperlink{classmilvus_1_1_milvus_client_a759d04e37fc30f2485ce0cad1e81efc9}{Create\+Role}} (const std\+::string \&role\+\_\+name)=0
+\begin{DoxyCompactList}\small\item\em Create a role. \end{DoxyCompactList}\item 
+virtual \mbox{\hyperlink{classmilvus_1_1_status}{Status}} \mbox{\hyperlink{classmilvus_1_1_milvus_client_aa6b06091902292d7ad973985f748ed10}{Drop\+Role}} (const std\+::string \&role\+\_\+name, bool force\+\_\+drop=false)=0
+\begin{DoxyCompactList}\small\item\em Drop a role. \end{DoxyCompactList}\item 
+virtual \mbox{\hyperlink{classmilvus_1_1_status}{Status}} \mbox{\hyperlink{classmilvus_1_1_milvus_client_a1a684ef474f0f4eac1f6e6566dd77d35}{Describe\+Role}} (const std\+::string \&role\+\_\+name, \mbox{\hyperlink{classmilvus_1_1_role_desc}{Role\+Desc}} \&desc)=0
+\begin{DoxyCompactList}\small\item\em Describe an role. \end{DoxyCompactList}\item 
+virtual \mbox{\hyperlink{classmilvus_1_1_status}{Status}} \mbox{\hyperlink{classmilvus_1_1_milvus_client_a5b53318ec597412662c6a509b7848baf}{List\+Roles}} (std\+::vector$<$ std\+::string $>$ \&names)=0
+\begin{DoxyCompactList}\small\item\em List roles. \end{DoxyCompactList}\item 
+virtual \mbox{\hyperlink{classmilvus_1_1_status}{Status}} \mbox{\hyperlink{classmilvus_1_1_milvus_client_ad0fe1ca6bf877b07686e7ca42dbff6bc}{Grant\+Role}} (const std\+::string \&user\+\_\+name, const std\+::string \&role\+\_\+name)=0
+\begin{DoxyCompactList}\small\item\em Grant a role to an user. \end{DoxyCompactList}\item 
+virtual \mbox{\hyperlink{classmilvus_1_1_status}{Status}} \mbox{\hyperlink{classmilvus_1_1_milvus_client_aeb576d7001cecadf250373ea2c5baca7}{Revoke\+Role}} (const std\+::string \&user\+\_\+name, const std\+::string \&role\+\_\+name)=0
+\begin{DoxyCompactList}\small\item\em Revoke a role from an user. \end{DoxyCompactList}\item 
+virtual \mbox{\hyperlink{classmilvus_1_1_status}{Status}} \mbox{\hyperlink{classmilvus_1_1_milvus_client_a5595987fee86b75dd6153e6514e8be14}{Grant\+Privilege}} (const std\+::string \&role\+\_\+name, const std\+::string \&privilege, const std\+::string \&collection\+\_\+name, const std\+::string \&db\+\_\+name)=0
+\begin{DoxyCompactList}\small\item\em Grant a privilege or a privilege group to a role. For more info\+: \href{https://milvus.io/docs/v2.4.x/users_and_roles.md}{\texttt{ https\+://milvus.\+io/docs/v2.\+4.\+x/users\+\_\+and\+\_\+roles.\+md}}. \end{DoxyCompactList}\item 
+virtual \mbox{\hyperlink{classmilvus_1_1_status}{Status}} \mbox{\hyperlink{classmilvus_1_1_milvus_client_a1ed6e474c29536031688b9bf3ade9050}{Revoke\+Privilege}} (const std\+::string \&role\+\_\+name, const std\+::string \&privilege, const std\+::string \&collection\+\_\+name, const std\+::string \&db\+\_\+name)=0
+\begin{DoxyCompactList}\small\item\em Revoke a privilege or a privilege group from a role. For more info\+: \href{https://milvus.io/docs/v2.4.x/users_and_roles.md}{\texttt{ https\+://milvus.\+io/docs/v2.\+4.\+x/users\+\_\+and\+\_\+roles.\+md}}. \end{DoxyCompactList}\item 
+virtual \mbox{\hyperlink{classmilvus_1_1_status}{Status}} \mbox{\hyperlink{classmilvus_1_1_milvus_client_ac8f60c58d224b6dd0d8af524c53507d3}{Create\+Privilege\+Group}} (const std\+::string \&group\+\_\+name)=0
+\begin{DoxyCompactList}\small\item\em Create a privilege group. \end{DoxyCompactList}\item 
+virtual \mbox{\hyperlink{classmilvus_1_1_status}{Status}} \mbox{\hyperlink{classmilvus_1_1_milvus_client_ab09ec1d7675cd82fe002163d64309c35}{Drop\+Privilege\+Group}} (const std\+::string \&group\+\_\+name)=0
+\begin{DoxyCompactList}\small\item\em Drop a privilege group. \end{DoxyCompactList}\item 
+virtual \mbox{\hyperlink{classmilvus_1_1_status}{Status}} \mbox{\hyperlink{classmilvus_1_1_milvus_client_a14f98fcb6e5b70e5a94461a4623d7c57}{List\+Privilege\+Groups}} (\mbox{\hyperlink{namespacemilvus_a15be5036b84ca41b3ba6ce976c91f9bc}{Privilege\+Group\+Infos}} \&groups)=0
+\begin{DoxyCompactList}\small\item\em List all the privilege groups. \end{DoxyCompactList}\item 
+virtual \mbox{\hyperlink{classmilvus_1_1_status}{Status}} \mbox{\hyperlink{classmilvus_1_1_milvus_client_a46219407e0452066e4e81d0ce292ac31}{Add\+Privileges\+To\+Group}} (const std\+::string \&group\+\_\+name, const std\+::vector$<$ std\+::string $>$ \&privileges)=0
+\begin{DoxyCompactList}\small\item\em Add privileges to a privilege group. \end{DoxyCompactList}\item 
+virtual \mbox{\hyperlink{classmilvus_1_1_status}{Status}} \mbox{\hyperlink{classmilvus_1_1_milvus_client_aec6eebbcef688044717fc45e4ee0aeb2}{Remove\+Privileges\+From\+Group}} (const std\+::string \&group\+\_\+name, const std\+::vector$<$ std\+::string $>$ \&privileges)=0
+\begin{DoxyCompactList}\small\item\em Remove privileges from a privilege group. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\doxysubsection*{Static Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+static std\+::shared\+\_\+ptr$<$ \mbox{\hyperlink{classmilvus_1_1_milvus_client}{Milvus\+Client}} $>$ \mbox{\hyperlink{classmilvus_1_1_milvus_client_a2fadefe95c16f9a5ea11bc899fc878bd}{Create}} ()
+\begin{DoxyCompactList}\small\item\em Crate a \mbox{\hyperlink{classmilvus_1_1_milvus_client}{Milvus\+Client}} instance. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+Milvus client abstract class, provide \mbox{\hyperlink{classmilvus_1_1_milvus_client_a2fadefe95c16f9a5ea11bc899fc878bd}{Create()}} method to create an implementation instance. 
+
+\doxysubsection{Member Function Documentation}
+\mbox{\Hypertarget{classmilvus_1_1_milvus_client_a46219407e0452066e4e81d0ce292ac31}\label{classmilvus_1_1_milvus_client_a46219407e0452066e4e81d0ce292ac31}} 
+\index{milvus::MilvusClient@{milvus::MilvusClient}!AddPrivilegesToGroup@{AddPrivilegesToGroup}}
+\index{AddPrivilegesToGroup@{AddPrivilegesToGroup}!milvus::MilvusClient@{milvus::MilvusClient}}
+\doxysubsubsection{\texorpdfstring{AddPrivilegesToGroup()}{AddPrivilegesToGroup()}}
+{\footnotesize\ttfamily virtual \mbox{\hyperlink{classmilvus_1_1_status}{Status}} milvus\+::\+Milvus\+Client\+::\+Add\+Privileges\+To\+Group (\begin{DoxyParamCaption}\item[{const std\+::string \&}]{group\+\_\+name,  }\item[{const std\+::vector$<$ std\+::string $>$ \&}]{privileges }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [pure virtual]}}
+
+
+
+Add privileges to a privilege group. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ in}}  & {\em group\+\_\+name} & name of the privilege group \\
+\hline
+\mbox{\texttt{ in}}  & {\em privileges} & a list of privileges \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+\mbox{\hyperlink{classmilvus_1_1_status}{Status}} operation successfully or not 
+\end{DoxyReturn}
+\mbox{\Hypertarget{classmilvus_1_1_milvus_client_a0ffc68fca8e0e8756598336552406d9c}\label{classmilvus_1_1_milvus_client_a0ffc68fca8e0e8756598336552406d9c}} 
+\index{milvus::MilvusClient@{milvus::MilvusClient}!AlterAlias@{AlterAlias}}
+\index{AlterAlias@{AlterAlias}!milvus::MilvusClient@{milvus::MilvusClient}}
+\doxysubsubsection{\texorpdfstring{AlterAlias()}{AlterAlias()}}
+{\footnotesize\ttfamily virtual \mbox{\hyperlink{classmilvus_1_1_status}{Status}} milvus\+::\+Milvus\+Client\+::\+Alter\+Alias (\begin{DoxyParamCaption}\item[{const std\+::string \&}]{collection\+\_\+name,  }\item[{const std\+::string \&}]{alias }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [pure virtual]}}
+
+
+
+Change an alias from a collection to another. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ in}}  & {\em collection\+\_\+name} & name of the collection \\
+\hline
+\mbox{\texttt{ in}}  & {\em alias} & alias of the partitions \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+\mbox{\hyperlink{classmilvus_1_1_status}{Status}} operation successfully or not 
+\end{DoxyReturn}
+\mbox{\Hypertarget{classmilvus_1_1_milvus_client_ae52306ebb23f32a8fe3869bc879f1ead}\label{classmilvus_1_1_milvus_client_ae52306ebb23f32a8fe3869bc879f1ead}} 
+\index{milvus::MilvusClient@{milvus::MilvusClient}!AlterCollectionField@{AlterCollectionField}}
+\index{AlterCollectionField@{AlterCollectionField}!milvus::MilvusClient@{milvus::MilvusClient}}
+\doxysubsubsection{\texorpdfstring{AlterCollectionField()}{AlterCollectionField()}}
+{\footnotesize\ttfamily virtual \mbox{\hyperlink{classmilvus_1_1_status}{Status}} milvus\+::\+Milvus\+Client\+::\+Alter\+Collection\+Field (\begin{DoxyParamCaption}\item[{const std\+::string \&}]{collection\+\_\+name,  }\item[{const std\+::string \&}]{field\+\_\+name,  }\item[{const std\+::unordered\+\_\+map$<$ std\+::string, std\+::string $>$ \&}]{properties }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [pure virtual]}}
+
+
+
+Alter a field\textquotesingle{}s properties. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ in}}  & {\em collection\+\_\+name} & name of the collection \\
+\hline
+\mbox{\texttt{ in}}  & {\em field\+\_\+name} & name of the field \\
+\hline
+\mbox{\texttt{ in}}  & {\em properties} & properties to be altered \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+\mbox{\hyperlink{classmilvus_1_1_status}{Status}} operation successfully or not 
+\end{DoxyReturn}
+\mbox{\Hypertarget{classmilvus_1_1_milvus_client_ab3f33b86189ea82c416afad8ea6d0c10}\label{classmilvus_1_1_milvus_client_ab3f33b86189ea82c416afad8ea6d0c10}} 
+\index{milvus::MilvusClient@{milvus::MilvusClient}!AlterCollectionProperties@{AlterCollectionProperties}}
+\index{AlterCollectionProperties@{AlterCollectionProperties}!milvus::MilvusClient@{milvus::MilvusClient}}
+\doxysubsubsection{\texorpdfstring{AlterCollectionProperties()}{AlterCollectionProperties()}}
+{\footnotesize\ttfamily virtual \mbox{\hyperlink{classmilvus_1_1_status}{Status}} milvus\+::\+Milvus\+Client\+::\+Alter\+Collection\+Properties (\begin{DoxyParamCaption}\item[{const std\+::string \&}]{collection\+\_\+name,  }\item[{const std\+::unordered\+\_\+map$<$ std\+::string, std\+::string $>$ \&}]{properties }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [pure virtual]}}
+
+
+
+Alter a collection\textquotesingle{}s properties. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ in}}  & {\em collection\+\_\+name} & name of the collection \\
+\hline
+\mbox{\texttt{ in}}  & {\em properties} & properties to be altered \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+\mbox{\hyperlink{classmilvus_1_1_status}{Status}} operation successfully or not 
+\end{DoxyReturn}
+\mbox{\Hypertarget{classmilvus_1_1_milvus_client_aa7fda0732f189d6b0bcdc9afddd89d34}\label{classmilvus_1_1_milvus_client_aa7fda0732f189d6b0bcdc9afddd89d34}} 
+\index{milvus::MilvusClient@{milvus::MilvusClient}!AlterDatabaseProperties@{AlterDatabaseProperties}}
+\index{AlterDatabaseProperties@{AlterDatabaseProperties}!milvus::MilvusClient@{milvus::MilvusClient}}
+\doxysubsubsection{\texorpdfstring{AlterDatabaseProperties()}{AlterDatabaseProperties()}}
+{\footnotesize\ttfamily virtual \mbox{\hyperlink{classmilvus_1_1_status}{Status}} milvus\+::\+Milvus\+Client\+::\+Alter\+Database\+Properties (\begin{DoxyParamCaption}\item[{const std\+::string \&}]{db\+\_\+name,  }\item[{const std\+::unordered\+\_\+map$<$ std\+::string, std\+::string $>$ \&}]{properties }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [pure virtual]}}
+
+
+
+Alter a database\textquotesingle{}s properties. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ in}}  & {\em db\+\_\+name} & name of the database \\
+\hline
+\mbox{\texttt{ in}}  & {\em properties} & properties of the database to be updated, available keys of properties are listed here\+: \href{https://milvus.io/docs/manage_databases.md\#Manage-database-properties}{\texttt{ https\+://milvus.\+io/docs/manage\+\_\+databases.\+md\#\+Manage-\/database-\/properties}} \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+\mbox{\hyperlink{classmilvus_1_1_status}{Status}} operation successfully or not 
+\end{DoxyReturn}
+\mbox{\Hypertarget{classmilvus_1_1_milvus_client_aca68a80bdfbc626ccacaa8fdae62a6c7}\label{classmilvus_1_1_milvus_client_aca68a80bdfbc626ccacaa8fdae62a6c7}} 
+\index{milvus::MilvusClient@{milvus::MilvusClient}!AlterIndexProperties@{AlterIndexProperties}}
+\index{AlterIndexProperties@{AlterIndexProperties}!milvus::MilvusClient@{milvus::MilvusClient}}
+\doxysubsubsection{\texorpdfstring{AlterIndexProperties()}{AlterIndexProperties()}}
+{\footnotesize\ttfamily virtual \mbox{\hyperlink{classmilvus_1_1_status}{Status}} milvus\+::\+Milvus\+Client\+::\+Alter\+Index\+Properties (\begin{DoxyParamCaption}\item[{const std\+::string \&}]{collection\+\_\+name,  }\item[{const std\+::string \&}]{index\+\_\+name,  }\item[{const std\+::unordered\+\_\+map$<$ std\+::string, std\+::string $>$ \&}]{properties }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [pure virtual]}}
+
+
+
+Alter an index\textquotesingle{}s properties. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ in}}  & {\em collection\+\_\+name} & name of the collection \\
+\hline
+\mbox{\texttt{ in}}  & {\em index\+\_\+name} & name of the index \\
+\hline
+\mbox{\texttt{ in}}  & {\em properties} & properties to be altered \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+\mbox{\hyperlink{classmilvus_1_1_status}{Status}} operation successfully or not 
+\end{DoxyReturn}
+\mbox{\Hypertarget{classmilvus_1_1_milvus_client_a617f8dbeb20e2bd3da0736f38927d2bb}\label{classmilvus_1_1_milvus_client_a617f8dbeb20e2bd3da0736f38927d2bb}} 
+\index{milvus::MilvusClient@{milvus::MilvusClient}!Connect@{Connect}}
+\index{Connect@{Connect}!milvus::MilvusClient@{milvus::MilvusClient}}
+\doxysubsubsection{\texorpdfstring{Connect()}{Connect()}}
+{\footnotesize\ttfamily virtual \mbox{\hyperlink{classmilvus_1_1_status}{Status}} milvus\+::\+Milvus\+Client\+::\+Connect (\begin{DoxyParamCaption}\item[{const \mbox{\hyperlink{classmilvus_1_1_connect_param}{Connect\+Param}} \&}]{connect\+\_\+param }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [pure virtual]}}
+
+
+
+Connect to Milvus server. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ in}}  & {\em connect\+\_\+param} & server address and port \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+\mbox{\hyperlink{classmilvus_1_1_status}{Status}} operation successfully or not 
+\end{DoxyReturn}
+\mbox{\Hypertarget{classmilvus_1_1_milvus_client_a2fadefe95c16f9a5ea11bc899fc878bd}\label{classmilvus_1_1_milvus_client_a2fadefe95c16f9a5ea11bc899fc878bd}} 
+\index{milvus::MilvusClient@{milvus::MilvusClient}!Create@{Create}}
+\index{Create@{Create}!milvus::MilvusClient@{milvus::MilvusClient}}
+\doxysubsubsection{\texorpdfstring{Create()}{Create()}}
+{\footnotesize\ttfamily std\+::shared\+\_\+ptr$<$ \mbox{\hyperlink{classmilvus_1_1_milvus_client}{Milvus\+Client}} $>$ milvus\+::\+Milvus\+Client\+::\+Create (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [static]}}
+
+
+
+Crate a \mbox{\hyperlink{classmilvus_1_1_milvus_client}{Milvus\+Client}} instance. 
+
+\begin{DoxyReturn}{Returns}
+std\+::shared\+\_\+ptr$<$\+Milvus\+Client$>$ 
+\end{DoxyReturn}
+\mbox{\Hypertarget{classmilvus_1_1_milvus_client_ac60416ac8d3a1acee393d9d0194cc14e}\label{classmilvus_1_1_milvus_client_ac60416ac8d3a1acee393d9d0194cc14e}} 
+\index{milvus::MilvusClient@{milvus::MilvusClient}!CreateAlias@{CreateAlias}}
+\index{CreateAlias@{CreateAlias}!milvus::MilvusClient@{milvus::MilvusClient}}
+\doxysubsubsection{\texorpdfstring{CreateAlias()}{CreateAlias()}}
+{\footnotesize\ttfamily virtual \mbox{\hyperlink{classmilvus_1_1_status}{Status}} milvus\+::\+Milvus\+Client\+::\+Create\+Alias (\begin{DoxyParamCaption}\item[{const std\+::string \&}]{collection\+\_\+name,  }\item[{const std\+::string \&}]{alias }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [pure virtual]}}
+
+
+
+Create an alias for a collection. Alias can be used in search or query to replace the collection name. For more information\+: \href{https://wiki.lfaidata.foundation/display/MIL/MEP+10+&ndash;+Support+Collection+Alias}{\texttt{ https\+://wiki.\+lfaidata.\+foundation/display/\+MIL/\+MEP+10+--+\+Support+\+Collection+\+Alias}}. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ in}}  & {\em collection\+\_\+name} & name of the collection \\
+\hline
+\mbox{\texttt{ in}}  & {\em alias} & alias of the partitions \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+\mbox{\hyperlink{classmilvus_1_1_status}{Status}} operation successfully or not 
+\end{DoxyReturn}
+\mbox{\Hypertarget{classmilvus_1_1_milvus_client_a6d466744ed60dbdd68edc5f13373b8db}\label{classmilvus_1_1_milvus_client_a6d466744ed60dbdd68edc5f13373b8db}} 
+\index{milvus::MilvusClient@{milvus::MilvusClient}!CreateCollection@{CreateCollection}}
+\index{CreateCollection@{CreateCollection}!milvus::MilvusClient@{milvus::MilvusClient}}
+\doxysubsubsection{\texorpdfstring{CreateCollection()}{CreateCollection()}}
+{\footnotesize\ttfamily virtual \mbox{\hyperlink{classmilvus_1_1_status}{Status}} milvus\+::\+Milvus\+Client\+::\+Create\+Collection (\begin{DoxyParamCaption}\item[{const \mbox{\hyperlink{classmilvus_1_1_collection_schema}{Collection\+Schema}} \&}]{schema,  }\item[{int64\+\_\+t}]{num\+\_\+partitions = {\ttfamily 0} }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [pure virtual]}}
+
+
+
+Create a collection with schema. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ in}}  & {\em schema} & schema of the collection \\
+\hline
+\mbox{\texttt{ in}}  & {\em num\+\_\+partitions} & num of default physical partitions, only used in partition key mode and changes are not supported, default value is 16 if set to negative or zero. \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+\mbox{\hyperlink{classmilvus_1_1_status}{Status}} operation successfully or not 
+\end{DoxyReturn}
+\mbox{\Hypertarget{classmilvus_1_1_milvus_client_a54fcf962deef1aa39d4bbb3eeacec7a1}\label{classmilvus_1_1_milvus_client_a54fcf962deef1aa39d4bbb3eeacec7a1}} 
+\index{milvus::MilvusClient@{milvus::MilvusClient}!CreateCredential@{CreateCredential}}
+\index{CreateCredential@{CreateCredential}!milvus::MilvusClient@{milvus::MilvusClient}}
+\doxysubsubsection{\texorpdfstring{CreateCredential()}{CreateCredential()}}
+{\footnotesize\ttfamily virtual \mbox{\hyperlink{classmilvus_1_1_status}{Status}} milvus\+::\+Milvus\+Client\+::\+Create\+Credential (\begin{DoxyParamCaption}\item[{const std\+::string \&}]{username,  }\item[{const std\+::string \&}]{password }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [pure virtual]}}
+
+
+
+Create Credential. 
+
+\begin{DoxyRefDesc}{Deprecated}
+\item[\mbox{\hyperlink{deprecated__deprecated000004}{Deprecated}}]replaced by \mbox{\hyperlink{classmilvus_1_1_milvus_client_af34599912d16e25d32d549d364fa0d1f}{Create\+User()}} in v2.\+4\end{DoxyRefDesc}
+
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ in}}  & {\em username} & the username for created \\
+\hline
+\mbox{\texttt{ in}}  & {\em password} & the password for the user to be created \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+\mbox{\hyperlink{classmilvus_1_1_status}{Status}} operation successfully or not 
+\end{DoxyReturn}
+\mbox{\Hypertarget{classmilvus_1_1_milvus_client_af94e0af678c1d54867ae4324316e0493}\label{classmilvus_1_1_milvus_client_af94e0af678c1d54867ae4324316e0493}} 
+\index{milvus::MilvusClient@{milvus::MilvusClient}!CreateDatabase@{CreateDatabase}}
+\index{CreateDatabase@{CreateDatabase}!milvus::MilvusClient@{milvus::MilvusClient}}
+\doxysubsubsection{\texorpdfstring{CreateDatabase()}{CreateDatabase()}}
+{\footnotesize\ttfamily virtual \mbox{\hyperlink{classmilvus_1_1_status}{Status}} milvus\+::\+Milvus\+Client\+::\+Create\+Database (\begin{DoxyParamCaption}\item[{const std\+::string \&}]{db\+\_\+name,  }\item[{const std\+::unordered\+\_\+map$<$ std\+::string, std\+::string $>$ \&}]{properties }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [pure virtual]}}
+
+
+
+Create a new database. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ in}}  & {\em db\+\_\+name} & name of the database \\
+\hline
+\mbox{\texttt{ in}}  & {\em properties} & properties of the database, available keys of properties are listed here\+: \href{https://milvus.io/docs/manage_databases.md\#Manage-database-properties}{\texttt{ https\+://milvus.\+io/docs/manage\+\_\+databases.\+md\#\+Manage-\/database-\/properties}} \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+\mbox{\hyperlink{classmilvus_1_1_status}{Status}} operation successfully or not 
+\end{DoxyReturn}
+\mbox{\Hypertarget{classmilvus_1_1_milvus_client_a9d56f35a497504a7dee610d368d22b7a}\label{classmilvus_1_1_milvus_client_a9d56f35a497504a7dee610d368d22b7a}} 
+\index{milvus::MilvusClient@{milvus::MilvusClient}!CreateIndex@{CreateIndex}}
+\index{CreateIndex@{CreateIndex}!milvus::MilvusClient@{milvus::MilvusClient}}
+\doxysubsubsection{\texorpdfstring{CreateIndex()}{CreateIndex()}}
+{\footnotesize\ttfamily virtual \mbox{\hyperlink{classmilvus_1_1_status}{Status}} milvus\+::\+Milvus\+Client\+::\+Create\+Index (\begin{DoxyParamCaption}\item[{const std\+::string \&}]{collection\+\_\+name,  }\item[{const \mbox{\hyperlink{classmilvus_1_1_index_desc}{Index\+Desc}} \&}]{index\+\_\+desc,  }\item[{const \mbox{\hyperlink{classmilvus_1_1_progress_monitor}{Progress\+Monitor}} \&}]{progress\+\_\+monitor = {\ttfamily \mbox{\hyperlink{classmilvus_1_1_progress_monitor_a32e432222660a1123871442c72bb68da}{Progress\+Monitor\+::\+Forever}}()} }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [pure virtual]}}
+
+
+
+Create an index on a field. Currently only support index on vector field. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ in}}  & {\em collection\+\_\+name} & name of the collection \\
+\hline
+\mbox{\texttt{ in}}  & {\em index\+\_\+desc} & the index descriptions and parameters \\
+\hline
+\mbox{\texttt{ in}}  & {\em progress\+\_\+monitor} & set timeout to wait index progress complete, set to \mbox{\hyperlink{classmilvus_1_1_progress_monitor_abdcdb9f357de11ea5713dc33f27a6ff5}{Progress\+Monitor\+::\+No\+Wait()}} to return instantly, set to \mbox{\hyperlink{classmilvus_1_1_progress_monitor_a32e432222660a1123871442c72bb68da}{Progress\+Monitor\+::\+Forever()}} to wait until finished. \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+\mbox{\hyperlink{classmilvus_1_1_status}{Status}} operation successfully or not 
+\end{DoxyReturn}
+\mbox{\Hypertarget{classmilvus_1_1_milvus_client_ac6faae944235d8beb57afc6338b58e71}\label{classmilvus_1_1_milvus_client_ac6faae944235d8beb57afc6338b58e71}} 
+\index{milvus::MilvusClient@{milvus::MilvusClient}!CreatePartition@{CreatePartition}}
+\index{CreatePartition@{CreatePartition}!milvus::MilvusClient@{milvus::MilvusClient}}
+\doxysubsubsection{\texorpdfstring{CreatePartition()}{CreatePartition()}}
+{\footnotesize\ttfamily virtual \mbox{\hyperlink{classmilvus_1_1_status}{Status}} milvus\+::\+Milvus\+Client\+::\+Create\+Partition (\begin{DoxyParamCaption}\item[{const std\+::string \&}]{collection\+\_\+name,  }\item[{const std\+::string \&}]{partition\+\_\+name }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [pure virtual]}}
+
+
+
+Create a partition in a collection. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ in}}  & {\em collection\+\_\+name} & name of the collection \\
+\hline
+\mbox{\texttt{ in}}  & {\em partition\+\_\+name} & name of the partition \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+\mbox{\hyperlink{classmilvus_1_1_status}{Status}} operation successfully or not 
+\end{DoxyReturn}
+\mbox{\Hypertarget{classmilvus_1_1_milvus_client_ac8f60c58d224b6dd0d8af524c53507d3}\label{classmilvus_1_1_milvus_client_ac8f60c58d224b6dd0d8af524c53507d3}} 
+\index{milvus::MilvusClient@{milvus::MilvusClient}!CreatePrivilegeGroup@{CreatePrivilegeGroup}}
+\index{CreatePrivilegeGroup@{CreatePrivilegeGroup}!milvus::MilvusClient@{milvus::MilvusClient}}
+\doxysubsubsection{\texorpdfstring{CreatePrivilegeGroup()}{CreatePrivilegeGroup()}}
+{\footnotesize\ttfamily virtual \mbox{\hyperlink{classmilvus_1_1_status}{Status}} milvus\+::\+Milvus\+Client\+::\+Create\+Privilege\+Group (\begin{DoxyParamCaption}\item[{const std\+::string \&}]{group\+\_\+name }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [pure virtual]}}
+
+
+
+Create a privilege group. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ in}}  & {\em group\+\_\+name} & name of the privilege group \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+\mbox{\hyperlink{classmilvus_1_1_status}{Status}} operation successfully or not 
+\end{DoxyReturn}
+\mbox{\Hypertarget{classmilvus_1_1_milvus_client_a879a0b051b7b96e1d687df0c021c8a48}\label{classmilvus_1_1_milvus_client_a879a0b051b7b96e1d687df0c021c8a48}} 
+\index{milvus::MilvusClient@{milvus::MilvusClient}!CreateResourceGroup@{CreateResourceGroup}}
+\index{CreateResourceGroup@{CreateResourceGroup}!milvus::MilvusClient@{milvus::MilvusClient}}
+\doxysubsubsection{\texorpdfstring{CreateResourceGroup()}{CreateResourceGroup()}}
+{\footnotesize\ttfamily virtual \mbox{\hyperlink{classmilvus_1_1_status}{Status}} milvus\+::\+Milvus\+Client\+::\+Create\+Resource\+Group (\begin{DoxyParamCaption}\item[{const std\+::string \&}]{name,  }\item[{const \mbox{\hyperlink{classmilvus_1_1_resource_group_config}{Resource\+Group\+Config}} \&}]{config }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [pure virtual]}}
+
+
+
+Create a resource group. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ in}}  & {\em name} & name of the resource group \\
+\hline
+\mbox{\texttt{ in}}  & {\em config} & configurations of the resource group \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+\mbox{\hyperlink{classmilvus_1_1_status}{Status}} operation successfully or not 
+\end{DoxyReturn}
+\mbox{\Hypertarget{classmilvus_1_1_milvus_client_a759d04e37fc30f2485ce0cad1e81efc9}\label{classmilvus_1_1_milvus_client_a759d04e37fc30f2485ce0cad1e81efc9}} 
+\index{milvus::MilvusClient@{milvus::MilvusClient}!CreateRole@{CreateRole}}
+\index{CreateRole@{CreateRole}!milvus::MilvusClient@{milvus::MilvusClient}}
+\doxysubsubsection{\texorpdfstring{CreateRole()}{CreateRole()}}
+{\footnotesize\ttfamily virtual \mbox{\hyperlink{classmilvus_1_1_status}{Status}} milvus\+::\+Milvus\+Client\+::\+Create\+Role (\begin{DoxyParamCaption}\item[{const std\+::string \&}]{role\+\_\+name }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [pure virtual]}}
+
+
+
+Create a role. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ in}}  & {\em role\+\_\+name} & name of the role \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+\mbox{\hyperlink{classmilvus_1_1_status}{Status}} operation successfully or not 
+\end{DoxyReturn}
+\mbox{\Hypertarget{classmilvus_1_1_milvus_client_af34599912d16e25d32d549d364fa0d1f}\label{classmilvus_1_1_milvus_client_af34599912d16e25d32d549d364fa0d1f}} 
+\index{milvus::MilvusClient@{milvus::MilvusClient}!CreateUser@{CreateUser}}
+\index{CreateUser@{CreateUser}!milvus::MilvusClient@{milvus::MilvusClient}}
+\doxysubsubsection{\texorpdfstring{CreateUser()}{CreateUser()}}
+{\footnotesize\ttfamily virtual \mbox{\hyperlink{classmilvus_1_1_status}{Status}} milvus\+::\+Milvus\+Client\+::\+Create\+User (\begin{DoxyParamCaption}\item[{const std\+::string \&}]{user\+\_\+name,  }\item[{const std\+::string \&}]{password }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [pure virtual]}}
+
+
+
+Create an user. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ in}}  & {\em user\+\_\+name} & name of the user \\
+\hline
+\mbox{\texttt{ in}}  & {\em password} & password of the user \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+\mbox{\hyperlink{classmilvus_1_1_status}{Status}} operation successfully or not 
+\end{DoxyReturn}
+\mbox{\Hypertarget{classmilvus_1_1_milvus_client_adf90fe7afbc830bf09de0cf1375adb52}\label{classmilvus_1_1_milvus_client_adf90fe7afbc830bf09de0cf1375adb52}} 
+\index{milvus::MilvusClient@{milvus::MilvusClient}!CurrentUsedDatabase@{CurrentUsedDatabase}}
+\index{CurrentUsedDatabase@{CurrentUsedDatabase}!milvus::MilvusClient@{milvus::MilvusClient}}
+\doxysubsubsection{\texorpdfstring{CurrentUsedDatabase()}{CurrentUsedDatabase()}}
+{\footnotesize\ttfamily virtual \mbox{\hyperlink{classmilvus_1_1_status}{Status}} milvus\+::\+Milvus\+Client\+::\+Current\+Used\+Database (\begin{DoxyParamCaption}\item[{std\+::string \&}]{db\+\_\+name }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [pure virtual]}}
+
+
+
+Get current used database name. This API is useful in multi-\/database scenarios. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ out}}  & {\em db\+\_\+name} & name of the current used database \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+\mbox{\hyperlink{classmilvus_1_1_status}{Status}} operation successfully or not 
+\end{DoxyReturn}
+\mbox{\Hypertarget{classmilvus_1_1_milvus_client_a271b16333636621f24aaf89993c72301}\label{classmilvus_1_1_milvus_client_a271b16333636621f24aaf89993c72301}} 
+\index{milvus::MilvusClient@{milvus::MilvusClient}!Delete@{Delete}}
+\index{Delete@{Delete}!milvus::MilvusClient@{milvus::MilvusClient}}
+\doxysubsubsection{\texorpdfstring{Delete()}{Delete()}}
+{\footnotesize\ttfamily virtual \mbox{\hyperlink{classmilvus_1_1_status}{Status}} milvus\+::\+Milvus\+Client\+::\+Delete (\begin{DoxyParamCaption}\item[{const std\+::string \&}]{collection\+\_\+name,  }\item[{const std\+::string \&}]{partition\+\_\+name,  }\item[{const std\+::string \&}]{expression,  }\item[{\mbox{\hyperlink{classmilvus_1_1_dml_results}{Dml\+Results}} \&}]{results }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [pure virtual]}}
+
+
+
+Delete entities by filtering condition. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ in}}  & {\em collection\+\_\+name} & name of the collection \\
+\hline
+\mbox{\texttt{ in}}  & {\em partition\+\_\+name} & name of the partition, optional(pass an empty string to skip) \\
+\hline
+\mbox{\texttt{ in}}  & {\em expression} & the expression to filter out entities, currently only support primary key as filtering. For example\+: \char`\"{}id in \mbox{[}1, 2, 3\mbox{]}\char`\"{} \\
+\hline
+\mbox{\texttt{ out}}  & {\em results} & insert results \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+\mbox{\hyperlink{classmilvus_1_1_status}{Status}} operation successfully or not 
+\end{DoxyReturn}
+\mbox{\Hypertarget{classmilvus_1_1_milvus_client_a14105e69922cd45347fd472b25753533}\label{classmilvus_1_1_milvus_client_a14105e69922cd45347fd472b25753533}} 
+\index{milvus::MilvusClient@{milvus::MilvusClient}!DeleteCredential@{DeleteCredential}}
+\index{DeleteCredential@{DeleteCredential}!milvus::MilvusClient@{milvus::MilvusClient}}
+\doxysubsubsection{\texorpdfstring{DeleteCredential()}{DeleteCredential()}}
+{\footnotesize\ttfamily virtual \mbox{\hyperlink{classmilvus_1_1_status}{Status}} milvus\+::\+Milvus\+Client\+::\+Delete\+Credential (\begin{DoxyParamCaption}\item[{const std\+::string \&}]{username }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [pure virtual]}}
+
+
+
+Delete Credential. 
+
+\begin{DoxyRefDesc}{Deprecated}
+\item[\mbox{\hyperlink{deprecated__deprecated000006}{Deprecated}}]replaced by \mbox{\hyperlink{classmilvus_1_1_milvus_client_a83d14ad1e8479badfc64bb9fe1944c42}{Drop\+User()}} in v2.\+4\end{DoxyRefDesc}
+
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ in}}  & {\em username} & the username to be deleted \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+\mbox{\hyperlink{classmilvus_1_1_status}{Status}} operation successfully or not 
+\end{DoxyReturn}
+\mbox{\Hypertarget{classmilvus_1_1_milvus_client_a40d6f3d0a9facb1524be151a0f94ee59}\label{classmilvus_1_1_milvus_client_a40d6f3d0a9facb1524be151a0f94ee59}} 
+\index{milvus::MilvusClient@{milvus::MilvusClient}!DescribeAlias@{DescribeAlias}}
+\index{DescribeAlias@{DescribeAlias}!milvus::MilvusClient@{milvus::MilvusClient}}
+\doxysubsubsection{\texorpdfstring{DescribeAlias()}{DescribeAlias()}}
+{\footnotesize\ttfamily virtual \mbox{\hyperlink{classmilvus_1_1_status}{Status}} milvus\+::\+Milvus\+Client\+::\+Describe\+Alias (\begin{DoxyParamCaption}\item[{const std\+::string \&}]{alias\+\_\+name,  }\item[{\mbox{\hyperlink{classmilvus_1_1_alias_desc}{Alias\+Desc}} \&}]{desc }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [pure virtual]}}
+
+
+
+Describe an alias. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ in}}  & {\em alias\+\_\+name} & name of the alias \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+\mbox{\hyperlink{classmilvus_1_1_status}{Status}} operation successfully or not 
+\end{DoxyReturn}
+\mbox{\Hypertarget{classmilvus_1_1_milvus_client_a5bdc7d4afdf9c84b7b50b4a8b4508c6e}\label{classmilvus_1_1_milvus_client_a5bdc7d4afdf9c84b7b50b4a8b4508c6e}} 
+\index{milvus::MilvusClient@{milvus::MilvusClient}!DescribeCollection@{DescribeCollection}}
+\index{DescribeCollection@{DescribeCollection}!milvus::MilvusClient@{milvus::MilvusClient}}
+\doxysubsubsection{\texorpdfstring{DescribeCollection()}{DescribeCollection()}}
+{\footnotesize\ttfamily virtual \mbox{\hyperlink{classmilvus_1_1_status}{Status}} milvus\+::\+Milvus\+Client\+::\+Describe\+Collection (\begin{DoxyParamCaption}\item[{const std\+::string \&}]{collection\+\_\+name,  }\item[{\mbox{\hyperlink{classmilvus_1_1_collection_desc}{Collection\+Desc}} \&}]{collection\+\_\+desc }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [pure virtual]}}
+
+
+
+Get collection description, including its schema. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ in}}  & {\em collection\+\_\+name} & name of the collection \\
+\hline
+\mbox{\texttt{ out}}  & {\em collection\+\_\+desc} & collection\textquotesingle{}s description \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+\mbox{\hyperlink{classmilvus_1_1_status}{Status}} operation successfully or not 
+\end{DoxyReturn}
+\mbox{\Hypertarget{classmilvus_1_1_milvus_client_a34b2261f9b18156ea90e36c7bcc4e3d9}\label{classmilvus_1_1_milvus_client_a34b2261f9b18156ea90e36c7bcc4e3d9}} 
+\index{milvus::MilvusClient@{milvus::MilvusClient}!DescribeDatabase@{DescribeDatabase}}
+\index{DescribeDatabase@{DescribeDatabase}!milvus::MilvusClient@{milvus::MilvusClient}}
+\doxysubsubsection{\texorpdfstring{DescribeDatabase()}{DescribeDatabase()}}
+{\footnotesize\ttfamily virtual \mbox{\hyperlink{classmilvus_1_1_status}{Status}} milvus\+::\+Milvus\+Client\+::\+Describe\+Database (\begin{DoxyParamCaption}\item[{const std\+::string \&}]{db\+\_\+name,  }\item[{\mbox{\hyperlink{classmilvus_1_1_database_desc}{Database\+Desc}} \&}]{db\+\_\+desc }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [pure virtual]}}
+
+
+
+Describe a database. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ in}}  & {\em db\+\_\+name} & name of the database \\
+\hline
+\mbox{\texttt{ out}}  & {\em db\+\_\+desc} & information of the database \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+\mbox{\hyperlink{classmilvus_1_1_status}{Status}} operation successfully or not 
+\end{DoxyReturn}
+\mbox{\Hypertarget{classmilvus_1_1_milvus_client_a58ed7015339719ab8dc7d6acad90d9a1}\label{classmilvus_1_1_milvus_client_a58ed7015339719ab8dc7d6acad90d9a1}} 
+\index{milvus::MilvusClient@{milvus::MilvusClient}!DescribeIndex@{DescribeIndex}}
+\index{DescribeIndex@{DescribeIndex}!milvus::MilvusClient@{milvus::MilvusClient}}
+\doxysubsubsection{\texorpdfstring{DescribeIndex()}{DescribeIndex()}}
+{\footnotesize\ttfamily virtual \mbox{\hyperlink{classmilvus_1_1_status}{Status}} milvus\+::\+Milvus\+Client\+::\+Describe\+Index (\begin{DoxyParamCaption}\item[{const std\+::string \&}]{collection\+\_\+name,  }\item[{const std\+::string \&}]{field\+\_\+name,  }\item[{\mbox{\hyperlink{classmilvus_1_1_index_desc}{Index\+Desc}} \&}]{index\+\_\+desc }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [pure virtual]}}
+
+
+
+Get index descriptions and parameters. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ in}}  & {\em collection\+\_\+name} & name of the collection \\
+\hline
+\mbox{\texttt{ in}}  & {\em field\+\_\+name} & name of the field \\
+\hline
+\mbox{\texttt{ out}}  & {\em index\+\_\+desc} & index descriptions and parameters \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+\mbox{\hyperlink{classmilvus_1_1_status}{Status}} operation successfully or not 
+\end{DoxyReturn}
+\mbox{\Hypertarget{classmilvus_1_1_milvus_client_a445cff20f09056a77db475c8a5983fce}\label{classmilvus_1_1_milvus_client_a445cff20f09056a77db475c8a5983fce}} 
+\index{milvus::MilvusClient@{milvus::MilvusClient}!DescribeResourceGroup@{DescribeResourceGroup}}
+\index{DescribeResourceGroup@{DescribeResourceGroup}!milvus::MilvusClient@{milvus::MilvusClient}}
+\doxysubsubsection{\texorpdfstring{DescribeResourceGroup()}{DescribeResourceGroup()}}
+{\footnotesize\ttfamily virtual \mbox{\hyperlink{classmilvus_1_1_status}{Status}} milvus\+::\+Milvus\+Client\+::\+Describe\+Resource\+Group (\begin{DoxyParamCaption}\item[{const std\+::string \&}]{group\+\_\+name,  }\item[{\mbox{\hyperlink{classmilvus_1_1_resource_group_desc}{Resource\+Group\+Desc}} \&}]{desc }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [pure virtual]}}
+
+
+
+Describe a resource group. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ in}}  & {\em group\+\_\+name} & name of the resource group \\
+\hline
+\mbox{\texttt{ out}}  & {\em desc} & details of the resource group \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+\mbox{\hyperlink{classmilvus_1_1_status}{Status}} operation successfully or not 
+\end{DoxyReturn}
+\mbox{\Hypertarget{classmilvus_1_1_milvus_client_a1a684ef474f0f4eac1f6e6566dd77d35}\label{classmilvus_1_1_milvus_client_a1a684ef474f0f4eac1f6e6566dd77d35}} 
+\index{milvus::MilvusClient@{milvus::MilvusClient}!DescribeRole@{DescribeRole}}
+\index{DescribeRole@{DescribeRole}!milvus::MilvusClient@{milvus::MilvusClient}}
+\doxysubsubsection{\texorpdfstring{DescribeRole()}{DescribeRole()}}
+{\footnotesize\ttfamily virtual \mbox{\hyperlink{classmilvus_1_1_status}{Status}} milvus\+::\+Milvus\+Client\+::\+Describe\+Role (\begin{DoxyParamCaption}\item[{const std\+::string \&}]{role\+\_\+name,  }\item[{\mbox{\hyperlink{classmilvus_1_1_role_desc}{Role\+Desc}} \&}]{desc }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [pure virtual]}}
+
+
+
+Describe an role. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ in}}  & {\em role\+\_\+name} & name of the role \\
+\hline
+\mbox{\texttt{ out}}  & {\em desc} & description of the role \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+\mbox{\hyperlink{classmilvus_1_1_status}{Status}} operation successfully or not 
+\end{DoxyReturn}
+\mbox{\Hypertarget{classmilvus_1_1_milvus_client_aca55cca77c8cc962ed44ba5d5baa5541}\label{classmilvus_1_1_milvus_client_aca55cca77c8cc962ed44ba5d5baa5541}} 
+\index{milvus::MilvusClient@{milvus::MilvusClient}!DescribeUser@{DescribeUser}}
+\index{DescribeUser@{DescribeUser}!milvus::MilvusClient@{milvus::MilvusClient}}
+\doxysubsubsection{\texorpdfstring{DescribeUser()}{DescribeUser()}}
+{\footnotesize\ttfamily virtual \mbox{\hyperlink{classmilvus_1_1_status}{Status}} milvus\+::\+Milvus\+Client\+::\+Describe\+User (\begin{DoxyParamCaption}\item[{const std\+::string \&}]{user\+\_\+name,  }\item[{\mbox{\hyperlink{classmilvus_1_1_user_desc}{User\+Desc}} \&}]{desc }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [pure virtual]}}
+
+
+
+Describe an user. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ in}}  & {\em user\+\_\+name} & name of the user \\
+\hline
+\mbox{\texttt{ out}}  & {\em desc} & description of the user \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+\mbox{\hyperlink{classmilvus_1_1_status}{Status}} operation successfully or not 
+\end{DoxyReturn}
+\mbox{\Hypertarget{classmilvus_1_1_milvus_client_abe131f2af91521e7cac18695470d9e67}\label{classmilvus_1_1_milvus_client_abe131f2af91521e7cac18695470d9e67}} 
+\index{milvus::MilvusClient@{milvus::MilvusClient}!Disconnect@{Disconnect}}
+\index{Disconnect@{Disconnect}!milvus::MilvusClient@{milvus::MilvusClient}}
+\doxysubsubsection{\texorpdfstring{Disconnect()}{Disconnect()}}
+{\footnotesize\ttfamily virtual \mbox{\hyperlink{classmilvus_1_1_status}{Status}} milvus\+::\+Milvus\+Client\+::\+Disconnect (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [pure virtual]}}
+
+
+
+Break connections between client and server. 
+
+\begin{DoxyReturn}{Returns}
+\mbox{\hyperlink{classmilvus_1_1_status}{Status}} operation successfully or not 
+\end{DoxyReturn}
+\mbox{\Hypertarget{classmilvus_1_1_milvus_client_aef2fe7b13010cc57f5ae7235cf75252d}\label{classmilvus_1_1_milvus_client_aef2fe7b13010cc57f5ae7235cf75252d}} 
+\index{milvus::MilvusClient@{milvus::MilvusClient}!DropAlias@{DropAlias}}
+\index{DropAlias@{DropAlias}!milvus::MilvusClient@{milvus::MilvusClient}}
+\doxysubsubsection{\texorpdfstring{DropAlias()}{DropAlias()}}
+{\footnotesize\ttfamily virtual \mbox{\hyperlink{classmilvus_1_1_status}{Status}} milvus\+::\+Milvus\+Client\+::\+Drop\+Alias (\begin{DoxyParamCaption}\item[{const std\+::string \&}]{alias }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [pure virtual]}}
+
+
+
+Drop an alias. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ in}}  & {\em alias} & alias of the partitions \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+\mbox{\hyperlink{classmilvus_1_1_status}{Status}} operation successfully or not 
+\end{DoxyReturn}
+\mbox{\Hypertarget{classmilvus_1_1_milvus_client_a95855ea21b38da54b65ce04f650b03ba}\label{classmilvus_1_1_milvus_client_a95855ea21b38da54b65ce04f650b03ba}} 
+\index{milvus::MilvusClient@{milvus::MilvusClient}!DropCollection@{DropCollection}}
+\index{DropCollection@{DropCollection}!milvus::MilvusClient@{milvus::MilvusClient}}
+\doxysubsubsection{\texorpdfstring{DropCollection()}{DropCollection()}}
+{\footnotesize\ttfamily virtual \mbox{\hyperlink{classmilvus_1_1_status}{Status}} milvus\+::\+Milvus\+Client\+::\+Drop\+Collection (\begin{DoxyParamCaption}\item[{const std\+::string \&}]{collection\+\_\+name }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [pure virtual]}}
+
+
+
+Drop a collection, with all its partitions, index and segments. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ in}}  & {\em collection\+\_\+name} & name of the collection \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+\mbox{\hyperlink{classmilvus_1_1_status}{Status}} operation successfully or not 
+\end{DoxyReturn}
+\mbox{\Hypertarget{classmilvus_1_1_milvus_client_af7cfd45c201c14469108f44040b8c7d6}\label{classmilvus_1_1_milvus_client_af7cfd45c201c14469108f44040b8c7d6}} 
+\index{milvus::MilvusClient@{milvus::MilvusClient}!DropCollectionProperties@{DropCollectionProperties}}
+\index{DropCollectionProperties@{DropCollectionProperties}!milvus::MilvusClient@{milvus::MilvusClient}}
+\doxysubsubsection{\texorpdfstring{DropCollectionProperties()}{DropCollectionProperties()}}
+{\footnotesize\ttfamily virtual \mbox{\hyperlink{classmilvus_1_1_status}{Status}} milvus\+::\+Milvus\+Client\+::\+Drop\+Collection\+Properties (\begin{DoxyParamCaption}\item[{const std\+::string \&}]{collection\+\_\+name,  }\item[{const std\+::set$<$ std\+::string $>$ \&}]{property\+\_\+keys }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [pure virtual]}}
+
+
+
+Drop a collection\textquotesingle{}s properties. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ in}}  & {\em collection\+\_\+name} & name of the collection \\
+\hline
+\mbox{\texttt{ in}}  & {\em property\+\_\+keys} & keys of the properties \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+\mbox{\hyperlink{classmilvus_1_1_status}{Status}} operation successfully or not 
+\end{DoxyReturn}
+\mbox{\Hypertarget{classmilvus_1_1_milvus_client_a6b7bd8728c37ceb01d028a48c17fc254}\label{classmilvus_1_1_milvus_client_a6b7bd8728c37ceb01d028a48c17fc254}} 
+\index{milvus::MilvusClient@{milvus::MilvusClient}!DropDatabase@{DropDatabase}}
+\index{DropDatabase@{DropDatabase}!milvus::MilvusClient@{milvus::MilvusClient}}
+\doxysubsubsection{\texorpdfstring{DropDatabase()}{DropDatabase()}}
+{\footnotesize\ttfamily virtual \mbox{\hyperlink{classmilvus_1_1_status}{Status}} milvus\+::\+Milvus\+Client\+::\+Drop\+Database (\begin{DoxyParamCaption}\item[{const std\+::string \&}]{db\+\_\+name }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [pure virtual]}}
+
+
+
+Drop a database. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ in}}  & {\em db\+\_\+name} & name of the database \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+\mbox{\hyperlink{classmilvus_1_1_status}{Status}} operation successfully or not 
+\end{DoxyReturn}
+\mbox{\Hypertarget{classmilvus_1_1_milvus_client_aeff4aefb97f7d857a337aee13b4853ec}\label{classmilvus_1_1_milvus_client_aeff4aefb97f7d857a337aee13b4853ec}} 
+\index{milvus::MilvusClient@{milvus::MilvusClient}!DropDatabaseProperties@{DropDatabaseProperties}}
+\index{DropDatabaseProperties@{DropDatabaseProperties}!milvus::MilvusClient@{milvus::MilvusClient}}
+\doxysubsubsection{\texorpdfstring{DropDatabaseProperties()}{DropDatabaseProperties()}}
+{\footnotesize\ttfamily virtual \mbox{\hyperlink{classmilvus_1_1_status}{Status}} milvus\+::\+Milvus\+Client\+::\+Drop\+Database\+Properties (\begin{DoxyParamCaption}\item[{const std\+::string \&}]{db\+\_\+name,  }\item[{const std\+::vector$<$ std\+::string $>$ \&}]{properties }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [pure virtual]}}
+
+
+
+Drop a database\textquotesingle{}s properties. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ in}}  & {\em db\+\_\+name} & name of the database \\
+\hline
+\mbox{\texttt{ in}}  & {\em properties} & properties of the database to be deleted, available keys of properties are listed here\+: \href{https://milvus.io/docs/manage_databases.md\#Manage-database-properties}{\texttt{ https\+://milvus.\+io/docs/manage\+\_\+databases.\+md\#\+Manage-\/database-\/properties}} \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+\mbox{\hyperlink{classmilvus_1_1_status}{Status}} operation successfully or not 
+\end{DoxyReturn}
+\mbox{\Hypertarget{classmilvus_1_1_milvus_client_a1fd3b1c60f159cf5c0cc64bde567dd2d}\label{classmilvus_1_1_milvus_client_a1fd3b1c60f159cf5c0cc64bde567dd2d}} 
+\index{milvus::MilvusClient@{milvus::MilvusClient}!DropIndex@{DropIndex}}
+\index{DropIndex@{DropIndex}!milvus::MilvusClient@{milvus::MilvusClient}}
+\doxysubsubsection{\texorpdfstring{DropIndex()}{DropIndex()}}
+{\footnotesize\ttfamily virtual \mbox{\hyperlink{classmilvus_1_1_status}{Status}} milvus\+::\+Milvus\+Client\+::\+Drop\+Index (\begin{DoxyParamCaption}\item[{const std\+::string \&}]{collection\+\_\+name,  }\item[{const std\+::string \&}]{field\+\_\+name }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [pure virtual]}}
+
+
+
+Drop index of a field. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ in}}  & {\em collection\+\_\+name} & name of the collection \\
+\hline
+\mbox{\texttt{ in}}  & {\em field\+\_\+name} & name of the field \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+\mbox{\hyperlink{classmilvus_1_1_status}{Status}} operation successfully or not 
+\end{DoxyReturn}
+\mbox{\Hypertarget{classmilvus_1_1_milvus_client_aef0a4157db92fe17f1c9900ee733d34b}\label{classmilvus_1_1_milvus_client_aef0a4157db92fe17f1c9900ee733d34b}} 
+\index{milvus::MilvusClient@{milvus::MilvusClient}!DropIndexProperties@{DropIndexProperties}}
+\index{DropIndexProperties@{DropIndexProperties}!milvus::MilvusClient@{milvus::MilvusClient}}
+\doxysubsubsection{\texorpdfstring{DropIndexProperties()}{DropIndexProperties()}}
+{\footnotesize\ttfamily virtual \mbox{\hyperlink{classmilvus_1_1_status}{Status}} milvus\+::\+Milvus\+Client\+::\+Drop\+Index\+Properties (\begin{DoxyParamCaption}\item[{const std\+::string \&}]{collection\+\_\+name,  }\item[{const std\+::string \&}]{index\+\_\+name,  }\item[{const std\+::set$<$ std\+::string $>$ \&}]{property\+\_\+keys }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [pure virtual]}}
+
+
+
+Drop an index\textquotesingle{}s properties. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ in}}  & {\em collection\+\_\+name} & name of the collection \\
+\hline
+\mbox{\texttt{ in}}  & {\em index\+\_\+name} & name of the index \\
+\hline
+\mbox{\texttt{ in}}  & {\em property\+\_\+keys} & keys of the properties \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+\mbox{\hyperlink{classmilvus_1_1_status}{Status}} operation successfully or not 
+\end{DoxyReturn}
+\mbox{\Hypertarget{classmilvus_1_1_milvus_client_ace9cde4343f511d94549fd4505401a34}\label{classmilvus_1_1_milvus_client_ace9cde4343f511d94549fd4505401a34}} 
+\index{milvus::MilvusClient@{milvus::MilvusClient}!DropPartition@{DropPartition}}
+\index{DropPartition@{DropPartition}!milvus::MilvusClient@{milvus::MilvusClient}}
+\doxysubsubsection{\texorpdfstring{DropPartition()}{DropPartition()}}
+{\footnotesize\ttfamily virtual \mbox{\hyperlink{classmilvus_1_1_status}{Status}} milvus\+::\+Milvus\+Client\+::\+Drop\+Partition (\begin{DoxyParamCaption}\item[{const std\+::string \&}]{collection\+\_\+name,  }\item[{const std\+::string \&}]{partition\+\_\+name }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [pure virtual]}}
+
+
+
+Drop a partition, with its index and segments. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ in}}  & {\em collection\+\_\+name} & name of the collection \\
+\hline
+\mbox{\texttt{ in}}  & {\em partition\+\_\+name} & name of the partition \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+\mbox{\hyperlink{classmilvus_1_1_status}{Status}} operation successfully or not 
+\end{DoxyReturn}
+\mbox{\Hypertarget{classmilvus_1_1_milvus_client_ab09ec1d7675cd82fe002163d64309c35}\label{classmilvus_1_1_milvus_client_ab09ec1d7675cd82fe002163d64309c35}} 
+\index{milvus::MilvusClient@{milvus::MilvusClient}!DropPrivilegeGroup@{DropPrivilegeGroup}}
+\index{DropPrivilegeGroup@{DropPrivilegeGroup}!milvus::MilvusClient@{milvus::MilvusClient}}
+\doxysubsubsection{\texorpdfstring{DropPrivilegeGroup()}{DropPrivilegeGroup()}}
+{\footnotesize\ttfamily virtual \mbox{\hyperlink{classmilvus_1_1_status}{Status}} milvus\+::\+Milvus\+Client\+::\+Drop\+Privilege\+Group (\begin{DoxyParamCaption}\item[{const std\+::string \&}]{group\+\_\+name }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [pure virtual]}}
+
+
+
+Drop a privilege group. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ in}}  & {\em group\+\_\+name} & name of the privilege group \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+\mbox{\hyperlink{classmilvus_1_1_status}{Status}} operation successfully or not 
+\end{DoxyReturn}
+\mbox{\Hypertarget{classmilvus_1_1_milvus_client_ae59d3170fa55ea56ffcf6718ebe8e253}\label{classmilvus_1_1_milvus_client_ae59d3170fa55ea56ffcf6718ebe8e253}} 
+\index{milvus::MilvusClient@{milvus::MilvusClient}!DropResourceGroup@{DropResourceGroup}}
+\index{DropResourceGroup@{DropResourceGroup}!milvus::MilvusClient@{milvus::MilvusClient}}
+\doxysubsubsection{\texorpdfstring{DropResourceGroup()}{DropResourceGroup()}}
+{\footnotesize\ttfamily virtual \mbox{\hyperlink{classmilvus_1_1_status}{Status}} milvus\+::\+Milvus\+Client\+::\+Drop\+Resource\+Group (\begin{DoxyParamCaption}\item[{const std\+::string \&}]{name }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [pure virtual]}}
+
+
+
+Drop a resource group. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ in}}  & {\em name} & name of the resource group \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+\mbox{\hyperlink{classmilvus_1_1_status}{Status}} operation successfully or not 
+\end{DoxyReturn}
+\mbox{\Hypertarget{classmilvus_1_1_milvus_client_aa6b06091902292d7ad973985f748ed10}\label{classmilvus_1_1_milvus_client_aa6b06091902292d7ad973985f748ed10}} 
+\index{milvus::MilvusClient@{milvus::MilvusClient}!DropRole@{DropRole}}
+\index{DropRole@{DropRole}!milvus::MilvusClient@{milvus::MilvusClient}}
+\doxysubsubsection{\texorpdfstring{DropRole()}{DropRole()}}
+{\footnotesize\ttfamily virtual \mbox{\hyperlink{classmilvus_1_1_status}{Status}} milvus\+::\+Milvus\+Client\+::\+Drop\+Role (\begin{DoxyParamCaption}\item[{const std\+::string \&}]{role\+\_\+name,  }\item[{bool}]{force\+\_\+drop = {\ttfamily false} }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [pure virtual]}}
+
+
+
+Drop a role. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ in}}  & {\em role\+\_\+name} & name of the role \\
+\hline
+\mbox{\texttt{ in}}  & {\em force\+\_\+drop} & force to drop the role even if there is permission binding \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+\mbox{\hyperlink{classmilvus_1_1_status}{Status}} operation successfully or not 
+\end{DoxyReturn}
+\mbox{\Hypertarget{classmilvus_1_1_milvus_client_a83d14ad1e8479badfc64bb9fe1944c42}\label{classmilvus_1_1_milvus_client_a83d14ad1e8479badfc64bb9fe1944c42}} 
+\index{milvus::MilvusClient@{milvus::MilvusClient}!DropUser@{DropUser}}
+\index{DropUser@{DropUser}!milvus::MilvusClient@{milvus::MilvusClient}}
+\doxysubsubsection{\texorpdfstring{DropUser()}{DropUser()}}
+{\footnotesize\ttfamily virtual \mbox{\hyperlink{classmilvus_1_1_status}{Status}} milvus\+::\+Milvus\+Client\+::\+Drop\+User (\begin{DoxyParamCaption}\item[{const std\+::string \&}]{user\+\_\+name }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [pure virtual]}}
+
+
+
+Drop an user. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ in}}  & {\em user\+\_\+name} & name of the user \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+\mbox{\hyperlink{classmilvus_1_1_status}{Status}} operation successfully or not 
+\end{DoxyReturn}
+\mbox{\Hypertarget{classmilvus_1_1_milvus_client_ada4afa4d852dce6a8e8bffc112816276}\label{classmilvus_1_1_milvus_client_ada4afa4d852dce6a8e8bffc112816276}} 
+\index{milvus::MilvusClient@{milvus::MilvusClient}!Flush@{Flush}}
+\index{Flush@{Flush}!milvus::MilvusClient@{milvus::MilvusClient}}
+\doxysubsubsection{\texorpdfstring{Flush()}{Flush()}}
+{\footnotesize\ttfamily virtual \mbox{\hyperlink{classmilvus_1_1_status}{Status}} milvus\+::\+Milvus\+Client\+::\+Flush (\begin{DoxyParamCaption}\item[{const std\+::vector$<$ std\+::string $>$ \&}]{collection\+\_\+names,  }\item[{const \mbox{\hyperlink{classmilvus_1_1_progress_monitor}{Progress\+Monitor}} \&}]{progress\+\_\+monitor = {\ttfamily \mbox{\hyperlink{classmilvus_1_1_progress_monitor_a32e432222660a1123871442c72bb68da}{Progress\+Monitor\+::\+Forever}}()} }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [pure virtual]}}
+
+
+
+Flush insert buffer into storage. To make sure the buffer persisted successfully, it calls \mbox{\hyperlink{classmilvus_1_1_milvus_client_a0feac35352d6877ed620e428f609023b}{Get\+Flush\+State()}} to check related segments state. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ in}}  & {\em collection\+\_\+names} & specify target collection names, if this array is empty, will flush all collections \\
+\hline
+\mbox{\texttt{ in}}  & {\em progress\+\_\+monitor} & timeout setting for waiting progress. Set \mbox{\hyperlink{classmilvus_1_1_progress_monitor_abdcdb9f357de11ea5713dc33f27a6ff5}{Progress\+Monitor\+::\+No\+Wait()}} to return instantly, set to \mbox{\hyperlink{classmilvus_1_1_progress_monitor_a32e432222660a1123871442c72bb68da}{Progress\+Monitor\+::\+Forever()}} to wait until finished. \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+\mbox{\hyperlink{classmilvus_1_1_status}{Status}} operation successfully or not 
+\end{DoxyReturn}
+\mbox{\Hypertarget{classmilvus_1_1_milvus_client_a0c49e2a5728a70f203118232c16ba47f}\label{classmilvus_1_1_milvus_client_a0c49e2a5728a70f203118232c16ba47f}} 
+\index{milvus::MilvusClient@{milvus::MilvusClient}!GetCollectionStatistics@{GetCollectionStatistics}}
+\index{GetCollectionStatistics@{GetCollectionStatistics}!milvus::MilvusClient@{milvus::MilvusClient}}
+\doxysubsubsection{\texorpdfstring{GetCollectionStatistics()}{GetCollectionStatistics()}}
+{\footnotesize\ttfamily virtual \mbox{\hyperlink{classmilvus_1_1_status}{Status}} milvus\+::\+Milvus\+Client\+::\+Get\+Collection\+Statistics (\begin{DoxyParamCaption}\item[{const std\+::string \&}]{collection\+\_\+name,  }\item[{\mbox{\hyperlink{classmilvus_1_1_collection_stat}{Collection\+Stat}} \&}]{collection\+\_\+stat,  }\item[{const \mbox{\hyperlink{classmilvus_1_1_progress_monitor}{Progress\+Monitor}} \&}]{progress\+\_\+monitor = {\ttfamily \mbox{\hyperlink{classmilvus_1_1_progress_monitor_a32e432222660a1123871442c72bb68da}{Progress\+Monitor\+::\+Forever}}()} }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [pure virtual]}}
+
+
+
+Get collection statistics, currently only return row count. If the timeout is specified, this api will call \mbox{\hyperlink{classmilvus_1_1_milvus_client_ada4afa4d852dce6a8e8bffc112816276}{Flush()}} and wait all segments persisted into storage. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ in}}  & {\em collection\+\_\+name} & name of the collection \\
+\hline
+\mbox{\texttt{ in}}  & {\em progress\+\_\+monitor} & set timeout to wait flush progress complete, set to \mbox{\hyperlink{classmilvus_1_1_progress_monitor_abdcdb9f357de11ea5713dc33f27a6ff5}{Progress\+Monitor\+::\+No\+Wait()}} to return instantly, set to \mbox{\hyperlink{classmilvus_1_1_progress_monitor_a32e432222660a1123871442c72bb68da}{Progress\+Monitor\+::\+Forever()}} to wait until finished. \\
+\hline
+\mbox{\texttt{ out}}  & {\em collection\+\_\+stat} & statistics of the collection \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+\mbox{\hyperlink{classmilvus_1_1_status}{Status}} operation successfully or not 
+\end{DoxyReturn}
+\mbox{\Hypertarget{classmilvus_1_1_milvus_client_a39d54736f4b08bba8d6b055277aa71ea}\label{classmilvus_1_1_milvus_client_a39d54736f4b08bba8d6b055277aa71ea}} 
+\index{milvus::MilvusClient@{milvus::MilvusClient}!GetCompactionPlans@{GetCompactionPlans}}
+\index{GetCompactionPlans@{GetCompactionPlans}!milvus::MilvusClient@{milvus::MilvusClient}}
+\doxysubsubsection{\texorpdfstring{GetCompactionPlans()}{GetCompactionPlans()}}
+{\footnotesize\ttfamily virtual \mbox{\hyperlink{classmilvus_1_1_status}{Status}} milvus\+::\+Milvus\+Client\+::\+Get\+Compaction\+Plans (\begin{DoxyParamCaption}\item[{int64\+\_\+t}]{compaction\+\_\+id,  }\item[{\mbox{\hyperlink{namespacemilvus_ae8e1cc7774a3ff7a1c5d564c1937bec8}{Compaction\+Plans}} \&}]{plans }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [pure virtual]}}
+
+
+
+Get plans of a compaction action. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ in}}  & {\em compaction\+\_\+id} & the compaction action id \\
+\hline
+\mbox{\texttt{ out}}  & {\em plans} & compaction plan array \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+\mbox{\hyperlink{classmilvus_1_1_status}{Status}} operation successfully or not 
+\end{DoxyReturn}
+\mbox{\Hypertarget{classmilvus_1_1_milvus_client_a8041cd363470774d2cdb3c295307e1d9}\label{classmilvus_1_1_milvus_client_a8041cd363470774d2cdb3c295307e1d9}} 
+\index{milvus::MilvusClient@{milvus::MilvusClient}!GetCompactionState@{GetCompactionState}}
+\index{GetCompactionState@{GetCompactionState}!milvus::MilvusClient@{milvus::MilvusClient}}
+\doxysubsubsection{\texorpdfstring{GetCompactionState()}{GetCompactionState()}}
+{\footnotesize\ttfamily virtual \mbox{\hyperlink{classmilvus_1_1_status}{Status}} milvus\+::\+Milvus\+Client\+::\+Get\+Compaction\+State (\begin{DoxyParamCaption}\item[{int64\+\_\+t}]{compaction\+\_\+id,  }\item[{\mbox{\hyperlink{classmilvus_1_1_compaction_state}{Compaction\+State}} \&}]{compaction\+\_\+state }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [pure virtual]}}
+
+
+
+Get compaction action state. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ in}}  & {\em compaction\+\_\+id} & the compaction action id \\
+\hline
+\mbox{\texttt{ out}}  & {\em compaction\+\_\+state} & state of the compaction action \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+\mbox{\hyperlink{classmilvus_1_1_status}{Status}} operation successfully or not 
+\end{DoxyReturn}
+\mbox{\Hypertarget{classmilvus_1_1_milvus_client_a0feac35352d6877ed620e428f609023b}\label{classmilvus_1_1_milvus_client_a0feac35352d6877ed620e428f609023b}} 
+\index{milvus::MilvusClient@{milvus::MilvusClient}!GetFlushState@{GetFlushState}}
+\index{GetFlushState@{GetFlushState}!milvus::MilvusClient@{milvus::MilvusClient}}
+\doxysubsubsection{\texorpdfstring{GetFlushState()}{GetFlushState()}}
+{\footnotesize\ttfamily virtual \mbox{\hyperlink{classmilvus_1_1_status}{Status}} milvus\+::\+Milvus\+Client\+::\+Get\+Flush\+State (\begin{DoxyParamCaption}\item[{const std\+::vector$<$ int64\+\_\+t $>$ \&}]{segments,  }\item[{bool \&}]{flushed }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [pure virtual]}}
+
+
+
+Get flush state of specified segments. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ in}}  & {\em segments} & id array of segments \\
+\hline
+\mbox{\texttt{ out}}  & {\em flushed} & true\+: all the segments has been flushed, false\+: still in flush progress \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+\mbox{\hyperlink{classmilvus_1_1_status}{Status}} operation successfully or not 
+\end{DoxyReturn}
+\mbox{\Hypertarget{classmilvus_1_1_milvus_client_ace67cf6baedb06fe67badb5e499a3c45}\label{classmilvus_1_1_milvus_client_ace67cf6baedb06fe67badb5e499a3c45}} 
+\index{milvus::MilvusClient@{milvus::MilvusClient}!GetIndexBuildProgress@{GetIndexBuildProgress}}
+\index{GetIndexBuildProgress@{GetIndexBuildProgress}!milvus::MilvusClient@{milvus::MilvusClient}}
+\doxysubsubsection{\texorpdfstring{GetIndexBuildProgress()}{GetIndexBuildProgress()}}
+{\footnotesize\ttfamily virtual \mbox{\hyperlink{classmilvus_1_1_status}{Status}} milvus\+::\+Milvus\+Client\+::\+Get\+Index\+Build\+Progress (\begin{DoxyParamCaption}\item[{const std\+::string \&}]{collection\+\_\+name,  }\item[{const std\+::string \&}]{field\+\_\+name,  }\item[{\mbox{\hyperlink{classmilvus_1_1_index_progress}{Index\+Progress}} \&}]{progress }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [pure virtual]}}
+
+
+
+Get progress of an index. From the progress client can how many rows have been indexed. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ in}}  & {\em collection\+\_\+name} & name of the collection \\
+\hline
+\mbox{\texttt{ in}}  & {\em field\+\_\+name} & name of the field \\
+\hline
+\mbox{\texttt{ out}}  & {\em progress} & progress array of field, currently only return one index progress \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+\mbox{\hyperlink{classmilvus_1_1_status}{Status}} operation successfully or not 
+\end{DoxyReturn}
+\mbox{\Hypertarget{classmilvus_1_1_milvus_client_ad4abd1fc1153cd777a5080aa2ad8ca2b}\label{classmilvus_1_1_milvus_client_ad4abd1fc1153cd777a5080aa2ad8ca2b}} 
+\index{milvus::MilvusClient@{milvus::MilvusClient}!GetIndexState@{GetIndexState}}
+\index{GetIndexState@{GetIndexState}!milvus::MilvusClient@{milvus::MilvusClient}}
+\doxysubsubsection{\texorpdfstring{GetIndexState()}{GetIndexState()}}
+{\footnotesize\ttfamily virtual \mbox{\hyperlink{classmilvus_1_1_status}{Status}} milvus\+::\+Milvus\+Client\+::\+Get\+Index\+State (\begin{DoxyParamCaption}\item[{const std\+::string \&}]{collection\+\_\+name,  }\item[{const std\+::string \&}]{field\+\_\+name,  }\item[{\mbox{\hyperlink{classmilvus_1_1_index_state}{Index\+State}} \&}]{state }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [pure virtual]}}
+
+
+
+Get state of an index. From the state client can know whether the index has finished or in-\/progress. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ in}}  & {\em collection\+\_\+name} & name of the collection \\
+\hline
+\mbox{\texttt{ in}}  & {\em field\+\_\+name} & name of the field \\
+\hline
+\mbox{\texttt{ out}}  & {\em state} & index state of field \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+\mbox{\hyperlink{classmilvus_1_1_status}{Status}} operation successfully or not 
+\end{DoxyReturn}
+\mbox{\Hypertarget{classmilvus_1_1_milvus_client_a23f7c6286b991672712c7efb5af5787f}\label{classmilvus_1_1_milvus_client_a23f7c6286b991672712c7efb5af5787f}} 
+\index{milvus::MilvusClient@{milvus::MilvusClient}!GetLoadState@{GetLoadState}}
+\index{GetLoadState@{GetLoadState}!milvus::MilvusClient@{milvus::MilvusClient}}
+\doxysubsubsection{\texorpdfstring{GetLoadState()}{GetLoadState()}}
+{\footnotesize\ttfamily virtual \mbox{\hyperlink{classmilvus_1_1_status}{Status}} milvus\+::\+Milvus\+Client\+::\+Get\+Load\+State (\begin{DoxyParamCaption}\item[{const std\+::string \&}]{collection\+\_\+name,  }\item[{bool \&}]{is\+\_\+loaded,  }\item[{const std\+::vector$<$ std\+::string $>$}]{partition\+\_\+names = {\ttfamily \{\}} }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [pure virtual]}}
+
+
+
+Get load state of collection or partitions. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ in}}  & {\em collection\+\_\+name} & name of the collection \\
+\hline
+\mbox{\texttt{ in}}  & {\em partition\+\_\+names} & name array of the partitions \\
+\hline
+\mbox{\texttt{ out}}  & {\em is\+\_\+loaded} & whether the collection is loaded into memory \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+\mbox{\hyperlink{classmilvus_1_1_status}{Status}} operation successfully or not 
+\end{DoxyReturn}
+\mbox{\Hypertarget{classmilvus_1_1_milvus_client_a438488cdb507bc9715a79fec644c7065}\label{classmilvus_1_1_milvus_client_a438488cdb507bc9715a79fec644c7065}} 
+\index{milvus::MilvusClient@{milvus::MilvusClient}!GetMetrics@{GetMetrics}}
+\index{GetMetrics@{GetMetrics}!milvus::MilvusClient@{milvus::MilvusClient}}
+\doxysubsubsection{\texorpdfstring{GetMetrics()}{GetMetrics()}}
+{\footnotesize\ttfamily virtual \mbox{\hyperlink{classmilvus_1_1_status}{Status}} milvus\+::\+Milvus\+Client\+::\+Get\+Metrics (\begin{DoxyParamCaption}\item[{const std\+::string \&}]{request,  }\item[{std\+::string \&}]{response,  }\item[{std\+::string \&}]{component\+\_\+name }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [pure virtual]}}
+
+
+
+Get server runtime statistics. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ in}}  & {\em request} & request in json format \\
+\hline
+\mbox{\texttt{ out}}  & {\em response} & response in json format \\
+\hline
+\mbox{\texttt{ out}}  & {\em component\+\_\+name} & metrics from which component \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+\mbox{\hyperlink{classmilvus_1_1_status}{Status}} operation successfully or not 
+\end{DoxyReturn}
+\mbox{\Hypertarget{classmilvus_1_1_milvus_client_a91ad7ca6b18c8c1eafd10ea0d6af1c61}\label{classmilvus_1_1_milvus_client_a91ad7ca6b18c8c1eafd10ea0d6af1c61}} 
+\index{milvus::MilvusClient@{milvus::MilvusClient}!GetPartitionStatistics@{GetPartitionStatistics}}
+\index{GetPartitionStatistics@{GetPartitionStatistics}!milvus::MilvusClient@{milvus::MilvusClient}}
+\doxysubsubsection{\texorpdfstring{GetPartitionStatistics()}{GetPartitionStatistics()}}
+{\footnotesize\ttfamily virtual \mbox{\hyperlink{classmilvus_1_1_status}{Status}} milvus\+::\+Milvus\+Client\+::\+Get\+Partition\+Statistics (\begin{DoxyParamCaption}\item[{const std\+::string \&}]{collection\+\_\+name,  }\item[{const std\+::string \&}]{partition\+\_\+name,  }\item[{\mbox{\hyperlink{classmilvus_1_1_partition_stat}{Partition\+Stat}} \&}]{partition\+\_\+stat,  }\item[{const \mbox{\hyperlink{classmilvus_1_1_progress_monitor}{Progress\+Monitor}} \&}]{progress\+\_\+monitor = {\ttfamily \mbox{\hyperlink{classmilvus_1_1_progress_monitor_a32e432222660a1123871442c72bb68da}{Progress\+Monitor\+::\+Forever}}()} }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [pure virtual]}}
+
+
+
+Get partition statistics, currently only return row count. If the timeout is specified, this api will call \mbox{\hyperlink{classmilvus_1_1_milvus_client_ada4afa4d852dce6a8e8bffc112816276}{Flush()}} and wait all segments persisted into storage. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ in}}  & {\em collection\+\_\+name} & name of the collection \\
+\hline
+\mbox{\texttt{ in}}  & {\em partition\+\_\+name} & name of the partition \\
+\hline
+\mbox{\texttt{ in}}  & {\em progress\+\_\+monitor} & set timeout to wait flush progress complete, set to \mbox{\hyperlink{classmilvus_1_1_progress_monitor_abdcdb9f357de11ea5713dc33f27a6ff5}{Progress\+Monitor\+::\+No\+Wait()}} to return instantly, set to \mbox{\hyperlink{classmilvus_1_1_progress_monitor_a32e432222660a1123871442c72bb68da}{Progress\+Monitor\+::\+Forever()}} to wait until finished. \\
+\hline
+\mbox{\texttt{ out}}  & {\em partition\+\_\+stat} & statistics of the partition \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+\mbox{\hyperlink{classmilvus_1_1_status}{Status}} operation successfully or not 
+\end{DoxyReturn}
+\mbox{\Hypertarget{classmilvus_1_1_milvus_client_a383e2ef16d4add6af450170775869604}\label{classmilvus_1_1_milvus_client_a383e2ef16d4add6af450170775869604}} 
+\index{milvus::MilvusClient@{milvus::MilvusClient}!GetPersistentSegmentInfo@{GetPersistentSegmentInfo}}
+\index{GetPersistentSegmentInfo@{GetPersistentSegmentInfo}!milvus::MilvusClient@{milvus::MilvusClient}}
+\doxysubsubsection{\texorpdfstring{GetPersistentSegmentInfo()}{GetPersistentSegmentInfo()}}
+{\footnotesize\ttfamily virtual \mbox{\hyperlink{classmilvus_1_1_status}{Status}} milvus\+::\+Milvus\+Client\+::\+Get\+Persistent\+Segment\+Info (\begin{DoxyParamCaption}\item[{const std\+::string \&}]{collection\+\_\+name,  }\item[{\mbox{\hyperlink{namespacemilvus_ac4d75d0f392eb243587a67248164636b}{Segments\+Info}} \&}]{segments\+\_\+info }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [pure virtual]}}
+
+
+
+Retrieve information of persistent segments from data nodes. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ in}}  & {\em collection\+\_\+name} & name of the collection \\
+\hline
+\mbox{\texttt{ out}}  & {\em segments\+\_\+info} & information array for persistent segments \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+\mbox{\hyperlink{classmilvus_1_1_status}{Status}} operation successfully or not 
+\end{DoxyReturn}
+\mbox{\Hypertarget{classmilvus_1_1_milvus_client_a7a5a78cb57e5d80adea1f1b0bffe5ba0}\label{classmilvus_1_1_milvus_client_a7a5a78cb57e5d80adea1f1b0bffe5ba0}} 
+\index{milvus::MilvusClient@{milvus::MilvusClient}!GetQuerySegmentInfo@{GetQuerySegmentInfo}}
+\index{GetQuerySegmentInfo@{GetQuerySegmentInfo}!milvus::MilvusClient@{milvus::MilvusClient}}
+\doxysubsubsection{\texorpdfstring{GetQuerySegmentInfo()}{GetQuerySegmentInfo()}}
+{\footnotesize\ttfamily virtual \mbox{\hyperlink{classmilvus_1_1_status}{Status}} milvus\+::\+Milvus\+Client\+::\+Get\+Query\+Segment\+Info (\begin{DoxyParamCaption}\item[{const std\+::string \&}]{collection\+\_\+name,  }\item[{\mbox{\hyperlink{namespacemilvus_a12c0975ef69afebb6673596a78f0c1c6}{Query\+Segments\+Info}} \&}]{segments\+\_\+info }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [pure virtual]}}
+
+
+
+Retrieve information of segments from query nodes. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ in}}  & {\em collection\+\_\+name} & name of the collection \\
+\hline
+\mbox{\texttt{ out}}  & {\em segments\+\_\+info} & information array for segments \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+\mbox{\hyperlink{classmilvus_1_1_status}{Status}} operation successfully or not 
+\end{DoxyReturn}
+\mbox{\Hypertarget{classmilvus_1_1_milvus_client_a542f9909ca520bca5207af0368aed7d4}\label{classmilvus_1_1_milvus_client_a542f9909ca520bca5207af0368aed7d4}} 
+\index{milvus::MilvusClient@{milvus::MilvusClient}!GetSDKVersion@{GetSDKVersion}}
+\index{GetSDKVersion@{GetSDKVersion}!milvus::MilvusClient@{milvus::MilvusClient}}
+\doxysubsubsection{\texorpdfstring{GetSDKVersion()}{GetSDKVersion()}}
+{\footnotesize\ttfamily virtual \mbox{\hyperlink{classmilvus_1_1_status}{Status}} milvus\+::\+Milvus\+Client\+::\+Get\+SDKVersion (\begin{DoxyParamCaption}\item[{std\+::string \&}]{version }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [pure virtual]}}
+
+
+
+Get SDK version. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ out}}  & {\em version} & version string \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+\mbox{\hyperlink{classmilvus_1_1_status}{Status}} operation successfully or not 
+\end{DoxyReturn}
+\mbox{\Hypertarget{classmilvus_1_1_milvus_client_a8564247d9aafbdc082f372ec04b2c5a0}\label{classmilvus_1_1_milvus_client_a8564247d9aafbdc082f372ec04b2c5a0}} 
+\index{milvus::MilvusClient@{milvus::MilvusClient}!GetServerVersion@{GetServerVersion}}
+\index{GetServerVersion@{GetServerVersion}!milvus::MilvusClient@{milvus::MilvusClient}}
+\doxysubsubsection{\texorpdfstring{GetServerVersion()}{GetServerVersion()}}
+{\footnotesize\ttfamily virtual \mbox{\hyperlink{classmilvus_1_1_status}{Status}} milvus\+::\+Milvus\+Client\+::\+Get\+Server\+Version (\begin{DoxyParamCaption}\item[{std\+::string \&}]{version }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [pure virtual]}}
+
+
+
+Get milvus server version. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ out}}  & {\em version} & version string \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+\mbox{\hyperlink{classmilvus_1_1_status}{Status}} operation successfully or not 
+\end{DoxyReturn}
+\mbox{\Hypertarget{classmilvus_1_1_milvus_client_afc0de98530d68126bbb878819b411d3f}\label{classmilvus_1_1_milvus_client_afc0de98530d68126bbb878819b411d3f}} 
+\index{milvus::MilvusClient@{milvus::MilvusClient}!GetVersion@{GetVersion}}
+\index{GetVersion@{GetVersion}!milvus::MilvusClient@{milvus::MilvusClient}}
+\doxysubsubsection{\texorpdfstring{GetVersion()}{GetVersion()}}
+{\footnotesize\ttfamily virtual \mbox{\hyperlink{classmilvus_1_1_status}{Status}} milvus\+::\+Milvus\+Client\+::\+Get\+Version (\begin{DoxyParamCaption}\item[{std\+::string \&}]{version }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [pure virtual]}}
+
+
+
+Get milvus server version. 
+
+\begin{DoxyRefDesc}{Deprecated}
+\item[\mbox{\hyperlink{deprecated__deprecated000001}{Deprecated}}]replaced by \mbox{\hyperlink{classmilvus_1_1_milvus_client_a8564247d9aafbdc082f372ec04b2c5a0}{Get\+Server\+Version()}}\end{DoxyRefDesc}
+
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ out}}  & {\em version} & version string \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+\mbox{\hyperlink{classmilvus_1_1_status}{Status}} operation successfully or not 
+\end{DoxyReturn}
+\mbox{\Hypertarget{classmilvus_1_1_milvus_client_a5595987fee86b75dd6153e6514e8be14}\label{classmilvus_1_1_milvus_client_a5595987fee86b75dd6153e6514e8be14}} 
+\index{milvus::MilvusClient@{milvus::MilvusClient}!GrantPrivilege@{GrantPrivilege}}
+\index{GrantPrivilege@{GrantPrivilege}!milvus::MilvusClient@{milvus::MilvusClient}}
+\doxysubsubsection{\texorpdfstring{GrantPrivilege()}{GrantPrivilege()}}
+{\footnotesize\ttfamily virtual \mbox{\hyperlink{classmilvus_1_1_status}{Status}} milvus\+::\+Milvus\+Client\+::\+Grant\+Privilege (\begin{DoxyParamCaption}\item[{const std\+::string \&}]{role\+\_\+name,  }\item[{const std\+::string \&}]{privilege,  }\item[{const std\+::string \&}]{collection\+\_\+name,  }\item[{const std\+::string \&}]{db\+\_\+name }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [pure virtual]}}
+
+
+
+Grant a privilege or a privilege group to a role. For more info\+: \href{https://milvus.io/docs/v2.4.x/users_and_roles.md}{\texttt{ https\+://milvus.\+io/docs/v2.\+4.\+x/users\+\_\+and\+\_\+roles.\+md}}. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ in}}  & {\em role\+\_\+name} & name of the role \\
+\hline
+\mbox{\texttt{ in}}  & {\em privilege} & the privilege or privilege group to grant \\
+\hline
+\mbox{\texttt{ in}}  & {\em collection\+\_\+name} & name of a collection, \char`\"{}$\ast$\char`\"{} for all collections \\
+\hline
+\mbox{\texttt{ in}}  & {\em db\+\_\+name} & name of a database, \char`\"{}$\ast$\char`\"{} for all databases \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+\mbox{\hyperlink{classmilvus_1_1_status}{Status}} operation successfully or not 
+\end{DoxyReturn}
+\mbox{\Hypertarget{classmilvus_1_1_milvus_client_ad0fe1ca6bf877b07686e7ca42dbff6bc}\label{classmilvus_1_1_milvus_client_ad0fe1ca6bf877b07686e7ca42dbff6bc}} 
+\index{milvus::MilvusClient@{milvus::MilvusClient}!GrantRole@{GrantRole}}
+\index{GrantRole@{GrantRole}!milvus::MilvusClient@{milvus::MilvusClient}}
+\doxysubsubsection{\texorpdfstring{GrantRole()}{GrantRole()}}
+{\footnotesize\ttfamily virtual \mbox{\hyperlink{classmilvus_1_1_status}{Status}} milvus\+::\+Milvus\+Client\+::\+Grant\+Role (\begin{DoxyParamCaption}\item[{const std\+::string \&}]{user\+\_\+name,  }\item[{const std\+::string \&}]{role\+\_\+name }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [pure virtual]}}
+
+
+
+Grant a role to an user. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ in}}  & {\em user\+\_\+name} & name of the user \\
+\hline
+\mbox{\texttt{ in}}  & {\em role\+\_\+name} & name of the role \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+\mbox{\hyperlink{classmilvus_1_1_status}{Status}} operation successfully or not 
+\end{DoxyReturn}
+\mbox{\Hypertarget{classmilvus_1_1_milvus_client_a2881d16fd038e6d742f7ce4c8a836270}\label{classmilvus_1_1_milvus_client_a2881d16fd038e6d742f7ce4c8a836270}} 
+\index{milvus::MilvusClient@{milvus::MilvusClient}!HasCollection@{HasCollection}}
+\index{HasCollection@{HasCollection}!milvus::MilvusClient@{milvus::MilvusClient}}
+\doxysubsubsection{\texorpdfstring{HasCollection()}{HasCollection()}}
+{\footnotesize\ttfamily virtual \mbox{\hyperlink{classmilvus_1_1_status}{Status}} milvus\+::\+Milvus\+Client\+::\+Has\+Collection (\begin{DoxyParamCaption}\item[{const std\+::string \&}]{collection\+\_\+name,  }\item[{bool \&}]{has }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [pure virtual]}}
+
+
+
+Check existence of a collection. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ in}}  & {\em collection\+\_\+name} & name of the collection \\
+\hline
+\mbox{\texttt{ out}}  & {\em has} & true\+: collection exists, false\+: collection doesn\textquotesingle{}t exist \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+\mbox{\hyperlink{classmilvus_1_1_status}{Status}} operation successfully or not 
+\end{DoxyReturn}
+\mbox{\Hypertarget{classmilvus_1_1_milvus_client_ab98f1437e7b1848faef879569ff0e119}\label{classmilvus_1_1_milvus_client_ab98f1437e7b1848faef879569ff0e119}} 
+\index{milvus::MilvusClient@{milvus::MilvusClient}!HasPartition@{HasPartition}}
+\index{HasPartition@{HasPartition}!milvus::MilvusClient@{milvus::MilvusClient}}
+\doxysubsubsection{\texorpdfstring{HasPartition()}{HasPartition()}}
+{\footnotesize\ttfamily virtual \mbox{\hyperlink{classmilvus_1_1_status}{Status}} milvus\+::\+Milvus\+Client\+::\+Has\+Partition (\begin{DoxyParamCaption}\item[{const std\+::string \&}]{collection\+\_\+name,  }\item[{const std\+::string \&}]{partition\+\_\+name,  }\item[{bool \&}]{has }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [pure virtual]}}
+
+
+
+Check existence of a partition. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ in}}  & {\em collection\+\_\+name} & name of the collection \\
+\hline
+\mbox{\texttt{ in}}  & {\em partition\+\_\+name} & name of the partition \\
+\hline
+\mbox{\texttt{ out}}  & {\em has} & true\+: partition exists, false\+: partition doesn\textquotesingle{}t exist \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+\mbox{\hyperlink{classmilvus_1_1_status}{Status}} operation successfully or not 
+\end{DoxyReturn}
+\mbox{\Hypertarget{classmilvus_1_1_milvus_client_ae9d21a873b892ff0e7a13ea522e32ce9}\label{classmilvus_1_1_milvus_client_ae9d21a873b892ff0e7a13ea522e32ce9}} 
+\index{milvus::MilvusClient@{milvus::MilvusClient}!HybridSearch@{HybridSearch}}
+\index{HybridSearch@{HybridSearch}!milvus::MilvusClient@{milvus::MilvusClient}}
+\doxysubsubsection{\texorpdfstring{HybridSearch()}{HybridSearch()}}
+{\footnotesize\ttfamily virtual \mbox{\hyperlink{classmilvus_1_1_status}{Status}} milvus\+::\+Milvus\+Client\+::\+Hybrid\+Search (\begin{DoxyParamCaption}\item[{const \mbox{\hyperlink{classmilvus_1_1_hybrid_search_arguments}{Hybrid\+Search\+Arguments}} \&}]{arguments,  }\item[{\mbox{\hyperlink{classmilvus_1_1_search_results}{Search\+Results}} \&}]{results }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [pure virtual]}}
+
+
+
+Hybrid search a collection based on the given parameters and return results. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ in}}  & {\em arguments} & search arguments \\
+\hline
+\mbox{\texttt{ out}}  & {\em results} & search results \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+\mbox{\hyperlink{classmilvus_1_1_status}{Status}} operation successfully or not 
+\end{DoxyReturn}
+\mbox{\Hypertarget{classmilvus_1_1_milvus_client_ac42188c18f68ae8462de128b3ea668b4}\label{classmilvus_1_1_milvus_client_ac42188c18f68ae8462de128b3ea668b4}} 
+\index{milvus::MilvusClient@{milvus::MilvusClient}!Insert@{Insert}}
+\index{Insert@{Insert}!milvus::MilvusClient@{milvus::MilvusClient}}
+\doxysubsubsection{\texorpdfstring{Insert()}{Insert()}\hspace{0.1cm}{\footnotesize\ttfamily [1/2]}}
+{\footnotesize\ttfamily virtual \mbox{\hyperlink{classmilvus_1_1_status}{Status}} milvus\+::\+Milvus\+Client\+::\+Insert (\begin{DoxyParamCaption}\item[{const std\+::string \&}]{collection\+\_\+name,  }\item[{const std\+::string \&}]{partition\+\_\+name,  }\item[{const Entity\+Rows \&}]{rows,  }\item[{\mbox{\hyperlink{classmilvus_1_1_dml_results}{Dml\+Results}} \&}]{results }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [pure virtual]}}
+
+
+
+Insert data into a collection by row-\/based. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ in}}  & {\em collection\+\_\+name} & name of the collection \\
+\hline
+\mbox{\texttt{ in}}  & {\em partition\+\_\+name} & name of the partition, optional(pass an empty string to skip) \\
+\hline
+\mbox{\texttt{ in}}  & {\em rows} & insert rows \\
+\hline
+\mbox{\texttt{ out}}  & {\em results} & insert results \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+\mbox{\hyperlink{classmilvus_1_1_status}{Status}} operation successfully or not 
+\end{DoxyReturn}
+\mbox{\Hypertarget{classmilvus_1_1_milvus_client_a64a2dca576e0933571a6889910d56390}\label{classmilvus_1_1_milvus_client_a64a2dca576e0933571a6889910d56390}} 
+\index{milvus::MilvusClient@{milvus::MilvusClient}!Insert@{Insert}}
+\index{Insert@{Insert}!milvus::MilvusClient@{milvus::MilvusClient}}
+\doxysubsubsection{\texorpdfstring{Insert()}{Insert()}\hspace{0.1cm}{\footnotesize\ttfamily [2/2]}}
+{\footnotesize\ttfamily virtual \mbox{\hyperlink{classmilvus_1_1_status}{Status}} milvus\+::\+Milvus\+Client\+::\+Insert (\begin{DoxyParamCaption}\item[{const std\+::string \&}]{collection\+\_\+name,  }\item[{const std\+::string \&}]{partition\+\_\+name,  }\item[{const std\+::vector$<$ Field\+Data\+Ptr $>$ \&}]{fields,  }\item[{\mbox{\hyperlink{classmilvus_1_1_dml_results}{Dml\+Results}} \&}]{results }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [pure virtual]}}
+
+
+
+Insert data into a collection by column-\/based. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ in}}  & {\em collection\+\_\+name} & name of the collection \\
+\hline
+\mbox{\texttt{ in}}  & {\em partition\+\_\+name} & name of the partition, optional(pass an empty string to skip) \\
+\hline
+\mbox{\texttt{ in}}  & {\em fields} & insert data \\
+\hline
+\mbox{\texttt{ out}}  & {\em results} & insert results \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+\mbox{\hyperlink{classmilvus_1_1_status}{Status}} operation successfully or not 
+\end{DoxyReturn}
+\mbox{\Hypertarget{classmilvus_1_1_milvus_client_ac7fad69f7eb8c174b1df31481dcf62b4}\label{classmilvus_1_1_milvus_client_ac7fad69f7eb8c174b1df31481dcf62b4}} 
+\index{milvus::MilvusClient@{milvus::MilvusClient}!ListAliases@{ListAliases}}
+\index{ListAliases@{ListAliases}!milvus::MilvusClient@{milvus::MilvusClient}}
+\doxysubsubsection{\texorpdfstring{ListAliases()}{ListAliases()}}
+{\footnotesize\ttfamily virtual \mbox{\hyperlink{classmilvus_1_1_status}{Status}} milvus\+::\+Milvus\+Client\+::\+List\+Aliases (\begin{DoxyParamCaption}\item[{const std\+::string \&}]{collection\+\_\+name,  }\item[{std\+::vector$<$ \mbox{\hyperlink{classmilvus_1_1_alias_desc}{Alias\+Desc}} $>$ \&}]{descs }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [pure virtual]}}
+
+
+
+List all aliases of a collection. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ in}}  & {\em collection\+\_\+name} & name of the collection \\
+\hline
+\mbox{\texttt{ out}}  & {\em descs} & a list of aliases \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+\mbox{\hyperlink{classmilvus_1_1_status}{Status}} operation successfully or not 
+\end{DoxyReturn}
+\mbox{\Hypertarget{classmilvus_1_1_milvus_client_a23d8be8f5fe079419de91b0b3a9825b0}\label{classmilvus_1_1_milvus_client_a23d8be8f5fe079419de91b0b3a9825b0}} 
+\index{milvus::MilvusClient@{milvus::MilvusClient}!ListCollections@{ListCollections}}
+\index{ListCollections@{ListCollections}!milvus::MilvusClient@{milvus::MilvusClient}}
+\doxysubsubsection{\texorpdfstring{ListCollections()}{ListCollections()}}
+{\footnotesize\ttfamily virtual \mbox{\hyperlink{classmilvus_1_1_status}{Status}} milvus\+::\+Milvus\+Client\+::\+List\+Collections (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{namespacemilvus_aca75f624e858185d26527e9c47b40ed6}{Collections\+Info}} \&}]{collections\+\_\+info,  }\item[{bool}]{only\+\_\+show\+\_\+loaded = {\ttfamily false} }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [pure virtual]}}
+
+
+
+List all collections brief information\textquotesingle{}s. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ out}}  & {\em collections\+\_\+info} & brief information\textquotesingle{}s of the collections \\
+\hline
+\mbox{\texttt{ in}}  & {\em only\+\_\+show\+\_\+loaded} & set to true only show in-\/memory collections, otherwise show all collections. \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+\mbox{\hyperlink{classmilvus_1_1_status}{Status}} operation successfully or not 
+\end{DoxyReturn}
+\mbox{\Hypertarget{classmilvus_1_1_milvus_client_aac191536b781ffff8de14f2fd26d102d}\label{classmilvus_1_1_milvus_client_aac191536b781ffff8de14f2fd26d102d}} 
+\index{milvus::MilvusClient@{milvus::MilvusClient}!ListCredUsers@{ListCredUsers}}
+\index{ListCredUsers@{ListCredUsers}!milvus::MilvusClient@{milvus::MilvusClient}}
+\doxysubsubsection{\texorpdfstring{ListCredUsers()}{ListCredUsers()}}
+{\footnotesize\ttfamily virtual \mbox{\hyperlink{classmilvus_1_1_status}{Status}} milvus\+::\+Milvus\+Client\+::\+List\+Cred\+Users (\begin{DoxyParamCaption}\item[{std\+::vector$<$ std\+::string $>$ \&}]{names }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [pure virtual]}}
+
+
+
+List Users. 
+
+\begin{DoxyRefDesc}{Deprecated}
+\item[\mbox{\hyperlink{deprecated__deprecated000007}{Deprecated}}]replaced by \mbox{\hyperlink{classmilvus_1_1_milvus_client_ac670bb063648b1a33d99d18802deb656}{List\+Users()}} in v2.\+4\end{DoxyRefDesc}
+
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ out}}  & {\em the} & usernames \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+\mbox{\hyperlink{classmilvus_1_1_status}{Status}} operation successfully or not 
+\end{DoxyReturn}
+\mbox{\Hypertarget{classmilvus_1_1_milvus_client_a88944b390c8e8255d3089513095a890a}\label{classmilvus_1_1_milvus_client_a88944b390c8e8255d3089513095a890a}} 
+\index{milvus::MilvusClient@{milvus::MilvusClient}!ListDatabases@{ListDatabases}}
+\index{ListDatabases@{ListDatabases}!milvus::MilvusClient@{milvus::MilvusClient}}
+\doxysubsubsection{\texorpdfstring{ListDatabases()}{ListDatabases()}}
+{\footnotesize\ttfamily virtual \mbox{\hyperlink{classmilvus_1_1_status}{Status}} milvus\+::\+Milvus\+Client\+::\+List\+Databases (\begin{DoxyParamCaption}\item[{std\+::vector$<$ std\+::string $>$ \&}]{names }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [pure virtual]}}
+
+
+
+Drop a database. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ out}}  & {\em names} & a list of database names \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+\mbox{\hyperlink{classmilvus_1_1_status}{Status}} operation successfully or not 
+\end{DoxyReturn}
+\mbox{\Hypertarget{classmilvus_1_1_milvus_client_a7e94151b0b96f2172b6cd2a6916cd982}\label{classmilvus_1_1_milvus_client_a7e94151b0b96f2172b6cd2a6916cd982}} 
+\index{milvus::MilvusClient@{milvus::MilvusClient}!ListIndexes@{ListIndexes}}
+\index{ListIndexes@{ListIndexes}!milvus::MilvusClient@{milvus::MilvusClient}}
+\doxysubsubsection{\texorpdfstring{ListIndexes()}{ListIndexes()}}
+{\footnotesize\ttfamily virtual \mbox{\hyperlink{classmilvus_1_1_status}{Status}} milvus\+::\+Milvus\+Client\+::\+List\+Indexes (\begin{DoxyParamCaption}\item[{const std\+::string \&}]{collection\+\_\+name,  }\item[{const std\+::string \&}]{field\+\_\+name,  }\item[{std\+::vector$<$ std\+::string $>$ \&}]{index\+\_\+names }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [pure virtual]}}
+
+
+
+Get index names of a collection. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ in}}  & {\em collection\+\_\+name} & name of the collection \\
+\hline
+\mbox{\texttt{ in}}  & {\em field\+\_\+name} & name of the field, if this value is empty, return all index names \\
+\hline
+\mbox{\texttt{ out}}  & {\em index\+\_\+names} & index names \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+\mbox{\hyperlink{classmilvus_1_1_status}{Status}} operation successfully or not 
+\end{DoxyReturn}
+\mbox{\Hypertarget{classmilvus_1_1_milvus_client_ad7dd61f9c3127a88c330d7250ae7dad8}\label{classmilvus_1_1_milvus_client_ad7dd61f9c3127a88c330d7250ae7dad8}} 
+\index{milvus::MilvusClient@{milvus::MilvusClient}!ListPartitions@{ListPartitions}}
+\index{ListPartitions@{ListPartitions}!milvus::MilvusClient@{milvus::MilvusClient}}
+\doxysubsubsection{\texorpdfstring{ListPartitions()}{ListPartitions()}}
+{\footnotesize\ttfamily virtual \mbox{\hyperlink{classmilvus_1_1_status}{Status}} milvus\+::\+Milvus\+Client\+::\+List\+Partitions (\begin{DoxyParamCaption}\item[{const std\+::string \&}]{collection\+\_\+name,  }\item[{\mbox{\hyperlink{namespacemilvus_affb31ba1d459f7fa231ffda305c08733}{Partitions\+Info}} \&}]{partitions\+\_\+info,  }\item[{bool}]{only\+\_\+show\+\_\+loaded = {\ttfamily false} }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [pure virtual]}}
+
+
+
+If the partition\+\_\+names is empty, list all partitions brief information\textquotesingle{}s. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ in}}  & {\em collection\+\_\+name} & name of the collection \\
+\hline
+\mbox{\texttt{ out}}  & {\em partitions\+\_\+info} & brief information\textquotesingle{}s of the partitions \\
+\hline
+\mbox{\texttt{ in}}  & {\em only\+\_\+show\+\_\+loaded} & set to ture only show in-\/memory partitions, otherwise show all partitions. \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+\mbox{\hyperlink{classmilvus_1_1_status}{Status}} operation successfully or not 
+\end{DoxyReturn}
+\mbox{\Hypertarget{classmilvus_1_1_milvus_client_a14f98fcb6e5b70e5a94461a4623d7c57}\label{classmilvus_1_1_milvus_client_a14f98fcb6e5b70e5a94461a4623d7c57}} 
+\index{milvus::MilvusClient@{milvus::MilvusClient}!ListPrivilegeGroups@{ListPrivilegeGroups}}
+\index{ListPrivilegeGroups@{ListPrivilegeGroups}!milvus::MilvusClient@{milvus::MilvusClient}}
+\doxysubsubsection{\texorpdfstring{ListPrivilegeGroups()}{ListPrivilegeGroups()}}
+{\footnotesize\ttfamily virtual \mbox{\hyperlink{classmilvus_1_1_status}{Status}} milvus\+::\+Milvus\+Client\+::\+List\+Privilege\+Groups (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{namespacemilvus_a15be5036b84ca41b3ba6ce976c91f9bc}{Privilege\+Group\+Infos}} \&}]{groups }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [pure virtual]}}
+
+
+
+List all the privilege groups. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ out}}  & {\em groups} & a list of privilege groups \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+\mbox{\hyperlink{classmilvus_1_1_status}{Status}} operation successfully or not 
+\end{DoxyReturn}
+\mbox{\Hypertarget{classmilvus_1_1_milvus_client_ab5dfe1f5ff18dd5667376b6767482314}\label{classmilvus_1_1_milvus_client_ab5dfe1f5ff18dd5667376b6767482314}} 
+\index{milvus::MilvusClient@{milvus::MilvusClient}!ListResourceGroups@{ListResourceGroups}}
+\index{ListResourceGroups@{ListResourceGroups}!milvus::MilvusClient@{milvus::MilvusClient}}
+\doxysubsubsection{\texorpdfstring{ListResourceGroups()}{ListResourceGroups()}}
+{\footnotesize\ttfamily virtual \mbox{\hyperlink{classmilvus_1_1_status}{Status}} milvus\+::\+Milvus\+Client\+::\+List\+Resource\+Groups (\begin{DoxyParamCaption}\item[{std\+::vector$<$ std\+::string $>$ \&}]{group\+\_\+names }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [pure virtual]}}
+
+
+
+List all the resource groups under the current database. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ out}}  & {\em group\+\_\+names} & names of the resource groups \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+\mbox{\hyperlink{classmilvus_1_1_status}{Status}} operation successfully or not 
+\end{DoxyReturn}
+\mbox{\Hypertarget{classmilvus_1_1_milvus_client_a5b53318ec597412662c6a509b7848baf}\label{classmilvus_1_1_milvus_client_a5b53318ec597412662c6a509b7848baf}} 
+\index{milvus::MilvusClient@{milvus::MilvusClient}!ListRoles@{ListRoles}}
+\index{ListRoles@{ListRoles}!milvus::MilvusClient@{milvus::MilvusClient}}
+\doxysubsubsection{\texorpdfstring{ListRoles()}{ListRoles()}}
+{\footnotesize\ttfamily virtual \mbox{\hyperlink{classmilvus_1_1_status}{Status}} milvus\+::\+Milvus\+Client\+::\+List\+Roles (\begin{DoxyParamCaption}\item[{std\+::vector$<$ std\+::string $>$ \&}]{names }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [pure virtual]}}
+
+
+
+List roles. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ out}}  & {\em names} & names of roles \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+\mbox{\hyperlink{classmilvus_1_1_status}{Status}} operation successfully or not 
+\end{DoxyReturn}
+\mbox{\Hypertarget{classmilvus_1_1_milvus_client_ac670bb063648b1a33d99d18802deb656}\label{classmilvus_1_1_milvus_client_ac670bb063648b1a33d99d18802deb656}} 
+\index{milvus::MilvusClient@{milvus::MilvusClient}!ListUsers@{ListUsers}}
+\index{ListUsers@{ListUsers}!milvus::MilvusClient@{milvus::MilvusClient}}
+\doxysubsubsection{\texorpdfstring{ListUsers()}{ListUsers()}}
+{\footnotesize\ttfamily virtual \mbox{\hyperlink{classmilvus_1_1_status}{Status}} milvus\+::\+Milvus\+Client\+::\+List\+Users (\begin{DoxyParamCaption}\item[{std\+::vector$<$ std\+::string $>$ \&}]{names }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [pure virtual]}}
+
+
+
+List users. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ out}}  & {\em names} & names of users \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+\mbox{\hyperlink{classmilvus_1_1_status}{Status}} operation successfully or not 
+\end{DoxyReturn}
+\mbox{\Hypertarget{classmilvus_1_1_milvus_client_a2f56b370148934a1efd1f3ba48ec1b09}\label{classmilvus_1_1_milvus_client_a2f56b370148934a1efd1f3ba48ec1b09}} 
+\index{milvus::MilvusClient@{milvus::MilvusClient}!LoadBalance@{LoadBalance}}
+\index{LoadBalance@{LoadBalance}!milvus::MilvusClient@{milvus::MilvusClient}}
+\doxysubsubsection{\texorpdfstring{LoadBalance()}{LoadBalance()}}
+{\footnotesize\ttfamily virtual \mbox{\hyperlink{classmilvus_1_1_status}{Status}} milvus\+::\+Milvus\+Client\+::\+Load\+Balance (\begin{DoxyParamCaption}\item[{int64\+\_\+t}]{src\+\_\+node,  }\item[{const std\+::vector$<$ int64\+\_\+t $>$ \&}]{dst\+\_\+nodes,  }\item[{const std\+::vector$<$ int64\+\_\+t $>$ \&}]{segments }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [pure virtual]}}
+
+
+
+Rebalanced sealed segments from one query node to others. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ in}}  & {\em src\+\_\+node} & the source query node id \\
+\hline
+\mbox{\texttt{ in}}  & {\em dst\+\_\+nodes} & the destiny query nodes id array \\
+\hline
+\mbox{\texttt{ in}}  & {\em segments} & the segments id array to be balanced \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+\mbox{\hyperlink{classmilvus_1_1_status}{Status}} operation successfully or not 
+\end{DoxyReturn}
+\mbox{\Hypertarget{classmilvus_1_1_milvus_client_a249cd3c0a23821b8282420f736d9b9bf}\label{classmilvus_1_1_milvus_client_a249cd3c0a23821b8282420f736d9b9bf}} 
+\index{milvus::MilvusClient@{milvus::MilvusClient}!LoadCollection@{LoadCollection}}
+\index{LoadCollection@{LoadCollection}!milvus::MilvusClient@{milvus::MilvusClient}}
+\doxysubsubsection{\texorpdfstring{LoadCollection()}{LoadCollection()}}
+{\footnotesize\ttfamily virtual \mbox{\hyperlink{classmilvus_1_1_status}{Status}} milvus\+::\+Milvus\+Client\+::\+Load\+Collection (\begin{DoxyParamCaption}\item[{const std\+::string \&}]{collection\+\_\+name,  }\item[{int}]{replica\+\_\+number = {\ttfamily 1},  }\item[{const \mbox{\hyperlink{classmilvus_1_1_progress_monitor}{Progress\+Monitor}} \&}]{progress\+\_\+monitor = {\ttfamily \mbox{\hyperlink{classmilvus_1_1_progress_monitor_a32e432222660a1123871442c72bb68da}{Progress\+Monitor\+::\+Forever}}()} }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [pure virtual]}}
+
+
+
+Load collection data into CPU memory of query node. This api will check collection\textquotesingle{}s loading progress, waiting until the collection completely loaded into query node. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ in}}  & {\em collection\+\_\+name} & name of the collection \\
+\hline
+\mbox{\texttt{ in}}  & {\em replica\+\_\+number} & the number of replicas, default 1 \\
+\hline
+\mbox{\texttt{ in}}  & {\em progress\+\_\+monitor} & set timeout to wait loading progress complete, set to \mbox{\hyperlink{classmilvus_1_1_progress_monitor_abdcdb9f357de11ea5713dc33f27a6ff5}{Progress\+Monitor\+::\+No\+Wait()}} to return instantly, set to \mbox{\hyperlink{classmilvus_1_1_progress_monitor_a32e432222660a1123871442c72bb68da}{Progress\+Monitor\+::\+Forever()}} to wait until finished. \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+\mbox{\hyperlink{classmilvus_1_1_status}{Status}} operation successfully or not 
+\end{DoxyReturn}
+\mbox{\Hypertarget{classmilvus_1_1_milvus_client_a3b1f0922aa7724880aa2bd933956e94b}\label{classmilvus_1_1_milvus_client_a3b1f0922aa7724880aa2bd933956e94b}} 
+\index{milvus::MilvusClient@{milvus::MilvusClient}!LoadPartitions@{LoadPartitions}}
+\index{LoadPartitions@{LoadPartitions}!milvus::MilvusClient@{milvus::MilvusClient}}
+\doxysubsubsection{\texorpdfstring{LoadPartitions()}{LoadPartitions()}}
+{\footnotesize\ttfamily virtual \mbox{\hyperlink{classmilvus_1_1_status}{Status}} milvus\+::\+Milvus\+Client\+::\+Load\+Partitions (\begin{DoxyParamCaption}\item[{const std\+::string \&}]{collection\+\_\+name,  }\item[{const std\+::vector$<$ std\+::string $>$ \&}]{partition\+\_\+names,  }\item[{int}]{replica\+\_\+number = {\ttfamily 1},  }\item[{const \mbox{\hyperlink{classmilvus_1_1_progress_monitor}{Progress\+Monitor}} \&}]{progress\+\_\+monitor = {\ttfamily \mbox{\hyperlink{classmilvus_1_1_progress_monitor_a32e432222660a1123871442c72bb68da}{Progress\+Monitor\+::\+Forever}}()} }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [pure virtual]}}
+
+
+
+Load specific partitions data of one collection into query nodes. This api will check partition\textquotesingle{}s loading progress, waiting until all the partitions completely loaded into query node. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ in}}  & {\em collection\+\_\+name} & name of the collection \\
+\hline
+\mbox{\texttt{ in}}  & {\em partition\+\_\+names} & name array of the partitions \\
+\hline
+\mbox{\texttt{ in}}  & {\em replica\+\_\+number} & the number of replicas, default 1 \\
+\hline
+\mbox{\texttt{ in}}  & {\em progress\+\_\+monitor} & set timeout to wait loading progress complete, set to \mbox{\hyperlink{classmilvus_1_1_progress_monitor_abdcdb9f357de11ea5713dc33f27a6ff5}{Progress\+Monitor\+::\+No\+Wait()}} to return instantly, set to \mbox{\hyperlink{classmilvus_1_1_progress_monitor_a32e432222660a1123871442c72bb68da}{Progress\+Monitor\+::\+Forever()}} to wait until finished. \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+\mbox{\hyperlink{classmilvus_1_1_status}{Status}} operation successfully or not 
+\end{DoxyReturn}
+\mbox{\Hypertarget{classmilvus_1_1_milvus_client_aded6fdc88693663dd6f501d6191658d3}\label{classmilvus_1_1_milvus_client_aded6fdc88693663dd6f501d6191658d3}} 
+\index{milvus::MilvusClient@{milvus::MilvusClient}!ManualCompaction@{ManualCompaction}}
+\index{ManualCompaction@{ManualCompaction}!milvus::MilvusClient@{milvus::MilvusClient}}
+\doxysubsubsection{\texorpdfstring{ManualCompaction()}{ManualCompaction()}}
+{\footnotesize\ttfamily virtual \mbox{\hyperlink{classmilvus_1_1_status}{Status}} milvus\+::\+Milvus\+Client\+::\+Manual\+Compaction (\begin{DoxyParamCaption}\item[{const std\+::string \&}]{collection\+\_\+name,  }\item[{uint64\+\_\+t}]{travel\+\_\+timestamp,  }\item[{int64\+\_\+t \&}]{compaction\+\_\+id }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [pure virtual]}}
+
+
+
+Manually trigger a compaction action. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ in}}  & {\em collection\+\_\+name} & name of the collection \\
+\hline
+\mbox{\texttt{ in}}  & {\em travel\+\_\+timestamp} & specify a timestamp to compact on a data view at a specified point in time. \\
+\hline
+\mbox{\texttt{ out}}  & {\em compaction\+\_\+id} & id of the compaction action \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+\mbox{\hyperlink{classmilvus_1_1_status}{Status}} operation successfully or not 
+\end{DoxyReturn}
+\mbox{\Hypertarget{classmilvus_1_1_milvus_client_a2c27e3b681313329ccf491867d717182}\label{classmilvus_1_1_milvus_client_a2c27e3b681313329ccf491867d717182}} 
+\index{milvus::MilvusClient@{milvus::MilvusClient}!Query@{Query}}
+\index{Query@{Query}!milvus::MilvusClient@{milvus::MilvusClient}}
+\doxysubsubsection{\texorpdfstring{Query()}{Query()}}
+{\footnotesize\ttfamily virtual \mbox{\hyperlink{classmilvus_1_1_status}{Status}} milvus\+::\+Milvus\+Client\+::\+Query (\begin{DoxyParamCaption}\item[{const \mbox{\hyperlink{classmilvus_1_1_query_arguments}{Query\+Arguments}} \&}]{arguments,  }\item[{\mbox{\hyperlink{classmilvus_1_1_query_results}{Query\+Results}} \&}]{results }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [pure virtual]}}
+
+
+
+Query with a set of criteria, and results in a list of records that match the query exactly. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ in}}  & {\em arguments} & query arguments \\
+\hline
+\mbox{\texttt{ out}}  & {\em results} & query results \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+\mbox{\hyperlink{classmilvus_1_1_status}{Status}} operation successfully or not 
+\end{DoxyReturn}
+\mbox{\Hypertarget{classmilvus_1_1_milvus_client_a08058fb22987cbc589b738f3782a59b5}\label{classmilvus_1_1_milvus_client_a08058fb22987cbc589b738f3782a59b5}} 
+\index{milvus::MilvusClient@{milvus::MilvusClient}!QueryIterator@{QueryIterator}}
+\index{QueryIterator@{QueryIterator}!milvus::MilvusClient@{milvus::MilvusClient}}
+\doxysubsubsection{\texorpdfstring{QueryIterator()}{QueryIterator()}}
+{\footnotesize\ttfamily virtual \mbox{\hyperlink{classmilvus_1_1_status}{Status}} milvus\+::\+Milvus\+Client\+::\+Query\+Iterator (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{classmilvus_1_1_query_iterator_arguments}{Query\+Iterator\+Arguments}} \&}]{arguments,  }\item[{Query\+Iterator\+Ptr \&}]{iterator }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [pure virtual]}}
+
+
+
+Get Query\+Iterator object based on scalar field(s) filtered by boolean expression. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ in}}  & {\em arguments} & query iterator arguments \\
+\hline
+\mbox{\texttt{ out}}  & {\em iterator} & query iterator object \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+\mbox{\hyperlink{classmilvus_1_1_status}{Status}} operation successfully or not 
+\end{DoxyReturn}
+\mbox{\Hypertarget{classmilvus_1_1_milvus_client_aab31131eca6dffbdd9e3257ae9f7f87f}\label{classmilvus_1_1_milvus_client_aab31131eca6dffbdd9e3257ae9f7f87f}} 
+\index{milvus::MilvusClient@{milvus::MilvusClient}!ReleaseCollection@{ReleaseCollection}}
+\index{ReleaseCollection@{ReleaseCollection}!milvus::MilvusClient@{milvus::MilvusClient}}
+\doxysubsubsection{\texorpdfstring{ReleaseCollection()}{ReleaseCollection()}}
+{\footnotesize\ttfamily virtual \mbox{\hyperlink{classmilvus_1_1_status}{Status}} milvus\+::\+Milvus\+Client\+::\+Release\+Collection (\begin{DoxyParamCaption}\item[{const std\+::string \&}]{collection\+\_\+name }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [pure virtual]}}
+
+
+
+Release collection data from query node. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ in}}  & {\em collection\+\_\+name} & name of the collection \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+\mbox{\hyperlink{classmilvus_1_1_status}{Status}} operation successfully or not 
+\end{DoxyReturn}
+\mbox{\Hypertarget{classmilvus_1_1_milvus_client_a24576d00b4baa08d13de0d9eecffc7bd}\label{classmilvus_1_1_milvus_client_a24576d00b4baa08d13de0d9eecffc7bd}} 
+\index{milvus::MilvusClient@{milvus::MilvusClient}!ReleasePartitions@{ReleasePartitions}}
+\index{ReleasePartitions@{ReleasePartitions}!milvus::MilvusClient@{milvus::MilvusClient}}
+\doxysubsubsection{\texorpdfstring{ReleasePartitions()}{ReleasePartitions()}}
+{\footnotesize\ttfamily virtual \mbox{\hyperlink{classmilvus_1_1_status}{Status}} milvus\+::\+Milvus\+Client\+::\+Release\+Partitions (\begin{DoxyParamCaption}\item[{const std\+::string \&}]{collection\+\_\+name,  }\item[{const std\+::vector$<$ std\+::string $>$ \&}]{partition\+\_\+names }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [pure virtual]}}
+
+
+
+Release specific partitions data of one collection into query nodes. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ in}}  & {\em collection\+\_\+name} & name of the collection \\
+\hline
+\mbox{\texttt{ in}}  & {\em partition\+\_\+names} & name array of the partitions \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+\mbox{\hyperlink{classmilvus_1_1_status}{Status}} operation successfully or not 
+\end{DoxyReturn}
+\mbox{\Hypertarget{classmilvus_1_1_milvus_client_aec6eebbcef688044717fc45e4ee0aeb2}\label{classmilvus_1_1_milvus_client_aec6eebbcef688044717fc45e4ee0aeb2}} 
+\index{milvus::MilvusClient@{milvus::MilvusClient}!RemovePrivilegesFromGroup@{RemovePrivilegesFromGroup}}
+\index{RemovePrivilegesFromGroup@{RemovePrivilegesFromGroup}!milvus::MilvusClient@{milvus::MilvusClient}}
+\doxysubsubsection{\texorpdfstring{RemovePrivilegesFromGroup()}{RemovePrivilegesFromGroup()}}
+{\footnotesize\ttfamily virtual \mbox{\hyperlink{classmilvus_1_1_status}{Status}} milvus\+::\+Milvus\+Client\+::\+Remove\+Privileges\+From\+Group (\begin{DoxyParamCaption}\item[{const std\+::string \&}]{group\+\_\+name,  }\item[{const std\+::vector$<$ std\+::string $>$ \&}]{privileges }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [pure virtual]}}
+
+
+
+Remove privileges from a privilege group. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ in}}  & {\em group\+\_\+name} & name of the privilege group \\
+\hline
+\mbox{\texttt{ in}}  & {\em privileges} & a list of privileges \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+\mbox{\hyperlink{classmilvus_1_1_status}{Status}} operation successfully or not 
+\end{DoxyReturn}
+\mbox{\Hypertarget{classmilvus_1_1_milvus_client_afe19cf06cf9ee596315b26d4fa619316}\label{classmilvus_1_1_milvus_client_afe19cf06cf9ee596315b26d4fa619316}} 
+\index{milvus::MilvusClient@{milvus::MilvusClient}!RenameCollection@{RenameCollection}}
+\index{RenameCollection@{RenameCollection}!milvus::MilvusClient@{milvus::MilvusClient}}
+\doxysubsubsection{\texorpdfstring{RenameCollection()}{RenameCollection()}}
+{\footnotesize\ttfamily virtual \mbox{\hyperlink{classmilvus_1_1_status}{Status}} milvus\+::\+Milvus\+Client\+::\+Rename\+Collection (\begin{DoxyParamCaption}\item[{const std\+::string \&}]{collection\+\_\+name,  }\item[{const std\+::string \&}]{new\+\_\+collection\+\_\+name }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [pure virtual]}}
+
+
+
+Rename\+Collection rename a collection. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ in}}  & {\em collection\+\_\+name} & name of the collection \\
+\hline
+\mbox{\texttt{ in}}  & {\em new\+\_\+collection\+\_\+name} & new name of the collection \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+\mbox{\hyperlink{classmilvus_1_1_status}{Status}} operation successfully or not 
+\end{DoxyReturn}
+\mbox{\Hypertarget{classmilvus_1_1_milvus_client_a1ed6e474c29536031688b9bf3ade9050}\label{classmilvus_1_1_milvus_client_a1ed6e474c29536031688b9bf3ade9050}} 
+\index{milvus::MilvusClient@{milvus::MilvusClient}!RevokePrivilege@{RevokePrivilege}}
+\index{RevokePrivilege@{RevokePrivilege}!milvus::MilvusClient@{milvus::MilvusClient}}
+\doxysubsubsection{\texorpdfstring{RevokePrivilege()}{RevokePrivilege()}}
+{\footnotesize\ttfamily virtual \mbox{\hyperlink{classmilvus_1_1_status}{Status}} milvus\+::\+Milvus\+Client\+::\+Revoke\+Privilege (\begin{DoxyParamCaption}\item[{const std\+::string \&}]{role\+\_\+name,  }\item[{const std\+::string \&}]{privilege,  }\item[{const std\+::string \&}]{collection\+\_\+name,  }\item[{const std\+::string \&}]{db\+\_\+name }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [pure virtual]}}
+
+
+
+Revoke a privilege or a privilege group from a role. For more info\+: \href{https://milvus.io/docs/v2.4.x/users_and_roles.md}{\texttt{ https\+://milvus.\+io/docs/v2.\+4.\+x/users\+\_\+and\+\_\+roles.\+md}}. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ in}}  & {\em role\+\_\+name} & name of the role \\
+\hline
+\mbox{\texttt{ in}}  & {\em privilege} & the privilege or privilege group to revoke \\
+\hline
+\mbox{\texttt{ in}}  & {\em collection\+\_\+name} & name of a collection, \char`\"{}$\ast$\char`\"{} for all collections \\
+\hline
+\mbox{\texttt{ in}}  & {\em db\+\_\+name} & name of a database, \char`\"{}$\ast$\char`\"{} for all databases \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+\mbox{\hyperlink{classmilvus_1_1_status}{Status}} operation successfully or not 
+\end{DoxyReturn}
+\mbox{\Hypertarget{classmilvus_1_1_milvus_client_aeb576d7001cecadf250373ea2c5baca7}\label{classmilvus_1_1_milvus_client_aeb576d7001cecadf250373ea2c5baca7}} 
+\index{milvus::MilvusClient@{milvus::MilvusClient}!RevokeRole@{RevokeRole}}
+\index{RevokeRole@{RevokeRole}!milvus::MilvusClient@{milvus::MilvusClient}}
+\doxysubsubsection{\texorpdfstring{RevokeRole()}{RevokeRole()}}
+{\footnotesize\ttfamily virtual \mbox{\hyperlink{classmilvus_1_1_status}{Status}} milvus\+::\+Milvus\+Client\+::\+Revoke\+Role (\begin{DoxyParamCaption}\item[{const std\+::string \&}]{user\+\_\+name,  }\item[{const std\+::string \&}]{role\+\_\+name }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [pure virtual]}}
+
+
+
+Revoke a role from an user. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ in}}  & {\em user\+\_\+name} & name of the user \\
+\hline
+\mbox{\texttt{ in}}  & {\em role\+\_\+name} & name of the role \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+\mbox{\hyperlink{classmilvus_1_1_status}{Status}} operation successfully or not 
+\end{DoxyReturn}
+\mbox{\Hypertarget{classmilvus_1_1_milvus_client_a6fc4ad8b8b0acfcf1302495779dc54c4}\label{classmilvus_1_1_milvus_client_a6fc4ad8b8b0acfcf1302495779dc54c4}} 
+\index{milvus::MilvusClient@{milvus::MilvusClient}!RunAnalyzer@{RunAnalyzer}}
+\index{RunAnalyzer@{RunAnalyzer}!milvus::MilvusClient@{milvus::MilvusClient}}
+\doxysubsubsection{\texorpdfstring{RunAnalyzer()}{RunAnalyzer()}}
+{\footnotesize\ttfamily virtual \mbox{\hyperlink{classmilvus_1_1_status}{Status}} milvus\+::\+Milvus\+Client\+::\+Run\+Analyzer (\begin{DoxyParamCaption}\item[{const \mbox{\hyperlink{classmilvus_1_1_run_analyzer_arguments}{Run\+Analyzer\+Arguments}} \&}]{arguments,  }\item[{Analyzer\+Results \&}]{results }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [pure virtual]}}
+
+
+
+Run analyzer. Return result tokens of analysis. Milvus server supports this interface from v2.\+5.\+11. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ in}}  & {\em arguments} & analyzer arguments \\
+\hline
+\mbox{\texttt{ out}}  & {\em results} & analyzer results \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+\mbox{\hyperlink{classmilvus_1_1_status}{Status}} operation successfully or not 
+\end{DoxyReturn}
+\mbox{\Hypertarget{classmilvus_1_1_milvus_client_a46c70fc2b7c386003babd90e02b299d1}\label{classmilvus_1_1_milvus_client_a46c70fc2b7c386003babd90e02b299d1}} 
+\index{milvus::MilvusClient@{milvus::MilvusClient}!Search@{Search}}
+\index{Search@{Search}!milvus::MilvusClient@{milvus::MilvusClient}}
+\doxysubsubsection{\texorpdfstring{Search()}{Search()}}
+{\footnotesize\ttfamily virtual \mbox{\hyperlink{classmilvus_1_1_status}{Status}} milvus\+::\+Milvus\+Client\+::\+Search (\begin{DoxyParamCaption}\item[{const \mbox{\hyperlink{classmilvus_1_1_search_arguments}{Search\+Arguments}} \&}]{arguments,  }\item[{\mbox{\hyperlink{classmilvus_1_1_search_results}{Search\+Results}} \&}]{results }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [pure virtual]}}
+
+
+
+Search a collection based on the given parameters and return results. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ in}}  & {\em arguments} & search arguments \\
+\hline
+\mbox{\texttt{ out}}  & {\em results} & search results \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+\mbox{\hyperlink{classmilvus_1_1_status}{Status}} operation successfully or not 
+\end{DoxyReturn}
+\mbox{\Hypertarget{classmilvus_1_1_milvus_client_af64141205e7d5279a598ece74e2c4c3a}\label{classmilvus_1_1_milvus_client_af64141205e7d5279a598ece74e2c4c3a}} 
+\index{milvus::MilvusClient@{milvus::MilvusClient}!SearchIterator@{SearchIterator}}
+\index{SearchIterator@{SearchIterator}!milvus::MilvusClient@{milvus::MilvusClient}}
+\doxysubsubsection{\texorpdfstring{SearchIterator()}{SearchIterator()}}
+{\footnotesize\ttfamily virtual \mbox{\hyperlink{classmilvus_1_1_status}{Status}} milvus\+::\+Milvus\+Client\+::\+Search\+Iterator (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{classmilvus_1_1_search_iterator_arguments}{Search\+Iterator\+Arguments}} \&}]{arguments,  }\item[{Search\+Iterator\+Ptr \&}]{iterator }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [pure virtual]}}
+
+
+
+Get Search\+Iterator object based on scalar field(s) filtered by boolean expression. Note that the order of the returned entities cannot be guaranteed. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ in}}  & {\em arguments} & search iterator arguments \\
+\hline
+\mbox{\texttt{ out}}  & {\em iterator} & search iterator object \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+\mbox{\hyperlink{classmilvus_1_1_status}{Status}} operation successfully or not 
+\end{DoxyReturn}
+\mbox{\Hypertarget{classmilvus_1_1_milvus_client_aa2cfc59c60a4e0c376ce136b1a2148ee}\label{classmilvus_1_1_milvus_client_aa2cfc59c60a4e0c376ce136b1a2148ee}} 
+\index{milvus::MilvusClient@{milvus::MilvusClient}!SetRetryParam@{SetRetryParam}}
+\index{SetRetryParam@{SetRetryParam}!milvus::MilvusClient@{milvus::MilvusClient}}
+\doxysubsubsection{\texorpdfstring{SetRetryParam()}{SetRetryParam()}}
+{\footnotesize\ttfamily virtual \mbox{\hyperlink{classmilvus_1_1_status}{Status}} milvus\+::\+Milvus\+Client\+::\+Set\+Retry\+Param (\begin{DoxyParamCaption}\item[{const \mbox{\hyperlink{classmilvus_1_1_retry_param}{Retry\+Param}} \&}]{retry\+\_\+param }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [pure virtual]}}
+
+
+
+Reset retry rules for each RPC call. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ in}}  & {\em retry\+\_\+param} & retry rules \\
+\hline
+\end{DoxyParams}
+\mbox{\Hypertarget{classmilvus_1_1_milvus_client_a8c5d625d72056a6e4f2f98607ebd0051}\label{classmilvus_1_1_milvus_client_a8c5d625d72056a6e4f2f98607ebd0051}} 
+\index{milvus::MilvusClient@{milvus::MilvusClient}!ShowCollections@{ShowCollections}}
+\index{ShowCollections@{ShowCollections}!milvus::MilvusClient@{milvus::MilvusClient}}
+\doxysubsubsection{\texorpdfstring{ShowCollections()}{ShowCollections()}}
+{\footnotesize\ttfamily virtual \mbox{\hyperlink{classmilvus_1_1_status}{Status}} milvus\+::\+Milvus\+Client\+::\+Show\+Collections (\begin{DoxyParamCaption}\item[{const std\+::vector$<$ std\+::string $>$ \&}]{collection\+\_\+names,  }\item[{\mbox{\hyperlink{namespacemilvus_aca75f624e858185d26527e9c47b40ed6}{Collections\+Info}} \&}]{collections\+\_\+info }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [pure virtual]}}
+
+
+
+If the collection\+\_\+names is empty, list all collections brief information\textquotesingle{}s. If the collection\+\_\+names is specified, return the specified collection\textquotesingle{}s loading process state. 
+
+\begin{DoxyRefDesc}{Deprecated}
+\item[\mbox{\hyperlink{deprecated__deprecated000002}{Deprecated}}]In v2.\+4, the parameter collection\+\_\+names is no longer work, use the \mbox{\hyperlink{classmilvus_1_1_milvus_client_a23d8be8f5fe079419de91b0b3a9825b0}{List\+Collections()}} instead.\end{DoxyRefDesc}
+
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ in}}  & {\em collection\+\_\+names} & name array of collections \\
+\hline
+\mbox{\texttt{ out}}  & {\em collections\+\_\+info} & brief information\textquotesingle{}s of the collections \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+\mbox{\hyperlink{classmilvus_1_1_status}{Status}} operation successfully or not 
+\end{DoxyReturn}
+\mbox{\Hypertarget{classmilvus_1_1_milvus_client_a12b481158b57a806f8d341178348f735}\label{classmilvus_1_1_milvus_client_a12b481158b57a806f8d341178348f735}} 
+\index{milvus::MilvusClient@{milvus::MilvusClient}!ShowPartitions@{ShowPartitions}}
+\index{ShowPartitions@{ShowPartitions}!milvus::MilvusClient@{milvus::MilvusClient}}
+\doxysubsubsection{\texorpdfstring{ShowPartitions()}{ShowPartitions()}}
+{\footnotesize\ttfamily virtual \mbox{\hyperlink{classmilvus_1_1_status}{Status}} milvus\+::\+Milvus\+Client\+::\+Show\+Partitions (\begin{DoxyParamCaption}\item[{const std\+::string \&}]{collection\+\_\+name,  }\item[{const std\+::vector$<$ std\+::string $>$ \&}]{partition\+\_\+names,  }\item[{\mbox{\hyperlink{namespacemilvus_affb31ba1d459f7fa231ffda305c08733}{Partitions\+Info}} \&}]{partitions\+\_\+info }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [pure virtual]}}
+
+
+
+If the partition\+\_\+names is empty, list all partitions brief information\textquotesingle{}s. If the partition\+\_\+names is specified, return the specified partition\textquotesingle{}s loading process state. 
+
+\begin{DoxyRefDesc}{Deprecated}
+\item[\mbox{\hyperlink{deprecated__deprecated000003}{Deprecated}}]In v2.\+4, the parameter partition\+\_\+names is no longer work, use the \mbox{\hyperlink{classmilvus_1_1_milvus_client_ad7dd61f9c3127a88c330d7250ae7dad8}{List\+Partitions()}} instead.\end{DoxyRefDesc}
+
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ in}}  & {\em collection\+\_\+name} & name of the collection \\
+\hline
+\mbox{\texttt{ in}}  & {\em partition\+\_\+names} & name array of the partitions \\
+\hline
+\mbox{\texttt{ out}}  & {\em partitions\+\_\+info} & brief information\textquotesingle{}s of the partitions \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+\mbox{\hyperlink{classmilvus_1_1_status}{Status}} operation successfully or not 
+\end{DoxyReturn}
+\mbox{\Hypertarget{classmilvus_1_1_milvus_client_af232cbfe6275bc98f1a2764c2891233b}\label{classmilvus_1_1_milvus_client_af232cbfe6275bc98f1a2764c2891233b}} 
+\index{milvus::MilvusClient@{milvus::MilvusClient}!TransferNode@{TransferNode}}
+\index{TransferNode@{TransferNode}!milvus::MilvusClient@{milvus::MilvusClient}}
+\doxysubsubsection{\texorpdfstring{TransferNode()}{TransferNode()}}
+{\footnotesize\ttfamily virtual \mbox{\hyperlink{classmilvus_1_1_status}{Status}} milvus\+::\+Milvus\+Client\+::\+Transfer\+Node (\begin{DoxyParamCaption}\item[{const std\+::string \&}]{source\+\_\+group,  }\item[{const std\+::string \&}]{target\+\_\+group,  }\item[{uint32\+\_\+t}]{num\+\_\+nodes }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [pure virtual]}}
+
+
+
+Transfer nodes to another resource groups. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ in}}  & {\em source\+\_\+group} & name of the source resource group \\
+\hline
+\mbox{\texttt{ in}}  & {\em target\+\_\+group} & name of the target resource group \\
+\hline
+\mbox{\texttt{ in}}  & {\em num\+\_\+nodes} & number of nodes to be transfered \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+\mbox{\hyperlink{classmilvus_1_1_status}{Status}} operation successfully or not 
+\end{DoxyReturn}
+\mbox{\Hypertarget{classmilvus_1_1_milvus_client_a6118885bcfe233db5d4a8d49f7457fb8}\label{classmilvus_1_1_milvus_client_a6118885bcfe233db5d4a8d49f7457fb8}} 
+\index{milvus::MilvusClient@{milvus::MilvusClient}!TransferReplica@{TransferReplica}}
+\index{TransferReplica@{TransferReplica}!milvus::MilvusClient@{milvus::MilvusClient}}
+\doxysubsubsection{\texorpdfstring{TransferReplica()}{TransferReplica()}}
+{\footnotesize\ttfamily virtual \mbox{\hyperlink{classmilvus_1_1_status}{Status}} milvus\+::\+Milvus\+Client\+::\+Transfer\+Replica (\begin{DoxyParamCaption}\item[{const std\+::string \&}]{source\+\_\+group,  }\item[{const std\+::string \&}]{target\+\_\+group,  }\item[{const std\+::string \&}]{collection\+\_\+name,  }\item[{uint32\+\_\+t}]{num\+\_\+replicas }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [pure virtual]}}
+
+
+
+Transfer replicas of a collection from source group to target group. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ in}}  & {\em source\+\_\+group} & name of the source resource group \\
+\hline
+\mbox{\texttt{ in}}  & {\em target\+\_\+group} & name of the target resource group \\
+\hline
+\mbox{\texttt{ in}}  & {\em collection\+\_\+name} & name of a collection \\
+\hline
+\mbox{\texttt{ in}}  & {\em num\+\_\+replicas} & number of replicas to be transfered \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+\mbox{\hyperlink{classmilvus_1_1_status}{Status}} operation successfully or not 
+\end{DoxyReturn}
+\mbox{\Hypertarget{classmilvus_1_1_milvus_client_ac53676eb10e84a04d3e0f9f2d69bf3f5}\label{classmilvus_1_1_milvus_client_ac53676eb10e84a04d3e0f9f2d69bf3f5}} 
+\index{milvus::MilvusClient@{milvus::MilvusClient}!UpdateCredential@{UpdateCredential}}
+\index{UpdateCredential@{UpdateCredential}!milvus::MilvusClient@{milvus::MilvusClient}}
+\doxysubsubsection{\texorpdfstring{UpdateCredential()}{UpdateCredential()}}
+{\footnotesize\ttfamily virtual \mbox{\hyperlink{classmilvus_1_1_status}{Status}} milvus\+::\+Milvus\+Client\+::\+Update\+Credential (\begin{DoxyParamCaption}\item[{const std\+::string \&}]{username,  }\item[{const std\+::string \&}]{old\+\_\+password,  }\item[{const std\+::string \&}]{new\+\_\+password }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [pure virtual]}}
+
+
+
+Update Credential. 
+
+\begin{DoxyRefDesc}{Deprecated}
+\item[\mbox{\hyperlink{deprecated__deprecated000005}{Deprecated}}]replaced by \mbox{\hyperlink{classmilvus_1_1_milvus_client_a2652488359729a6ba8cc17d3a8b98b31}{Update\+Password()}} in v2.\+4\end{DoxyRefDesc}
+
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ in}}  & {\em username} & the username for updated \\
+\hline
+\mbox{\texttt{ in}}  & {\em old\+\_\+password} & the old password for the user \\
+\hline
+\mbox{\texttt{ in}}  & {\em new\+\_\+password} & the updated password for the user \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+\mbox{\hyperlink{classmilvus_1_1_status}{Status}} operation successfully or not 
+\end{DoxyReturn}
+\mbox{\Hypertarget{classmilvus_1_1_milvus_client_a2652488359729a6ba8cc17d3a8b98b31}\label{classmilvus_1_1_milvus_client_a2652488359729a6ba8cc17d3a8b98b31}} 
+\index{milvus::MilvusClient@{milvus::MilvusClient}!UpdatePassword@{UpdatePassword}}
+\index{UpdatePassword@{UpdatePassword}!milvus::MilvusClient@{milvus::MilvusClient}}
+\doxysubsubsection{\texorpdfstring{UpdatePassword()}{UpdatePassword()}}
+{\footnotesize\ttfamily virtual \mbox{\hyperlink{classmilvus_1_1_status}{Status}} milvus\+::\+Milvus\+Client\+::\+Update\+Password (\begin{DoxyParamCaption}\item[{const std\+::string \&}]{user\+\_\+name,  }\item[{const std\+::string \&}]{old\+\_\+password,  }\item[{const std\+::string \&}]{new\+\_\+password }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [pure virtual]}}
+
+
+
+Update password of an user. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ in}}  & {\em user\+\_\+name} & name of the user \\
+\hline
+\mbox{\texttt{ in}}  & {\em old\+\_\+password} & the old password for the user \\
+\hline
+\mbox{\texttt{ in}}  & {\em new\+\_\+password} & the updated password for the user \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+\mbox{\hyperlink{classmilvus_1_1_status}{Status}} operation successfully or not 
+\end{DoxyReturn}
+\mbox{\Hypertarget{classmilvus_1_1_milvus_client_a32a92e5a53188904b98d2c09232d5a23}\label{classmilvus_1_1_milvus_client_a32a92e5a53188904b98d2c09232d5a23}} 
+\index{milvus::MilvusClient@{milvus::MilvusClient}!UpdateResourceGroups@{UpdateResourceGroups}}
+\index{UpdateResourceGroups@{UpdateResourceGroups}!milvus::MilvusClient@{milvus::MilvusClient}}
+\doxysubsubsection{\texorpdfstring{UpdateResourceGroups()}{UpdateResourceGroups()}}
+{\footnotesize\ttfamily virtual \mbox{\hyperlink{classmilvus_1_1_status}{Status}} milvus\+::\+Milvus\+Client\+::\+Update\+Resource\+Groups (\begin{DoxyParamCaption}\item[{const std\+::unordered\+\_\+map$<$ std\+::string, \mbox{\hyperlink{classmilvus_1_1_resource_group_config}{Resource\+Group\+Config}} $>$ \&}]{groups }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [pure virtual]}}
+
+
+
+Update resource groups. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ in}}  & {\em name} & name of the resource group \\
+\hline
+\mbox{\texttt{ in}}  & {\em groups} & configurations of the resource groups \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+\mbox{\hyperlink{classmilvus_1_1_status}{Status}} operation successfully or not 
+\end{DoxyReturn}
+\mbox{\Hypertarget{classmilvus_1_1_milvus_client_addf0736a66a40f073ab39e4b8181fbd6}\label{classmilvus_1_1_milvus_client_addf0736a66a40f073ab39e4b8181fbd6}} 
+\index{milvus::MilvusClient@{milvus::MilvusClient}!Upsert@{Upsert}}
+\index{Upsert@{Upsert}!milvus::MilvusClient@{milvus::MilvusClient}}
+\doxysubsubsection{\texorpdfstring{Upsert()}{Upsert()}\hspace{0.1cm}{\footnotesize\ttfamily [1/2]}}
+{\footnotesize\ttfamily virtual \mbox{\hyperlink{classmilvus_1_1_status}{Status}} milvus\+::\+Milvus\+Client\+::\+Upsert (\begin{DoxyParamCaption}\item[{const std\+::string \&}]{collection\+\_\+name,  }\item[{const std\+::string \&}]{partition\+\_\+name,  }\item[{const Entity\+Rows \&}]{rows,  }\item[{\mbox{\hyperlink{classmilvus_1_1_dml_results}{Dml\+Results}} \&}]{results }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [pure virtual]}}
+
+
+
+Upsert rows into a collection. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ in}}  & {\em collection\+\_\+name} & name of the collection \\
+\hline
+\mbox{\texttt{ in}}  & {\em partition\+\_\+name} & name of the partition, optional(pass an empty string to skip) \\
+\hline
+\mbox{\texttt{ in}}  & {\em fields} & upsedrt rows \\
+\hline
+\mbox{\texttt{ out}}  & {\em results} & upsedrt results \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+\mbox{\hyperlink{classmilvus_1_1_status}{Status}} operation successfully or not 
+\end{DoxyReturn}
+\mbox{\Hypertarget{classmilvus_1_1_milvus_client_afb04bce18eb5b65899f7510d710a8448}\label{classmilvus_1_1_milvus_client_afb04bce18eb5b65899f7510d710a8448}} 
+\index{milvus::MilvusClient@{milvus::MilvusClient}!Upsert@{Upsert}}
+\index{Upsert@{Upsert}!milvus::MilvusClient@{milvus::MilvusClient}}
+\doxysubsubsection{\texorpdfstring{Upsert()}{Upsert()}\hspace{0.1cm}{\footnotesize\ttfamily [2/2]}}
+{\footnotesize\ttfamily virtual \mbox{\hyperlink{classmilvus_1_1_status}{Status}} milvus\+::\+Milvus\+Client\+::\+Upsert (\begin{DoxyParamCaption}\item[{const std\+::string \&}]{collection\+\_\+name,  }\item[{const std\+::string \&}]{partition\+\_\+name,  }\item[{const std\+::vector$<$ Field\+Data\+Ptr $>$ \&}]{fields,  }\item[{\mbox{\hyperlink{classmilvus_1_1_dml_results}{Dml\+Results}} \&}]{results }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [pure virtual]}}
+
+
+
+Upsert entities into a collection. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ in}}  & {\em collection\+\_\+name} & name of the collection \\
+\hline
+\mbox{\texttt{ in}}  & {\em partition\+\_\+name} & name of the partition, optional(pass an empty string to skip) \\
+\hline
+\mbox{\texttt{ in}}  & {\em fields} & upsedrt data \\
+\hline
+\mbox{\texttt{ out}}  & {\em results} & upsedrt results \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+\mbox{\hyperlink{classmilvus_1_1_status}{Status}} operation successfully or not 
+\end{DoxyReturn}
+\mbox{\Hypertarget{classmilvus_1_1_milvus_client_ace5a955cc9e661c52400928cf288e997}\label{classmilvus_1_1_milvus_client_ace5a955cc9e661c52400928cf288e997}} 
+\index{milvus::MilvusClient@{milvus::MilvusClient}!UseDatabase@{UseDatabase}}
+\index{UseDatabase@{UseDatabase}!milvus::MilvusClient@{milvus::MilvusClient}}
+\doxysubsubsection{\texorpdfstring{UseDatabase()}{UseDatabase()}}
+{\footnotesize\ttfamily virtual \mbox{\hyperlink{classmilvus_1_1_status}{Status}} milvus\+::\+Milvus\+Client\+::\+Use\+Database (\begin{DoxyParamCaption}\item[{const std\+::string \&}]{db\+\_\+name }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [pure virtual]}}
+
+
+
+Switch connection to another database. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ in}}  & {\em db\+\_\+name} & name of the database \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+\mbox{\hyperlink{classmilvus_1_1_status}{Status}} operation successfully or not 
+\end{DoxyReturn}
+
+
+The documentation for this class was generated from the following files\+:\begin{DoxyCompactItemize}
+\item 
+src/include/milvus/Milvus\+Client.\+h\item 
+src/impl/Milvus\+Client\+Impl.\+cpp\end{DoxyCompactItemize}

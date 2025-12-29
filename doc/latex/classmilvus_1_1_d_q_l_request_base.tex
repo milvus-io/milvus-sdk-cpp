@@ -1,0 +1,66 @@
+\hypertarget{classmilvus_1_1_d_q_l_request_base}{}\doxysection{milvus\+::DQLRequest\+Base Class Reference}
+\label{classmilvus_1_1_d_q_l_request_base}\index{milvus::DQLRequestBase@{milvus::DQLRequestBase}}
+
+
+Base class for DQL requests.  
+
+
+
+
+{\ttfamily \#include $<$DQLRequest\+Base.\+h$>$}
+
+
+
+Inherited by \mbox{\hyperlink{classmilvus_1_1_hybrid_search_request}{milvus\+::\+Hybrid\+Search\+Request}}, \mbox{\hyperlink{classmilvus_1_1_query_request}{milvus\+::\+Query\+Request}}, and \mbox{\hyperlink{classmilvus_1_1_search_request}{milvus\+::\+Search\+Request}}.
+
+\doxysubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{classmilvus_1_1_d_q_l_request_base_a4ff2845fe457e566209a249952d4e417}\label{classmilvus_1_1_d_q_l_request_base_a4ff2845fe457e566209a249952d4e417}} 
+const std\+::string \& \mbox{\hyperlink{classmilvus_1_1_d_q_l_request_base_a4ff2845fe457e566209a249952d4e417}{Database\+Name}} () const
+\begin{DoxyCompactList}\small\item\em Get the target db name. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_d_q_l_request_base_ada288cb295cb2fe85f35b792404bdde4}\label{classmilvus_1_1_d_q_l_request_base_ada288cb295cb2fe85f35b792404bdde4}} 
+void \mbox{\hyperlink{classmilvus_1_1_d_q_l_request_base_ada288cb295cb2fe85f35b792404bdde4}{Set\+Database\+Name}} (const std\+::string \&db\+\_\+name)
+\begin{DoxyCompactList}\small\item\em Set target db name, use default database if it is empty. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_d_q_l_request_base_a5104aff8dee5e68cc799717f12b49045}\label{classmilvus_1_1_d_q_l_request_base_a5104aff8dee5e68cc799717f12b49045}} 
+\mbox{\hyperlink{classmilvus_1_1_d_q_l_request_base}{DQLRequest\+Base}} \& \mbox{\hyperlink{classmilvus_1_1_d_q_l_request_base_a5104aff8dee5e68cc799717f12b49045}{With\+Database\+Name}} (const std\+::string \&db\+\_\+name)
+\begin{DoxyCompactList}\small\item\em Set target db name, use default database if it is empty. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_d_q_l_request_base_aaaf107dc91291311150c22992ac89ae8}\label{classmilvus_1_1_d_q_l_request_base_aaaf107dc91291311150c22992ac89ae8}} 
+const std\+::string \& \mbox{\hyperlink{classmilvus_1_1_d_q_l_request_base_aaaf107dc91291311150c22992ac89ae8}{Collection\+Name}} () const
+\begin{DoxyCompactList}\small\item\em Get the collection name. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_d_q_l_request_base_ac5d6963253ebbc251368401870583f19}\label{classmilvus_1_1_d_q_l_request_base_ac5d6963253ebbc251368401870583f19}} 
+void \mbox{\hyperlink{classmilvus_1_1_d_q_l_request_base_ac5d6963253ebbc251368401870583f19}{Set\+Collection\+Name}} (const std\+::string \&collection\+\_\+name)
+\begin{DoxyCompactList}\small\item\em Set the collection name. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_d_q_l_request_base_ac1162cc95dfe8b0274065bfa24946d37}\label{classmilvus_1_1_d_q_l_request_base_ac1162cc95dfe8b0274065bfa24946d37}} 
+const std\+::set$<$ std\+::string $>$ \& \mbox{\hyperlink{classmilvus_1_1_d_q_l_request_base_ac1162cc95dfe8b0274065bfa24946d37}{Partition\+Names}} () const
+\begin{DoxyCompactList}\small\item\em Get the partition names. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_d_q_l_request_base_abdd423a7978d7d05a990a79327afcdb4}\label{classmilvus_1_1_d_q_l_request_base_abdd423a7978d7d05a990a79327afcdb4}} 
+void \mbox{\hyperlink{classmilvus_1_1_d_q_l_request_base_abdd423a7978d7d05a990a79327afcdb4}{Set\+Partition\+Names}} (std\+::set$<$ std\+::string $>$ \&\&partition\+\_\+names)
+\begin{DoxyCompactList}\small\item\em Set the partition names. If partition nemes are empty, will query in the entire collection. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_d_q_l_request_base_a46a1e611c964174509bb317eebb47441}\label{classmilvus_1_1_d_q_l_request_base_a46a1e611c964174509bb317eebb47441}} 
+void \mbox{\hyperlink{classmilvus_1_1_d_q_l_request_base_a46a1e611c964174509bb317eebb47441}{Add\+Partition\+Name}} (const std\+::string \&partition\+\_\+name)
+\begin{DoxyCompactList}\small\item\em Add a partition name. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_d_q_l_request_base_af0addd36a9124b0f26d23e6c68b85e4a}\label{classmilvus_1_1_d_q_l_request_base_af0addd36a9124b0f26d23e6c68b85e4a}} 
+const std\+::set$<$ std\+::string $>$ \& \mbox{\hyperlink{classmilvus_1_1_d_q_l_request_base_af0addd36a9124b0f26d23e6c68b85e4a}{Output\+Fields}} () const
+\begin{DoxyCompactList}\small\item\em Get the output field names. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_d_q_l_request_base_ae0afcc8505ba4c02c74bdb3665c7b101}\label{classmilvus_1_1_d_q_l_request_base_ae0afcc8505ba4c02c74bdb3665c7b101}} 
+void \mbox{\hyperlink{classmilvus_1_1_d_q_l_request_base_ae0afcc8505ba4c02c74bdb3665c7b101}{Set\+Output\+Fields}} (std\+::set$<$ std\+::string $>$ \&\&output\+\_\+field\+\_\+names)
+\begin{DoxyCompactList}\small\item\em Set the output field names. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_d_q_l_request_base_a26f6b177002db945c118139930638eec}\label{classmilvus_1_1_d_q_l_request_base_a26f6b177002db945c118139930638eec}} 
+void \mbox{\hyperlink{classmilvus_1_1_d_q_l_request_base_a26f6b177002db945c118139930638eec}{Add\+Output\+Field}} (const std\+::string \&output\+\_\+field)
+\begin{DoxyCompactList}\small\item\em Add an output field. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_d_q_l_request_base_a2f404d4bad821fd3f5ea04b4023a3210}\label{classmilvus_1_1_d_q_l_request_base_a2f404d4bad821fd3f5ea04b4023a3210}} 
+\+::\mbox{\hyperlink{namespacemilvus_a26e8c5ec421df0853e145d04d0fbb414}{milvus\+::\+Consistency\+Level}} \mbox{\hyperlink{classmilvus_1_1_d_q_l_request_base_a2f404d4bad821fd3f5ea04b4023a3210}{Get\+Consistency\+Level}} () const
+\begin{DoxyCompactList}\small\item\em Get the consistency level. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_d_q_l_request_base_a287019dd6c69a2e183ca31dd109994a1}\label{classmilvus_1_1_d_q_l_request_base_a287019dd6c69a2e183ca31dd109994a1}} 
+void \mbox{\hyperlink{classmilvus_1_1_d_q_l_request_base_a287019dd6c69a2e183ca31dd109994a1}{Set\+Consistency\+Level}} (\+::\mbox{\hyperlink{namespacemilvus_a26e8c5ec421df0853e145d04d0fbb414}{milvus\+::\+Consistency\+Level}} consistency\+\_\+level)
+\begin{DoxyCompactList}\small\item\em Set the consistency level. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+Base class for DQL requests. 
+
+The documentation for this class was generated from the following files\+:\begin{DoxyCompactItemize}
+\item 
+src/include/milvus/request/dql/DQLRequest\+Base.\+h\item 
+src/impl/request/dql/DQLRequest\+Base.\+cpp\end{DoxyCompactItemize}

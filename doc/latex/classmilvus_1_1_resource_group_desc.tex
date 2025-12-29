@@ -1,0 +1,71 @@
+\hypertarget{classmilvus_1_1_resource_group_desc}{}\doxysection{milvus\+::Resource\+Group\+Desc Class Reference}
+\label{classmilvus_1_1_resource_group_desc}\index{milvus::ResourceGroupDesc@{milvus::ResourceGroupDesc}}
+
+
+Resource group descriptions for \mbox{\hyperlink{classmilvus_1_1_milvus_client_a879a0b051b7b96e1d687df0c021c8a48}{Milvus\+Client\+::\+Create\+Resource\+Group()}}  
+
+
+
+
+{\ttfamily \#include $<$Resource\+Group\+Desc.\+h$>$}
+
+\doxysubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{classmilvus_1_1_resource_group_desc_af78db863389bc5df661ca7837d84b446}\label{classmilvus_1_1_resource_group_desc_af78db863389bc5df661ca7837d84b446}} 
+const std\+::string \& \mbox{\hyperlink{classmilvus_1_1_resource_group_desc_af78db863389bc5df661ca7837d84b446}{Name}} () const
+\begin{DoxyCompactList}\small\item\em Name of the resource group. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_resource_group_desc_a906234814c3402e659df692730fa78de}\label{classmilvus_1_1_resource_group_desc_a906234814c3402e659df692730fa78de}} 
+void \mbox{\hyperlink{classmilvus_1_1_resource_group_desc_a906234814c3402e659df692730fa78de}{Set\+Name}} (const std\+::string \&name)
+\begin{DoxyCompactList}\small\item\em Set name of the resource group. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_resource_group_desc_a68e65462803f93d81690ed95686e071f}\label{classmilvus_1_1_resource_group_desc_a68e65462803f93d81690ed95686e071f}} 
+uint32\+\_\+t \mbox{\hyperlink{classmilvus_1_1_resource_group_desc_a68e65462803f93d81690ed95686e071f}{Capacity}} () const
+\begin{DoxyCompactList}\small\item\em Capacity of requested nodes. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_resource_group_desc_ad7fc55f9050c9cb619592877d9dfd681}\label{classmilvus_1_1_resource_group_desc_ad7fc55f9050c9cb619592877d9dfd681}} 
+void \mbox{\hyperlink{classmilvus_1_1_resource_group_desc_ad7fc55f9050c9cb619592877d9dfd681}{Set\+Capacity}} (uint32\+\_\+t capacity)
+\begin{DoxyCompactList}\small\item\em Set capacity of requested nodes. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_resource_group_desc_aa08dfb9d2b05529ba5a3f645c7749dc1}\label{classmilvus_1_1_resource_group_desc_aa08dfb9d2b05529ba5a3f645c7749dc1}} 
+uint32\+\_\+t \mbox{\hyperlink{classmilvus_1_1_resource_group_desc_aa08dfb9d2b05529ba5a3f645c7749dc1}{Available\+Nodes\+Num}} () const
+\begin{DoxyCompactList}\small\item\em Number of available nodes. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_resource_group_desc_afe44debd6c9b8386a4740b44c655e19b}\label{classmilvus_1_1_resource_group_desc_afe44debd6c9b8386a4740b44c655e19b}} 
+void \mbox{\hyperlink{classmilvus_1_1_resource_group_desc_afe44debd6c9b8386a4740b44c655e19b}{Set\+Available\+Nodes\+Num}} (uint32\+\_\+t num)
+\begin{DoxyCompactList}\small\item\em Set number of available nodes. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_resource_group_desc_a0b74ae41c8489aff8008fe8b725ae21d}\label{classmilvus_1_1_resource_group_desc_a0b74ae41c8489aff8008fe8b725ae21d}} 
+const std\+::unordered\+\_\+map$<$ std\+::string, uint32\+\_\+t $>$ \& \mbox{\hyperlink{classmilvus_1_1_resource_group_desc_a0b74ae41c8489aff8008fe8b725ae21d}{Loaded\+Replicas\+Num}} () const
+\begin{DoxyCompactList}\small\item\em Loaded replica number for each collection. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_resource_group_desc_a4bdb3dc72e60eb17ba3fea52512df5ba}\label{classmilvus_1_1_resource_group_desc_a4bdb3dc72e60eb17ba3fea52512df5ba}} 
+void \mbox{\hyperlink{classmilvus_1_1_resource_group_desc_a4bdb3dc72e60eb17ba3fea52512df5ba}{Add\+Loaded\+Replicas\+Num}} (const std\+::string \&collection\+\_\+name, uint32\+\_\+t num)
+\begin{DoxyCompactList}\small\item\em Set loaded replica number for a collection. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_resource_group_desc_aeeba1b7998d1dff005d55fc5546b6d64}\label{classmilvus_1_1_resource_group_desc_aeeba1b7998d1dff005d55fc5546b6d64}} 
+const std\+::unordered\+\_\+map$<$ std\+::string, uint32\+\_\+t $>$ \& \mbox{\hyperlink{classmilvus_1_1_resource_group_desc_aeeba1b7998d1dff005d55fc5546b6d64}{Outgoing\+Nodes\+Num}} () const
+\begin{DoxyCompactList}\small\item\em Accessed other resource group\textquotesingle{}s nodes number for each collection. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_resource_group_desc_af06722adfb7d56402463c6dfaa39038b}\label{classmilvus_1_1_resource_group_desc_af06722adfb7d56402463c6dfaa39038b}} 
+void \mbox{\hyperlink{classmilvus_1_1_resource_group_desc_af06722adfb7d56402463c6dfaa39038b}{Add\+Outgoing\+Nodes\+Num}} (const std\+::string \&collection\+\_\+name, uint32\+\_\+t num)
+\begin{DoxyCompactList}\small\item\em Set accessed other resource group\textquotesingle{}s nodes number of a collection. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_resource_group_desc_ab70234a3204d0acb3b8b70a95062bf26}\label{classmilvus_1_1_resource_group_desc_ab70234a3204d0acb3b8b70a95062bf26}} 
+const std\+::unordered\+\_\+map$<$ std\+::string, uint32\+\_\+t $>$ \& \mbox{\hyperlink{classmilvus_1_1_resource_group_desc_ab70234a3204d0acb3b8b70a95062bf26}{Incoming\+Nodes\+Num}} () const
+\begin{DoxyCompactList}\small\item\em The number of nodes be accessed by other resource groups for each collection. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_resource_group_desc_a96f370b342c45cafad87e8caaec27907}\label{classmilvus_1_1_resource_group_desc_a96f370b342c45cafad87e8caaec27907}} 
+void \mbox{\hyperlink{classmilvus_1_1_resource_group_desc_a96f370b342c45cafad87e8caaec27907}{Add\+Incoming\+Nodes\+Num}} (const std\+::string \&collection\+\_\+name, uint32\+\_\+t num)
+\begin{DoxyCompactList}\small\item\em Set the number of nodes be accessed by other resource groups of a collection. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_resource_group_desc_ab846e5cae421285dd7d0036c9ae17637}\label{classmilvus_1_1_resource_group_desc_ab846e5cae421285dd7d0036c9ae17637}} 
+const \mbox{\hyperlink{classmilvus_1_1_resource_group_config}{Resource\+Group\+Config}} \& \mbox{\hyperlink{classmilvus_1_1_resource_group_desc_ab846e5cae421285dd7d0036c9ae17637}{Config}} () const
+\begin{DoxyCompactList}\small\item\em Configurations of the resource group. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_resource_group_desc_afe23ea49016acd257582a5134580ebd3}\label{classmilvus_1_1_resource_group_desc_afe23ea49016acd257582a5134580ebd3}} 
+void \mbox{\hyperlink{classmilvus_1_1_resource_group_desc_afe23ea49016acd257582a5134580ebd3}{Set\+Config}} (\mbox{\hyperlink{classmilvus_1_1_resource_group_config}{Resource\+Group\+Config}} \&\&config)
+\begin{DoxyCompactList}\small\item\em Set configurations of the resource group. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_resource_group_desc_a58a9df3f70c4d549836a8040da26553b}\label{classmilvus_1_1_resource_group_desc_a58a9df3f70c4d549836a8040da26553b}} 
+const std\+::vector$<$ \mbox{\hyperlink{structmilvus_1_1_node_info}{Node\+Info}} $>$ \& \mbox{\hyperlink{classmilvus_1_1_resource_group_desc_a58a9df3f70c4d549836a8040da26553b}{Nodes}} () const
+\begin{DoxyCompactList}\small\item\em Basic informations of all nodes in the resource group. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_resource_group_desc_acad15ae0d1c4d38227565f822e23d19d}\label{classmilvus_1_1_resource_group_desc_acad15ae0d1c4d38227565f822e23d19d}} 
+void \mbox{\hyperlink{classmilvus_1_1_resource_group_desc_acad15ae0d1c4d38227565f822e23d19d}{Add\+Node}} (\mbox{\hyperlink{structmilvus_1_1_node_info}{Node\+Info}} \&\&node)
+\begin{DoxyCompactList}\small\item\em Add a basic informations of a node. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+Resource group descriptions for \mbox{\hyperlink{classmilvus_1_1_milvus_client_a879a0b051b7b96e1d687df0c021c8a48}{Milvus\+Client\+::\+Create\+Resource\+Group()}} 
+
+The documentation for this class was generated from the following files\+:\begin{DoxyCompactItemize}
+\item 
+src/include/milvus/types/Resource\+Group\+Desc.\+h\item 
+src/impl/types/Resource\+Group\+Desc.\+cpp\end{DoxyCompactItemize}
