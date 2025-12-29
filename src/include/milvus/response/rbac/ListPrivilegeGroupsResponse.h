@@ -30,10 +30,15 @@ class ListPrivilegeGroupsResponse {
      */
     ListPrivilegeGroupsResponse() = default;
 
-    // Getter and Setter for role_names_
+    /**
+     * @brief Get informations of privilege groups.
+     */
     const PrivilegeGroupInfos&
     Groups() const;
 
+    /**
+     * @brief Set informations of privilege groups.
+     */
     void
     SetGroups(PrivilegeGroupInfos&& groups);
 

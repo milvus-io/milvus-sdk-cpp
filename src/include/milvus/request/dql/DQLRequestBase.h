@@ -50,25 +50,25 @@ class DQLRequestBase {
     WithDatabaseName(const std::string& db_name);
 
     /**
-     * @brief Get the collection name
+     * @brief Get the collection name.
      */
     const std::string&
     CollectionName() const;
 
     /**
-     * @brief Set the collection name/
+     * @brief Set the collection name.
      */
     void
     SetCollectionName(const std::string& collection_name);
 
     /**
-     * @brief Get the partition names/
+     * @brief Get the partition names.
      */
     const std::set<std::string>&
     PartitionNames() const;
 
     /**
-     * @brief Set the partition names/
+     * @brief Set the partition names.
      * If partition nemes are empty, will query in the entire collection.
      */
     void
@@ -81,13 +81,13 @@ class DQLRequestBase {
     AddPartitionName(const std::string& partition_name);
 
     /**
-     * @brief Get the output field names/
+     * @brief Get the output field names.
      */
     const std::set<std::string>&
     OutputFields() const;
 
     /**
-     * @brief Set the output field names
+     * @brief Set the output field names.
      */
     void
     SetOutputFields(std::set<std::string>&& output_field_names);
@@ -99,13 +99,13 @@ class DQLRequestBase {
     AddOutputField(const std::string& output_field);
 
     /**
-     * @brief Get the consistency level
+     * @brief Get the consistency level.
      */
     ::milvus::ConsistencyLevel
     GetConsistencyLevel() const;
 
     /**
-     * @brief Set the consistency level
+     * @brief Set the consistency level.
      */
     void
     SetConsistencyLevel(::milvus::ConsistencyLevel consistency_level);

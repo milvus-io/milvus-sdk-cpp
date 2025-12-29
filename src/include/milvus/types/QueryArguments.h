@@ -71,7 +71,7 @@ class QueryArguments {
     AddPartitionName(std::string partition_name);
 
     /**
-     * @brief Get output field names
+     * @brief Get output field names.
      */
     const std::set<std::string>&
     OutputFields() const;
@@ -94,7 +94,7 @@ class QueryArguments {
     SetFilter(std::string filter);
 
     /**
-     * @brief Add a filter template
+     * @brief Add a filter template.
      * Expression template, to improve expression parsing performance in complicated list.
      * Assume user has a filter = "pk > 3 and city in ["beijing", "shanghai", ......]
      * The long list of city will increase the time cost to parse this expression.
@@ -102,13 +102,13 @@ class QueryArguments {
      *     filter = "pk > {age} and city in {city}"
      *     filterTemplate = {"age": 3, "city": ["beijing", "shanghai", ......]}
      * Valid value of a template can be:
-     *     boolean, numeric, string, array
+     *     boolean, numeric, string, array.
      */
     Status
     AddFilterTemplate(std::string key, const nlohmann::json& filter_template);
 
     /**
-     * @brief Get filter templates
+     * @brief Get filter templates.
      */
     const std::unordered_map<std::string, nlohmann::json>&
     FilterTemplates() const;
@@ -120,8 +120,8 @@ class QueryArguments {
     Limit() const;
 
     /**
-     * @brief Set limit value, only avaiable when expression is empty. \n
-     * Note: this value is stored in the ExtraParams
+     * @brief Set limit value, only avaiable when expression is empty.
+     * Note: this value is stored in the ExtraParams.
      */
     Status
     SetLimit(int64_t limit);
@@ -133,8 +133,8 @@ class QueryArguments {
     Offset() const;
 
     /**
-     * @brief Set offset value, only avaiable when expression is empty. \n
-     * Note: this value is stored in the ExtraParams
+     * @brief Set offset value, only avaiable when expression is empty.
+     * Note: this value is stored in the ExtraParams.
      */
     Status
     SetOffset(int64_t offset);
@@ -178,16 +178,16 @@ class QueryArguments {
     ///////////////////////////////////////////////////////////////////////////////////////
     // deprecated methods
     /**
-     * @brief Get filter expression. \n
-     * Can be empty if Limit() is zero, else must be non-empty
+     * @brief Get filter expression.
+     * Can be empty if Limit() is zero, else must be non-empty.
      * @deprecated replaced by Filter()
      */
     const std::string&
     Expression() const;
 
     /**
-     * @brief Set filter expression. \n
-     * Can be empty if Limit() is zero, else must be non-empty
+     * @brief Set filter expression.
+     * Can be empty if Limit() is zero, else must be non-empty.
      * @deprecated replaced by SetFilter()
      */
     Status
@@ -195,35 +195,35 @@ class QueryArguments {
 
     /**
      * @brief Get travel timestamp.
-     * @deprecated Deprecated in 2.4, replaced by ConsistencyLevel
+     * @deprecated Deprecated in 2.4, replaced by ConsistencyLevel.
      */
     uint64_t
     TravelTimestamp() const;
     /**
      * @brief Specify an absolute timestamp in a query to get results based on a data view at a specified point
-     * in time. \n
+     * in time.
      * Default value is 0, server executes query on a full data view.
-     * @deprecated Deprecated in 2.4, replaced by ConsistencyLevel
+     * @deprecated Deprecated in 2.4, replaced by ConsistencyLevel.
      */
     Status
     SetTravelTimestamp(uint64_t timestamp);
 
     /**
      * @brief Get guarantee timestamp.
-     * @deprecated Deprecated in 2.4, replaced by ConsistencyLevel, this value is not used anymore
+     * @deprecated Deprecated in 2.4, replaced by ConsistencyLevel, this value is not used anymore.
      */
     uint64_t
     GuaranteeTimestamp() const;
 
     /**
-     * @brief Instructs server to see insert/delete operations performed before a provided timestamp. \n
-     * If no such timestamp is specified, the server will wait for the latest operation to finish and query. \n
+     * @brief Instructs server to see insert/delete operations performed before a provided timestamp.
+     * If no such timestamp is specified, the server will wait for the latest operation to finish and query.
      *
      * Note: The timestamp is not an absolute timestamp, it is a hybrid value combined by UTC time and internal flags.
-     * \n We call it TSO, for more information please refer to: \n
+     * We call it TSO, for more information please refer to:
      * https://github.com/milvus-io/milvus/blob/master/docs/design_docs/milvus_hybrid_ts_en.md.
-     * You can get a TSO from insert/delete results. Use an operation's TSO to set this parameter, \n the server will
-     * execute query after this operation is finished. \n
+     * You can get a TSO from insert/delete results. Use an operation's TSO to set this parameter, the server will
+     * execute query after this operation is finished.
      *
      * Default value is 1, server executes search immediately.
      * @deprecated Deprecated in 2.4, replaced by ConsistencyLevel

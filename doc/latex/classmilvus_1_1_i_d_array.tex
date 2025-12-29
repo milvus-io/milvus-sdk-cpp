@@ -1,0 +1,53 @@
+\hypertarget{classmilvus_1_1_i_d_array}{}\doxysection{milvus\+::IDArray Class Reference}
+\label{classmilvus_1_1_i_d_array}\index{milvus::IDArray@{milvus::IDArray}}
+
+
+ID array, each ID could be int64 type or string type. Note\+: v2.\+0 only support int64 type id.  
+
+
+
+
+{\ttfamily \#include $<$IDArray.\+h$>$}
+
+\doxysubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{classmilvus_1_1_i_d_array_ae072690015d4a9fe262bb7f3e7354315}\label{classmilvus_1_1_i_d_array_ae072690015d4a9fe262bb7f3e7354315}} 
+\mbox{\hyperlink{classmilvus_1_1_i_d_array_ae072690015d4a9fe262bb7f3e7354315}{IDArray}} ()=default
+\begin{DoxyCompactList}\small\item\em Constructor. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_i_d_array_a8a7323757c1983d1c863487b79b452d7}\label{classmilvus_1_1_i_d_array_a8a7323757c1983d1c863487b79b452d7}} 
+\mbox{\hyperlink{classmilvus_1_1_i_d_array_a8a7323757c1983d1c863487b79b452d7}{IDArray}} (const \mbox{\hyperlink{classmilvus_1_1_i_d_array}{IDArray}} \&)
+\begin{DoxyCompactList}\small\item\em Constructor. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_i_d_array_afd70bac31a2fda1abcc070920a2eef23}\label{classmilvus_1_1_i_d_array_afd70bac31a2fda1abcc070920a2eef23}} 
+\mbox{\hyperlink{classmilvus_1_1_i_d_array_afd70bac31a2fda1abcc070920a2eef23}{IDArray}} (const std\+::vector$<$ int64\+\_\+t $>$ \&id\+\_\+array)
+\begin{DoxyCompactList}\small\item\em Constructor. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_i_d_array_aea5d12121701dd6bb0f66620f085b552}\label{classmilvus_1_1_i_d_array_aea5d12121701dd6bb0f66620f085b552}} 
+\mbox{\hyperlink{classmilvus_1_1_i_d_array_aea5d12121701dd6bb0f66620f085b552}{IDArray}} (std\+::vector$<$ int64\+\_\+t $>$ \&\&id\+\_\+array)
+\begin{DoxyCompactList}\small\item\em Constructor. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_i_d_array_a60a73707909023832a5adb73e8851c62}\label{classmilvus_1_1_i_d_array_a60a73707909023832a5adb73e8851c62}} 
+\mbox{\hyperlink{classmilvus_1_1_i_d_array_a60a73707909023832a5adb73e8851c62}{IDArray}} (const std\+::vector$<$ std\+::string $>$ \&id\+\_\+array)
+\begin{DoxyCompactList}\small\item\em Constructor. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_i_d_array_a9044688f7362b4784b34b8f05f545c1e}\label{classmilvus_1_1_i_d_array_a9044688f7362b4784b34b8f05f545c1e}} 
+\mbox{\hyperlink{classmilvus_1_1_i_d_array_a9044688f7362b4784b34b8f05f545c1e}{IDArray}} (std\+::vector$<$ std\+::string $>$ \&\&id\+\_\+array)
+\begin{DoxyCompactList}\small\item\em Constructor. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_i_d_array_af3ced4d9198e365a01855c35ca278433}\label{classmilvus_1_1_i_d_array_af3ced4d9198e365a01855c35ca278433}} 
+bool \mbox{\hyperlink{classmilvus_1_1_i_d_array_af3ced4d9198e365a01855c35ca278433}{Is\+Integer\+ID}} () const
+\begin{DoxyCompactList}\small\item\em Indicate this is an integer id array. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_i_d_array_a371c02a597ef0ed31ae0df7bc7ca86e6}\label{classmilvus_1_1_i_d_array_a371c02a597ef0ed31ae0df7bc7ca86e6}} 
+const std\+::vector$<$ int64\+\_\+t $>$ \& \mbox{\hyperlink{classmilvus_1_1_i_d_array_a371c02a597ef0ed31ae0df7bc7ca86e6}{Int\+IDArray}} () const
+\begin{DoxyCompactList}\small\item\em Return integer id array. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_i_d_array_aff0ec62ecd588690c099c36057a7d735}\label{classmilvus_1_1_i_d_array_aff0ec62ecd588690c099c36057a7d735}} 
+const std\+::vector$<$ std\+::string $>$ \& \mbox{\hyperlink{classmilvus_1_1_i_d_array_aff0ec62ecd588690c099c36057a7d735}{Str\+IDArray}} () const
+\begin{DoxyCompactList}\small\item\em Return string id array. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_i_d_array_a4bb6043b6a3fa4465fd7502ea5bf3870}\label{classmilvus_1_1_i_d_array_a4bb6043b6a3fa4465fd7502ea5bf3870}} 
+uint64\+\_\+t \mbox{\hyperlink{classmilvus_1_1_i_d_array_a4bb6043b6a3fa4465fd7502ea5bf3870}{Get\+Row\+Count}} () const
+\begin{DoxyCompactList}\small\item\em Get row count. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+ID array, each ID could be int64 type or string type. Note\+: v2.\+0 only support int64 type id. 
+
+The documentation for this class was generated from the following files\+:\begin{DoxyCompactItemize}
+\item 
+src/include/milvus/types/IDArray.\+h\item 
+src/impl/types/IDArray.\+cpp\end{DoxyCompactItemize}

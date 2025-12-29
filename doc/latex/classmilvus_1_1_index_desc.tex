@@ -1,0 +1,138 @@
+\hypertarget{classmilvus_1_1_index_desc}{}\doxysection{milvus\+::Index\+Desc Class Reference}
+\label{classmilvus_1_1_index_desc}\index{milvus::IndexDesc@{milvus::IndexDesc}}
+
+
+Index description. Used by \mbox{\hyperlink{classmilvus_1_1_milvus_client_a9d56f35a497504a7dee610d368d22b7a}{Milvus\+Client\+::\+Create\+Index()}} and \mbox{\hyperlink{classmilvus_1_1_milvus_client_a58ed7015339719ab8dc7d6acad90d9a1}{Milvus\+Client\+::\+Describe\+Index()}}.  
+
+
+
+
+{\ttfamily \#include $<$Index\+Desc.\+h$>$}
+
+\doxysubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{classmilvus_1_1_index_desc_a809ee9a8fe797cc9b5ff1230854d8398}\label{classmilvus_1_1_index_desc_a809ee9a8fe797cc9b5ff1230854d8398}} 
+\mbox{\hyperlink{classmilvus_1_1_index_desc_a809ee9a8fe797cc9b5ff1230854d8398}{Index\+Desc}} ()
+\begin{DoxyCompactList}\small\item\em Construct a new \mbox{\hyperlink{classmilvus_1_1_index_desc}{Index\+Desc}} object. \end{DoxyCompactList}\item 
+\mbox{\hyperlink{classmilvus_1_1_index_desc_a97bd5349283b912452c254ea8d32b1e1}{Index\+Desc}} (std\+::string field\+\_\+name, std\+::string index\+\_\+name, \mbox{\hyperlink{namespacemilvus_a6c4ec790e4c2dcd6630b99e90ee1f753}{milvus\+::\+Index\+Type}} index\+\_\+type, \mbox{\hyperlink{namespacemilvus_a188c0c4910c0aaa1d67c0f089b55c00e}{milvus\+::\+Metric\+Type}} metric\+\_\+type=milvus\+::\+Metric\+Type\+::\+INVALID)
+\begin{DoxyCompactList}\small\item\em Construct a new \mbox{\hyperlink{classmilvus_1_1_index_desc}{Index\+Desc}} object. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_index_desc_a439f220bef8292b5b62a123da969ee58}\label{classmilvus_1_1_index_desc_a439f220bef8292b5b62a123da969ee58}} 
+const std\+::string \& \mbox{\hyperlink{classmilvus_1_1_index_desc_a439f220bef8292b5b62a123da969ee58}{Field\+Name}} () const
+\begin{DoxyCompactList}\small\item\em Filed name which the index belong to. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_index_desc_abbc8ba434bd4d2863ab1909fd6db747b}\label{classmilvus_1_1_index_desc_abbc8ba434bd4d2863ab1909fd6db747b}} 
+\mbox{\hyperlink{classmilvus_1_1_status}{Status}} \mbox{\hyperlink{classmilvus_1_1_index_desc_abbc8ba434bd4d2863ab1909fd6db747b}{Set\+Field\+Name}} (std\+::string field\+\_\+name)
+\begin{DoxyCompactList}\small\item\em Set field name which the index belong to. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_index_desc_a0ed11f9bb8c9e42cce5a938e7e8e0a81}\label{classmilvus_1_1_index_desc_a0ed11f9bb8c9e42cce5a938e7e8e0a81}} 
+const std\+::string \& \mbox{\hyperlink{classmilvus_1_1_index_desc_a0ed11f9bb8c9e42cce5a938e7e8e0a81}{Index\+Name}} () const
+\begin{DoxyCompactList}\small\item\em Index name. Index name cannot be empty. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_index_desc_a20d84125c7704f8a8fb799b3bdfdd2d5}\label{classmilvus_1_1_index_desc_a20d84125c7704f8a8fb799b3bdfdd2d5}} 
+\mbox{\hyperlink{classmilvus_1_1_status}{Status}} \mbox{\hyperlink{classmilvus_1_1_index_desc_a20d84125c7704f8a8fb799b3bdfdd2d5}{Set\+Index\+Name}} (std\+::string index\+\_\+name)
+\begin{DoxyCompactList}\small\item\em Set index name. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_index_desc_acdbcda54adc38c1de7e017377e936412}\label{classmilvus_1_1_index_desc_acdbcda54adc38c1de7e017377e936412}} 
+int64\+\_\+t \mbox{\hyperlink{classmilvus_1_1_index_desc_acdbcda54adc38c1de7e017377e936412}{Index\+Id}} () const
+\begin{DoxyCompactList}\small\item\em Index ID. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_index_desc_aefd05878e6b126f4805b9ee9b283adfd}\label{classmilvus_1_1_index_desc_aefd05878e6b126f4805b9ee9b283adfd}} 
+\mbox{\hyperlink{classmilvus_1_1_status}{Status}} \mbox{\hyperlink{classmilvus_1_1_index_desc_aefd05878e6b126f4805b9ee9b283adfd}{Set\+Index\+Id}} (int64\+\_\+t index\+\_\+id)
+\begin{DoxyCompactList}\small\item\em Set index id. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_index_desc_a21e80f8646c456dd4d058f76e7d020b0}\label{classmilvus_1_1_index_desc_a21e80f8646c456dd4d058f76e7d020b0}} 
+\mbox{\hyperlink{namespacemilvus_a188c0c4910c0aaa1d67c0f089b55c00e}{milvus\+::\+Metric\+Type}} \mbox{\hyperlink{classmilvus_1_1_index_desc_a21e80f8646c456dd4d058f76e7d020b0}{Metric\+Type}} () const
+\begin{DoxyCompactList}\small\item\em Metric type. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_index_desc_a3332e211d4d2ddf8492d4a1425d132a8}\label{classmilvus_1_1_index_desc_a3332e211d4d2ddf8492d4a1425d132a8}} 
+\mbox{\hyperlink{classmilvus_1_1_status}{Status}} \mbox{\hyperlink{classmilvus_1_1_index_desc_a3332e211d4d2ddf8492d4a1425d132a8}{Set\+Metric\+Type}} (\mbox{\hyperlink{namespacemilvus_a188c0c4910c0aaa1d67c0f089b55c00e}{milvus\+::\+Metric\+Type}} metric\+\_\+type)
+\begin{DoxyCompactList}\small\item\em Set metric type. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_index_desc_a101d730dab6be263b989ada938a7c237}\label{classmilvus_1_1_index_desc_a101d730dab6be263b989ada938a7c237}} 
+\mbox{\hyperlink{namespacemilvus_a6c4ec790e4c2dcd6630b99e90ee1f753}{milvus\+::\+Index\+Type}} \mbox{\hyperlink{classmilvus_1_1_index_desc_a101d730dab6be263b989ada938a7c237}{Index\+Type}} () const
+\begin{DoxyCompactList}\small\item\em Index type. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_index_desc_ae43d616cddbe2b638735e8b49e724009}\label{classmilvus_1_1_index_desc_ae43d616cddbe2b638735e8b49e724009}} 
+\mbox{\hyperlink{classmilvus_1_1_status}{Status}} \mbox{\hyperlink{classmilvus_1_1_index_desc_ae43d616cddbe2b638735e8b49e724009}{Set\+Index\+Type}} (\mbox{\hyperlink{namespacemilvus_a6c4ec790e4c2dcd6630b99e90ee1f753}{milvus\+::\+Index\+Type}} index\+\_\+type)
+\begin{DoxyCompactList}\small\item\em Set index type. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_index_desc_a8502c1ae59e0ece7fd95e0414c001817}\label{classmilvus_1_1_index_desc_a8502c1ae59e0ece7fd95e0414c001817}} 
+\mbox{\hyperlink{classmilvus_1_1_status}{Status}} \mbox{\hyperlink{classmilvus_1_1_index_desc_a8502c1ae59e0ece7fd95e0414c001817}{Add\+Extra\+Param}} (const std\+::string \&key, const std\+::string \&value)
+\begin{DoxyCompactList}\small\item\em Add extra param. Note\+: int v2.\+4, we redefine this method, old client code might be affected. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_index_desc_a74b3ce44543cf485fb0441123c09cdd3}\label{classmilvus_1_1_index_desc_a74b3ce44543cf485fb0441123c09cdd3}} 
+const std\+::unordered\+\_\+map$<$ std\+::string, std\+::string $>$ \& \mbox{\hyperlink{classmilvus_1_1_index_desc_a74b3ce44543cf485fb0441123c09cdd3}{Extra\+Params}} () const
+\begin{DoxyCompactList}\small\item\em Get extra param. Note\+: int v2.\+4, we redefine this method, old client code might be affected. \end{DoxyCompactList}\item 
+\mbox{\hyperlink{classmilvus_1_1_status}{Status}} \mbox{\hyperlink{classmilvus_1_1_index_desc_addfd4b1738284e0b77c6952915be9b98}{Extra\+Params\+From\+Json}} (std\+::string json)
+\begin{DoxyCompactList}\small\item\em Construct a new \mbox{\hyperlink{classmilvus_1_1_index_desc}{Index\+Desc}} from Json object. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_index_desc_a17a81c2d99b4cf9c8a30674b9df25eef}\label{classmilvus_1_1_index_desc_a17a81c2d99b4cf9c8a30674b9df25eef}} 
+\mbox{\hyperlink{classmilvus_1_1_status}{Status}} \mbox{\hyperlink{classmilvus_1_1_index_desc_a17a81c2d99b4cf9c8a30674b9df25eef}{Set\+State\+Code}} (const \mbox{\hyperlink{namespacemilvus_a41d88e00964bea51a391cff73f2cb256}{milvus\+::\+Index\+State\+Code}} \&code)
+\begin{DoxyCompactList}\small\item\em Set index state. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_index_desc_a5af8d821fea8de0e3c3f64f74baaafe5}\label{classmilvus_1_1_index_desc_a5af8d821fea8de0e3c3f64f74baaafe5}} 
+\mbox{\hyperlink{namespacemilvus_a41d88e00964bea51a391cff73f2cb256}{milvus\+::\+Index\+State\+Code}} \mbox{\hyperlink{classmilvus_1_1_index_desc_a5af8d821fea8de0e3c3f64f74baaafe5}{State\+Code}} () const
+\begin{DoxyCompactList}\small\item\em Get index state. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_index_desc_aa6dfcb4fded3a284259b269a3e01777b}\label{classmilvus_1_1_index_desc_aa6dfcb4fded3a284259b269a3e01777b}} 
+\mbox{\hyperlink{classmilvus_1_1_status}{Status}} \mbox{\hyperlink{classmilvus_1_1_index_desc_aa6dfcb4fded3a284259b269a3e01777b}{Set\+Fail\+Reason}} (const std\+::string \&reason)
+\begin{DoxyCompactList}\small\item\em Set index failed reason. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_index_desc_a4ee919c7944bb7f2cec53d6578485e53}\label{classmilvus_1_1_index_desc_a4ee919c7944bb7f2cec53d6578485e53}} 
+std\+::string \mbox{\hyperlink{classmilvus_1_1_index_desc_a4ee919c7944bb7f2cec53d6578485e53}{Fail\+Reason}} () const
+\begin{DoxyCompactList}\small\item\em Get index failed reason. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_index_desc_af45e23bee18f5747fa92bc6ef094345a}\label{classmilvus_1_1_index_desc_af45e23bee18f5747fa92bc6ef094345a}} 
+\mbox{\hyperlink{classmilvus_1_1_status}{Status}} \mbox{\hyperlink{classmilvus_1_1_index_desc_af45e23bee18f5747fa92bc6ef094345a}{Set\+Indexed\+Rows}} (int64\+\_\+t rows)
+\begin{DoxyCompactList}\small\item\em Set number of indexed rows. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_index_desc_a94fe99728f3d208817ebc8c0e8851179}\label{classmilvus_1_1_index_desc_a94fe99728f3d208817ebc8c0e8851179}} 
+int64\+\_\+t \mbox{\hyperlink{classmilvus_1_1_index_desc_a94fe99728f3d208817ebc8c0e8851179}{Indexed\+Rows}} () const
+\begin{DoxyCompactList}\small\item\em Get number of indexed rows. Note that indexed rows could be larger than total rows, because some segments will be reindexed after compaction. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_index_desc_a2559859542eab396b22c44dd12c32622}\label{classmilvus_1_1_index_desc_a2559859542eab396b22c44dd12c32622}} 
+\mbox{\hyperlink{classmilvus_1_1_status}{Status}} \mbox{\hyperlink{classmilvus_1_1_index_desc_a2559859542eab396b22c44dd12c32622}{Set\+Total\+Rows}} (int64\+\_\+t rows)
+\begin{DoxyCompactList}\small\item\em Set number of total rows. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_index_desc_a8cc0e9c716e5893b0dc13cde06c10c05}\label{classmilvus_1_1_index_desc_a8cc0e9c716e5893b0dc13cde06c10c05}} 
+int64\+\_\+t \mbox{\hyperlink{classmilvus_1_1_index_desc_a8cc0e9c716e5893b0dc13cde06c10c05}{Total\+Rows}} () const
+\begin{DoxyCompactList}\small\item\em Get number of total rows. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_index_desc_a40a474cd4397fe9936ac292c282345f5}\label{classmilvus_1_1_index_desc_a40a474cd4397fe9936ac292c282345f5}} 
+\mbox{\hyperlink{classmilvus_1_1_status}{Status}} \mbox{\hyperlink{classmilvus_1_1_index_desc_a40a474cd4397fe9936ac292c282345f5}{Set\+Pending\+Rows}} (int64\+\_\+t rows)
+\begin{DoxyCompactList}\small\item\em Set number of pending unindexed rows. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_index_desc_a5a239684dc55c58ea406b2073259cd58}\label{classmilvus_1_1_index_desc_a5a239684dc55c58ea406b2073259cd58}} 
+int64\+\_\+t \mbox{\hyperlink{classmilvus_1_1_index_desc_a5a239684dc55c58ea406b2073259cd58}{Pending\+Rows}} () const
+\begin{DoxyCompactList}\small\item\em Get number of pending unindexed rows. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+Index description. Used by \mbox{\hyperlink{classmilvus_1_1_milvus_client_a9d56f35a497504a7dee610d368d22b7a}{Milvus\+Client\+::\+Create\+Index()}} and \mbox{\hyperlink{classmilvus_1_1_milvus_client_a58ed7015339719ab8dc7d6acad90d9a1}{Milvus\+Client\+::\+Describe\+Index()}}. 
+
+\doxysubsection{Constructor \& Destructor Documentation}
+\mbox{\Hypertarget{classmilvus_1_1_index_desc_a97bd5349283b912452c254ea8d32b1e1}\label{classmilvus_1_1_index_desc_a97bd5349283b912452c254ea8d32b1e1}} 
+\index{milvus::IndexDesc@{milvus::IndexDesc}!IndexDesc@{IndexDesc}}
+\index{IndexDesc@{IndexDesc}!milvus::IndexDesc@{milvus::IndexDesc}}
+\doxysubsubsection{\texorpdfstring{IndexDesc()}{IndexDesc()}}
+{\footnotesize\ttfamily milvus\+::\+Index\+Desc\+::\+Index\+Desc (\begin{DoxyParamCaption}\item[{std\+::string}]{field\+\_\+name,  }\item[{std\+::string}]{index\+\_\+name,  }\item[{\mbox{\hyperlink{namespacemilvus_a6c4ec790e4c2dcd6630b99e90ee1f753}{milvus\+::\+Index\+Type}}}]{index\+\_\+type,  }\item[{\mbox{\hyperlink{namespacemilvus_a188c0c4910c0aaa1d67c0f089b55c00e}{milvus\+::\+Metric\+Type}}}]{metric\+\_\+type = {\ttfamily milvus\+:\+:MetricType\+:\+:INVALID} }\end{DoxyParamCaption})}
+
+
+
+Construct a new \mbox{\hyperlink{classmilvus_1_1_index_desc}{Index\+Desc}} object. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em field\+\_\+name} & field name which the index belong to \\
+\hline
+{\em index\+\_\+name} & index name \\
+\hline
+{\em index\+\_\+type} & index type see Index\+Type \\
+\hline
+{\em metric\+\_\+type} & metric type see Metric\+Type, no need to set this for scalar field index \\
+\hline
+\end{DoxyParams}
+
+
+\doxysubsection{Member Function Documentation}
+\mbox{\Hypertarget{classmilvus_1_1_index_desc_addfd4b1738284e0b77c6952915be9b98}\label{classmilvus_1_1_index_desc_addfd4b1738284e0b77c6952915be9b98}} 
+\index{milvus::IndexDesc@{milvus::IndexDesc}!ExtraParamsFromJson@{ExtraParamsFromJson}}
+\index{ExtraParamsFromJson@{ExtraParamsFromJson}!milvus::IndexDesc@{milvus::IndexDesc}}
+\doxysubsubsection{\texorpdfstring{ExtraParamsFromJson()}{ExtraParamsFromJson()}}
+{\footnotesize\ttfamily \mbox{\hyperlink{classmilvus_1_1_status}{Status}} milvus\+::\+Index\+Desc\+::\+Extra\+Params\+From\+Json (\begin{DoxyParamCaption}\item[{std\+::string}]{json }\end{DoxyParamCaption})}
+
+
+
+Construct a new \mbox{\hyperlink{classmilvus_1_1_index_desc}{Index\+Desc}} from Json object. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em json} & Json string for parse \\
+\hline
+\end{DoxyParams}
+
+
+The documentation for this class was generated from the following files\+:\begin{DoxyCompactItemize}
+\item 
+src/include/milvus/types/Index\+Desc.\+h\item 
+src/impl/types/Index\+Desc.\+cpp\end{DoxyCompactItemize}

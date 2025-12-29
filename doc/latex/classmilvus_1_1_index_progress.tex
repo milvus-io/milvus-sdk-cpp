@@ -1,0 +1,35 @@
+\hypertarget{classmilvus_1_1_index_progress}{}\doxysection{milvus\+::Index\+Progress Class Reference}
+\label{classmilvus_1_1_index_progress}\index{milvus::IndexProgress@{milvus::IndexProgress}}
+
+
+Index progress. Used by Get\+Index\+Build\+Progress().  
+
+
+
+
+{\ttfamily \#include $<$Index\+State.\+h$>$}
+
+\doxysubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{classmilvus_1_1_index_progress_acc27b58e4c5429437f8b457b635a9f1b}\label{classmilvus_1_1_index_progress_acc27b58e4c5429437f8b457b635a9f1b}} 
+int64\+\_\+t \mbox{\hyperlink{classmilvus_1_1_index_progress_acc27b58e4c5429437f8b457b635a9f1b}{Indexed\+Rows}} () const
+\begin{DoxyCompactList}\small\item\em Get number of indexed rows. Note that indexed rows could be larger than total rows, because some segments will be reindexed after compaction. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_index_progress_a0d0f0e28ab00445860faf53d8fc1ff8b}\label{classmilvus_1_1_index_progress_a0d0f0e28ab00445860faf53d8fc1ff8b}} 
+void \mbox{\hyperlink{classmilvus_1_1_index_progress_a0d0f0e28ab00445860faf53d8fc1ff8b}{Set\+Indexed\+Rows}} (int64\+\_\+t indexed\+\_\+rows)
+\begin{DoxyCompactList}\small\item\em Set number of indexed rows. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_index_progress_a41e6f0af1e26e24fe556815caa6c508b}\label{classmilvus_1_1_index_progress_a41e6f0af1e26e24fe556815caa6c508b}} 
+int64\+\_\+t \mbox{\hyperlink{classmilvus_1_1_index_progress_a41e6f0af1e26e24fe556815caa6c508b}{Total\+Rows}} () const
+\begin{DoxyCompactList}\small\item\em Get number of total rows. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_index_progress_a4c27e2ef27843385fab85b10cda65c5f}\label{classmilvus_1_1_index_progress_a4c27e2ef27843385fab85b10cda65c5f}} 
+void \mbox{\hyperlink{classmilvus_1_1_index_progress_a4c27e2ef27843385fab85b10cda65c5f}{Set\+Total\+Rows}} (int64\+\_\+t total\+\_\+rows)
+\begin{DoxyCompactList}\small\item\em Set number of total rows. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+Index progress. Used by Get\+Index\+Build\+Progress(). 
+
+The documentation for this class was generated from the following files\+:\begin{DoxyCompactItemize}
+\item 
+src/include/milvus/types/Index\+State.\+h\item 
+src/impl/types/Index\+State.\+cpp\end{DoxyCompactItemize}

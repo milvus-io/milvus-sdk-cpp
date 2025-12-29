@@ -1,0 +1,56 @@
+\hypertarget{classmilvus_1_1_dml_results}{}\doxysection{milvus\+::Dml\+Results Class Reference}
+\label{classmilvus_1_1_dml_results}\index{milvus::DmlResults@{milvus::DmlResults}}
+
+
+Result returned by \mbox{\hyperlink{classmilvus_1_1_milvus_client_a64a2dca576e0933571a6889910d56390}{Milvus\+Client\+::\+Insert()}} and \mbox{\hyperlink{classmilvus_1_1_milvus_client_a271b16333636621f24aaf89993c72301}{Milvus\+Client\+::\+Delete()}}.  
+
+
+
+
+{\ttfamily \#include $<$Dml\+Results.\+h$>$}
+
+\doxysubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{classmilvus_1_1_dml_results_ae99cda1e9af105242aa30232a0cb4396}\label{classmilvus_1_1_dml_results_ae99cda1e9af105242aa30232a0cb4396}} 
+const \mbox{\hyperlink{classmilvus_1_1_i_d_array}{IDArray}} \& \mbox{\hyperlink{classmilvus_1_1_dml_results_ae99cda1e9af105242aa30232a0cb4396}{Id\+Array}} () const
+\begin{DoxyCompactList}\small\item\em The id array for entities which are inserted or deleted. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_dml_results_a737a65b9eddfc514da307f786616eafa}\label{classmilvus_1_1_dml_results_a737a65b9eddfc514da307f786616eafa}} 
+void \mbox{\hyperlink{classmilvus_1_1_dml_results_a737a65b9eddfc514da307f786616eafa}{Set\+Id\+Array}} (const \mbox{\hyperlink{classmilvus_1_1_i_d_array}{IDArray}} \&id\+\_\+array)
+\begin{DoxyCompactList}\small\item\em Set the id array. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_dml_results_a2dbc2bb23485ea853934f31d647355c8}\label{classmilvus_1_1_dml_results_a2dbc2bb23485ea853934f31d647355c8}} 
+void \mbox{\hyperlink{classmilvus_1_1_dml_results_a2dbc2bb23485ea853934f31d647355c8}{Set\+Id\+Array}} (\mbox{\hyperlink{classmilvus_1_1_i_d_array}{IDArray}} \&\&id\+\_\+array)
+\begin{DoxyCompactList}\small\item\em Set the id array. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_dml_results_a6b87cdaf3663ed38a57a6a2c3bf77991}\label{classmilvus_1_1_dml_results_a6b87cdaf3663ed38a57a6a2c3bf77991}} 
+uint64\+\_\+t \mbox{\hyperlink{classmilvus_1_1_dml_results_a6b87cdaf3663ed38a57a6a2c3bf77991}{Timestamp}} () const
+\begin{DoxyCompactList}\small\item\em The operation timestamp marked by server side. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_dml_results_a62f4a7da55812f45b4967a04f2dfe651}\label{classmilvus_1_1_dml_results_a62f4a7da55812f45b4967a04f2dfe651}} 
+void \mbox{\hyperlink{classmilvus_1_1_dml_results_a62f4a7da55812f45b4967a04f2dfe651}{Set\+Timestamp}} (uint64\+\_\+t timestamp)
+\begin{DoxyCompactList}\small\item\em Set operation timestamp. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_dml_results_a341e36a4a03b262582b7bb1abc5416c4}\label{classmilvus_1_1_dml_results_a341e36a4a03b262582b7bb1abc5416c4}} 
+uint64\+\_\+t \mbox{\hyperlink{classmilvus_1_1_dml_results_a341e36a4a03b262582b7bb1abc5416c4}{Insert\+Count}} () const
+\begin{DoxyCompactList}\small\item\em The number of inserted rows. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_dml_results_ab42816de37e184b2b5d028e81ea7f105}\label{classmilvus_1_1_dml_results_ab42816de37e184b2b5d028e81ea7f105}} 
+void \mbox{\hyperlink{classmilvus_1_1_dml_results_ab42816de37e184b2b5d028e81ea7f105}{Set\+Insert\+Count}} (uint64\+\_\+t count)
+\begin{DoxyCompactList}\small\item\em Set number of inserted rows. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_dml_results_ac1a6dcc111769f8d3af5678f2a9223ef}\label{classmilvus_1_1_dml_results_ac1a6dcc111769f8d3af5678f2a9223ef}} 
+uint64\+\_\+t \mbox{\hyperlink{classmilvus_1_1_dml_results_ac1a6dcc111769f8d3af5678f2a9223ef}{Delete\+Count}} () const
+\begin{DoxyCompactList}\small\item\em The number of deleted rows. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_dml_results_a3d7fae523cca69908f09fa23d95a7c8a}\label{classmilvus_1_1_dml_results_a3d7fae523cca69908f09fa23d95a7c8a}} 
+void \mbox{\hyperlink{classmilvus_1_1_dml_results_a3d7fae523cca69908f09fa23d95a7c8a}{Set\+Delete\+Count}} (uint64\+\_\+t count)
+\begin{DoxyCompactList}\small\item\em Set number of deleted rows. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_dml_results_aeb9629aa326ed5c4b7136fb100085281}\label{classmilvus_1_1_dml_results_aeb9629aa326ed5c4b7136fb100085281}} 
+uint64\+\_\+t \mbox{\hyperlink{classmilvus_1_1_dml_results_aeb9629aa326ed5c4b7136fb100085281}{Upsert\+Count}} () const
+\begin{DoxyCompactList}\small\item\em The number of upserted rows. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_dml_results_afc276cf026611fe6663138f87fa2e3b4}\label{classmilvus_1_1_dml_results_afc276cf026611fe6663138f87fa2e3b4}} 
+void \mbox{\hyperlink{classmilvus_1_1_dml_results_afc276cf026611fe6663138f87fa2e3b4}{Set\+Upsert\+Count}} (uint64\+\_\+t count)
+\begin{DoxyCompactList}\small\item\em Set number of upserted rows. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+Result returned by \mbox{\hyperlink{classmilvus_1_1_milvus_client_a64a2dca576e0933571a6889910d56390}{Milvus\+Client\+::\+Insert()}} and \mbox{\hyperlink{classmilvus_1_1_milvus_client_a271b16333636621f24aaf89993c72301}{Milvus\+Client\+::\+Delete()}}. 
+
+The documentation for this class was generated from the following files\+:\begin{DoxyCompactItemize}
+\item 
+src/include/milvus/types/Dml\+Results.\+h\item 
+src/impl/types/Dml\+Results.\+cpp\end{DoxyCompactItemize}

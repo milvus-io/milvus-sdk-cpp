@@ -74,37 +74,37 @@ class StructFieldSchema {
     WithDescription(std::string description);
 
     /**
-     * @brief Get max capacity for an array field
+     * @brief Get max capacity for the struct field
      */
     int64_t
     MaxCapacity() const;
 
     /**
-     * @brief Quickly set max capacity for an array field
+     * @brief Set max capacity for the struct field
      */
     void
     SetMaxCapacity(int64_t capacity);
 
     /**
-     * @brief Quickly set max capacity for an array field
+     * @brief Set max capacity for the struct field
      */
     StructFieldSchema&
     WithMaxCapacity(int64_t capacity);
 
     /**
-     * @brief Fields schema array.
+     * @brief Get sub fields of the struct field.
      */
     const std::vector<FieldSchema>&
     Fields() const;
 
     /**
-     * @brief Add a field schema.
+     * @brief Add a sub field for the struct field.
      */
     StructFieldSchema&
     AddField(const FieldSchema& field_schema);
 
     /**
-     * @brief Add a field schema.
+     * @brief Add a sub field for the struct field.
      */
     StructFieldSchema&
     AddField(FieldSchema&& field_schema);

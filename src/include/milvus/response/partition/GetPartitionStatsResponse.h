@@ -30,9 +30,15 @@ class GetPartitionStatsResponse {
      */
     GetPartitionStatsResponse() = default;
 
-    // Getter and Setter for stats_
+    /**
+     * @brief Get partition stats.
+     */
     const PartitionStat&
     Stats() const;
+
+    /**
+     * @brief Set partition stats.
+     */
     void
     SetStats(PartitionStat&& stats);
 

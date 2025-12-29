@@ -33,15 +33,27 @@ class ListCollectionsResponse {
      */
     ListCollectionsResponse() = default;
 
-    // Getter and Setter for collection_names_
+    /**
+     * @brief Get collections names.
+     */
     const std::vector<std::string>&
     CollectionNames() const;
+
+    /**
+     * @brief Set collections names.
+     */
     void
     SetCollectionNames(std::vector<std::string>&& names);
 
-    // Getter and Setter for collection_infos_
+    /**
+     * @brief Get brief informations of collections.
+     */
     const std::vector<CollectionInfo>&
     CollectionInfos() const;
+
+    /**
+     * @brief Set brief informations of collections.
+     */
     void
     SetCollectionInfos(std::vector<CollectionInfo>&& infos);
 

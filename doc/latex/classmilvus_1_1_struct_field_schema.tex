@@ -1,0 +1,65 @@
+\hypertarget{classmilvus_1_1_struct_field_schema}{}\doxysection{milvus\+::Struct\+Field\+Schema Class Reference}
+\label{classmilvus_1_1_struct_field_schema}\index{milvus::StructFieldSchema@{milvus::StructFieldSchema}}
+
+
+Struct field schema used by \mbox{\hyperlink{classmilvus_1_1_collection_schema}{Collection\+Schema}}.  
+
+
+
+
+{\ttfamily \#include $<$Struct\+Field\+Schema.\+h$>$}
+
+\doxysubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{classmilvus_1_1_struct_field_schema_a90c9e30f75443741ae85474840b6229c}\label{classmilvus_1_1_struct_field_schema_a90c9e30f75443741ae85474840b6229c}} 
+\mbox{\hyperlink{classmilvus_1_1_struct_field_schema_a90c9e30f75443741ae85474840b6229c}{Struct\+Field\+Schema}} ()
+\begin{DoxyCompactList}\small\item\em Constructor. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_struct_field_schema_a507d6e6a50952c7b4b34f7440c2efed0}\label{classmilvus_1_1_struct_field_schema_a507d6e6a50952c7b4b34f7440c2efed0}} 
+\mbox{\hyperlink{classmilvus_1_1_struct_field_schema_a507d6e6a50952c7b4b34f7440c2efed0}{Struct\+Field\+Schema}} (std\+::string name, std\+::string description=\char`\"{}\char`\"{})
+\begin{DoxyCompactList}\small\item\em Constructor. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_struct_field_schema_a21c52a5172cf89eb4b11d1846c8e0672}\label{classmilvus_1_1_struct_field_schema_a21c52a5172cf89eb4b11d1846c8e0672}} 
+const std\+::string \& \mbox{\hyperlink{classmilvus_1_1_struct_field_schema_a21c52a5172cf89eb4b11d1846c8e0672}{Name}} () const
+\begin{DoxyCompactList}\small\item\em Name of this field, cannot be empty. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_struct_field_schema_a6a98580a245bfc8771fc661c7f0e800e}\label{classmilvus_1_1_struct_field_schema_a6a98580a245bfc8771fc661c7f0e800e}} 
+void \mbox{\hyperlink{classmilvus_1_1_struct_field_schema_a6a98580a245bfc8771fc661c7f0e800e}{Set\+Name}} (std\+::string name)
+\begin{DoxyCompactList}\small\item\em Set name of the field. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_struct_field_schema_aa14117faecb2958b1228097def921f29}\label{classmilvus_1_1_struct_field_schema_aa14117faecb2958b1228097def921f29}} 
+\mbox{\hyperlink{classmilvus_1_1_struct_field_schema}{Struct\+Field\+Schema}} \& \mbox{\hyperlink{classmilvus_1_1_struct_field_schema_aa14117faecb2958b1228097def921f29}{With\+Name}} (std\+::string name)
+\begin{DoxyCompactList}\small\item\em Set name of the field. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_struct_field_schema_a240d8e9d348591056a9a87c334919ac8}\label{classmilvus_1_1_struct_field_schema_a240d8e9d348591056a9a87c334919ac8}} 
+const std\+::string \& \mbox{\hyperlink{classmilvus_1_1_struct_field_schema_a240d8e9d348591056a9a87c334919ac8}{Description}} () const
+\begin{DoxyCompactList}\small\item\em Description of this field, can be empty. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_struct_field_schema_a80306db8d9b63dda6e0420638cfdb139}\label{classmilvus_1_1_struct_field_schema_a80306db8d9b63dda6e0420638cfdb139}} 
+void \mbox{\hyperlink{classmilvus_1_1_struct_field_schema_a80306db8d9b63dda6e0420638cfdb139}{Set\+Description}} (std\+::string description)
+\begin{DoxyCompactList}\small\item\em Set description of the field. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_struct_field_schema_a25760032a0c9325f92a561aadd7d28ce}\label{classmilvus_1_1_struct_field_schema_a25760032a0c9325f92a561aadd7d28ce}} 
+\mbox{\hyperlink{classmilvus_1_1_struct_field_schema}{Struct\+Field\+Schema}} \& \mbox{\hyperlink{classmilvus_1_1_struct_field_schema_a25760032a0c9325f92a561aadd7d28ce}{With\+Description}} (std\+::string description)
+\begin{DoxyCompactList}\small\item\em Set description of the field. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_struct_field_schema_a937c9dcd95327c510988f7db755a6c3e}\label{classmilvus_1_1_struct_field_schema_a937c9dcd95327c510988f7db755a6c3e}} 
+int64\+\_\+t \mbox{\hyperlink{classmilvus_1_1_struct_field_schema_a937c9dcd95327c510988f7db755a6c3e}{Max\+Capacity}} () const
+\begin{DoxyCompactList}\small\item\em Get max capacity for the struct field. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_struct_field_schema_ab6d3a74a81d83b068d693304c9fd460f}\label{classmilvus_1_1_struct_field_schema_ab6d3a74a81d83b068d693304c9fd460f}} 
+void \mbox{\hyperlink{classmilvus_1_1_struct_field_schema_ab6d3a74a81d83b068d693304c9fd460f}{Set\+Max\+Capacity}} (int64\+\_\+t capacity)
+\begin{DoxyCompactList}\small\item\em Set max capacity for the struct field. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_struct_field_schema_a2d0e5ad6143261b5f1163259109eed13}\label{classmilvus_1_1_struct_field_schema_a2d0e5ad6143261b5f1163259109eed13}} 
+\mbox{\hyperlink{classmilvus_1_1_struct_field_schema}{Struct\+Field\+Schema}} \& \mbox{\hyperlink{classmilvus_1_1_struct_field_schema_a2d0e5ad6143261b5f1163259109eed13}{With\+Max\+Capacity}} (int64\+\_\+t capacity)
+\begin{DoxyCompactList}\small\item\em Set max capacity for the struct field. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_struct_field_schema_a34c7a2af4883fd6e55fd7c17600d8377}\label{classmilvus_1_1_struct_field_schema_a34c7a2af4883fd6e55fd7c17600d8377}} 
+const std\+::vector$<$ \mbox{\hyperlink{classmilvus_1_1_field_schema}{Field\+Schema}} $>$ \& \mbox{\hyperlink{classmilvus_1_1_struct_field_schema_a34c7a2af4883fd6e55fd7c17600d8377}{Fields}} () const
+\begin{DoxyCompactList}\small\item\em Get sub fields of the struct field. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_struct_field_schema_acc33cb8bb16a2d274037347fe9a5c1a2}\label{classmilvus_1_1_struct_field_schema_acc33cb8bb16a2d274037347fe9a5c1a2}} 
+\mbox{\hyperlink{classmilvus_1_1_struct_field_schema}{Struct\+Field\+Schema}} \& \mbox{\hyperlink{classmilvus_1_1_struct_field_schema_acc33cb8bb16a2d274037347fe9a5c1a2}{Add\+Field}} (const \mbox{\hyperlink{classmilvus_1_1_field_schema}{Field\+Schema}} \&field\+\_\+schema)
+\begin{DoxyCompactList}\small\item\em Add a sub field for the struct field. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_struct_field_schema_acae2a62d8911a35a16d08bd1baece7bc}\label{classmilvus_1_1_struct_field_schema_acae2a62d8911a35a16d08bd1baece7bc}} 
+\mbox{\hyperlink{classmilvus_1_1_struct_field_schema}{Struct\+Field\+Schema}} \& \mbox{\hyperlink{classmilvus_1_1_struct_field_schema_acae2a62d8911a35a16d08bd1baece7bc}{Add\+Field}} (\mbox{\hyperlink{classmilvus_1_1_field_schema}{Field\+Schema}} \&\&field\+\_\+schema)
+\begin{DoxyCompactList}\small\item\em Add a sub field for the struct field. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+Struct field schema used by \mbox{\hyperlink{classmilvus_1_1_collection_schema}{Collection\+Schema}}. 
+
+The documentation for this class was generated from the following files\+:\begin{DoxyCompactItemize}
+\item 
+src/include/milvus/types/Struct\+Field\+Schema.\+h\item 
+src/impl/types/Struct\+Field\+Schema.\+cpp\end{DoxyCompactItemize}

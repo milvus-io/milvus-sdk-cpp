@@ -1,0 +1,81 @@
+\hypertarget{classmilvus_1_1_insert_request}{}\doxysection{milvus\+::Insert\+Request Class Reference}
+\label{classmilvus_1_1_insert_request}\index{milvus::InsertRequest@{milvus::InsertRequest}}
+
+
+Used by \mbox{\hyperlink{classmilvus_1_1_milvus_client_v2_a92b58327125458e8384cd1cf29ebc5d0}{Milvus\+Client\+V2\+::\+Insert()}}  
+
+
+
+
+{\ttfamily \#include $<$Insert\+Request.\+h$>$}
+
+
+
+Inherited by \mbox{\hyperlink{classmilvus_1_1_upsert_request}{milvus\+::\+Upsert\+Request}}.
+
+\doxysubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{classmilvus_1_1_insert_request_a20531b6233d8b3e6d4e3b2a7056955d9}\label{classmilvus_1_1_insert_request_a20531b6233d8b3e6d4e3b2a7056955d9}} 
+\mbox{\hyperlink{classmilvus_1_1_insert_request_a20531b6233d8b3e6d4e3b2a7056955d9}{Insert\+Request}} ()=default
+\begin{DoxyCompactList}\small\item\em Constructor. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_insert_request_a2a6e59c62914fdf7f4f89bf94e7856ea}\label{classmilvus_1_1_insert_request_a2a6e59c62914fdf7f4f89bf94e7856ea}} 
+const std\+::string \& \mbox{\hyperlink{classmilvus_1_1_insert_request_a2a6e59c62914fdf7f4f89bf94e7856ea}{Database\+Name}} () const
+\begin{DoxyCompactList}\small\item\em Database name. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_insert_request_a3d5f82d627ab3a9f90ba5538e1b7960d}\label{classmilvus_1_1_insert_request_a3d5f82d627ab3a9f90ba5538e1b7960d}} 
+void \mbox{\hyperlink{classmilvus_1_1_insert_request_a3d5f82d627ab3a9f90ba5538e1b7960d}{Set\+Database\+Name}} (const std\+::string \&db\+\_\+name)
+\begin{DoxyCompactList}\small\item\em Set database name. If database name is empty, will list collections of the default database. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_insert_request_ace8a946d63f4d02fae3093f4860515e7}\label{classmilvus_1_1_insert_request_ace8a946d63f4d02fae3093f4860515e7}} 
+\mbox{\hyperlink{classmilvus_1_1_insert_request}{Insert\+Request}} \& \mbox{\hyperlink{classmilvus_1_1_insert_request_ace8a946d63f4d02fae3093f4860515e7}{With\+Database\+Name}} (const std\+::string \&db\+\_\+name)
+\begin{DoxyCompactList}\small\item\em Set database name. If database name is empty, will list collections of the default database. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_insert_request_a02d3e5ad5744632e8fe06410796687c3}\label{classmilvus_1_1_insert_request_a02d3e5ad5744632e8fe06410796687c3}} 
+const std\+::string \& \mbox{\hyperlink{classmilvus_1_1_insert_request_a02d3e5ad5744632e8fe06410796687c3}{Collection\+Name}} () const
+\begin{DoxyCompactList}\small\item\em Name of the collection. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_insert_request_a18a61f32d4e9a95e19999bc8186b5c8c}\label{classmilvus_1_1_insert_request_a18a61f32d4e9a95e19999bc8186b5c8c}} 
+void \mbox{\hyperlink{classmilvus_1_1_insert_request_a18a61f32d4e9a95e19999bc8186b5c8c}{Set\+Collection\+Name}} (const std\+::string \&collection\+\_\+name)
+\begin{DoxyCompactList}\small\item\em Set name of the collection. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_insert_request_ad693176e74c2b0da6369c2027162efa9}\label{classmilvus_1_1_insert_request_ad693176e74c2b0da6369c2027162efa9}} 
+\mbox{\hyperlink{classmilvus_1_1_insert_request}{Insert\+Request}} \& \mbox{\hyperlink{classmilvus_1_1_insert_request_ad693176e74c2b0da6369c2027162efa9}{With\+Collection\+Name}} (const std\+::string \&collection\+\_\+name)
+\begin{DoxyCompactList}\small\item\em Set name of the collection. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_insert_request_a399ec885035608e1dc87ec3715218e04}\label{classmilvus_1_1_insert_request_a399ec885035608e1dc87ec3715218e04}} 
+const std\+::string \& \mbox{\hyperlink{classmilvus_1_1_insert_request_a399ec885035608e1dc87ec3715218e04}{Partition\+Name}} () const
+\begin{DoxyCompactList}\small\item\em Name of the partition. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_insert_request_a5d55f33aa180dda9f869abe5e7475dee}\label{classmilvus_1_1_insert_request_a5d55f33aa180dda9f869abe5e7475dee}} 
+void \mbox{\hyperlink{classmilvus_1_1_insert_request_a5d55f33aa180dda9f869abe5e7475dee}{Set\+Partition\+Name}} (const std\+::string \&partition\+\_\+name)
+\begin{DoxyCompactList}\small\item\em Set name of the partition. If partition name is empty, it will insert data into the default partition. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_insert_request_a66f6cace82ad0172c89d1b82851ac0a9}\label{classmilvus_1_1_insert_request_a66f6cace82ad0172c89d1b82851ac0a9}} 
+\mbox{\hyperlink{classmilvus_1_1_insert_request}{Insert\+Request}} \& \mbox{\hyperlink{classmilvus_1_1_insert_request_a66f6cace82ad0172c89d1b82851ac0a9}{With\+Partition\+Name}} (const std\+::string \&partition\+\_\+name)
+\begin{DoxyCompactList}\small\item\em Set new name of the partition. If partition name is empty, it will insert data into the default partition. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_insert_request_a130568cf618880280dcba480efb304dd}\label{classmilvus_1_1_insert_request_a130568cf618880280dcba480efb304dd}} 
+const std\+::vector$<$ Field\+Data\+Ptr $>$ \& \mbox{\hyperlink{classmilvus_1_1_insert_request_a130568cf618880280dcba480efb304dd}{Columns\+Data}} () const
+\begin{DoxyCompactList}\small\item\em Get fields data. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_insert_request_a71a6475c176846a28dca75ad59ba1266}\label{classmilvus_1_1_insert_request_a71a6475c176846a28dca75ad59ba1266}} 
+void \mbox{\hyperlink{classmilvus_1_1_insert_request_a71a6475c176846a28dca75ad59ba1266}{Set\+Columns\+Data}} (std\+::vector$<$ Field\+Data\+Ptr $>$ \&\&columns\+\_\+data)
+\begin{DoxyCompactList}\small\item\em Set fields data. Not allow to set Columns\+Data and Rows\+Data both. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_insert_request_a0f9a43958c4043c5e3f3233b50786556}\label{classmilvus_1_1_insert_request_a0f9a43958c4043c5e3f3233b50786556}} 
+\mbox{\hyperlink{classmilvus_1_1_insert_request}{Insert\+Request}} \& \mbox{\hyperlink{classmilvus_1_1_insert_request_a0f9a43958c4043c5e3f3233b50786556}{With\+Columns\+Data}} (std\+::vector$<$ Field\+Data\+Ptr $>$ \&\&columns\+\_\+data)
+\begin{DoxyCompactList}\small\item\em Set fields data with fluent interface. Not allow to set Columns\+Data and Rows\+Data both. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_insert_request_a64d1edc579a44d87cd359ce826f2f3de}\label{classmilvus_1_1_insert_request_a64d1edc579a44d87cd359ce826f2f3de}} 
+\mbox{\hyperlink{classmilvus_1_1_insert_request}{Insert\+Request}} \& \mbox{\hyperlink{classmilvus_1_1_insert_request_a64d1edc579a44d87cd359ce826f2f3de}{Add\+Column\+Data}} (const Field\+Data\+Ptr \&column\+\_\+data)
+\begin{DoxyCompactList}\small\item\em Set a field data with fluent interface. Not allow to set Columns\+Data and Rows\+Data both. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_insert_request_ac3cb41a2738a63b95a54669435b6d881}\label{classmilvus_1_1_insert_request_ac3cb41a2738a63b95a54669435b6d881}} 
+const Entity\+Rows \& \mbox{\hyperlink{classmilvus_1_1_insert_request_ac3cb41a2738a63b95a54669435b6d881}{Rows\+Data}} () const
+\begin{DoxyCompactList}\small\item\em Get entity rows. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_insert_request_a168d2867f0322038792d8bb3e8f0a026}\label{classmilvus_1_1_insert_request_a168d2867f0322038792d8bb3e8f0a026}} 
+void \mbox{\hyperlink{classmilvus_1_1_insert_request_a168d2867f0322038792d8bb3e8f0a026}{Set\+Rows\+Data}} (Entity\+Rows \&\&rows\+\_\+data)
+\begin{DoxyCompactList}\small\item\em Set entity rows. Not allow to set Columns\+Data and Rows\+Data both. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_insert_request_a79c3994d6f907acbee03a170c488fc4a}\label{classmilvus_1_1_insert_request_a79c3994d6f907acbee03a170c488fc4a}} 
+\mbox{\hyperlink{classmilvus_1_1_insert_request}{Insert\+Request}} \& \mbox{\hyperlink{classmilvus_1_1_insert_request_a79c3994d6f907acbee03a170c488fc4a}{With\+Rows\+Data}} (Entity\+Rows \&\&rows\+\_\+data)
+\begin{DoxyCompactList}\small\item\em Set entity rows with fluent interface. Not allow to set Columns\+Data and Rows\+Data both. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_insert_request_a2cfb99c27de2f9810d85d1c70030b2dd}\label{classmilvus_1_1_insert_request_a2cfb99c27de2f9810d85d1c70030b2dd}} 
+\mbox{\hyperlink{classmilvus_1_1_insert_request}{Insert\+Request}} \& \mbox{\hyperlink{classmilvus_1_1_insert_request_a2cfb99c27de2f9810d85d1c70030b2dd}{Add\+Row\+Data}} (Entity\+Row \&\&row\+\_\+data)
+\begin{DoxyCompactList}\small\item\em Add en entity rows with fluent interface. Not allow to set Columns\+Data and Rows\+Data both. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+Used by \mbox{\hyperlink{classmilvus_1_1_milvus_client_v2_a92b58327125458e8384cd1cf29ebc5d0}{Milvus\+Client\+V2\+::\+Insert()}} 
+
+The documentation for this class was generated from the following files\+:\begin{DoxyCompactItemize}
+\item 
+src/include/milvus/request/dml/Insert\+Request.\+h\item 
+src/impl/request/dml/Insert\+Request.\+cpp\end{DoxyCompactItemize}

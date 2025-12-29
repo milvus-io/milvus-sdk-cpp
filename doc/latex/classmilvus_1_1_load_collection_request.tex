@@ -1,0 +1,115 @@
+\hypertarget{classmilvus_1_1_load_collection_request}{}\doxysection{milvus\+::Load\+Collection\+Request Class Reference}
+\label{classmilvus_1_1_load_collection_request}\index{milvus::LoadCollectionRequest@{milvus::LoadCollectionRequest}}
+
+
+Used by \mbox{\hyperlink{classmilvus_1_1_milvus_client_v2_a98217a9d33fb2f1f93457b1af7bbc036}{Milvus\+Client\+V2\+::\+Load\+Collection()}}  
+
+
+
+
+{\ttfamily \#include $<$Load\+Collection\+Request.\+h$>$}
+
+
+
+Inherits \mbox{\hyperlink{classmilvus_1_1_collection_request_base}{milvus\+::\+Collection\+Request\+Base}}.
+
+\doxysubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{classmilvus_1_1_load_collection_request_aea2b114e7dc1caa74f6a2e1c1e13ee40}\label{classmilvus_1_1_load_collection_request_aea2b114e7dc1caa74f6a2e1c1e13ee40}} 
+\mbox{\hyperlink{classmilvus_1_1_load_collection_request_aea2b114e7dc1caa74f6a2e1c1e13ee40}{Load\+Collection\+Request}} ()=default
+\begin{DoxyCompactList}\small\item\em Constructor. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_load_collection_request_a2b41ca51f3dbf6487a3c6de1730b5e44}\label{classmilvus_1_1_load_collection_request_a2b41ca51f3dbf6487a3c6de1730b5e44}} 
+const std\+::string \& \mbox{\hyperlink{classmilvus_1_1_load_collection_request_a2b41ca51f3dbf6487a3c6de1730b5e44}{Database\+Name}} () const
+\begin{DoxyCompactList}\small\item\em Database name in which the collection is created. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_load_collection_request_ae826d508a60bf59a51debc31fc9aefb1}\label{classmilvus_1_1_load_collection_request_ae826d508a60bf59a51debc31fc9aefb1}} 
+void \mbox{\hyperlink{classmilvus_1_1_load_collection_request_ae826d508a60bf59a51debc31fc9aefb1}{Set\+Database\+Name}} (const std\+::string \&db\+\_\+name)
+\begin{DoxyCompactList}\small\item\em Set database name in which the collection is created. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_load_collection_request_a1c3cf255da936e5941ff5a76c4b854c4}\label{classmilvus_1_1_load_collection_request_a1c3cf255da936e5941ff5a76c4b854c4}} 
+\mbox{\hyperlink{classmilvus_1_1_load_collection_request}{Load\+Collection\+Request}} \& \mbox{\hyperlink{classmilvus_1_1_load_collection_request_a1c3cf255da936e5941ff5a76c4b854c4}{With\+Database\+Name}} (const std\+::string \&db\+\_\+name)
+\begin{DoxyCompactList}\small\item\em Set database name in which the collection is created. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_load_collection_request_a065b42f114118ac12179b4a58d943b08}\label{classmilvus_1_1_load_collection_request_a065b42f114118ac12179b4a58d943b08}} 
+const std\+::string \& \mbox{\hyperlink{classmilvus_1_1_load_collection_request_a065b42f114118ac12179b4a58d943b08}{Collection\+Name}} () const
+\begin{DoxyCompactList}\small\item\em Name of the collection. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_load_collection_request_a7bd9b8d5307bd6ab302d509abe98a8cf}\label{classmilvus_1_1_load_collection_request_a7bd9b8d5307bd6ab302d509abe98a8cf}} 
+void \mbox{\hyperlink{classmilvus_1_1_load_collection_request_a7bd9b8d5307bd6ab302d509abe98a8cf}{Set\+Collection\+Name}} (const std\+::string \&collection\+\_\+name)
+\begin{DoxyCompactList}\small\item\em Set name of the collection. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_load_collection_request_ae737affb4d0b9681e2b201cf35772083}\label{classmilvus_1_1_load_collection_request_ae737affb4d0b9681e2b201cf35772083}} 
+\mbox{\hyperlink{classmilvus_1_1_load_collection_request}{Load\+Collection\+Request}} \& \mbox{\hyperlink{classmilvus_1_1_load_collection_request_ae737affb4d0b9681e2b201cf35772083}{With\+Collection\+Name}} (const std\+::string \&collection\+\_\+name)
+\begin{DoxyCompactList}\small\item\em Set name of the collection. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_load_collection_request_ac10a6d9d48efc97ca99d93ab38524b13}\label{classmilvus_1_1_load_collection_request_ac10a6d9d48efc97ca99d93ab38524b13}} 
+bool \mbox{\hyperlink{classmilvus_1_1_load_collection_request_ac10a6d9d48efc97ca99d93ab38524b13}{Sync}} () const
+\begin{DoxyCompactList}\small\item\em Sync mode. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_load_collection_request_a5db7aed3f3b94414f090ba33ae463882}\label{classmilvus_1_1_load_collection_request_a5db7aed3f3b94414f090ba33ae463882}} 
+void \mbox{\hyperlink{classmilvus_1_1_load_collection_request_a5db7aed3f3b94414f090ba33ae463882}{Set\+Sync}} (bool sync)
+\begin{DoxyCompactList}\small\item\em Set sync mode. Default value is true. True\+: wait the collection to be fully loaded. False\+: return immediately no matter the collection is fully loaded or not. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_load_collection_request_a472173ad4faee83f176f4022c2f01111}\label{classmilvus_1_1_load_collection_request_a472173ad4faee83f176f4022c2f01111}} 
+\mbox{\hyperlink{classmilvus_1_1_load_collection_request}{Load\+Collection\+Request}} \& \mbox{\hyperlink{classmilvus_1_1_load_collection_request_a472173ad4faee83f176f4022c2f01111}{With\+Sync}} (bool sync)
+\begin{DoxyCompactList}\small\item\em Set sync mode. Default value is true. True\+: wait the collection to be fully loaded. False\+: return immediately no matter the collection is fully loaded or not. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_load_collection_request_ab6cd969a4390af043ffe5f5f501f9f46}\label{classmilvus_1_1_load_collection_request_ab6cd969a4390af043ffe5f5f501f9f46}} 
+int64\+\_\+t \mbox{\hyperlink{classmilvus_1_1_load_collection_request_ab6cd969a4390af043ffe5f5f501f9f46}{Replica\+Num}} () const
+\begin{DoxyCompactList}\small\item\em Number of replicas. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_load_collection_request_a4524a2b851015eff08f9b5186d4310a0}\label{classmilvus_1_1_load_collection_request_a4524a2b851015eff08f9b5186d4310a0}} 
+void \mbox{\hyperlink{classmilvus_1_1_load_collection_request_a4524a2b851015eff08f9b5186d4310a0}{Set\+Replica\+Num}} (int64\+\_\+t replica\+\_\+num)
+\begin{DoxyCompactList}\small\item\em Set number of replicas. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_load_collection_request_ae0106731eac613656f803ead86f53eb6}\label{classmilvus_1_1_load_collection_request_ae0106731eac613656f803ead86f53eb6}} 
+\mbox{\hyperlink{classmilvus_1_1_load_collection_request}{Load\+Collection\+Request}} \& \mbox{\hyperlink{classmilvus_1_1_load_collection_request_ae0106731eac613656f803ead86f53eb6}{With\+Replica\+Num}} (int64\+\_\+t replica\+\_\+num)
+\begin{DoxyCompactList}\small\item\em Set number of replicas. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_load_collection_request_a29c54d11cfaf4f879285631f37bdab35}\label{classmilvus_1_1_load_collection_request_a29c54d11cfaf4f879285631f37bdab35}} 
+int64\+\_\+t \mbox{\hyperlink{classmilvus_1_1_load_collection_request_a29c54d11cfaf4f879285631f37bdab35}{Timeout\+Ms}} () const
+\begin{DoxyCompactList}\small\item\em Timeout in milliseconds. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_load_collection_request_a1ca2211402627cdf1fc350a75aeaf628}\label{classmilvus_1_1_load_collection_request_a1ca2211402627cdf1fc350a75aeaf628}} 
+void \mbox{\hyperlink{classmilvus_1_1_load_collection_request_a1ca2211402627cdf1fc350a75aeaf628}{Set\+Timeout\+Ms}} (int64\+\_\+t timeout\+\_\+ms)
+\begin{DoxyCompactList}\small\item\em Set timeout in milliseconds. Default value is 60000ms. Only work when \mbox{\hyperlink{classmilvus_1_1_load_collection_request_ac10a6d9d48efc97ca99d93ab38524b13}{Sync()}} is true. If the Wait\+Flushed\+Ms is zero, the Load\+Collection() will call Get\+Loading\+Progress() to loading state, until the collection is fully loaded into memory. If the Wait\+Flushed\+Ms is larger than zero, the Load\+Collection() will break the loop after a certain of time span and return a status saying the process is timeout. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_load_collection_request_a01d12c46ad2fcec2988b9550825f1285}\label{classmilvus_1_1_load_collection_request_a01d12c46ad2fcec2988b9550825f1285}} 
+\mbox{\hyperlink{classmilvus_1_1_load_collection_request}{Load\+Collection\+Request}} \& \mbox{\hyperlink{classmilvus_1_1_load_collection_request_a01d12c46ad2fcec2988b9550825f1285}{With\+Timeout\+Ms}} (int64\+\_\+t timeout\+\_\+ms)
+\begin{DoxyCompactList}\small\item\em Set timeout in milliseconds. Default value is 60000ms. Only work when \mbox{\hyperlink{classmilvus_1_1_load_collection_request_ac10a6d9d48efc97ca99d93ab38524b13}{Sync()}} is true. If the Wait\+Flushed\+Ms is zero, the Load\+Collection() will call Get\+Loading\+Progress() to loading state, until the collection is fully loaded into memory. If the Wait\+Flushed\+Ms is larger than zero, the Load\+Collection() will break the loop after a certain of time span and return a status saying the process is timeout. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_load_collection_request_ae634295466fb0c7ce6d9f62eae383acd}\label{classmilvus_1_1_load_collection_request_ae634295466fb0c7ce6d9f62eae383acd}} 
+bool \mbox{\hyperlink{classmilvus_1_1_load_collection_request_ae634295466fb0c7ce6d9f62eae383acd}{Refresh}} () const
+\begin{DoxyCompactList}\small\item\em Refresh option. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_load_collection_request_af5d6e7bec022a41ea8543f5940d2434c}\label{classmilvus_1_1_load_collection_request_af5d6e7bec022a41ea8543f5940d2434c}} 
+void \mbox{\hyperlink{classmilvus_1_1_load_collection_request_af5d6e7bec022a41ea8543f5940d2434c}{Set\+Refresh}} (bool refresh)
+\begin{DoxyCompactList}\small\item\em Set refresh option. Take effect when there are new segments generaged by bulkimport interface. True\+: load new segments generaged by bulkimport interface. False\+: ignore new segments generaged by bulkimport interface. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_load_collection_request_a83fe04a350170878ea37caf5db5b2195}\label{classmilvus_1_1_load_collection_request_a83fe04a350170878ea37caf5db5b2195}} 
+\mbox{\hyperlink{classmilvus_1_1_load_collection_request}{Load\+Collection\+Request}} \& \mbox{\hyperlink{classmilvus_1_1_load_collection_request_a83fe04a350170878ea37caf5db5b2195}{With\+Refresh}} (bool refresh)
+\begin{DoxyCompactList}\small\item\em Set refresh option. Take effect when there are new segments generaged by bulkimport interface. True\+: load new segments generaged by bulkimport interface. False\+: ignore new segments generaged by bulkimport interface. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_load_collection_request_a3a9724f26363e84aad4b320fc1b8816c}\label{classmilvus_1_1_load_collection_request_a3a9724f26363e84aad4b320fc1b8816c}} 
+const std\+::set$<$ std\+::string $>$ \& \mbox{\hyperlink{classmilvus_1_1_load_collection_request_a3a9724f26363e84aad4b320fc1b8816c}{Load\+Fields}} () const
+\begin{DoxyCompactList}\small\item\em Load fields. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_load_collection_request_a00dee6c52625d044a09a60dd9d974af5}\label{classmilvus_1_1_load_collection_request_a00dee6c52625d044a09a60dd9d974af5}} 
+void \mbox{\hyperlink{classmilvus_1_1_load_collection_request_a00dee6c52625d044a09a60dd9d974af5}{Set\+Load\+Fields}} (const std\+::set$<$ std\+::string $>$ \&load\+\_\+fields)
+\begin{DoxyCompactList}\small\item\em Set load fields. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_load_collection_request_a37895eadc21fd4c1bea1d7864ae9aab6}\label{classmilvus_1_1_load_collection_request_a37895eadc21fd4c1bea1d7864ae9aab6}} 
+\mbox{\hyperlink{classmilvus_1_1_load_collection_request}{Load\+Collection\+Request}} \& \mbox{\hyperlink{classmilvus_1_1_load_collection_request_a37895eadc21fd4c1bea1d7864ae9aab6}{With\+Load\+Fields}} (const std\+::set$<$ std\+::string $>$ \&load\+\_\+fields)
+\begin{DoxyCompactList}\small\item\em Set load fields. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_load_collection_request_a21f99eae79ceaf279e533124b241d471}\label{classmilvus_1_1_load_collection_request_a21f99eae79ceaf279e533124b241d471}} 
+\mbox{\hyperlink{classmilvus_1_1_load_collection_request}{Load\+Collection\+Request}} \& \mbox{\hyperlink{classmilvus_1_1_load_collection_request_a21f99eae79ceaf279e533124b241d471}{Add\+Load\+Field}} (const std\+::string \&field\+\_\+name)
+\begin{DoxyCompactList}\small\item\em Add a field to be loaded. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_load_collection_request_a4573ed3cc88c432a15021036006f2487}\label{classmilvus_1_1_load_collection_request_a4573ed3cc88c432a15021036006f2487}} 
+bool \mbox{\hyperlink{classmilvus_1_1_load_collection_request_a4573ed3cc88c432a15021036006f2487}{Skip\+Dynamic\+Field}} () const
+\begin{DoxyCompactList}\small\item\em Skip dynamic field option. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_load_collection_request_a7e08c84f8e22e6a0e1772819e12c12c2}\label{classmilvus_1_1_load_collection_request_a7e08c84f8e22e6a0e1772819e12c12c2}} 
+void \mbox{\hyperlink{classmilvus_1_1_load_collection_request_a7e08c84f8e22e6a0e1772819e12c12c2}{Set\+Skip\+Dynamic\+Field}} (bool skip\+\_\+dynamic\+\_\+field)
+\begin{DoxyCompactList}\small\item\em Set skip dynamic field option. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_load_collection_request_ad603aa755f81dea1f0b8cf799af983b4}\label{classmilvus_1_1_load_collection_request_ad603aa755f81dea1f0b8cf799af983b4}} 
+\mbox{\hyperlink{classmilvus_1_1_load_collection_request}{Load\+Collection\+Request}} \& \mbox{\hyperlink{classmilvus_1_1_load_collection_request_ad603aa755f81dea1f0b8cf799af983b4}{With\+Skip\+Dynamic\+Field}} (bool skip\+\_\+dynamic\+\_\+field)
+\begin{DoxyCompactList}\small\item\em Set skip dynamic field option. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_load_collection_request_afbdbb85d384a716607a2795ffd7f2121}\label{classmilvus_1_1_load_collection_request_afbdbb85d384a716607a2795ffd7f2121}} 
+const std\+::set$<$ std\+::string $>$ \& \mbox{\hyperlink{classmilvus_1_1_load_collection_request_afbdbb85d384a716607a2795ffd7f2121}{Target\+Resource\+Groups}} () const
+\begin{DoxyCompactList}\small\item\em Target resource groups. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_load_collection_request_afaf828d24e6c2056f6004f7996156d91}\label{classmilvus_1_1_load_collection_request_afaf828d24e6c2056f6004f7996156d91}} 
+void \mbox{\hyperlink{classmilvus_1_1_load_collection_request_afaf828d24e6c2056f6004f7996156d91}{Set\+Target\+Resource\+Groups}} (const std\+::set$<$ std\+::string $>$ \&target\+\_\+resource\+\_\+groups)
+\begin{DoxyCompactList}\small\item\em Set target resource groups. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_load_collection_request_a74f9a9b883cc5df9e5d4a53e24174bce}\label{classmilvus_1_1_load_collection_request_a74f9a9b883cc5df9e5d4a53e24174bce}} 
+\mbox{\hyperlink{classmilvus_1_1_load_collection_request}{Load\+Collection\+Request}} \& \mbox{\hyperlink{classmilvus_1_1_load_collection_request_a74f9a9b883cc5df9e5d4a53e24174bce}{With\+Target\+Resource\+Groups}} (const std\+::set$<$ std\+::string $>$ \&target\+\_\+resource\+\_\+groups)
+\begin{DoxyCompactList}\small\item\em Set target resource groups. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\doxysubsection*{Additional Inherited Members}
+
+
+\doxysubsection{Detailed Description}
+Used by \mbox{\hyperlink{classmilvus_1_1_milvus_client_v2_a98217a9d33fb2f1f93457b1af7bbc036}{Milvus\+Client\+V2\+::\+Load\+Collection()}} 
+
+The documentation for this class was generated from the following files\+:\begin{DoxyCompactItemize}
+\item 
+src/include/milvus/request/collection/Load\+Collection\+Request.\+h\item 
+src/impl/request/collection/Load\+Collection\+Request.\+cpp\end{DoxyCompactItemize}

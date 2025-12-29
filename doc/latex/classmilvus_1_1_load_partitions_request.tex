@@ -1,0 +1,125 @@
+\hypertarget{classmilvus_1_1_load_partitions_request}{}\doxysection{milvus\+::Load\+Partitions\+Request Class Reference}
+\label{classmilvus_1_1_load_partitions_request}\index{milvus::LoadPartitionsRequest@{milvus::LoadPartitionsRequest}}
+
+
+Used by \mbox{\hyperlink{classmilvus_1_1_milvus_client_v2_a1bb999bb3cd5ebc9298e38ff1f8138fd}{Milvus\+Client\+V2\+::\+Load\+Partitions()}}  
+
+
+
+
+{\ttfamily \#include $<$Load\+Partitions\+Request.\+h$>$}
+
+\doxysubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{classmilvus_1_1_load_partitions_request_aaa827925a26b7d71215f5ed4c7f15343}\label{classmilvus_1_1_load_partitions_request_aaa827925a26b7d71215f5ed4c7f15343}} 
+\mbox{\hyperlink{classmilvus_1_1_load_partitions_request_aaa827925a26b7d71215f5ed4c7f15343}{Load\+Partitions\+Request}} ()=default
+\begin{DoxyCompactList}\small\item\em Constructor. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_load_partitions_request_a250625f7445e3321a0856f1d57c6a9ea}\label{classmilvus_1_1_load_partitions_request_a250625f7445e3321a0856f1d57c6a9ea}} 
+const std\+::string \& \mbox{\hyperlink{classmilvus_1_1_load_partitions_request_a250625f7445e3321a0856f1d57c6a9ea}{Database\+Name}} () const
+\begin{DoxyCompactList}\small\item\em Database name in which the collection is created. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_load_partitions_request_a28749cfa0ebdf1705e1fb86db2a116b8}\label{classmilvus_1_1_load_partitions_request_a28749cfa0ebdf1705e1fb86db2a116b8}} 
+void \mbox{\hyperlink{classmilvus_1_1_load_partitions_request_a28749cfa0ebdf1705e1fb86db2a116b8}{Set\+Database\+Name}} (const std\+::string \&db\+\_\+name)
+\begin{DoxyCompactList}\small\item\em Set database name in which the collection is created. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_load_partitions_request_a4b71e08d26a3a46b56824135ef3a4772}\label{classmilvus_1_1_load_partitions_request_a4b71e08d26a3a46b56824135ef3a4772}} 
+\mbox{\hyperlink{classmilvus_1_1_load_partitions_request}{Load\+Partitions\+Request}} \& \mbox{\hyperlink{classmilvus_1_1_load_partitions_request_a4b71e08d26a3a46b56824135ef3a4772}{With\+Database\+Name}} (const std\+::string \&db\+\_\+name)
+\begin{DoxyCompactList}\small\item\em Set database name in which the collection is created. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_load_partitions_request_a8c6f84fb3bd1650e22b256133df6b83f}\label{classmilvus_1_1_load_partitions_request_a8c6f84fb3bd1650e22b256133df6b83f}} 
+const std\+::string \& \mbox{\hyperlink{classmilvus_1_1_load_partitions_request_a8c6f84fb3bd1650e22b256133df6b83f}{Collection\+Name}} () const
+\begin{DoxyCompactList}\small\item\em Name of the collection. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_load_partitions_request_aed257296795ade693120249aa415a72d}\label{classmilvus_1_1_load_partitions_request_aed257296795ade693120249aa415a72d}} 
+void \mbox{\hyperlink{classmilvus_1_1_load_partitions_request_aed257296795ade693120249aa415a72d}{Set\+Collection\+Name}} (const std\+::string \&collection\+\_\+name)
+\begin{DoxyCompactList}\small\item\em Set name of the collection. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_load_partitions_request_a5c69a3cb7fe38462f5c9572acb77e636}\label{classmilvus_1_1_load_partitions_request_a5c69a3cb7fe38462f5c9572acb77e636}} 
+\mbox{\hyperlink{classmilvus_1_1_load_partitions_request}{Load\+Partitions\+Request}} \& \mbox{\hyperlink{classmilvus_1_1_load_partitions_request_a5c69a3cb7fe38462f5c9572acb77e636}{With\+Collection\+Name}} (const std\+::string \&collection\+\_\+name)
+\begin{DoxyCompactList}\small\item\em Set name of the collection. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_load_partitions_request_a5a90bcec47b708a06a89740b412f8416}\label{classmilvus_1_1_load_partitions_request_a5a90bcec47b708a06a89740b412f8416}} 
+const std\+::set$<$ std\+::string $>$ \& \mbox{\hyperlink{classmilvus_1_1_load_partitions_request_a5a90bcec47b708a06a89740b412f8416}{Partition\+Names}} () const
+\begin{DoxyCompactList}\small\item\em Name of the partitions. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_load_partitions_request_aaaf0b695c901d41de75a3010bdef5acd}\label{classmilvus_1_1_load_partitions_request_aaaf0b695c901d41de75a3010bdef5acd}} 
+void \mbox{\hyperlink{classmilvus_1_1_load_partitions_request_aaaf0b695c901d41de75a3010bdef5acd}{Set\+Partition\+Names}} (const std\+::set$<$ std\+::string $>$ \&partition\+\_\+names)
+\begin{DoxyCompactList}\small\item\em Set name of the partitions. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_load_partitions_request_afed7e92b63a40724c4cb914379ad701c}\label{classmilvus_1_1_load_partitions_request_afed7e92b63a40724c4cb914379ad701c}} 
+\mbox{\hyperlink{classmilvus_1_1_load_partitions_request}{Load\+Partitions\+Request}} \& \mbox{\hyperlink{classmilvus_1_1_load_partitions_request_afed7e92b63a40724c4cb914379ad701c}{With\+Partition\+Names}} (const std\+::set$<$ std\+::string $>$ \&partition\+\_\+names)
+\begin{DoxyCompactList}\small\item\em Set new name of the partitions. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_load_partitions_request_a60a634d64d2f535775b5d532df1709ba}\label{classmilvus_1_1_load_partitions_request_a60a634d64d2f535775b5d532df1709ba}} 
+\mbox{\hyperlink{classmilvus_1_1_load_partitions_request}{Load\+Partitions\+Request}} \& \mbox{\hyperlink{classmilvus_1_1_load_partitions_request_a60a634d64d2f535775b5d532df1709ba}{Add\+Partition\+Name}} (const std\+::string \&partition\+\_\+name)
+\begin{DoxyCompactList}\small\item\em Add a partition to be loaded. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_load_partitions_request_ac9261ef25efa694a7eb5dfd7f2ff61b1}\label{classmilvus_1_1_load_partitions_request_ac9261ef25efa694a7eb5dfd7f2ff61b1}} 
+bool \mbox{\hyperlink{classmilvus_1_1_load_partitions_request_ac9261ef25efa694a7eb5dfd7f2ff61b1}{Sync}} () const
+\begin{DoxyCompactList}\small\item\em Get sync mode. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_load_partitions_request_a8e4ff4587dbe3ace13da454d902fe4c3}\label{classmilvus_1_1_load_partitions_request_a8e4ff4587dbe3ace13da454d902fe4c3}} 
+void \mbox{\hyperlink{classmilvus_1_1_load_partitions_request_a8e4ff4587dbe3ace13da454d902fe4c3}{Set\+Sync}} (bool sync)
+\begin{DoxyCompactList}\small\item\em Set sync mode. Default value is true. True\+: wait the partitions to be fully loaded. False\+: return immediately no matter the partitions are fully loaded or not. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_load_partitions_request_a3caab8a054e114c6440eb58be1f9b281}\label{classmilvus_1_1_load_partitions_request_a3caab8a054e114c6440eb58be1f9b281}} 
+\mbox{\hyperlink{classmilvus_1_1_load_partitions_request}{Load\+Partitions\+Request}} \& \mbox{\hyperlink{classmilvus_1_1_load_partitions_request_a3caab8a054e114c6440eb58be1f9b281}{With\+Sync}} (bool sync)
+\begin{DoxyCompactList}\small\item\em Set sync mode. Default value is true. True\+: wait the partitions to be fully loaded. False\+: return immediately no matter the partitions are fully loaded or not. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_load_partitions_request_af7e5b4120981d608a900e435810d1bc6}\label{classmilvus_1_1_load_partitions_request_af7e5b4120981d608a900e435810d1bc6}} 
+int64\+\_\+t \mbox{\hyperlink{classmilvus_1_1_load_partitions_request_af7e5b4120981d608a900e435810d1bc6}{Replica\+Num}} () const
+\begin{DoxyCompactList}\small\item\em Number of replicas. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_load_partitions_request_a7511994a0a36ff7a94a2791cf6633f06}\label{classmilvus_1_1_load_partitions_request_a7511994a0a36ff7a94a2791cf6633f06}} 
+void \mbox{\hyperlink{classmilvus_1_1_load_partitions_request_a7511994a0a36ff7a94a2791cf6633f06}{Set\+Replica\+Num}} (int64\+\_\+t replica\+\_\+num)
+\begin{DoxyCompactList}\small\item\em Set number of replicas. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_load_partitions_request_ad48125e4ec3fb1544561213ed00dabb9}\label{classmilvus_1_1_load_partitions_request_ad48125e4ec3fb1544561213ed00dabb9}} 
+\mbox{\hyperlink{classmilvus_1_1_load_partitions_request}{Load\+Partitions\+Request}} \& \mbox{\hyperlink{classmilvus_1_1_load_partitions_request_ad48125e4ec3fb1544561213ed00dabb9}{With\+Replica\+Num}} (int64\+\_\+t replica\+\_\+num)
+\begin{DoxyCompactList}\small\item\em Set number of replicas. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_load_partitions_request_ab5c20d33559257a3237b5ddfa5c95a77}\label{classmilvus_1_1_load_partitions_request_ab5c20d33559257a3237b5ddfa5c95a77}} 
+int64\+\_\+t \mbox{\hyperlink{classmilvus_1_1_load_partitions_request_ab5c20d33559257a3237b5ddfa5c95a77}{Timeout\+Ms}} () const
+\begin{DoxyCompactList}\small\item\em Timeout in milliseconds. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_load_partitions_request_a11f5c2b8fd117efd9844746143d35fc5}\label{classmilvus_1_1_load_partitions_request_a11f5c2b8fd117efd9844746143d35fc5}} 
+void \mbox{\hyperlink{classmilvus_1_1_load_partitions_request_a11f5c2b8fd117efd9844746143d35fc5}{Set\+Timeout\+Ms}} (int64\+\_\+t timeout\+\_\+ms)
+\begin{DoxyCompactList}\small\item\em Set timeout in milliseconds. Default value is 60000ms. Only work when \mbox{\hyperlink{classmilvus_1_1_load_partitions_request_ac9261ef25efa694a7eb5dfd7f2ff61b1}{Sync()}} is true. If the Wait\+Flushed\+Ms is zero, the Load\+Partitions() will call Get\+Loading\+Progress() to loading state, until the collection is fully loaded into memory. If the Wait\+Flushed\+Ms is larger than zero, the Load\+Partitions() will break the loop after a certain of time span and return a status saying the process is timeout. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_load_partitions_request_a549fb795e3c557c83686f2ec6715fc17}\label{classmilvus_1_1_load_partitions_request_a549fb795e3c557c83686f2ec6715fc17}} 
+\mbox{\hyperlink{classmilvus_1_1_load_partitions_request}{Load\+Partitions\+Request}} \& \mbox{\hyperlink{classmilvus_1_1_load_partitions_request_a549fb795e3c557c83686f2ec6715fc17}{With\+Timeout\+Ms}} (int64\+\_\+t timeout\+\_\+ms)
+\begin{DoxyCompactList}\small\item\em Set timeout in milliseconds. Default value is 60000ms. Only work when \mbox{\hyperlink{classmilvus_1_1_load_partitions_request_ac9261ef25efa694a7eb5dfd7f2ff61b1}{Sync()}} is true. If the Wait\+Flushed\+Ms is zero, the Load\+Partitions() will call Get\+Loading\+Progress() to loading state, until the collection is fully loaded into memory. If the Wait\+Flushed\+Ms is larger than zero, the Load\+Partitions() will break the loop after a certain of time span and return a status saying the process is timeout. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_load_partitions_request_a36e25e6cfb69885bce611f87571d2b5f}\label{classmilvus_1_1_load_partitions_request_a36e25e6cfb69885bce611f87571d2b5f}} 
+bool \mbox{\hyperlink{classmilvus_1_1_load_partitions_request_a36e25e6cfb69885bce611f87571d2b5f}{Refresh}} () const
+\begin{DoxyCompactList}\small\item\em Refresh option. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_load_partitions_request_aa07040c0945c2584d0156dc53862979f}\label{classmilvus_1_1_load_partitions_request_aa07040c0945c2584d0156dc53862979f}} 
+void \mbox{\hyperlink{classmilvus_1_1_load_partitions_request_aa07040c0945c2584d0156dc53862979f}{Set\+Refresh}} (bool refresh)
+\begin{DoxyCompactList}\small\item\em Set refresh option. Take effect when there are new segments generaged by bulkimport interface. True\+: load new segments generaged by bulkimport interface. False\+: ignore new segments generaged by bulkimport interface. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_load_partitions_request_af16b9cfe3a61d50b92507754a63e0a94}\label{classmilvus_1_1_load_partitions_request_af16b9cfe3a61d50b92507754a63e0a94}} 
+\mbox{\hyperlink{classmilvus_1_1_load_partitions_request}{Load\+Partitions\+Request}} \& \mbox{\hyperlink{classmilvus_1_1_load_partitions_request_af16b9cfe3a61d50b92507754a63e0a94}{With\+Refresh}} (bool refresh)
+\begin{DoxyCompactList}\small\item\em Set refresh option. Take effect when there are new segments generaged by bulkimport interface. True\+: load new segments generaged by bulkimport interface. False\+: ignore new segments generaged by bulkimport interface. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_load_partitions_request_a7413f1e1dd8f584c9d67a0cc6d431201}\label{classmilvus_1_1_load_partitions_request_a7413f1e1dd8f584c9d67a0cc6d431201}} 
+const std\+::set$<$ std\+::string $>$ \& \mbox{\hyperlink{classmilvus_1_1_load_partitions_request_a7413f1e1dd8f584c9d67a0cc6d431201}{Load\+Fields}} () const
+\begin{DoxyCompactList}\small\item\em Load fields. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_load_partitions_request_ace241b9b5729124ae8f10fd86d444f8e}\label{classmilvus_1_1_load_partitions_request_ace241b9b5729124ae8f10fd86d444f8e}} 
+void \mbox{\hyperlink{classmilvus_1_1_load_partitions_request_ace241b9b5729124ae8f10fd86d444f8e}{Set\+Load\+Fields}} (const std\+::set$<$ std\+::string $>$ \&load\+\_\+fields)
+\begin{DoxyCompactList}\small\item\em Set load fields. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_load_partitions_request_af30a920b7bfd65c942e700e45ad12c3f}\label{classmilvus_1_1_load_partitions_request_af30a920b7bfd65c942e700e45ad12c3f}} 
+\mbox{\hyperlink{classmilvus_1_1_load_partitions_request}{Load\+Partitions\+Request}} \& \mbox{\hyperlink{classmilvus_1_1_load_partitions_request_af30a920b7bfd65c942e700e45ad12c3f}{With\+Load\+Fields}} (const std\+::set$<$ std\+::string $>$ \&load\+\_\+fields)
+\begin{DoxyCompactList}\small\item\em Set load fields. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_load_partitions_request_a86261818f80df68f3a102ad131cddc05}\label{classmilvus_1_1_load_partitions_request_a86261818f80df68f3a102ad131cddc05}} 
+\mbox{\hyperlink{classmilvus_1_1_load_partitions_request}{Load\+Partitions\+Request}} \& \mbox{\hyperlink{classmilvus_1_1_load_partitions_request_a86261818f80df68f3a102ad131cddc05}{Add\+Load\+Field}} (const std\+::string \&load\+\_\+field)
+\begin{DoxyCompactList}\small\item\em Add a load field. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_load_partitions_request_a55b786163297e57b60499e3f0fec2165}\label{classmilvus_1_1_load_partitions_request_a55b786163297e57b60499e3f0fec2165}} 
+bool \mbox{\hyperlink{classmilvus_1_1_load_partitions_request_a55b786163297e57b60499e3f0fec2165}{Skip\+Dynamic\+Field}} () const
+\begin{DoxyCompactList}\small\item\em Skip dynamic field option. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_load_partitions_request_aa890380087a28ec6a1ce6d7286f301bd}\label{classmilvus_1_1_load_partitions_request_aa890380087a28ec6a1ce6d7286f301bd}} 
+void \mbox{\hyperlink{classmilvus_1_1_load_partitions_request_aa890380087a28ec6a1ce6d7286f301bd}{Set\+Skip\+Dynamic\+Field}} (bool skip\+\_\+dynamic\+\_\+field)
+\begin{DoxyCompactList}\small\item\em Set skip dynamic field option. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_load_partitions_request_ae20a700d9e3f6d8990d5859a266fbdb4}\label{classmilvus_1_1_load_partitions_request_ae20a700d9e3f6d8990d5859a266fbdb4}} 
+\mbox{\hyperlink{classmilvus_1_1_load_partitions_request}{Load\+Partitions\+Request}} \& \mbox{\hyperlink{classmilvus_1_1_load_partitions_request_ae20a700d9e3f6d8990d5859a266fbdb4}{With\+Skip\+Dynamic\+Field}} (bool skip\+\_\+dynamic\+\_\+field)
+\begin{DoxyCompactList}\small\item\em Set skip dynamic field option. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_load_partitions_request_a08274fb9160388d833dffeef707efa48}\label{classmilvus_1_1_load_partitions_request_a08274fb9160388d833dffeef707efa48}} 
+const std\+::set$<$ std\+::string $>$ \& \mbox{\hyperlink{classmilvus_1_1_load_partitions_request_a08274fb9160388d833dffeef707efa48}{Target\+Resource\+Groups}} () const
+\begin{DoxyCompactList}\small\item\em Target resource groups. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_load_partitions_request_a0a96cfcdc77e0806c8cd4e726a046f95}\label{classmilvus_1_1_load_partitions_request_a0a96cfcdc77e0806c8cd4e726a046f95}} 
+void \mbox{\hyperlink{classmilvus_1_1_load_partitions_request_a0a96cfcdc77e0806c8cd4e726a046f95}{Set\+Target\+Resource\+Groups}} (const std\+::set$<$ std\+::string $>$ \&target\+\_\+resource\+\_\+groups)
+\begin{DoxyCompactList}\small\item\em Set target resource groups. If the target\+\_\+resource\+\_\+groups is empty, will load into the default resource group. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_load_partitions_request_a5867b8548d4e7b12767eff94226d7540}\label{classmilvus_1_1_load_partitions_request_a5867b8548d4e7b12767eff94226d7540}} 
+\mbox{\hyperlink{classmilvus_1_1_load_partitions_request}{Load\+Partitions\+Request}} \& \mbox{\hyperlink{classmilvus_1_1_load_partitions_request_a5867b8548d4e7b12767eff94226d7540}{With\+Target\+Resource\+Groups}} (const std\+::set$<$ std\+::string $>$ \&target\+\_\+resource\+\_\+groups)
+\begin{DoxyCompactList}\small\item\em Set target resource groups. If the target\+\_\+resource\+\_\+groups is empty, will load into the default resource group. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_load_partitions_request_a7e2b9dcb3b6c0c4f75eb7e7c0a6fb53e}\label{classmilvus_1_1_load_partitions_request_a7e2b9dcb3b6c0c4f75eb7e7c0a6fb53e}} 
+\mbox{\hyperlink{classmilvus_1_1_load_partitions_request}{Load\+Partitions\+Request}} \& \mbox{\hyperlink{classmilvus_1_1_load_partitions_request_a7e2b9dcb3b6c0c4f75eb7e7c0a6fb53e}{Add\+Target\+Resource\+Groups}} (const std\+::string \&target\+\_\+resource\+\_\+group)
+\begin{DoxyCompactList}\small\item\em Add a target resource group. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+Used by \mbox{\hyperlink{classmilvus_1_1_milvus_client_v2_a1bb999bb3cd5ebc9298e38ff1f8138fd}{Milvus\+Client\+V2\+::\+Load\+Partitions()}} 
+
+The documentation for this class was generated from the following files\+:\begin{DoxyCompactItemize}
+\item 
+src/include/milvus/request/partition/Load\+Partitions\+Request.\+h\item 
+src/impl/request/partition/Load\+Partitions\+Request.\+cpp\end{DoxyCompactItemize}

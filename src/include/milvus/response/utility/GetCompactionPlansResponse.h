@@ -30,10 +30,15 @@ class GetCompactionPlansResponse {
      */
     GetCompactionPlansResponse() = default;
 
-    // Getter and Setter for plans_
+    /**
+     * @brief Get plans of the compaction.
+     */
     const CompactionPlans&
     Plans() const;
 
+    /**
+     * @brief Set plans of the compaction.
+     */
     void
     SetPlans(CompactionPlans&& plans);
 

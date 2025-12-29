@@ -1,0 +1,86 @@
+\hypertarget{classmilvus_1_1_transfer_node_request}{}\doxysection{milvus\+::Transfer\+Node\+Request Class Reference}
+\label{classmilvus_1_1_transfer_node_request}\index{milvus::TransferNodeRequest@{milvus::TransferNodeRequest}}
+
+
+Used by \mbox{\hyperlink{classmilvus_1_1_milvus_client_v2_a6beba37bba63e76305d5465c7778668e}{Milvus\+Client\+V2\+::\+Transfer\+Node()}}  
+
+
+
+
+{\ttfamily \#include $<$Transfer\+Node\+Request.\+h$>$}
+
+\doxysubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{classmilvus_1_1_transfer_node_request_a2458cf2ecee04b746e28fb34df31bb18}\label{classmilvus_1_1_transfer_node_request_a2458cf2ecee04b746e28fb34df31bb18}} 
+\mbox{\hyperlink{classmilvus_1_1_transfer_node_request_a2458cf2ecee04b746e28fb34df31bb18}{Transfer\+Node\+Request}} ()=default
+\begin{DoxyCompactList}\small\item\em Constructor. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_transfer_node_request_aa7315a1aa850745adef018a3bb3cfc69}\label{classmilvus_1_1_transfer_node_request_aa7315a1aa850745adef018a3bb3cfc69}} 
+const std\+::string \& \mbox{\hyperlink{classmilvus_1_1_transfer_node_request_aa7315a1aa850745adef018a3bb3cfc69}{Source\+Group}} () const
+\begin{DoxyCompactList}\small\item\em Get name of the source resource group. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_transfer_node_request_a331ce4592c2a9dba2b145287f303792c}\label{classmilvus_1_1_transfer_node_request_a331ce4592c2a9dba2b145287f303792c}} 
+void \mbox{\hyperlink{classmilvus_1_1_transfer_node_request_a331ce4592c2a9dba2b145287f303792c}{Set\+Source\+Group}} (const std\+::string \&source\+\_\+group)
+\begin{DoxyCompactList}\small\item\em Set name of the source resource group. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_transfer_node_request_a258a6a8344671b549e0e410b5ed1e5d6}\label{classmilvus_1_1_transfer_node_request_a258a6a8344671b549e0e410b5ed1e5d6}} 
+\mbox{\hyperlink{classmilvus_1_1_transfer_node_request}{Transfer\+Node\+Request}} \& \mbox{\hyperlink{classmilvus_1_1_transfer_node_request_a258a6a8344671b549e0e410b5ed1e5d6}{With\+Source\+Group}} (const std\+::string \&source\+\_\+group)
+\begin{DoxyCompactList}\small\item\em Set name of the source resource group. \end{DoxyCompactList}\item 
+const std\+::string \& \mbox{\hyperlink{classmilvus_1_1_transfer_node_request_a19955d77cd2f3164c472af6eb1161a23}{Target\+Group}} () const
+\item 
+void \mbox{\hyperlink{classmilvus_1_1_transfer_node_request_ac590cce709f3358e056b7dca74ad7241}{Set\+Target\+Group}} (const std\+::string \&target\+\_\+group)
+\item 
+\mbox{\hyperlink{classmilvus_1_1_transfer_node_request}{Transfer\+Node\+Request}} \& \mbox{\hyperlink{classmilvus_1_1_transfer_node_request_ab8bb4555294cb637777ec81c734122f8}{With\+Target\+Group}} (const std\+::string \&target\+\_\+group)
+\item 
+int64\+\_\+t \mbox{\hyperlink{classmilvus_1_1_transfer_node_request_a04cb020f1fb3ae7a5b0e9255e8a55b33}{Num\+Nodes}} () const
+\item 
+void \mbox{\hyperlink{classmilvus_1_1_transfer_node_request_a3e5a2115a9f4cfe77a5993d14c2a0ca9}{Set\+Num\+Nodes}} (int64\+\_\+t num\+\_\+nodes)
+\item 
+\mbox{\hyperlink{classmilvus_1_1_transfer_node_request}{Transfer\+Node\+Request}} \& \mbox{\hyperlink{classmilvus_1_1_transfer_node_request_afc08b95251916987c83b8325ce88b025}{With\+Num\+Nodes}} (int64\+\_\+t num\+\_\+nodes)
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+Used by \mbox{\hyperlink{classmilvus_1_1_milvus_client_v2_a6beba37bba63e76305d5465c7778668e}{Milvus\+Client\+V2\+::\+Transfer\+Node()}} 
+
+\doxysubsection{Member Function Documentation}
+\mbox{\Hypertarget{classmilvus_1_1_transfer_node_request_a04cb020f1fb3ae7a5b0e9255e8a55b33}\label{classmilvus_1_1_transfer_node_request_a04cb020f1fb3ae7a5b0e9255e8a55b33}} 
+\index{milvus::TransferNodeRequest@{milvus::TransferNodeRequest}!NumNodes@{NumNodes}}
+\index{NumNodes@{NumNodes}!milvus::TransferNodeRequest@{milvus::TransferNodeRequest}}
+\doxysubsubsection{\texorpdfstring{NumNodes()}{NumNodes()}}
+{\footnotesize\ttfamily int64\+\_\+t milvus\+::\+Transfer\+Node\+Request\+::\+Num\+Nodes (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption}) const}
+
+Get number of nodes to transfer. \mbox{\Hypertarget{classmilvus_1_1_transfer_node_request_a3e5a2115a9f4cfe77a5993d14c2a0ca9}\label{classmilvus_1_1_transfer_node_request_a3e5a2115a9f4cfe77a5993d14c2a0ca9}} 
+\index{milvus::TransferNodeRequest@{milvus::TransferNodeRequest}!SetNumNodes@{SetNumNodes}}
+\index{SetNumNodes@{SetNumNodes}!milvus::TransferNodeRequest@{milvus::TransferNodeRequest}}
+\doxysubsubsection{\texorpdfstring{SetNumNodes()}{SetNumNodes()}}
+{\footnotesize\ttfamily void milvus\+::\+Transfer\+Node\+Request\+::\+Set\+Num\+Nodes (\begin{DoxyParamCaption}\item[{int64\+\_\+t}]{num\+\_\+nodes }\end{DoxyParamCaption})}
+
+Set number of nodes to transfer. \mbox{\Hypertarget{classmilvus_1_1_transfer_node_request_ac590cce709f3358e056b7dca74ad7241}\label{classmilvus_1_1_transfer_node_request_ac590cce709f3358e056b7dca74ad7241}} 
+\index{milvus::TransferNodeRequest@{milvus::TransferNodeRequest}!SetTargetGroup@{SetTargetGroup}}
+\index{SetTargetGroup@{SetTargetGroup}!milvus::TransferNodeRequest@{milvus::TransferNodeRequest}}
+\doxysubsubsection{\texorpdfstring{SetTargetGroup()}{SetTargetGroup()}}
+{\footnotesize\ttfamily void milvus\+::\+Transfer\+Node\+Request\+::\+Set\+Target\+Group (\begin{DoxyParamCaption}\item[{const std\+::string \&}]{target\+\_\+group }\end{DoxyParamCaption})}
+
+Set name of the target resource group. \mbox{\Hypertarget{classmilvus_1_1_transfer_node_request_a19955d77cd2f3164c472af6eb1161a23}\label{classmilvus_1_1_transfer_node_request_a19955d77cd2f3164c472af6eb1161a23}} 
+\index{milvus::TransferNodeRequest@{milvus::TransferNodeRequest}!TargetGroup@{TargetGroup}}
+\index{TargetGroup@{TargetGroup}!milvus::TransferNodeRequest@{milvus::TransferNodeRequest}}
+\doxysubsubsection{\texorpdfstring{TargetGroup()}{TargetGroup()}}
+{\footnotesize\ttfamily const std\+::string \& milvus\+::\+Transfer\+Node\+Request\+::\+Target\+Group (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption}) const}
+
+Get name of the target resource group. \mbox{\Hypertarget{classmilvus_1_1_transfer_node_request_afc08b95251916987c83b8325ce88b025}\label{classmilvus_1_1_transfer_node_request_afc08b95251916987c83b8325ce88b025}} 
+\index{milvus::TransferNodeRequest@{milvus::TransferNodeRequest}!WithNumNodes@{WithNumNodes}}
+\index{WithNumNodes@{WithNumNodes}!milvus::TransferNodeRequest@{milvus::TransferNodeRequest}}
+\doxysubsubsection{\texorpdfstring{WithNumNodes()}{WithNumNodes()}}
+{\footnotesize\ttfamily \mbox{\hyperlink{classmilvus_1_1_transfer_node_request}{Transfer\+Node\+Request}} \& milvus\+::\+Transfer\+Node\+Request\+::\+With\+Num\+Nodes (\begin{DoxyParamCaption}\item[{int64\+\_\+t}]{num\+\_\+nodes }\end{DoxyParamCaption})}
+
+Set number of nodes to transfer. \mbox{\Hypertarget{classmilvus_1_1_transfer_node_request_ab8bb4555294cb637777ec81c734122f8}\label{classmilvus_1_1_transfer_node_request_ab8bb4555294cb637777ec81c734122f8}} 
+\index{milvus::TransferNodeRequest@{milvus::TransferNodeRequest}!WithTargetGroup@{WithTargetGroup}}
+\index{WithTargetGroup@{WithTargetGroup}!milvus::TransferNodeRequest@{milvus::TransferNodeRequest}}
+\doxysubsubsection{\texorpdfstring{WithTargetGroup()}{WithTargetGroup()}}
+{\footnotesize\ttfamily \mbox{\hyperlink{classmilvus_1_1_transfer_node_request}{Transfer\+Node\+Request}} \& milvus\+::\+Transfer\+Node\+Request\+::\+With\+Target\+Group (\begin{DoxyParamCaption}\item[{const std\+::string \&}]{target\+\_\+group }\end{DoxyParamCaption})}
+
+Set name of the target resource group. 
+
+The documentation for this class was generated from the following files\+:\begin{DoxyCompactItemize}
+\item 
+src/include/milvus/request/resourcegroup/Transfer\+Node\+Request.\+h\item 
+src/impl/request/resourcegroup/Transfer\+Node\+Request.\+cpp\end{DoxyCompactItemize}

@@ -31,9 +31,15 @@ class ListDatabasesResponse {
      */
     ListDatabasesResponse() = default;
 
-    // Getter and Setter for db_names_
+    /**
+     * @brief Get database names.
+     */
     const std::vector<std::string>&
     DatabaseNames() const;
+
+    /**
+     * @brief Set database names.
+     */
     void
     SetDatabaseNames(std::vector<std::string>&& databases);
 

@@ -24,7 +24,7 @@
 namespace milvus {
 
 /**
- * @brief Function container class for search rerank
+ * @brief Function container class for search rerank.
  */
 class FunctionScore {
  public:
@@ -34,13 +34,13 @@ class FunctionScore {
     FunctionScore() = default;
 
     /**
-     * @brief Get fuctions
+     * @brief Get fuctions.
      */
     const std::vector<FunctionPtr>&
     Functions() const;
 
     /**
-     * @brief Set fuctions
+     * @brief Set fuctions.
      * For Search(), the functions can be Boost/Decay/Model, etc.
      * For HybridSearch(), the functions can be RRF/Weighted, etc
      */
@@ -48,7 +48,7 @@ class FunctionScore {
     SetFunctions(std::vector<FunctionPtr>&& functions);
 
     /**
-     * @brief Set fuctions
+     * @brief Set fuctions.
      * For Search(), the functions can be Boost/Decay/Model, etc.
      * For HybridSearch(), the functions can be RRF/Weighted, etc
      */
@@ -56,7 +56,7 @@ class FunctionScore {
     WithFunctions(std::vector<FunctionPtr>&& functions);
 
     /**
-     * @brief Add a fuction
+     * @brief Add a fuction.
      * For Search(), the functions can be Boost/Decay/Model, etc.
      * For HybridSearch(), the functions can be RRF/Weighted, etc
      */
@@ -64,25 +64,25 @@ class FunctionScore {
     AddFunction(const FunctionPtr& function);
 
     /**
-     * @brief Get extra params
+     * @brief Get extra params.
      */
     const std::unordered_map<std::string, nlohmann::json>&
     Params() const;
 
     /**
-     * @brief Set extra params
+     * @brief Set extra params.
      */
     void
     SetParams(std::unordered_map<std::string, nlohmann::json>&& params);
 
     /**
-     * @brief Set extra params
+     * @brief Set extra params.
      */
     FunctionScore&
     WithParams(std::unordered_map<std::string, nlohmann::json>&& params);
 
     /**
-     * @brief Add an extra param
+     * @brief Add an extra param.
      */
     FunctionScore&
     AddParam(const std::string& key, nlohmann::json&& param);
