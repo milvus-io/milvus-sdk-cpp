@@ -59,7 +59,7 @@ else()
     message("Reset MILVUS_SDK_VERSION by git command")
     execute_process(
         COMMAND git describe --tags --abbrev=0
-        WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
         OUTPUT_VARIABLE MILVUS_SDK_VERSION
         OUTPUT_STRIP_TRAILING_WHITESPACE
         ERROR_QUIET
