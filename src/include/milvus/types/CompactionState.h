@@ -17,6 +17,7 @@
 #pragma once
 
 #include <cstdint>
+#include <string>
 
 namespace milvus {
 
@@ -106,3 +107,7 @@ class CompactionState {
 };
 
 }  // namespace milvus
+
+namespace std {
+std::string to_string(milvus::CompactionStateCode);
+}  // namespace std

@@ -31,14 +31,15 @@ const uint32_t dimension = 128;
 void
 buildCollection(milvus::MilvusClientV2Ptr& client) {
     // collection schema, drop and create collection
-    milvus::CollectionSchemaPtr collection_schema = std::make_shared<milvus::CollectionSchema>(collection_name);
+    milvus::CollectionSchemaPtr collection_schema = std::make_shared<milvus::CollectionSchema>();
     collection_schema->AddField({field_id, milvus::DataType::INT64, "", true, false});
     collection_schema->AddField(
         milvus::FieldSchema(field_vector, milvus::DataType::FLOAT_VECTOR).WithDimension(dimension));
     collection_schema->AddField({field_year, milvus::DataType::INT32});
 
     auto status = client->DropCollection(milvus::DropCollectionRequest().WithCollectionName(collection_name));
-    status = client->CreateCollection(milvus::CreateCollectionRequest().WithCollectionSchema(collection_schema));
+    status = client->CreateCollection(
+        milvus::CreateCollectionRequest().WithCollectionName(collection_name).WithCollectionSchema(collection_schema));
     util::CheckStatus(std::string("create collection: ") + collection_name, status);
 
     // create index

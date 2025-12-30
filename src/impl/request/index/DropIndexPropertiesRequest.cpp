@@ -33,18 +33,18 @@ DropIndexPropertiesRequest::WithCollectionName(const std::string& collection_nam
 }
 
 const std::string&
-DropIndexPropertiesRequest::FieldName() const {
-    return field_name_;
+DropIndexPropertiesRequest::IndexName() const {
+    return index_name_;
 }
 
 void
-DropIndexPropertiesRequest::SetFieldName(const std::string& field_name) {
-    field_name_ = field_name;
+DropIndexPropertiesRequest::SetIndexName(const std::string& index_name) {
+    index_name_ = index_name;
 }
 
 DropIndexPropertiesRequest&
-DropIndexPropertiesRequest::WithFieldName(const std::string& field_name) {
-    SetFieldName(field_name);
+DropIndexPropertiesRequest::WithIndexName(const std::string& index_name) {
+    SetIndexName(index_name);
     return *this;
 }
 
