@@ -1,0 +1,55 @@
+\hypertarget{classmilvus_1_1_collection_info}{}\doxysection{milvus\+::Collection\+Info Class Reference}
+\label{classmilvus_1_1_collection_info}\index{milvus::CollectionInfo@{milvus::CollectionInfo}}
+
+
+Collection runtime information including create timestamp and loading percentage, returned by \mbox{\hyperlink{classmilvus_1_1_milvus_client_a23d8be8f5fe079419de91b0b3a9825b0}{Milvus\+Client\+::\+List\+Collections()}}.  
+
+
+
+
+{\ttfamily \#include $<$Collection\+Info.\+h$>$}
+
+\doxysubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{classmilvus_1_1_collection_info_a274b9e4955984dbe333a38a4b951c755}\label{classmilvus_1_1_collection_info_a274b9e4955984dbe333a38a4b951c755}} 
+\mbox{\hyperlink{classmilvus_1_1_collection_info_a274b9e4955984dbe333a38a4b951c755}{Collection\+Info}} ()
+\begin{DoxyCompactList}\small\item\em Constructor. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_collection_info_af8b2f1fbb11e22de5d1a07e37ddaf363}\label{classmilvus_1_1_collection_info_af8b2f1fbb11e22de5d1a07e37ddaf363}} 
+\mbox{\hyperlink{classmilvus_1_1_collection_info_af8b2f1fbb11e22de5d1a07e37ddaf363}{Collection\+Info}} (std\+::string collection\+\_\+name, int64\+\_\+t collection\+\_\+id, uint64\+\_\+t create\+\_\+time)
+\begin{DoxyCompactList}\small\item\em Constructor. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_collection_info_a23b36430aa724f64b338687adbbfd51f}\label{classmilvus_1_1_collection_info_a23b36430aa724f64b338687adbbfd51f}} 
+const std\+::string \& \mbox{\hyperlink{classmilvus_1_1_collection_info_a23b36430aa724f64b338687adbbfd51f}{Name}} () const
+\begin{DoxyCompactList}\small\item\em Name of the collection. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_collection_info_a71efb911e988eaec9b17683dea28f306}\label{classmilvus_1_1_collection_info_a71efb911e988eaec9b17683dea28f306}} 
+int64\+\_\+t \mbox{\hyperlink{classmilvus_1_1_collection_info_a71efb911e988eaec9b17683dea28f306}{ID}} () const
+\begin{DoxyCompactList}\small\item\em Internal ID of the collection. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_collection_info_ae4575d2fa6fa9d49590072b967cc6a48}\label{classmilvus_1_1_collection_info_ae4575d2fa6fa9d49590072b967cc6a48}} 
+uint64\+\_\+t \mbox{\hyperlink{classmilvus_1_1_collection_info_ae4575d2fa6fa9d49590072b967cc6a48}{Created\+Time}} () const
+\begin{DoxyCompactList}\small\item\em The utc time when the collection is created. \end{DoxyCompactList}\item 
+uint64\+\_\+t \mbox{\hyperlink{classmilvus_1_1_collection_info_a8f27c2eafdc9f930d4a0d2eb381fb3ef}{Memory\+Percentage}} () const
+\begin{DoxyCompactList}\small\item\em Loading percentage of the collection. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+Collection runtime information including create timestamp and loading percentage, returned by \mbox{\hyperlink{classmilvus_1_1_milvus_client_a23d8be8f5fe079419de91b0b3a9825b0}{Milvus\+Client\+::\+List\+Collections()}}. 
+
+\doxysubsection{Member Function Documentation}
+\mbox{\Hypertarget{classmilvus_1_1_collection_info_a8f27c2eafdc9f930d4a0d2eb381fb3ef}\label{classmilvus_1_1_collection_info_a8f27c2eafdc9f930d4a0d2eb381fb3ef}} 
+\index{milvus::CollectionInfo@{milvus::CollectionInfo}!MemoryPercentage@{MemoryPercentage}}
+\index{MemoryPercentage@{MemoryPercentage}!milvus::CollectionInfo@{milvus::CollectionInfo}}
+\doxysubsubsection{\texorpdfstring{MemoryPercentage()}{MemoryPercentage()}}
+{\footnotesize\ttfamily uint64\+\_\+t milvus\+::\+Collection\+Info\+::\+Memory\+Percentage (\begin{DoxyParamCaption}{ }\end{DoxyParamCaption}) const}
+
+
+
+Loading percentage of the collection. 
+
+\begin{DoxyRefDesc}{Deprecated}
+\item[\mbox{\hyperlink{deprecated__deprecated000008}{Deprecated}}]This method always returns 0, use Get\+Load\+State to get the progress instead. \end{DoxyRefDesc}
+
+
+The documentation for this class was generated from the following files\+:\begin{DoxyCompactItemize}
+\item 
+src/include/milvus/types/Collection\+Info.\+h\item 
+src/impl/types/Collection\+Info.\+cpp\end{DoxyCompactItemize}

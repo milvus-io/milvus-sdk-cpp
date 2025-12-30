@@ -1,0 +1,45 @@
+\hypertarget{classmilvus_1_1_iterator_arguments}{}\doxysection{milvus\+::Iterator\+Arguments Class Reference}
+\label{classmilvus_1_1_iterator_arguments}\index{milvus::IteratorArguments@{milvus::IteratorArguments}}
+
+
+Base class arguments for \mbox{\hyperlink{classmilvus_1_1_milvus_client_a08058fb22987cbc589b738f3782a59b5}{Milvus\+Client\+::\+Query\+Iterator()}} and Search\+Iterator().  
+
+
+
+
+{\ttfamily \#include $<$Iterator\+Arguments.\+h$>$}
+
+
+
+Inherited by \mbox{\hyperlink{classmilvus_1_1_query_iterator_arguments}{milvus\+::\+Query\+Iterator\+Arguments}}, \mbox{\hyperlink{classmilvus_1_1_query_iterator_request}{milvus\+::\+Query\+Iterator\+Request}}, \mbox{\hyperlink{classmilvus_1_1_search_iterator_arguments}{milvus\+::\+Search\+Iterator\+Arguments}}, and \mbox{\hyperlink{classmilvus_1_1_search_iterator_request}{milvus\+::\+Search\+Iterator\+Request}}.
+
+\doxysubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{classmilvus_1_1_iterator_arguments_a73a0e31b6f900ea0835a35e9508229f4}\label{classmilvus_1_1_iterator_arguments_a73a0e31b6f900ea0835a35e9508229f4}} 
+int64\+\_\+t \mbox{\hyperlink{classmilvus_1_1_iterator_arguments_a73a0e31b6f900ea0835a35e9508229f4}{Batch\+Size}} () const
+\begin{DoxyCompactList}\small\item\em Get the batch size. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_iterator_arguments_a72d9b4ca360b26815afbe4f45470c07b}\label{classmilvus_1_1_iterator_arguments_a72d9b4ca360b26815afbe4f45470c07b}} 
+\mbox{\hyperlink{classmilvus_1_1_status}{Status}} \mbox{\hyperlink{classmilvus_1_1_iterator_arguments_a72d9b4ca360b26815afbe4f45470c07b}{Set\+Batch\+Size}} (int64\+\_\+t batch\+\_\+size)
+\begin{DoxyCompactList}\small\item\em Set the batch size. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_iterator_arguments_a7b98e496a2fbc370a9ab0edb42625749}\label{classmilvus_1_1_iterator_arguments_a7b98e496a2fbc370a9ab0edb42625749}} 
+int64\+\_\+t \mbox{\hyperlink{classmilvus_1_1_iterator_arguments_a7b98e496a2fbc370a9ab0edb42625749}{Collection\+ID}} () const
+\begin{DoxyCompactList}\small\item\em Get the collection id. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_iterator_arguments_ab18e8412fb495bf048b9d20c1cbed9f3}\label{classmilvus_1_1_iterator_arguments_ab18e8412fb495bf048b9d20c1cbed9f3}} 
+\mbox{\hyperlink{classmilvus_1_1_status}{Status}} \mbox{\hyperlink{classmilvus_1_1_iterator_arguments_ab18e8412fb495bf048b9d20c1cbed9f3}{Set\+Collection\+ID}} (int64\+\_\+t id)
+\begin{DoxyCompactList}\small\item\em Set the collection id. No need to manually assign this member, \mbox{\hyperlink{classmilvus_1_1_milvus_client}{Milvus\+Client}} automatically assigns it. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_iterator_arguments_a27ce7a47836bdbbad7595b3430d49e95}\label{classmilvus_1_1_iterator_arguments_a27ce7a47836bdbbad7595b3430d49e95}} 
+const \mbox{\hyperlink{classmilvus_1_1_field_schema}{Field\+Schema}} \& \mbox{\hyperlink{classmilvus_1_1_iterator_arguments_a27ce7a47836bdbbad7595b3430d49e95}{Pk\+Schema}} () const
+\begin{DoxyCompactList}\small\item\em Get the primary key field schema. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_iterator_arguments_ad0b953ca390539611713fcd95ceb2710}\label{classmilvus_1_1_iterator_arguments_ad0b953ca390539611713fcd95ceb2710}} 
+\mbox{\hyperlink{classmilvus_1_1_status}{Status}} \mbox{\hyperlink{classmilvus_1_1_iterator_arguments_ad0b953ca390539611713fcd95ceb2710}{Set\+Pk\+Schema}} (const \mbox{\hyperlink{classmilvus_1_1_field_schema}{Field\+Schema}} \&schema)
+\begin{DoxyCompactList}\small\item\em Set the primary key field schema. No need to manually assign this member, \mbox{\hyperlink{classmilvus_1_1_milvus_client}{Milvus\+Client}} automatically assigns it. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+Base class arguments for \mbox{\hyperlink{classmilvus_1_1_milvus_client_a08058fb22987cbc589b738f3782a59b5}{Milvus\+Client\+::\+Query\+Iterator()}} and Search\+Iterator(). 
+
+The documentation for this class was generated from the following files\+:\begin{DoxyCompactItemize}
+\item 
+src/include/milvus/types/Iterator\+Arguments.\+h\item 
+src/impl/types/Iterator\+Arguments.\+cpp\end{DoxyCompactItemize}

@@ -28,12 +28,12 @@ namespace milvus {
 class AliasDesc {
  public:
     /**
-     * @brief Construct a new Desc object
+     * @brief Construct a new Desc object.
      */
     AliasDesc();
 
     /**
-     * @brief Construct a new Desc object
+     * @brief Construct a new Desc object.
      *
      * @param alias_name  alias name
      * @param db_name database name

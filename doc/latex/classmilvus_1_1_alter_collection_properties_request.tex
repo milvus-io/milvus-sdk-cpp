@@ -1,0 +1,49 @@
+\hypertarget{classmilvus_1_1_alter_collection_properties_request}{}\doxysection{milvus\+::Alter\+Collection\+Properties\+Request Class Reference}
+\label{classmilvus_1_1_alter_collection_properties_request}\index{milvus::AlterCollectionPropertiesRequest@{milvus::AlterCollectionPropertiesRequest}}
+
+
+Used by \mbox{\hyperlink{classmilvus_1_1_milvus_client_v2_afd6919bcc955560af4407b6e485779e9}{Milvus\+Client\+V2\+::\+Alter\+Collection\+Properties()}}  
+
+
+
+
+{\ttfamily \#include $<$Alter\+Collection\+Properties\+Request.\+h$>$}
+
+
+
+Inherits \mbox{\hyperlink{classmilvus_1_1_collection_request_base}{milvus\+::\+Collection\+Request\+Base}}.
+
+\doxysubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{classmilvus_1_1_alter_collection_properties_request_a2880c060db602803c10f1bd2ba3e61ae}\label{classmilvus_1_1_alter_collection_properties_request_a2880c060db602803c10f1bd2ba3e61ae}} 
+\mbox{\hyperlink{classmilvus_1_1_alter_collection_properties_request_a2880c060db602803c10f1bd2ba3e61ae}{Alter\+Collection\+Properties\+Request}} ()=default
+\begin{DoxyCompactList}\small\item\em Constructor. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_alter_collection_properties_request_a7dca587af8850977bddcd0f9ca4b35a5}\label{classmilvus_1_1_alter_collection_properties_request_a7dca587af8850977bddcd0f9ca4b35a5}} 
+\mbox{\hyperlink{classmilvus_1_1_alter_collection_properties_request}{Alter\+Collection\+Properties\+Request}} \& \mbox{\hyperlink{classmilvus_1_1_alter_collection_properties_request_a7dca587af8850977bddcd0f9ca4b35a5}{With\+Database\+Name}} (const std\+::string \&db\+\_\+name)
+\begin{DoxyCompactList}\small\item\em Set database name in which the collection is created. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_alter_collection_properties_request_a40aff244432dd28912ea9a8b45bc4cc2}\label{classmilvus_1_1_alter_collection_properties_request_a40aff244432dd28912ea9a8b45bc4cc2}} 
+\mbox{\hyperlink{classmilvus_1_1_alter_collection_properties_request}{Alter\+Collection\+Properties\+Request}} \& \mbox{\hyperlink{classmilvus_1_1_alter_collection_properties_request_a40aff244432dd28912ea9a8b45bc4cc2}{With\+Collection\+Name}} (const std\+::string \&collection\+\_\+name)
+\begin{DoxyCompactList}\small\item\em Set name of the collection. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_alter_collection_properties_request_a832a5ee254d543bb7afc3f8805da30e3}\label{classmilvus_1_1_alter_collection_properties_request_a832a5ee254d543bb7afc3f8805da30e3}} 
+const std\+::unordered\+\_\+map$<$ std\+::string, std\+::string $>$ \& \mbox{\hyperlink{classmilvus_1_1_alter_collection_properties_request_a832a5ee254d543bb7afc3f8805da30e3}{Properties}} () const
+\begin{DoxyCompactList}\small\item\em Get altered properties. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_alter_collection_properties_request_a4d490be8d54ad885615dffd5089428e3}\label{classmilvus_1_1_alter_collection_properties_request_a4d490be8d54ad885615dffd5089428e3}} 
+void \mbox{\hyperlink{classmilvus_1_1_alter_collection_properties_request_a4d490be8d54ad885615dffd5089428e3}{Set\+Properties}} (std\+::unordered\+\_\+map$<$ std\+::string, std\+::string $>$ \&\&properties)
+\begin{DoxyCompactList}\small\item\em Set altered properties of this collection. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_alter_collection_properties_request_abd136ecd9b6449bedb610706d13e1608}\label{classmilvus_1_1_alter_collection_properties_request_abd136ecd9b6449bedb610706d13e1608}} 
+\mbox{\hyperlink{classmilvus_1_1_alter_collection_properties_request}{Alter\+Collection\+Properties\+Request}} \& \mbox{\hyperlink{classmilvus_1_1_alter_collection_properties_request_abd136ecd9b6449bedb610706d13e1608}{With\+Properties}} (std\+::unordered\+\_\+map$<$ std\+::string, std\+::string $>$ \&\&properties)
+\begin{DoxyCompactList}\small\item\em Set altered properties of this collection. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_alter_collection_properties_request_aa60c98d0cc0e03e66110f7c39adc2933}\label{classmilvus_1_1_alter_collection_properties_request_aa60c98d0cc0e03e66110f7c39adc2933}} 
+\mbox{\hyperlink{classmilvus_1_1_alter_collection_properties_request}{Alter\+Collection\+Properties\+Request}} \& \mbox{\hyperlink{classmilvus_1_1_alter_collection_properties_request_aa60c98d0cc0e03e66110f7c39adc2933}{Add\+Property}} (const std\+::string \&key, const std\+::string \&property)
+\begin{DoxyCompactList}\small\item\em Set a property of this collection. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\doxysubsection*{Additional Inherited Members}
+
+
+\doxysubsection{Detailed Description}
+Used by \mbox{\hyperlink{classmilvus_1_1_milvus_client_v2_afd6919bcc955560af4407b6e485779e9}{Milvus\+Client\+V2\+::\+Alter\+Collection\+Properties()}} 
+
+The documentation for this class was generated from the following files\+:\begin{DoxyCompactItemize}
+\item 
+src/include/milvus/request/collection/Alter\+Collection\+Properties\+Request.\+h\item 
+src/impl/request/collection/Alter\+Collection\+Properties\+Request.\+cpp\end{DoxyCompactItemize}

@@ -1,0 +1,70 @@
+\hypertarget{classmilvus_1_1_query_results}{}\doxysection{milvus\+::Query\+Results Class Reference}
+\label{classmilvus_1_1_query_results}\index{milvus::QueryResults@{milvus::QueryResults}}
+
+
+Results returned by \mbox{\hyperlink{classmilvus_1_1_milvus_client_a2c27e3b681313329ccf491867d717182}{Milvus\+Client\+::\+Query()}}.  
+
+
+
+
+{\ttfamily \#include $<$Query\+Results.\+h$>$}
+
+\doxysubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{classmilvus_1_1_query_results_a721504fd8bc819a676e7565249cf266f}\label{classmilvus_1_1_query_results_a721504fd8bc819a676e7565249cf266f}} 
+\mbox{\hyperlink{classmilvus_1_1_query_results_a721504fd8bc819a676e7565249cf266f}{Query\+Results}} (const std\+::vector$<$ Field\+Data\+Ptr $>$ \&output\+\_\+fields, const std\+::set$<$ std\+::string $>$ \&output\+\_\+names)
+\begin{DoxyCompactList}\small\item\em Constructor. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_query_results_a263e6c4a939b20b24b42b7c2c9178f33}\label{classmilvus_1_1_query_results_a263e6c4a939b20b24b42b7c2c9178f33}} 
+\mbox{\hyperlink{classmilvus_1_1_query_results_a263e6c4a939b20b24b42b7c2c9178f33}{Query\+Results}} (std\+::vector$<$ Field\+Data\+Ptr $>$ \&\&output\+\_\+fields, const std\+::set$<$ std\+::string $>$ \&output\+\_\+names)
+\begin{DoxyCompactList}\small\item\em Constructor. \end{DoxyCompactList}\item 
+Field\+Data\+Ptr \mbox{\hyperlink{classmilvus_1_1_query_results_affd16dfdba2961667c8974eb18f30a01}{Get\+Field\+By\+Name}} (const std\+::string \&name)
+\begin{DoxyCompactList}\small\item\em Get output field data by name. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_query_results_a954611f2594abf553f414fd015bb60b0}\label{classmilvus_1_1_query_results_a954611f2594abf553f414fd015bb60b0}} 
+Field\+Data\+Ptr \mbox{\hyperlink{classmilvus_1_1_query_results_a954611f2594abf553f414fd015bb60b0}{Output\+Field}} (const std\+::string \&name) const
+\begin{DoxyCompactList}\small\item\em Get an output field by name. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_query_results_afe9fb9524bdb0f0e1803d348e58d1d79}\label{classmilvus_1_1_query_results_afe9fb9524bdb0f0e1803d348e58d1d79}} 
+{\footnotesize template$<$typename T $>$ }\\std\+::shared\+\_\+ptr$<$ T $>$ \mbox{\hyperlink{classmilvus_1_1_query_results_afe9fb9524bdb0f0e1803d348e58d1d79}{Output\+Field}} (const std\+::string \&name) const
+\begin{DoxyCompactList}\small\item\em Get an output field by name and cast to specific pointer. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_query_results_a688020871848f6d934b56eb20e2c38ae}\label{classmilvus_1_1_query_results_a688020871848f6d934b56eb20e2c38ae}} 
+const std\+::vector$<$ Field\+Data\+Ptr $>$ \& \mbox{\hyperlink{classmilvus_1_1_query_results_a688020871848f6d934b56eb20e2c38ae}{Output\+Fields}} () const
+\begin{DoxyCompactList}\small\item\em Get all output fields data. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_query_results_a5fdb503b79529d99574adb8cd11b96e9}\label{classmilvus_1_1_query_results_a5fdb503b79529d99574adb8cd11b96e9}} 
+const std\+::set$<$ std\+::string $>$ \& \mbox{\hyperlink{classmilvus_1_1_query_results_a5fdb503b79529d99574adb8cd11b96e9}{Output\+Field\+Names}} () const
+\begin{DoxyCompactList}\small\item\em Get output field names specified by query(). \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_query_results_acf6db47fbcfd5d14d54fc4703b0f67f6}\label{classmilvus_1_1_query_results_acf6db47fbcfd5d14d54fc4703b0f67f6}} 
+\mbox{\hyperlink{classmilvus_1_1_status}{Status}} \mbox{\hyperlink{classmilvus_1_1_query_results_acf6db47fbcfd5d14d54fc4703b0f67f6}{Output\+Rows}} (Entity\+Rows \&rows) const
+\begin{DoxyCompactList}\small\item\em Get all output rows. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_query_results_ad27a188bfba06c7c44718da11110fc6d}\label{classmilvus_1_1_query_results_ad27a188bfba06c7c44718da11110fc6d}} 
+\mbox{\hyperlink{classmilvus_1_1_status}{Status}} \mbox{\hyperlink{classmilvus_1_1_query_results_ad27a188bfba06c7c44718da11110fc6d}{Output\+Row}} (int i, Entity\+Row \&row) const
+\begin{DoxyCompactList}\small\item\em Get row data. Throw exception if the i is out of bound. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_query_results_ae5d793cc0c3bcf56da1b532b0e29b95b}\label{classmilvus_1_1_query_results_ae5d793cc0c3bcf56da1b532b0e29b95b}} 
+uint64\+\_\+t \mbox{\hyperlink{classmilvus_1_1_query_results_ae5d793cc0c3bcf56da1b532b0e29b95b}{Get\+Row\+Count}} () const
+\begin{DoxyCompactList}\small\item\em Get row count of the result. Return the value of count($\ast$) when you query with count($\ast$). \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_query_results_a74782dbd0a6252faef2b70060cf112ea}\label{classmilvus_1_1_query_results_a74782dbd0a6252faef2b70060cf112ea}} 
+void \mbox{\hyperlink{classmilvus_1_1_query_results_a74782dbd0a6252faef2b70060cf112ea}{Clear}} ()
+\begin{DoxyCompactList}\small\item\em Clear the result data. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+Results returned by \mbox{\hyperlink{classmilvus_1_1_milvus_client_a2c27e3b681313329ccf491867d717182}{Milvus\+Client\+::\+Query()}}. 
+
+\doxysubsection{Member Function Documentation}
+\mbox{\Hypertarget{classmilvus_1_1_query_results_affd16dfdba2961667c8974eb18f30a01}\label{classmilvus_1_1_query_results_affd16dfdba2961667c8974eb18f30a01}} 
+\index{milvus::QueryResults@{milvus::QueryResults}!GetFieldByName@{GetFieldByName}}
+\index{GetFieldByName@{GetFieldByName}!milvus::QueryResults@{milvus::QueryResults}}
+\doxysubsubsection{\texorpdfstring{GetFieldByName()}{GetFieldByName()}}
+{\footnotesize\ttfamily Field\+Data\+Ptr milvus\+::\+Query\+Results\+::\+Get\+Field\+By\+Name (\begin{DoxyParamCaption}\item[{const std\+::string \&}]{name }\end{DoxyParamCaption})}
+
+
+
+Get output field data by name. 
+
+\begin{DoxyRefDesc}{Deprecated}
+\item[\mbox{\hyperlink{deprecated__deprecated000018}{Deprecated}}]replaced by \mbox{\hyperlink{classmilvus_1_1_query_results_a954611f2594abf553f414fd015bb60b0}{Output\+Field()}} \end{DoxyRefDesc}
+
+
+The documentation for this class was generated from the following files\+:\begin{DoxyCompactItemize}
+\item 
+src/include/milvus/types/Query\+Results.\+h\item 
+src/impl/types/Query\+Results.\+cpp\end{DoxyCompactItemize}

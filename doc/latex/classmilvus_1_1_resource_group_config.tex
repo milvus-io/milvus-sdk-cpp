@@ -1,0 +1,53 @@
+\hypertarget{classmilvus_1_1_resource_group_config}{}\doxysection{milvus\+::Resource\+Group\+Config Class Reference}
+\label{classmilvus_1_1_resource_group_config}\index{milvus::ResourceGroupConfig@{milvus::ResourceGroupConfig}}
+
+
+Resource group descriptions for \mbox{\hyperlink{classmilvus_1_1_milvus_client_a879a0b051b7b96e1d687df0c021c8a48}{Milvus\+Client\+::\+Create\+Resource\+Group()}}  
+
+
+
+
+{\ttfamily \#include $<$Resource\+Group\+Config.\+h$>$}
+
+\doxysubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{classmilvus_1_1_resource_group_config_a8d8574fe86a984fc83b23f39e3389ff4}\label{classmilvus_1_1_resource_group_config_a8d8574fe86a984fc83b23f39e3389ff4}} 
+uint32\+\_\+t \mbox{\hyperlink{classmilvus_1_1_resource_group_config_a8d8574fe86a984fc83b23f39e3389ff4}{Requests}} () const
+\begin{DoxyCompactList}\small\item\em Number of requested nodes. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_resource_group_config_ae2d943416f841c14a3fcffbc2c272cb9}\label{classmilvus_1_1_resource_group_config_ae2d943416f841c14a3fcffbc2c272cb9}} 
+void \mbox{\hyperlink{classmilvus_1_1_resource_group_config_ae2d943416f841c14a3fcffbc2c272cb9}{Set\+Requests}} (uint32\+\_\+t num)
+\begin{DoxyCompactList}\small\item\em Set number of requested nodes. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_resource_group_config_a5977a6af7c4c1358e390000d42900645}\label{classmilvus_1_1_resource_group_config_a5977a6af7c4c1358e390000d42900645}} 
+uint32\+\_\+t \mbox{\hyperlink{classmilvus_1_1_resource_group_config_a5977a6af7c4c1358e390000d42900645}{Limits}} () const
+\begin{DoxyCompactList}\small\item\em Maximum number of nodes. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_resource_group_config_a6a26457e0ba4461829f67c767cf13457}\label{classmilvus_1_1_resource_group_config_a6a26457e0ba4461829f67c767cf13457}} 
+void \mbox{\hyperlink{classmilvus_1_1_resource_group_config_a6a26457e0ba4461829f67c767cf13457}{Set\+Limits}} (uint32\+\_\+t num)
+\begin{DoxyCompactList}\small\item\em Set maximum number of nodes. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_resource_group_config_a35f2b5e3d3f25ee631913164efa46975}\label{classmilvus_1_1_resource_group_config_a35f2b5e3d3f25ee631913164efa46975}} 
+const std\+::set$<$ std\+::string $>$ \& \mbox{\hyperlink{classmilvus_1_1_resource_group_config_a35f2b5e3d3f25ee631913164efa46975}{Transfer\+From\+Groups}} () const
+\begin{DoxyCompactList}\small\item\em Group names from which the nodes can be transfered. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_resource_group_config_a53ad22f45e2fc10ee687f419a9f261ce}\label{classmilvus_1_1_resource_group_config_a53ad22f45e2fc10ee687f419a9f261ce}} 
+void \mbox{\hyperlink{classmilvus_1_1_resource_group_config_a53ad22f45e2fc10ee687f419a9f261ce}{Add\+Trnasfer\+From\+Group}} (const std\+::string \&group\+\_\+name)
+\begin{DoxyCompactList}\small\item\em Add a group name from which the nodes can be transfered. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_resource_group_config_a8176afeea8b78a94451ebcf7ccb1813e}\label{classmilvus_1_1_resource_group_config_a8176afeea8b78a94451ebcf7ccb1813e}} 
+const std\+::set$<$ std\+::string $>$ \& \mbox{\hyperlink{classmilvus_1_1_resource_group_config_a8176afeea8b78a94451ebcf7ccb1813e}{Transfer\+To\+Groups}} () const
+\begin{DoxyCompactList}\small\item\em Group names to which the nodes can be transfered. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_resource_group_config_a589ec76fb89ff89f80ea947ed435e803}\label{classmilvus_1_1_resource_group_config_a589ec76fb89ff89f80ea947ed435e803}} 
+void \mbox{\hyperlink{classmilvus_1_1_resource_group_config_a589ec76fb89ff89f80ea947ed435e803}{Add\+Trnasfer\+To\+Group}} (const std\+::string \&group\+\_\+name)
+\begin{DoxyCompactList}\small\item\em Add a group name to which the nodes can be transfered. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_resource_group_config_a4ab68305a2cc2d7fc493a57d4226675d}\label{classmilvus_1_1_resource_group_config_a4ab68305a2cc2d7fc493a57d4226675d}} 
+const std\+::unordered\+\_\+map$<$ std\+::string, std\+::string $>$ \& \mbox{\hyperlink{classmilvus_1_1_resource_group_config_a4ab68305a2cc2d7fc493a57d4226675d}{Node\+Filters}} () const
+\begin{DoxyCompactList}\small\item\em Resource group will prefer to accept node which match node filter. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_resource_group_config_af470081bb6a0ed2f5e67d1bec7dd4b31}\label{classmilvus_1_1_resource_group_config_af470081bb6a0ed2f5e67d1bec7dd4b31}} 
+void \mbox{\hyperlink{classmilvus_1_1_resource_group_config_af470081bb6a0ed2f5e67d1bec7dd4b31}{Add\+Node\+Filter}} (const std\+::string \&key, const std\+::string \&value)
+\begin{DoxyCompactList}\small\item\em Add a node filter, each filter is a key-\/value pair that represent a label of nodes. For example, a node is marked as \char`\"{}\+CPU \+: 32\char`\"{}, the key is \char`\"{}\+CPU\char`\"{}, value is \char`\"{}32\char`\"{}. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+Resource group descriptions for \mbox{\hyperlink{classmilvus_1_1_milvus_client_a879a0b051b7b96e1d687df0c021c8a48}{Milvus\+Client\+::\+Create\+Resource\+Group()}} 
+
+The documentation for this class was generated from the following files\+:\begin{DoxyCompactItemize}
+\item 
+src/include/milvus/types/Resource\+Group\+Config.\+h\item 
+src/impl/types/Resource\+Group\+Config.\+cpp\end{DoxyCompactItemize}

@@ -1,0 +1,67 @@
+\hypertarget{classmilvus_1_1_create_index_request}{}\doxysection{milvus\+::Create\+Index\+Request Class Reference}
+\label{classmilvus_1_1_create_index_request}\index{milvus::CreateIndexRequest@{milvus::CreateIndexRequest}}
+
+
+Used by \mbox{\hyperlink{classmilvus_1_1_milvus_client_v2_a528425b5e91cd5cbda5ee875295ef40c}{Milvus\+Client\+V2\+::\+Create\+Index()}}  
+
+
+
+
+{\ttfamily \#include $<$Create\+Index\+Request.\+h$>$}
+
+
+
+Inherits \mbox{\hyperlink{classmilvus_1_1_index_request_base}{milvus\+::\+Index\+Request\+Base}}.
+
+\doxysubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{classmilvus_1_1_create_index_request_ab6bf07905db56c4bcf2820c6e8f34092}\label{classmilvus_1_1_create_index_request_ab6bf07905db56c4bcf2820c6e8f34092}} 
+\mbox{\hyperlink{classmilvus_1_1_create_index_request_ab6bf07905db56c4bcf2820c6e8f34092}{Create\+Index\+Request}} ()=default
+\begin{DoxyCompactList}\small\item\em Constructor. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_create_index_request_a2a8e892b0c6cd9ceea43dbc4434f422c}\label{classmilvus_1_1_create_index_request_a2a8e892b0c6cd9ceea43dbc4434f422c}} 
+\mbox{\hyperlink{classmilvus_1_1_create_index_request}{Create\+Index\+Request}} \& \mbox{\hyperlink{classmilvus_1_1_create_index_request_a2a8e892b0c6cd9ceea43dbc4434f422c}{With\+Database\+Name}} (const std\+::string \&db\+\_\+name)
+\begin{DoxyCompactList}\small\item\em Set database name in which the collection is created. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_create_index_request_a7f0a8c15bd10214013678fd3da6194a7}\label{classmilvus_1_1_create_index_request_a7f0a8c15bd10214013678fd3da6194a7}} 
+\mbox{\hyperlink{classmilvus_1_1_create_index_request}{Create\+Index\+Request}} \& \mbox{\hyperlink{classmilvus_1_1_create_index_request_a7f0a8c15bd10214013678fd3da6194a7}{With\+Collection\+Name}} (const std\+::string \&collection\+\_\+name)
+\begin{DoxyCompactList}\small\item\em Set name of the collection. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_create_index_request_a6f6745a34eab0cf809637d7dca183874}\label{classmilvus_1_1_create_index_request_a6f6745a34eab0cf809637d7dca183874}} 
+const std\+::vector$<$ \mbox{\hyperlink{classmilvus_1_1_index_desc}{Index\+Desc}} $>$ \& \mbox{\hyperlink{classmilvus_1_1_create_index_request_a6f6745a34eab0cf809637d7dca183874}{Indexes}} () const
+\begin{DoxyCompactList}\small\item\em Get indexes. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_create_index_request_afee4b28039bdf22ac7cdca5bb7bbaff3}\label{classmilvus_1_1_create_index_request_afee4b28039bdf22ac7cdca5bb7bbaff3}} 
+void \mbox{\hyperlink{classmilvus_1_1_create_index_request_afee4b28039bdf22ac7cdca5bb7bbaff3}{Set\+Indexes}} (std\+::vector$<$ \mbox{\hyperlink{classmilvus_1_1_index_desc}{Index\+Desc}} $>$ \&\&indexes)
+\begin{DoxyCompactList}\small\item\em Set indexes to be created. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_create_index_request_a36f78edc142537c1adad24753f74893b}\label{classmilvus_1_1_create_index_request_a36f78edc142537c1adad24753f74893b}} 
+\mbox{\hyperlink{classmilvus_1_1_create_index_request}{Create\+Index\+Request}} \& \mbox{\hyperlink{classmilvus_1_1_create_index_request_a36f78edc142537c1adad24753f74893b}{With\+Indexes}} (std\+::vector$<$ \mbox{\hyperlink{classmilvus_1_1_index_desc}{Index\+Desc}} $>$ \&\&indexes)
+\begin{DoxyCompactList}\small\item\em Set indexes to be created. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_create_index_request_adf6dadfa0c6530fffa5b0a9734a0ddc5}\label{classmilvus_1_1_create_index_request_adf6dadfa0c6530fffa5b0a9734a0ddc5}} 
+\mbox{\hyperlink{classmilvus_1_1_create_index_request}{Create\+Index\+Request}} \& \mbox{\hyperlink{classmilvus_1_1_create_index_request_adf6dadfa0c6530fffa5b0a9734a0ddc5}{Add\+Index}} (\mbox{\hyperlink{classmilvus_1_1_index_desc}{Index\+Desc}} \&\&index)
+\begin{DoxyCompactList}\small\item\em Add an index to be created. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_create_index_request_a2cfe6e2e5fd5fcbb38064782a84adc63}\label{classmilvus_1_1_create_index_request_a2cfe6e2e5fd5fcbb38064782a84adc63}} 
+bool \mbox{\hyperlink{classmilvus_1_1_create_index_request_a2cfe6e2e5fd5fcbb38064782a84adc63}{Sync}} () const
+\begin{DoxyCompactList}\small\item\em Get sync mode. True\+: wait the indexes are ready. False\+: return immediately no matter the indexes are ready or not. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_create_index_request_a35035ef86ab2efa09b3e8ad987b5d01b}\label{classmilvus_1_1_create_index_request_a35035ef86ab2efa09b3e8ad987b5d01b}} 
+void \mbox{\hyperlink{classmilvus_1_1_create_index_request_a35035ef86ab2efa09b3e8ad987b5d01b}{Set\+Sync}} (bool sync)
+\begin{DoxyCompactList}\small\item\em Set sync mode. Default value is true. True\+: wait the indexes are ready. False\+: return immediately no matter the indexes are ready or not. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_create_index_request_aa5a852c70dd413c7810f4d49d3aa5418}\label{classmilvus_1_1_create_index_request_aa5a852c70dd413c7810f4d49d3aa5418}} 
+\mbox{\hyperlink{classmilvus_1_1_create_index_request}{Create\+Index\+Request}} \& \mbox{\hyperlink{classmilvus_1_1_create_index_request_aa5a852c70dd413c7810f4d49d3aa5418}{With\+Sync}} (bool sync)
+\begin{DoxyCompactList}\small\item\em Set sync mode. Default value is true. True\+: wait the indexes are ready. False\+: return immediately no matter the indexes are ready or not. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_create_index_request_a15eb9527e03f9d3891c9da1d5d4c3093}\label{classmilvus_1_1_create_index_request_a15eb9527e03f9d3891c9da1d5d4c3093}} 
+int64\+\_\+t \mbox{\hyperlink{classmilvus_1_1_create_index_request_a15eb9527e03f9d3891c9da1d5d4c3093}{Timeout\+Ms}} () const
+\begin{DoxyCompactList}\small\item\em Timeout in milliseconds. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_create_index_request_ae5d8e3ef5ee054bd7201eb525961cc4d}\label{classmilvus_1_1_create_index_request_ae5d8e3ef5ee054bd7201eb525961cc4d}} 
+void \mbox{\hyperlink{classmilvus_1_1_create_index_request_ae5d8e3ef5ee054bd7201eb525961cc4d}{Set\+Timeout\+Ms}} (int64\+\_\+t timeout\+\_\+ms)
+\begin{DoxyCompactList}\small\item\em Set timeout in milliseconds. Default value is 60000ms. Only work when \mbox{\hyperlink{classmilvus_1_1_create_index_request_a2cfe6e2e5fd5fcbb38064782a84adc63}{Sync()}} is true. If the Timeout\+Ms is zero, the Create\+Index() will call Describe\+Index() to loading state, until the index is fully built. If the Timeout\+Ms is larger than zero, the Create\+Index() will break the loop after a certain of time span and return a status saying the process is timeout. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_create_index_request_aad64d50ea34371ecd7c5b035eae1bf7f}\label{classmilvus_1_1_create_index_request_aad64d50ea34371ecd7c5b035eae1bf7f}} 
+\mbox{\hyperlink{classmilvus_1_1_create_index_request}{Create\+Index\+Request}} \& \mbox{\hyperlink{classmilvus_1_1_create_index_request_aad64d50ea34371ecd7c5b035eae1bf7f}{With\+Timeout\+Ms}} (int64\+\_\+t timeout\+\_\+ms)
+\begin{DoxyCompactList}\small\item\em Set timeout in milliseconds. Default value is 60000ms. Only work when \mbox{\hyperlink{classmilvus_1_1_create_index_request_a2cfe6e2e5fd5fcbb38064782a84adc63}{Sync()}} is true. If the Timeout\+Ms is zero, the Create\+Index() will call Describe\+Index() to index state, until the index is fully built. If the Timeout\+Ms is larger than zero, the Create\+Index() will break the loop after a certain of time span and return a status saying the process is timeout. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\doxysubsection*{Additional Inherited Members}
+
+
+\doxysubsection{Detailed Description}
+Used by \mbox{\hyperlink{classmilvus_1_1_milvus_client_v2_a528425b5e91cd5cbda5ee875295ef40c}{Milvus\+Client\+V2\+::\+Create\+Index()}} 
+
+The documentation for this class was generated from the following files\+:\begin{DoxyCompactItemize}
+\item 
+src/include/milvus/request/index/Create\+Index\+Request.\+h\item 
+src/impl/request/index/Create\+Index\+Request.\+cpp\end{DoxyCompactItemize}

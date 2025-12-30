@@ -30,9 +30,15 @@ class DescribeAliasResponse {
      */
     DescribeAliasResponse() = default;
 
-    // Getter and Setter for desc_
+    /**
+     * @brief Get alias description.
+     */
     const AliasDesc&
     Desc() const;
+
+    /**
+     * @brief Set alias description.
+     */
     void
     SetDesc(AliasDesc&& desc);
 

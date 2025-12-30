@@ -1,0 +1,58 @@
+\hypertarget{classmilvus_1_1_drop_index_properties_request}{}\doxysection{milvus\+::Drop\+Index\+Properties\+Request Class Reference}
+\label{classmilvus_1_1_drop_index_properties_request}\index{milvus::DropIndexPropertiesRequest@{milvus::DropIndexPropertiesRequest}}
+
+
+Used by \mbox{\hyperlink{classmilvus_1_1_milvus_client_v2_a0c16f2b869912621d2d379fb99242210}{Milvus\+Client\+V2\+::\+Drop\+Index\+Properties()}}  
+
+
+
+
+{\ttfamily \#include $<$Drop\+Index\+Properties\+Request.\+h$>$}
+
+
+
+Inherits \mbox{\hyperlink{classmilvus_1_1_index_request_base}{milvus\+::\+Index\+Request\+Base}}.
+
+\doxysubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{classmilvus_1_1_drop_index_properties_request_a775f5b1f6957796a63bde7c4f70c7e84}\label{classmilvus_1_1_drop_index_properties_request_a775f5b1f6957796a63bde7c4f70c7e84}} 
+\mbox{\hyperlink{classmilvus_1_1_drop_index_properties_request_a775f5b1f6957796a63bde7c4f70c7e84}{Drop\+Index\+Properties\+Request}} ()=default
+\begin{DoxyCompactList}\small\item\em Constructor. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_drop_index_properties_request_afc9dec824c4481b79130e1e9e9bf4790}\label{classmilvus_1_1_drop_index_properties_request_afc9dec824c4481b79130e1e9e9bf4790}} 
+\mbox{\hyperlink{classmilvus_1_1_drop_index_properties_request}{Drop\+Index\+Properties\+Request}} \& \mbox{\hyperlink{classmilvus_1_1_drop_index_properties_request_afc9dec824c4481b79130e1e9e9bf4790}{With\+Database\+Name}} (const std\+::string \&db\+\_\+name)
+\begin{DoxyCompactList}\small\item\em Set database name in which the collection is created. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_drop_index_properties_request_a5b2cff7eb47bdf5d6e1a158035e82a71}\label{classmilvus_1_1_drop_index_properties_request_a5b2cff7eb47bdf5d6e1a158035e82a71}} 
+\mbox{\hyperlink{classmilvus_1_1_drop_index_properties_request}{Drop\+Index\+Properties\+Request}} \& \mbox{\hyperlink{classmilvus_1_1_drop_index_properties_request_a5b2cff7eb47bdf5d6e1a158035e82a71}{With\+Collection\+Name}} (const std\+::string \&collection\+\_\+name)
+\begin{DoxyCompactList}\small\item\em Set name of the collection. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_drop_index_properties_request_ab94faf0b91b572a2f1dad9157d580b39}\label{classmilvus_1_1_drop_index_properties_request_ab94faf0b91b572a2f1dad9157d580b39}} 
+const std\+::string \& \mbox{\hyperlink{classmilvus_1_1_drop_index_properties_request_ab94faf0b91b572a2f1dad9157d580b39}{Field\+Name}} () const
+\begin{DoxyCompactList}\small\item\em Name of the field, or name of the index. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_drop_index_properties_request_a717195722af3e2c6f985de82f8f2db23}\label{classmilvus_1_1_drop_index_properties_request_a717195722af3e2c6f985de82f8f2db23}} 
+void \mbox{\hyperlink{classmilvus_1_1_drop_index_properties_request_a717195722af3e2c6f985de82f8f2db23}{Set\+Field\+Name}} (const std\+::string \&field\+\_\+name)
+\begin{DoxyCompactList}\small\item\em Set name of the field, or name of the index. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_drop_index_properties_request_ad095bf68c474c2634d87713e9d0699ca}\label{classmilvus_1_1_drop_index_properties_request_ad095bf68c474c2634d87713e9d0699ca}} 
+\mbox{\hyperlink{classmilvus_1_1_drop_index_properties_request}{Drop\+Index\+Properties\+Request}} \& \mbox{\hyperlink{classmilvus_1_1_drop_index_properties_request_ad095bf68c474c2634d87713e9d0699ca}{With\+Field\+Name}} (const std\+::string \&field\+\_\+name)
+\begin{DoxyCompactList}\small\item\em Set name of the field, or name of the index. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_drop_index_properties_request_a4a7dc89fd7a610ec54d643066bc3d0b7}\label{classmilvus_1_1_drop_index_properties_request_a4a7dc89fd7a610ec54d643066bc3d0b7}} 
+const std\+::set$<$ std\+::string $>$ \& \mbox{\hyperlink{classmilvus_1_1_drop_index_properties_request_a4a7dc89fd7a610ec54d643066bc3d0b7}{Property\+Keys}} () const
+\begin{DoxyCompactList}\small\item\em Get deleted keys. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_drop_index_properties_request_a910216dac8b1e4bcfd7b60aa5f99f9b4}\label{classmilvus_1_1_drop_index_properties_request_a910216dac8b1e4bcfd7b60aa5f99f9b4}} 
+void \mbox{\hyperlink{classmilvus_1_1_drop_index_properties_request_a910216dac8b1e4bcfd7b60aa5f99f9b4}{Set\+Property\+Keys}} (std\+::set$<$ std\+::string $>$ \&\&keys)
+\begin{DoxyCompactList}\small\item\em Set deleted keys of this index. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_drop_index_properties_request_ad27939900d2b0163062662e7cf3179ba}\label{classmilvus_1_1_drop_index_properties_request_ad27939900d2b0163062662e7cf3179ba}} 
+\mbox{\hyperlink{classmilvus_1_1_drop_index_properties_request}{Drop\+Index\+Properties\+Request}} \& \mbox{\hyperlink{classmilvus_1_1_drop_index_properties_request_ad27939900d2b0163062662e7cf3179ba}{With\+Property\+Keys}} (std\+::set$<$ std\+::string $>$ \&\&keys)
+\begin{DoxyCompactList}\small\item\em Set deleted keys of this index. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_drop_index_properties_request_acfe91aae528f3d5f48a8c3f745b8feab}\label{classmilvus_1_1_drop_index_properties_request_acfe91aae528f3d5f48a8c3f745b8feab}} 
+\mbox{\hyperlink{classmilvus_1_1_drop_index_properties_request}{Drop\+Index\+Properties\+Request}} \& \mbox{\hyperlink{classmilvus_1_1_drop_index_properties_request_acfe91aae528f3d5f48a8c3f745b8feab}{Add\+Property\+Key}} (const std\+::string \&key)
+\begin{DoxyCompactList}\small\item\em Set a key to be deleted. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\doxysubsection*{Additional Inherited Members}
+
+
+\doxysubsection{Detailed Description}
+Used by \mbox{\hyperlink{classmilvus_1_1_milvus_client_v2_a0c16f2b869912621d2d379fb99242210}{Milvus\+Client\+V2\+::\+Drop\+Index\+Properties()}} 
+
+The documentation for this class was generated from the following files\+:\begin{DoxyCompactItemize}
+\item 
+src/include/milvus/request/index/Drop\+Index\+Properties\+Request.\+h\item 
+src/impl/request/index/Drop\+Index\+Properties\+Request.\+cpp\end{DoxyCompactItemize}

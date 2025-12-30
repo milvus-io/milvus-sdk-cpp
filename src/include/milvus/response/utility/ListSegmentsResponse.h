@@ -31,10 +31,15 @@ class ListSegmentsResponse {
      */
     ListSegmentsResponse() = default;
 
-    // Getter and Setter for results_
+    /**
+     * @brief Get infomations of segments.
+     */
     const T&
     Result() const;
 
+    /**
+     * @brief Set infomations of segments.
+     */
     void
     SetResult(T&& results);
 

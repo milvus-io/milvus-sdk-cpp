@@ -60,25 +60,25 @@ class Status {
     Status();
 
     /**
-     * @brief A success status
+     * @brief A success status.
      */
     static Status
     OK();
 
     /**
-     * @brief Indicate the status is ok
+     * @brief Indicate the status is ok.
      */
     bool
     IsOk() const;
 
     /**
-     * @brief Return the status code(general client-side error code)
+     * @brief Return the status code(general client-side error code).
      */
     StatusCode
     Code() const;
 
     /**
-     * @brief Return the error message
+     * @brief Return the error message.
      */
     const std::string&
     Message() const;
@@ -91,13 +91,13 @@ class Status {
     RpcErrCode() const;
 
     /**
-     * @brief The server-side error code of milvus v2.4 and later versions
+     * @brief The server-side error code of milvus v2.4 and later versions.
      */
     int32_t
     ServerCode() const;
 
     /**
-     * @brief The legacy server-side error code of milvus v2.2/v2.3
+     * @brief The legacy server-side error code of milvus v2.2/v2.3.
      */
     int32_t
     LegacyServerCode() const;

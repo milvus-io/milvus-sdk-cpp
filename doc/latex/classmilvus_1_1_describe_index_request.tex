@@ -1,0 +1,55 @@
+\hypertarget{classmilvus_1_1_describe_index_request}{}\doxysection{milvus\+::Describe\+Index\+Request Class Reference}
+\label{classmilvus_1_1_describe_index_request}\index{milvus::DescribeIndexRequest@{milvus::DescribeIndexRequest}}
+
+
+Used by \mbox{\hyperlink{classmilvus_1_1_milvus_client_v2_af3e6150315a0af00cdc7a58515ae3190}{Milvus\+Client\+V2\+::\+Describe\+Index()}}  
+
+
+
+
+{\ttfamily \#include $<$Describe\+Index\+Request.\+h$>$}
+
+
+
+Inherits \mbox{\hyperlink{classmilvus_1_1_index_request_base}{milvus\+::\+Index\+Request\+Base}}.
+
+\doxysubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{classmilvus_1_1_describe_index_request_acdff5803f61e118101825dffc2111dec}\label{classmilvus_1_1_describe_index_request_acdff5803f61e118101825dffc2111dec}} 
+\mbox{\hyperlink{classmilvus_1_1_describe_index_request_acdff5803f61e118101825dffc2111dec}{Describe\+Index\+Request}} ()=default
+\begin{DoxyCompactList}\small\item\em Constructor. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_describe_index_request_a19b7cf9b24ecc4a3a68b905f5175d49b}\label{classmilvus_1_1_describe_index_request_a19b7cf9b24ecc4a3a68b905f5175d49b}} 
+\mbox{\hyperlink{classmilvus_1_1_describe_index_request}{Describe\+Index\+Request}} \& \mbox{\hyperlink{classmilvus_1_1_describe_index_request_a19b7cf9b24ecc4a3a68b905f5175d49b}{With\+Database\+Name}} (const std\+::string \&db\+\_\+name)
+\begin{DoxyCompactList}\small\item\em Set database name in which the collection is created. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_describe_index_request_ab64c73c3d4f8f54322d831e7205ab05f}\label{classmilvus_1_1_describe_index_request_ab64c73c3d4f8f54322d831e7205ab05f}} 
+\mbox{\hyperlink{classmilvus_1_1_describe_index_request}{Describe\+Index\+Request}} \& \mbox{\hyperlink{classmilvus_1_1_describe_index_request_ab64c73c3d4f8f54322d831e7205ab05f}{With\+Collection\+Name}} (const std\+::string \&collection\+\_\+name)
+\begin{DoxyCompactList}\small\item\em Set name of the collection. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_describe_index_request_afc071f39803a496fd527e407a18a0760}\label{classmilvus_1_1_describe_index_request_afc071f39803a496fd527e407a18a0760}} 
+const std\+::string \& \mbox{\hyperlink{classmilvus_1_1_describe_index_request_afc071f39803a496fd527e407a18a0760}{Field\+Name}} () const
+\begin{DoxyCompactList}\small\item\em Name of the field. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_describe_index_request_ae950d8f964410bc9da180f5ff9888ec9}\label{classmilvus_1_1_describe_index_request_ae950d8f964410bc9da180f5ff9888ec9}} 
+void \mbox{\hyperlink{classmilvus_1_1_describe_index_request_ae950d8f964410bc9da180f5ff9888ec9}{Set\+Field\+Name}} (const std\+::string \&field\+\_\+name)
+\begin{DoxyCompactList}\small\item\em Set name of the field. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_describe_index_request_a1b2b386373f5ad93c33b323c0325827d}\label{classmilvus_1_1_describe_index_request_a1b2b386373f5ad93c33b323c0325827d}} 
+\mbox{\hyperlink{classmilvus_1_1_describe_index_request}{Describe\+Index\+Request}} \& \mbox{\hyperlink{classmilvus_1_1_describe_index_request_a1b2b386373f5ad93c33b323c0325827d}{With\+Field\+Name}} (const std\+::string \&field\+\_\+name)
+\begin{DoxyCompactList}\small\item\em Set name of the field. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_describe_index_request_a46689b9d041d3c551d36c59a727b18ea}\label{classmilvus_1_1_describe_index_request_a46689b9d041d3c551d36c59a727b18ea}} 
+int64\+\_\+t \mbox{\hyperlink{classmilvus_1_1_describe_index_request_a46689b9d041d3c551d36c59a727b18ea}{Timestamp}} () const
+\begin{DoxyCompactList}\small\item\em Timestamp to skip segments. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_describe_index_request_af035932664c0571ce47e3691c4712399}\label{classmilvus_1_1_describe_index_request_af035932664c0571ce47e3691c4712399}} 
+void \mbox{\hyperlink{classmilvus_1_1_describe_index_request_af035932664c0571ce47e3691c4712399}{Set\+Timestamp}} (int64\+\_\+t ts)
+\begin{DoxyCompactList}\small\item\em Only check segments generated before this timestamp. all the segments will be checked if this value is zero. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_describe_index_request_abbf4219b39a284b8aec602d2211224ef}\label{classmilvus_1_1_describe_index_request_abbf4219b39a284b8aec602d2211224ef}} 
+\mbox{\hyperlink{classmilvus_1_1_describe_index_request}{Describe\+Index\+Request}} \& \mbox{\hyperlink{classmilvus_1_1_describe_index_request_abbf4219b39a284b8aec602d2211224ef}{With\+Timestamp}} (int64\+\_\+t ts)
+\begin{DoxyCompactList}\small\item\em Only check segments generated before this timestamp. all the segments will be checked if this value is zero. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\doxysubsection*{Additional Inherited Members}
+
+
+\doxysubsection{Detailed Description}
+Used by \mbox{\hyperlink{classmilvus_1_1_milvus_client_v2_af3e6150315a0af00cdc7a58515ae3190}{Milvus\+Client\+V2\+::\+Describe\+Index()}} 
+
+The documentation for this class was generated from the following files\+:\begin{DoxyCompactItemize}
+\item 
+src/include/milvus/request/index/Describe\+Index\+Request.\+h\item 
+src/impl/request/index/Describe\+Index\+Request.\+cpp\end{DoxyCompactItemize}

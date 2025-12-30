@@ -31,21 +31,39 @@ class ListAliasesResponse {
      */
     ListAliasesResponse() = default;
 
-    // Getter and Setter for db_name_
+    /**
+     * @brief Get the database name where the aliases exist.
+     */
     const std::string&
     DatabaseName() const;
+
+    /**
+     * @brief Set the database name where the aliases exist.
+     */
     void
     SetDatabaseName(const std::string& db_name);
 
-    // Getter and Setter for collection_name_
+    /**
+     * @brief Get the collection name with which the aliases is associated.
+     */
     const std::string&
     CollectionName() const;
+
+    /**
+     * @brief Set the collection name with which the aliases is associated.
+     */
     void
     SetCollectionName(const std::string& collection_name);
 
-    // Getter and Setter for aliases_
+    /**
+     * @brief Get aliases.
+     */
     const std::vector<std::string>&
     Aliases() const;
+
+    /**
+     * @brief Set aliases.
+     */
     void
     SetAliases(std::vector<std::string>&& aliases);
 

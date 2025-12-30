@@ -1,0 +1,53 @@
+\hypertarget{classmilvus_1_1_compact_request}{}\doxysection{milvus\+::Compact\+Request Class Reference}
+\label{classmilvus_1_1_compact_request}\index{milvus::CompactRequest@{milvus::CompactRequest}}
+
+
+Used by \mbox{\hyperlink{classmilvus_1_1_milvus_client_v2_a7c93ee02ec0c28ab01c5ba5a73655e46}{Milvus\+Client\+V2\+::\+Compact()}}  
+
+
+
+
+{\ttfamily \#include $<$Compact\+Request.\+h$>$}
+
+\doxysubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{classmilvus_1_1_compact_request_ae115a51a8c0026c0d4397d5783962fec}\label{classmilvus_1_1_compact_request_ae115a51a8c0026c0d4397d5783962fec}} 
+\mbox{\hyperlink{classmilvus_1_1_compact_request_ae115a51a8c0026c0d4397d5783962fec}{Compact\+Request}} ()=default
+\begin{DoxyCompactList}\small\item\em Constructor. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_compact_request_a8a6f25f304eeef24a8f2f89e1a749910}\label{classmilvus_1_1_compact_request_a8a6f25f304eeef24a8f2f89e1a749910}} 
+const std\+::string \& \mbox{\hyperlink{classmilvus_1_1_compact_request_a8a6f25f304eeef24a8f2f89e1a749910}{Database\+Name}} () const
+\begin{DoxyCompactList}\small\item\em Database name in which the collections are created. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_compact_request_ab2a4e4b02391b822e44be2f8ba50ec1f}\label{classmilvus_1_1_compact_request_ab2a4e4b02391b822e44be2f8ba50ec1f}} 
+void \mbox{\hyperlink{classmilvus_1_1_compact_request_ab2a4e4b02391b822e44be2f8ba50ec1f}{Set\+Database\+Name}} (const std\+::string \&db\+\_\+name)
+\begin{DoxyCompactList}\small\item\em Set database name in which the collections are created. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_compact_request_ac229e37491c910dd8fea21a0abad01a5}\label{classmilvus_1_1_compact_request_ac229e37491c910dd8fea21a0abad01a5}} 
+\mbox{\hyperlink{classmilvus_1_1_compact_request}{Compact\+Request}} \& \mbox{\hyperlink{classmilvus_1_1_compact_request_ac229e37491c910dd8fea21a0abad01a5}{With\+Database\+Name}} (const std\+::string \&db\+\_\+name)
+\begin{DoxyCompactList}\small\item\em Set database name in which the collections are created. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_compact_request_a3c4e007c95cb6d2fb281d846d4d16304}\label{classmilvus_1_1_compact_request_a3c4e007c95cb6d2fb281d846d4d16304}} 
+const std\+::string \& \mbox{\hyperlink{classmilvus_1_1_compact_request_a3c4e007c95cb6d2fb281d846d4d16304}{Collection\+Name}} () const
+\begin{DoxyCompactList}\small\item\em Name of the collection to be compacted. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_compact_request_a16dbb7e06b7c00b05d76bb748b02d6a1}\label{classmilvus_1_1_compact_request_a16dbb7e06b7c00b05d76bb748b02d6a1}} 
+void \mbox{\hyperlink{classmilvus_1_1_compact_request_a16dbb7e06b7c00b05d76bb748b02d6a1}{Set\+Collection\+Name}} (const std\+::string \&collection\+\_\+name)
+\begin{DoxyCompactList}\small\item\em Set name of the collection to be compacted. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_compact_request_ad32c59c8b67cd9740ec21aa0b98268a2}\label{classmilvus_1_1_compact_request_ad32c59c8b67cd9740ec21aa0b98268a2}} 
+\mbox{\hyperlink{classmilvus_1_1_compact_request}{Compact\+Request}} \& \mbox{\hyperlink{classmilvus_1_1_compact_request_ad32c59c8b67cd9740ec21aa0b98268a2}{With\+Collection\+Name}} (const std\+::string \&collection\+\_\+name)
+\begin{DoxyCompactList}\small\item\em Set name of the collection to be compacted. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_compact_request_aec5a4d325cd184767a4e2dbe1bf9bc51}\label{classmilvus_1_1_compact_request_aec5a4d325cd184767a4e2dbe1bf9bc51}} 
+bool \mbox{\hyperlink{classmilvus_1_1_compact_request_aec5a4d325cd184767a4e2dbe1bf9bc51}{Clustering\+Compaction}} () const
+\begin{DoxyCompactList}\small\item\em Get the flag whether it is cluserting compaction or not. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_compact_request_a4d8d9d98ec7f298782fb1f1b80955647}\label{classmilvus_1_1_compact_request_a4d8d9d98ec7f298782fb1f1b80955647}} 
+void \mbox{\hyperlink{classmilvus_1_1_compact_request_a4d8d9d98ec7f298782fb1f1b80955647}{Set\+Clustering\+Compaction}} (bool clustering\+\_\+compaction)
+\begin{DoxyCompactList}\small\item\em Set cluserting compaction flag. True\+: do cluserting compaction, report error if no clustering key. False\+: do normal compaction. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_compact_request_a2d604e80d692f9a8c7b7fce0a7e6a120}\label{classmilvus_1_1_compact_request_a2d604e80d692f9a8c7b7fce0a7e6a120}} 
+\mbox{\hyperlink{classmilvus_1_1_compact_request}{Compact\+Request}} \& \mbox{\hyperlink{classmilvus_1_1_compact_request_a2d604e80d692f9a8c7b7fce0a7e6a120}{With\+Clustering\+Compaction}} (bool clustering\+\_\+compaction)
+\begin{DoxyCompactList}\small\item\em Set cluserting compaction flag. True\+: do cluserting compaction, report error if no clustering key. False\+: do normal compaction. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+Used by \mbox{\hyperlink{classmilvus_1_1_milvus_client_v2_a7c93ee02ec0c28ab01c5ba5a73655e46}{Milvus\+Client\+V2\+::\+Compact()}} 
+
+The documentation for this class was generated from the following files\+:\begin{DoxyCompactItemize}
+\item 
+src/include/milvus/request/utility/Compact\+Request.\+h\item 
+src/impl/request/utility/Compact\+Request.\+cpp\end{DoxyCompactItemize}

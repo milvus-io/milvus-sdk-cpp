@@ -28,7 +28,7 @@ namespace milvus {
 class DatabaseDesc {
  public:
     /**
-     * @brief Database name
+     * @brief Get database name.
      */
     const std::string&
     Name() const;
@@ -40,43 +40,43 @@ class DatabaseDesc {
     SetName(std::string name);
 
     /**
-     * @brief Database id.
+     * @brief Get database ID.
      */
     int64_t
     ID() const;
 
     /**
-     * @brief Set database id.
+     * @brief Set database ID.
      */
     void
     SetID(int64_t id);
 
     /**
-     * @brief Collection alias.
+     * @brief Get database properties.
      */
     const std::unordered_map<std::string, std::string>&
     Properties() const;
 
     /**
-     * @brief Set collection alias.
+     * @brief Set database properties.
      */
     void
     SetProperties(const std::unordered_map<std::string, std::string>& properties);
 
     /**
-     * @brief Set collection alias.
+     * @brief Set database properties.
      */
     void
     SetProperties(std::unordered_map<std::string, std::string>&& properties);
 
     /**
-     * @brief Timestamp when the database created.
+     * @brief Get the timestamp when the database created.
      */
     uint64_t
     CreatedTime() const;
 
     /**
-     * @brief Set timestamp when the database created.
+     * @brief Set the timestamp when the database created.
      */
     void
     SetCreatedTime(uint64_t ts);

@@ -34,12 +34,12 @@ namespace milvus {
 class IndexDesc {
  public:
     /**
-     * @brief Construct a new IndexDesc object
+     * @brief Construct a new IndexDesc object.
      */
     IndexDesc();
 
     /**
-     * @brief Construct a new IndexDesc object
+     * @brief Construct a new IndexDesc object.
      *
      * @param field_name field name which the index belong to
      * @param index_name index name
@@ -110,53 +110,85 @@ class IndexDesc {
     SetIndexType(milvus::IndexType index_type);
 
     /**
-     * @brief Add extra param
-     * Note: int v2.4, we redefine this method, old client code might be affected
+     * @brief Add extra param.
+     * Note: int v2.4, we redefine this method, old client code might be affected.
      */
     Status
     AddExtraParam(const std::string& key, const std::string& value);
 
     /**
-     * @brief Get extra param
-     * Note: int v2.4, we redefine this method, old client code might be affected
+     * @brief Get extra param.
+     * Note: int v2.4, we redefine this method, old client code might be affected.
      */
     const std::unordered_map<std::string, std::string>&
     ExtraParams() const;
 
     /**
-     * @brief Construct a new Index Desc:: From Json object
+     * @brief Construct a new IndexDesc from Json object
      * @param json Json string for parse
      */
     Status
     ExtraParamsFromJson(std::string json);
 
+    /**
+     * @brief Set index state.
+     */
     Status
     SetStateCode(const milvus::IndexStateCode& code);
 
+    /**
+     * @brief Get index state.
+     */
     milvus::IndexStateCode
     StateCode() const;
 
+    /**
+     * @brief Set index failed reason.
+     */
     Status
     SetFailReason(const std::string& reason);
 
+    /**
+     * @brief Get index failed reason.
+     */
     std::string
     FailReason() const;
 
+    /**
+     * @brief Set number of indexed rows.
+     */
     Status
     SetIndexedRows(int64_t rows);
 
+    /**
+     * @brief Get number of indexed rows.
+     * Note that indexed rows could be larger than total rows, because some segments will be reindexed
+     * after compaction.
+     */
     int64_t
     IndexedRows() const;
 
+    /**
+     * @brief Set number of total rows.
+     */
     Status
     SetTotalRows(int64_t rows);
 
+    /**
+     * @brief Get number of total rows.
+     */
     int64_t
     TotalRows() const;
 
+    /**
+     * @brief Set number of pending unindexed rows.
+     */
     Status
     SetPendingRows(int64_t rows);
 
+    /**
+     * @brief Get number of pending unindexed rows.
+     */
     int64_t
     PendingRows() const;
 

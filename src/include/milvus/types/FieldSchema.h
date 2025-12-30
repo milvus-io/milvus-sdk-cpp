@@ -115,7 +115,7 @@ class FieldSchema {
      * @brief The field is primary key or not.
      *
      * Each collection only has one primary key.
-     * Currently only int64 type field can be primary key .
+     * Currently only int64 type field can be primary key.
      */
     bool
     IsPrimaryKey() const;
@@ -192,119 +192,117 @@ class FieldSchema {
     WithClusteringKey(bool clustering_key);
 
     /**
-     * @brief Extra key-value pair setting for this field
+     * @brief Extra key-value pair setting for this field.
      */
     const std::map<std::string, std::string>&
     TypeParams() const;
 
     /**
-     * @brief Set extra key-value pair setting for this field
-     *
-     * Note: the values inputted by SetDimension/SetMaxLength/SetMaxCapacity are stored in typeParams as a map
+     * @brief Set extra key-value pair setting for this field.
+     * Note: the values inputted by SetDimension/SetMaxLength/SetMaxCapacity are stored in typeParams as a map.
      */
     void
     SetTypeParams(const std::map<std::string, std::string>& params);
 
     /**
      * @brief Set extra key-value pair setting for this field
-     *
-     * Note: the values inputted by SetDimension/SetMaxLength/SetMaxCapacity are stored in typeParams as a map
+     * Note: the values inputted by SetDimension/SetMaxLength/SetMaxCapacity are stored in typeParams as a map.
      */
     void
     SetTypeParams(std::map<std::string, std::string>&& params);
 
     /**
-     * @brief Get dimension for a vector field
+     * @brief Get dimension for a vector field.
      */
     uint32_t
     Dimension() const;
 
     /**
-     * @brief Quickly set dimension for a vector field
+     * @brief Quickly set dimension for a vector field.
      */
     bool
     SetDimension(uint32_t dimension);
 
     /**
-     * @brief Quickly set dimension for a vector field
+     * @brief Quickly set dimension for a vector field.
      */
     FieldSchema&
     WithDimension(uint32_t dimension);
 
     /**
-     * @brief Get max length for a varchar field
+     * @brief Get max length for a varchar field.
      */
     uint32_t
     MaxLength() const;
 
     /**
-     * @brief Quickly set max length for a varchar field
+     * @brief Quickly set max length for a varchar field.
      */
     void
     SetMaxLength(uint32_t length);
 
     /**
-     * @brief Quickly set max length for a varchar field
+     * @brief Quickly set max length for a varchar field.
      */
     FieldSchema&
     WithMaxLength(uint32_t length);
 
     /**
-     * @brief Get max capacity of an array field
+     * @brief Get max capacity of an array field.
      */
     uint32_t
     MaxCapacity() const;
 
     /**
-     * @brief Quickly set max capacity for an array field
+     * @brief Quickly set max capacity for an array field.
      */
     void
     SetMaxCapacity(uint32_t capacity);
 
     /**
-     * @brief Quickly set max capacity for an array field
+     * @brief Quickly set max capacity for an array field.
      */
     FieldSchema&
     WithMaxCapacity(uint32_t capacity);
 
     /**
-     * @brief Enable enable text analysis/tokenize for varchar field
+     * @brief Enable enable text analysis/tokenize for varchar field.
      */
     FieldSchema&
     EnableAnalyzer(bool enableAnalyzer);
 
     /**
-     * @brief Get the flag whether enable analyzer
+     * @brief Get the flag whether enable analyzer.
      */
     bool
     IsEnableAnalyzer() const;
 
     /**
-     * @brief Enable text match for varchar field
+     * @brief Enable text match for varchar field.
      */
     FieldSchema&
     EnableMatch(bool enableMatch);
 
     /**
-     * @brief Get the flag whether enable text match
+     * @brief Get the flag whether enable text match.
      */
     bool
     IsEnableMatch() const;
 
     /**
-     * @brief Set analyzer parameters
+     * @brief Set analyzer parameters.
      */
     void
     SetAnalyzerParams(const nlohmann::json& params);
 
     /**
-     * @brief Set analyzer parameters
+     * @brief Set analyzer parameters.
      */
     FieldSchema&
     WithAnalyzerParams(const nlohmann::json& params);
 
     /**
-     * @brief Get analyzer parameters
+     * @brief Get analyzer parameters.
      */
     nlohmann::json
     AnalyzerParams() const;
@@ -335,7 +333,7 @@ class FieldSchema {
      * @brief Set default value of this field.
      *
      * Note: JSON and Array fields do not support default values.
-     * @param [in] val only accept JSON primitive types
+     * @param [in] val only accept JSON primitive types.
      */
     void
     SetDefaultValue(const nlohmann::json& val);
@@ -344,7 +342,7 @@ class FieldSchema {
      * @brief Set default value of this field.
      *
      * Note: JSON and Array fields do not support default values.
-     * @param [in] val only accept JSON primitive types
+     * @param [in] val only accept JSON primitive types.
      */
     FieldSchema&
     WithDefaultValue(const nlohmann::json& val);

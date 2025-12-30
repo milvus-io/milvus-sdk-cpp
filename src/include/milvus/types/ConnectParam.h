@@ -66,7 +66,7 @@ class ConnectParam {
 
     /**
      * @brief Authorizations header value for connecting to the milvus.
-     * Authorizations() = base64('username:password')
+     * Authorizations() = base64('username:password').
      */
     const std::string&
     Authorizations() const;

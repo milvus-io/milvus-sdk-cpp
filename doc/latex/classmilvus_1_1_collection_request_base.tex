@@ -1,0 +1,45 @@
+\hypertarget{classmilvus_1_1_collection_request_base}{}\doxysection{milvus\+::Collection\+Request\+Base Class Reference}
+\label{classmilvus_1_1_collection_request_base}\index{milvus::CollectionRequestBase@{milvus::CollectionRequestBase}}
+
+
+Base class of collection requests except \mbox{\hyperlink{classmilvus_1_1_create_collection_request}{Create\+Collection\+Request}} and \mbox{\hyperlink{classmilvus_1_1_list_collections_request}{List\+Collections\+Request}}.  
+
+
+
+
+{\ttfamily \#include $<$Collection\+Request\+Base.\+h$>$}
+
+
+
+Inherited by \mbox{\hyperlink{classmilvus_1_1_alter_collection_field_properties_request}{milvus\+::\+Alter\+Collection\+Field\+Properties\+Request}}, \mbox{\hyperlink{classmilvus_1_1_alter_collection_properties_request}{milvus\+::\+Alter\+Collection\+Properties\+Request}}, \mbox{\hyperlink{classmilvus_1_1_describe_collection_request}{milvus\+::\+Describe\+Collection\+Request}}, \mbox{\hyperlink{classmilvus_1_1_drop_collection_field_properties_request}{milvus\+::\+Drop\+Collection\+Field\+Properties\+Request}}, \mbox{\hyperlink{classmilvus_1_1_drop_collection_properties_request}{milvus\+::\+Drop\+Collection\+Properties\+Request}}, \mbox{\hyperlink{classmilvus_1_1_drop_collection_request}{milvus\+::\+Drop\+Collection\+Request}}, \mbox{\hyperlink{classmilvus_1_1_get_collection_stats_request}{milvus\+::\+Get\+Collection\+Stats\+Request}}, \mbox{\hyperlink{classmilvus_1_1_get_load_state_request}{milvus\+::\+Get\+Load\+State\+Request}}, \mbox{\hyperlink{classmilvus_1_1_has_collection_request}{milvus\+::\+Has\+Collection\+Request}}, \mbox{\hyperlink{classmilvus_1_1_load_collection_request}{milvus\+::\+Load\+Collection\+Request}}, \mbox{\hyperlink{classmilvus_1_1_release_collection_request}{milvus\+::\+Release\+Collection\+Request}}, and \mbox{\hyperlink{classmilvus_1_1_rename_collection_request}{milvus\+::\+Rename\+Collection\+Request}}.
+
+\doxysubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{classmilvus_1_1_collection_request_base_a252e80e7e75b2206722bfd4fff2ca9e0}\label{classmilvus_1_1_collection_request_base_a252e80e7e75b2206722bfd4fff2ca9e0}} 
+const std\+::string \& \mbox{\hyperlink{classmilvus_1_1_collection_request_base_a252e80e7e75b2206722bfd4fff2ca9e0}{Database\+Name}} () const
+\begin{DoxyCompactList}\small\item\em Database name in which the collection is created. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_collection_request_base_a2dbc334888bbc00cfe86fa6b4f1f31d5}\label{classmilvus_1_1_collection_request_base_a2dbc334888bbc00cfe86fa6b4f1f31d5}} 
+void \mbox{\hyperlink{classmilvus_1_1_collection_request_base_a2dbc334888bbc00cfe86fa6b4f1f31d5}{Set\+Database\+Name}} (const std\+::string \&db\+\_\+name)
+\begin{DoxyCompactList}\small\item\em Set database name in which the collection is created. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_collection_request_base_a0bdf60d5bc80674288ec2a819d987f03}\label{classmilvus_1_1_collection_request_base_a0bdf60d5bc80674288ec2a819d987f03}} 
+const std\+::string \& \mbox{\hyperlink{classmilvus_1_1_collection_request_base_a0bdf60d5bc80674288ec2a819d987f03}{Collection\+Name}} () const
+\begin{DoxyCompactList}\small\item\em Name of the collection. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_collection_request_base_a6a8eb81709139c13a9f65324d619d84f}\label{classmilvus_1_1_collection_request_base_a6a8eb81709139c13a9f65324d619d84f}} 
+void \mbox{\hyperlink{classmilvus_1_1_collection_request_base_a6a8eb81709139c13a9f65324d619d84f}{Set\+Collection\+Name}} (const std\+::string \&collection\+\_\+name)
+\begin{DoxyCompactList}\small\item\em Set name of the collection. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\doxysubsection*{Protected Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{classmilvus_1_1_collection_request_base_a34e276e12fd8fe0c1e09c29bb770c401}\label{classmilvus_1_1_collection_request_base_a34e276e12fd8fe0c1e09c29bb770c401}} 
+\mbox{\hyperlink{classmilvus_1_1_collection_request_base_a34e276e12fd8fe0c1e09c29bb770c401}{Collection\+Request\+Base}} ()=default
+\begin{DoxyCompactList}\small\item\em Constructor. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+Base class of collection requests except \mbox{\hyperlink{classmilvus_1_1_create_collection_request}{Create\+Collection\+Request}} and \mbox{\hyperlink{classmilvus_1_1_list_collections_request}{List\+Collections\+Request}}. 
+
+The documentation for this class was generated from the following files\+:\begin{DoxyCompactItemize}
+\item 
+src/include/milvus/request/collection/Collection\+Request\+Base.\+h\item 
+src/impl/request/collection/Collection\+Request\+Base.\+cpp\end{DoxyCompactItemize}

@@ -1,0 +1,92 @@
+\hypertarget{classmilvus_1_1_delete_request}{}\doxysection{milvus\+::Delete\+Request Class Reference}
+\label{classmilvus_1_1_delete_request}\index{milvus::DeleteRequest@{milvus::DeleteRequest}}
+
+
+Used by \mbox{\hyperlink{classmilvus_1_1_milvus_client_v2_a3d3568cbdef075cfd9a3e994a8233782}{Milvus\+Client\+V2\+::\+Delete()}}  
+
+
+
+
+{\ttfamily \#include $<$Delete\+Request.\+h$>$}
+
+\doxysubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{classmilvus_1_1_delete_request_a039cc6831871cdbddb8992de01c725ed}\label{classmilvus_1_1_delete_request_a039cc6831871cdbddb8992de01c725ed}} 
+\mbox{\hyperlink{classmilvus_1_1_delete_request_a039cc6831871cdbddb8992de01c725ed}{Delete\+Request}} ()=default
+\begin{DoxyCompactList}\small\item\em Constructor. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_delete_request_a4d1f6dbf3f7a77c24cd21099c9d9ecbb}\label{classmilvus_1_1_delete_request_a4d1f6dbf3f7a77c24cd21099c9d9ecbb}} 
+const std\+::string \& \mbox{\hyperlink{classmilvus_1_1_delete_request_a4d1f6dbf3f7a77c24cd21099c9d9ecbb}{Database\+Name}} () const
+\begin{DoxyCompactList}\small\item\em Database name. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_delete_request_afe3c33d4a314c0147e132a3229ade631}\label{classmilvus_1_1_delete_request_afe3c33d4a314c0147e132a3229ade631}} 
+void \mbox{\hyperlink{classmilvus_1_1_delete_request_afe3c33d4a314c0147e132a3229ade631}{Set\+Database\+Name}} (const std\+::string \&db\+\_\+name)
+\begin{DoxyCompactList}\small\item\em Set database name. If database name is empty, will list collections of the default database. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_delete_request_aa0a25b597acf1faf8673bb0e127fc237}\label{classmilvus_1_1_delete_request_aa0a25b597acf1faf8673bb0e127fc237}} 
+\mbox{\hyperlink{classmilvus_1_1_delete_request}{Delete\+Request}} \& \mbox{\hyperlink{classmilvus_1_1_delete_request_aa0a25b597acf1faf8673bb0e127fc237}{With\+Database\+Name}} (const std\+::string \&db\+\_\+name)
+\begin{DoxyCompactList}\small\item\em Set database name. If database name is empty, will list collections of the default database. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_delete_request_ab02ee3e72d508db13ec559743fb0b680}\label{classmilvus_1_1_delete_request_ab02ee3e72d508db13ec559743fb0b680}} 
+const std\+::string \& \mbox{\hyperlink{classmilvus_1_1_delete_request_ab02ee3e72d508db13ec559743fb0b680}{Collection\+Name}} () const
+\begin{DoxyCompactList}\small\item\em Name of the collection. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_delete_request_ae18f3ab14e1c727e4fbb22bf5a23828f}\label{classmilvus_1_1_delete_request_ae18f3ab14e1c727e4fbb22bf5a23828f}} 
+void \mbox{\hyperlink{classmilvus_1_1_delete_request_ae18f3ab14e1c727e4fbb22bf5a23828f}{Set\+Collection\+Name}} (const std\+::string \&collection\+\_\+name)
+\begin{DoxyCompactList}\small\item\em Set name of the collection. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_delete_request_a4bc2c0a7f2780e3627a9fec8bc6ce63a}\label{classmilvus_1_1_delete_request_a4bc2c0a7f2780e3627a9fec8bc6ce63a}} 
+\mbox{\hyperlink{classmilvus_1_1_delete_request}{Delete\+Request}} \& \mbox{\hyperlink{classmilvus_1_1_delete_request_a4bc2c0a7f2780e3627a9fec8bc6ce63a}{With\+Collection\+Name}} (const std\+::string \&collection\+\_\+name)
+\begin{DoxyCompactList}\small\item\em Set name of the collection. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_delete_request_ab9b6b4d3f8dce3ee1b7289be57133089}\label{classmilvus_1_1_delete_request_ab9b6b4d3f8dce3ee1b7289be57133089}} 
+const std\+::string \& \mbox{\hyperlink{classmilvus_1_1_delete_request_ab9b6b4d3f8dce3ee1b7289be57133089}{Partition\+Name}} () const
+\begin{DoxyCompactList}\small\item\em Name of the partition. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_delete_request_ae39a08e5c33b8569c7155c126d215d1e}\label{classmilvus_1_1_delete_request_ae39a08e5c33b8569c7155c126d215d1e}} 
+void \mbox{\hyperlink{classmilvus_1_1_delete_request_ae39a08e5c33b8569c7155c126d215d1e}{Set\+Partition\+Name}} (const std\+::string \&partition\+\_\+name)
+\begin{DoxyCompactList}\small\item\em Set name of the partition. If partition name is empty, it will insert data into the default partition. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_delete_request_a9a417abd9c4b6144175d7ffbabd1f2b3}\label{classmilvus_1_1_delete_request_a9a417abd9c4b6144175d7ffbabd1f2b3}} 
+\mbox{\hyperlink{classmilvus_1_1_delete_request}{Delete\+Request}} \& \mbox{\hyperlink{classmilvus_1_1_delete_request_a9a417abd9c4b6144175d7ffbabd1f2b3}{With\+Partition\+Name}} (const std\+::string \&partition\+\_\+name)
+\begin{DoxyCompactList}\small\item\em Set new name of the partition. If partition name is empty, it will insert data into the default partition. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_delete_request_a8d324baa54f194a2cf0814823fae35d5}\label{classmilvus_1_1_delete_request_a8d324baa54f194a2cf0814823fae35d5}} 
+const std\+::string \& \mbox{\hyperlink{classmilvus_1_1_delete_request_a8d324baa54f194a2cf0814823fae35d5}{Filter}} () const
+\begin{DoxyCompactList}\small\item\em Get filter expression. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_delete_request_a46538421fad99a5cd440f47311beb324}\label{classmilvus_1_1_delete_request_a46538421fad99a5cd440f47311beb324}} 
+void \mbox{\hyperlink{classmilvus_1_1_delete_request_a46538421fad99a5cd440f47311beb324}{Set\+Filter}} (const std\+::string \&filter)
+\begin{DoxyCompactList}\small\item\em Set filter expression. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_delete_request_aa0d4bee63b5263aa9a8589ac7691bcad}\label{classmilvus_1_1_delete_request_aa0d4bee63b5263aa9a8589ac7691bcad}} 
+\mbox{\hyperlink{classmilvus_1_1_delete_request}{Delete\+Request}} \& \mbox{\hyperlink{classmilvus_1_1_delete_request_aa0d4bee63b5263aa9a8589ac7691bcad}{With\+Filter}} (const std\+::string \&filter)
+\begin{DoxyCompactList}\small\item\em Set filter expression. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_delete_request_af18bb5df34a401018a9e5a50ea61c32d}\label{classmilvus_1_1_delete_request_af18bb5df34a401018a9e5a50ea61c32d}} 
+const std\+::unordered\+\_\+map$<$ std\+::string, nlohmann\+::json $>$ \& \mbox{\hyperlink{classmilvus_1_1_delete_request_af18bb5df34a401018a9e5a50ea61c32d}{Filter\+Templates}} () const
+\begin{DoxyCompactList}\small\item\em Get filter templates. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_delete_request_acff4d69c9aae7d473a0689de5ecd0cce}\label{classmilvus_1_1_delete_request_acff4d69c9aae7d473a0689de5ecd0cce}} 
+\mbox{\hyperlink{classmilvus_1_1_delete_request}{Delete\+Request}} \& \mbox{\hyperlink{classmilvus_1_1_delete_request_acff4d69c9aae7d473a0689de5ecd0cce}{Add\+Filter\+Template}} (std\+::string key, nlohmann\+::json \&\&filter\+\_\+template)
+\begin{DoxyCompactList}\small\item\em Add a filter template. Only take effect when filter is not empty. Expression template, to improve expression parsing performance in complicated list. Assume user has a filter = \char`\"{}pk $>$ 3 and city in \mbox{[}\char`\"{}beijing\char`\"{}, \char`\"{}shanghai"{}, ......\mbox{]} The long list of city will increase the time cost to parse this expression. So, we provide filter\+Template for this purpose, user can set filter like this\+: filter = \char`\"{}pk $>$ \{age\} and city in \{city\}\char`\"{} filter\+Template = \{\char`\"{}age\char`\"{}\+: 3, \char`\"{}city\char`\"{}\+: \mbox{[}\char`\"{}beijing\char`\"{}, \char`\"{}shanghai\char`\"{}, ......\mbox{]}\} Valid value of a template can be\+: boolean, numeric, string, array. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_delete_request_aca646b01350991585d6540f491209fe3}\label{classmilvus_1_1_delete_request_aca646b01350991585d6540f491209fe3}} 
+void \mbox{\hyperlink{classmilvus_1_1_delete_request_aca646b01350991585d6540f491209fe3}{Set\+Filter\+Templates}} (std\+::unordered\+\_\+map$<$ std\+::string, nlohmann\+::json $>$ \&\&filter\+\_\+templates)
+\begin{DoxyCompactList}\small\item\em Set filter templates. Only take effect when filter is not empty. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_delete_request_a3efdcb14d7b224d773874e32442f236b}\label{classmilvus_1_1_delete_request_a3efdcb14d7b224d773874e32442f236b}} 
+\mbox{\hyperlink{classmilvus_1_1_delete_request}{Delete\+Request}} \& \mbox{\hyperlink{classmilvus_1_1_delete_request_a3efdcb14d7b224d773874e32442f236b}{With\+Filter\+Templates}} (std\+::unordered\+\_\+map$<$ std\+::string, nlohmann\+::json $>$ \&\&filter\+\_\+templates)
+\begin{DoxyCompactList}\small\item\em Set filter templates. Only take effect when filter is not empty. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_delete_request_aa964792d60560d4ae8d9a0d03cb4c535}\label{classmilvus_1_1_delete_request_aa964792d60560d4ae8d9a0d03cb4c535}} 
+\mbox{\hyperlink{classmilvus_1_1_delete_request}{Delete\+Request}} \& \mbox{\hyperlink{classmilvus_1_1_delete_request_aa964792d60560d4ae8d9a0d03cb4c535}{Add\+Filter\+Template}} (const std\+::string \&key, nlohmann\+::json \&\&filter\+\_\+template)
+\begin{DoxyCompactList}\small\item\em Add a filter template. Only take effect when filter is not empty. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_delete_request_a79144805cf0bbd47bbba98e3f50bfa74}\label{classmilvus_1_1_delete_request_a79144805cf0bbd47bbba98e3f50bfa74}} 
+const \mbox{\hyperlink{classmilvus_1_1_i_d_array}{IDArray}} \& \mbox{\hyperlink{classmilvus_1_1_delete_request_a79144805cf0bbd47bbba98e3f50bfa74}{IDs}} () const
+\begin{DoxyCompactList}\small\item\em Get primary keys to be deleted. Only take effect when filter is empty. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_delete_request_a9b8464108b3ffa4a59f54c9675625450}\label{classmilvus_1_1_delete_request_a9b8464108b3ffa4a59f54c9675625450}} 
+void \mbox{\hyperlink{classmilvus_1_1_delete_request_a9b8464108b3ffa4a59f54c9675625450}{Set\+IDs}} (std\+::vector$<$ int64\+\_\+t $>$ \&\&id\+\_\+array)
+\begin{DoxyCompactList}\small\item\em Set integer primary keys to be deleted. Only take effect when filter is empty. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_delete_request_abac27947285c55c3a12fdf0f5f9e3229}\label{classmilvus_1_1_delete_request_abac27947285c55c3a12fdf0f5f9e3229}} 
+\mbox{\hyperlink{classmilvus_1_1_delete_request}{Delete\+Request}} \& \mbox{\hyperlink{classmilvus_1_1_delete_request_abac27947285c55c3a12fdf0f5f9e3229}{With\+IDs}} (std\+::vector$<$ int64\+\_\+t $>$ \&\&id\+\_\+array)
+\begin{DoxyCompactList}\small\item\em Set integer primary keys to be deleted. Only take effect when filter is empty. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_delete_request_ae4d3bae446668a8414f75d71b01b7de7}\label{classmilvus_1_1_delete_request_ae4d3bae446668a8414f75d71b01b7de7}} 
+void \mbox{\hyperlink{classmilvus_1_1_delete_request_ae4d3bae446668a8414f75d71b01b7de7}{Set\+IDs}} (std\+::vector$<$ std\+::string $>$ \&\&id\+\_\+array)
+\begin{DoxyCompactList}\small\item\em Set string primary keys to be deleted. Only take effect when filter is empty. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_delete_request_ab534b89f4efedf2124258ccda2250c15}\label{classmilvus_1_1_delete_request_ab534b89f4efedf2124258ccda2250c15}} 
+\mbox{\hyperlink{classmilvus_1_1_delete_request}{Delete\+Request}} \& \mbox{\hyperlink{classmilvus_1_1_delete_request_ab534b89f4efedf2124258ccda2250c15}{With\+IDs}} (std\+::vector$<$ std\+::string $>$ \&\&id\+\_\+array)
+\begin{DoxyCompactList}\small\item\em Set string primary keys to be deleted. Only take effect when filter is empty. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+Used by \mbox{\hyperlink{classmilvus_1_1_milvus_client_v2_a3d3568cbdef075cfd9a3e994a8233782}{Milvus\+Client\+V2\+::\+Delete()}} 
+
+The documentation for this class was generated from the following files\+:\begin{DoxyCompactItemize}
+\item 
+src/include/milvus/request/dml/Delete\+Request.\+h\item 
+src/impl/request/dml/Delete\+Request.\+cpp\end{DoxyCompactItemize}

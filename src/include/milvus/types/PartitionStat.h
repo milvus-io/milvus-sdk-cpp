@@ -37,19 +37,19 @@ class PartitionStat {
     RowCount() const;
 
     /**
-     *  @brief Set partition name
+     *  @brief Set partition name.
      */
     void
     SetName(std::string name);
 
     /**
-     *  @brief Get partition name
+     *  @brief Get partition name.
      */
     const std::string&
     Name() const;
 
     /**
-     * @brief add key/value pair for partition statistics
+     * @brief add key/value pair for partition statistics.
      */
     void
     Emplace(std::string key, std::string value);

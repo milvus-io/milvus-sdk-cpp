@@ -30,10 +30,15 @@ class RunAnalyzerResponse {
      */
     RunAnalyzerResponse() = default;
 
-    // Getter and Setter for results_
+    /**
+     * @brief Get results of analyzer.
+     */
     const AnalyzerResults&
     Results() const;
 
+    /**
+     * @brief Set results of analyzer.
+     */
     void
     SetResults(AnalyzerResults&& result);
 
