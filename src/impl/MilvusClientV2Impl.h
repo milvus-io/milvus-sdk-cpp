@@ -55,6 +55,9 @@ class MilvusClientV2Impl : public MilvusClientV2 {
     CreateCollection(const CreateCollectionRequest& request) final;
 
     Status
+    CreateCollection(const CreateSimpleCollectionRequest& request) final;
+
+    Status
     HasCollection(const HasCollectionRequest& request, HasCollectionResponse& response) final;
 
     Status

@@ -22,23 +22,26 @@
 #include "milvus/MilvusClientV2.h"
 
 namespace {
-const char* const collection_name = "CPP_V2_TEXT_MATCH";
+const char* const collection_name = "CPP_V2_FULL_TEXT_SEARCH";
 const char* const field_id = "id";
 const char* const field_vector = "vector";
 const char* const field_text = "text";
-const uint32_t dimension = 128;
 
 void
 buildCollection(milvus::MilvusClientV2Ptr& client) {
     // collection schema, drop and create collection
     milvus::CollectionSchemaPtr collection_schema = std::make_shared<milvus::CollectionSchema>();
     collection_schema->AddField({field_id, milvus::DataType::INT64, "", true, false});
+    collection_schema->AddField(milvus::FieldSchema(field_vector, milvus::DataType::SPARSE_FLOAT_VECTOR));
     collection_schema->AddField(
-        milvus::FieldSchema(field_vector, milvus::DataType::FLOAT_VECTOR).WithDimension(dimension));
-    collection_schema->AddField(milvus::FieldSchema(field_text, milvus::DataType::VARCHAR)
-                                    .WithMaxLength(1024)
-                                    .EnableAnalyzer(true)
-                                    .EnableMatch(true));
+        milvus::FieldSchema(field_text, milvus::DataType::VARCHAR).WithMaxLength(65535).EnableAnalyzer(true));
+
+    // define the BM25 function, milvus will automatically generate sparse vector by BM25 algorithm for the "text" field
+    // the sparse vectors are stored in the "vector" field, and are invisible to users
+    milvus::FunctionPtr function = std::make_shared<milvus::Function>("function_bm25", milvus::FunctionType::BM25);
+    function->AddInputFieldName(field_text);
+    function->AddOutputFieldName(field_vector);
+    collection_schema->AddFunction(function);
 
     auto status = client->DropCollection(milvus::DropCollectionRequest().WithCollectionName(collection_name));
     status = client->CreateCollection(
@@ -46,7 +49,8 @@ buildCollection(milvus::MilvusClientV2Ptr& client) {
     util::CheckStatus(std::string("create collection: ") + collection_name, status);
 
     // create index
-    milvus::IndexDesc index_vector(field_vector, "", milvus::IndexType::IVF_FLAT, milvus::MetricType::COSINE);
+    milvus::IndexDesc index_vector(field_vector, "", milvus::IndexType::SPARSE_INVERTED_INDEX,
+                                   milvus::MetricType::BM25);
     status = client->CreateIndex(
         milvus::CreateIndexRequest().WithCollectionName(collection_name).AddIndex(std::move(index_vector)));
     util::CheckStatus("create index on vector field", status);
@@ -74,7 +78,6 @@ buildCollection(milvus::MilvusClientV2Ptr& client) {
         milvus::EntityRow row;
         row[field_id] = i;
         row[field_text] = text_content.at(i);
-        row[field_vector] = util::GenerateFloatVector(dimension);
         rows.emplace_back(std::move(row));
     }
 
@@ -96,43 +99,17 @@ buildCollection(milvus::MilvusClientV2Ptr& client) {
 }
 
 void
-queryWithFilter(milvus::MilvusClientV2Ptr& client, std::string filter) {
+searchByText(milvus::MilvusClientV2Ptr& client, std::string text) {
     std::cout << "================================================================" << std::endl;
-    std::cout << "Query with filter: " << filter << std::endl;
-
-    auto request = milvus::QueryRequest()
-                       .WithCollectionName(collection_name)
-                       .WithFilter(filter)
-                       .AddOutputField(field_id)
-                       .AddOutputField(field_text)
-                       .WithLimit(50)
-                       .WithConsistencyLevel(milvus::ConsistencyLevel::BOUNDED);
-
-    milvus::QueryResponse response;
-    auto status = client->Query(request, response);
-    util::CheckStatus("query", status);
-
-    milvus::EntityRows output_rows;
-    status = response.Results().OutputRows(output_rows);
-    util::CheckStatus("get output rows", status);
-    for (const auto& row : output_rows) {
-        std::cout << "\t" << row << std::endl;
-    }
-}
-
-void
-searchWithFilter(milvus::MilvusClientV2Ptr& client, std::string filter) {
-    std::cout << "================================================================" << std::endl;
-    std::cout << "Search with filter: " << filter << std::endl;
+    std::cout << "Search by text: " << text << std::endl;
 
     auto request = milvus::SearchRequest()
                        .WithCollectionName(collection_name)
-                       .WithFilter(filter)
-                       .WithLimit(50)
+                       .AddEmbeddedText(text)
+                       .WithLimit(5)
                        .WithAnnsField(field_vector)
                        .AddOutputField(field_id)
                        .AddOutputField(field_text)
-                       .AddFloatVector(util::GenerateFloatVector(dimension))
                        .WithConsistencyLevel(milvus::ConsistencyLevel::BOUNDED);
 
     milvus::SearchResponse response;
@@ -162,18 +139,8 @@ main(int argc, char* argv[]) {
 
     buildCollection(client);
 
-    // TEXT_MATCH requires the data is persisted, technical limitation
-    client->Flush(milvus::FlushRequest().AddCollectionName(collection_name));
-
-    // query with TEXT_MATCH
-    queryWithFilter(client, R"(TEXT_MATCH(text, "distance"))");
-    queryWithFilter(client, R"(TEXT_MATCH(text, "Milvus") or TEXT_MATCH(text, "distance"))");
-    queryWithFilter(client, R"(TEXT_MATCH(text, "Euclidean") and TEXT_MATCH(text, "distance"))");
-
-    // search with TEXT_MATCH
-    searchWithFilter(client, R"(TEXT_MATCH(text, "distance"))");
-    searchWithFilter(client, R"(TEXT_MATCH(text, "Euclidean distance"))");
-    searchWithFilter(client, R"(TEXT_MATCH(text, "vector database"))");
+    searchByText(client, "moon and earth distance");
+    searchByText(client, "Milvus vector database");
 
     client->Disconnect();
     return 0;

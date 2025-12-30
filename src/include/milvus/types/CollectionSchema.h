@@ -45,36 +45,42 @@ class CollectionSchema {
 
     /**
      * @brief Collection name, cannot be empty.
+     * @deprecated in MilvusClientV2, collection name is passed by CreateCollectionRequest.
      */
     const std::string&
     Name() const;
 
     /**
      * @brief Set collection name, cannot be empty.
+     * @deprecated in MilvusClientV2, collection name is passed by CreateCollectionRequest.
      */
     void
     SetName(std::string name);
 
     /**
      * @brief Collection description, can be empty.
+     * @deprecated in MilvusClientV2, description is passed by CreateCollectionRequest.
      */
     const std::string&
     Description() const;
 
     /**
      * @brief Set collection description, can be empty.
+     * @deprecated in MilvusClientV2, description is passed by CreateCollectionRequest.
      */
     void
     SetDescription(std::string description);
 
     /**
      * @brief Collection shards number, the number must be larger than zero, default value is 2.
+     * @deprecated in MilvusClientV2, shardsNum is passed by CreateCollectionRequest.
      */
     int32_t
     ShardsNum() const;
 
     /**
      * @brief Set shards number, the number must be larger than zero, default value is 2.
+     * @deprecated in MilvusClientV2, shardsNum is passed by CreateCollectionRequest.
      */
     void
     SetShardsNum(int32_t num);

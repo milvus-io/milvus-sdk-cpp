@@ -84,11 +84,12 @@ main(int argc, char* argv[]) {
 
     // create a collection
     const std::string collection_name = "CPP_V2_RBAC";
-    milvus::CollectionSchemaPtr collection_schema = std::make_shared<milvus::CollectionSchema>(collection_name);
+    milvus::CollectionSchemaPtr collection_schema = std::make_shared<milvus::CollectionSchema>();
     collection_schema->AddField({"pk", milvus::DataType::INT64, "", true, true});
     collection_schema->AddField(milvus::FieldSchema("vector", milvus::DataType::FLOAT_VECTOR).WithDimension(8));
 
-    status = client->CreateCollection(milvus::CreateCollectionRequest().WithCollectionSchema(collection_schema));
+    status = client->CreateCollection(
+        milvus::CreateCollectionRequest().WithCollectionName(collection_name).WithCollectionSchema(collection_schema));
     util::CheckStatus("create collection: " + collection_name, status);
 
     milvus::IndexDesc index_vector("vector", "", milvus::IndexType::AUTOINDEX, milvus::MetricType::L2);
