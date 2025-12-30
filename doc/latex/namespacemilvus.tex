@@ -30,6 +30,8 @@ class \mbox{\hyperlink{classmilvus_1_1_collection_request_base}{Collection\+Requ
 \begin{DoxyCompactList}\small\item\em Base class of collection requests except \mbox{\hyperlink{classmilvus_1_1_create_collection_request}{Create\+Collection\+Request}} and \mbox{\hyperlink{classmilvus_1_1_list_collections_request}{List\+Collections\+Request}}. \end{DoxyCompactList}\item 
 class \mbox{\hyperlink{classmilvus_1_1_create_collection_request}{Create\+Collection\+Request}}
 \begin{DoxyCompactList}\small\item\em Used by \mbox{\hyperlink{classmilvus_1_1_milvus_client_v2_ab4706b1e5d639e563fb7d1e8b9239a98}{Milvus\+Client\+V2\+::\+Create\+Collection()}} \end{DoxyCompactList}\item 
+class \mbox{\hyperlink{classmilvus_1_1_create_simple_collection_request}{Create\+Simple\+Collection\+Request}}
+\begin{DoxyCompactList}\small\item\em Used by \mbox{\hyperlink{classmilvus_1_1_milvus_client_v2_ab4706b1e5d639e563fb7d1e8b9239a98}{Milvus\+Client\+V2\+::\+Create\+Collection()}} to create a simple collection. The simple collection has only two fields\+: primary field and vector field. The primary field can be INT64 or VARCHAR type. The vector field is FLOAT\+\_\+\+VECTOR type, index is AUTOINDEX. \end{DoxyCompactList}\item 
 class \mbox{\hyperlink{classmilvus_1_1_describe_collection_request}{Describe\+Collection\+Request}}
 \begin{DoxyCompactList}\small\item\em Used by \mbox{\hyperlink{classmilvus_1_1_milvus_client_v2_aec04b146c7eaee76059d13ac16180723}{Milvus\+Client\+V2\+::\+Describe\+Collection()}} \end{DoxyCompactList}\item 
 class \mbox{\hyperlink{classmilvus_1_1_drop_collection_field_properties_request}{Drop\+Collection\+Field\+Properties\+Request}}
