@@ -87,17 +87,23 @@ $(function() {
 <div class="line"><a name="l00016"></a><span class="lineno">   16</span>&#160; </div>
 <div class="line"><a name="l00017"></a><span class="lineno">   17</span>&#160;<span class="preprocessor">#pragma once</span></div>
 <div class="line"><a name="l00018"></a><span class="lineno">   18</span>&#160; </div>
-<div class="line"><a name="l00019"></a><span class="lineno">   19</span>&#160;<span class="keyword">namespace </span><a class="code" href="namespacemilvus.html">milvus</a> {</div>
+<div class="line"><a name="l00019"></a><span class="lineno">   19</span>&#160;<span class="preprocessor">#include &lt;string&gt;</span></div>
 <div class="line"><a name="l00020"></a><span class="lineno">   20</span>&#160; </div>
-<div class="line"><a name="l00027"></a><span class="lineno"><a class="line" href="namespacemilvus.html#ab0f6557077e3b6e18925d278f984badd">   27</a></span>&#160;<span class="keyword">enum class</span> <a class="code" href="namespacemilvus.html#ab0f6557077e3b6e18925d278f984badd">FunctionType</a> {</div>
-<div class="line"><a name="l00028"></a><span class="lineno">   28</span>&#160;    UNKNOWN = 0,</div>
-<div class="line"><a name="l00029"></a><span class="lineno">   29</span>&#160;    BM25 = 1,</div>
-<div class="line"><a name="l00030"></a><span class="lineno">   30</span>&#160;    TEXTEMBEDDING = 2,</div>
-<div class="line"><a name="l00031"></a><span class="lineno">   31</span>&#160;    RERANK = 3,</div>
-<div class="line"><a name="l00032"></a><span class="lineno">   32</span>&#160;};</div>
-<div class="line"><a name="l00033"></a><span class="lineno">   33</span>&#160;}  <span class="comment">// namespace milvus</span></div>
+<div class="line"><a name="l00021"></a><span class="lineno">   21</span>&#160;<span class="keyword">namespace </span><a class="code" href="namespacemilvus.html">milvus</a> {</div>
+<div class="line"><a name="l00022"></a><span class="lineno">   22</span>&#160; </div>
+<div class="line"><a name="l00029"></a><span class="lineno"><a class="line" href="namespacemilvus.html#ab0f6557077e3b6e18925d278f984badd">   29</a></span>&#160;<span class="keyword">enum class</span> <a class="code" href="namespacemilvus.html#ab0f6557077e3b6e18925d278f984badd">FunctionType</a> {</div>
+<div class="line"><a name="l00030"></a><span class="lineno">   30</span>&#160;    UNKNOWN = 0,</div>
+<div class="line"><a name="l00031"></a><span class="lineno">   31</span>&#160;    BM25 = 1,</div>
+<div class="line"><a name="l00032"></a><span class="lineno">   32</span>&#160;    TEXTEMBEDDING = 2,</div>
+<div class="line"><a name="l00033"></a><span class="lineno">   33</span>&#160;    RERANK = 3,</div>
+<div class="line"><a name="l00034"></a><span class="lineno">   34</span>&#160;};</div>
+<div class="line"><a name="l00035"></a><span class="lineno">   35</span>&#160;}  <span class="comment">// namespace milvus</span></div>
+<div class="line"><a name="l00036"></a><span class="lineno">   36</span>&#160; </div>
+<div class="line"><a name="l00037"></a><span class="lineno">   37</span>&#160;<span class="keyword">namespace </span>std {</div>
+<div class="line"><a name="l00038"></a><span class="lineno">   38</span>&#160;std::string to_string(<a class="code" href="namespacemilvus.html#ab0f6557077e3b6e18925d278f984badd">milvus::FunctionType</a>);</div>
+<div class="line"><a name="l00039"></a><span class="lineno">   39</span>&#160;}  <span class="comment">// namespace std</span></div>
 <div class="ttc" id="anamespacemilvus_html"><div class="ttname"><a href="namespacemilvus.html">milvus</a></div><div class="ttdoc">namespace milvus</div><div class="ttdef"><b>Definition:</b> BulkImport.cpp:21</div></div>
-<div class="ttc" id="anamespacemilvus_html_ab0f6557077e3b6e18925d278f984badd"><div class="ttname"><a href="namespacemilvus.html#ab0f6557077e3b6e18925d278f984badd">milvus::FunctionType</a></div><div class="ttdeci">FunctionType</div><div class="ttdoc">Supported function types. Note: in v2.4, only support RERANK for hybrid search in v2....</div><div class="ttdef"><b>Definition:</b> FunctionType.h:27</div></div>
+<div class="ttc" id="anamespacemilvus_html_ab0f6557077e3b6e18925d278f984badd"><div class="ttname"><a href="namespacemilvus.html#ab0f6557077e3b6e18925d278f984badd">milvus::FunctionType</a></div><div class="ttdeci">FunctionType</div><div class="ttdoc">Supported function types. Note: in v2.4, only support RERANK for hybrid search in v2....</div><div class="ttdef"><b>Definition:</b> FunctionType.h:29</div></div>
 </div><!-- fragment --></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>

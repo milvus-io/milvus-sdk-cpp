@@ -33,6 +33,8 @@ virtual \mbox{\hyperlink{classmilvus_1_1_status}{Status}} \mbox{\hyperlink{class
 \begin{DoxyCompactList}\small\item\em Check healthy of the server. \end{DoxyCompactList}\item 
 virtual \mbox{\hyperlink{classmilvus_1_1_status}{Status}} \mbox{\hyperlink{classmilvus_1_1_milvus_client_v2_ab4706b1e5d639e563fb7d1e8b9239a98}{Create\+Collection}} (const \mbox{\hyperlink{classmilvus_1_1_create_collection_request}{Create\+Collection\+Request}} \&request)=0
 \begin{DoxyCompactList}\small\item\em Create a collection. \end{DoxyCompactList}\item 
+virtual \mbox{\hyperlink{classmilvus_1_1_status}{Status}} \mbox{\hyperlink{classmilvus_1_1_milvus_client_v2_ac5c8b6cbc31527e20e4eb71875d1e721}{Create\+Collection}} (const \mbox{\hyperlink{classmilvus_1_1_create_simple_collection_request}{Create\+Simple\+Collection\+Request}} \&request)=0
+\begin{DoxyCompactList}\small\item\em Create a simple collection with a primary field and a vector field. \end{DoxyCompactList}\item 
 virtual \mbox{\hyperlink{classmilvus_1_1_status}{Status}} \mbox{\hyperlink{classmilvus_1_1_milvus_client_v2_ae55c2921f186b2cc170195b47b00f2be}{Has\+Collection}} (const \mbox{\hyperlink{classmilvus_1_1_has_collection_request}{Has\+Collection\+Request}} \&request, \mbox{\hyperlink{classmilvus_1_1_has_collection_response}{Has\+Collection\+Response}} \&response)=0
 \begin{DoxyCompactList}\small\item\em Check existence of a collection. \end{DoxyCompactList}\item 
 virtual \mbox{\hyperlink{classmilvus_1_1_status}{Status}} \mbox{\hyperlink{classmilvus_1_1_milvus_client_v2_a7517376960cda794508aefb424e8bf69}{Drop\+Collection}} (const \mbox{\hyperlink{classmilvus_1_1_drop_collection_request}{Drop\+Collection\+Request}} \&request)=0
@@ -422,12 +424,30 @@ Create an alias for a collection. Alias can be used in search or query to replac
 \mbox{\Hypertarget{classmilvus_1_1_milvus_client_v2_ab4706b1e5d639e563fb7d1e8b9239a98}\label{classmilvus_1_1_milvus_client_v2_ab4706b1e5d639e563fb7d1e8b9239a98}} 
 \index{milvus::MilvusClientV2@{milvus::MilvusClientV2}!CreateCollection@{CreateCollection}}
 \index{CreateCollection@{CreateCollection}!milvus::MilvusClientV2@{milvus::MilvusClientV2}}
-\doxysubsubsection{\texorpdfstring{CreateCollection()}{CreateCollection()}}
+\doxysubsubsection{\texorpdfstring{CreateCollection()}{CreateCollection()}\hspace{0.1cm}{\footnotesize\ttfamily [1/2]}}
 {\footnotesize\ttfamily virtual \mbox{\hyperlink{classmilvus_1_1_status}{Status}} milvus\+::\+Milvus\+Client\+V2\+::\+Create\+Collection (\begin{DoxyParamCaption}\item[{const \mbox{\hyperlink{classmilvus_1_1_create_collection_request}{Create\+Collection\+Request}} \&}]{request }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [pure virtual]}}
 
 
 
 Create a collection. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ in}}  & {\em request} & input parameters \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+\mbox{\hyperlink{classmilvus_1_1_status}{Status}} operation successfully or not 
+\end{DoxyReturn}
+\mbox{\Hypertarget{classmilvus_1_1_milvus_client_v2_ac5c8b6cbc31527e20e4eb71875d1e721}\label{classmilvus_1_1_milvus_client_v2_ac5c8b6cbc31527e20e4eb71875d1e721}} 
+\index{milvus::MilvusClientV2@{milvus::MilvusClientV2}!CreateCollection@{CreateCollection}}
+\index{CreateCollection@{CreateCollection}!milvus::MilvusClientV2@{milvus::MilvusClientV2}}
+\doxysubsubsection{\texorpdfstring{CreateCollection()}{CreateCollection()}\hspace{0.1cm}{\footnotesize\ttfamily [2/2]}}
+{\footnotesize\ttfamily virtual \mbox{\hyperlink{classmilvus_1_1_status}{Status}} milvus\+::\+Milvus\+Client\+V2\+::\+Create\+Collection (\begin{DoxyParamCaption}\item[{const \mbox{\hyperlink{classmilvus_1_1_create_simple_collection_request}{Create\+Simple\+Collection\+Request}} \&}]{request }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [pure virtual]}}
+
+
+
+Create a simple collection with a primary field and a vector field. 
 
 
 \begin{DoxyParams}[1]{Parameters}

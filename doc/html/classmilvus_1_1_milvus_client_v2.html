@@ -108,6 +108,9 @@ virtual <a class="el" href="classmilvus_1_1_status.html">Status</a>&#160;</td><t
 <tr class="memitem:ab4706b1e5d639e563fb7d1e8b9239a98"><td class="memItemLeft" align="right" valign="top">virtual <a class="el" href="classmilvus_1_1_status.html">Status</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classmilvus_1_1_milvus_client_v2.html#ab4706b1e5d639e563fb7d1e8b9239a98">CreateCollection</a> (const <a class="el" href="classmilvus_1_1_create_collection_request.html">CreateCollectionRequest</a> &amp;request)=0</td></tr>
 <tr class="memdesc:ab4706b1e5d639e563fb7d1e8b9239a98"><td class="mdescLeft">&#160;</td><td class="mdescRight">Create a collection.  <a href="classmilvus_1_1_milvus_client_v2.html#ab4706b1e5d639e563fb7d1e8b9239a98">More...</a><br /></td></tr>
 <tr class="separator:ab4706b1e5d639e563fb7d1e8b9239a98"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac5c8b6cbc31527e20e4eb71875d1e721"><td class="memItemLeft" align="right" valign="top">virtual <a class="el" href="classmilvus_1_1_status.html">Status</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classmilvus_1_1_milvus_client_v2.html#ac5c8b6cbc31527e20e4eb71875d1e721">CreateCollection</a> (const <a class="el" href="classmilvus_1_1_create_simple_collection_request.html">CreateSimpleCollectionRequest</a> &amp;request)=0</td></tr>
+<tr class="memdesc:ac5c8b6cbc31527e20e4eb71875d1e721"><td class="mdescLeft">&#160;</td><td class="mdescRight">Create a simple collection with a primary field and a vector field.  <a href="classmilvus_1_1_milvus_client_v2.html#ac5c8b6cbc31527e20e4eb71875d1e721">More...</a><br /></td></tr>
+<tr class="separator:ac5c8b6cbc31527e20e4eb71875d1e721"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ae55c2921f186b2cc170195b47b00f2be"><td class="memItemLeft" align="right" valign="top">virtual <a class="el" href="classmilvus_1_1_status.html">Status</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classmilvus_1_1_milvus_client_v2.html#ae55c2921f186b2cc170195b47b00f2be">HasCollection</a> (const <a class="el" href="classmilvus_1_1_has_collection_request.html">HasCollectionRequest</a> &amp;request, <a class="el" href="classmilvus_1_1_has_collection_response.html">HasCollectionResponse</a> &amp;response)=0</td></tr>
 <tr class="memdesc:ae55c2921f186b2cc170195b47b00f2be"><td class="mdescLeft">&#160;</td><td class="mdescRight">Check existence of a collection.  <a href="classmilvus_1_1_milvus_client_v2.html#ae55c2921f186b2cc170195b47b00f2be">More...</a><br /></td></tr>
 <tr class="separator:ae55c2921f186b2cc170195b47b00f2be"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -794,7 +797,7 @@ Static Public Member Functions</h2></td></tr>
 </div>
 </div>
 <a id="ab4706b1e5d639e563fb7d1e8b9239a98"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ab4706b1e5d639e563fb7d1e8b9239a98">&#9670;&nbsp;</a></span>CreateCollection()</h2>
+<h2 class="memtitle"><span class="permalink"><a href="#ab4706b1e5d639e563fb7d1e8b9239a98">&#9670;&nbsp;</a></span>CreateCollection() <span class="overload">[1/2]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -818,6 +821,41 @@ Static Public Member Functions</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Create a collection. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">request</td><td>input parameters </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd><a class="el" href="classmilvus_1_1_status.html" title="Status code and message returned by SDK interface.">Status</a> operation successfully or not </dd></dl>
+
+</div>
+</div>
+<a id="ac5c8b6cbc31527e20e4eb71875d1e721"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac5c8b6cbc31527e20e4eb71875d1e721">&#9670;&nbsp;</a></span>CreateCollection() <span class="overload">[2/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual <a class="el" href="classmilvus_1_1_status.html">Status</a> milvus::MilvusClientV2::CreateCollection </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="classmilvus_1_1_create_simple_collection_request.html">CreateSimpleCollectionRequest</a> &amp;&#160;</td>
+          <td class="paramname"><em>request</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">pure virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Create a simple collection with a primary field and a vector field. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramdir">[in]</td><td class="paramname">request</td><td>input parameters </td></tr>
