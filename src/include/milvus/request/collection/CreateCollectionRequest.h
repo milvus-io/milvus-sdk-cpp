@@ -53,6 +53,50 @@ class CreateCollectionRequest {
     WithDatabaseName(const std::string& db_name);
 
     /**
+     * @brief Name of the collection.
+     */
+    const std::string&
+    CollectionName() const;
+
+    /**
+     * @brief Set name of the collection.
+     * Note: due to history reason, the CollectionSchema also contains a collection name.
+     * SetCollectionName() will override the collection name of CollectionSchema.
+     */
+    void
+    SetCollectionName(const std::string& collection_name);
+
+    /**
+     * @brief Set name of the collection.
+     * Note: due to history reason, the CollectionSchema also contains a collection name.
+     * WithCollectionName() will override the collection name of CollectionSchema.
+     */
+    CreateCollectionRequest&
+    WithCollectionName(const std::string& collection_name);
+
+    /**
+     * @brief Description of the collection.
+     */
+    const std::string&
+    Description() const;
+
+    /**
+     * @brief Set name of the collection.
+     * Note: due to history reason, the CollectionSchema also contains a description.
+     * SetDescription() will override description of CollectionSchema.
+     */
+    void
+    SetDescription(const std::string& description);
+
+    /**
+     * @brief Set name of the collection.
+     * Note: due to history reason, the CollectionSchema also contains a collection name.
+     * WithDescription() will override description of CollectionSchema.
+     */
+    CreateCollectionRequest&
+    WithDescription(const std::string& description);
+
+    /**
      * @brief Collection schema.
      */
     const CollectionSchemaPtr&
@@ -87,6 +131,28 @@ class CreateCollectionRequest {
      */
     CreateCollectionRequest&
     WithNumPartitions(int64_t num_partitions);
+
+    /**
+     * @brief Get number of shards of the collection.
+     */
+    int64_t
+    NumShards() const;
+
+    /**
+     * @brief Set number of shards of the collection.
+     * Note: due to history reason, the CollectionSchema also contains a shards number.
+     * SetNumShards() will override the shards_num of CollectionSchema.
+     */
+    void
+    SetNumShards(int64_t num_shards);
+
+    /**
+     * @brief Set number of shards of the collection.
+     * Note: due to history reason, the CollectionSchema also contains a shards number.
+     * WithNumShards() will override the shards_num of CollectionSchema.
+     */
+    CreateCollectionRequest&
+    WithNumShards(int64_t num_shards);
 
     /**
      * @brief Get default consistency level of this collection.
@@ -156,8 +222,11 @@ class CreateCollectionRequest {
 
  private:
     std::string db_name_;
+    std::string collection_name_;
+    std::string description_;
     CollectionSchemaPtr schema_;
     int64_t num_partitions_{0};
+    int64_t num_shards_{1};
     ConsistencyLevel level_{ConsistencyLevel::BOUNDED};
     std::unordered_map<std::string, std::string> properties_;
     std::vector<IndexDesc> indexes_;

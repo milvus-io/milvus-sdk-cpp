@@ -16,6 +16,8 @@
 
 #pragma once
 
+#include <string>
+
 namespace milvus {
 
 /**
@@ -31,3 +33,7 @@ enum class FunctionType {
     RERANK = 3,
 };
 }  // namespace milvus
+
+namespace std {
+std::string to_string(milvus::FunctionType);
+}  // namespace std

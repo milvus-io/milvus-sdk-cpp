@@ -121,7 +121,7 @@ main(int argc, char* argv[]) {
         auto sub_req2 = std::make_shared<milvus::SubSearchRequest>();
         sub_req2->SetLimit(15);
         sub_req2->SetFilter(field_flag + " in [1, 3]");
-        sub_req1->SetAnnsField(field_sparse);
+        sub_req2->SetAnnsField(field_sparse);
         sub_req2->AddSparseVector(util::GenerateSparseVector(50));
         s_arguments.AddSubRequest(sub_req2);
 

@@ -143,7 +143,6 @@ ConnectionHandler::WaitForStatus(const std::function<Status(Progress&)>& query_f
 
         Progress current_progress;
         auto status = query_function(current_progress);
-
         // if the internal check function failed, return error
         if (!status.IsOk()) {
             return status;

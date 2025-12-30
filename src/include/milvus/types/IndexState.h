@@ -104,3 +104,7 @@ class IndexProgress {
 };
 
 }  // namespace milvus
+
+namespace std {
+std::string to_string(milvus::IndexStateCode);
+}  // namespace std

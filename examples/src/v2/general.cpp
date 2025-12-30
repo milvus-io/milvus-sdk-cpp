@@ -21,6 +21,60 @@
 #include "ExampleUtils.h"
 #include "milvus/MilvusClientV2.h"
 
+namespace {
+
+const std::string db_name = "cpp_sdk_test_db";
+const std::string collection_name = "CPP_V2_GENERAL";
+const std::string field_id = "user_id";
+const std::string field_name = "user_name";
+const std::string field_age = "user_age";
+const std::string field_face = "user_face";
+const uint32_t dimension = 128;
+
+void
+DescribeCollection(milvus::MilvusClientV2Ptr& client) {
+    milvus::DescribeCollectionResponse desc_response;
+    auto status = client->DescribeCollection(
+        milvus::DescribeCollectionRequest().WithDatabaseName(db_name).WithCollectionName(collection_name),
+        desc_response);
+    util::CheckStatus("describe collection: " + collection_name, status);
+
+    std::cout << "\tCollection ID: " << desc_response.Desc().ID() << std::endl;
+    auto properties = desc_response.Desc().Properties();
+    std::cout << "\tCollection properties: ";
+    util::PrintMap(properties);
+
+    milvus::GetLoadStateResponse load_response;
+    status = client->GetLoadState(
+        milvus::GetLoadStateRequest().WithDatabaseName(db_name).WithCollectionName(collection_name), load_response);
+    util::CheckStatus("get load state of collection: " + collection_name, status);
+    std::cout << "\tCollection load state: " << std::to_string(load_response.State()) << std::endl;
+}
+
+void
+DescribeIndex(milvus::MilvusClientV2Ptr& client, const std::string& index_name) {
+    milvus::DescribeIndexResponse desc_response;
+    auto status = client->DescribeIndex(milvus::DescribeIndexRequest()
+                                            .WithDatabaseName(db_name)
+                                            .WithCollectionName(collection_name)
+                                            .WithIndexName(index_name),
+                                        desc_response);
+    util::CheckStatus("describe index on field: " + field_face, status);
+
+    for (const auto& desc : desc_response.Descs()) {
+        std::cout << "\tIndexName: " << desc.IndexName() << std::endl;
+        std::cout << "\tIndexType: " << std::to_string(desc.IndexType()) << std::endl;
+        std::cout << "\tMetricType: " << std::to_string(desc.MetricType()) << std::endl;
+        std::cout << "\tTotalRows: " << std::to_string(desc.TotalRows()) << std::endl;
+        std::cout << "\tIndexedRows: " << std::to_string(desc.IndexedRows()) << std::endl;
+        std::cout << "\tPendingRows: " << std::to_string(desc.PendingRows()) << std::endl;
+        std::cout << "\tExtraParams: ";
+        util::PrintMap(desc.ExtraParams());
+    }
+}
+
+}  // namespace
+
 int
 main(int argc, char* argv[]) {
     printf("Example start...\n");
@@ -59,14 +113,6 @@ main(int argc, char* argv[]) {
     client->GetSDKVersion(version);
     std::cout << "The CPP SDK version is: " << version << std::endl;
 
-    const std::string db_name = "cpp_sdk_test_db";
-    const std::string collection_name = "CPP_V2_GENERAL";
-    const std::string field_id = "user_id";
-    const std::string field_name = "user_name";
-    const std::string field_age = "user_age";
-    const std::string field_face = "user_face";
-    const uint32_t dimension = 128;
-
     // create database
     milvus::ListDatabasesResponse resp_list_dbs;
     status = client->ListDatabases(milvus::ListDatabasesRequest(), resp_list_dbs);
@@ -78,7 +124,7 @@ main(int argc, char* argv[]) {
     }
 
     // collection schema, drop and create collection
-    milvus::CollectionSchemaPtr collection_schema = std::make_shared<milvus::CollectionSchema>(collection_name);
+    milvus::CollectionSchemaPtr collection_schema = std::make_shared<milvus::CollectionSchema>();
     collection_schema->AddField({field_id, milvus::DataType::INT64, "user id", true, false});
     milvus::FieldSchema varchar_scheam{field_name, milvus::DataType::VARCHAR, "user name"};
     varchar_scheam.SetMaxLength(100);
@@ -97,30 +143,43 @@ main(int argc, char* argv[]) {
     // for this collection and load the collection
     status = client->DropCollection(
         milvus::DropCollectionRequest().WithCollectionName(collection_name).WithDatabaseName(db_name));
-    status = client->CreateCollection(milvus::CreateCollectionRequest()
-                                          .WithCollectionSchema(collection_schema)
-                                          .WithDatabaseName(db_name)
-                                          .AddIndex(std::move(index_vector))
-                                          .AddIndex(std::move(index_sort))
-                                          .AddIndex(std::move(index_varchar))
-                                          .AddProperty("my_prop", "dummy")              // add a customized property
-                                          .AddProperty("collection.ttl.seconds", "60")  // configure a built-in property
-                                          .WithConsistencyLevel(milvus::ConsistencyLevel::STRONG));
+    status = client->CreateCollection(
+        milvus::CreateCollectionRequest()
+            .WithDatabaseName(db_name)
+            .WithCollectionName(collection_name)
+            .WithDescription("my collection")
+            .WithNumShards(1)
+            .WithCollectionSchema(collection_schema)
+            .AddIndex(std::move(index_vector))
+            .AddIndex(std::move(index_sort))
+            .AddIndex(std::move(index_varchar))
+            .AddProperty("my_prop", "dummy")                    // add a customized property
+            .AddProperty(milvus::COLLECTION_TTL_SECONDS, "60")  // configure a built-in property
+            .WithConsistencyLevel(milvus::ConsistencyLevel::STRONG));
     util::CheckStatus("create collection: " + collection_name + " in database: " + db_name, status);
 
     {
-        // describe the collection
-        milvus::DescribeCollectionResponse desc_response;
-        status = client->DescribeCollection(
-            milvus::DescribeCollectionRequest().WithCollectionName(collection_name).WithDatabaseName(db_name),
-            desc_response);
-        util::CheckStatus("describe collection: " + collection_name, status);
+        // describe the collection, "collection.ttl.seconds" is 60
+        DescribeCollection(client);
 
-        std::cout << "\tCollection ID: " << desc_response.Desc().ID() << std::endl;
-        auto properties = desc_response.Desc().Properties();
-        std::map<std::string, std::string> temp_properties(properties.begin(), properties.end());
-        std::cout << "\tCollection properties: ";
-        util::PrintMap(temp_properties);
+        // add properties to collection
+        status = client->AlterCollectionProperties(milvus::AlterCollectionPropertiesRequest()
+                                                       .WithDatabaseName(db_name)
+                                                       .WithCollectionName(collection_name)
+                                                       .AddProperty(milvus::COLLECTION_TTL_SECONDS, "20"));
+        util::CheckStatus("alter properties for collection: " + collection_name, status);
+
+        // describe the collection, "collection.ttl.seconds" is changed to 20
+        DescribeCollection(client);
+
+        status = client->DropCollectionProperties(milvus::DropCollectionPropertiesRequest()
+                                                      .WithDatabaseName(db_name)
+                                                      .WithCollectionName(collection_name)
+                                                      .AddPropertyKey(milvus::COLLECTION_TTL_SECONDS));
+        util::CheckStatus("drop properties for collection: " + collection_name, status);
+
+        // describe the collection, "collection.ttl.seconds" is deleted
+        DescribeCollection(client);
     }
 
     // create a partition
@@ -150,12 +209,12 @@ main(int argc, char* argv[]) {
         std::cout << "\t" << info.Name() << std::endl;
     }
 
-    // switch to the database
+    // switch to the database, we don't need to call WithDatabaseName() after this line
     status = client->UseDatabase(db_name);
     util::CheckStatus("use database: " + db_name, status);
 
     // prepare original data
-    const int64_t row_count = 1000;
+    const int64_t row_count = 2000;
     std::vector<int64_t> insert_ids;
     std::vector<std::string> insert_names;
     std::vector<int8_t> insert_ages;
@@ -167,7 +226,7 @@ main(int argc, char* argv[]) {
         insert_vectors.emplace_back(std::move(util::GenerateFloatVector(dimension)));
     }
 
-    const uint64_t column_based_count = 500;
+    const uint64_t column_based_count = 1000;
     {
         // insert 500 rows by column-based
         const uint64_t count = column_based_count;
@@ -201,8 +260,8 @@ main(int argc, char* argv[]) {
             row[field_face] = insert_vectors[i];
             rows.emplace_back(std::move(row));
 
-            // insert batch by batch, batch size is 80
-            if (rows.size() >= 80 || (i >= insert_ids.size() - 1)) {
+            // insert batch by batch, batch size is 300
+            if (rows.size() >= 300 || (i >= insert_ids.size() - 1)) {
                 milvus::InsertResponse resp_insert;
                 // since we have switched to db_name, we don't need to set DatabaseName here
                 status = client->Insert(milvus::InsertRequest()
@@ -249,22 +308,10 @@ main(int argc, char* argv[]) {
         util::CheckStatus("flush collection", status);
 
         // describe an index
-        milvus::DescribeIndexResponse desc_response;
-        status = client->DescribeIndex(milvus::DescribeIndexRequest()
-                                           .WithCollectionName(collection_name)
-                                           .WithDatabaseName(db_name)
-                                           .WithFieldName(field_face),
-                                       desc_response);
-        util::CheckStatus("describe index on field: " + field_face, status);
-
-        for (const auto& desc : desc_response.Descs()) {
-            std::cout << "\tIndexName: " << desc.IndexName() << std::endl;
-            std::cout << "\tIndexType: " << std::to_string(desc.IndexType()) << std::endl;
-            std::cout << "\tMetricType: " << std::to_string(desc.MetricType()) << std::endl;
-            std::cout << "\tTotalRows: " << std::to_string(desc.TotalRows()) << std::endl;
-            std::cout << "\tIndexedRows: " << std::to_string(desc.IndexedRows()) << std::endl;
-            std::cout << "\tPendingRows: " << std::to_string(desc.PendingRows()) << std::endl;
-        }
+        // the index_vector is created with index_name = "" and field_name = field_face.
+        // milvus server will assign index_name to be field_name if the index_name is empty.
+        // so we describe the index with its field_name as index_name.
+        DescribeIndex(client, field_face);
     }
 
     {
@@ -337,14 +384,53 @@ main(int argc, char* argv[]) {
         }
     }
 
+    // describe the collection, load state is LOADED
+    DescribeCollection(client);
+
     // release collection
     status = client->ReleaseCollection(milvus::ReleaseCollectionRequest().WithCollectionName(collection_name));
     util::CheckStatus("release collection: " + collection_name, status);
+
+    // describe the collection, load state is NOT_LOAD
+    DescribeCollection(client);
 
     // drop index
     status =
         client->DropIndex(milvus::DropIndexRequest().WithCollectionName(collection_name).WithFieldName(field_face));
     util::CheckStatus("drop index for field: " + field_face, status);
+
+    // create index again
+    {
+        milvus::IndexDesc index_vector(field_face, "vector_index_name", milvus::IndexType::HNSW,
+                                       milvus::MetricType::L2);
+        index_vector.AddExtraParam("M", "32");
+        index_vector.AddExtraParam("efConstruction", "100");
+
+        status = client->CreateIndex(milvus::CreateIndexRequest()
+                                         .WithCollectionName(collection_name)
+                                         .WithSync(true)
+                                         .AddIndex(std::move(index_vector)));
+        util::CheckStatus("rebuild index for field: " + field_face, status);
+
+        status = client->AlterIndexProperties(milvus::AlterIndexPropertiesRequest()
+                                                  .WithCollectionName(collection_name)
+                                                  .WithIndexName("vector_index_name")
+                                                  .AddProperty(milvus::MMAP_ENABLED, "true"));
+        util::CheckStatus("alter index properties for field: " + field_face, status);
+
+        // note that the new index is created with index_name = "vector_index_name",
+        // so we describe index with the specified index_name "vector_index_name"
+        DescribeIndex(client, "vector_index_name");
+
+        status = client->DropIndexProperties(milvus::DropIndexPropertiesRequest()
+                                                 .WithCollectionName(collection_name)
+                                                 .WithIndexName("vector_index_name")
+                                                 .AddPropertyKey(milvus::MMAP_ENABLED));
+        util::CheckStatus("drop index properties for field: " + field_face, status);
+
+        // the "mmap_enabled" property is deleted
+        DescribeIndex(client, "vector_index_name");
+    }
 
     // drop partition
     status = client->DropPartition(

@@ -44,7 +44,7 @@ getRowCount(milvus::MilvusClientV2Ptr& client) {
 void
 buildCollection(milvus::MilvusClientV2Ptr& client, milvus::MetricType index_metric) {
     // collection schema, drop and create collection
-    milvus::CollectionSchemaPtr collection_schema = std::make_shared<milvus::CollectionSchema>(collection_name);
+    milvus::CollectionSchemaPtr collection_schema = std::make_shared<milvus::CollectionSchema>();
     collection_schema->SetEnableDynamicField(true);
     collection_schema->AddField({field_id, milvus::DataType::INT64, "user id", true, false});
     collection_schema->AddField(milvus::FieldSchema(field_name, milvus::DataType::VARCHAR).WithMaxLength(100));
@@ -54,7 +54,8 @@ buildCollection(milvus::MilvusClientV2Ptr& client, milvus::MetricType index_metr
 
     auto status = client->DropCollection(milvus::DropCollectionRequest().WithCollectionName(collection_name));
     util::CheckStatus(std::string("drop collection: ") + collection_name, status);
-    status = client->CreateCollection(milvus::CreateCollectionRequest().WithCollectionSchema(collection_schema));
+    status = client->CreateCollection(
+        milvus::CreateCollectionRequest().WithCollectionName(collection_name).WithCollectionSchema(collection_schema));
     util::CheckStatus(std::string("create collection: ") + collection_name, status);
 
     // create index

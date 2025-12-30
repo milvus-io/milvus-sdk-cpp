@@ -17,6 +17,7 @@
 #include "TypeUtils.h"
 
 #include "./Constants.h"
+#include "milvus/types/CompactionState.h"
 #include "milvus/types/Constants.h"
 
 namespace milvus {
@@ -916,6 +917,82 @@ to_string(milvus::DataType data_type) {
         return "Unknow DataType";
     }
     return it->second;
+}
+
+std::string
+to_string(milvus::FunctionType function_type) {
+    switch (function_type) {
+        case milvus::FunctionType::BM25:
+            return "BM25";
+        case milvus::FunctionType::TEXTEMBEDDING:
+            return "TEXTEMBEDDING";
+        case milvus::FunctionType::RERANK:
+            return "RERANK";
+        default:
+            return "UNKNOWN";
+    }
+}
+
+std::string
+to_string(milvus::IndexStateCode index_state) {
+    switch (index_state) {
+        case milvus::IndexStateCode::UNISSUED:
+            return "UNISSUED";
+        case milvus::IndexStateCode::IN_PROGRESS:
+            return "IN_PROGRESS";
+        case milvus::IndexStateCode::FINISHED:
+            return "FINISHED";
+        case milvus::IndexStateCode::FAILED:
+            return "FAILED";
+        case milvus::IndexStateCode::RETRY:
+            return "RETRY";
+        default:
+            return "UNKNOWN";
+    }
+}
+
+std::string
+to_string(milvus::LoadState load_state) {
+    switch (load_state) {
+        case milvus::LoadState::LOAD_STATE_NOT_EXIST:
+            return "NOT_EXIST";
+        case milvus::LoadState::LOAD_STATE_NOT_LOAD:
+            return "NOT_LOAD";
+        case milvus::LoadState::LOAD_STATE_LOADING:
+            return "LOADING";
+        case milvus::LoadState::LOAD_STATE_LOADED:
+            return "LOADED";
+        default:
+            return "UNKNOWN";
+    }
+}
+
+std::string
+to_string(milvus::ConsistencyLevel level) {
+    switch (level) {
+        case milvus::ConsistencyLevel::STRONG:
+            return "STRONG";
+        case milvus::ConsistencyLevel::SESSION:
+            return "SESSION";
+        case milvus::ConsistencyLevel::BOUNDED:
+            return "BOUNDED";
+        case milvus::ConsistencyLevel::EVENTUALLY:
+            return "EVENTUALLY";
+        default:
+            return "UNKNOWN";
+    }
+}
+
+std::string
+to_string(milvus::CompactionStateCode state) {
+    switch (state) {
+        case milvus::CompactionStateCode::EXECUTING:
+            return "EXECUTING";
+        case milvus::CompactionStateCode::COMPLETED:
+            return "COMPLETED";
+        default:
+            return "UNKNOWN";
+    }
 }
 
 }  // namespace std
