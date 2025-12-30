@@ -16,6 +16,8 @@
 
 #pragma once
 
+#include <string>
+
 namespace milvus {
 
 /**
@@ -29,3 +31,7 @@ enum class LoadState {
 };
 
 }  // namespace milvus
+
+namespace std {
+std::string to_string(milvus::LoadState);
+}  // namespace std

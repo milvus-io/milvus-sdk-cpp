@@ -36,6 +36,44 @@ CreateCollectionRequest::WithDatabaseName(const std::string& db_name) {
     return *this;
 }
 
+const std::string&
+CreateCollectionRequest::CollectionName() const {
+    return collection_name_;
+}
+
+void
+CreateCollectionRequest::SetCollectionName(const std::string& collection_name) {
+    collection_name_ = collection_name;
+    if (schema_ != nullptr) {
+        schema_->SetName(collection_name);
+    }
+}
+
+CreateCollectionRequest&
+CreateCollectionRequest::WithCollectionName(const std::string& collection_name) {
+    SetCollectionName(collection_name);
+    return *this;
+}
+
+const std::string&
+CreateCollectionRequest::Description() const {
+    return description_;
+}
+
+void
+CreateCollectionRequest::SetDescription(const std::string& description) {
+    description_ = description;
+    if (schema_ != nullptr) {
+        schema_->SetDescription(description);
+    }
+}
+
+CreateCollectionRequest&
+CreateCollectionRequest::WithDescription(const std::string& description) {
+    SetDescription(description);
+    return *this;
+}
+
 const CollectionSchemaPtr&
 CreateCollectionRequest::CollectionSchema() const {
     return schema_;
@@ -44,6 +82,25 @@ CreateCollectionRequest::CollectionSchema() const {
 void
 CreateCollectionRequest::SetCollectionSchema(const CollectionSchemaPtr& schema) {
     schema_ = schema;
+    // override schema's name/description/shardsnum if they have been specified
+    // ensure name/description/shardsnum are equal
+    if (schema_ != nullptr) {
+        if (!collection_name_.empty()) {
+            schema_->SetName(collection_name_);
+        } else {
+            collection_name_ = schema_->Name();
+        }
+        if (!description_.empty()) {
+            schema_->SetDescription(description_);
+        } else {
+            description_ = schema_->Description();
+        }
+        if (num_shards_ > 1) {
+            schema_->SetShardsNum(num_shards_);
+        } else {
+            num_shards_ = schema_->ShardsNum();
+        }
+    }
 }
 
 CreateCollectionRequest&
@@ -65,6 +122,25 @@ CreateCollectionRequest::SetNumPartitions(int64_t num_partitions) {
 CreateCollectionRequest&
 CreateCollectionRequest::WithNumPartitions(int64_t num_partitions) {
     SetNumPartitions(num_partitions);
+    return *this;
+}
+
+int64_t
+CreateCollectionRequest::NumShards() const {
+    return num_shards_;
+}
+
+void
+CreateCollectionRequest::SetNumShards(int64_t num_shards) {
+    num_shards_ = num_shards;
+    if (schema_ != nullptr) {
+        schema_->SetShardsNum(static_cast<int32_t>(num_shards));
+    }
+}
+
+CreateCollectionRequest&
+CreateCollectionRequest::WithNumShards(int64_t num_shards) {
+    SetNumShards(num_shards);
     return *this;
 }
 

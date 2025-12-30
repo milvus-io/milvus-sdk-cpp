@@ -46,6 +46,22 @@ DescribeIndexRequest::WithFieldName(const std::string& field_name) {
     return *this;
 }
 
+const std::string&
+DescribeIndexRequest::IndexName() const {
+    return index_name_;
+}
+
+void
+DescribeIndexRequest::SetIndexName(const std::string& index_name) {
+    index_name_ = index_name;
+}
+
+DescribeIndexRequest&
+DescribeIndexRequest::WithIndexName(const std::string& index_name) {
+    index_name_ = index_name;
+    return *this;
+}
+
 int64_t
 DescribeIndexRequest::Timestamp() const {
     return timestamp_;

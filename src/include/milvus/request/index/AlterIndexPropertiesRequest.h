@@ -45,22 +45,24 @@ class AlterIndexPropertiesRequest : public IndexRequestBase {
     WithCollectionName(const std::string& collection_name);
 
     /**
-     * @brief Name of the field, or name of the index.
+     * @brief Name of the index.
      */
     const std::string&
-    FieldName() const;
+    IndexName() const;
 
     /**
-     * @brief Set name of the field, or name of the index.
+     * @brief Set name of the index.
+     * Currently this api only supports index_name.
      */
     void
-    SetFieldName(const std::string& field_name);
+    SetIndexName(const std::string& index_name);
 
     /**
-     * @brief Set name of the field, or name of the index.
+     * @brief Set name of the index.
+     * Currently this api only supports index_name.
      */
     AlterIndexPropertiesRequest&
-    WithFieldName(const std::string& field_name);
+    WithIndexName(const std::string& index_name);
 
     /**
      * @brief Get altered properties.
@@ -87,7 +89,7 @@ class AlterIndexPropertiesRequest : public IndexRequestBase {
     AddProperty(const std::string& key, const std::string& property);
 
  private:
-    std::string field_name_;
+    std::string index_name_;
     std::unordered_map<std::string, std::string> properties_;
 };
 

@@ -46,4 +46,20 @@ DropIndexRequest::WithFieldName(const std::string& field_name) {
     return *this;
 }
 
+const std::string&
+DropIndexRequest::IndexName() const {
+    return index_name_;
+}
+
+void
+DropIndexRequest::SetIndexName(const std::string& index_name) {
+    index_name_ = index_name;
+}
+
+DropIndexRequest&
+DropIndexRequest::WithIndexName(const std::string& index_name) {
+    index_name_ = index_name;
+    return *this;
+}
+
 }  // namespace milvus

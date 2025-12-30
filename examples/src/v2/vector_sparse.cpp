@@ -43,7 +43,8 @@ main(int argc, char* argv[]) {
     collection_schema->AddField(milvus::FieldSchema(field_text, milvus::DataType::VARCHAR).WithMaxLength(1024));
 
     status = client->DropCollection(milvus::DropCollectionRequest().WithCollectionName(collection_name));
-    status = client->CreateCollection(milvus::CreateCollectionRequest().WithCollectionSchema(collection_schema));
+    status = client->CreateCollection(
+        milvus::CreateCollectionRequest().WithCollectionName(collection_name).WithCollectionSchema(collection_schema));
     util::CheckStatus("create collection: " + collection_name, status);
 
     // create index

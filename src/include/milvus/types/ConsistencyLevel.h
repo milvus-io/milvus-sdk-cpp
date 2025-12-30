@@ -16,6 +16,8 @@
 
 #pragma once
 
+#include <string>
+
 namespace milvus {
 
 /**
@@ -32,3 +34,7 @@ enum class ConsistencyLevel {
 };
 
 }  // namespace milvus
+
+namespace std {
+std::string to_string(milvus::ConsistencyLevel);
+}  // namespace std

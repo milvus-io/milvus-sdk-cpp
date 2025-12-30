@@ -61,6 +61,26 @@ class DescribeIndexRequest : public IndexRequestBase {
     WithFieldName(const std::string& field_name);
 
     /**
+     * @brief Name of the index.
+     */
+    const std::string&
+    IndexName() const;
+
+    /**
+     * @brief Set name of the index.
+     * Note: if both field_name and index_name are specified, it will use index name firstly.
+     */
+    void
+    SetIndexName(const std::string& index_name);
+
+    /**
+     * @brief Set name of the index.
+     * Note: if both field_name and index_name are specified, it will use index name firstly.
+     */
+    DescribeIndexRequest&
+    WithIndexName(const std::string& index_name);
+
+    /**
      * @brief Timestamp to skip segments.
      */
     int64_t
@@ -82,6 +102,7 @@ class DescribeIndexRequest : public IndexRequestBase {
 
  private:
     std::string field_name_;
+    std::string index_name_;
     int64_t timestamp_{0};
 };
 

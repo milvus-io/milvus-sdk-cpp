@@ -38,7 +38,7 @@ main(int argc, char* argv[]) {
     const uint32_t dimension = 128;
 
     // collection schema, drop and create collection
-    milvus::CollectionSchemaPtr collection_schema = std::make_shared<milvus::CollectionSchema>(collection_name);
+    milvus::CollectionSchemaPtr collection_schema = std::make_shared<milvus::CollectionSchema>();
     collection_schema->AddField({field_id, milvus::DataType::INT64, "", true, true});
     milvus::FieldSchema name_schema{field_name, milvus::DataType::VARCHAR, "partition key"};
     name_schema.SetMaxLength(100);
@@ -48,8 +48,10 @@ main(int argc, char* argv[]) {
         milvus::FieldSchema(field_vector, milvus::DataType::FLOAT_VECTOR, "embedding").WithDimension(dimension));
 
     status = client->DropCollection(milvus::DropCollectionRequest().WithCollectionName(collection_name));
-    status = client->CreateCollection(
-        milvus::CreateCollectionRequest().WithCollectionSchema(collection_schema).WithNumPartitions(8));
+    status = client->CreateCollection(milvus::CreateCollectionRequest()
+                                          .WithCollectionName(collection_name)
+                                          .WithCollectionSchema(collection_schema)
+                                          .WithNumPartitions(8));
     util::CheckStatus("create collection: " + collection_name, status);
 
     // create index (required after 2.2.0)
