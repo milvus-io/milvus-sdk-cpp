@@ -208,7 +208,7 @@ const std::unordered_map&lt; std::string, std::string &gt; &amp;&#160;</td><td c
 </div><div class="memdoc">
 
 <p>Get filter expression. Can be empty if <a class="el" href="classmilvus_1_1_query_arguments.html#ae3bfbe404442bb731f87bc9b4d465f9a" title="Get limit value.">Limit()</a> is zero, else must be non-empty. </p>
-<dl class="deprecated"><dt><b><a class="el" href="deprecated.html#_deprecated000012">Deprecated:</a></b></dt><dd>replaced by <a class="el" href="classmilvus_1_1_query_arguments.html#a7ba8cc33b4b2b4311820eee344c5d880" title="Get filter expression.">Filter()</a> </dd></dl>
+<dl class="deprecated"><dt><b><a class="el" href="deprecated.html#_deprecated000018">Deprecated:</a></b></dt><dd>replaced by <a class="el" href="classmilvus_1_1_query_arguments.html#a7ba8cc33b4b2b4311820eee344c5d880" title="Get filter expression.">Filter()</a> </dd></dl>
 
 </div>
 </div>
@@ -228,7 +228,7 @@ const std::unordered_map&lt; std::string, std::string &gt; &amp;&#160;</td><td c
 </div><div class="memdoc">
 
 <p>Get guarantee timestamp. </p>
-<dl class="deprecated"><dt><b><a class="el" href="deprecated.html#_deprecated000016">Deprecated:</a></b></dt><dd>Deprecated in 2.4, replaced by ConsistencyLevel, this value is not used anymore. </dd></dl>
+<dl class="deprecated"><dt><b><a class="el" href="deprecated.html#_deprecated000022">Deprecated:</a></b></dt><dd>Deprecated in 2.4, replaced by ConsistencyLevel, this value is not used anymore. </dd></dl>
 
 </div>
 </div>
@@ -249,7 +249,7 @@ const std::unordered_map&lt; std::string, std::string &gt; &amp;&#160;</td><td c
 </div><div class="memdoc">
 
 <p>Set filter expression. Can be empty if <a class="el" href="classmilvus_1_1_query_arguments.html#ae3bfbe404442bb731f87bc9b4d465f9a" title="Get limit value.">Limit()</a> is zero, else must be non-empty. </p>
-<dl class="deprecated"><dt><b><a class="el" href="deprecated.html#_deprecated000013">Deprecated:</a></b></dt><dd>replaced by <a class="el" href="classmilvus_1_1_query_arguments.html#a4c1df480d0da5d76954feaa43b33bee9" title="Set filter expression.">SetFilter()</a> </dd></dl>
+<dl class="deprecated"><dt><b><a class="el" href="deprecated.html#_deprecated000019">Deprecated:</a></b></dt><dd>replaced by <a class="el" href="classmilvus_1_1_query_arguments.html#a4c1df480d0da5d76954feaa43b33bee9" title="Set filter expression.">SetFilter()</a> </dd></dl>
 
 </div>
 </div>
@@ -271,7 +271,7 @@ const std::unordered_map&lt; std::string, std::string &gt; &amp;&#160;</td><td c
 
 <p>Instructs server to see insert/delete operations performed before a provided timestamp. If no such timestamp is specified, the server will wait for the latest operation to finish and query. </p>
 <p>Note: The timestamp is not an absolute timestamp, it is a hybrid value combined by UTC time and internal flags. We call it TSO, for more information please refer to: <a href="https://github.com/milvus-io/milvus/blob/master/docs/design_docs/milvus_hybrid_ts_en.md">https://github.com/milvus-io/milvus/blob/master/docs/design_docs/milvus_hybrid_ts_en.md</a>. You can get a TSO from insert/delete results. Use an operation's TSO to set this parameter, the server will execute query after this operation is finished.</p>
-<p>Default value is 1, server executes search immediately. </p><dl class="deprecated"><dt><b><a class="el" href="deprecated.html#_deprecated000017">Deprecated:</a></b></dt><dd>Deprecated in 2.4, replaced by ConsistencyLevel </dd></dl>
+<p>Default value is 1, server executes search immediately. </p><dl class="deprecated"><dt><b><a class="el" href="deprecated.html#_deprecated000023">Deprecated:</a></b></dt><dd>Deprecated in 2.4, replaced by ConsistencyLevel </dd></dl>
 
 </div>
 </div>
@@ -292,7 +292,7 @@ const std::unordered_map&lt; std::string, std::string &gt; &amp;&#160;</td><td c
 </div><div class="memdoc">
 
 <p>Specify an absolute timestamp in a query to get results based on a data view at a specified point in time. Default value is 0, server executes query on a full data view. </p>
-<dl class="deprecated"><dt><b><a class="el" href="deprecated.html#_deprecated000015">Deprecated:</a></b></dt><dd>Deprecated in 2.4, replaced by ConsistencyLevel. </dd></dl>
+<dl class="deprecated"><dt><b><a class="el" href="deprecated.html#_deprecated000021">Deprecated:</a></b></dt><dd>Deprecated in 2.4, replaced by ConsistencyLevel. </dd></dl>
 
 </div>
 </div>
@@ -312,7 +312,7 @@ const std::unordered_map&lt; std::string, std::string &gt; &amp;&#160;</td><td c
 </div><div class="memdoc">
 
 <p>Get travel timestamp. </p>
-<dl class="deprecated"><dt><b><a class="el" href="deprecated.html#_deprecated000014">Deprecated:</a></b></dt><dd>Deprecated in 2.4, replaced by ConsistencyLevel. </dd></dl>
+<dl class="deprecated"><dt><b><a class="el" href="deprecated.html#_deprecated000020">Deprecated:</a></b></dt><dd>Deprecated in 2.4, replaced by ConsistencyLevel. </dd></dl>
 
 </div>
 </div>
