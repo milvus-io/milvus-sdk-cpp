@@ -39,7 +39,7 @@ main(int argc, char* argv[]) {
     const uint32_t dimension = 128;
 
     // collection schema, drop and create collection
-    milvus::CollectionSchemaPtr collection_schema = std::make_shared<milvus::CollectionSchema>(collection_name);
+    milvus::CollectionSchemaPtr collection_schema = std::make_shared<milvus::CollectionSchema>();
     collection_schema->SetEnableDynamicField(true);
     collection_schema->AddField({field_id, milvus::DataType::INT64, "user id", true, false});
     collection_schema->AddField(milvus::FieldSchema(field_name, milvus::DataType::VARCHAR).WithMaxLength(100));
@@ -48,7 +48,8 @@ main(int argc, char* argv[]) {
         milvus::FieldSchema(field_face, milvus::DataType::FLOAT_VECTOR).WithDimension(dimension));
 
     status = client->DropCollection(milvus::DropCollectionRequest().WithCollectionName(collection_name));
-    status = client->CreateCollection(milvus::CreateCollectionRequest().WithCollectionSchema(collection_schema));
+    status = client->CreateCollection(
+        milvus::CreateCollectionRequest().WithCollectionName(collection_name).WithCollectionSchema(collection_schema));
     util::CheckStatus("create collection: " + collection_name, status);
 
     // create index

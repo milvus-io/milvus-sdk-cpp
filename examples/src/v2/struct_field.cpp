@@ -52,7 +52,7 @@ main(int argc, char* argv[]) {
     const int64_t struct_capacity = 10;
 
     // collection schema, drop and create collection
-    milvus::CollectionSchemaPtr collection_schema = std::make_shared<milvus::CollectionSchema>(collection_name);
+    milvus::CollectionSchemaPtr collection_schema = std::make_shared<milvus::CollectionSchema>();
     collection_schema->AddField(milvus::FieldSchema(field_id, milvus::DataType::INT64, "id", true, false));
     collection_schema->AddField(
         milvus::FieldSchema(field_vector, milvus::DataType::FLOAT_VECTOR, "face signature").WithDimension(dimension));
@@ -68,7 +68,8 @@ main(int argc, char* argv[]) {
     collection_schema->AddStructField(std::move(struct_schema));
 
     status = client->DropCollection(milvus::DropCollectionRequest().WithCollectionName(collection_name));
-    status = client->CreateCollection(milvus::CreateCollectionRequest().WithCollectionSchema(collection_schema));
+    status = client->CreateCollection(
+        milvus::CreateCollectionRequest().WithCollectionName(collection_name).WithCollectionSchema(collection_schema));
     util::CheckStatus("create collection: " + collection_name, status);
 
     // create index

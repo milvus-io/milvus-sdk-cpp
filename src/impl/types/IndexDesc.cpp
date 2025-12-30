@@ -99,7 +99,10 @@ IndexDesc::ExtraParams() const {
 Status
 IndexDesc::ExtraParamsFromJson(std::string json) {
     try {
-        extra_params_ = ::nlohmann::json::parse(std::move(json));
+        std::unordered_map<std::string, std::string> temp = ::nlohmann::json::parse(std::move(json));
+        for (const auto& pair : temp) {
+            extra_params_.insert(pair);
+        }
     } catch (const ::nlohmann::json::exception& e) {
         return {StatusCode::JSON_PARSE_ERROR, e.what()};
     }

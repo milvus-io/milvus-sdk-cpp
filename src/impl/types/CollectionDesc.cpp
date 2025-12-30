@@ -28,6 +28,21 @@ CollectionDesc::SetDatabaseName(std::string name) {
     db_name_ = name;
 }
 
+const std::string&
+CollectionDesc::CollectionName() const {
+    return schema_.Name();
+}
+
+const std::string&
+CollectionDesc::Description() const {
+    return schema_.Description();
+}
+
+int64_t
+CollectionDesc::NumShards() const {
+    return schema_.ShardsNum();
+}
+
 const CollectionSchema&
 CollectionDesc::Schema() const {
     return schema_;

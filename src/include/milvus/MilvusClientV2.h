@@ -26,6 +26,7 @@
 #include "request/collection/AlterCollectionFieldPropertiesRequest.h"
 #include "request/collection/AlterCollectionPropertiesRequest.h"
 #include "request/collection/CreateCollectionRequest.h"
+#include "request/collection/CreateSimpleCollectionRequest.h"
 #include "request/collection/DescribeCollectionRequest.h"
 #include "request/collection/DropCollectionFieldPropertiesRequest.h"
 #include "request/collection/DropCollectionPropertiesRequest.h"
@@ -214,6 +215,15 @@ class MilvusClientV2 {
      */
     virtual Status
     CreateCollection(const CreateCollectionRequest& request) = 0;
+
+    /**
+     * @brief Create a simple collection with a primary field and a vector field.
+     *
+     * @param [in] request input parameters
+     * @return Status operation successfully or not
+     */
+    virtual Status
+    CreateCollection(const CreateSimpleCollectionRequest& request) = 0;
 
     /**
      * @brief Check existence of a collection.
