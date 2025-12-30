@@ -96,16 +96,28 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a8eb95316032bb185606842929fd844b5"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:abbd5c5938c2480f9a2204cba1b8719d2"><td class="memItemLeft" align="right" valign="top"><a id="abbd5c5938c2480f9a2204cba1b8719d2"></a>
 const std::string &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classmilvus_1_1_drop_index_request.html#abbd5c5938c2480f9a2204cba1b8719d2">FieldName</a> () const</td></tr>
-<tr class="memdesc:abbd5c5938c2480f9a2204cba1b8719d2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Name of the field, or name of the index. <br /></td></tr>
+<tr class="memdesc:abbd5c5938c2480f9a2204cba1b8719d2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Name of the field. <br /></td></tr>
 <tr class="separator:abbd5c5938c2480f9a2204cba1b8719d2"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a6feb786a77c95b086734a15af2ae8e31"><td class="memItemLeft" align="right" valign="top"><a id="a6feb786a77c95b086734a15af2ae8e31"></a>
 void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classmilvus_1_1_drop_index_request.html#a6feb786a77c95b086734a15af2ae8e31">SetFieldName</a> (const std::string &amp;field_name)</td></tr>
-<tr class="memdesc:a6feb786a77c95b086734a15af2ae8e31"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set name of the field, or name of the index. <br /></td></tr>
+<tr class="memdesc:a6feb786a77c95b086734a15af2ae8e31"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set name of the field. Note: if both field_name and index_name are specified, it will use index name firstly. <br /></td></tr>
 <tr class="separator:a6feb786a77c95b086734a15af2ae8e31"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a1bd22d1491e72a06855324e56f1ece91"><td class="memItemLeft" align="right" valign="top"><a id="a1bd22d1491e72a06855324e56f1ece91"></a>
 <a class="el" href="classmilvus_1_1_drop_index_request.html">DropIndexRequest</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classmilvus_1_1_drop_index_request.html#a1bd22d1491e72a06855324e56f1ece91">WithFieldName</a> (const std::string &amp;field_name)</td></tr>
-<tr class="memdesc:a1bd22d1491e72a06855324e56f1ece91"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set name of the field, or name of the index. <br /></td></tr>
+<tr class="memdesc:a1bd22d1491e72a06855324e56f1ece91"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set name of the field. Note: if both field_name and index_name are specified, it will use index name firstly. <br /></td></tr>
 <tr class="separator:a1bd22d1491e72a06855324e56f1ece91"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aab31f3b7838bfcae3e9beecca6009ff8"><td class="memItemLeft" align="right" valign="top"><a id="aab31f3b7838bfcae3e9beecca6009ff8"></a>
+const std::string &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classmilvus_1_1_drop_index_request.html#aab31f3b7838bfcae3e9beecca6009ff8">IndexName</a> () const</td></tr>
+<tr class="memdesc:aab31f3b7838bfcae3e9beecca6009ff8"><td class="mdescLeft">&#160;</td><td class="mdescRight">Name of the index. <br /></td></tr>
+<tr class="separator:aab31f3b7838bfcae3e9beecca6009ff8"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6d6d491985f4fe82378bbf5d01f82014"><td class="memItemLeft" align="right" valign="top"><a id="a6d6d491985f4fe82378bbf5d01f82014"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classmilvus_1_1_drop_index_request.html#a6d6d491985f4fe82378bbf5d01f82014">SetIndexName</a> (const std::string &amp;index_name)</td></tr>
+<tr class="memdesc:a6d6d491985f4fe82378bbf5d01f82014"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set name of the index. Note: if both field_name and index_name are specified, it will use index name firstly. <br /></td></tr>
+<tr class="separator:a6d6d491985f4fe82378bbf5d01f82014"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:acb99c18c88b547786398c803c8350e61"><td class="memItemLeft" align="right" valign="top"><a id="acb99c18c88b547786398c803c8350e61"></a>
+<a class="el" href="classmilvus_1_1_drop_index_request.html">DropIndexRequest</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classmilvus_1_1_drop_index_request.html#acb99c18c88b547786398c803c8350e61">WithIndexName</a> (const std::string &amp;index_name)</td></tr>
+<tr class="memdesc:acb99c18c88b547786398c803c8350e61"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set name of the index. Note: if both field_name and index_name are specified, it will use index name firstly. <br /></td></tr>
+<tr class="separator:acb99c18c88b547786398c803c8350e61"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="inherit_header pub_methods_classmilvus_1_1_index_request_base"><td colspan="2" onclick="javascript:toggleInherit('pub_methods_classmilvus_1_1_index_request_base')"><img src="closed.png" alt="-"/>&#160;Public Member Functions inherited from <a class="el" href="classmilvus_1_1_index_request_base.html">milvus::IndexRequestBase</a></td></tr>
 <tr class="memitem:a2ab968e3b512a17f339aadd339c8e224 inherit pub_methods_classmilvus_1_1_index_request_base"><td class="memItemLeft" align="right" valign="top"><a id="a2ab968e3b512a17f339aadd339c8e224"></a>
 const std::string &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classmilvus_1_1_index_request_base.html#a2ab968e3b512a17f339aadd339c8e224">DatabaseName</a> () const</td></tr>

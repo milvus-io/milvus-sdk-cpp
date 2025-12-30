@@ -3,6 +3,24 @@
 \item[Member \mbox{\hyperlink{classmilvus_1_1_collection_info_a8f27c2eafdc9f930d4a0d2eb381fb3ef}{milvus\+::Collection\+Info\+::Memory\+Percentage}} () const]\label{deprecated__deprecated000008}%
 \Hypertarget{deprecated__deprecated000008}%
 This method always returns 0, use Get\+Load\+State to get the progress instead.  
+\item[Member \mbox{\hyperlink{classmilvus_1_1_collection_schema_a0d5c933e01fe3aa976a786871249b7c5}{milvus\+::Collection\+Schema\+::Description}} () const]\label{deprecated__deprecated000011}%
+\Hypertarget{deprecated__deprecated000011}%
+in \mbox{\hyperlink{classmilvus_1_1_milvus_client_v2}{Milvus\+Client\+V2}}, description is passed by \mbox{\hyperlink{classmilvus_1_1_create_collection_request}{Create\+Collection\+Request}}.  
+\item[Member \mbox{\hyperlink{classmilvus_1_1_collection_schema_aa4aeb2f4ddf4ab7800626968c7f8ffa9}{milvus\+::Collection\+Schema\+::Name}} () const]\label{deprecated__deprecated000009}%
+\Hypertarget{deprecated__deprecated000009}%
+in \mbox{\hyperlink{classmilvus_1_1_milvus_client_v2}{Milvus\+Client\+V2}}, collection name is passed by \mbox{\hyperlink{classmilvus_1_1_create_collection_request}{Create\+Collection\+Request}}.  
+\item[Member \mbox{\hyperlink{classmilvus_1_1_collection_schema_ac3b8f3e0d632ce307a75eeff6c07c2cc}{milvus\+::Collection\+Schema\+::Set\+Description}} (std\+::string description)]\label{deprecated__deprecated000012}%
+\Hypertarget{deprecated__deprecated000012}%
+in \mbox{\hyperlink{classmilvus_1_1_milvus_client_v2}{Milvus\+Client\+V2}}, description is passed by \mbox{\hyperlink{classmilvus_1_1_create_collection_request}{Create\+Collection\+Request}}.  
+\item[Member \mbox{\hyperlink{classmilvus_1_1_collection_schema_a65b3283b703b976d2abedcf8aa2bc9ee}{milvus\+::Collection\+Schema\+::Set\+Name}} (std\+::string name)]\label{deprecated__deprecated000010}%
+\Hypertarget{deprecated__deprecated000010}%
+in \mbox{\hyperlink{classmilvus_1_1_milvus_client_v2}{Milvus\+Client\+V2}}, collection name is passed by \mbox{\hyperlink{classmilvus_1_1_create_collection_request}{Create\+Collection\+Request}}.  
+\item[Member \mbox{\hyperlink{classmilvus_1_1_collection_schema_af14377075e0cf7f247c304db391395cb}{milvus\+::Collection\+Schema\+::Set\+Shards\+Num}} (int32\+\_\+t num)]\label{deprecated__deprecated000014}%
+\Hypertarget{deprecated__deprecated000014}%
+in \mbox{\hyperlink{classmilvus_1_1_milvus_client_v2}{Milvus\+Client\+V2}}, shards\+Num is passed by \mbox{\hyperlink{classmilvus_1_1_create_collection_request}{Create\+Collection\+Request}}.  
+\item[Member \mbox{\hyperlink{classmilvus_1_1_collection_schema_a1b9ea81c13f83282a135dda3a8461eb4}{milvus\+::Collection\+Schema\+::Shards\+Num}} () const]\label{deprecated__deprecated000013}%
+\Hypertarget{deprecated__deprecated000013}%
+in \mbox{\hyperlink{classmilvus_1_1_milvus_client_v2}{Milvus\+Client\+V2}}, shards\+Num is passed by \mbox{\hyperlink{classmilvus_1_1_create_collection_request}{Create\+Collection\+Request}}.  
 \item[Member \mbox{\hyperlink{classmilvus_1_1_milvus_client_a54fcf962deef1aa39d4bbb3eeacec7a1}{milvus\+::Milvus\+Client\+::Create\+Credential}} (const std\+::string \&username, const std\+::string \&password)=0]\label{deprecated__deprecated000004}%
 \Hypertarget{deprecated__deprecated000004}%
 replaced by \mbox{\hyperlink{classmilvus_1_1_milvus_client_af34599912d16e25d32d549d364fa0d1f}{Create\+User()}} in v2.\+4 
@@ -24,112 +42,112 @@ In v2.\+4, the parameter partition\+\_\+names is no longer work, use the \mbox{\
 \item[Member \mbox{\hyperlink{classmilvus_1_1_milvus_client_ac53676eb10e84a04d3e0f9f2d69bf3f5}{milvus\+::Milvus\+Client\+::Update\+Credential}} (const std\+::string \&username, const std\+::string \&old\+\_\+password, const std\+::string \&new\+\_\+password)=0]\label{deprecated__deprecated000005}%
 \Hypertarget{deprecated__deprecated000005}%
 replaced by \mbox{\hyperlink{classmilvus_1_1_milvus_client_a2652488359729a6ba8cc17d3a8b98b31}{Update\+Password()}} in v2.\+4 
-\item[Member \mbox{\hyperlink{classmilvus_1_1_partition_info_aa760577d344207a0a170ab30e92f244d}{milvus\+::Partition\+Info\+::In\+Memory\+Percentage}} () const]\label{deprecated__deprecated000009}%
-\Hypertarget{deprecated__deprecated000009}%
-This method always returns 0, use Get\+Load\+State to get the load state instead.  
-\item[Member \mbox{\hyperlink{classmilvus_1_1_partition_info_ae104eecfb6d501a19e77ff1ee3e28e5d}{milvus\+::Partition\+Info\+::Loaded}} () const]\label{deprecated__deprecated000010}%
-\Hypertarget{deprecated__deprecated000010}%
-This method always returns false, use Get\+Load\+State to get the load state instead.  
-\item[Class \mbox{\hyperlink{structmilvus_1_1_progress}{milvus\+::Progress}} ]\label{deprecated__deprecated000011}%
-\Hypertarget{deprecated__deprecated000011}%
-no longer used in \mbox{\hyperlink{classmilvus_1_1_milvus_client_v2}{Milvus\+Client\+V2}}  
-\item[Member \mbox{\hyperlink{classmilvus_1_1_query_arguments_a8206f1a9e636a9f4e518424d9dfe48c2}{milvus\+::Query\+Arguments\+::Expression}} () const]\label{deprecated__deprecated000012}%
-\Hypertarget{deprecated__deprecated000012}%
-replaced by \mbox{\hyperlink{classmilvus_1_1_query_arguments_a7ba8cc33b4b2b4311820eee344c5d880}{Filter()}}  
-\item[Member \mbox{\hyperlink{classmilvus_1_1_query_arguments_a12d32edef32435204f9be016296f4246}{milvus\+::Query\+Arguments\+::Guarantee\+Timestamp}} () const]\label{deprecated__deprecated000016}%
-\Hypertarget{deprecated__deprecated000016}%
-Deprecated in 2.\+4, replaced by Consistency\+Level, this value is not used anymore.  
-\item[Member \mbox{\hyperlink{classmilvus_1_1_query_arguments_a09f543774bc107024420439e0715955b}{milvus\+::Query\+Arguments\+::Set\+Expression}} (std\+::string expression)]\label{deprecated__deprecated000013}%
-\Hypertarget{deprecated__deprecated000013}%
-replaced by \mbox{\hyperlink{classmilvus_1_1_query_arguments_a4c1df480d0da5d76954feaa43b33bee9}{Set\+Filter()}}  
-\item[Member \mbox{\hyperlink{classmilvus_1_1_query_arguments_a027873a6b8008516c638838698dbb81d}{milvus\+::Query\+Arguments\+::Set\+Guarantee\+Timestamp}} (uint64\+\_\+t timestamp)]\label{deprecated__deprecated000017}%
-\Hypertarget{deprecated__deprecated000017}%
-Deprecated in 2.\+4, replaced by Consistency\+Level  
-\item[Member \mbox{\hyperlink{classmilvus_1_1_query_arguments_a114498bb746857299e37e2e6e3867536}{milvus\+::Query\+Arguments\+::Set\+Travel\+Timestamp}} (uint64\+\_\+t timestamp)]\label{deprecated__deprecated000015}%
+\item[Member \mbox{\hyperlink{classmilvus_1_1_partition_info_aa760577d344207a0a170ab30e92f244d}{milvus\+::Partition\+Info\+::In\+Memory\+Percentage}} () const]\label{deprecated__deprecated000015}%
 \Hypertarget{deprecated__deprecated000015}%
-Deprecated in 2.\+4, replaced by Consistency\+Level.  
-\item[Member \mbox{\hyperlink{classmilvus_1_1_query_arguments_a775438bb6cbd1a1a397d15d319a33292}{milvus\+::Query\+Arguments\+::Travel\+Timestamp}} () const]\label{deprecated__deprecated000014}%
-\Hypertarget{deprecated__deprecated000014}%
-Deprecated in 2.\+4, replaced by Consistency\+Level.  
-\item[Member \mbox{\hyperlink{classmilvus_1_1_query_results_affd16dfdba2961667c8974eb18f30a01}{milvus\+::Query\+Results\+::Get\+Field\+By\+Name}} (const std\+::string \&name)]\label{deprecated__deprecated000018}%
+This method always returns 0, use Get\+Load\+State to get the load state instead.  
+\item[Member \mbox{\hyperlink{classmilvus_1_1_partition_info_ae104eecfb6d501a19e77ff1ee3e28e5d}{milvus\+::Partition\+Info\+::Loaded}} () const]\label{deprecated__deprecated000016}%
+\Hypertarget{deprecated__deprecated000016}%
+This method always returns false, use Get\+Load\+State to get the load state instead.  
+\item[Class \mbox{\hyperlink{structmilvus_1_1_progress}{milvus\+::Progress}} ]\label{deprecated__deprecated000017}%
+\Hypertarget{deprecated__deprecated000017}%
+no longer used in \mbox{\hyperlink{classmilvus_1_1_milvus_client_v2}{Milvus\+Client\+V2}}  
+\item[Member \mbox{\hyperlink{classmilvus_1_1_query_arguments_a8206f1a9e636a9f4e518424d9dfe48c2}{milvus\+::Query\+Arguments\+::Expression}} () const]\label{deprecated__deprecated000018}%
 \Hypertarget{deprecated__deprecated000018}%
-replaced by \mbox{\hyperlink{classmilvus_1_1_query_results_a954611f2594abf553f414fd015bb60b0}{Output\+Field()}}  
-\item[Member \mbox{\hyperlink{classmilvus_1_1_query_segment_info_a35c405ba48db8b6c05a10fabe3ad306d}{milvus\+::Query\+Segment\+Info\+::Node\+ID}} () const]\label{deprecated__deprecated000044}%
-\Hypertarget{deprecated__deprecated000044}%
-in v2.\+4, a segment can be loaded into multiple nodes, use the \mbox{\hyperlink{classmilvus_1_1_query_segment_info_a465a105d939979c1b58b9ccb96e4373a}{Node\+IDs()}} instead. This method will return the first node id in from id list.  
-\item[Member \mbox{\hyperlink{classmilvus_1_1_search_arguments_ae8963e64770d22e5cdab8ab8151042eb}{milvus\+::Search\+Arguments\+::Add\+Target\+Vector}} (std\+::string field\+\_\+name, \mbox{\hyperlink{classmilvus_1_1_field_data_a921c839e5d8df646cb7a20029ddb17f6}{Float\+Vec\+Field\+Data\+::\+ElementT}} \&\&vector)]\label{deprecated__deprecated000029}%
-\Hypertarget{deprecated__deprecated000029}%
-replaced by Add\+Float\+Vector  
-\item[Member \mbox{\hyperlink{classmilvus_1_1_search_arguments_ab2e7c6dec1b8b0fcbd5da9a70f17062d}{milvus\+::Search\+Arguments\+::Add\+Target\+Vector}} (std\+::string field\+\_\+name, const \mbox{\hyperlink{classmilvus_1_1_field_data_a921c839e5d8df646cb7a20029ddb17f6}{Float\+Vec\+Field\+Data\+::\+ElementT}} \&vector)]\label{deprecated__deprecated000028}%
-\Hypertarget{deprecated__deprecated000028}%
-replaced by Add\+Float\+Vector  
-\item[Member \mbox{\hyperlink{classmilvus_1_1_search_arguments_af1256857eb65c839900491473882b0d7}{milvus\+::Search\+Arguments\+::Add\+Target\+Vector}} (std\+::string field\+\_\+name, std\+::string \&\&vector)]\label{deprecated__deprecated000027}%
-\Hypertarget{deprecated__deprecated000027}%
-replaced by Add\+Binary\+Vector  
-\item[Member \mbox{\hyperlink{classmilvus_1_1_search_arguments_af05b551abe28ddccc7930d5c514c44e3}{milvus\+::Search\+Arguments\+::Add\+Target\+Vector}} (std\+::string field\+\_\+name, const std\+::string \&vector)]\label{deprecated__deprecated000025}%
-\Hypertarget{deprecated__deprecated000025}%
-replaced by Add\+Binary\+Vector  
-\item[Member \mbox{\hyperlink{classmilvus_1_1_search_arguments_a068382e14d8cf1a8c88c0fa7532a90cb}{milvus\+::Search\+Arguments\+::Add\+Target\+Vector}} (std\+::string field\+\_\+name, const std\+::vector$<$ uint8\+\_\+t $>$ \&vector)]\label{deprecated__deprecated000026}%
-\Hypertarget{deprecated__deprecated000026}%
-replaced by Add\+Binary\+Vector  
-\item[Member \mbox{\hyperlink{classmilvus_1_1_search_arguments_ac468362aa8a56e96e9b06c7a5793083a}{milvus\+::Search\+Arguments\+::Expression}} () const]\label{deprecated__deprecated000019}%
-\Hypertarget{deprecated__deprecated000019}%
-replaced by \mbox{\hyperlink{classmilvus_1_1_search_request_base_a4f17c369a7ed39b0afa12c568a5fcdc7}{Filter()}}  
-\item[Member \mbox{\hyperlink{classmilvus_1_1_search_arguments_ab07eb3b4968436f36f0b3ec620dcdc11}{milvus\+::Search\+Arguments\+::Guarantee\+Timestamp}} () const]\label{deprecated__deprecated000032}%
-\Hypertarget{deprecated__deprecated000032}%
-Deprecated in 2.\+4, replaced by Consistency\+Level, this value is not used anymore.  
-\item[Member \mbox{\hyperlink{classmilvus_1_1_search_arguments_abe65d4487c42bd1c9902db5616128ec6}{milvus\+::Search\+Arguments\+::Nprobe}} () const]\label{deprecated__deprecated000023}%
-\Hypertarget{deprecated__deprecated000023}%
-replaced by \mbox{\hyperlink{classmilvus_1_1_search_request_base_a005d263c1d59d32522de9893f174ffdd}{Extra\+Params()}}  
-\item[Member \mbox{\hyperlink{classmilvus_1_1_search_arguments_ae54f0e40595b49851e1ac8ffbc4535f9}{milvus\+::Search\+Arguments\+::Set\+Expression}} (std\+::string expression)]\label{deprecated__deprecated000020}%
-\Hypertarget{deprecated__deprecated000020}%
-replaced by \mbox{\hyperlink{classmilvus_1_1_search_request_base_a05edcea2cf12165a9325eb604fc4507c}{Set\+Filter()}}  
-\item[Member \mbox{\hyperlink{classmilvus_1_1_search_arguments_ac2e9e3e820db51c764c816b14b6e717f}{milvus\+::Search\+Arguments\+::Set\+Guarantee\+Timestamp}} (uint64\+\_\+t timestamp)]\label{deprecated__deprecated000033}%
-\Hypertarget{deprecated__deprecated000033}%
-Deprecated in 2.\+4, replaced by Consistency\+Level.  
-\item[Member \mbox{\hyperlink{classmilvus_1_1_search_arguments_acc00cd9e4c4b8f2e3f3ae319bc7d5dd9}{milvus\+::Search\+Arguments\+::Set\+Nprobe}} (int64\+\_\+t nlist)]\label{deprecated__deprecated000024}%
-\Hypertarget{deprecated__deprecated000024}%
-replaced by \mbox{\hyperlink{classmilvus_1_1_search_request_base_af8ddd47c1801eff46a34f3e649950ad8}{Add\+Extra\+Param()}}  
-\item[Member \mbox{\hyperlink{classmilvus_1_1_search_arguments_a3ad3e29cfd3726628cbd77203e7af277}{milvus\+::Search\+Arguments\+::Set\+TopK}} (int64\+\_\+t topk)]\label{deprecated__deprecated000021}%
-\Hypertarget{deprecated__deprecated000021}%
-replaced by \mbox{\hyperlink{classmilvus_1_1_search_request_base_abff44574886b5cdcd07a5c43ee670f0c}{Set\+Limit()}}  
-\item[Member \mbox{\hyperlink{classmilvus_1_1_search_arguments_a4fae6c38804ea381a7c5c9ec21313c2a}{milvus\+::Search\+Arguments\+::Set\+Travel\+Timestamp}} (uint64\+\_\+t timestamp)]\label{deprecated__deprecated000031}%
-\Hypertarget{deprecated__deprecated000031}%
-Deprecated in 2.\+4, replaced by Consistency\+Level  
-\item[Member \mbox{\hyperlink{classmilvus_1_1_search_arguments_acf264bf78982b48aff4dbb040e520fad}{milvus\+::Search\+Arguments\+::TopK}} () const]\label{deprecated__deprecated000022}%
+replaced by \mbox{\hyperlink{classmilvus_1_1_query_arguments_a7ba8cc33b4b2b4311820eee344c5d880}{Filter()}}  
+\item[Member \mbox{\hyperlink{classmilvus_1_1_query_arguments_a12d32edef32435204f9be016296f4246}{milvus\+::Query\+Arguments\+::Guarantee\+Timestamp}} () const]\label{deprecated__deprecated000022}%
 \Hypertarget{deprecated__deprecated000022}%
-replaced by \mbox{\hyperlink{classmilvus_1_1_search_request_base_a765d6d3f681beee028c098e8cc15ad56}{Limit()}}  
-\item[Member \mbox{\hyperlink{classmilvus_1_1_search_arguments_a7266302c96fa8219a67e28d08fd4742c}{milvus\+::Search\+Arguments\+::Travel\+Timestamp}} () const]\label{deprecated__deprecated000030}%
-\Hypertarget{deprecated__deprecated000030}%
+Deprecated in 2.\+4, replaced by Consistency\+Level, this value is not used anymore.  
+\item[Member \mbox{\hyperlink{classmilvus_1_1_query_arguments_a09f543774bc107024420439e0715955b}{milvus\+::Query\+Arguments\+::Set\+Expression}} (std\+::string expression)]\label{deprecated__deprecated000019}%
+\Hypertarget{deprecated__deprecated000019}%
+replaced by \mbox{\hyperlink{classmilvus_1_1_query_arguments_a4c1df480d0da5d76954feaa43b33bee9}{Set\+Filter()}}  
+\item[Member \mbox{\hyperlink{classmilvus_1_1_query_arguments_a027873a6b8008516c638838698dbb81d}{milvus\+::Query\+Arguments\+::Set\+Guarantee\+Timestamp}} (uint64\+\_\+t timestamp)]\label{deprecated__deprecated000023}%
+\Hypertarget{deprecated__deprecated000023}%
 Deprecated in 2.\+4, replaced by Consistency\+Level  
-\item[Member \mbox{\hyperlink{classmilvus_1_1_search_request_base_a6bc563473d3781ec0d07e321e7282825}{milvus\+::Search\+Request\+Base\+::Add\+BFloat16\+Vector}} (std\+::string field\+\_\+name, const \mbox{\hyperlink{classmilvus_1_1_field_data_a921c839e5d8df646cb7a20029ddb17f6}{BFloat16\+Vec\+Field\+Data\+::\+ElementT}} \&vector)]\label{deprecated__deprecated000041}%
-\Hypertarget{deprecated__deprecated000041}%
-replaced by same name method without field\+\_\+name parameter, use Set\+Ann\+Field() to set ann field name.  
-\item[Member \mbox{\hyperlink{classmilvus_1_1_search_request_base_a6f53bcef28950bc810baaeb7dd4f4ce7}{milvus\+::Search\+Request\+Base\+::Add\+BFloat16\+Vector}} (std\+::string field\+\_\+name, const std\+::vector$<$ float $>$ \&vector)]\label{deprecated__deprecated000042}%
-\Hypertarget{deprecated__deprecated000042}%
-replaced by same name method without field\+\_\+name parameter, use Set\+Ann\+Field() to set ann field name.  
-\item[Member \mbox{\hyperlink{classmilvus_1_1_search_request_base_ad84354a80a1b0975247c192b210dfb7b}{milvus\+::Search\+Request\+Base\+::Add\+Binary\+Vector}} (std\+::string field\+\_\+name, const std\+::string \&vector)]\label{deprecated__deprecated000034}%
-\Hypertarget{deprecated__deprecated000034}%
-replaced by same name method without field\+\_\+name parameter, use Set\+Ann\+Field() to set ann field name.  
-\item[Member \mbox{\hyperlink{classmilvus_1_1_search_request_base_a159b549fd539ab42ee854c78b30ace6d}{milvus\+::Search\+Request\+Base\+::Add\+Binary\+Vector}} (std\+::string field\+\_\+name, const Binary\+Vec\+Field\+Data\+::\+ElementT \&vector)]\label{deprecated__deprecated000035}%
+\item[Member \mbox{\hyperlink{classmilvus_1_1_query_arguments_a114498bb746857299e37e2e6e3867536}{milvus\+::Query\+Arguments\+::Set\+Travel\+Timestamp}} (uint64\+\_\+t timestamp)]\label{deprecated__deprecated000021}%
+\Hypertarget{deprecated__deprecated000021}%
+Deprecated in 2.\+4, replaced by Consistency\+Level.  
+\item[Member \mbox{\hyperlink{classmilvus_1_1_query_arguments_a775438bb6cbd1a1a397d15d319a33292}{milvus\+::Query\+Arguments\+::Travel\+Timestamp}} () const]\label{deprecated__deprecated000020}%
+\Hypertarget{deprecated__deprecated000020}%
+Deprecated in 2.\+4, replaced by Consistency\+Level.  
+\item[Member \mbox{\hyperlink{classmilvus_1_1_query_results_affd16dfdba2961667c8974eb18f30a01}{milvus\+::Query\+Results\+::Get\+Field\+By\+Name}} (const std\+::string \&name)]\label{deprecated__deprecated000024}%
+\Hypertarget{deprecated__deprecated000024}%
+replaced by \mbox{\hyperlink{classmilvus_1_1_query_results_a954611f2594abf553f414fd015bb60b0}{Output\+Field()}}  
+\item[Member \mbox{\hyperlink{classmilvus_1_1_query_segment_info_a35c405ba48db8b6c05a10fabe3ad306d}{milvus\+::Query\+Segment\+Info\+::Node\+ID}} () const]\label{deprecated__deprecated000050}%
+\Hypertarget{deprecated__deprecated000050}%
+in v2.\+4, a segment can be loaded into multiple nodes, use the \mbox{\hyperlink{classmilvus_1_1_query_segment_info_a465a105d939979c1b58b9ccb96e4373a}{Node\+IDs()}} instead. This method will return the first node id in from id list.  
+\item[Member \mbox{\hyperlink{classmilvus_1_1_search_arguments_ae8963e64770d22e5cdab8ab8151042eb}{milvus\+::Search\+Arguments\+::Add\+Target\+Vector}} (std\+::string field\+\_\+name, \mbox{\hyperlink{classmilvus_1_1_field_data_a921c839e5d8df646cb7a20029ddb17f6}{Float\+Vec\+Field\+Data\+::\+ElementT}} \&\&vector)]\label{deprecated__deprecated000035}%
 \Hypertarget{deprecated__deprecated000035}%
-replaced by same name method without field\+\_\+name parameter  
-\item[Member \mbox{\hyperlink{classmilvus_1_1_search_request_base_aaa9c9f757faf198504b3102d437d5967}{milvus\+::Search\+Request\+Base\+::Add\+Embedded\+Text}} (std\+::string field\+\_\+name, const std\+::string \&text)]\label{deprecated__deprecated000043}%
-\Hypertarget{deprecated__deprecated000043}%
-replaced by same name method without field\+\_\+name parameter, use Set\+Ann\+Field() to set ann field name.  
-\item[Member \mbox{\hyperlink{classmilvus_1_1_search_request_base_a87a369a5f1a97d027549f8d9bf453b47}{milvus\+::Search\+Request\+Base\+::Add\+Float16\+Vector}} (std\+::string field\+\_\+name, const \mbox{\hyperlink{classmilvus_1_1_field_data_a921c839e5d8df646cb7a20029ddb17f6}{Float16\+Vec\+Field\+Data\+::\+ElementT}} \&vector)]\label{deprecated__deprecated000039}%
+replaced by Add\+Float\+Vector  
+\item[Member \mbox{\hyperlink{classmilvus_1_1_search_arguments_ab2e7c6dec1b8b0fcbd5da9a70f17062d}{milvus\+::Search\+Arguments\+::Add\+Target\+Vector}} (std\+::string field\+\_\+name, const \mbox{\hyperlink{classmilvus_1_1_field_data_a921c839e5d8df646cb7a20029ddb17f6}{Float\+Vec\+Field\+Data\+::\+ElementT}} \&vector)]\label{deprecated__deprecated000034}%
+\Hypertarget{deprecated__deprecated000034}%
+replaced by Add\+Float\+Vector  
+\item[Member \mbox{\hyperlink{classmilvus_1_1_search_arguments_af1256857eb65c839900491473882b0d7}{milvus\+::Search\+Arguments\+::Add\+Target\+Vector}} (std\+::string field\+\_\+name, std\+::string \&\&vector)]\label{deprecated__deprecated000033}%
+\Hypertarget{deprecated__deprecated000033}%
+replaced by Add\+Binary\+Vector  
+\item[Member \mbox{\hyperlink{classmilvus_1_1_search_arguments_af05b551abe28ddccc7930d5c514c44e3}{milvus\+::Search\+Arguments\+::Add\+Target\+Vector}} (std\+::string field\+\_\+name, const std\+::string \&vector)]\label{deprecated__deprecated000031}%
+\Hypertarget{deprecated__deprecated000031}%
+replaced by Add\+Binary\+Vector  
+\item[Member \mbox{\hyperlink{classmilvus_1_1_search_arguments_a068382e14d8cf1a8c88c0fa7532a90cb}{milvus\+::Search\+Arguments\+::Add\+Target\+Vector}} (std\+::string field\+\_\+name, const std\+::vector$<$ uint8\+\_\+t $>$ \&vector)]\label{deprecated__deprecated000032}%
+\Hypertarget{deprecated__deprecated000032}%
+replaced by Add\+Binary\+Vector  
+\item[Member \mbox{\hyperlink{classmilvus_1_1_search_arguments_ac468362aa8a56e96e9b06c7a5793083a}{milvus\+::Search\+Arguments\+::Expression}} () const]\label{deprecated__deprecated000025}%
+\Hypertarget{deprecated__deprecated000025}%
+replaced by \mbox{\hyperlink{classmilvus_1_1_search_request_base_a4f17c369a7ed39b0afa12c568a5fcdc7}{Filter()}}  
+\item[Member \mbox{\hyperlink{classmilvus_1_1_search_arguments_ab07eb3b4968436f36f0b3ec620dcdc11}{milvus\+::Search\+Arguments\+::Guarantee\+Timestamp}} () const]\label{deprecated__deprecated000038}%
+\Hypertarget{deprecated__deprecated000038}%
+Deprecated in 2.\+4, replaced by Consistency\+Level, this value is not used anymore.  
+\item[Member \mbox{\hyperlink{classmilvus_1_1_search_arguments_abe65d4487c42bd1c9902db5616128ec6}{milvus\+::Search\+Arguments\+::Nprobe}} () const]\label{deprecated__deprecated000029}%
+\Hypertarget{deprecated__deprecated000029}%
+replaced by \mbox{\hyperlink{classmilvus_1_1_search_request_base_a005d263c1d59d32522de9893f174ffdd}{Extra\+Params()}}  
+\item[Member \mbox{\hyperlink{classmilvus_1_1_search_arguments_ae54f0e40595b49851e1ac8ffbc4535f9}{milvus\+::Search\+Arguments\+::Set\+Expression}} (std\+::string expression)]\label{deprecated__deprecated000026}%
+\Hypertarget{deprecated__deprecated000026}%
+replaced by \mbox{\hyperlink{classmilvus_1_1_search_request_base_a05edcea2cf12165a9325eb604fc4507c}{Set\+Filter()}}  
+\item[Member \mbox{\hyperlink{classmilvus_1_1_search_arguments_ac2e9e3e820db51c764c816b14b6e717f}{milvus\+::Search\+Arguments\+::Set\+Guarantee\+Timestamp}} (uint64\+\_\+t timestamp)]\label{deprecated__deprecated000039}%
 \Hypertarget{deprecated__deprecated000039}%
+Deprecated in 2.\+4, replaced by Consistency\+Level.  
+\item[Member \mbox{\hyperlink{classmilvus_1_1_search_arguments_acc00cd9e4c4b8f2e3f3ae319bc7d5dd9}{milvus\+::Search\+Arguments\+::Set\+Nprobe}} (int64\+\_\+t nlist)]\label{deprecated__deprecated000030}%
+\Hypertarget{deprecated__deprecated000030}%
+replaced by \mbox{\hyperlink{classmilvus_1_1_search_request_base_af8ddd47c1801eff46a34f3e649950ad8}{Add\+Extra\+Param()}}  
+\item[Member \mbox{\hyperlink{classmilvus_1_1_search_arguments_a3ad3e29cfd3726628cbd77203e7af277}{milvus\+::Search\+Arguments\+::Set\+TopK}} (int64\+\_\+t topk)]\label{deprecated__deprecated000027}%
+\Hypertarget{deprecated__deprecated000027}%
+replaced by \mbox{\hyperlink{classmilvus_1_1_search_request_base_abff44574886b5cdcd07a5c43ee670f0c}{Set\+Limit()}}  
+\item[Member \mbox{\hyperlink{classmilvus_1_1_search_arguments_a4fae6c38804ea381a7c5c9ec21313c2a}{milvus\+::Search\+Arguments\+::Set\+Travel\+Timestamp}} (uint64\+\_\+t timestamp)]\label{deprecated__deprecated000037}%
+\Hypertarget{deprecated__deprecated000037}%
+Deprecated in 2.\+4, replaced by Consistency\+Level  
+\item[Member \mbox{\hyperlink{classmilvus_1_1_search_arguments_acf264bf78982b48aff4dbb040e520fad}{milvus\+::Search\+Arguments\+::TopK}} () const]\label{deprecated__deprecated000028}%
+\Hypertarget{deprecated__deprecated000028}%
+replaced by \mbox{\hyperlink{classmilvus_1_1_search_request_base_a765d6d3f681beee028c098e8cc15ad56}{Limit()}}  
+\item[Member \mbox{\hyperlink{classmilvus_1_1_search_arguments_a7266302c96fa8219a67e28d08fd4742c}{milvus\+::Search\+Arguments\+::Travel\+Timestamp}} () const]\label{deprecated__deprecated000036}%
+\Hypertarget{deprecated__deprecated000036}%
+Deprecated in 2.\+4, replaced by Consistency\+Level  
+\item[Member \mbox{\hyperlink{classmilvus_1_1_search_request_base_a6bc563473d3781ec0d07e321e7282825}{milvus\+::Search\+Request\+Base\+::Add\+BFloat16\+Vector}} (std\+::string field\+\_\+name, const \mbox{\hyperlink{classmilvus_1_1_field_data_a921c839e5d8df646cb7a20029ddb17f6}{BFloat16\+Vec\+Field\+Data\+::\+ElementT}} \&vector)]\label{deprecated__deprecated000047}%
+\Hypertarget{deprecated__deprecated000047}%
 replaced by same name method without field\+\_\+name parameter, use Set\+Ann\+Field() to set ann field name.  
-\item[Member \mbox{\hyperlink{classmilvus_1_1_search_request_base_ab4b023749431d75b60d2651454f52c12}{milvus\+::Search\+Request\+Base\+::Add\+Float16\+Vector}} (std\+::string field\+\_\+name, const std\+::vector$<$ float $>$ \&vector)]\label{deprecated__deprecated000040}%
+\item[Member \mbox{\hyperlink{classmilvus_1_1_search_request_base_a6f53bcef28950bc810baaeb7dd4f4ce7}{milvus\+::Search\+Request\+Base\+::Add\+BFloat16\+Vector}} (std\+::string field\+\_\+name, const std\+::vector$<$ float $>$ \&vector)]\label{deprecated__deprecated000048}%
+\Hypertarget{deprecated__deprecated000048}%
+replaced by same name method without field\+\_\+name parameter, use Set\+Ann\+Field() to set ann field name.  
+\item[Member \mbox{\hyperlink{classmilvus_1_1_search_request_base_ad84354a80a1b0975247c192b210dfb7b}{milvus\+::Search\+Request\+Base\+::Add\+Binary\+Vector}} (std\+::string field\+\_\+name, const std\+::string \&vector)]\label{deprecated__deprecated000040}%
 \Hypertarget{deprecated__deprecated000040}%
 replaced by same name method without field\+\_\+name parameter, use Set\+Ann\+Field() to set ann field name.  
-\item[Member \mbox{\hyperlink{classmilvus_1_1_search_request_base_a4a2475cac447ef57a55cfe9905fa4638}{milvus\+::Search\+Request\+Base\+::Add\+Float\+Vector}} (std\+::string field\+\_\+name, const \mbox{\hyperlink{classmilvus_1_1_field_data_a921c839e5d8df646cb7a20029ddb17f6}{Float\+Vec\+Field\+Data\+::\+ElementT}} \&vector)]\label{deprecated__deprecated000036}%
-\Hypertarget{deprecated__deprecated000036}%
+\item[Member \mbox{\hyperlink{classmilvus_1_1_search_request_base_a159b549fd539ab42ee854c78b30ace6d}{milvus\+::Search\+Request\+Base\+::Add\+Binary\+Vector}} (std\+::string field\+\_\+name, const Binary\+Vec\+Field\+Data\+::\+ElementT \&vector)]\label{deprecated__deprecated000041}%
+\Hypertarget{deprecated__deprecated000041}%
+replaced by same name method without field\+\_\+name parameter  
+\item[Member \mbox{\hyperlink{classmilvus_1_1_search_request_base_aaa9c9f757faf198504b3102d437d5967}{milvus\+::Search\+Request\+Base\+::Add\+Embedded\+Text}} (std\+::string field\+\_\+name, const std\+::string \&text)]\label{deprecated__deprecated000049}%
+\Hypertarget{deprecated__deprecated000049}%
 replaced by same name method without field\+\_\+name parameter, use Set\+Ann\+Field() to set ann field name.  
-\item[Member \mbox{\hyperlink{classmilvus_1_1_search_request_base_aae6e3b726a1407de8495f3a338250818}{milvus\+::Search\+Request\+Base\+::Add\+Sparse\+Vector}} (std\+::string field\+\_\+name, const \mbox{\hyperlink{classmilvus_1_1_field_data_a921c839e5d8df646cb7a20029ddb17f6}{Sparse\+Float\+Vec\+Field\+Data\+::\+ElementT}} \&vector)]\label{deprecated__deprecated000037}%
-\Hypertarget{deprecated__deprecated000037}%
+\item[Member \mbox{\hyperlink{classmilvus_1_1_search_request_base_a87a369a5f1a97d027549f8d9bf453b47}{milvus\+::Search\+Request\+Base\+::Add\+Float16\+Vector}} (std\+::string field\+\_\+name, const \mbox{\hyperlink{classmilvus_1_1_field_data_a921c839e5d8df646cb7a20029ddb17f6}{Float16\+Vec\+Field\+Data\+::\+ElementT}} \&vector)]\label{deprecated__deprecated000045}%
+\Hypertarget{deprecated__deprecated000045}%
 replaced by same name method without field\+\_\+name parameter, use Set\+Ann\+Field() to set ann field name.  
-\item[Member \mbox{\hyperlink{classmilvus_1_1_search_request_base_ab85ab368007c509daeca92cbc730c13a}{milvus\+::Search\+Request\+Base\+::Add\+Sparse\+Vector}} (std\+::string field\+\_\+name, const nlohmann\+::json \&vector)]\label{deprecated__deprecated000038}%
-\Hypertarget{deprecated__deprecated000038}%
+\item[Member \mbox{\hyperlink{classmilvus_1_1_search_request_base_ab4b023749431d75b60d2651454f52c12}{milvus\+::Search\+Request\+Base\+::Add\+Float16\+Vector}} (std\+::string field\+\_\+name, const std\+::vector$<$ float $>$ \&vector)]\label{deprecated__deprecated000046}%
+\Hypertarget{deprecated__deprecated000046}%
+replaced by same name method without field\+\_\+name parameter, use Set\+Ann\+Field() to set ann field name.  
+\item[Member \mbox{\hyperlink{classmilvus_1_1_search_request_base_a4a2475cac447ef57a55cfe9905fa4638}{milvus\+::Search\+Request\+Base\+::Add\+Float\+Vector}} (std\+::string field\+\_\+name, const \mbox{\hyperlink{classmilvus_1_1_field_data_a921c839e5d8df646cb7a20029ddb17f6}{Float\+Vec\+Field\+Data\+::\+ElementT}} \&vector)]\label{deprecated__deprecated000042}%
+\Hypertarget{deprecated__deprecated000042}%
+replaced by same name method without field\+\_\+name parameter, use Set\+Ann\+Field() to set ann field name.  
+\item[Member \mbox{\hyperlink{classmilvus_1_1_search_request_base_aae6e3b726a1407de8495f3a338250818}{milvus\+::Search\+Request\+Base\+::Add\+Sparse\+Vector}} (std\+::string field\+\_\+name, const \mbox{\hyperlink{classmilvus_1_1_field_data_a921c839e5d8df646cb7a20029ddb17f6}{Sparse\+Float\+Vec\+Field\+Data\+::\+ElementT}} \&vector)]\label{deprecated__deprecated000043}%
+\Hypertarget{deprecated__deprecated000043}%
+replaced by same name method without field\+\_\+name parameter, use Set\+Ann\+Field() to set ann field name.  
+\item[Member \mbox{\hyperlink{classmilvus_1_1_search_request_base_ab85ab368007c509daeca92cbc730c13a}{milvus\+::Search\+Request\+Base\+::Add\+Sparse\+Vector}} (std\+::string field\+\_\+name, const nlohmann\+::json \&vector)]\label{deprecated__deprecated000044}%
+\Hypertarget{deprecated__deprecated000044}%
 replaced by same name method without field\+\_\+name parameter, use Set\+Ann\+Field() to set ann field name. 
 \end{DoxyRefList}

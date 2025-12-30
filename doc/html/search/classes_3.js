@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['embeddinglist_895',['EmbeddingList',['../classmilvus_1_1_embedding_list.html',1,'milvus']]]
+  ['embeddinglist_913',['EmbeddingList',['../classmilvus_1_1_embedding_list.html',1,'milvus']]]
 ];

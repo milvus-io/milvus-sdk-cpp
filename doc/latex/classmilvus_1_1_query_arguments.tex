@@ -111,7 +111,7 @@ Arguments for \mbox{\hyperlink{classmilvus_1_1_milvus_client_a2c27e3b681313329cc
 Get filter expression. Can be empty if \mbox{\hyperlink{classmilvus_1_1_query_arguments_ae3bfbe404442bb731f87bc9b4d465f9a}{Limit()}} is zero, else must be non-\/empty. 
 
 \begin{DoxyRefDesc}{Deprecated}
-\item[\mbox{\hyperlink{deprecated__deprecated000012}{Deprecated}}]replaced by \mbox{\hyperlink{classmilvus_1_1_query_arguments_a7ba8cc33b4b2b4311820eee344c5d880}{Filter()}} \end{DoxyRefDesc}
+\item[\mbox{\hyperlink{deprecated__deprecated000018}{Deprecated}}]replaced by \mbox{\hyperlink{classmilvus_1_1_query_arguments_a7ba8cc33b4b2b4311820eee344c5d880}{Filter()}} \end{DoxyRefDesc}
 \mbox{\Hypertarget{classmilvus_1_1_query_arguments_a12d32edef32435204f9be016296f4246}\label{classmilvus_1_1_query_arguments_a12d32edef32435204f9be016296f4246}} 
 \index{milvus::QueryArguments@{milvus::QueryArguments}!GuaranteeTimestamp@{GuaranteeTimestamp}}
 \index{GuaranteeTimestamp@{GuaranteeTimestamp}!milvus::QueryArguments@{milvus::QueryArguments}}
@@ -123,7 +123,7 @@ Get filter expression. Can be empty if \mbox{\hyperlink{classmilvus_1_1_query_ar
 Get guarantee timestamp. 
 
 \begin{DoxyRefDesc}{Deprecated}
-\item[\mbox{\hyperlink{deprecated__deprecated000016}{Deprecated}}]Deprecated in 2.\+4, replaced by Consistency\+Level, this value is not used anymore. \end{DoxyRefDesc}
+\item[\mbox{\hyperlink{deprecated__deprecated000022}{Deprecated}}]Deprecated in 2.\+4, replaced by Consistency\+Level, this value is not used anymore. \end{DoxyRefDesc}
 \mbox{\Hypertarget{classmilvus_1_1_query_arguments_a09f543774bc107024420439e0715955b}\label{classmilvus_1_1_query_arguments_a09f543774bc107024420439e0715955b}} 
 \index{milvus::QueryArguments@{milvus::QueryArguments}!SetExpression@{SetExpression}}
 \index{SetExpression@{SetExpression}!milvus::QueryArguments@{milvus::QueryArguments}}
@@ -135,7 +135,7 @@ Get guarantee timestamp.
 Set filter expression. Can be empty if \mbox{\hyperlink{classmilvus_1_1_query_arguments_ae3bfbe404442bb731f87bc9b4d465f9a}{Limit()}} is zero, else must be non-\/empty. 
 
 \begin{DoxyRefDesc}{Deprecated}
-\item[\mbox{\hyperlink{deprecated__deprecated000013}{Deprecated}}]replaced by \mbox{\hyperlink{classmilvus_1_1_query_arguments_a4c1df480d0da5d76954feaa43b33bee9}{Set\+Filter()}} \end{DoxyRefDesc}
+\item[\mbox{\hyperlink{deprecated__deprecated000019}{Deprecated}}]replaced by \mbox{\hyperlink{classmilvus_1_1_query_arguments_a4c1df480d0da5d76954feaa43b33bee9}{Set\+Filter()}} \end{DoxyRefDesc}
 \mbox{\Hypertarget{classmilvus_1_1_query_arguments_a027873a6b8008516c638838698dbb81d}\label{classmilvus_1_1_query_arguments_a027873a6b8008516c638838698dbb81d}} 
 \index{milvus::QueryArguments@{milvus::QueryArguments}!SetGuaranteeTimestamp@{SetGuaranteeTimestamp}}
 \index{SetGuaranteeTimestamp@{SetGuaranteeTimestamp}!milvus::QueryArguments@{milvus::QueryArguments}}
@@ -149,7 +149,7 @@ Instructs server to see insert/delete operations performed before a provided tim
 Note\+: The timestamp is not an absolute timestamp, it is a hybrid value combined by UTC time and internal flags. We call it TSO, for more information please refer to\+: \href{https://github.com/milvus-io/milvus/blob/master/docs/design_docs/milvus_hybrid_ts_en.md}{\texttt{ https\+://github.\+com/milvus-\/io/milvus/blob/master/docs/design\+\_\+docs/milvus\+\_\+hybrid\+\_\+ts\+\_\+en.\+md}}. You can get a TSO from insert/delete results. Use an operation\textquotesingle{}s TSO to set this parameter, the server will execute query after this operation is finished.
 
 Default value is 1, server executes search immediately. \begin{DoxyRefDesc}{Deprecated}
-\item[\mbox{\hyperlink{deprecated__deprecated000017}{Deprecated}}]Deprecated in 2.\+4, replaced by Consistency\+Level \end{DoxyRefDesc}
+\item[\mbox{\hyperlink{deprecated__deprecated000023}{Deprecated}}]Deprecated in 2.\+4, replaced by Consistency\+Level \end{DoxyRefDesc}
 \mbox{\Hypertarget{classmilvus_1_1_query_arguments_a114498bb746857299e37e2e6e3867536}\label{classmilvus_1_1_query_arguments_a114498bb746857299e37e2e6e3867536}} 
 \index{milvus::QueryArguments@{milvus::QueryArguments}!SetTravelTimestamp@{SetTravelTimestamp}}
 \index{SetTravelTimestamp@{SetTravelTimestamp}!milvus::QueryArguments@{milvus::QueryArguments}}
@@ -161,7 +161,7 @@ Default value is 1, server executes search immediately. \begin{DoxyRefDesc}{Depr
 Specify an absolute timestamp in a query to get results based on a data view at a specified point in time. Default value is 0, server executes query on a full data view. 
 
 \begin{DoxyRefDesc}{Deprecated}
-\item[\mbox{\hyperlink{deprecated__deprecated000015}{Deprecated}}]Deprecated in 2.\+4, replaced by Consistency\+Level. \end{DoxyRefDesc}
+\item[\mbox{\hyperlink{deprecated__deprecated000021}{Deprecated}}]Deprecated in 2.\+4, replaced by Consistency\+Level. \end{DoxyRefDesc}
 \mbox{\Hypertarget{classmilvus_1_1_query_arguments_a775438bb6cbd1a1a397d15d319a33292}\label{classmilvus_1_1_query_arguments_a775438bb6cbd1a1a397d15d319a33292}} 
 \index{milvus::QueryArguments@{milvus::QueryArguments}!TravelTimestamp@{TravelTimestamp}}
 \index{TravelTimestamp@{TravelTimestamp}!milvus::QueryArguments@{milvus::QueryArguments}}
@@ -173,7 +173,7 @@ Specify an absolute timestamp in a query to get results based on a data view at 
 Get travel timestamp. 
 
 \begin{DoxyRefDesc}{Deprecated}
-\item[\mbox{\hyperlink{deprecated__deprecated000014}{Deprecated}}]Deprecated in 2.\+4, replaced by Consistency\+Level. \end{DoxyRefDesc}
+\item[\mbox{\hyperlink{deprecated__deprecated000020}{Deprecated}}]Deprecated in 2.\+4, replaced by Consistency\+Level. \end{DoxyRefDesc}
 
 
 The documentation for this class was generated from the following files\+:\begin{DoxyCompactItemize}
