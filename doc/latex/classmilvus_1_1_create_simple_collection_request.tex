@@ -1,0 +1,125 @@
+\hypertarget{classmilvus_1_1_create_simple_collection_request}{}\doxysection{milvus\+::Create\+Simple\+Collection\+Request Class Reference}
+\label{classmilvus_1_1_create_simple_collection_request}\index{milvus::CreateSimpleCollectionRequest@{milvus::CreateSimpleCollectionRequest}}
+
+
+Used by \mbox{\hyperlink{classmilvus_1_1_milvus_client_v2_ab4706b1e5d639e563fb7d1e8b9239a98}{Milvus\+Client\+V2\+::\+Create\+Collection()}} to create a simple collection. The simple collection has only two fields\+: primary field and vector field. The primary field can be INT64 or VARCHAR type. The vector field is FLOAT\+\_\+\+VECTOR type, index is AUTOINDEX.  
+
+
+
+
+{\ttfamily \#include $<$Create\+Simple\+Collection\+Request.\+h$>$}
+
+\doxysubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{classmilvus_1_1_create_simple_collection_request_a31ae3bd6dcea10a3876335c8ebb40760}\label{classmilvus_1_1_create_simple_collection_request_a31ae3bd6dcea10a3876335c8ebb40760}} 
+\mbox{\hyperlink{classmilvus_1_1_create_simple_collection_request_a31ae3bd6dcea10a3876335c8ebb40760}{Create\+Simple\+Collection\+Request}} ()=default
+\begin{DoxyCompactList}\small\item\em Constructor. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_create_simple_collection_request_ac70c5f3e33805cb79906f7a532e22cf8}\label{classmilvus_1_1_create_simple_collection_request_ac70c5f3e33805cb79906f7a532e22cf8}} 
+const std\+::string \& \mbox{\hyperlink{classmilvus_1_1_create_simple_collection_request_ac70c5f3e33805cb79906f7a532e22cf8}{Database\+Name}} () const
+\begin{DoxyCompactList}\small\item\em Database name in which the collection is created. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_create_simple_collection_request_a90526be9be9f9fa3c9f230f04fb1b5ff}\label{classmilvus_1_1_create_simple_collection_request_a90526be9be9f9fa3c9f230f04fb1b5ff}} 
+void \mbox{\hyperlink{classmilvus_1_1_create_simple_collection_request_a90526be9be9f9fa3c9f230f04fb1b5ff}{Set\+Database\+Name}} (const std\+::string \&db\+\_\+name)
+\begin{DoxyCompactList}\small\item\em Set database name in which the collection is created. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_create_simple_collection_request_a63814131bf48d099d6f1b8d291e63302}\label{classmilvus_1_1_create_simple_collection_request_a63814131bf48d099d6f1b8d291e63302}} 
+\mbox{\hyperlink{classmilvus_1_1_create_simple_collection_request}{Create\+Simple\+Collection\+Request}} \& \mbox{\hyperlink{classmilvus_1_1_create_simple_collection_request_a63814131bf48d099d6f1b8d291e63302}{With\+Database\+Name}} (const std\+::string \&db\+\_\+name)
+\begin{DoxyCompactList}\small\item\em Set database name in which the collection is created. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_create_simple_collection_request_a257c7a12e8c169635b4705e6879a562c}\label{classmilvus_1_1_create_simple_collection_request_a257c7a12e8c169635b4705e6879a562c}} 
+const std\+::string \& \mbox{\hyperlink{classmilvus_1_1_create_simple_collection_request_a257c7a12e8c169635b4705e6879a562c}{Collection\+Name}} () const
+\begin{DoxyCompactList}\small\item\em Name of the collection. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_create_simple_collection_request_ab9a4b0220f321a358493fa5f725976bf}\label{classmilvus_1_1_create_simple_collection_request_ab9a4b0220f321a358493fa5f725976bf}} 
+void \mbox{\hyperlink{classmilvus_1_1_create_simple_collection_request_ab9a4b0220f321a358493fa5f725976bf}{Set\+Collection\+Name}} (const std\+::string \&collection\+\_\+name)
+\begin{DoxyCompactList}\small\item\em Set name of the collection. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_create_simple_collection_request_aac7429336c39e1b471c5de3cb6b05703}\label{classmilvus_1_1_create_simple_collection_request_aac7429336c39e1b471c5de3cb6b05703}} 
+\mbox{\hyperlink{classmilvus_1_1_create_simple_collection_request}{Create\+Simple\+Collection\+Request}} \& \mbox{\hyperlink{classmilvus_1_1_create_simple_collection_request_aac7429336c39e1b471c5de3cb6b05703}{With\+Collection\+Name}} (const std\+::string \&collection\+\_\+name)
+\begin{DoxyCompactList}\small\item\em Set name of the collection. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_create_simple_collection_request_ae9474cdcc6d75387f0cafab75b2c9fb6}\label{classmilvus_1_1_create_simple_collection_request_ae9474cdcc6d75387f0cafab75b2c9fb6}} 
+const std\+::string \& \mbox{\hyperlink{classmilvus_1_1_create_simple_collection_request_ae9474cdcc6d75387f0cafab75b2c9fb6}{Primary\+Field\+Name}} () const
+\begin{DoxyCompactList}\small\item\em Name of the primary field. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_create_simple_collection_request_a10715a9c58d8a681918ce8e412742a45}\label{classmilvus_1_1_create_simple_collection_request_a10715a9c58d8a681918ce8e412742a45}} 
+void \mbox{\hyperlink{classmilvus_1_1_create_simple_collection_request_a10715a9c58d8a681918ce8e412742a45}{Set\+Primary\+Field\+Name}} (const std\+::string \&primary\+\_\+field\+\_\+name)
+\begin{DoxyCompactList}\small\item\em Set name of the primary field. Default value is \char`\"{}id\char`\"{}. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_create_simple_collection_request_a774a4e2b5cac8261f33d448c41aaf52d}\label{classmilvus_1_1_create_simple_collection_request_a774a4e2b5cac8261f33d448c41aaf52d}} 
+\mbox{\hyperlink{classmilvus_1_1_create_simple_collection_request}{Create\+Simple\+Collection\+Request}} \& \mbox{\hyperlink{classmilvus_1_1_create_simple_collection_request_a774a4e2b5cac8261f33d448c41aaf52d}{With\+Primary\+Field\+Name}} (const std\+::string \&primary\+\_\+field\+\_\+name)
+\begin{DoxyCompactList}\small\item\em Set name of the primary field. Default value is \char`\"{}id\char`\"{}. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_create_simple_collection_request_a13aef487905e37dd60086e42293e25b8}\label{classmilvus_1_1_create_simple_collection_request_a13aef487905e37dd60086e42293e25b8}} 
+\mbox{\hyperlink{namespacemilvus_a3bdf02cc09dcb59a1e1d2f287d90788b}{Data\+Type}} \mbox{\hyperlink{classmilvus_1_1_create_simple_collection_request_a13aef487905e37dd60086e42293e25b8}{Primary\+Field\+Type}} () const
+\begin{DoxyCompactList}\small\item\em Data type of the primary field. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_create_simple_collection_request_a338b857a8d9313a3c12d43e84371c758}\label{classmilvus_1_1_create_simple_collection_request_a338b857a8d9313a3c12d43e84371c758}} 
+void \mbox{\hyperlink{classmilvus_1_1_create_simple_collection_request_a338b857a8d9313a3c12d43e84371c758}{Set\+Primary\+Field\+Type}} (\mbox{\hyperlink{namespacemilvus_a3bdf02cc09dcb59a1e1d2f287d90788b}{Data\+Type}} primary\+\_\+field\+\_\+type)
+\begin{DoxyCompactList}\small\item\em Set data type of the primary field. Default value is INT64. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_create_simple_collection_request_a0ab1dc7543f039263f15c276fdfac6ce}\label{classmilvus_1_1_create_simple_collection_request_a0ab1dc7543f039263f15c276fdfac6ce}} 
+\mbox{\hyperlink{classmilvus_1_1_create_simple_collection_request}{Create\+Simple\+Collection\+Request}} \& \mbox{\hyperlink{classmilvus_1_1_create_simple_collection_request_a0ab1dc7543f039263f15c276fdfac6ce}{With\+Primary\+Field\+Type}} (\mbox{\hyperlink{namespacemilvus_a3bdf02cc09dcb59a1e1d2f287d90788b}{Data\+Type}} primary\+\_\+field\+\_\+type)
+\begin{DoxyCompactList}\small\item\em Set data type of the primary field. Default value is INT64. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_create_simple_collection_request_ab1932c5ae02fa8759e4c7306677a8b12}\label{classmilvus_1_1_create_simple_collection_request_ab1932c5ae02fa8759e4c7306677a8b12}} 
+const std\+::string \& \mbox{\hyperlink{classmilvus_1_1_create_simple_collection_request_ab1932c5ae02fa8759e4c7306677a8b12}{Vector\+Field\+Name}} () const
+\begin{DoxyCompactList}\small\item\em Name of the vector field. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_create_simple_collection_request_a07d1d2542de2edb482cd140bc6bda8e5}\label{classmilvus_1_1_create_simple_collection_request_a07d1d2542de2edb482cd140bc6bda8e5}} 
+void \mbox{\hyperlink{classmilvus_1_1_create_simple_collection_request_a07d1d2542de2edb482cd140bc6bda8e5}{Set\+Vector\+Field\+Name}} (const std\+::string \&vector\+\_\+field\+\_\+name)
+\begin{DoxyCompactList}\small\item\em Set name of the vector field. Default value is \char`\"{}vector\char`\"{}. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_create_simple_collection_request_a6368aa431d49183122ddfa2eaeabaa6d}\label{classmilvus_1_1_create_simple_collection_request_a6368aa431d49183122ddfa2eaeabaa6d}} 
+\mbox{\hyperlink{classmilvus_1_1_create_simple_collection_request}{Create\+Simple\+Collection\+Request}} \& \mbox{\hyperlink{classmilvus_1_1_create_simple_collection_request_a6368aa431d49183122ddfa2eaeabaa6d}{With\+Vector\+Field\+Name}} (const std\+::string \&vector\+\_\+field\+\_\+name)
+\begin{DoxyCompactList}\small\item\em Set name of the vector field. Default value is \char`\"{}vector\char`\"{}. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_create_simple_collection_request_ab1c9404d9872a3ce6416fd82bcd9c922}\label{classmilvus_1_1_create_simple_collection_request_ab1c9404d9872a3ce6416fd82bcd9c922}} 
+int64\+\_\+t \mbox{\hyperlink{classmilvus_1_1_create_simple_collection_request_ab1c9404d9872a3ce6416fd82bcd9c922}{Dimension}} () const
+\begin{DoxyCompactList}\small\item\em Dimension of the vector field. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_create_simple_collection_request_ad0288217d86b3b5c3b7a4bd0d11d86af}\label{classmilvus_1_1_create_simple_collection_request_ad0288217d86b3b5c3b7a4bd0d11d86af}} 
+void \mbox{\hyperlink{classmilvus_1_1_create_simple_collection_request_ad0288217d86b3b5c3b7a4bd0d11d86af}{Set\+Dimension}} (int64\+\_\+t dimension)
+\begin{DoxyCompactList}\small\item\em Set dimension of the vector field. Default value is 0. User must specify a non-\/zero value for dimension. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_create_simple_collection_request_a25166b3f4366680be4fee410bc025c0f}\label{classmilvus_1_1_create_simple_collection_request_a25166b3f4366680be4fee410bc025c0f}} 
+\mbox{\hyperlink{classmilvus_1_1_create_simple_collection_request}{Create\+Simple\+Collection\+Request}} \& \mbox{\hyperlink{classmilvus_1_1_create_simple_collection_request_a25166b3f4366680be4fee410bc025c0f}{With\+Dimension}} (int64\+\_\+t dimension)
+\begin{DoxyCompactList}\small\item\em Set dimension of the vector field. Default value is 0. User must specify a non-\/zero value for dimension. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_create_simple_collection_request_a9ae25217ecf091678dfdc938e39ab526}\label{classmilvus_1_1_create_simple_collection_request_a9ae25217ecf091678dfdc938e39ab526}} 
+\mbox{\hyperlink{namespacemilvus_a26e8c5ec421df0853e145d04d0fbb414}{milvus\+::\+Consistency\+Level}} \mbox{\hyperlink{classmilvus_1_1_create_simple_collection_request_a9ae25217ecf091678dfdc938e39ab526}{Consistency\+Level}} () const
+\begin{DoxyCompactList}\small\item\em Consistency level of the collection. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_create_simple_collection_request_a7f36581776956e296d4287711b95f077}\label{classmilvus_1_1_create_simple_collection_request_a7f36581776956e296d4287711b95f077}} 
+void \mbox{\hyperlink{classmilvus_1_1_create_simple_collection_request_a7f36581776956e296d4287711b95f077}{Set\+Consistency\+Level}} (\mbox{\hyperlink{namespacemilvus_a26e8c5ec421df0853e145d04d0fbb414}{milvus\+::\+Consistency\+Level}} level)
+\begin{DoxyCompactList}\small\item\em Set consistency level of the collection. Default value is BOUNDED. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_create_simple_collection_request_a1842fe0cc2bb762515cf4f9c14962e63}\label{classmilvus_1_1_create_simple_collection_request_a1842fe0cc2bb762515cf4f9c14962e63}} 
+\mbox{\hyperlink{classmilvus_1_1_create_simple_collection_request}{Create\+Simple\+Collection\+Request}} \& \mbox{\hyperlink{classmilvus_1_1_create_simple_collection_request_a1842fe0cc2bb762515cf4f9c14962e63}{With\+Consistency\+Level}} (\mbox{\hyperlink{namespacemilvus_a26e8c5ec421df0853e145d04d0fbb414}{milvus\+::\+Consistency\+Level}} level)
+\begin{DoxyCompactList}\small\item\em Set consistency level of the collection. Default value is BOUNDED. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_create_simple_collection_request_a3150a71d3902e701df04e867c2637ec2}\label{classmilvus_1_1_create_simple_collection_request_a3150a71d3902e701df04e867c2637ec2}} 
+\mbox{\hyperlink{namespacemilvus_a188c0c4910c0aaa1d67c0f089b55c00e}{milvus\+::\+Metric\+Type}} \mbox{\hyperlink{classmilvus_1_1_create_simple_collection_request_a3150a71d3902e701df04e867c2637ec2}{Metric\+Type}} () const
+\begin{DoxyCompactList}\small\item\em Metric type of the collection. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_create_simple_collection_request_a46bfbd584075d32e5f9b30a750a57503}\label{classmilvus_1_1_create_simple_collection_request_a46bfbd584075d32e5f9b30a750a57503}} 
+void \mbox{\hyperlink{classmilvus_1_1_create_simple_collection_request_a46bfbd584075d32e5f9b30a750a57503}{Set\+Metric\+Type}} (\mbox{\hyperlink{namespacemilvus_a188c0c4910c0aaa1d67c0f089b55c00e}{milvus\+::\+Metric\+Type}} metric\+\_\+type)
+\begin{DoxyCompactList}\small\item\em Set metric type of the collection. Default value is COSINE. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_create_simple_collection_request_a7c28d82e07663a584ffa78f093b0b82c}\label{classmilvus_1_1_create_simple_collection_request_a7c28d82e07663a584ffa78f093b0b82c}} 
+\mbox{\hyperlink{classmilvus_1_1_create_simple_collection_request}{Create\+Simple\+Collection\+Request}} \& \mbox{\hyperlink{classmilvus_1_1_create_simple_collection_request_a7c28d82e07663a584ffa78f093b0b82c}{With\+Metric\+Type}} (\mbox{\hyperlink{namespacemilvus_a188c0c4910c0aaa1d67c0f089b55c00e}{milvus\+::\+Metric\+Type}} metric\+\_\+type)
+\begin{DoxyCompactList}\small\item\em Set metric type of the collection. Default value is COSINE. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_create_simple_collection_request_ad1b956c64881292cf3e86a7f803b22f6}\label{classmilvus_1_1_create_simple_collection_request_ad1b956c64881292cf3e86a7f803b22f6}} 
+bool \mbox{\hyperlink{classmilvus_1_1_create_simple_collection_request_ad1b956c64881292cf3e86a7f803b22f6}{Auto\+ID}} () const
+\begin{DoxyCompactList}\small\item\em Auto ID generation flag. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_create_simple_collection_request_ab54ac35bd9329e8b88d4e106218537f7}\label{classmilvus_1_1_create_simple_collection_request_ab54ac35bd9329e8b88d4e106218537f7}} 
+void \mbox{\hyperlink{classmilvus_1_1_create_simple_collection_request_ab54ac35bd9329e8b88d4e106218537f7}{Set\+Auto\+ID}} (bool auto\+\_\+id)
+\begin{DoxyCompactList}\small\item\em Set auto ID generation flag. Default value is false. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_create_simple_collection_request_ab2c2b300c32205155cc9efc80005d5e7}\label{classmilvus_1_1_create_simple_collection_request_ab2c2b300c32205155cc9efc80005d5e7}} 
+\mbox{\hyperlink{classmilvus_1_1_create_simple_collection_request}{Create\+Simple\+Collection\+Request}} \& \mbox{\hyperlink{classmilvus_1_1_create_simple_collection_request_ab2c2b300c32205155cc9efc80005d5e7}{With\+Auto\+ID}} (bool auto\+\_\+id)
+\begin{DoxyCompactList}\small\item\em Set auto ID generation flag. Default value is false. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_create_simple_collection_request_ac6cd7f5561fe0c9b5feded31fbe12e17}\label{classmilvus_1_1_create_simple_collection_request_ac6cd7f5561fe0c9b5feded31fbe12e17}} 
+bool \mbox{\hyperlink{classmilvus_1_1_create_simple_collection_request_ac6cd7f5561fe0c9b5feded31fbe12e17}{Enable\+Dynamic\+Field}} () const
+\begin{DoxyCompactList}\small\item\em Dynamic field enable flag. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_create_simple_collection_request_a3061d98d91ee84769c70cad91b5744df}\label{classmilvus_1_1_create_simple_collection_request_a3061d98d91ee84769c70cad91b5744df}} 
+void \mbox{\hyperlink{classmilvus_1_1_create_simple_collection_request_a3061d98d91ee84769c70cad91b5744df}{Set\+Enable\+Dynamic\+Field}} (bool enable\+\_\+dynamic\+\_\+field)
+\begin{DoxyCompactList}\small\item\em Set dynamic field enable flag. Default value is true. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_create_simple_collection_request_ac34a77be8fb04c4c83a3e4bcddd22055}\label{classmilvus_1_1_create_simple_collection_request_ac34a77be8fb04c4c83a3e4bcddd22055}} 
+\mbox{\hyperlink{classmilvus_1_1_create_simple_collection_request}{Create\+Simple\+Collection\+Request}} \& \mbox{\hyperlink{classmilvus_1_1_create_simple_collection_request_ac34a77be8fb04c4c83a3e4bcddd22055}{With\+Enable\+Dynamic\+Field}} (bool enable\+\_\+dynamic\+\_\+field)
+\begin{DoxyCompactList}\small\item\em Set dynamic field enable flag. Default value is true. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_create_simple_collection_request_a3afc95b752b044576b3830c483c97f3a}\label{classmilvus_1_1_create_simple_collection_request_a3afc95b752b044576b3830c483c97f3a}} 
+int64\+\_\+t \mbox{\hyperlink{classmilvus_1_1_create_simple_collection_request_a3afc95b752b044576b3830c483c97f3a}{Max\+Length}} () const
+\begin{DoxyCompactList}\small\item\em Maximum length of the primary field if it is a VARCHAR. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_create_simple_collection_request_a2e1a79f12a0553b14a62114741def0e3}\label{classmilvus_1_1_create_simple_collection_request_a2e1a79f12a0553b14a62114741def0e3}} 
+void \mbox{\hyperlink{classmilvus_1_1_create_simple_collection_request_a2e1a79f12a0553b14a62114741def0e3}{Set\+Max\+Length}} (int64\+\_\+t max\+\_\+length)
+\begin{DoxyCompactList}\small\item\em Set maximum length of the primary field if it is a VARCHAR. Default value is 65535. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_create_simple_collection_request_a206d915dda136d45b1246eae221367f5}\label{classmilvus_1_1_create_simple_collection_request_a206d915dda136d45b1246eae221367f5}} 
+\mbox{\hyperlink{classmilvus_1_1_create_simple_collection_request}{Create\+Simple\+Collection\+Request}} \& \mbox{\hyperlink{classmilvus_1_1_create_simple_collection_request_a206d915dda136d45b1246eae221367f5}{With\+Max\+Length}} (int64\+\_\+t max\+\_\+length)
+\begin{DoxyCompactList}\small\item\em Set maximum length of the primary field if it is a VARCHAR. Default value is 65535. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+Used by \mbox{\hyperlink{classmilvus_1_1_milvus_client_v2_ab4706b1e5d639e563fb7d1e8b9239a98}{Milvus\+Client\+V2\+::\+Create\+Collection()}} to create a simple collection. The simple collection has only two fields\+: primary field and vector field. The primary field can be INT64 or VARCHAR type. The vector field is FLOAT\+\_\+\+VECTOR type, index is AUTOINDEX. 
+
+The documentation for this class was generated from the following files\+:\begin{DoxyCompactItemize}
+\item 
+src/include/milvus/request/collection/Create\+Simple\+Collection\+Request.\+h\item 
+src/impl/request/collection/Create\+Simple\+Collection\+Request.\+cpp\end{DoxyCompactItemize}

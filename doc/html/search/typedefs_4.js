@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['segmentsinfo_1866',['SegmentsInfo',['../namespacemilvus.html#ac4d75d0f392eb243587a67248164636b',1,'milvus']]]
+  ['segmentsinfo_1900',['SegmentsInfo',['../namespacemilvus.html#ac4d75d0f392eb243587a67248164636b',1,'milvus']]]
 ];
