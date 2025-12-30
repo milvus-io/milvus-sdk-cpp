@@ -27,13 +27,22 @@ Inherits \mbox{\hyperlink{classmilvus_1_1_index_request_base}{milvus\+::\+Index\
 \begin{DoxyCompactList}\small\item\em Set name of the collection. \end{DoxyCompactList}\item 
 \mbox{\Hypertarget{classmilvus_1_1_drop_index_request_abbd5c5938c2480f9a2204cba1b8719d2}\label{classmilvus_1_1_drop_index_request_abbd5c5938c2480f9a2204cba1b8719d2}} 
 const std\+::string \& \mbox{\hyperlink{classmilvus_1_1_drop_index_request_abbd5c5938c2480f9a2204cba1b8719d2}{Field\+Name}} () const
-\begin{DoxyCompactList}\small\item\em Name of the field, or name of the index. \end{DoxyCompactList}\item 
+\begin{DoxyCompactList}\small\item\em Name of the field. \end{DoxyCompactList}\item 
 \mbox{\Hypertarget{classmilvus_1_1_drop_index_request_a6feb786a77c95b086734a15af2ae8e31}\label{classmilvus_1_1_drop_index_request_a6feb786a77c95b086734a15af2ae8e31}} 
 void \mbox{\hyperlink{classmilvus_1_1_drop_index_request_a6feb786a77c95b086734a15af2ae8e31}{Set\+Field\+Name}} (const std\+::string \&field\+\_\+name)
-\begin{DoxyCompactList}\small\item\em Set name of the field, or name of the index. \end{DoxyCompactList}\item 
+\begin{DoxyCompactList}\small\item\em Set name of the field. Note\+: if both field\+\_\+name and index\+\_\+name are specified, it will use index name firstly. \end{DoxyCompactList}\item 
 \mbox{\Hypertarget{classmilvus_1_1_drop_index_request_a1bd22d1491e72a06855324e56f1ece91}\label{classmilvus_1_1_drop_index_request_a1bd22d1491e72a06855324e56f1ece91}} 
 \mbox{\hyperlink{classmilvus_1_1_drop_index_request}{Drop\+Index\+Request}} \& \mbox{\hyperlink{classmilvus_1_1_drop_index_request_a1bd22d1491e72a06855324e56f1ece91}{With\+Field\+Name}} (const std\+::string \&field\+\_\+name)
-\begin{DoxyCompactList}\small\item\em Set name of the field, or name of the index. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\begin{DoxyCompactList}\small\item\em Set name of the field. Note\+: if both field\+\_\+name and index\+\_\+name are specified, it will use index name firstly. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_drop_index_request_aab31f3b7838bfcae3e9beecca6009ff8}\label{classmilvus_1_1_drop_index_request_aab31f3b7838bfcae3e9beecca6009ff8}} 
+const std\+::string \& \mbox{\hyperlink{classmilvus_1_1_drop_index_request_aab31f3b7838bfcae3e9beecca6009ff8}{Index\+Name}} () const
+\begin{DoxyCompactList}\small\item\em Name of the index. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_drop_index_request_a6d6d491985f4fe82378bbf5d01f82014}\label{classmilvus_1_1_drop_index_request_a6d6d491985f4fe82378bbf5d01f82014}} 
+void \mbox{\hyperlink{classmilvus_1_1_drop_index_request_a6d6d491985f4fe82378bbf5d01f82014}{Set\+Index\+Name}} (const std\+::string \&index\+\_\+name)
+\begin{DoxyCompactList}\small\item\em Set name of the index. Note\+: if both field\+\_\+name and index\+\_\+name are specified, it will use index name firstly. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_drop_index_request_acb99c18c88b547786398c803c8350e61}\label{classmilvus_1_1_drop_index_request_acb99c18c88b547786398c803c8350e61}} 
+\mbox{\hyperlink{classmilvus_1_1_drop_index_request}{Drop\+Index\+Request}} \& \mbox{\hyperlink{classmilvus_1_1_drop_index_request_acb99c18c88b547786398c803c8350e61}{With\+Index\+Name}} (const std\+::string \&index\+\_\+name)
+\begin{DoxyCompactList}\small\item\em Set name of the index. Note\+: if both field\+\_\+name and index\+\_\+name are specified, it will use index name firstly. \end{DoxyCompactList}\end{DoxyCompactItemize}
 \doxysubsection*{Additional Inherited Members}
 
 

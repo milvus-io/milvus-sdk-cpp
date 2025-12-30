@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['functiontype_1870',['FunctionType',['../namespacemilvus.html#ab0f6557077e3b6e18925d278f984badd',1,'milvus']]]
+  ['functiontype_1904',['FunctionType',['../namespacemilvus.html#ab0f6557077e3b6e18925d278f984badd',1,'milvus']]]
 ];
