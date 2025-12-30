@@ -19,7 +19,7 @@ Examples for MilvusClient:
 - `./cmake_build/examples/v1/sdk_iterator_query_v1`: example to show the usage of query iterator.
 - `./cmake_build/examples/v1/sdk_iterator_search_v1`: example to show the usage of search iterator.
 - `./cmake_build/examples/v1/sdk_json_v1`: example to show the usage of JSON field.
-- `./cmake_build/examples/v1/sdk_nullalbe_field_v1`: example to show the usage of nullable field.
+- `./cmake_build/examples/v1/sdk_nullable_field_v1`: example to show the usage of nullable field.
 - `./cmake_build/examples/v1/sdk_partition_key_v1`: example to show the usage of partition key.
 - `./cmake_build/examples/v1/sdk_rbac_v1`: example to show the usage of RBAC.
 - `./cmake_build/examples/v1/sdk_run_analyzer_v1`: example to show the usage of run_analyzer().
@@ -42,10 +42,11 @@ Examples for MilvusClientV2:
 - `./cmake_build/examples/v2/sdk_iterator_query_v2`: example to show the usage of query iterator.
 - `./cmake_build/examples/v2/sdk_iterator_search_v2`: example to show the usage of search iterator.
 - `./cmake_build/examples/v2/sdk_json_v2`: example to show the usage of JSON field.
-- `./cmake_build/examples/v2/sdk_nullalbe_field_v2`: example to show the usage of nullable field.
+- `./cmake_build/examples/v2/sdk_nullable_field_v2`: example to show the usage of nullable field.
 - `./cmake_build/examples/v2/sdk_partition_key_v2`: example to show the usage of partition key.
 - `./cmake_build/examples/v2/sdk_rbac_v2`: example to show the usage of RBAC.
 - `./cmake_build/examples/v2/sdk_run_analyzer_v2`: example to show the usage of run_analyzer().
+- `./cmake_build/examples/v2/sdk_simple_v2`: example to quickly create a simple collection.
 - `./cmake_build/examples/v2/sdk_text_match_v2`: example to show the usage of TEXT_MATCH.
 - `./cmake_build/examples/v2/sdk_vector_binary_v2`: example to show the usage of BinaryVector field.
 - `./cmake_build/examples/v2/sdk_vector_fp16_v2`: example to show the usage of Float16Vector/BFloat16Vector field.

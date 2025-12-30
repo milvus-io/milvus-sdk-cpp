@@ -43,25 +43,48 @@ class DropIndexRequest : public IndexRequestBase {
     WithCollectionName(const std::string& collection_name);
 
     /**
-     * @brief Name of the field, or name of the index.
+     * @brief Name of the field.
      */
     const std::string&
     FieldName() const;
 
     /**
-     * @brief Set name of the field, or name of the index.
+     * @brief Set name of the field.
+     * Note: if both field_name and index_name are specified, it will use index name firstly.
      */
     void
     SetFieldName(const std::string& field_name);
 
     /**
-     * @brief Set name of the field, or name of the index.
+     * @brief Set name of the field.
+     * Note: if both field_name and index_name are specified, it will use index name firstly.
      */
     DropIndexRequest&
     WithFieldName(const std::string& field_name);
 
+    /**
+     * @brief Name of the index.
+     */
+    const std::string&
+    IndexName() const;
+
+    /**
+     * @brief Set name of the index.
+     * Note: if both field_name and index_name are specified, it will use index name firstly.
+     */
+    void
+    SetIndexName(const std::string& index_name);
+
+    /**
+     * @brief Set name of the index.
+     * Note: if both field_name and index_name are specified, it will use index name firstly.
+     */
+    DropIndexRequest&
+    WithIndexName(const std::string& index_name);
+
  private:
     std::string field_name_;
+    std::string index_name_;
 };
 
 }  // namespace milvus

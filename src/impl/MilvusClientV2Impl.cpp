@@ -128,8 +128,8 @@ MilvusClientV2Impl::CreateCollection(const CreateCollectionRequest& request) {
 
     auto pre = [&schema, &request](proto::milvus::CreateCollectionRequest& rpc_request) {
         rpc_request.set_db_name(request.DatabaseName());
-        rpc_request.set_collection_name(schema.Name());
-        rpc_request.set_shards_num(schema.ShardsNum());
+        rpc_request.set_collection_name(request.CollectionName());
+        rpc_request.set_shards_num(static_cast<int32_t>(request.NumShards()));
         rpc_request.set_consistency_level(ConsistencyLevelCast(request.GetConsistencyLevel()));
         if (request.NumPartitions() > 0) {
             rpc_request.set_num_partitions(request.NumPartitions());
@@ -179,6 +179,36 @@ MilvusClientV2Impl::CreateCollection(const CreateCollectionRequest& request) {
 
     return connection_.Invoke<proto::milvus::CreateCollectionRequest, proto::common::Status>(
         validate, pre, &MilvusConnection::CreateCollection, post);
+}
+
+Status
+MilvusClientV2Impl::CreateCollection(const CreateSimpleCollectionRequest& request) {
+    milvus::FieldSchema pk_field =
+        milvus::FieldSchema(request.PrimaryFieldName(), request.PrimaryFieldType(), "", true, request.AutoID());
+    if (request.PrimaryFieldType() == DataType::VARCHAR) {
+        pk_field.SetMaxLength(static_cast<uint32_t>(request.MaxLength()));
+    } else if (request.PrimaryFieldType() != DataType::INT64) {
+        return {StatusCode::INVALID_AGUMENT, "Primary field type is illegal"};
+    }
+
+    milvus::FieldSchema vector_field = milvus::FieldSchema(request.VectorFieldName(), DataType::FLOAT_VECTOR);
+    vector_field.SetDimension(request.Dimension());
+
+    milvus::CollectionSchemaPtr collection_schema = std::make_shared<milvus::CollectionSchema>();
+    collection_schema->AddField(std::move(pk_field));
+    collection_schema->AddField(std::move(vector_field));
+    collection_schema->SetEnableDynamicField(request.EnableDynamicField());
+
+    milvus::IndexDesc index_vector(request.VectorFieldName(), "", milvus::IndexType::AUTOINDEX, request.MetricType());
+
+    CreateCollectionRequest actual_request = CreateCollectionRequest()
+                                                 .WithCollectionName(request.CollectionName())
+                                                 .WithDatabaseName(request.DatabaseName())
+                                                 .WithCollectionSchema(collection_schema)
+                                                 .WithConsistencyLevel(request.ConsistencyLevel())
+                                                 .AddIndex(std::move(index_vector));
+
+    return CreateCollection(actual_request);
 }
 
 Status
@@ -864,7 +894,12 @@ MilvusClientV2Impl::DescribeIndex(const DescribeIndexRequest& request, DescribeI
     auto pre = [&request](proto::milvus::DescribeIndexRequest& rpc_request) {
         rpc_request.set_db_name(request.DatabaseName());
         rpc_request.set_collection_name(request.CollectionName());
-        rpc_request.set_field_name(request.FieldName());
+        // the proto uses field_name to pass index name or field name
+        if (!request.IndexName().empty()) {
+            rpc_request.set_field_name(request.IndexName());
+        } else {
+            rpc_request.set_field_name(request.FieldName());
+        }
         rpc_request.set_timestamp(request.Timestamp());
         return Status::OK();
     };
@@ -880,7 +915,7 @@ MilvusClientV2Impl::DescribeIndex(const DescribeIndexRequest& request, DescribeI
         std::vector<IndexDesc> descs;
         for (auto i = 0; i < count; i++) {
             auto rpc_desc = rpc_response.index_descriptions(i);
-            if (rpc_desc.field_name() != request.FieldName()) {
+            if (rpc_desc.field_name() != request.FieldName() && rpc_desc.index_name() != request.IndexName()) {
                 continue;
             }
 
@@ -903,6 +938,8 @@ MilvusClientV2Impl::DescribeIndex(const DescribeIndexRequest& request, DescribeI
                     index_desc.SetMetricType(MetricTypeCast(value));
                 } else if (key == milvus::PARAMS) {
                     index_desc.ExtraParamsFromJson(value);
+                } else {
+                    index_desc.AddExtraParam(key, value);
                 }
             }
             descs.emplace_back(std::move(index_desc));
@@ -945,7 +982,12 @@ MilvusClientV2Impl::DropIndex(const DropIndexRequest& request) {
     auto pre = [&request](proto::milvus::DropIndexRequest& rpc_request) {
         rpc_request.set_db_name(request.DatabaseName());
         rpc_request.set_collection_name(request.CollectionName());
-        rpc_request.set_index_name(request.FieldName());
+        // the proto uses field_name to pass index name or field name
+        if (!request.IndexName().empty()) {
+            rpc_request.set_index_name(request.IndexName());
+        } else {
+            rpc_request.set_index_name(request.FieldName());
+        }
         return Status::OK();
     };
     return connection_.Invoke<proto::milvus::DropIndexRequest, proto::common::Status>(pre,
@@ -957,7 +999,7 @@ MilvusClientV2Impl::AlterIndexProperties(const AlterIndexPropertiesRequest& requ
     auto pre = [&request](proto::milvus::AlterIndexRequest& rpc_request) {
         rpc_request.set_db_name(request.DatabaseName());
         rpc_request.set_collection_name(request.CollectionName());
-        rpc_request.set_index_name(request.FieldName());
+        rpc_request.set_index_name(request.IndexName());
         for (const auto& pair : request.Properties()) {
             auto kv_pair = rpc_request.add_extra_params();
             kv_pair->set_key(pair.first);
@@ -976,7 +1018,7 @@ MilvusClientV2Impl::DropIndexProperties(const DropIndexPropertiesRequest& reques
     auto pre = [&request](proto::milvus::AlterIndexRequest& rpc_request) {
         rpc_request.set_db_name(request.DatabaseName());
         rpc_request.set_collection_name(request.CollectionName());
-        rpc_request.set_index_name(request.FieldName());
+        rpc_request.set_index_name(request.IndexName());
         for (const auto& name : request.PropertyKeys()) {
             rpc_request.add_delete_keys(name);
         }
@@ -2125,6 +2167,8 @@ MilvusClientV2Impl::createIndex(const std::string& db_name, const std::string& c
     auto wait_for_status = [&db_name, &collection_name, &desc, &progress_monitor, this](const proto::common::Status&) {
         return ConnectionHandler::WaitForStatus(
             [&db_name, &collection_name, &desc, this](Progress& progress) -> Status {
+                progress.total_ = 100;
+
                 DescribeIndexRequest request = DescribeIndexRequest()
                                                    .WithDatabaseName(db_name)
                                                    .WithCollectionName(collection_name)

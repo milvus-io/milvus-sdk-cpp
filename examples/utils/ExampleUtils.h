@@ -236,7 +236,7 @@ PrintList(const std::vector<T>& obj) {
 
 template <typename K, typename V>
 void
-PrintMap(const std::map<K, V>& obj) {
+PrintMap(const std::unordered_map<K, V>& obj) {
     std::cout << "{";
     auto it = obj.begin();
     while (it != obj.end()) {

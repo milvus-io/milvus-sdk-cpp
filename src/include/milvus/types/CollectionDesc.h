@@ -43,6 +43,24 @@ class CollectionDesc {
     SetDatabaseName(std::string name);
 
     /**
+     * @brief The collection name.
+     */
+    const std::string&
+    CollectionName() const;
+
+    /**
+     * @brief Description of the collection.
+     */
+    const std::string&
+    Description() const;
+
+    /**
+     * @brief Shards number of the collection.
+     */
+    int64_t
+    NumShards() const;
+
+    /**
      * @brief Collection schema.
      */
     const CollectionSchema&
