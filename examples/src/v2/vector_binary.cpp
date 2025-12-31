@@ -21,6 +21,46 @@
 #include "ExampleUtils.h"
 #include "milvus/MilvusClientV2.h"
 
+namespace {
+
+// ConvertToBinaryVector and ConvertToBoolArray must follow the same order to organize the bool array
+// the 0th bool value is stored at the 0th bit, the 7th bool value is stored at the 7th bit
+std::vector<uint8_t>
+ConvertToBinaryVector(const std::vector<bool>& bools) {
+    // ideally, the length of bools must be equal to vector dimension
+    // the length of output std::vector<uint8_t> must be dimension/8
+    size_t num_bytes = (bools.size() + 7) / 8;
+    std::vector<uint8_t> bytes(num_bytes, 0);
+
+    for (size_t i = 0; i < bools.size(); ++i) {
+        size_t byte_index = i / 8;
+        size_t bit_pos = i % 8;
+
+        if (bools[i]) {
+            bytes[byte_index] |= (1U << bit_pos);
+        }
+    }
+
+    return bytes;
+}
+
+// ConvertToBinaryVector and ConvertToBoolArray must follow the same order to organize the bool array
+// read the 0th bool value from the 0th bit, read the 7th bool value from the 7th bit
+std::vector<bool>
+ConvertToBoolArray(const std::vector<uint8_t>& binary) {
+    std::vector<bool> bits;
+    bits.reserve(binary.size() * 8);
+    for (uint8_t byte : binary) {
+        for (int i = 0; i < 8; i++) {
+            bool bit_is_set = (byte >> i) & 1;
+            bits.push_back(bit_is_set);
+        }
+    }
+    return bits;
+}
+
+}  // namespace
+
 int
 main(int argc, char* argv[]) {
     printf("Example start...\n");
@@ -39,8 +79,7 @@ main(int argc, char* argv[]) {
 
     // collection schema, drop and create collection
     milvus::CollectionSchemaPtr collection_schema = std::make_shared<milvus::CollectionSchema>();
-    collection_schema->AddField(
-        milvus::FieldSchema(field_id, milvus::DataType::VARCHAR, "", true, false).WithMaxLength(128));
+    collection_schema->AddField(milvus::FieldSchema(field_id, milvus::DataType::INT64, "", true, false));
     collection_schema->AddField(
         milvus::FieldSchema(field_vector, milvus::DataType::BINARY_VECTOR).WithDimension(dimension));
     collection_schema->AddField(milvus::FieldSchema(field_text, milvus::DataType::VARCHAR).WithMaxLength(1024));
@@ -63,11 +102,11 @@ main(int argc, char* argv[]) {
 
     {
         // insert some rows by column-based
-        auto ids = std::vector<std::string>{"primary_key_10000", "primary_key_10001"};
+        auto ids = std::vector<int64_t>{10000, 10001};
         auto texts = std::vector<std::string>{"column-based-1", "column-based-2"};
         auto vectors = util::GenerateBinaryVectors(dimension, 2);
         std::vector<milvus::FieldDataPtr> fields_data{
-            std::make_shared<milvus::VarCharFieldData>(field_id, ids),
+            std::make_shared<milvus::Int64FieldData>(field_id, ids),
             std::make_shared<milvus::VarCharFieldData>(field_text, texts),
             std::make_shared<milvus::BinaryVecFieldData>(field_vector, vectors)};
 
@@ -79,15 +118,24 @@ main(int argc, char* argv[]) {
         std::cout << resp_insert.Results().InsertCount() << " rows inserted by column-based." << std::endl;
     }
 
+    // prepare original vectors
     const int64_t row_count = 10;
+    std::vector<std::vector<bool>> bools_array;
+    bools_array.reserve(row_count);
+    for (auto i = 0; i < row_count; ++i) {
+        bools_array.emplace_back(util::RansomBools(dimension));
+    }
+
     milvus::EntityRows rows;
+    rows.reserve(row_count);
     {
         // insert some rows
         for (auto i = 0; i < row_count; ++i) {
             milvus::EntityRow row;
-            row[field_id] = "primary_key_" + std::to_string(i);
-            row[field_text] = "this is text_" + std::to_string(i);
-            row[field_vector] = util::GenerateBinaryVector(dimension);
+            row[field_id] = i;
+            row[field_text] = "row-based-" + std::to_string(i);
+            row[field_vector] = ConvertToBinaryVector(bools_array.at(i));
+
             rows.emplace_back(std::move(row));
         }
 
@@ -103,10 +151,10 @@ main(int argc, char* argv[]) {
     auto q_number_1 = util::RandomeValue<int64_t>(0, row_count - 1);
     auto q_number_2 = util::RandomeValue<int64_t>(0, row_count - 1);
     {
-        // query
-        auto q_id_1 = rows[q_number_1][field_id].get<std::string>();
-        auto q_id_2 = rows[q_number_2][field_id].get<std::string>();
-        std::string filter = field_id + " in [\"" + q_id_1 + "\", \"" + q_id_2 + "\"]";
+        // query some items from the row-based insert data
+        auto q_id_1 = rows[q_number_1][field_id].get<int64_t>();
+        auto q_id_2 = rows[q_number_2][field_id].get<int64_t>();
+        std::string filter = field_id + " in [" + std::to_string(q_id_1) + ", " + std::to_string(q_id_2) + "]";
         std::cout << "Query with filter expression: " << filter << std::endl;
 
         auto request =
@@ -122,12 +170,25 @@ main(int argc, char* argv[]) {
         status = client->Query(request, response);
         util::CheckStatus("query", status);
 
+        // the result stores data of each field as column-based, OutputRows() convert the data to JSON rows
         milvus::EntityRows output_rows;
         status = response.Results().OutputRows(output_rows);
         util::CheckStatus("get output rows", status);
         std::cout << "Query results:" << std::endl;
         for (const auto& row : output_rows) {
-            std::cout << "\t" << row << std::endl;
+            std::cout << "\tRow: " << row << std::endl;
+            auto binary = row[field_vector].get<std::vector<uint8_t>>();
+            auto bools = ConvertToBoolArray(binary);
+            auto id = row[field_id].get<int64_t>();
+            auto original_bools = bools_array.at(id);
+            if (!std::equal(bools.begin(), bools.end(), original_bools.begin())) {
+                std::cout << "Output vector is not equal to the original!" << std::endl;
+                std::cout << "\tOutput vector: ";
+                util::PrintList(bools);
+                std::cout << "\tOriginal vector: ";
+                util::PrintList(original_bools);
+                exit(1);
+            }
         }
     }
 
