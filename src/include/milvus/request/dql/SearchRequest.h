@@ -89,6 +89,12 @@ class SearchRequest : public DQLRequestBase, public SearchRequestBase {
     AddExtraParam(const std::string& key, const std::string& value);
 
     /**
+     * @brief Add extra parameters such as "nlist", "ef".
+     */
+    SearchRequest&
+    WithExtraParams(const std::unordered_map<std::string, std::string>& params);
+
+    /**
      * @brief Set search limit(topk).
      * Note: this value is stored in the ExtraParams.
      */

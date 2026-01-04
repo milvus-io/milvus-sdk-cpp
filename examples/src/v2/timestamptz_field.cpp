@@ -14,7 +14,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include <iomanip>
 #include <iostream>
+#include <sstream>
 #include <string>
 #include <thread>
 
@@ -29,22 +31,33 @@ const char* const field_vector = "vector";
 const char* const field_timestamp = "tsz";
 const uint32_t dimension = 4;
 
+std::string
+pad(int num, int width) {
+    std::ostringstream oss;
+    oss << std::setw(width) << std::setfill('0') << num;
+    return oss.str();
+}
+
+std::string
+formatDateWithTimezone(int year, int month, int day, int hour, int minute, int second,
+                       std::string timezoneOffset = "+08:00") {
+    std::string ts = std::to_string(year) + "-" + pad(month, 2) + "-" + pad(day, 2) + "T" + pad(hour, 2) + ":" +
+                     pad(minute, 2) + ":" + pad(second, 2) + timezoneOffset;
+    return ts;
+}
+
 void
 insertData(milvus::MilvusClientV2Ptr& client) {
-    const std::vector<std::string> data = {"2025-01-01T00:00:00+08:00", "2025-01-02T00:00:00+08:00",
-                                           "2025-01-03T00:00:00+08:00", "2025-01-04T00:00:00+08:00",
-                                           "2025-01-05T00:00:00+08:00", "2025-01-06T00:00:00+08:00",
-                                           "2025-01-07T00:00:00+08:00", "2025-01-08T00:00:00+08:00",
-                                           "2025-01-09T00:00:00+08:00", "2025-01-10T00:00:00+08:00"};
     milvus::EntityRows rows;
     std::cout << "\nInsert timezones" << std::endl;
-    for (auto i = 0; i < data.size(); i++) {
+    for (auto i = 0; i < 10; i++) {
         milvus::EntityRow row;
         row[field_id] = i;
         row[field_vector] = util::GenerateFloatVector(dimension);
-        row[field_timestamp] = data[i];
+        std::string ts = formatDateWithTimezone(2025, 01, i + 1, 0, 0, 0);
+        row[field_timestamp] = ts;
         rows.emplace_back(std::move(row));
-        std::cout << "\t" << data[i] << std::endl;
+        std::cout << "\t" << ts << std::endl;
     }
 
     milvus::InsertResponse resp_insert;

@@ -78,6 +78,14 @@ SearchRequest::AddExtraParam(const std::string& key, const std::string& value) {
 }
 
 SearchRequest&
+SearchRequest::WithExtraParams(const std::unordered_map<std::string, std::string>& params) {
+    for (const auto& pair : params) {
+        SearchRequestBase::AddExtraParam(pair.first, pair.second);
+    }
+    return *this;
+}
+
+SearchRequest&
 SearchRequest::WithLimit(int64_t limit) {
     SetLimit(limit);
     return *this;
