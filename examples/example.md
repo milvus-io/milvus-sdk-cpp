@@ -43,6 +43,7 @@ Examples for MilvusClientV2:
 - `./cmake_build/examples/v2/sdk_iterator_query_v2`: example to show the usage of query iterator.
 - `./cmake_build/examples/v2/sdk_iterator_search_v2`: example to show the usage of search iterator.
 - `./cmake_build/examples/v2/sdk_json_v2`: example to show the usage of JSON field.
+- `./cmake_build/examples/v2/sdk_multi_analyzer_v2`: example to show the usage of multi-analyzer for full text match.
 - `./cmake_build/examples/v2/sdk_nullable_field_v2`: example to show the usage of nullable field.
 - `./cmake_build/examples/v2/sdk_partition_key_v2`: example to show the usage of partition key.
 - `./cmake_build/examples/v2/sdk_rbac_v2`: example to show the usage of RBAC.
