@@ -167,12 +167,24 @@ FieldSchema::TypeParams() const {
 
 void
 FieldSchema::SetTypeParams(const std::map<std::string, std::string>& params) {
-    type_params_ = params;
+    // it is a merge operation, keep old pairs
+    type_params_.insert(params.begin(), params.end());
 }
 
 void
 FieldSchema::SetTypeParams(std::map<std::string, std::string>&& params) {
-    type_params_ = std::move(params);
+    if (type_params_.empty()) {
+        type_params_ = std::move(params);
+    } else {
+        // it is a merge operation, keep old pairs
+        type_params_.insert(params.begin(), params.end());
+    }
+}
+
+FieldSchema&
+FieldSchema::AddTypeParam(const std::string& key, const std::string& val) {
+    type_params_.insert(std::make_pair(key, val));
+    return *this;
 }
 
 uint32_t
@@ -288,6 +300,26 @@ FieldSchema::WithAnalyzerParams(const nlohmann::json& params) {
 nlohmann::json
 FieldSchema::AnalyzerParams() const {
     auto iter = type_params_.find(ANALYZER_PARAMS);
+    if (iter != type_params_.end()) {
+        return nlohmann::json::parse(iter->second);
+    }
+    return nullptr;
+}
+
+void
+FieldSchema::SetMultiAnalyzerParams(const nlohmann::json& params) {
+    type_params_[MULTI_ANALYZER_PARAMS] = params.dump();
+}
+
+FieldSchema&
+FieldSchema::WithMultiAnalyzerParams(const nlohmann::json& params) {
+    SetMultiAnalyzerParams(params);
+    return *this;
+}
+
+nlohmann::json
+FieldSchema::MultiAnalyzerParams() const {
+    auto iter = type_params_.find(MULTI_ANALYZER_PARAMS);
     if (iter != type_params_.end()) {
         return nlohmann::json::parse(iter->second);
     }

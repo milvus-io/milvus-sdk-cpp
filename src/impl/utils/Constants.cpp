@@ -39,6 +39,7 @@ const char* SCORE = "score";
 const char* ENABLE_ANALYZER = "enable_analyzer";
 const char* ENABLE_MATCH = "enable_match";
 const char* ANALYZER_PARAMS = "analyzer_params";
+const char* MULTI_ANALYZER_PARAMS = "multi_analyzer_params";
 const char* COLLECTION_ID = "collection_id";
 const char* GUARANTEE_TIMESTAMP = "guarantee_timestamp";
 

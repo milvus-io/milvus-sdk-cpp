@@ -35,9 +35,17 @@ buildCollection(milvus::MilvusClientV2Ptr& client) {
     collection_schema->AddField({field_id, milvus::DataType::INT64, "", true, false});
     collection_schema->AddField(
         milvus::FieldSchema(field_vector, milvus::DataType::FLOAT_VECTOR).WithDimension(dimension));
+
+    // apply a custom analyzer to the text field, the stop words will be ignored by the tokenizer
+    // AnalyzerParams is optional, there is a default build-in tokenizer in milvus server
+    nlohmann::json analyzer_params = {
+        {"tokenizer", "standard"},
+        {"filter", {{{"type", "stop"}, {"stop_words", {"is", "and", "to", "of", "for"}}}}},
+    };
     collection_schema->AddField(milvus::FieldSchema(field_text, milvus::DataType::VARCHAR)
                                     .WithMaxLength(1024)
                                     .EnableAnalyzer(true)
+                                    .WithAnalyzerParams(analyzer_params)
                                     .EnableMatch(true));
 
     auto status = client->DropCollection(milvus::DropCollectionRequest().WithCollectionName(collection_name));

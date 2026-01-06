@@ -212,6 +212,12 @@ class FieldSchema {
     SetTypeParams(std::map<std::string, std::string>&& params);
 
     /**
+     * @brief Add an extra key-value pair setting for this field
+     */
+    FieldSchema&
+    AddTypeParam(const std::string& key, const std::string& val);
+
+    /**
      * @brief Get dimension for a vector field.
      */
     uint32_t
@@ -291,12 +297,16 @@ class FieldSchema {
 
     /**
      * @brief Set analyzer parameters.
+     * Note: AnalyzerParams and MultiAnalyzerParams cannot be applied on the same field.
+     * Read the doc for more into: https://milvus.io/docs/analyzer-overview.md
      */
     void
     SetAnalyzerParams(const nlohmann::json& params);
 
     /**
      * @brief Set analyzer parameters.
+     * Note: AnalyzerParams and MultiAnalyzerParams cannot be applied on the same field.
+     * Read the doc for more into: https://milvus.io/docs/analyzer-overview.md
      */
     FieldSchema&
     WithAnalyzerParams(const nlohmann::json& params);
@@ -306,6 +316,28 @@ class FieldSchema {
      */
     nlohmann::json
     AnalyzerParams() const;
+
+    /**
+     * @brief Set multi analyzer parameters.
+     * Note: AnalyzerParams and MultiAnalyzerParams cannot be applied on the same field.
+     * Read the doc for more info: https://milvus.io/docs/multi-language-analyzers.md
+     */
+    void
+    SetMultiAnalyzerParams(const nlohmann::json& params);
+
+    /**
+     * @brief Set multi analyzer parameters.
+     * Note: AnalyzerParams and MultiAnalyzerParams cannot be applied on the same field.
+     * Read the doc for more info: https://milvus.io/docs/multi-language-analyzers.md
+     */
+    FieldSchema&
+    WithMultiAnalyzerParams(const nlohmann::json& params);
+
+    /**
+     * @brief Get multi analyzer parameters.
+     */
+    nlohmann::json
+    MultiAnalyzerParams() const;
 
     /**
      * @brief Get the flag whether the field value is nullable.

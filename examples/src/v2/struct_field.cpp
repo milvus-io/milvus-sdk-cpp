@@ -63,8 +63,9 @@ main(int argc, char* argv[]) {
             .WithMaxCapacity(struct_capacity)
             .AddField(milvus::FieldSchema(field_struct_int32, milvus::DataType::INT32))
             .AddField(milvus::FieldSchema(field_struct_varchar, milvus::DataType::VARCHAR).WithMaxLength(512))
-            .AddField(
-                milvus::FieldSchema(field_struct_vector, milvus::DataType::FLOAT_VECTOR).WithDimension(dimension));
+            .AddField(milvus::FieldSchema(field_struct_vector, milvus::DataType::FLOAT_VECTOR)
+                          .WithDimension(dimension)
+                          .AddTypeParam(milvus::MMAP_ENABLED, "true"));
     collection_schema->AddStructField(std::move(struct_schema));
 
     status = client->DropCollection(milvus::DropCollectionRequest().WithCollectionName(collection_name));
