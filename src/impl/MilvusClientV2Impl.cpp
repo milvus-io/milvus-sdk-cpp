@@ -1166,7 +1166,7 @@ MilvusClientV2Impl::Upsert(const UpsertRequest& request, UpsertResponse& respons
 
         if (!rows.empty()) {
             // verify and convert row-based data to rpc fields
-            status = CheckAndSetRowData(rows, collection_desc->Schema(), true, rpc_fields);
+            status = CheckAndSetRowData(rows, collection_desc->Schema(), request.PartialUpdate(), rpc_fields);
             if (!status.IsOk()) {
                 return status;
             }
@@ -1208,6 +1208,7 @@ MilvusClientV2Impl::Upsert(const UpsertRequest& request, UpsertResponse& respons
         rpc_request.set_partition_name(request.PartitionName());
         rpc_request.set_num_rows(static_cast<uint32_t>(row_count));
         rpc_request.set_schema_timestamp(collection_desc->UpdateTime());
+        rpc_request.set_partial_update(request.PartialUpdate());
         for (auto& field : rpc_fields) {
             mutable_fields->Add(std::move(field));
         }
