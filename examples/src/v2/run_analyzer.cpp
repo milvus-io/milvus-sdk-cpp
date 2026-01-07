@@ -36,27 +36,11 @@ printAnalyzerResults(const milvus::AnalyzerResults& results) {
 }
 
 void
-runAnalyzer(milvus::MilvusClientV2Ptr& client, const nlohmann::json& analyzer_params) {
-    std::cout << "Run analyzer params: " << analyzer_params.dump() << std::endl;
-
-    const std::vector<std::string> text_content = {
-        "Milvus is an open-source vector database",
-        "AI applications help people better life",
-        "Will the electric car replace gas-powered car?",
-        "LangChain is a composable framework to build with LLMs. Milvus is integrated into LangChain.",
-        "RAG is the process of optimizing the output of a large language model",
-        "Newton is one of the greatest scientist of human history",
-        "Metric type L2 is Euclidean distance",
-        "Embeddings represent real-world objects, like words, images, or videos, in a form that computers can process.",
-        "The moon is 384,400 km distance away from earth",
-        "Milvus supports L2 distance and IP similarity for float vector.",
-    };
-
-    auto request = milvus::RunAnalyzerRequest()
-                       .WithTexts(text_content)
-                       .WithAnalyzerParams(analyzer_params)
-                       .WithDetail(true)
-                       .WithHash(true);
+runAnalyzer(milvus::MilvusClientV2Ptr& client, const nlohmann::json& analyzer_params, const std::string& text) {
+    std::cout << "\nRun analyzer params: " << analyzer_params.dump() << std::endl;
+    std::cout << "Text: " << text << std::endl;
+    auto request =
+        milvus::RunAnalyzerRequest().AddText(text).WithAnalyzerParams(analyzer_params).WithDetail(true).WithHash(true);
 
     milvus::RunAnalyzerResponse response;
     auto status = client->RunAnalyzer(request, response);
@@ -76,17 +60,69 @@ main(int argc, char* argv[]) {
     auto status = client->Connect(connect_param);
     util::CheckStatus("connect milvus server", status);
 
-    nlohmann::json params_1 = {
-        {"tokenizer", "standard"},
-        {"filter", {{{"type", "stop"}, {"stop_words", {"of"}}}}},
-    };
-    runAnalyzer(client, params_1);
+    // stop
+    {
+        nlohmann::json analyzer_params = {
+            {"tokenizer", "standard"},
+            {"filter", {{{"type", "stop"}, {"stop_words", {"and", "for"}}}}},
+        };
+        std::string text = "Milvus supports L2 distance and IP similarity for float vector.";
+        runAnalyzer(client, analyzer_params, text);
+    }
 
-    nlohmann::json params_2 = {
-        {"tokenizer", "standard"},
-        {"filter", {{{"type", "stop"}, {"stop_words", {"is", "of", "for"}}}}},
-    };
-    runAnalyzer(client, params_2);
+    // jieba
+    {
+        nlohmann::json analyzer_params = {{"tokenizer", "jieba"}, {"filter", {"cnalphanumonly"}}};
+        std::string text = "Milvus 是 LF AI & Data Foundation 下的一个开源项目，以 Apache 2.0 许可发布。";
+        runAnalyzer(client, analyzer_params, text);
+    }
+
+    // lindera
+    {
+        nlohmann::json analyzer_params = {{"tokenizer", {{"type", "lindera"}, {"dict_kind", "ipadic"}}}};
+        std::string text = "東京スカイツリーの最寄り駅はとうきょうスカイツリー駅で";
+        runAnalyzer(client, analyzer_params, text);
+    }
+
+    // icu
+    {
+        nlohmann::json analyzer_params = {{"tokenizer", "icu"}};
+        std::string text = "Привет! Как дела?";
+        runAnalyzer(client, analyzer_params, text);
+    }
+
+    // length
+    {
+        nlohmann::json analyzer_params = {{"tokenizer", "standard"}, {"filter", {{{"type", "length"}, {"max", 6}}}}};
+        std::string text = "The length filter allows control over token length requirements for text processing.";
+        runAnalyzer(client, analyzer_params, text);
+    }
+
+    // decompounder
+    {
+        nlohmann::json analyzer_params = {
+            {"tokenizer", "standard"},
+            {"filter",
+             {{{"type", "decompounder"}, {"word_list", {"dampf", "schiff", "fahrt", "brot", "backen", "automat"}}}}}};
+        std::string text = "dampfschifffahrt brotbackautomat";
+        runAnalyzer(client, analyzer_params, text);
+    }
+
+    // stemmer
+    {
+        nlohmann::json analyzer_params = {{"tokenizer", "standard"},
+                                          {"filter", {{{"type", "stemmer"}, {"language", "english"}}}}};
+        std::string text = "running runs looked ran runner";
+        runAnalyzer(client, analyzer_params, text);
+    }
+
+    // regex
+    {
+        nlohmann::json analyzer_params = {{"tokenizer", "standard"},
+                                          {"filter", {{{"type", "regex"}, {"expr", "^(?!test)"}}}}};
+        std::string text = "testItem apple testCase banana";
+        runAnalyzer(client, analyzer_params, text);
+    }
 
     client->Disconnect();
     return 0;

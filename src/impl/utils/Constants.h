@@ -44,6 +44,7 @@ extern const char* SCORE;
 extern const char* ENABLE_ANALYZER;
 extern const char* ENABLE_MATCH;
 extern const char* ANALYZER_PARAMS;
+extern const char* MULTI_ANALYZER_PARAMS;
 extern const char* COLLECTION_ID;
 extern const char* GUARANTEE_TIMESTAMP;
 extern const char* REDUCE_STOP_FOR_BEST;
