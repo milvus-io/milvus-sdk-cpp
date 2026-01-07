@@ -19,38 +19,6 @@
 namespace milvus {
 
 const std::string&
-AlterAliasRequest::DatabaseName() const {
-    return db_name_;
-}
-
-void
-AlterAliasRequest::SetDatabaseName(const std::string& db_name) {
-    db_name_ = db_name;
-}
-
-AlterAliasRequest&
-AlterAliasRequest::WithDatabaseName(const std::string& db_name) {
-    SetDatabaseName(db_name);
-    return *this;
-}
-
-const std::string&
-AlterAliasRequest::CollectionName() const {
-    return collection_name_;
-}
-
-void
-AlterAliasRequest::SetCollectionName(const std::string& collection_name) {
-    collection_name_ = collection_name;
-}
-
-AlterAliasRequest&
-AlterAliasRequest::WithCollectionName(const std::string& collection_name) {
-    SetCollectionName(collection_name);
-    return *this;
-}
-
-const std::string&
 AlterAliasRequest::Alias() const {
     return alias_;
 }

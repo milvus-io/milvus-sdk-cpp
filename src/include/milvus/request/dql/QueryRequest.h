@@ -26,56 +26,12 @@ namespace milvus {
 /**
  * @brief Used by MilvusClientV2::Query()
  */
-class QueryRequest : public DQLRequestBase {
+class QueryRequest : public DQLRequestBase<QueryRequest> {
  public:
     /**
      * @brief Constructor
      */
     QueryRequest() = default;
-
-    /**
-     * @brief Set database name in which the collection is created.
-     */
-    QueryRequest&
-    WithDatabaseName(const std::string& db_name);
-
-    /**
-     * @brief Set name of the collection.
-     */
-    QueryRequest&
-    WithCollectionName(const std::string& collection_name);
-
-    /**
-     * @brief Set the partition names.
-     * If partition nemes are empty, will query in the entire collection.
-     */
-    QueryRequest&
-    WithPartitionNames(std::set<std::string>&& partition_names);
-
-    /**
-     * @brief Add a partition name.
-     */
-    QueryRequest&
-    AddPartitionName(const std::string& partition_name);
-
-    /**
-     * @brief Set the output field names.
-     */
-    QueryRequest&
-    WithOutputFields(std::set<std::string>&& output_field_names);
-
-    /**
-     * @brief Add an output field.
-     */
-    QueryRequest&
-    AddOutputField(const std::string& output_field);
-
-    /**
-     * @brief Set the consistency level.
-     * Read the doc for more info: https://milvus.io/docs/consistency.md#Consistency-Level
-     */
-    QueryRequest&
-    WithConsistencyLevel(ConsistencyLevel consistency_level);
 
     /**
      * @brief Get filter expression.

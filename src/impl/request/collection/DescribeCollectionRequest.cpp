@@ -16,18 +16,4 @@
 
 #include "milvus/request/collection/DescribeCollectionRequest.h"
 
-namespace milvus {
-
-DescribeCollectionRequest&
-DescribeCollectionRequest::WithDatabaseName(const std::string& db_name) {
-    SetDatabaseName(db_name);
-    return *this;
-}
-
-DescribeCollectionRequest&
-DescribeCollectionRequest::WithCollectionName(const std::string& collection_name) {
-    SetCollectionName(collection_name);
-    return *this;
-}
-
-}  // namespace milvus
+namespace milvus {}  // namespace milvus

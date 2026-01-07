@@ -82,9 +82,6 @@ class SearchRequestBase {
     TargetVectors() const;
 
     /**
-<<<<<<< HEAD
-     * @brief Add a binary vector to search
-=======
      * @brief Get embedding lists for struct field ann search.
      */
     const std::vector<EmbeddingList>&
@@ -92,7 +89,6 @@ class SearchRequestBase {
 
     /**
      * @brief Add a binary vector to search.
->>>>>>> 0932a50 (Add doc (#406))
      */
     Status
     AddBinaryVector(const std::string& vector);
@@ -347,6 +343,222 @@ class SearchRequestBase {
     ::milvus::MetricType metric_type_{::milvus::MetricType::DEFAULT};
 
     std::unordered_map<std::string, std::string> extra_params_;
+};
+
+/**
+ * @brief Recurring template pattern class for SubSearchRequest and SearchRequest
+ */
+template <typename T>
+class SearchRequestVectorAssigner : public SearchRequestBase {
+ protected:
+    SearchRequestVectorAssigner() = default;
+
+ public:
+    ////////////////////////////////////////////////////////////////////////
+    // single vector assigner
+    /**
+     * @brief Add a binary vector to search request.
+     * This method automatically converts the string array to uint8 array.
+     */
+    T&
+    AddBinaryVector(const std::string& vector) {
+        SearchRequestBase::AddBinaryVector(vector);
+        return static_cast<T&>(*this);
+    }
+
+    /**
+     * @brief Add a binary vector to search request.
+     */
+    T&
+    AddBinaryVector(const BinaryVecFieldData::ElementT& vector) {
+        SearchRequestBase::AddBinaryVector(vector);
+        return static_cast<T&>(*this);
+    }
+
+    /**
+     * @brief Add a float vector to search request.
+     */
+    T&
+    AddFloatVector(const FloatVecFieldData::ElementT& vector) {
+        SearchRequestBase::AddFloatVector(vector);
+        return static_cast<T&>(*this);
+    }
+
+    /**
+     * @brief Add a sparse vector to search request.
+     */
+    T&
+    AddSparseVector(const SparseFloatVecFieldData::ElementT& vector) {
+        SearchRequestBase::AddSparseVector(vector);
+        return static_cast<T&>(*this);
+    }
+
+    /**
+     * @brief Add a sparse vector to search request.
+     * We support two patterns of sparse vector:
+     *  1. a json dict like {"1": 0.1, "5": 0.2, "8": 0.15}.
+     *  2. a json dict like {"indices": [1, 5, 8], "values": [0.1, 0.2, 0.15]}.
+     */
+    T&
+    AddSparseVector(const nlohmann::json& vector) {
+        SearchRequestBase::AddSparseVector(vector);
+        return static_cast<T&>(*this);
+    }
+
+    /**
+     * @brief Add a float16 vector to search request.
+     */
+    T&
+    AddFloat16Vector(const Float16VecFieldData::ElementT& vector) {
+        SearchRequestBase::AddFloat16Vector(vector);
+        return static_cast<T&>(*this);
+    }
+
+    /**
+     * @brief Add a float16 vector to search request.
+     * This method automatically converts the float array to float16 binary.
+     */
+    T&
+    AddFloat16Vector(const std::vector<float>& vector) {
+        SearchRequestBase::AddFloat16Vector(vector);
+        return static_cast<T&>(*this);
+    }
+
+    /**
+     * @brief Add a bfloat16 vector to search request.
+     */
+    T&
+    AddBFloat16Vector(const BFloat16VecFieldData::ElementT& vector) {
+        SearchRequestBase::AddBFloat16Vector(vector);
+        return static_cast<T&>(*this);
+    }
+
+    /**
+     * @brief Add a bfloat16 vector to search request.
+     * This method automatically converts the float array to bfloat16 binary.
+     */
+    T&
+    AddBFloat16Vector(const std::vector<float>& vector) {
+        SearchRequestBase::AddBFloat16Vector(vector);
+        return static_cast<T&>(*this);
+    }
+
+    /**
+     * @brief Add a text to search request. Only works for BM25 function.
+     */
+    T&
+    AddEmbeddedText(const std::string& text) {
+        SearchRequestBase::AddEmbeddedText(text);
+        return static_cast<T&>(*this);
+    }
+
+    ////////////////////////////////////////////////////////////////////////
+    // multi vectors assigner
+    /**
+     * @brief Assign binary vectors to search request.
+     * This method automatically converts the string array to uint8 array.
+     * Note: this method will reset the vector list of the request.
+     */
+    T&
+    WithBinaryVectors(const std::vector<std::string>& vectors) {
+        target_vectors_.SetBinaryVectors(vectors);
+        return static_cast<T&>(*this);
+    }
+
+    /**
+     * @brief Assign binary vectors to search request.
+     * Note: this method will reset the vector list of the request.
+     */
+    T&
+    WithBinaryVectors(std::vector<BinaryVecFieldData::ElementT>&& vectors) {
+        target_vectors_.SetBinaryVectors(std::move(vectors));
+        return static_cast<T&>(*this);
+    }
+
+    /**
+     * @brief Assign float vectors to search request.
+     * Note: this method will reset the vector list of the request.
+     */
+    T&
+    WithFloatVectors(std::vector<FloatVecFieldData::ElementT>&& vectors) {
+        target_vectors_.SetFloatVectors(std::move(vectors));
+        return static_cast<T&>(*this);
+    }
+
+    /**
+     * @brief Assign sparse vectors to search request.
+     * Note: this method will reset the vector list of the request.
+     */
+    T&
+    WithSparseVectors(std::vector<SparseFloatVecFieldData::ElementT>&& vectors) {
+        target_vectors_.SetSparseVectors(std::move(vectors));
+        return static_cast<T&>(*this);
+    }
+
+    /**
+     * @brief Assign sparse vectors to search request.
+     * Note: this method will reset the vector list of the request.
+     * We support two patterns of sparse vector:
+     *  1. a json dict like {"1": 0.1, "5": 0.2, "8": 0.15}.
+     *  2. a json dict like {"indices": [1, 5, 8], "values": [0.1, 0.2, 0.15]}.
+     */
+    T&
+    WithSparseVectors(const std::vector<nlohmann::json>& vectors) {
+        target_vectors_.SetSparseVectors(vectors);
+        return static_cast<T&>(*this);
+    }
+
+    /**
+     * @brief Assign float16 vectors to search request.
+     * Note: this method will reset the vector list of the request.
+     */
+    T&
+    WithFloat16Vectors(std::vector<Float16VecFieldData::ElementT>&& vectors) {
+        target_vectors_.SetFloat16Vectors(std::move(vectors));
+        return static_cast<T&>(*this);
+    }
+
+    /**
+     * @brief Assign float16 vectors to search request.
+     * This method automatically converts the float array to float16 binary.
+     * Note: this method will reset the vector list of the request.
+     */
+    T&
+    WithFloat16Vectors(const std::vector<std::vector<float>>& vectors) {
+        target_vectors_.SetFloat16Vectors(vectors);
+        return static_cast<T&>(*this);
+    }
+
+    /**
+     * @brief Assign bfloat16 vectors to search request.
+     * Note: this method will reset the vector list of the request.
+     */
+    T&
+    WithBFloat16Vectors(std::vector<BFloat16VecFieldData::ElementT>&& vectors) {
+        target_vectors_.SetBFloat16Vectors(std::move(vectors));
+        return static_cast<T&>(*this);
+    }
+
+    /**
+     * @brief Assign bfloat16 vectors to search request.
+     * This method automatically converts the float array to bfloat16 binary.
+     * Note: this method will reset the vector list of the request.
+     */
+    T&
+    WithBFloat16Vectors(const std::vector<std::vector<float>>& vectors) {
+        target_vectors_.SetBFloat16Vectors(vectors);
+        return static_cast<T&>(*this);
+    }
+
+    /**
+     * @brief Assign texts to search request. Only works for BM25 function.
+     * Note: this method will reset the vector list of the request.
+     */
+    T&
+    WithEmbeddedTexts(std::vector<std::string>&& texts) {
+        target_vectors_.SetEmbeddedTexts(std::move(texts));
+        return static_cast<T&>(*this);
+    }
 };
 
 }  // namespace milvus

@@ -20,18 +20,6 @@
 
 namespace milvus {
 
-AlterCollectionPropertiesRequest&
-AlterCollectionPropertiesRequest::WithDatabaseName(const std::string& db_name) {
-    SetDatabaseName(db_name);
-    return *this;
-}
-
-AlterCollectionPropertiesRequest&
-AlterCollectionPropertiesRequest::WithCollectionName(const std::string& collection_name) {
-    SetCollectionName(collection_name);
-    return *this;
-}
-
 const std::unordered_map<std::string, std::string>&
 AlterCollectionPropertiesRequest::Properties() const {
     return properties_;

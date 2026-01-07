@@ -21,6 +21,7 @@
 #include "../../types/ConsistencyLevel.h"
 #include "../../types/DataType.h"
 #include "../../types/MetricType.h"
+#include "./CollectionRequestBase.h"
 
 namespace milvus {
 
@@ -30,48 +31,12 @@ namespace milvus {
  * The primary field can be INT64 or VARCHAR type.
  * The vector field is FLOAT_VECTOR type, index is AUTOINDEX.
  */
-class CreateSimpleCollectionRequest {
+class CreateSimpleCollectionRequest : public CollectionRequestBase<CreateSimpleCollectionRequest> {
  public:
     /**
      * @brief Constructor
      */
     CreateSimpleCollectionRequest() = default;
-
-    /**
-     * @brief Database name in which the collection is created.
-     */
-    const std::string&
-    DatabaseName() const;
-
-    /**
-     * @brief Set database name in which the collection is created.
-     */
-    void
-    SetDatabaseName(const std::string& db_name);
-
-    /**
-     * @brief Set database name in which the collection is created.
-     */
-    CreateSimpleCollectionRequest&
-    WithDatabaseName(const std::string& db_name);
-
-    /**
-     * @brief Name of the collection.
-     */
-    const std::string&
-    CollectionName() const;
-
-    /**
-     * @brief Set name of the collection.
-     */
-    void
-    SetCollectionName(const std::string& collection_name);
-
-    /**
-     * @brief Set name of the collection.
-     */
-    CreateSimpleCollectionRequest&
-    WithCollectionName(const std::string& collection_name);
 
     /**
      * @brief Name of the primary field.
@@ -254,8 +219,6 @@ class CreateSimpleCollectionRequest {
     WithMaxLength(int64_t max_length);
 
  private:
-    std::string db_name_;
-    std::string collection_name_;
     std::string primary_field_name_{"id"};
     DataType primary_field_type_{DataType::INT64};
     std::string vector_field_name_{"vector"};

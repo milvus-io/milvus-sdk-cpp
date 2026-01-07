@@ -25,48 +25,12 @@ namespace milvus {
 /**
  * @brief Used by MilvusClientV2::LoadCollection()
  */
-class LoadCollectionRequest : public CollectionRequestBase {
+class LoadCollectionRequest : public CollectionRequestBase<LoadCollectionRequest> {
  public:
     /**
      * @brief Constructor
      */
     LoadCollectionRequest() = default;
-
-    /**
-     * @brief Database name in which the collection is created.
-     */
-    const std::string&
-    DatabaseName() const;
-
-    /**
-     * @brief Set database name in which the collection is created.
-     */
-    void
-    SetDatabaseName(const std::string& db_name);
-
-    /**
-     * @brief Set database name in which the collection is created.
-     */
-    LoadCollectionRequest&
-    WithDatabaseName(const std::string& db_name);
-
-    /**
-     * @brief Name of the collection.
-     */
-    const std::string&
-    CollectionName() const;
-
-    /**
-     * @brief Set name of the collection.
-     */
-    void
-    SetCollectionName(const std::string& collection_name);
-
-    /**
-     * @brief Set name of the collection.
-     */
-    LoadCollectionRequest&
-    WithCollectionName(const std::string& collection_name);
 
     /**
      * @brief Sync mode.

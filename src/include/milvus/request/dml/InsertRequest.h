@@ -20,76 +20,19 @@
 #include <vector>
 
 #include "../../types/FieldData.h"
+#include "./DMLRequestBase.h"
 
 namespace milvus {
 
 /**
  * @brief Used by MilvusClientV2::Insert()
  */
-class InsertRequest {
+class InsertRequest : public DMLRequestBase<InsertRequest> {
  public:
     /**
      * @brief Constructor
      */
     InsertRequest() = default;
-
-    /**
-     * @brief Database name.
-     */
-    const std::string&
-    DatabaseName() const;
-
-    /**
-     * @brief Set database name.
-     * If database name is empty, will list collections of the default database.
-     */
-    void
-    SetDatabaseName(const std::string& db_name);
-
-    /**
-     * @brief Set database name.
-     * If database name is empty, will list collections of the default database.
-     */
-    InsertRequest&
-    WithDatabaseName(const std::string& db_name);
-
-    /**
-     * @brief Name of the collection.
-     */
-    const std::string&
-    CollectionName() const;
-
-    /**
-     * @brief Set name of the collection.
-     */
-    void
-    SetCollectionName(const std::string& collection_name);
-
-    /**
-     * @brief Set name of the collection.
-     */
-    InsertRequest&
-    WithCollectionName(const std::string& collection_name);
-
-    /**
-     * @brief Name of the partition.
-     */
-    const std::string&
-    PartitionName() const;
-
-    /**
-     * @brief Set name of the partition.
-     * If partition name is empty, it will insert data into the default partition.
-     */
-    void
-    SetPartitionName(const std::string& partition_name);
-
-    /**
-     * @brief Set new name of the partition.
-     * If partition name is empty, it will insert data into the default partition.
-     */
-    InsertRequest&
-    WithPartitionName(const std::string& partition_name);
 
     /**
      * @brief Get fields data.
@@ -146,9 +89,6 @@ class InsertRequest {
     AddRowData(EntityRow&& row_data);
 
  private:
-    std::string db_name_;
-    std::string collection_name_;
-    std::string partition_name_;
     std::vector<FieldDataPtr> columns_data_;
     EntityRows rows_data_;
 };
