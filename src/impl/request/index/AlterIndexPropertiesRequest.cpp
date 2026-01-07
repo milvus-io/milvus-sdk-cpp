@@ -20,18 +20,6 @@
 
 namespace milvus {
 
-AlterIndexPropertiesRequest&
-AlterIndexPropertiesRequest::WithDatabaseName(const std::string& db_name) {
-    SetDatabaseName(db_name);
-    return *this;
-}
-
-AlterIndexPropertiesRequest&
-AlterIndexPropertiesRequest::WithCollectionName(const std::string& collection_name) {
-    SetCollectionName(collection_name);
-    return *this;
-}
-
 const std::string&
 AlterIndexPropertiesRequest::IndexName() const {
     return index_name_;

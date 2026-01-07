@@ -18,18 +18,6 @@
 
 namespace milvus {
 
-RenameCollectionRequest&
-RenameCollectionRequest::WithDatabaseName(const std::string& db_name) {
-    SetDatabaseName(db_name);
-    return *this;
-}
-
-RenameCollectionRequest&
-RenameCollectionRequest::WithCollectionName(const std::string& collection_name) {
-    SetCollectionName(collection_name);
-    return *this;
-}
-
 const std::string&
 RenameCollectionRequest::NewCollectionName() const {
     return new_collection_name_;

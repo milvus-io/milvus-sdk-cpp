@@ -18,18 +18,6 @@
 
 namespace milvus {
 
-DropIndexRequest&
-DropIndexRequest::WithDatabaseName(const std::string& db_name) {
-    SetDatabaseName(db_name);
-    return *this;
-}
-
-DropIndexRequest&
-DropIndexRequest::WithCollectionName(const std::string& collection_name) {
-    SetCollectionName(collection_name);
-    return *this;
-}
-
 const std::string&
 DropIndexRequest::FieldName() const {
     return field_name_;

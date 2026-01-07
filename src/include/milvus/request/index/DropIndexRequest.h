@@ -23,24 +23,12 @@ namespace milvus {
 /**
  * @brief Used by MilvusClientV2::DropIndex()
  */
-class DropIndexRequest : public IndexRequestBase {
+class DropIndexRequest : public IndexRequestBase<DropIndexRequest> {
  public:
     /**
      * @brief Constructor
      */
     DropIndexRequest() = default;
-
-    /**
-     * @brief Set database name in which the collection is created.
-     */
-    DropIndexRequest&
-    WithDatabaseName(const std::string& db_name);
-
-    /**
-     * @brief Set name of the collection.
-     */
-    DropIndexRequest&
-    WithCollectionName(const std::string& collection_name);
 
     /**
      * @brief Name of the field.

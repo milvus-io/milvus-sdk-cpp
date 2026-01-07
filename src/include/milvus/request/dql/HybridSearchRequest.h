@@ -25,56 +25,12 @@ namespace milvus {
 /**
  * @brief Used by MilvusClientV2::HybridSearch()
  */
-class HybridSearchRequest : public DQLRequestBase {
+class HybridSearchRequest : public DQLRequestBase<HybridSearchRequest> {
  public:
     /**
      * @brief Constructor
      */
     HybridSearchRequest() = default;
-
-    /**
-     * @brief Set database name in which the collection is created.
-     */
-    HybridSearchRequest&
-    WithDatabaseName(const std::string& db_name);
-
-    /**
-     * @brief Set name of the collection.
-     */
-    HybridSearchRequest&
-    WithCollectionName(const std::string& collection_name);
-
-    /**
-     * @brief Set the partition names.
-     * If partition nemes are empty, will query in the entire collection.
-     */
-    HybridSearchRequest&
-    WithPartitionNames(std::set<std::string>&& partition_names);
-
-    /**
-     * @brief Add a partition name.
-     */
-    HybridSearchRequest&
-    AddPartitionName(const std::string& partition_name);
-
-    /**
-     * @brief Set the output field names.
-     */
-    HybridSearchRequest&
-    WithOutputFields(std::set<std::string>&& output_field_names);
-
-    /**
-     * @brief Add an output field.
-     */
-    HybridSearchRequest&
-    AddOutputField(const std::string& output_field);
-
-    /**
-     * @brief Set the consistency level.
-     * Read the doc for more info: https://milvus.io/docs/consistency.md#Consistency-Level
-     */
-    HybridSearchRequest&
-    WithConsistencyLevel(ConsistencyLevel consistency_level);
 
     /**
      * @brief Get sub search requests.

@@ -20,76 +20,19 @@
 #include <unordered_map>
 
 #include "../../types/IDArray.h"
+#include "./DMLRequestBase.h"
 
 namespace milvus {
 
 /**
  * @brief Used by MilvusClientV2::Delete()
  */
-class DeleteRequest {
+class DeleteRequest : public DMLRequestBase<DeleteRequest> {
  public:
     /**
      * @brief Constructor
      */
     DeleteRequest() = default;
-
-    /**
-     * @brief Database name.
-     */
-    const std::string&
-    DatabaseName() const;
-
-    /**
-     * @brief Set database name.
-     * If database name is empty, will list collections of the default database.
-     */
-    void
-    SetDatabaseName(const std::string& db_name);
-
-    /**
-     * @brief Set database name.
-     * If database name is empty, will list collections of the default database.
-     */
-    DeleteRequest&
-    WithDatabaseName(const std::string& db_name);
-
-    /**
-     * @brief Name of the collection.
-     */
-    const std::string&
-    CollectionName() const;
-
-    /**
-     * @brief Set name of the collection.
-     */
-    void
-    SetCollectionName(const std::string& collection_name);
-
-    /**
-     * @brief Set name of the collection.
-     */
-    DeleteRequest&
-    WithCollectionName(const std::string& collection_name);
-
-    /**
-     * @brief Name of the partition.
-     */
-    const std::string&
-    PartitionName() const;
-
-    /**
-     * @brief Set name of the partition.
-     * If partition name is empty, it will insert data into the default partition.
-     */
-    void
-    SetPartitionName(const std::string& partition_name);
-
-    /**
-     * @brief Set new name of the partition.
-     * If partition name is empty, it will insert data into the default partition.
-     */
-    DeleteRequest&
-    WithPartitionName(const std::string& partition_name);
 
     /**
      * @brief Get filter expression.
@@ -178,9 +121,6 @@ class DeleteRequest {
     WithIDs(std::vector<std::string>&& id_array);
 
  private:
-    std::string db_name_;
-    std::string collection_name_;
-    std::string partition_name_;
     std::string filter_;
     std::unordered_map<std::string, nlohmann::json> filter_templates_;
     IDArray ids_;

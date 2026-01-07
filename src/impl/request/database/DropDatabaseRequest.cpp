@@ -16,22 +16,4 @@
 
 #include "milvus/request/database/DropDatabaseRequest.h"
 
-namespace milvus {
-
-const std::string&
-DropDatabaseRequest::DatabaseName() const {
-    return db_name_;
-}
-
-void
-DropDatabaseRequest::SetDatabaseName(const std::string& db_name) {
-    db_name_ = db_name;
-}
-
-DropDatabaseRequest&
-DropDatabaseRequest::WithDatabaseName(const std::string& db_name) {
-    db_name_ = db_name;
-    return *this;
-}
-
-}  // namespace milvus
+namespace milvus {}  // namespace milvus

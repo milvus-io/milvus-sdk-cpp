@@ -14,38 +14,48 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "milvus/request/partition/PartitionRequestBase.h"
+#pragma once
+
+#include <string>
 
 namespace milvus {
 
-const std::string&
-PartitionRequestBase::DatabaseName() const {
-    return db_name_;
-}
+/**
+ * @brief Base class for database requests, except the ListDatabasesRequest.
+ */
+template <typename T>
+class DBRequestBase {
+ protected:
+    DBRequestBase() = default;
 
-void
-PartitionRequestBase::SetDatabaseName(const std::string& db_name) {
-    db_name_ = db_name;
-}
+ public:
+    /**
+     * @brief Get the target db name
+     */
+    const std::string&
+    DatabaseName() const {
+        return db_name_;
+    }
 
-const std::string&
-PartitionRequestBase::CollectionName() const {
-    return collection_name_;
-}
+    /**
+     * @brief Set target db name, use default database if it is empty.
+     */
+    void
+    SetDatabaseName(const std::string& db_name) {
+        db_name_ = db_name;
+    }
 
-void
-PartitionRequestBase::SetCollectionName(const std::string& collection_name) {
-    collection_name_ = collection_name;
-}
+    /**
+     * @brief Set target db name, use default database if it is empty.
+     */
+    T&
+    WithDatabaseName(const std::string& db_name) {
+        SetDatabaseName(db_name);
+        return static_cast<T&>(*this);
+    }
 
-const std::string&
-PartitionRequestBase::PartitionName() const {
-    return partition_name_;
-}
-
-void
-PartitionRequestBase::SetPartitionName(const std::string& partition_name) {
-    partition_name_ = partition_name;
-}
+ private:
+    std::string db_name_;
+};
 
 }  // namespace milvus

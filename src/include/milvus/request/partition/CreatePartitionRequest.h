@@ -25,30 +25,12 @@ namespace milvus {
 /**
  * @brief Used by MilvusClientV2::CreatePartition()
  */
-class CreatePartitionRequest : public PartitionRequestBase {
+class CreatePartitionRequest : public PartitionRequestBase<CreatePartitionRequest> {
  public:
     /**
      * @brief Constructor
      */
     CreatePartitionRequest() = default;
-
-    /**
-     * @brief Set database name in which the collection is created.
-     */
-    CreatePartitionRequest&
-    WithDatabaseName(const std::string& db_name);
-
-    /**
-     * @brief Set name of the collection.
-     */
-    CreatePartitionRequest&
-    WithCollectionName(const std::string& collection_name);
-
-    /**
-     * @brief Set new name of the collection.
-     */
-    CreatePartitionRequest&
-    WithPartitionName(const std::string& partition_name);
 };
 
 }  // namespace milvus

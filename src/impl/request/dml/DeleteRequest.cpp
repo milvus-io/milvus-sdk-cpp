@@ -21,54 +21,6 @@
 namespace milvus {
 
 const std::string&
-DeleteRequest::DatabaseName() const {
-    return db_name_;
-}
-
-void
-DeleteRequest::SetDatabaseName(const std::string& db_name) {
-    db_name_ = db_name;
-}
-
-DeleteRequest&
-DeleteRequest::WithDatabaseName(const std::string& db_name) {
-    SetDatabaseName(db_name);
-    return *this;
-}
-
-const std::string&
-DeleteRequest::CollectionName() const {
-    return collection_name_;
-}
-
-void
-DeleteRequest::SetCollectionName(const std::string& collection_name) {
-    collection_name_ = collection_name;
-}
-
-DeleteRequest&
-DeleteRequest::WithCollectionName(const std::string& collection_name) {
-    SetCollectionName(collection_name);
-    return *this;
-}
-
-const std::string&
-DeleteRequest::PartitionName() const {
-    return partition_name_;
-}
-
-void
-DeleteRequest::SetPartitionName(const std::string& partition_name) {
-    partition_name_ = partition_name;
-}
-
-DeleteRequest&
-DeleteRequest::WithPartitionName(const std::string& partition_name) {
-    SetPartitionName(partition_name);
-    return *this;
-}
-
-const std::string&
 DeleteRequest::Filter() const {
     return filter_;
 }

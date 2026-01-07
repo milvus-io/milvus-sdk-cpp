@@ -18,53 +18,19 @@
 
 #include <string>
 
+#include "./AliasRequestBase.h"
+
 namespace milvus {
 
 /**
  * @brief Used by MilvusClientV2::CreateAlias().
  */
-class CreateAliasRequest {
+class CreateAliasRequest : public AliasRequestBase<CreateAliasRequest> {
  public:
     /**
      * @brief Constructor
      */
     CreateAliasRequest() = default;
-
-    /**
-     * @brief Database name in which the collection is created.
-     */
-    const std::string&
-    DatabaseName() const;
-
-    /**
-     * @brief Set database name in which the collection is created.
-     */
-    void
-    SetDatabaseName(const std::string& db_name);
-
-    /**
-     * @brief Set database name in which the collection is created.
-     */
-    CreateAliasRequest&
-    WithDatabaseName(const std::string& db_name);
-
-    /**
-     * @brief Name of the collection.
-     */
-    const std::string&
-    CollectionName() const;
-
-    /**
-     * @brief Set name of the collection.
-     */
-    void
-    SetCollectionName(const std::string& collection_name);
-
-    /**
-     * @brief Set name of the collection.
-     */
-    CreateAliasRequest&
-    WithCollectionName(const std::string& collection_name);
 
     /**
      * @brief Set name of the alias.
@@ -85,8 +51,6 @@ class CreateAliasRequest {
     WithAlias(const std::string& alias);
 
  protected:
-    std::string db_name_;
-    std::string collection_name_;
     std::string alias_;
 };
 

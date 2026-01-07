@@ -120,16 +120,19 @@ main(int argc, char* argv[]) {
 
     {
         // search
+        std::vector<std::vector<float>> query_vectors = {
+            rows[pk_1][field_vec_fp16].get<std::vector<float>>(),
+            rows[pk_2][field_vec_fp16].get<std::vector<float>>(),
+        };
         auto request =
             milvus::SearchRequest()
                 .WithCollectionName(collection_name)
                 .WithLimit(3)
                 .WithAnnsField(field_vec_fp16)
                 .AddOutputField(field_vec_fp16)
+                .WithFloat16Vectors(query_vectors)
                 // set to BOUNDED level to accept data inconsistence within a time window(default is 5 seconds)
-                .WithConsistencyLevel(milvus::ConsistencyLevel::BOUNDED)
-                .AddFloat16Vector(rows[pk_1][field_vec_fp16].get<std::vector<float>>())
-                .AddFloat16Vector(rows[pk_2][field_vec_fp16].get<std::vector<float>>());
+                .WithConsistencyLevel(milvus::ConsistencyLevel::BOUNDED);
         std::cout << "Searching the No." << pk_1 << " and No." << pk_2 << " vectors." << std::endl;
 
         milvus::SearchResponse response;

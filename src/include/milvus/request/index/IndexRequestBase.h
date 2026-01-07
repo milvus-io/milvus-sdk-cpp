@@ -23,6 +23,7 @@ namespace milvus {
 /**
  * @brief Base class of index requests.
  */
+template <typename T>
 class IndexRequestBase {
  protected:
     /**
@@ -32,28 +33,54 @@ class IndexRequestBase {
 
  public:
     /**
-     * @brief Database name in which the collection is created.
+     * @brief Get the target db name
      */
     const std::string&
-    DatabaseName() const;
+    DatabaseName() const {
+        return db_name_;
+    }
 
     /**
-     * @brief Set database name in which the collection is created.
+     * @brief Set target db name, use default database if it is empty.
      */
     void
-    SetDatabaseName(const std::string& db_name);
+    SetDatabaseName(const std::string& db_name) {
+        db_name_ = db_name;
+    }
 
     /**
-     * @brief Name of the collection.
+     * @brief Set target db name, use default database if it is empty.
+     */
+    T&
+    WithDatabaseName(const std::string& db_name) {
+        SetDatabaseName(db_name);
+        return static_cast<T&>(*this);
+    }
+
+    /**
+     * @brief Get the collection name.
      */
     const std::string&
-    CollectionName() const;
+    CollectionName() const {
+        return collection_name_;
+    }
+
+    /**
+     * @brief Set the collection name.
+     */
+    void
+    SetCollectionName(const std::string& collection_name) {
+        collection_name_ = collection_name;
+    }
 
     /**
      * @brief Set name of the collection.
      */
-    void
-    SetCollectionName(const std::string& collection_name);
+    T&
+    WithCollectionName(const std::string& collection_name) {
+        SetCollectionName(collection_name);
+        return static_cast<T&>(*this);
+    }
 
  protected:
     std::string db_name_;
