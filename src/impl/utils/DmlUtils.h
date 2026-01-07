@@ -81,7 +81,7 @@ Status
 CheckAndSetFieldValue(const nlohmann::json& obj, const FieldSchema& fs, proto::schema::FieldData& fd);
 
 Status
-CheckAndSetRowData(const EntityRows& rows, const CollectionSchema& schema, bool is_upsert,
+CheckAndSetRowData(const EntityRows& rows, const CollectionSchema& schema, bool partial_upsert,
                    std::vector<proto::schema::FieldData>& rpc_fields);
 
 }  // namespace milvus
