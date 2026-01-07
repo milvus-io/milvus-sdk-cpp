@@ -62,4 +62,20 @@ UpsertRequest::AddRowData(EntityRow&& row_data) {
     return *this;
 }
 
+bool
+UpsertRequest::PartialUpdate() const {
+    return partial_update_;
+}
+
+void
+UpsertRequest::SetPartialUpdate(bool partial_update) {
+    partial_update_ = partial_update;
+}
+
+UpsertRequest&
+UpsertRequest::WithPartialUpdate(bool partial_update) {
+    partial_update_ = partial_update;
+    return *this;
+}
+
 }  // namespace milvus

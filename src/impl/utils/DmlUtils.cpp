@@ -605,7 +605,7 @@ CreateProtoArrayField(const FieldDataSchema& data_schema, proto::schema::FieldDa
 
 Status
 ProcessNormalFieldValues(const EntityRow& row, const std::vector<FieldSchema>& normal_fields,
-                         const std::set<std::string>& output_fields, bool is_upsert,
+                         const std::set<std::string>& output_fields, bool partial_upsert,
                          std::map<std::string, proto::schema::FieldData>& proto_fields) {
     for (const auto& field_schema : normal_fields) {
         const std::string& name = field_schema.Name();
@@ -613,13 +613,18 @@ ProcessNormalFieldValues(const EntityRow& row, const std::vector<FieldSchema>& n
         if (row.contains(name)) {
             field_value = row[name];
         } else {
-            // if the field is auto-id, no need to provide value for insert, require to provide for upsert
-            if ((field_schema.IsPrimaryKey() && field_schema.AutoID()) && !is_upsert) {
+            // if the field is auto-id, no need to provide value
+            if (field_schema.IsPrimaryKey() && field_schema.AutoID()) {
                 continue;
             }
 
             // if the field is an output field of doc-in-doc-out, no need to provide value
             if (output_fields.find(name) != output_fields.end()) {
+                continue;
+            }
+
+            // in v2.6.1 support partial update, user can input partial fields
+            if (partial_upsert) {
                 continue;
             }
 
@@ -630,9 +635,8 @@ ProcessNormalFieldValues(const EntityRow& row, const std::vector<FieldSchema>& n
         }
 
         // from v2.4.10, milvus allows upsert for auto-id pk, no need to check for upsert action
-        if (field_schema.IsPrimaryKey() && field_schema.AutoID() && !is_upsert) {
-            return {StatusCode::INVALID_AGUMENT, "The primary key: " + name + " is auto generated, no need to input."};
-        }
+        // from v2.6.3, user can insert pk value even when auto-id is true if the collection
+        // has "allow_insert_auto_id" property, no need to check for insert/upsert action.
 
         proto::schema::FieldData& fd = proto_fields[name];
         auto status = CheckAndSetFieldValue(field_value, field_schema, fd);
@@ -1322,7 +1326,7 @@ CheckAndSetFieldValue(const nlohmann::json& obj, const FieldSchema& fs, proto::s
 }
 
 Status
-CheckAndSetRowData(const EntityRows& rows, const CollectionSchema& schema, bool is_upsert,
+CheckAndSetRowData(const EntityRows& rows, const CollectionSchema& schema, bool partial_upsert,
                    std::vector<proto::schema::FieldData>& rpc_fields) {
     std::set<std::string> output_fields;
     GetOutputFields(schema, output_fields);
@@ -1354,7 +1358,7 @@ CheckAndSetRowData(const EntityRows& rows, const CollectionSchema& schema, bool 
         }
 
         // process values for normal fields
-        auto status = ProcessNormalFieldValues(row, normal_fields, output_fields, is_upsert, proto_fields);
+        auto status = ProcessNormalFieldValues(row, normal_fields, output_fields, partial_upsert, proto_fields);
         if (!status.IsOk()) {
             return status;
         }
