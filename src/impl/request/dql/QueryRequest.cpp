@@ -22,48 +22,6 @@
 
 namespace milvus {
 
-QueryRequest&
-QueryRequest::WithDatabaseName(const std::string& db_name) {
-    SetDatabaseName(db_name);
-    return *this;
-}
-
-QueryRequest&
-QueryRequest::WithCollectionName(const std::string& collection_name) {
-    SetCollectionName(collection_name);
-    return *this;
-}
-
-QueryRequest&
-QueryRequest::WithPartitionNames(std::set<std::string>&& partition_names) {
-    SetPartitionNames(std::move(partition_names));
-    return *this;
-}
-
-QueryRequest&
-QueryRequest::AddPartitionName(const std::string& partition_name) {
-    DQLRequestBase::AddPartitionName(partition_name);
-    return *this;
-}
-
-QueryRequest&
-QueryRequest::WithOutputFields(std::set<std::string>&& output_field_names) {
-    SetOutputFields(std::move(output_field_names));
-    return *this;
-}
-
-QueryRequest&
-QueryRequest::AddOutputField(const std::string& output_field) {
-    DQLRequestBase::AddOutputField(output_field);
-    return *this;
-}
-
-QueryRequest&
-QueryRequest::WithConsistencyLevel(ConsistencyLevel consistency_level) {
-    SetConsistencyLevel(consistency_level);
-    return *this;
-}
-
 const std::string&
 QueryRequest::Filter() const {
     return filter_;

@@ -16,24 +16,4 @@
 
 #include "milvus/request/partition/HasPartitionRequest.h"
 
-namespace milvus {
-
-HasPartitionRequest&
-HasPartitionRequest::WithDatabaseName(const std::string& db_name) {
-    SetDatabaseName(db_name);
-    return *this;
-}
-
-HasPartitionRequest&
-HasPartitionRequest::WithCollectionName(const std::string& collection_name) {
-    SetCollectionName(collection_name);
-    return *this;
-}
-
-HasPartitionRequest&
-HasPartitionRequest::WithPartitionName(const std::string& partition_name) {
-    SetPartitionName(partition_name);
-    return *this;
-}
-
-}  // namespace milvus
+namespace milvus {}  // namespace milvus

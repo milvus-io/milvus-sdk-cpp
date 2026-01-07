@@ -16,24 +16,4 @@
 
 #include "milvus/request/partition/DropPartitionRequest.h"
 
-namespace milvus {
-
-DropPartitionRequest&
-DropPartitionRequest::WithDatabaseName(const std::string& db_name) {
-    SetDatabaseName(db_name);
-    return *this;
-}
-
-DropPartitionRequest&
-DropPartitionRequest::WithCollectionName(const std::string& collection_name) {
-    SetCollectionName(collection_name);
-    return *this;
-}
-
-DropPartitionRequest&
-DropPartitionRequest::WithPartitionName(const std::string& partition_name) {
-    SetPartitionName(partition_name);
-    return *this;
-}
-
-}  // namespace milvus
+namespace milvus {}  // namespace milvus

@@ -20,18 +20,6 @@
 
 namespace milvus {
 
-CreateIndexRequest&
-CreateIndexRequest::WithDatabaseName(const std::string& db_name) {
-    SetDatabaseName(db_name);
-    return *this;
-}
-
-CreateIndexRequest&
-CreateIndexRequest::WithCollectionName(const std::string& collection_name) {
-    SetCollectionName(collection_name);
-    return *this;
-}
-
 const std::vector<IndexDesc>&
 CreateIndexRequest::Indexes() const {
     return indexes_;

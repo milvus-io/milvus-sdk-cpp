@@ -50,6 +50,11 @@ template <>
 struct DataTypeTraits<DataType::BFLOAT16_VECTOR> {
     static const bool is_vector = true;
 };
+
+template <>
+struct DataTypeTraits<DataType::INT8_VECTOR> {
+    static const bool is_vector = true;
+};
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
 template <typename T, DataType Dt, std::enable_if_t<!DataTypeTraits<Dt>::is_vector, bool> = true>

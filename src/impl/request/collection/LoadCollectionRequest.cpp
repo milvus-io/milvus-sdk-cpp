@@ -18,38 +18,6 @@
 
 namespace milvus {
 
-const std::string&
-LoadCollectionRequest::DatabaseName() const {
-    return db_name_;
-}
-
-void
-LoadCollectionRequest::SetDatabaseName(const std::string& db_name) {
-    db_name_ = db_name;
-}
-
-LoadCollectionRequest&
-LoadCollectionRequest::WithDatabaseName(const std::string& db_name) {
-    SetDatabaseName(db_name);
-    return *this;
-}
-
-const std::string&
-LoadCollectionRequest::CollectionName() const {
-    return collection_name_;
-}
-
-void
-LoadCollectionRequest::SetCollectionName(const std::string& collection_name) {
-    collection_name_ = collection_name;
-}
-
-LoadCollectionRequest&
-LoadCollectionRequest::WithCollectionName(const std::string& collection_name) {
-    SetCollectionName(collection_name);
-    return *this;
-}
-
 bool
 LoadCollectionRequest::Sync() const {
     return sync_;

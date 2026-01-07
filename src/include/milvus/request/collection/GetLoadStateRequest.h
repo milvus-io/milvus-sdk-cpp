@@ -25,24 +25,12 @@ namespace milvus {
 /**
  * @brief Used by MilvusClientV2::GetLoadState()
  */
-class GetLoadStateRequest : public CollectionRequestBase {
+class GetLoadStateRequest : public CollectionRequestBase<GetLoadStateRequest> {
  public:
     /**
      * @brief Constructor
      */
     GetLoadStateRequest() = default;
-
-    /**
-     * @brief Set database name in which the collection is created.
-     */
-    GetLoadStateRequest&
-    WithDatabaseName(const std::string& db_name);
-
-    /**
-     * @brief Set name of the collection.
-     */
-    GetLoadStateRequest&
-    WithCollectionName(const std::string& collection_name);
 
     /**
      * @brief Get partition names to get load state.

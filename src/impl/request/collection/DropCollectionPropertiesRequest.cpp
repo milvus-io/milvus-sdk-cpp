@@ -20,18 +20,6 @@
 
 namespace milvus {
 
-DropCollectionPropertiesRequest&
-DropCollectionPropertiesRequest::WithDatabaseName(const std::string& db_name) {
-    SetDatabaseName(db_name);
-    return *this;
-}
-
-DropCollectionPropertiesRequest&
-DropCollectionPropertiesRequest::WithCollectionName(const std::string& collection_name) {
-    SetCollectionName(collection_name);
-    return *this;
-}
-
 const std::set<std::string>&
 DropCollectionPropertiesRequest::PropertyKeys() const {
     return property_keys_;

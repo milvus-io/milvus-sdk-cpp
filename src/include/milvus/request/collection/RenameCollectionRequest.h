@@ -25,24 +25,12 @@ namespace milvus {
 /**
  * @brief Used by MilvusClientV2::RenameCollection()
  */
-class RenameCollectionRequest : public CollectionRequestBase {
+class RenameCollectionRequest : public CollectionRequestBase<RenameCollectionRequest> {
  public:
     /**
      * @brief Constructor
      */
     RenameCollectionRequest() = default;
-
-    /**
-     * @brief Set database name in which the collection is created.
-     */
-    RenameCollectionRequest&
-    WithDatabaseName(const std::string& db_name);
-
-    /**
-     * @brief Set name of the collection.
-     */
-    RenameCollectionRequest&
-    WithCollectionName(const std::string& collection_name);
 
     /**
      * @brief New name of the collection.

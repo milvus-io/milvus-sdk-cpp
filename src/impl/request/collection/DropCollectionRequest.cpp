@@ -16,18 +16,4 @@
 
 #include "milvus/request/collection/DropCollectionRequest.h"
 
-namespace milvus {
-
-DropCollectionRequest&
-DropCollectionRequest::WithDatabaseName(const std::string& db_name) {
-    SetDatabaseName(db_name);
-    return *this;
-}
-
-DropCollectionRequest&
-DropCollectionRequest::WithCollectionName(const std::string& collection_name) {
-    SetCollectionName(collection_name);
-    return *this;
-}
-
-}  // namespace milvus
+namespace milvus {}  // namespace milvus

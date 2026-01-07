@@ -21,15 +21,15 @@
 namespace milvus {
 
 /**
- * @brief Base class of collection requests except CreateCollectionRequest and ListCollectionsRequest.
+ * @brief Base class of alias requests except DropAliasRequest, DescribeAliasRequest and ListAliasesRequest.
  */
 template <typename T>
-class CollectionRequestBase {
+class AliasRequestBase {
  protected:
     /**
      * @brief Constructor
      */
-    CollectionRequestBase() = default;
+    AliasRequestBase() = default;
 
  public:
     /**

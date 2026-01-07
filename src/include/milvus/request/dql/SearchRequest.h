@@ -25,56 +25,12 @@ namespace milvus {
 /**
  * @brief Used by MilvusClientV2::Search()
  */
-class SearchRequest : public DQLRequestBase, public SearchRequestBase {
+class SearchRequest : public DQLRequestBase<SearchRequest>, public SearchRequestVectorAssigner<SearchRequest> {
  public:
     /**
      * @brief Constructor
      */
     SearchRequest() = default;
-
-    /**
-     * @brief Set database name in which the collection is created.
-     */
-    SearchRequest&
-    WithDatabaseName(const std::string& db_name);
-
-    /**
-     * @brief Set name of the collection.
-     */
-    SearchRequest&
-    WithCollectionName(const std::string& collection_name);
-
-    /**
-     * @brief Set the partition names.
-     * If partition nemes are empty, will query in the entire collection.
-     */
-    SearchRequest&
-    WithPartitionNames(std::set<std::string>&& partition_names);
-
-    /**
-     * @brief Add a partition name.
-     */
-    SearchRequest&
-    AddPartitionName(const std::string& partition_name);
-
-    /**
-     * @brief Set the output field names.
-     */
-    SearchRequest&
-    WithOutputFields(std::set<std::string>&& output_field_names);
-
-    /**
-     * @brief Add an output field.
-     */
-    SearchRequest&
-    AddOutputField(const std::string& output_field);
-
-    /**
-     * @brief Set the consistency level.
-     * Read the doc for more info: https://milvus.io/docs/consistency.md#Consistency-Level
-     */
-    SearchRequest&
-    WithConsistencyLevel(ConsistencyLevel consistency_level);
 
     /**
      * @brief Specifies the metric type.
@@ -144,14 +100,14 @@ class SearchRequest : public DQLRequestBase, public SearchRequestBase {
 
     /**
      * @brief Set offset value.
-     * Note: this value is stored in the SubSearchRequest::ExtraParams.
+     * Note: this value is stored in the ExtraParams.
      */
     void
     SetOffset(int64_t offset);
 
     /**
      * @brief Set offset value.
-     * Note: this value is stored in the SubSearchRequest::ExtraParams.
+     * Note: this value is stored in the ExtraParams.
      */
     SearchRequest&
     WithOffset(int64_t offset);
@@ -276,84 +232,6 @@ class SearchRequest : public DQLRequestBase, public SearchRequestBase {
      */
     SearchRequest&
     WithTimezone(const std::string& timezone);
-
-    /**
-     * @brief Add a binary vector to search.
-     */
-    SearchRequest&
-    AddBinaryVector(const std::string& vector);
-
-    /**
-     * @brief Add a binary vector to search.
-     */
-    SearchRequest&
-    AddBinaryVector(const BinaryVecFieldData::ElementT& vector);
-
-    /**
-     * @brief Add a float vector to search.
-     */
-    SearchRequest&
-    AddFloatVector(const FloatVecFieldData::ElementT& vector);
-
-    /**
-     * @brief Add a sparse vector to search.
-     */
-    SearchRequest&
-    AddSparseVector(const SparseFloatVecFieldData::ElementT& vector);
-
-    /**
-     * @brief Add a sparse vector to search.
-     * We support two patterns of sparse vector:
-     *  1. a json dict like {"1": 0.1, "5": 0.2, "8": 0.15}.
-     *  2. a json dict like {"indices": [1, 5, 8], "values": [0.1, 0.2, 0.15]}.
-     */
-    SearchRequest&
-    AddSparseVector(const nlohmann::json& vector);
-
-    /**
-     * @brief Add a float16 vector to search.
-     */
-    SearchRequest&
-    AddFloat16Vector(const Float16VecFieldData::ElementT& vector);
-
-    /**
-     * @brief Add a float16 vector to search.
-     * This method automatically converts the float array to float16 binary.
-     */
-    SearchRequest&
-    AddFloat16Vector(const std::vector<float>& vector);
-
-    /**
-     * @brief Add a bfloat16 vector to search.
-     */
-    SearchRequest&
-    AddBFloat16Vector(const BFloat16VecFieldData::ElementT& vector);
-
-    /**
-     * @brief Add a bfloat16 vector to search.
-     * This method automatically converts the float array to bfloat16 binary.
-     */
-    SearchRequest&
-    AddBFloat16Vector(const std::vector<float>& vector);
-
-    /**
-     * @brief Add a text to search. Only works for BM25 function.
-     * Read the doc for more info: https://milvus.io/docs/full-text-search.md#Full-Text-Search
-     */
-    SearchRequest&
-    AddEmbeddedText(const std::string& text);
-
-    /**
-     * @brief Add an int8 vector to search.
-     */
-    SearchRequest&
-    AddInt8Vector(const Int8VecFieldData::ElementT& vector);
-
-    /**
-     * @brief Add an embedding list to search on struct field.
-     */
-    SearchRequest&
-    AddEmbeddingList(EmbeddingList&& emb_list);
 
  private:
     FunctionScorePtr ranker_;

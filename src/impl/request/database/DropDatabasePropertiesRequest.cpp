@@ -20,22 +20,6 @@
 
 namespace milvus {
 
-const std::string&
-DropDatabasePropertiesRequest::DatabaseName() const {
-    return db_name_;
-}
-
-void
-DropDatabasePropertiesRequest::SetDatabaseName(const std::string& db_name) {
-    db_name_ = db_name;
-}
-
-DropDatabasePropertiesRequest&
-DropDatabasePropertiesRequest::WithDatabaseName(const std::string& db_name) {
-    SetDatabaseName(db_name);
-    return *this;
-}
-
 const std::set<std::string>&
 DropDatabasePropertiesRequest::PropertyKeys() const {
     return property_keys_;
