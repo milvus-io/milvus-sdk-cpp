@@ -199,6 +199,9 @@ class MilvusClientV2Impl : public MilvusClientV2 {
     Query(const QueryRequest& request, QueryResponse& response) final;
 
     Status
+    Get(const GetRequest& request, GetResponse& response) final;
+
+    Status
     QueryIterator(QueryIteratorRequest& request, QueryIteratorPtr& response) final;
 
     Status

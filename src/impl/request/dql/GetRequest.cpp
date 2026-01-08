@@ -14,38 +14,37 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#pragma once
+#include "milvus/request/dql/GetRequest.h"
 
-#include "../../types/QueryResults.h"
+#include <memory>
 
 namespace milvus {
 
-/**
- * @brief Used by MilvusClientV2::Query()
- */
-class QueryResponse {
- public:
-    /**
-     * @brief Constructor
-     */
-    QueryResponse() = default;
+const IDArray&
+GetRequest::IDs() const {
+    return ids_;
+}
 
-    /**
-     * @brief Get result of query operation.
-     */
-    const QueryResults&
-    Results() const;
+void
+GetRequest::SetIDs(std::vector<int64_t>&& id_array) {
+    ids_ = IDArray(std::move(id_array));
+}
 
-    /**
-     * @brief Set result of query operation.
-     */
-    void
-    SetResults(QueryResults&& results);
+void
+GetRequest::SetIDs(std::vector<std::string>&& id_array) {
+    ids_ = IDArray(std::move(id_array));
+}
 
- private:
-    QueryResults results_;
-};
+GetRequest&
+GetRequest::WithIDs(std::vector<int64_t>&& id_array) {
+    SetIDs(std::move(id_array));
+    return *this;
+}
 
-using GetResponse = QueryResponse;
+GetRequest&
+GetRequest::WithIDs(std::vector<std::string>&& id_array) {
+    SetIDs(std::move(id_array));
+    return *this;
+}
 
 }  // namespace milvus
