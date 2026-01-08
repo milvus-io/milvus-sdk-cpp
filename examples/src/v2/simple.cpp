@@ -62,22 +62,46 @@ main(int argc, char* argv[]) {
     std::cout << resp_insert.Results().InsertCount() << " rows inserted by row-based." << std::endl;
 
     // search
-    auto request = milvus::SearchRequest()
-                       .WithCollectionName(collection_name)
-                       .WithLimit(3)
-                       .WithAnnsField(field_vector)
-                       .AddFloatVector(util::GenerateFloatVector(dimension))
-                       .WithConsistencyLevel(milvus::ConsistencyLevel::STRONG);
+    {
+        auto request = milvus::SearchRequest()
+                           .WithCollectionName(collection_name)
+                           .WithLimit(3)
+                           .WithAnnsField(field_vector)
+                           .AddFloatVector(util::GenerateFloatVector(dimension))
+                           .WithConsistencyLevel(milvus::ConsistencyLevel::STRONG);
 
-    milvus::SearchResponse response;
-    status = client->Search(request, response);
-    util::CheckStatus("search", status);
+        milvus::SearchResponse response;
+        status = client->Search(request, response);
+        util::CheckStatus("search", status);
 
-    for (auto& result : response.Results().Results()) {
-        std::cout << "Result of one target vector:" << std::endl;
+        for (auto& result : response.Results().Results()) {
+            std::cout << "Result of one target vector:" << std::endl;
+            milvus::EntityRows output_rows;
+            status = result.OutputRows(output_rows);
+            util::CheckStatus("get output rows", status);
+            for (const auto& row : output_rows) {
+                std::cout << "\t" << row << std::endl;
+            }
+        }
+    }
+
+    // get records by ids
+    {
+        std::vector<int64_t> ids = {5, 1, 10, 8};
+        auto request = milvus::GetRequest()
+                           .WithCollectionName(collection_name)
+                           .WithIDs(std::move(ids))
+                           .AddOutputField(field_vector);
+
+        milvus::GetResponse response;
+        status = client->Get(request, response);
+        util::CheckStatus("get", status);
+
+        auto query_results = response.Results();
         milvus::EntityRows output_rows;
-        status = result.OutputRows(output_rows);
+        status = query_results.OutputRows(output_rows);
         util::CheckStatus("get output rows", status);
+        std::cout << "Get results:" << std::endl;
         for (const auto& row : output_rows) {
             std::cout << "\t" << row << std::endl;
         }

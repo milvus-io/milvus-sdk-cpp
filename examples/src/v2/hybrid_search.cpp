@@ -55,12 +55,11 @@ main(int argc, char* argv[]) {
     util::CheckStatus("create collection: " + collection_name, status);
 
     // create index
-    milvus::IndexDesc index_dense(field_dense, "", milvus::IndexType::DISKANN, milvus::MetricType::COSINE);
-    milvus::IndexDesc index_sparse(field_sparse, "", milvus::IndexType::SPARSE_INVERTED_INDEX, milvus::MetricType::IP);
-    status = client->CreateIndex(milvus::CreateIndexRequest()
-                                     .WithCollectionName(collection_name)
-                                     .AddIndex(std::move(index_dense))
-                                     .AddIndex(std::move(index_sparse)));
+    std::vector<milvus::IndexDesc> indexes = {
+        milvus::IndexDesc(field_dense, "", milvus::IndexType::DISKANN, milvus::MetricType::COSINE),
+        milvus::IndexDesc(field_sparse, "", milvus::IndexType::SPARSE_INVERTED_INDEX, milvus::MetricType::IP)};
+    status = client->CreateIndex(
+        milvus::CreateIndexRequest().WithCollectionName(collection_name).WithIndexes(std::move(indexes)));
     util::CheckStatus("create indexes on collection", status);
 
     // tell server prepare to load collection
@@ -102,35 +101,32 @@ main(int argc, char* argv[]) {
 
     {
         // do hybrid search
-        auto request =
-            milvus::HybridSearchRequest()
-                .WithCollectionName(collection_name)
-                .WithLimit(10)
-                .AddOutputField(field_flag)
-                .AddOutputField(field_text)
-                // .AddOutputField(field_sparse)
-                // set to BOUNDED level to accept data inconsistence within a time window(default is 5 seconds)
-                .WithConsistencyLevel(milvus::ConsistencyLevel::BOUNDED);
-
-        // sub search request 1 for dense vector
         auto sub_req1 = milvus::SubSearchRequest()
                             .WithLimit(5)
                             .WithAnnsField(field_dense)
                             .WithFilter(field_flag + " == 5")
                             .AddFloatVector(util::GenerateFloatVector(dimension));
-        request.AddSubRequest(std::make_shared<milvus::SubSearchRequest>(std::move(sub_req1)));
 
-        // sub search request 2 for sparse vector
         auto sub_req2 = milvus::SubSearchRequest()
                             .WithLimit(15)
                             .WithAnnsField(field_sparse)
                             .WithFilter(field_flag + " in [1, 3]")
                             .AddSparseVector(util::GenerateSparseVector(50));
-        request.AddSubRequest(std::make_shared<milvus::SubSearchRequest>(std::move(sub_req2)));
 
-        // define reranker
         auto reranker = std::make_shared<milvus::WeightedRerank>(std::vector<float>{0.5, 0.5});
-        request.SetRerank(reranker);
+
+        auto request =
+            milvus::HybridSearchRequest()
+                .WithCollectionName(collection_name)
+                .WithLimit(10)
+                .AddSubRequest(std::make_shared<milvus::SubSearchRequest>(std::move(sub_req1)))
+                .AddSubRequest(std::make_shared<milvus::SubSearchRequest>(std::move(sub_req2)))
+                .WithRerank(reranker)
+                .AddOutputField(field_flag)
+                .AddOutputField(field_text)
+                // .AddOutputField(field_sparse)
+                // set to BOUNDED level to accept data inconsistence within a time window(default is 5 seconds)
+                .WithConsistencyLevel(milvus::ConsistencyLevel::BOUNDED);
 
         milvus::SearchResponse response;
         status = client->HybridSearch(request, response);
