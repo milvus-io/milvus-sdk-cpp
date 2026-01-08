@@ -1088,7 +1088,12 @@ ConvertSearchResults(const proto::milvus::SearchResults& rpc_results, const std:
         offset += item_topk;
     }
 
-    results = SearchResults(std::move(single_results));
+    std::vector<float> recalls;
+    for (auto recall : result_data.recalls()) {
+        recalls.push_back(recall);
+    }
+
+    results = SearchResults(std::move(single_results)).WithRecalls(std::move(recalls));
     return Status::OK();
 }
 

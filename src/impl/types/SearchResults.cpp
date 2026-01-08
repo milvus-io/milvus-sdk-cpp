@@ -164,4 +164,15 @@ SearchResults::Results() const {
     return nq_results_;
 }
 
+const std::vector<float>&
+SearchResults::Recalls() const {
+    return recalls_;
+}
+
+SearchResults&
+SearchResults::WithRecalls(std::vector<float>&& recalls) {
+    recalls_ = std::move(recalls);
+    return *this;
+}
+
 }  // namespace milvus

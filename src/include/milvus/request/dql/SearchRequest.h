@@ -194,6 +194,20 @@ class SearchRequest : public DQLRequestBase<SearchRequest>, public SearchRequest
      */
     SearchRequest&
     WithStrictGroupSize(bool strict_group_size);
+
+    /**
+     * @brief Set range radius.
+     * Note: this value is stored in the ExtraParams.
+     */
+    SearchRequest&
+    WithRadius(double radius);
+
+    /**
+     * @brief Set range filter.
+     * Note: this value is stored in the ExtraParams.
+     */
+    SearchRequest&
+    WithRangeFilter(double filter);
 };
 
 }  // namespace milvus

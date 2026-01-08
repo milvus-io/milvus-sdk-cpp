@@ -1319,7 +1319,7 @@ MilvusClientV2Impl::Search(const SearchRequest& request, SearchResponse& respons
             CollectionDescPtr collection_desc;
             getCollectionDesc(request.DatabaseName(), request.CollectionName(), false, collection_desc);
             if (collection_desc != nullptr) {
-                pk_name = collection_desc->Schema().Name();
+                pk_name = collection_desc->Schema().PrimaryFieldName();
             }
         }
         auto status = ConvertSearchResults(rpc_response, pk_name, results);
@@ -1422,7 +1422,7 @@ MilvusClientV2Impl::HybridSearch(const HybridSearchRequest& request, HybridSearc
             CollectionDescPtr collection_desc;
             getCollectionDesc(request.DatabaseName(), request.CollectionName(), false, collection_desc);
             if (collection_desc != nullptr) {
-                pk_name = collection_desc->Schema().Name();
+                pk_name = collection_desc->Schema().PrimaryFieldName();
             }
         }
         auto status = ConvertSearchResults(rpc_response, pk_name, results);
@@ -1450,6 +1450,44 @@ MilvusClientV2Impl::Query(const QueryRequest& request, QueryResponse& response) 
 
     return connection_.Invoke<proto::milvus::QueryRequest, proto::milvus::QueryResults>(pre, &MilvusConnection::Query,
                                                                                         post);
+}
+
+Status
+MilvusClientV2Impl::Get(const GetRequest& request, GetResponse& response) {
+    CollectionDescPtr collection_desc;
+    auto status = getCollectionDesc(request.DatabaseName(), request.CollectionName(), false, collection_desc);
+    if (!status.IsOk()) {
+        return status;
+    }
+    if (collection_desc == nullptr) {
+        return {StatusCode::UNKNOWN_ERROR, "Unable to get collection schema"};
+    }
+    auto pk_name = collection_desc->Schema().PrimaryFieldName();
+
+    nlohmann::json filter_template;
+    const auto& id_array = request.IDs();
+    if (id_array.IsIntegerID()) {
+        filter_template = id_array.IntIDArray();
+    } else {
+        filter_template = id_array.StrIDArray();
+    }
+
+    std::set<std::string> partition_names = request.PartitionNames();  // this is a copy
+    std::set<std::string> output_fields = request.OutputFields();      // this is a copy
+
+    // use filter template to pass the id array
+    static const std::string ids_key = "pks_to_get";
+    auto filter = pk_name + " in {" + ids_key + "}";
+    auto actual_request = QueryRequest()
+                              .WithDatabaseName(request.DatabaseName())
+                              .WithCollectionName(request.CollectionName())
+                              .WithPartitionNames(std::move(partition_names))
+                              .WithConsistencyLevel(request.GetConsistencyLevel())
+                              .WithFilter(filter)
+                              .AddFilterTemplate(ids_key, filter_template)
+                              .WithOutputFields(std::move(output_fields));
+
+    return Query(actual_request, response);
 }
 
 Status
