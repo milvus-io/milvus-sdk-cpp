@@ -16,36 +16,60 @@
 
 #pragma once
 
-#include "../../types/QueryResults.h"
+#include <nlohmann/json.hpp>
+#include <unordered_map>
+
+#include "../../types/IDArray.h"
+#include "./DQLRequestBase.h"
 
 namespace milvus {
 
 /**
- * @brief Used by MilvusClientV2::Query()
+ * @brief Used by MilvusClientV2::Get()
  */
-class QueryResponse {
+class GetRequest : public DQLRequestBase<GetRequest> {
  public:
     /**
      * @brief Constructor
      */
-    QueryResponse() = default;
+    GetRequest() = default;
 
     /**
-     * @brief Get result of query operation.
+     * @brief Get id array.
      */
-    const QueryResults&
-    Results() const;
+    const IDArray&
+    IDs() const;
 
     /**
-     * @brief Set result of query operation.
+     * @brief Set id array.
+     * Note: this method will reset the id array.
      */
     void
-    SetResults(QueryResults&& results);
+    SetIDs(std::vector<int64_t>&& id_array);
+
+    /**
+     * @brief Set id array.
+     * Note: this method will reset the id array.
+     */
+    void
+    SetIDs(std::vector<std::string>&& id_array);
+
+    /**
+     * @brief Set id array.
+     * Note: this method will reset the id array.
+     */
+    GetRequest&
+    WithIDs(std::vector<int64_t>&& id_array);
+
+    /**
+     * @brief Set id array.
+     * Note: this method will reset the id array.
+     */
+    GetRequest&
+    WithIDs(std::vector<std::string>&& id_array);
 
  private:
-    QueryResults results_;
+    IDArray ids_;
 };
-
-using GetResponse = QueryResponse;
 
 }  // namespace milvus
