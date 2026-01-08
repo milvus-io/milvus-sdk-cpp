@@ -25,24 +25,12 @@ namespace milvus {
 /**
  * @brief Used by MilvusClientV2::AlterIndexProperties()
  */
-class AlterIndexPropertiesRequest : public IndexRequestBase {
+class AlterIndexPropertiesRequest : public IndexRequestBase<AlterIndexPropertiesRequest> {
  public:
     /**
      * @brief Constructor
      */
     AlterIndexPropertiesRequest() = default;
-
-    /**
-     * @brief Set database name in which the collection is created.
-     */
-    AlterIndexPropertiesRequest&
-    WithDatabaseName(const std::string& db_name);
-
-    /**
-     * @brief Set name of the collection.
-     */
-    AlterIndexPropertiesRequest&
-    WithCollectionName(const std::string& collection_name);
 
     /**
      * @brief Name of the index.

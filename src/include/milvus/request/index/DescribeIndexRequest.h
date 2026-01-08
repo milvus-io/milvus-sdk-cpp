@@ -23,24 +23,12 @@ namespace milvus {
 /**
  * @brief Used by MilvusClientV2::DescribeIndex()
  */
-class DescribeIndexRequest : public IndexRequestBase {
+class DescribeIndexRequest : public IndexRequestBase<DescribeIndexRequest> {
  public:
     /**
      * @brief Constructor
      */
     DescribeIndexRequest() = default;
-
-    /**
-     * @brief Set database name in which the collection is created.
-     */
-    DescribeIndexRequest&
-    WithDatabaseName(const std::string& db_name);
-
-    /**
-     * @brief Set name of the collection.
-     */
-    DescribeIndexRequest&
-    WithCollectionName(const std::string& collection_name);
 
     /**
      * @brief Name of the field.

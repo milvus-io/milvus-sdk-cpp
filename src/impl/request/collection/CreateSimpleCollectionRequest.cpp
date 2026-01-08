@@ -19,38 +19,6 @@
 namespace milvus {
 
 const std::string&
-CreateSimpleCollectionRequest::DatabaseName() const {
-    return db_name_;
-}
-
-void
-CreateSimpleCollectionRequest::SetDatabaseName(const std::string& db_name) {
-    db_name_ = db_name;
-}
-
-CreateSimpleCollectionRequest&
-CreateSimpleCollectionRequest::WithDatabaseName(const std::string& db_name) {
-    SetDatabaseName(db_name);
-    return *this;
-}
-
-const std::string&
-CreateSimpleCollectionRequest::CollectionName() const {
-    return collection_name_;
-}
-
-void
-CreateSimpleCollectionRequest::SetCollectionName(const std::string& collection_name) {
-    collection_name_ = collection_name;
-}
-
-CreateSimpleCollectionRequest&
-CreateSimpleCollectionRequest::WithCollectionName(const std::string& collection_name) {
-    SetCollectionName(collection_name);
-    return *this;
-}
-
-const std::string&
 CreateSimpleCollectionRequest::PrimaryFieldName() const {
     return primary_field_name_;
 }

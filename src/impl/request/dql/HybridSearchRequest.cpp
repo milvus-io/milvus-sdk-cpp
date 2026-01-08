@@ -22,48 +22,6 @@
 
 namespace milvus {
 
-HybridSearchRequest&
-HybridSearchRequest::WithDatabaseName(const std::string& db_name) {
-    SetDatabaseName(db_name);
-    return *this;
-}
-
-HybridSearchRequest&
-HybridSearchRequest::WithCollectionName(const std::string& collection_name) {
-    SetCollectionName(collection_name);
-    return *this;
-}
-
-HybridSearchRequest&
-HybridSearchRequest::WithPartitionNames(std::set<std::string>&& partition_names) {
-    SetPartitionNames(std::move(partition_names));
-    return *this;
-}
-
-HybridSearchRequest&
-HybridSearchRequest::AddPartitionName(const std::string& partition_name) {
-    DQLRequestBase::AddPartitionName(partition_name);
-    return *this;
-}
-
-HybridSearchRequest&
-HybridSearchRequest::WithOutputFields(std::set<std::string>&& output_field_names) {
-    SetOutputFields(std::move(output_field_names));
-    return *this;
-}
-
-HybridSearchRequest&
-HybridSearchRequest::AddOutputField(const std::string& output_field) {
-    DQLRequestBase::AddOutputField(output_field);
-    return *this;
-}
-
-HybridSearchRequest&
-HybridSearchRequest::WithConsistencyLevel(ConsistencyLevel consistency_level) {
-    SetConsistencyLevel(consistency_level);
-    return *this;
-}
-
 const std::vector<SubSearchRequestPtr>&
 HybridSearchRequest::SubRequests() const {
     return sub_requests_;

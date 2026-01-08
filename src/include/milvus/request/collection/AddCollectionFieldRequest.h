@@ -26,24 +26,12 @@ namespace milvus {
 /**
  * @brief Used by MilvusClientV2::AddCollectionField()
  */
-class AddCollectionFieldRequest : public CollectionRequestBase {
+class AddCollectionFieldRequest : public CollectionRequestBase<AddCollectionFieldRequest> {
  public:
     /**
      * @brief Constructor
      */
     AddCollectionFieldRequest() = default;
-
-    /**
-     * @brief Set database name in which the collection is created.
-     */
-    AddCollectionFieldRequest&
-    WithDatabaseName(const std::string& db_name);
-
-    /**
-     * @brief Set name of the collection.
-     */
-    AddCollectionFieldRequest&
-    WithCollectionName(const std::string& collection_name);
 
     /**
      * @brief Get the field schema.

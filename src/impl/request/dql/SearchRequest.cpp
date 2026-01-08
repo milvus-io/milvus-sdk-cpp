@@ -24,48 +24,6 @@
 namespace milvus {
 
 SearchRequest&
-SearchRequest::WithDatabaseName(const std::string& db_name) {
-    SetDatabaseName(db_name);
-    return *this;
-}
-
-SearchRequest&
-SearchRequest::WithCollectionName(const std::string& collection_name) {
-    SetCollectionName(collection_name);
-    return *this;
-}
-
-SearchRequest&
-SearchRequest::WithPartitionNames(std::set<std::string>&& partition_names) {
-    SetPartitionNames(std::move(partition_names));
-    return *this;
-}
-
-SearchRequest&
-SearchRequest::AddPartitionName(const std::string& partition_name) {
-    DQLRequestBase::AddPartitionName(partition_name);
-    return *this;
-}
-
-SearchRequest&
-SearchRequest::WithOutputFields(std::set<std::string>&& output_field_names) {
-    SetOutputFields(std::move(output_field_names));
-    return *this;
-}
-
-SearchRequest&
-SearchRequest::AddOutputField(const std::string& output_field) {
-    DQLRequestBase::AddOutputField(output_field);
-    return *this;
-}
-
-SearchRequest&
-SearchRequest::WithConsistencyLevel(ConsistencyLevel consistency_level) {
-    SetConsistencyLevel(consistency_level);
-    return *this;
-}
-
-SearchRequest&
 SearchRequest::WithMetricType(::milvus::MetricType metric_type) {
     SetMetricType(metric_type);
     return *this;
@@ -230,78 +188,6 @@ SearchRequest::WithRerank(const FunctionScorePtr& ranker) {
 SearchRequest&
 SearchRequest::WithTimezone(const std::string& timezone) {
     SetTimezone(timezone);
-    return *this;
-}
-
-SearchRequest&
-SearchRequest::AddBinaryVector(const std::string& vector) {
-    SearchRequestBase::AddBinaryVector(vector);
-    return *this;
-}
-
-SearchRequest&
-SearchRequest::AddBinaryVector(const BinaryVecFieldData::ElementT& vector) {
-    SearchRequestBase::AddBinaryVector(vector);
-    return *this;
-}
-
-SearchRequest&
-SearchRequest::AddFloatVector(const FloatVecFieldData::ElementT& vector) {
-    SearchRequestBase::AddFloatVector(vector);
-    return *this;
-}
-
-SearchRequest&
-SearchRequest::AddSparseVector(const SparseFloatVecFieldData::ElementT& vector) {
-    SearchRequestBase::AddSparseVector(vector);
-    return *this;
-}
-
-SearchRequest&
-SearchRequest::AddSparseVector(const nlohmann::json& vector) {
-    SearchRequestBase::AddSparseVector(vector);
-    return *this;
-}
-
-SearchRequest&
-SearchRequest::AddFloat16Vector(const Float16VecFieldData::ElementT& vector) {
-    SearchRequestBase::AddFloat16Vector(vector);
-    return *this;
-}
-
-SearchRequest&
-SearchRequest::AddFloat16Vector(const std::vector<float>& vector) {
-    SearchRequestBase::AddFloat16Vector(vector);
-    return *this;
-}
-
-SearchRequest&
-SearchRequest::AddBFloat16Vector(const BFloat16VecFieldData::ElementT& vector) {
-    SearchRequestBase::AddBFloat16Vector(vector);
-    return *this;
-}
-
-SearchRequest&
-SearchRequest::AddBFloat16Vector(const std::vector<float>& vector) {
-    SearchRequestBase::AddBFloat16Vector(vector);
-    return *this;
-}
-
-SearchRequest&
-SearchRequest::AddEmbeddedText(const std::string& text) {
-    SearchRequestBase::AddEmbeddedText(text);
-    return *this;
-}
-
-SearchRequest&
-SearchRequest::AddInt8Vector(const Int8VecFieldData::ElementT& vector) {
-    SearchRequestBase::AddInt8Vector(vector);
-    return *this;
-}
-
-SearchRequest&
-SearchRequest::AddEmbeddingList(EmbeddingList&& emb_list) {
-    SearchRequestBase::AddEmbeddingList(std::move(emb_list));
     return *this;
 }
 

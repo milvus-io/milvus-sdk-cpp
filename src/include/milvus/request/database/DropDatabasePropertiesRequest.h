@@ -19,35 +19,19 @@
 #include <set>
 #include <string>
 
+#include "./DBRequestBase.h"
+
 namespace milvus {
 
 /**
  * @brief Used by MilvusClientV2::DropDatabaseProperties()
  */
-class DropDatabasePropertiesRequest {
+class DropDatabasePropertiesRequest : public DBRequestBase<DropDatabasePropertiesRequest> {
  public:
     /**
      * @brief Constructor
      */
     DropDatabasePropertiesRequest() = default;
-
-    /**
-     * @brief Database name.
-     */
-    const std::string&
-    DatabaseName() const;
-
-    /**
-     * @brief Set database name.
-     */
-    void
-    SetDatabaseName(const std::string& db_name);
-
-    /**
-     * @brief Set database name.
-     */
-    DropDatabasePropertiesRequest&
-    WithDatabaseName(const std::string& db_name);
 
     /**
      * @brief Get deleted keys.
@@ -74,7 +58,6 @@ class DropDatabasePropertiesRequest {
     AddPropertyKey(const std::string& key);
 
  private:
-    std::string db_name_;
     std::set<std::string> property_keys_;
 };
 

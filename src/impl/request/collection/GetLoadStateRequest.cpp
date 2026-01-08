@@ -18,18 +18,6 @@
 
 namespace milvus {
 
-GetLoadStateRequest&
-GetLoadStateRequest::WithDatabaseName(const std::string& db_name) {
-    SetDatabaseName(db_name);
-    return *this;
-}
-
-GetLoadStateRequest&
-GetLoadStateRequest::WithCollectionName(const std::string& collection_name) {
-    SetCollectionName(collection_name);
-    return *this;
-}
-
 const std::set<std::string>&
 GetLoadStateRequest::PartitionNames() const {
     return partition_names_;

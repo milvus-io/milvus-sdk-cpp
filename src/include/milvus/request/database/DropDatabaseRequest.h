@@ -18,38 +18,19 @@
 
 #include <string>
 
+#include "./DBRequestBase.h"
+
 namespace milvus {
 
 /**
  * @brief Used by MilvusClientV2::DropDatabase()
  */
-class DropDatabaseRequest {
+class DropDatabaseRequest : public DBRequestBase<DropDatabaseRequest> {
  public:
     /**
      * @brief Constructor
      */
     DropDatabaseRequest() = default;
-
-    /**
-     * @brief Database name.
-     */
-    const std::string&
-    DatabaseName() const;
-
-    /**
-     * @brief Set database name.
-     */
-    void
-    SetDatabaseName(const std::string& db_name);
-
-    /**
-     * @brief Set database name.
-     */
-    DropDatabaseRequest&
-    WithDatabaseName(const std::string& db_name);
-
- private:
-    std::string db_name_;
 };
 
 }  // namespace milvus
