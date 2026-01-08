@@ -19,35 +19,19 @@
 #include <string>
 #include <unordered_map>
 
+#include "./DBRequestBase.h"
+
 namespace milvus {
 
 /**
  * @brief Used by MilvusClientV2::AlterDatabaseProperties()
  */
-class AlterDatabasePropertiesRequest {
+class AlterDatabasePropertiesRequest : public DBRequestBase<AlterDatabasePropertiesRequest> {
  public:
     /**
      * @brief Constructor
      */
     AlterDatabasePropertiesRequest() = default;
-
-    /**
-     * @brief Database name.
-     */
-    const std::string&
-    DatabaseName() const;
-
-    /**
-     * @brief Set database name.
-     */
-    void
-    SetDatabaseName(const std::string& db_name);
-
-    /**
-     * @brief Set database name.
-     */
-    AlterDatabasePropertiesRequest&
-    WithDatabaseName(const std::string& db_name);
 
     /**
      * @brief Get altered properties.
@@ -74,7 +58,6 @@ class AlterDatabasePropertiesRequest {
     AddProperty(const std::string& key, const std::string& property);
 
  private:
-    std::string db_name_;
     std::unordered_map<std::string, std::string> properties_;
 };
 

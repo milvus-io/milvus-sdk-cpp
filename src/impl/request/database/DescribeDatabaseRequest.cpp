@@ -16,22 +16,4 @@
 
 #include "milvus/request/database/DescribeDatabaseRequest.h"
 
-namespace milvus {
-
-const std::string&
-DescribeDatabaseRequest::DatabaseName() const {
-    return db_name_;
-}
-
-void
-DescribeDatabaseRequest::SetDatabaseName(const std::string& db_name) {
-    db_name_ = db_name;
-}
-
-DescribeDatabaseRequest&
-DescribeDatabaseRequest::WithDatabaseName(const std::string& db_name) {
-    db_name_ = db_name;
-    return *this;
-}
-
-}  // namespace milvus
+namespace milvus {}  // namespace milvus

@@ -19,35 +19,19 @@
 #include <string>
 #include <unordered_map>
 
+#include "./DBRequestBase.h"
+
 namespace milvus {
 
 /**
  * @brief Used by MilvusClientV2::CreateDatabase()
  */
-class CreateDatabaseRequest {
+class CreateDatabaseRequest : public DBRequestBase<CreateDatabaseRequest> {
  public:
     /**
      * @brief Constructor
      */
     CreateDatabaseRequest() = default;
-
-    /**
-     * @brief Database name.
-     */
-    const std::string&
-    DatabaseName() const;
-
-    /**
-     * @brief Set database name.
-     */
-    void
-    SetDatabaseName(const std::string& db_name);
-
-    /**
-     * @brief Set database name.
-     */
-    CreateDatabaseRequest&
-    WithDatabaseName(const std::string& db_name);
 
     /**
      * @brief Get properties of this database.
@@ -74,7 +58,6 @@ class CreateDatabaseRequest {
     AddProperty(const std::string& key, const std::string& property);
 
  private:
-    std::string db_name_;
     std::unordered_map<std::string, std::string> properties_;
 };
 

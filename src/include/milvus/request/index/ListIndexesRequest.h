@@ -23,7 +23,7 @@ namespace milvus {
 /**
  * @brief Used by MilvusClientV2::ListIndexes()
  */
-class ListIndexesRequest : public IndexRequestBase {
+class ListIndexesRequest : public IndexRequestBase<ListIndexesRequest> {
  public:
     /**
      * @brief Constructor

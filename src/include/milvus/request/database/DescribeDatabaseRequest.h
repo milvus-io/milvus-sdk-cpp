@@ -18,38 +18,19 @@
 
 #include <string>
 
+#include "./DBRequestBase.h"
+
 namespace milvus {
 
 /**
  * @brief Used by MilvusClientV2::DescribeDatabase()
  */
-class DescribeDatabaseRequest {
+class DescribeDatabaseRequest : public DBRequestBase<DescribeDatabaseRequest> {
  public:
     /**
      * @brief Constructor
      */
     DescribeDatabaseRequest() = default;
-
-    /**
-     * @brief Database name.
-     */
-    const std::string&
-    DatabaseName() const;
-
-    /**
-     * @brief Set database name.
-     */
-    void
-    SetDatabaseName(const std::string& db_name);
-
-    /**
-     * @brief Set database name.
-     */
-    DescribeDatabaseRequest&
-    WithDatabaseName(const std::string& db_name);
-
- private:
-    std::string db_name_;
 };
 
 }  // namespace milvus

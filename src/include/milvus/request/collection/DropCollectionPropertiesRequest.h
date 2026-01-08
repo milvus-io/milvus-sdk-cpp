@@ -25,24 +25,12 @@ namespace milvus {
 /**
  * @brief Used by MilvusClientV2::DropCollectionProperties()
  */
-class DropCollectionPropertiesRequest : public CollectionRequestBase {
+class DropCollectionPropertiesRequest : public CollectionRequestBase<DropCollectionPropertiesRequest> {
  public:
     /**
      * @brief Constructor
      */
     DropCollectionPropertiesRequest() = default;
-
-    /**
-     * @brief Set database name in which the collection is created.
-     */
-    DropCollectionPropertiesRequest&
-    WithDatabaseName(const std::string& db_name);
-
-    /**
-     * @brief Set name of the collection.
-     */
-    DropCollectionPropertiesRequest&
-    WithCollectionName(const std::string& collection_name);
 
     /**
      * @brief Get deleted keys.

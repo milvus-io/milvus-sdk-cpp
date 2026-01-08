@@ -21,15 +21,12 @@
 namespace milvus {
 
 /**
- * @brief Base class of collection requests except CreateCollectionRequest and ListCollectionsRequest.
+ * @brief Base class for DML requests.
  */
 template <typename T>
-class CollectionRequestBase {
+class DMLRequestBase {
  protected:
-    /**
-     * @brief Constructor
-     */
-    CollectionRequestBase() = default;
+    DMLRequestBase() = default;
 
  public:
     /**
@@ -82,9 +79,37 @@ class CollectionRequestBase {
         return static_cast<T&>(*this);
     }
 
- protected:
+    /**
+     * @brief Get the partition name.
+     */
+    const std::string&
+    PartitionName() const {
+        return partition_name_;
+    }
+
+    /**
+     * @brief Set the partition name.
+     * If partition name is empty, will use the default partition.
+     */
+    void
+    SetPartitionName(const std::string& partition_name) {
+        partition_name_ = partition_name;
+    }
+
+    /**
+     * @brief Set the partition name.
+     * If partition name is empty, will use the default partition.
+     */
+    T&
+    WithPartitionName(const std::string& partition_name) {
+        SetPartitionName(partition_name);
+        return static_cast<T&>(*this);
+    }
+
+ private:
     std::string db_name_;
     std::string collection_name_;
+    std::string partition_name_;
 };
 
 }  // namespace milvus

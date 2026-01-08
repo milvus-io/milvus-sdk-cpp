@@ -25,24 +25,12 @@ namespace milvus {
 /**
  * @brief Used by MilvusClientV2::DropCollectionFieldProperties()
  */
-class DropCollectionFieldPropertiesRequest : public CollectionRequestBase {
+class DropCollectionFieldPropertiesRequest : public CollectionRequestBase<DropCollectionFieldPropertiesRequest> {
  public:
     /**
      * @brief Constructor
      */
     DropCollectionFieldPropertiesRequest() = default;
-
-    /**
-     * @brief Set database name in which the collection is created.
-     */
-    DropCollectionFieldPropertiesRequest&
-    WithDatabaseName(const std::string& db_name);
-
-    /**
-     * @brief Set name of the collection.
-     */
-    DropCollectionFieldPropertiesRequest&
-    WithCollectionName(const std::string& collection_name);
 
     /**
      * @brief Name of the field.

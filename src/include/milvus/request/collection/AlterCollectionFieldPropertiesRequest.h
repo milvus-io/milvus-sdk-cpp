@@ -26,24 +26,12 @@ namespace milvus {
 /**
  * @brief Used by MilvusClientV2::AlterCollectionFieldProperties()
  */
-class AlterCollectionFieldPropertiesRequest : public CollectionRequestBase {
+class AlterCollectionFieldPropertiesRequest : public CollectionRequestBase<AlterCollectionFieldPropertiesRequest> {
  public:
     /**
      * @brief Constructor
      */
     AlterCollectionFieldPropertiesRequest() = default;
-
-    /**
-     * @brief Set database name in which the collection is created.
-     */
-    AlterCollectionFieldPropertiesRequest&
-    WithDatabaseName(const std::string& db_name);
-
-    /**
-     * @brief Set name of the collection.
-     */
-    AlterCollectionFieldPropertiesRequest&
-    WithCollectionName(const std::string& collection_name);
 
     /**
      * @brief Name of the field.

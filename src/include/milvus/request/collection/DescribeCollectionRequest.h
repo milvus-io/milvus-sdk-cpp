@@ -25,24 +25,12 @@ namespace milvus {
 /**
  * @brief Used by MilvusClientV2::DescribeCollection()
  */
-class DescribeCollectionRequest : public CollectionRequestBase {
+class DescribeCollectionRequest : public CollectionRequestBase<DescribeCollectionRequest> {
  public:
     /**
      * @brief Constructor
      */
     DescribeCollectionRequest() = default;
-
-    /**
-     * @brief Set database name in which the collection is created.
-     */
-    DescribeCollectionRequest&
-    WithDatabaseName(const std::string& db_name);
-
-    /**
-     * @brief Set name of the collection.
-     */
-    DescribeCollectionRequest&
-    WithCollectionName(const std::string& collection_name);
 };
 
 }  // namespace milvus

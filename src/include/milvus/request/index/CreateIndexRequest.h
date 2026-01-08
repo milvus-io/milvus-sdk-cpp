@@ -27,24 +27,12 @@ namespace milvus {
 /**
  * @brief Used by MilvusClientV2::CreateIndex()
  */
-class CreateIndexRequest : public IndexRequestBase {
+class CreateIndexRequest : public IndexRequestBase<CreateIndexRequest> {
  public:
     /**
      * @brief Constructor
      */
     CreateIndexRequest() = default;
-
-    /**
-     * @brief Set database name in which the collection is created.
-     */
-    CreateIndexRequest&
-    WithDatabaseName(const std::string& db_name);
-
-    /**
-     * @brief Set name of the collection.
-     */
-    CreateIndexRequest&
-    WithCollectionName(const std::string& collection_name);
 
     /**
      * @brief Get indexes.
