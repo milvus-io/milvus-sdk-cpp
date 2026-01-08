@@ -46,6 +46,7 @@
 #include "request/dml/DeleteRequest.h"
 #include "request/dml/InsertRequest.h"
 #include "request/dml/UpsertRequest.h"
+#include "request/dql/GetRequest.h"
 #include "request/dql/HybridSearchRequest.h"
 #include "request/dql/QueryIteratorRequest.h"
 #include "request/dql/QueryRequest.h"
@@ -678,6 +679,16 @@ class MilvusClientV2 {
      */
     virtual Status
     Query(const QueryRequest& request, QueryResponse& response) = 0;
+
+    /**
+     * @brief Query with primary keys, and results in a list of records.
+     *
+     * @param [in] request input parameters
+     * @param [out] response output results
+     * @return Status operation successfully or not
+     */
+    virtual Status
+    Get(const GetRequest& request, GetResponse& response) = 0;
 
     /**
      * @brief Get QueryIterator object based on scalar field(s) by filtering expression.
