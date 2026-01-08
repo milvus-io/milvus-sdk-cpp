@@ -164,8 +164,25 @@ class SearchResults {
     const std::vector<SingleResult>&
     Results() const;
 
+    /**
+     * @brief Get recalls of search results.
+     * Note: only works when search with enable_recall_calculation is true on zilliz cloud instance.
+     */
+    const std::vector<float>&
+    Recalls() const;
+
+    /**
+     * @brief Set recalls of search results. This method is internally used.
+     * Note: only works when search with enable_recall_calculation is true on zilliz cloud instance.
+     * When enable_recall_calculation is true, the server will use near-brute-force search to compute precise results,
+     * the search performance is poor.
+     */
+    SearchResults&
+    WithRecalls(std::vector<float>&& recalls);
+
  private:
     std::vector<SingleResult> nq_results_{};
+    std::vector<float> recalls_{};
 };
 
 }  // namespace milvus

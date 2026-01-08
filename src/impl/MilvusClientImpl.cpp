@@ -1215,7 +1215,7 @@ MilvusClientImpl::Search(const SearchArguments& arguments, SearchResults& result
             CollectionDescPtr collection_desc;
             getCollectionDesc(arguments.CollectionName(), false, collection_desc);
             if (collection_desc != nullptr) {
-                pk_name = collection_desc->Schema().Name();
+                pk_name = collection_desc->Schema().PrimaryFieldName();
             }
         }
         return ConvertSearchResults(response, pk_name, results);
@@ -1307,7 +1307,7 @@ MilvusClientImpl::HybridSearch(const HybridSearchArguments& arguments, SearchRes
             CollectionDescPtr collection_desc;
             getCollectionDesc(arguments.CollectionName(), false, collection_desc);
             if (collection_desc != nullptr) {
-                pk_name = collection_desc->Schema().Name();
+                pk_name = collection_desc->Schema().PrimaryFieldName();
             }
         }
         return ConvertSearchResults(response, pk_name, results);
