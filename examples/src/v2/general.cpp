@@ -347,6 +347,11 @@ main(int argc, char* argv[]) {
         std::string filter_expr = field_age + " > 40";
         auto q_number_1 = util::RandomeValue<int64_t>(0, row_count - 1);
         auto q_number_2 = util::RandomeValue<int64_t>(0, row_count - 1);
+
+        std::vector<std::vector<float>> query_vectors = {
+            insert_vectors[q_number_1],
+            insert_vectors[q_number_2],
+        };
         auto request =
             milvus::SearchRequest()
                 .WithCollectionName(collection_name)
@@ -357,10 +362,9 @@ main(int argc, char* argv[]) {
                 .AddOutputField(field_name)
                 .AddOutputField(field_age)
                 .WithFilter(filter_expr)
+                .WithFloatVectors(std::move(query_vectors))
                 // set to BOUNDED level to accept data inconsistence within a time window(default is 5 seconds)
-                .WithConsistencyLevel(milvus::ConsistencyLevel::BOUNDED)
-                .AddFloatVector(insert_vectors[q_number_1])
-                .AddFloatVector(insert_vectors[q_number_2]);
+                .WithConsistencyLevel(milvus::ConsistencyLevel::BOUNDED);
         std::cout << "\nSearching the No." << q_number_1 << " and No." << q_number_2
                   << " with expression: " << filter_expr << std::endl;
 

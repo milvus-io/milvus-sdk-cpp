@@ -134,14 +134,17 @@ main(int argc, char* argv[]) {
         // do search
         auto q_vector_1 = rows[q_number_1][field_vector];
         auto q_vector_2 = rows[q_number_2][field_vector];
+        std::vector<std::vector<int8_t>> query_vectors = {
+            q_vector_1.get<std::vector<int8_t>>(),
+            q_vector_2.get<std::vector<int8_t>>(),
+        };
         auto request = milvus::SearchRequest()
                            .WithCollectionName(collection_name)
                            .WithLimit(3)
                            .WithAnnsField(field_vector)
                            .AddOutputField(field_vector)
                            .AddOutputField(field_text)
-                           .AddInt8Vector(q_vector_1.get<std::vector<int8_t>>())
-                           .AddInt8Vector(q_vector_2.get<std::vector<int8_t>>())
+                           .WithInt8Vectors(std::move(query_vectors))
                            .WithConsistencyLevel(milvus::ConsistencyLevel::BOUNDED);
 
         std::cout << "Searching the ID." << q_number_1 << " int8 vector: " << q_vector_1 << std::endl;

@@ -20,54 +20,6 @@
 
 namespace milvus {
 
-const std::string&
-InsertRequest::DatabaseName() const {
-    return db_name_;
-}
-
-void
-InsertRequest::SetDatabaseName(const std::string& db_name) {
-    db_name_ = db_name;
-}
-
-InsertRequest&
-InsertRequest::WithDatabaseName(const std::string& db_name) {
-    db_name_ = db_name;
-    return *this;
-}
-
-const std::string&
-InsertRequest::CollectionName() const {
-    return collection_name_;
-}
-
-void
-InsertRequest::SetCollectionName(const std::string& collection_name) {
-    collection_name_ = collection_name;
-}
-
-InsertRequest&
-InsertRequest::WithCollectionName(const std::string& collection_name) {
-    collection_name_ = collection_name;
-    return *this;
-}
-
-const std::string&
-InsertRequest::PartitionName() const {
-    return partition_name_;
-}
-
-void
-InsertRequest::SetPartitionName(const std::string& partition_name) {
-    partition_name_ = partition_name;
-}
-
-InsertRequest&
-InsertRequest::WithPartitionName(const std::string& partition_name) {
-    partition_name_ = partition_name;
-    return *this;
-}
-
 const std::vector<FieldDataPtr>&
 InsertRequest::ColumnsData() const {
     return columns_data_;

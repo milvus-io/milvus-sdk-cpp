@@ -20,22 +20,6 @@
 
 namespace milvus {
 
-const std::string&
-CreateDatabaseRequest::DatabaseName() const {
-    return db_name_;
-}
-
-void
-CreateDatabaseRequest::SetDatabaseName(const std::string& db_name) {
-    db_name_ = db_name;
-}
-
-CreateDatabaseRequest&
-CreateDatabaseRequest::WithDatabaseName(const std::string& db_name) {
-    SetDatabaseName(db_name);
-    return *this;
-}
-
 const std::unordered_map<std::string, std::string>&
 CreateDatabaseRequest::Properties() const {
     return properties_;

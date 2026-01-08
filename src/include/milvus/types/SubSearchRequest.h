@@ -23,7 +23,7 @@ namespace milvus {
 /**
  * @brief Sub request for HybridSearchArguments for MilvusClient::HybridSearch().
  */
-class SubSearchRequest : public SearchRequestBase {
+class SubSearchRequest : public SearchRequestVectorAssigner<SubSearchRequest> {
  public:
     /**
      * @brief Specifies the metric type.
@@ -55,83 +55,6 @@ class SubSearchRequest : public SearchRequestBase {
      */
     SubSearchRequest&
     WithTimezone(const std::string& timezone);
-
-    /**
-     * @brief Add a binary vector to search.
-     */
-    SubSearchRequest&
-    AddBinaryVector(const std::string& vector);
-
-    /**
-     * @brief Add a binary vector to search.
-     */
-    SubSearchRequest&
-    AddBinaryVector(const BinaryVecFieldData::ElementT& vector);
-
-    /**
-     * @brief Add a float vector to search.
-     */
-    SubSearchRequest&
-    AddFloatVector(const FloatVecFieldData::ElementT& vector);
-
-    /**
-     * @brief Add a sparse vector to search.
-     */
-    SubSearchRequest&
-    AddSparseVector(const SparseFloatVecFieldData::ElementT& vector);
-
-    /**
-     * @brief Add a sparse vector to search.
-     * We support two patterns of sparse vector:
-     *  1. a json dict like {"1": 0.1, "5": 0.2, "8": 0.15}.
-     *  2. a json dict like {"indices": [1, 5, 8], "values": [0.1, 0.2, 0.15]}.
-     */
-    SubSearchRequest&
-    AddSparseVector(const nlohmann::json& vector);
-
-    /**
-     * @brief Add a float16 vector to search.
-     */
-    SubSearchRequest&
-    AddFloat16Vector(const Float16VecFieldData::ElementT& vector);
-
-    /**
-     * @brief Add a float16 vector to search.
-     * This method automatically converts the float array to float16 binary.
-     */
-    SubSearchRequest&
-    AddFloat16Vector(const std::vector<float>& vector);
-
-    /**
-     * @brief Add a bfloat16 vector to search.
-     */
-    SubSearchRequest&
-    AddBFloat16Vector(const BFloat16VecFieldData::ElementT& vector);
-
-    /**
-     * @brief Add a bfloat16 vector to search.
-     * This method automatically converts the float array to bfloat16 binary.
-     */
-    SubSearchRequest&
-    AddBFloat16Vector(const std::vector<float>& vector);
-
-    /**
-     * @brief Add a text to search. Only works for BM25 function.
-     */
-    SubSearchRequest&
-    AddEmbeddedText(const std::string& text);
-
-    /**
-     * @brief Add an int8 vector to search.
-     */
-    SubSearchRequest&
-    AddInt8Vector(const Int8VecFieldData::ElementT& vector);
-
-    /**
-     * @brief Add an embedding list to search on struct field.
-     */
-    SubSearchRequest&
-    AddEmbeddingList(EmbeddingList&& emb_list);
 };
 
 using SubSearchRequestPtr = std::shared_ptr<SubSearchRequest>;

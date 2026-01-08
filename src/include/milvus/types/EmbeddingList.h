@@ -25,6 +25,7 @@ namespace milvus {
 
 /**
  * @brief A list of embeddings to search for struct field.
+ * It is also used to store the target vectors for SearchRequest/SubSearchRequest.
  */
 class EmbeddingList {
  public:
@@ -45,6 +46,14 @@ class EmbeddingList {
     size_t
     Count() const;
 
+    /**
+     * @brief Dimension of the vectors, for embedded text, the value is 0.
+     */
+    int64_t
+    Dim() const;
+
+    ////////////////////////////////////////////////////////////////////////
+    // single vector assigner
     /**
      * @brief Add a binary vector to search.
      */
@@ -116,16 +125,99 @@ class EmbeddingList {
     Status
     AddInt8Vector(const Int8VecFieldData::ElementT& vector);
 
+    ////////////////////////////////////////////////////////////////////////
+    // multi vectors assigner
     /**
-     * @brief Dimension of the vectors, for embedded text, the value is 0.
+     * @brief Assign binary vectors to search request.
+     * This method automatically converts the string array to uint8 array.
+     * Note: this method will reset the vector list.
      */
-    int64_t
-    Dim() const;
+    Status
+    SetBinaryVectors(const std::vector<std::string>& vectors);
+
+    /**
+     * @brief Assign binary vectors to search request.
+     * Note: this method will reset the vector list.
+     */
+    Status
+    SetBinaryVectors(std::vector<BinaryVecFieldData::ElementT>&& vectors);
+
+    /**
+     * @brief Assign float vectors to search request.
+     * Note: this method will reset the vector list.
+     */
+    Status
+    SetFloatVectors(std::vector<FloatVecFieldData::ElementT>&& vectors);
+
+    /**
+     * @brief Assign sparse vectors to search request.
+     * Note: this method will reset the vector list.
+     */
+    Status
+    SetSparseVectors(std::vector<SparseFloatVecFieldData::ElementT>&& vectors);
+
+    /**
+     * @brief Assign sparse vectors to search request.
+     * Note: this method will reset the vector list.
+     * We support two patterns of sparse vector:
+     *  1. a json dict like {"1": 0.1, "5": 0.2, "8": 0.15}.
+     *  2. a json dict like {"indices": [1, 5, 8], "values": [0.1, 0.2, 0.15]}.
+     */
+    Status
+    SetSparseVectors(const std::vector<nlohmann::json>& vectors);
+
+    /**
+     * @brief Assign float16 vectors to search request.
+     * Note: this method will reset the vector list.
+     */
+    Status
+    SetFloat16Vectors(std::vector<Float16VecFieldData::ElementT>&& vectors);
+
+    /**
+     * @brief Assign float16 vectors to search request.
+     * This method automatically converts the float array to float16 binary.
+     * Note: this method will reset the vector list.
+     */
+    Status
+    SetFloat16Vectors(const std::vector<std::vector<float>>& vectors);
+
+    /**
+     * @brief Assign bfloat16 vectors to search request.
+     * Note: this method will reset the vector list.
+     */
+    Status
+    SetBFloat16Vectors(std::vector<BFloat16VecFieldData::ElementT>&& vectors);
+
+    /**
+     * @brief Assign bfloat16 vector.
+     * This method automatically converts the float array to bfloat16 binary.
+     * Note: this method will reset the vector list.
+     */
+    Status
+    SetBFloat16Vectors(const std::vector<std::vector<float>>& vectors);
+
+    /**
+     * @brief Assign texts. Only works for BM25 function.
+     * Note: this method will reset the vector list.
+     */
+    Status
+    SetEmbeddedTexts(std::vector<std::string>&& texts);
+
+    /**
+     * @brief Assign int8 vectors.
+     * Note: this method will reset the vector list.
+     */
+    Status
+    SetInt8Vectors(std::vector<Int8VecFieldData::ElementT>&& vectors);
 
  private:
     template <typename T, typename V>
     Status
     addVector(DataType data_type, const V& vector);
+
+    template <typename T, typename V>
+    Status
+    setVectors(DataType data_type, std::vector<V>&& vectors);
 
  private:
     FieldDataPtr target_vectors_;
