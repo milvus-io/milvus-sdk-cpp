@@ -169,6 +169,18 @@ SearchRequest::WithStrictGroupSize(bool strict_group_size) {
     return *this;
 }
 
+SearchRequest&
+SearchRequest::WithRadius(double radius) {
+    SetRadius(radius);
+    return *this;
+}
+
+SearchRequest&
+SearchRequest::WithRangeFilter(double filter) {
+    SetRangeFilter(filter);
+    return *this;
+}
+
 const FunctionScorePtr&
 SearchRequest::Rerank() const {
     return ranker_;
