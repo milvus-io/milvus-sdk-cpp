@@ -24,6 +24,7 @@
 #include "MilvusInterceptor.h"
 #include "grpcpp/security/credentials.h"
 #include "utils/Constants.h"
+#include "utils/Uri.h"
 
 using grpc::Channel;
 using grpc::ClientContext;
@@ -94,36 +95,48 @@ Status
 MilvusConnection::Connect(const ConnectParam& param) {
     param_ = param;
 
-    std::shared_ptr<grpc::ChannelCredentials> credentials{nullptr};
-    auto uri = param.Uri();
+    try {
+        // ParseURI() might throw exceptions when the uri/port is invalid
+        std::shared_ptr<grpc::ChannelCredentials> credentials{nullptr};
+        auto uri = ParseURI(param.Uri());
+        auto address = uri.host + ":" + std::to_string(uri.port);
 
-    ::grpc::ChannelArguments args;
-    args.SetMaxSendMessageSize(-1);     // max send message size: 2GB
-    args.SetMaxReceiveMessageSize(-1);  // max receive message size: 2GB
-    args.SetInt(GRPC_ARG_KEEPALIVE_TIME_MS, param.KeepaliveTimeMs());
-    args.SetInt(GRPC_ARG_KEEPALIVE_TIMEOUT_MS, param.KeepaliveTimeoutMs());
-    args.SetInt(GRPC_ARG_KEEPALIVE_PERMIT_WITHOUT_CALLS, param.KeepaliveWithoutCalls() ? 1 : 0);
+        ::grpc::ChannelArguments args;
+        args.SetMaxSendMessageSize(-1);     // max send message size: 2GB
+        args.SetMaxReceiveMessageSize(-1);  // max receive message size: 2GB
+        args.SetInt(GRPC_ARG_KEEPALIVE_TIME_MS, param.KeepaliveTimeMs());
+        args.SetInt(GRPC_ARG_KEEPALIVE_TIMEOUT_MS, param.KeepaliveTimeoutMs());
+        args.SetInt(GRPC_ARG_KEEPALIVE_PERMIT_WITHOUT_CALLS, param.KeepaliveWithoutCalls() ? 1 : 0);
 
-    if (param.TlsEnabled()) {
-        if (!param.ServerName().empty()) {
-            args.SetSslTargetNameOverride(param.ServerName());
+        if (param.TlsEnabled() || uri.scheme == "https") {
+            if (!param.ServerName().empty()) {
+                args.SetSslTargetNameOverride(param.ServerName());
+            }
+            credentials = createTlsCredentials(param.Cert(), param.Key(), param.CaCert());
+        } else {
+            credentials = ::grpc::InsecureChannelCredentials();
         }
-        credentials = createTlsCredentials(param.Cert(), param.Key(), param.CaCert());
-    } else {
-        credentials = ::grpc::InsecureChannelCredentials();
+
+        std::unordered_map<std::string, std::string> metadata;
+        metadata["authorization"] = param.Authorizations();
+
+        // param.DbName() might throw exceptions because it internally calls ParseURI()
+        auto db_name = param.DbName();
+        if (!db_name.empty()) {
+            metadata["dbname"] = db_name;
+        }
+
+        channel_ = CreateChannelWithHeaderInterceptor(address, credentials, args, metadata);
+    } catch (const std::exception& ex) {
+        std::string reason = "Exception caught when creating grpc channel: ";
+        reason += ex.what();
+        return {StatusCode::NOT_CONNECTED, reason};
     }
 
-    std::unordered_map<std::string, std::string> metadata;
-    metadata["authorization"] = param.Authorizations();
-    if (!param.DbName().empty()) {
-        metadata["dbname"] = param.DbName();
-    }
-
-    channel_ = CreateChannelWithHeaderInterceptor(uri, credentials, args, metadata);
     auto connected = channel_->WaitForConnected(std::chrono::system_clock::now() +
                                                 std::chrono::milliseconds{param.ConnectTimeout()});
     if (!connected) {
-        std::string reason = "Failed to create grpc channel to the uri: " + uri;
+        std::string reason = "Failed to create grpc channel to the uri: " + param.Uri();
         return {StatusCode::NOT_CONNECTED, reason};
     }
 

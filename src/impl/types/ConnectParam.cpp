@@ -19,27 +19,40 @@
 #include <string>
 
 #include "../utils/TypeUtils.h"
+#include "../utils/Uri.h"
 
 namespace milvus {
 
-ConnectParam::ConnectParam(std::string host, uint16_t port) : host_(std::move(host)), port_(port) {
+ConnectParam::ConnectParam(const std::string& uri) {
+    SetUri(uri);
 }
 
-ConnectParam::ConnectParam(std::string host, uint16_t port, const std::string& token)
-    : host_(std::move(host)), port_(port) {
+ConnectParam::ConnectParam(const std::string& uri, const std::string& token) {
+    SetUri(uri);
     SetToken(token);
 }
 
-ConnectParam::ConnectParam(std::string host, uint16_t port, std::string username, std::string password)
-    : host_(std::move(host)), port_(port) {
+ConnectParam::ConnectParam(std::string host, uint16_t port) {
+    // Deprecated: keep behavior by translating host/port to uri.
+    SetUri(host + ":" + std::to_string(port));
+}
+
+ConnectParam::ConnectParam(std::string host, uint16_t port, const std::string& token) {
+    // Deprecated: keep behavior by translating host/port to uri.
+    SetUri(host + ":" + std::to_string(port));
+    SetToken(token);
+}
+
+ConnectParam::ConnectParam(std::string host, uint16_t port, std::string username, std::string password) {
+    // Deprecated: keep behavior by translating host/port to uri.
+    SetUri(host + ":" + std::to_string(port));
     SetAuthorizations(std::move(username), std::move(password));
 }
 
 ConnectParam&
 ConnectParam::operator=(const ConnectParam& other) {
     if (this != &other) {
-        host_ = other.host_;
-        port_ = other.port_;
+        uri_ = other.uri_;
 
         connect_timeout_ms_ = other.connect_timeout_ms_;
         keepalive_time_ms_ = other.keepalive_time_ms_;
@@ -55,24 +68,54 @@ ConnectParam::operator=(const ConnectParam& other) {
 
         authorizations_ = other.authorizations_;
         username_ = other.username_;
+        token_ = other.token_;
         db_name_ = other.db_name_;
     }
     return *this;
 }
 
-const std::string&
+std::string
 ConnectParam::Host() const {
-    return host_;
+    return ParseURI(uri_).host;
 }
 
 uint16_t
 ConnectParam::Port() const {
-    return port_;
+    return ParseURI(uri_).port;
 }
 
 std::string
 ConnectParam::Uri() const {
-    return host_ + ":" + std::to_string(port_);
+    return uri_;
+}
+
+void
+ConnectParam::SetUri(const std::string& uri) {
+    uri_ = uri;
+}
+
+ConnectParam&
+ConnectParam::WithUri(const std::string& uri) {
+    SetUri(uri);
+    return *this;
+}
+
+const std::string&
+ConnectParam::Token() const {
+    return token_;
+}
+
+void
+ConnectParam::SetToken(const std::string& token) {
+    token_ = token;
+    authorizations_ = milvus::Base64Encode(token);
+    username_ = "";
+}
+
+ConnectParam&
+ConnectParam::WithToken(const std::string& token) {
+    SetToken(token);
+    return *this;
 }
 
 const std::string&
@@ -82,8 +125,9 @@ ConnectParam::Authorizations() const {
 
 void
 ConnectParam::SetAuthorizations(std::string username, std::string password) {
-    authorizations_ = milvus::Base64Encode(std::move(username) + ':' + std::move(password));
     username_ = username;
+    authorizations_ = milvus::Base64Encode(std::move(username) + ':' + std::move(password));
+    token_.clear();
 }
 
 ConnectParam&
@@ -250,20 +294,12 @@ ConnectParam::Username() const {
     return username_;
 }
 
-void
-ConnectParam::SetToken(const std::string& token) {
-    authorizations_ = milvus::Base64Encode(token);
-    username_ = "";
-}
-
-ConnectParam&
-ConnectParam::WithToken(const std::string& token) {
-    SetToken(token);
-    return *this;
-}
-
-const std::string&
+std::string
 ConnectParam::DbName() const {
+    if (db_name_.empty()) {
+        // If db_name_ is empty, return the parsed db name from uri_
+        return ParseURI(uri_).dbname;
+    }
     return db_name_;
 }
 
