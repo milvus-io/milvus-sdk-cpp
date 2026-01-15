@@ -81,8 +81,7 @@ main(int argc, char* argv[]) {
 
     auto client = milvus::MilvusClientV2::Create();
 
-    milvus::ConnectParam connect_param{"localhost", 19530, "root", "Milvus"};
-    auto status = client->Connect(connect_param);
+    auto status = client->Connect(milvus::ConnectParam("http://localhost:19530").WithToken("root:Milvus"));
     util::CheckStatus("connect milvus server", status);
 
     milvus::CheckHealthResponse resp_health;

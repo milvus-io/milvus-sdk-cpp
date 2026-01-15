@@ -2304,9 +2304,6 @@ MilvusClientV2Impl::getCollectionDesc(const std::string& db_name, const std::str
     // if connection is connected to "A" but the input db_name is "", actual_db is "A"
     // if connection is connected to "A" but the input db_name is "A", actual_db is "A"
     auto actual_db = connection_.CurrentDbName(db_name);
-    if (actual_db.empty()) {
-        actual_db = "default";
-    }
 
     // this lock locks the entire section, including the call of DescribeCollection()
     // the reason is: describeCollection() could be limited by server-side(DDL request throttling is enabled)
@@ -2347,9 +2344,6 @@ MilvusClientV2Impl::removeCollectionDesc(const std::string& db_name, const std::
     // if connection is connected to "A" but the input db_name is "", actual_db is "A"
     // if connection is connected to "A" but the input db_name is "A", actual_db is "A"
     auto actual_db = connection_.CurrentDbName(db_name);
-    if (actual_db.empty()) {
-        actual_db = "default";
-    }
 
     auto name = combineDbCollectionName(actual_db, collection_name);
     std::lock_guard<std::mutex> lock(collection_desc_cache_mtx_);

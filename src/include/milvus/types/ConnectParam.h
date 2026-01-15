@@ -33,23 +33,42 @@ class ConnectParam {
 
     /**
      * @brief Constructor
+     * @param uri Uri for connecting to the milvus, can be an endpoint of cloud instance or address like
+     * "http://xx.xx.xx.xx:19530".
+     */
+    explicit ConnectParam(const std::string& uri);
+
+    /**
+     * @brief Constructor
+     * @param uri Uri for connecting to the milvus, can be an endpoint of cloud instance or address like
+     * "http://xx.xx.xx.xx:19530".
+     * @param token Authorizations header value for connecting to the milvus. In the format of "[user]:[password]" or
+     * cloud instance token.
+     */
+    ConnectParam(const std::string& uri, const std::string& token);
+
+    /**
+     * @brief Constructor
+     * @deprecated host/port is replaced by uri
      */
     ConnectParam(std::string host, uint16_t port);
 
     /**
      * @brief Constructor
+     * @deprecated host/port is replaced by uri
      */
     ConnectParam(std::string host, uint16_t port, const std::string& token);
 
     /**
      * @brief Constructor
+     * @deprecated host/port is replaced by uri
      */
     ConnectParam(std::string host, uint16_t port, std::string username, std::string password);
 
     /**
      * @brief IP of the milvus proxy.
      */
-    const std::string&
+    std::string
     Host() const;
 
     /**
@@ -65,6 +84,38 @@ class ConnectParam {
     Uri() const;
 
     /**
+     * @brief Set Uri for connecting to the milvus.
+     */
+    void
+    SetUri(const std::string& uri);
+
+    /**
+     * @brief Set Uri for connecting to the milvus.
+     */
+    ConnectParam&
+    WithUri(const std::string& uri);
+
+    /**
+     * @brief Token for connecting to the milvus.
+     */
+    const std::string&
+    Token() const;
+
+    /**
+     * @brief Set token for connecting to the milvus.
+     * Note: call this method will reset username/password.
+     */
+    void
+    SetToken(const std::string& token);
+
+    /**
+     * @brief Set token for connecting to the milvus.
+     * Note: call this method will reset username/password.
+     */
+    ConnectParam&
+    WithToken(const std::string& token);
+
+    /**
      * @brief Authorizations header value for connecting to the milvus.
      * Authorizations() = base64('username:password').
      */
@@ -73,12 +124,14 @@ class ConnectParam {
 
     /**
      * @brief SetAuthorizations set username and password for connecting to the milvus.
+     * Note: call this method will reset the token.
      */
     void
     SetAuthorizations(std::string username, std::string password);
 
     /**
      * @brief SetAuthorizations set username and password for connecting to the milvus.
+     * Note: call this method will reset the token.
      */
     ConnectParam&
     WithAuthorizations(std::string username, std::string password);
@@ -266,21 +319,9 @@ class ConnectParam {
     Username() const;
 
     /**
-     * @brief Set token for connection
-     */
-    void
-    SetToken(const std::string& token);
-
-    /**
-     * @brief Set token for connection
-     */
-    ConnectParam&
-    WithToken(const std::string& token);
-
-    /**
      * @brief Return the current used database name
      */
-    const std::string&
+    std::string
     DbName() const;
 
     /**
@@ -296,8 +337,7 @@ class ConnectParam {
     WithDbName(const std::string& db_name);
 
  private:
-    std::string host_ = "localhost";
-    uint16_t port_ = 19350;
+    std::string uri_ = "http://localhost:19530";
 
     uint64_t connect_timeout_ms_ = 10000;    // the same with pymilvus
     uint64_t keepalive_time_ms_ = 55000;     // the same with pymilvus
@@ -313,7 +353,8 @@ class ConnectParam {
 
     std::string authorizations_;
     std::string username_;
-    std::string db_name_ = "default";
+    std::string token_;
+    std::string db_name_;
 };
 
 }  // namespace milvus

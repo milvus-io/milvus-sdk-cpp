@@ -133,7 +133,7 @@ main(int argc, char* argv[]) {
 
     auto client = milvus::MilvusClientV2::Create();
 
-    milvus::ConnectParam connect_param{"localhost", 19530, "root", "Milvus"};
+    milvus::ConnectParam connect_param{"http://localhost:19530", "root:Milvus"};
     auto status = client->Connect(connect_param);
     util::CheckStatus("connect milvus server", status);
 
