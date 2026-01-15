@@ -27,7 +27,7 @@ main(int argc, char* argv[]) {
 
     auto client = milvus::MilvusClientV2::Create();
 
-    milvus::ConnectParam connect_param{"localhost", 19530, "root", "Milvus"};
+    milvus::ConnectParam connect_param{"http://localhost:19530", "root:Milvus"};
     auto status = client->Connect(connect_param);
     util::CheckStatus("connect milvus server", status);
 
@@ -236,9 +236,9 @@ main(int argc, char* argv[]) {
         }
     }
 
-    // now we switch back to our database, since some interfaces no db_name parameter
-    status = client->UseDatabase(my_db_name);
-    util::CheckStatus("switch database: " + my_db_name, status);
+    // now we switch back to our database
+    status = client->Connect(milvus::ConnectParam("http://localhost:19530", "root:Milvus").WithDbName(my_db_name));
+    util::CheckStatus("connect to database: " + my_db_name, status);
     client->CurrentUsedDatabase(current_db_name);
     std::cout << "Current in-used database: " << current_db_name << std::endl;
 
@@ -276,7 +276,7 @@ main(int argc, char* argv[]) {
     util::CheckStatus("drop collection: " + collection_name, status);
 
     // now we switch back to the default database, prepare to delete our empty database
-    status = client->UseDatabase(my_db_name);
+    status = client->UseDatabase("");
     util::CheckStatus("switch default database", status);
     client->CurrentUsedDatabase(current_db_name);
     std::cout << "Current in-used database: " << current_db_name << std::endl;
