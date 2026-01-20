@@ -1,5 +1,25 @@
 # Changelog
 
+## milvus-sdk-cpp 2.5.4 (2026-01-20)
+### Feature
+- Add CreateSimpleCollectionRequest for quickly creating a simple collection
+- Add Get() interface
+- Compatible with zilliz cloud instance, support connecting with uri
+
+### Improvement
+- Pass collection_name/description to CreateCollectionRequest instead of CollectionSchema
+- Pass num_shards to CreateCollectionRequest instead of CollectionSchema
+- DescribeIndex/DropIndex support both field_name and index_name
+- Add multi-vector methods for SearchRequest/SubSearchRequest
+- Refine the request classes to reduce duplicate source code
+- SearchResult can return recalls if enable_recall_calculation is true for zilliz cloud instance
+
+### Bug
+- AlterIndexProperties/DropIndexProperties cannot handle field_name, use index_name as input
+- Fix a bug that CreateIndexRequest sync mode is not correctly work to wait index
+- Fix a bug that SearchRequest.AddSparseVector() miss sparse vector when the size is unequal to the first vector
+- Fix a bug that search response might treat collection name as primary key name
+
 ## milvus-sdk-cpp 2.5.3 (2025-12-22)
 ### Feature
 - Support CreateCollection with indexes
@@ -13,7 +33,7 @@
 - GetLoadState returns loading progress percent
 - Change default value of enable_dynamic_schema from false to true
 
-## Bug
+### Bug
 - Fix a bug that DescribeIndex() always returns all indexes no matter field_name is specified or not
 
 ## milvus-sdk-cpp 2.5.2 (2025-12-04)
