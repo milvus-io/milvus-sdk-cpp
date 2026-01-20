@@ -78,7 +78,7 @@ main(int argc, char* argv[]) {
 
     auto client = milvus::MilvusClientV2::Create();
 
-    milvus::ConnectParam connect_param{"localhost", 19530, "root", "Milvus"};
+    milvus::ConnectParam connect_param{"http://localhost:19530", "root:Milvus"};
     auto status = client->Connect(connect_param);
     util::CheckStatus("connect milvus server", status);
 
@@ -143,7 +143,7 @@ main(int argc, char* argv[]) {
         milvus::UpdatePasswordRequest().WithUserName(user_name).WithOldPassword("aaaaaa").WithNewPassword("123456"));
     util::CheckStatus("update password for user: " + user_name, status);
 
-    client->GrantRole(milvus::GrantRoleRequest().WithUserName(user_name).WithRoleName(role_name));
+    status = client->GrantRole(milvus::GrantRoleRequest().WithUserName(user_name).WithRoleName(role_name));
     util::CheckStatus("grant role: " + role_name + " to user: " + user_name, status);
 
     milvus::DescribeUserResponse resp_desc_user;

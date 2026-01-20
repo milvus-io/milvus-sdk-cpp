@@ -765,7 +765,8 @@ SetExtraParams(const std::unordered_map<std::string, std::string>& params,
     // offet/radius/range_filter/nprobe etc.
     // in old milvus versions, all extra params are under "params"
     // in new milvus versions, all extra params are in the top level
-    nlohmann::json json_params;
+    // the json_params is initialized as a dict, not a primitive or none
+    nlohmann::json json_params = nlohmann::json::object();
     for (auto& pair : params) {
         proto::common::KeyValuePair kv_pair;
         kv_pair.set_key(pair.first);
