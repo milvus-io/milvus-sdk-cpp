@@ -32,15 +32,17 @@ TEST_F(MilvusMockedTest, AlterCollectionProperties) {
     client_->Connect(connect_param);
 
     const std::string collection_name = "Foo";
-    EXPECT_CALL(
-        service_,
-        AlterCollection(_,
-                        AllOf(Property(&AlterCollectionRequest::collection_name, collection_name),
-                              Property(&AlterCollectionRequest::properties,
-                                       UnorderedElementsAre(milvus::TestKv(milvus::MMAP_ENABLED, "true"),
-                                                            milvus::TestKv(milvus::COLLECTION_TTL_SECONDS, "60")))),
-                        _))
-        .WillOnce([](::grpc::ServerContext*, const AlterCollectionRequest* request, ::milvus::proto::common::Status*) {
+    EXPECT_CALL(service_, AlterCollection(_, _, _))
+        .WillOnce([&](::grpc::ServerContext*, const AlterCollectionRequest* request, ::milvus::proto::common::Status*) {
+            EXPECT_NE(request, nullptr);
+            EXPECT_EQ(request->collection_name(), collection_name);
+
+            std::unordered_map<std::string, std::string> got;
+            for (const auto& kv : request->properties()) {
+                got[kv.key()] = kv.value();
+            }
+            EXPECT_EQ(got[milvus::MMAP_ENABLED], "true");
+            EXPECT_EQ(got[milvus::COLLECTION_TTL_SECONDS], "60");
             return ::grpc::Status{};
         });
     std::unordered_map<std::string, std::string> properties{};

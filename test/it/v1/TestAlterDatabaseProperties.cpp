@@ -25,18 +25,20 @@ using ::testing::_;
 using ::testing::AllOf;
 using ::testing::ElementsAre;
 using ::testing::Property;
-using ::testing::UnorderedElementsAre;
 
 TEST_F(MilvusMockedTest, AlterDatabasePropertiesSuccess) {
     milvus::ConnectParam connect_param{"127.0.0.1", server_.ListenPort()};
     client_->Connect(connect_param);
 
-    EXPECT_CALL(service_, AlterDatabase(_,
-                                        AllOf(Property(&AlterDatabaseRequest::db_name, "Foo"),
-                                              Property(&AlterDatabaseRequest::properties,
-                                                       UnorderedElementsAre(milvus::TestKv("replicas", "4")))),
-                                        _))
+    EXPECT_CALL(service_, AlterDatabase(_, Property(&AlterDatabaseRequest::db_name, "Foo"), _))
         .WillOnce([](::grpc::ServerContext*, const AlterDatabaseRequest* request, ::milvus::proto::common::Status*) {
+            std::unordered_map<std::string, std::string> got{};
+            for (const auto& kv : request->properties()) {
+                got.emplace(kv.key(), kv.value());
+            }
+
+            EXPECT_EQ(got.size(), 1);
+            EXPECT_EQ(got["replicas"], "4");
             return ::grpc::Status{};
         });
     std::unordered_map<std::string, std::string> properties{};

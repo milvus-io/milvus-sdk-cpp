@@ -16,6 +16,8 @@
 
 #include "MilvusMockedTest.h"
 
+#include <ostream>
+
 using ::milvus::StatusCode;
 using ::milvus::proto::milvus::ConnectRequest;
 using ::milvus::proto::milvus::ConnectResponse;
@@ -23,6 +25,23 @@ using ::milvus::proto::milvus::ConnectResponse;
 using ::testing::_;
 using ::testing::AllOf;
 using ::testing::Property;
+
+// Provide a gtest printer to avoid gtest falling back to protobuf TextFormat,
+// which can trigger descriptor-table initialization issues with some protobuf
+// 5.x builds.
+namespace milvus {
+namespace proto {
+namespace common {
+void
+PrintTo(const KeyValuePair& kv, ::std::ostream* os) {
+    if (!os) {
+        return;
+    }
+    *os << "KeyValuePair{key=\"" << kv.key() << "\", value=\"" << kv.value() << "\"}";
+}
+}  // namespace common
+}  // namespace proto
+}  // namespace milvus
 
 void
 milvus::UnconnectMilvusMockedTest::SetUp() {

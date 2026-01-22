@@ -29,28 +29,8 @@ MILVUS_SDK_VERSION=${MILVUS_SDK_VERSION:-v2.6.1}
 DO_INSTALL="OFF"
 CMAKE_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX:-/usr/local}
 BUILD_SHARED_LIBS=${BUILD_SHARED_LIBS:-ON}
+BUILD_FROM_CONAN="ON"
 
-if [ -z "$GRPC_PATH" ]; then
-  echo "Use internal gRPC package"
-else
-  echo "External gRPC path: ${GRPC_PATH}"
-  # set GRPC_PATH into path environment since the build process will call protoc to compile milvus porot files
-  # and the protoc executable requires some libraries under the gRPC install path
-  unameOut="$(uname -s)"
-  case "${unameOut}" in
-      Linux*)
-        export LD_LIBRARY_PATH="${GRPC_PATH}/lib:${LD_LIBRARY_PATH}"
-        ;;
-      Darwin*)
-        export DYLD_LIBRARY_PATH="${GRPC_PATH}/lib:${DYLD_LIBRARY_PATH}"
-        ;;
-      MINGW*)
-        export LD_LIBRARY_PATH="${GRPC_PATH}/lib;${LD_LIBRARY_PATH}"
-        ;;
-      *)
-        echo "gRPC path is not passed into environment path"
-  esac
-fi
 
 JOBS="$(nproc 2>/dev/null || sysctl -n hw.logicalcpu 2>/dev/null || echo 3)"
 if [ ${JOBS} -lt 3 ] ; then
@@ -60,7 +40,7 @@ if [ ${JOBS} -gt 10 ] ; then
     JOBS=10
 fi
 
-while getopts "t:v:ulrcsphi" arg; do
+while getopts "t:v:ulrcsphiz" arg; do
   case $arg in
   t)
     BUILD_TYPE=$OPTARG # BUILD_TYPE
@@ -100,6 +80,9 @@ while getopts "t:v:ulrcsphi" arg; do
   i)
     DO_INSTALL="ON"
     ;;
+  z)
+    BUILD_FROM_CONAN="OFF"
+    ;;
   h) # help
     echo "
 
@@ -135,12 +118,68 @@ cd ${BUILD_OUTPUT_DIR}
 # force update the variables each time
 make rebuild_cache >/dev/null 2>&1
 
-# if centos 7, enable devtoolset-7
-if [ -f /opt/rh/devtoolset-7/enable ] ; then
-  source /opt/rh/devtoolset-7/enable
+if [[ "${BUILD_FROM_CONAN}" == "ON" ]]; then
+  echo "Use Conan-managed dependencies"
+  # Conan 2 integration (Conan-only dependency management).
+  # Dependencies must come from Conan; external gRPC is not supported.
+  # Users can override the Conan executable via CONAN.
+  CONAN=${CONAN:-conan}
+  CPPSTD=${CPPSTD:-14}
+
+  # Conan install generates a toolchain and CMake dependency config files.
+  # Use both host and build profiles with the same C++ standard to avoid mismatches.
+  ${CONAN} --version || exit 1
+
+  if [[ "${BUILD_TEST}" == "ON" ]]; then
+    CONAN_WITH_TESTS=True
+  else
+    CONAN_WITH_TESTS=False
+  fi
+
+  # Build folder layout follows Conan 2 CMakeToolchain defaults:
+  #   cmake_build/build/<BuildType>/generators/conan_toolchain.cmake
+  ${CONAN} install .. \
+    -of . \
+    -s build_type=${BUILD_TYPE} \
+    -s compiler.cppstd=${CPPSTD} \
+    -s:b build_type=${BUILD_TYPE} \
+    -s:b compiler.cppstd=${CPPSTD} \
+    -o "&:with_tests=${CONAN_WITH_TESTS}" \
+    --build=missing || exit 1
+
+  TOOLCHAIN_FILE="${PWD}/build/${BUILD_TYPE}/generators/conan_toolchain.cmake"
+  if [ ! -f "${TOOLCHAIN_FILE}" ]; then
+    echo "ERROR! Conan toolchain not found at ${TOOLCHAIN_FILE}"
+    echo "Make sure Conan 2 is installed and 'conan install' finished successfully."
+    exit 1
+  fi
+
+else
+  if [ -z "$GRPC_PATH" ]; then
+    echo "Use internal gRPC package"
+  else
+    echo "External gRPC path: ${GRPC_PATH}"
+    # set GRPC_PATH into path environment since the build process will call protoc to compile milvus porot files
+    # and the protoc executable requires some libraries under the gRPC install path
+    unameOut="$(uname -s)"
+    case "${unameOut}" in
+        Linux*)
+          export LD_LIBRARY_PATH="${GRPC_PATH}/lib:${LD_LIBRARY_PATH}"
+          ;;
+        Darwin*)
+          export DYLD_LIBRARY_PATH="${GRPC_PATH}/lib:${DYLD_LIBRARY_PATH}"
+          ;;
+        MINGW*)
+          export LD_LIBRARY_PATH="${GRPC_PATH}/lib;${LD_LIBRARY_PATH}"
+          ;;
+        *)
+          echo "gRPC path is not passed into environment path"
+    esac
+  fi
 fi
 
 CMAKE_CMD="cmake \
+-DCMAKE_TOOLCHAIN_FILE=${TOOLCHAIN_FILE} \
 -DCMAKE_BUILD_TYPE=${BUILD_TYPE} \
 -DMILVUS_BUILD_TEST=${BUILD_TEST} \
 -DMILVUS_BUILD_COVERAGE=${BUILD_COVERAGE} \
@@ -148,9 +187,15 @@ CMAKE_CMD="cmake \
 -DCMAKE_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX} \
 -DBUILD_SHARED_LIBS=${BUILD_SHARED_LIBS} \
 -DGRPC_PATH=${GRPC_PATH} \
+-DBUILD_FROM_CONAN=${BUILD_FROM_CONAN} \
 ../"
 echo ${CMAKE_CMD}
-${CMAKE_CMD}
+${CMAKE_CMD} || exit 1
+
+# if centos 7, enable devtoolset-7
+if [ -f /opt/rh/devtoolset-7/enable ] ; then
+  source /opt/rh/devtoolset-7/enable
+fi
 
 if [[ ${MAKE_CLEAN} == "ON" ]]; then
   make clean
