@@ -25,7 +25,6 @@ using ::milvus::proto::milvus::AlterIndexRequest;
 using ::testing::_;
 using ::testing::AllOf;
 using ::testing::Property;
-using ::testing::UnorderedElementsAre;
 
 TEST_F(MilvusMockedTest, AlterIndexProperties) {
     milvus::ConnectParam connect_param{"127.0.0.1", server_.ListenPort()};
@@ -33,14 +32,17 @@ TEST_F(MilvusMockedTest, AlterIndexProperties) {
 
     const std::string collection_name = "Foo";
     const std::string index_name = "Bar";
-    EXPECT_CALL(service_,
-                AlterIndex(_,
-                           AllOf(Property(&AlterIndexRequest::collection_name, collection_name),
-                                 Property(&AlterIndexRequest::index_name, index_name),
-                                 Property(&AlterIndexRequest::extra_params,
-                                          UnorderedElementsAre(milvus::TestKv(milvus::MMAP_ENABLED, "true")))),
-                           _))
+    EXPECT_CALL(service_, AlterIndex(_,
+                                     AllOf(Property(&AlterIndexRequest::collection_name, collection_name),
+                                           Property(&AlterIndexRequest::index_name, index_name)),
+                                     _))
         .WillOnce([](::grpc::ServerContext*, const AlterIndexRequest* request, ::milvus::proto::common::Status*) {
+            std::unordered_map<std::string, std::string> got{};
+            for (const auto& kv : request->extra_params()) {
+                got.emplace(kv.key(), kv.value());
+            }
+            EXPECT_EQ(got.size(), 1);
+            EXPECT_EQ(got[milvus::MMAP_ENABLED], "true");
             return ::grpc::Status{};
         });
     std::unordered_map<std::string, std::string> properties{};

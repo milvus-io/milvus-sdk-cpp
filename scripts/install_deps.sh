@@ -14,6 +14,61 @@ install_linux_cmake_clang_toolchain() {
     pip3 install --user cmake clang-tidy~=17.0 clang-format~=17.0
 }
 
+ensure_conan_default_profile() {
+    # Conan needs a default profile to resolve/build dependencies.
+    # Create it if it doesn't exist (common on fresh machines/CI).
+    if ! command -v conan >/dev/null 2>&1 ; then
+        echo 'ERROR: conan is not available; cannot detect default profile.'
+        exit 1
+    fi
+
+    # Conan 2 path: ~/.conan2/profiles/default
+    # Conan 1 path: ~/.conan/profiles/default
+    if [ -f "${HOME}/.conan2/profiles/default" ] || [ -f "${HOME}/.conan/profiles/default" ]; then
+        echo 'Conan default profile exists.'
+        return 0
+    fi
+
+    echo 'Detecting Conan default profile...'
+    conan profile detect --force || exit 1
+
+    if [ ! -f "${HOME}/.conan2/profiles/default" ] && [ ! -f "${HOME}/.conan/profiles/default" ]; then
+        echo 'ERROR: Conan default profile was not created.'
+        exit 1
+    fi
+}
+
+install_conan() {
+    # Milvus SDK C++ supports a Conan-managed dependency workflow.
+    # Make sure Conan is available for build scripts (scripts/build.sh).
+    if [ -x "$(command -v conan)" ] ; then
+        echo "Conan already installed: $(conan --version 2>/dev/null)"
+        ensure_conan_default_profile
+        return 0
+    fi
+
+    echo 'Installing Conan (v2) via pip...'
+
+    # Ensure pip3 exists (package managers already install python3-pip above on Linux).
+    if ! command -v pip3 >/dev/null 2>&1 ; then
+        echo 'ERROR: pip3 is not available; cannot install Conan.'
+        echo 'Please install python3-pip first.'
+        exit 1
+    fi
+
+    # Use user install to avoid requiring sudo/polluting system Python.
+    pip3 install --user -U "conan>=2,<3" || exit 1
+
+    if ! command -v conan >/dev/null 2>&1 ; then
+        echo 'ERROR: Conan was installed but is not on PATH.'
+        echo 'Try opening a new shell or add your user base bin dir to PATH (often ~/.local/bin).'
+        exit 1
+    fi
+
+    echo "Conan installed: $(conan --version 2>/dev/null)"
+    ensure_conan_default_profile
+}
+
 # Starting from macOS 14(Sonoma), Apple implemented stricter security measures,
 # that prevent standard package managers like pip from modifying system-owned directories, even with sudo.
 # We have to use python virtual environments to install the packages.
@@ -40,6 +95,7 @@ install_deps_for_ubuntu_common() {
     ${SUDO} apt-get -y install python2.7 gpg wget gcc g++ ccache make \
                        libssl-dev iwyu lcov git python3-pip clang-format clang-tidy
     install_linux_cmake_clang_toolchain
+    install_conan
 }
 
 install_deps_for_ubuntu_1804() {
@@ -56,8 +112,9 @@ install_deps_for_ubuntu_2204() {
 
 install_deps_for_fedora_common() {
     check_sudo
-    ${SUDO} dnf -y install gcc gcc-c++ python2 gpg wget ccache make openssl-devel which lcov git rpm-build python3-pip
+    ${SUDO} dnf -y install gcc gcc-c++ python2 gpg wget ccache make openssl-devel which lcov git rpm-build python3-pip perl perl-core
     install_linux_cmake_clang_toolchain
+    install_conan
 }
 
 install_deps_for_centos_8() {
@@ -65,6 +122,7 @@ install_deps_for_centos_8() {
     ${SUDO} dnf -y install epel-release
     ${SUDO} dnf -y install gcc gcc-c++ python2 gpg wget ccache make openssl-devel which lcov git rpm-build python3-pip
     install_linux_cmake_clang_toolchain
+    install_conan
 }
 
 install_deps_for_centos_7() {
@@ -75,6 +133,7 @@ install_deps_for_centos_7() {
 
     scl enable devtoolset-7 bash
     install_linux_cmake_clang_toolchain
+    install_conan
 }
 
 install_deps_for_macos() {
