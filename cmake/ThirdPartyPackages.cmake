@@ -19,7 +19,7 @@ include_guard(GLOBAL)
 include(FetchContent)
 
 # milvus server v2.4.23 is using grpc v1.59.0
-set(GRPC_VERSION 1.59.0)
+set(GRPC_VERSION 1.65.0)
 set(GOOGLETEST_VERSION 1.12.1)
 Set(FETCHCONTENT_QUIET FALSE)
 
