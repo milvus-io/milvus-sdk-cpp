@@ -18,21 +18,16 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../src/include)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../src/impl)
 include_directories(${milvus_proto_BINARY_DIR})
 
-# resolve gtest
-if ("${MILVUS_WITH_GTEST}" STREQUAL "package")
-    find_package(GTest REQUIRED)
-else ()
-    if (NOT googletest_POPULATED)
-        FetchContent_Populate(googletest)
-        set(gtest_force_shared_crt ON CACHE INTERNAL "")
-        set(INSTALL_GTEST OFF CACHE INTERNAL "")
-        add_subdirectory(${googletest_SOURCE_DIR} ${googletest_BINARY_DIR} EXCLUDE_FROM_ALL)
-    endif ()
-endif ()
+# GTest is provided in different ways depending on the build mode:
+# - BUILD_FROM_CONAN=ON: Conan CMakeDeps provides GTestConfig.cmake and imported targets.
+# - non-Conan builds (scripts/build.sh -z): we rely on ThirdPartyPackages.cmake to fetch/build googletest.
+if ("${BUILD_FROM_CONAN}" STREQUAL "ON")
+    find_package(GTest CONFIG REQUIRED)
+endif()
 
-set(GTEST_LIBRARIES gtest)
-set(GMOCK_LIBRARIES gmock)
-set(GTEST_MAIN_LIBRARIES gtest_main)
+set(GTEST_LIBRARIES GTest::gtest)
+set(GMOCK_LIBRARIES GTest::gmock)
+set(GTEST_MAIN_LIBRARIES GTest::gtest_main)
 
 set(UT_DIR "${CMAKE_CURRENT_SOURCE_DIR}/ut")
 file(GLOB_RECURSE ut_files
