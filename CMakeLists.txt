@@ -80,23 +80,40 @@ set_option_category("Thirdparty")
 define_option_string(MILVUS_WITH_GRPC           "Using gRPC from"       "module" "package" "module")
 define_option_string(MILVUS_WITH_GTEST          "Using GTest from"      "module" "package" "module")
 
-
-# set the GRPC_PATH variable to specify external gRPC installed path
-if ("${GRPC_PATH}" STREQUAL "")
-    set(MILVUS_WITH_GRPC "module")
-    set(CMAKE_INSTALL_RPATH "/usr/lib" "${CMAKE_INSTALL_PREFIX}/lib" "${CMAKE_INSTALL_PREFIX}/lib64" )
-else ()
-    set(MILVUS_WITH_GRPC "package")
-    set(CMAKE_INSTALL_RPATH "/usr/lib" "${CMAKE_INSTALL_PREFIX}/lib" "${CMAKE_INSTALL_PREFIX}/lib64" "${GRPC_PATH}/lib" )
-endif ()
-
 # CMAKE_INSTALL_RPATH and CMAKE_INSTALL_RPATH_USE_LINK_PATH will set RPATH to all excutable TARGET
 # self-installed dynamic libraries will be correctly linked by excutable
 set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 
+if ("${BUILD_FROM_CONAN}" STREQUAL "ON")
+    # Conan-managed dependencies: always use package-provided gRPC/GTest.
+    set(MILVUS_WITH_GRPC "package")
+    set(MILVUS_WITH_GTEST "package")
 
-# load third packages and milvus-proto
-include(ThirdPartyPackages)
+    # Dependencies are provided via find_package() (expected through Conan CMakeDeps).
+    find_package(absl CONFIG REQUIRED)
+    find_package(Protobuf CONFIG REQUIRED)
+    find_package(gRPC CONFIG REQUIRED)
+
+    find_package(nlohmann_json CONFIG REQUIRED)
+else()
+    # set the GRPC_PATH variable to specify external gRPC installed path
+    if ("${GRPC_PATH}" STREQUAL "")
+        set(MILVUS_WITH_GRPC "module")
+        set(CMAKE_INSTALL_RPATH "/usr/lib" "${CMAKE_INSTALL_PREFIX}/lib" "${CMAKE_INSTALL_PREFIX}/lib64" )
+    else ()
+        set(MILVUS_WITH_GRPC "package")
+        set(CMAKE_INSTALL_RPATH "/usr/lib" "${CMAKE_INSTALL_PREFIX}/lib" "${CMAKE_INSTALL_PREFIX}/lib64" "${GRPC_PATH}/lib" )
+    endif ()
+
+    # Non-Conan builds should also use a self-contained GTest (FetchContent) unless explicitly overridden.
+    if ("${MILVUS_WITH_GTEST}" STREQUAL "")
+        set(MILVUS_WITH_GTEST "module")
+    endif()
+
+    include(ThirdPartyPackages)
+endif()
+
+# load milvus-proto generator
 include(MilvusProtoGen)
 
 # add testing

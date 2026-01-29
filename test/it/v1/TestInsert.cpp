@@ -119,18 +119,34 @@ TEST_F(MilvusMockedTest, Insert) {
                 return ::grpc::Status{};
             });
 
-    EXPECT_CALL(service_,
-                Insert(_,
-                       AllOf(Property(&InsertRequest::collection_name, collection),
-                             Property(&InsertRequest::partition_name, partition),
-                             Property(&InsertRequest::num_rows, num_of_rows),
-                             Property(&InsertRequest::fields_data_size, fields.size()),
-                             Property(&InsertRequest::fields_data,
-                                      ElementsAre(*bool_field_ptr, *int8_field_ptr, *int16_field_ptr, *int32_field_ptr,
-                                                  *int64_field_ptr, *float_field_ptr, *double_field_ptr,
-                                                  *string_field_ptr, *bins_field_ptr, *floats_field_ptr))),
-                       _))
-        .WillOnce([&ret_ids](::grpc::ServerContext*, const InsertRequest* request, MutationResult* response) {
+    EXPECT_CALL(service_, Insert(_,
+                                 AllOf(Property(&InsertRequest::collection_name, collection),
+                                       Property(&InsertRequest::partition_name, partition),
+                                       Property(&InsertRequest::num_rows, num_of_rows),
+                                       Property(&InsertRequest::fields_data_size, fields.size())),
+                                 _))
+        .WillOnce([&ret_ids](::grpc::ServerContext*, const InsertRequest* request,
+                             MutationResult* response) -> ::grpc::Status {
+            // Verify field contents without relying on gMock's protobuf printers.
+            // NOTE: Don't use ASSERT_* here because this lambda must return ::grpc::Status.
+            // Using ASSERT_* would force a `void` return via a fatal failure.
+            if (request->fields_data_size() != static_cast<int>(fields.size())) {
+                ADD_FAILURE() << "fields_data_size mismatch, expected " << fields.size() << ", actual "
+                              << request->fields_data_size();
+                return ::grpc::Status::OK;
+            }
+
+            EXPECT_EQ(request->fields_data(0), *bool_field_ptr);
+            EXPECT_EQ(request->fields_data(1), *int8_field_ptr);
+            EXPECT_EQ(request->fields_data(2), *int16_field_ptr);
+            EXPECT_EQ(request->fields_data(3), *int32_field_ptr);
+            EXPECT_EQ(request->fields_data(4), *int64_field_ptr);
+            EXPECT_EQ(request->fields_data(5), *float_field_ptr);
+            EXPECT_EQ(request->fields_data(6), *double_field_ptr);
+            EXPECT_EQ(request->fields_data(7), *string_field_ptr);
+            EXPECT_EQ(request->fields_data(8), *bins_field_ptr);
+            EXPECT_EQ(request->fields_data(9), *floats_field_ptr);
+
             // ret
             for (const auto ret_id : ret_ids) {
                 response->mutable_ids()->mutable_int_id()->add_data(ret_id);
