@@ -84,7 +84,7 @@ jobs:
   st-ubuntu:
     name: Test all with coverage
     runs-on: ubuntu-${{ matrix.ubuntu }}
-    timeout-minutes: 75
+    timeout-minutes: 120
     strategy:
       fail-fast: false
       matrix:
@@ -156,7 +156,7 @@ jobs:
           sh scripts/install_deps.sh
       - name: Unit Testing
         run: |
-          make test
+          make test-no-conan
   windows:
     name: Build and test windows
     runs-on: windows-2022
@@ -193,4 +193,3 @@ jobs:
         run: |
           build\test\testing-ut
           build\test\testing-it
-

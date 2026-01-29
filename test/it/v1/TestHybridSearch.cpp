@@ -38,7 +38,6 @@ using ::testing::_;
 using ::testing::AllOf;
 using ::testing::ElementsAre;
 using ::testing::Property;
-using ::testing::UnorderedElementsAre;
 
 TEST_F(MilvusMockedTest, HybridSearch) {
     milvus::ConnectParam connect_param{"127.0.0.1", server_.ListenPort()};
@@ -86,23 +85,49 @@ TEST_F(MilvusMockedTest, HybridSearch) {
     auto expected_scores = std::vector<float>{0.5f, 0.4f, 0.3f};
     auto expected_f1 = std::vector<bool>{true, false, false};
     auto expected_f2 = std::vector<int16_t>{1, 2, 3};
-    EXPECT_CALL(
-        service_,
-        HybridSearch(
-            _,
-            AllOf(Property(&HybridSearchRequest::collection_name, search_arg.CollectionName()),
-                  Property(&HybridSearchRequest::partition_names, UnorderedElementsAre("part1", "part2")),
-                  Property(&HybridSearchRequest::db_name, search_arg.DatabaseName()),
-                  Property(&HybridSearchRequest::consistency_level, milvus::proto::common::ConsistencyLevel::Bounded),
-                  Property(&HybridSearchRequest::output_fields, UnorderedElementsAre("f1", "f2")),
-                  Property(
-                      &HybridSearchRequest::rank_params,
-                      UnorderedElementsAre(TestKv(milvus::LIMIT, "3"), TestKv(milvus::OFFSET, "5"),
-                                           TestKv(milvus::ROUND_DECIMAL, "1"), TestKv(milvus::IGNORE_GROWING, "true"),
-                                           TestKv(milvus::STRATEGY, "rrf"), TestKv(milvus::PARAMS, "{\"k\":90}")))),
-            _))
+    EXPECT_CALL(service_,
+                HybridSearch(_,
+                             AllOf(Property(&HybridSearchRequest::collection_name, search_arg.CollectionName()),
+                                   Property(&HybridSearchRequest::db_name, search_arg.DatabaseName()),
+                                   Property(&HybridSearchRequest::consistency_level,
+                                            milvus::proto::common::ConsistencyLevel::Bounded)),
+                             _))
         .WillOnce([&search_arg, &dense_vector, &bin_vector, &expected_ids, &expected_scores, &expected_f1,
                    &expected_f2](::grpc::ServerContext*, const HybridSearchRequest* request, SearchResults* response) {
+            // Validate repeated fields here to avoid gMock protobuf pretty-printing.
+            {
+                std::set<std::string> partitions{};
+                for (const auto& p : request->partition_names()) {
+                    partitions.insert(p);
+                }
+                EXPECT_EQ(partitions.size(), 2);
+                EXPECT_TRUE(partitions.find("part1") != partitions.end());
+                EXPECT_TRUE(partitions.find("part2") != partitions.end());
+            }
+
+            {
+                std::set<std::string> outputs{};
+                for (const auto& f : request->output_fields()) {
+                    outputs.insert(f);
+                }
+                EXPECT_EQ(outputs.size(), 2);
+                EXPECT_TRUE(outputs.find("f1") != outputs.end());
+                EXPECT_TRUE(outputs.find("f2") != outputs.end());
+            }
+
+            {
+                std::unordered_map<std::string, std::string> rank{};
+                for (const auto& kv : request->rank_params()) {
+                    rank.emplace(kv.key(), kv.value());
+                }
+                EXPECT_EQ(rank[milvus::LIMIT], "3");
+                EXPECT_EQ(rank[milvus::OFFSET], "5");
+                EXPECT_EQ(rank[milvus::ROUND_DECIMAL], "1");
+                EXPECT_EQ(rank[milvus::IGNORE_GROWING], "true");
+                EXPECT_EQ(rank[milvus::STRATEGY], "rrf");
+                EXPECT_EQ(rank[milvus::PARAMS], "{\"k\":90}");
+            }
+
             // check more inputs
             const auto& sub_reqs = search_arg.SubRequests();
             const auto& rpc_sub_reqs = request->requests();
@@ -113,13 +138,17 @@ TEST_F(MilvusMockedTest, HybridSearch) {
                 EXPECT_EQ(rpc_sub_req.dsl(), "dummy expression");
                 EXPECT_EQ(rpc_sub_req.dsl_type(), ::milvus::proto::common::DslType::BoolExprV1);
                 auto rpc_search_params = rpc_sub_req.search_params();
-                EXPECT_THAT(rpc_search_params,
-                            UnorderedElementsAre(
-                                TestKv(milvus::ANNS_FIELD, sub_req->AnnsField()),
-                                TestKv(milvus::TOPK, std::to_string(sub_req->Limit())),
-                                TestKv(milvus::METRIC_TYPE, std::to_string(sub_req->MetricType())),
-                                TestKv(milvus::RADIUS, milvus::DoubleToString(sub_req->Radius())),
-                                TestKv(milvus::RANGE_FILTER, milvus::DoubleToString(sub_req->RangeFilter())), _));
+                {
+                    std::unordered_map<std::string, std::string> params{};
+                    for (const auto& kv : rpc_search_params) {
+                        params.emplace(kv.key(), kv.value());
+                    }
+                    EXPECT_EQ(params[milvus::ANNS_FIELD], sub_req->AnnsField());
+                    EXPECT_EQ(params[milvus::TOPK], std::to_string(sub_req->Limit()));
+                    EXPECT_EQ(params[milvus::METRIC_TYPE], std::to_string(sub_req->MetricType()));
+                    EXPECT_EQ(params[milvus::RADIUS], milvus::DoubleToString(sub_req->Radius()));
+                    EXPECT_EQ(params[milvus::RANGE_FILTER], milvus::DoubleToString(sub_req->RangeFilter()));
+                }
 
                 const auto& placeholder_group_payload = rpc_sub_req.placeholder_group();
                 milvus::proto::common::PlaceholderGroup placeholder_group;

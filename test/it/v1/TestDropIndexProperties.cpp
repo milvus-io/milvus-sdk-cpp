@@ -25,7 +25,6 @@ using ::milvus::proto::milvus::AlterIndexRequest;
 using ::testing::_;
 using ::testing::AllOf;
 using ::testing::Property;
-using ::testing::UnorderedElementsAre;
 
 TEST_F(MilvusMockedTest, DropIndexProperties) {
     milvus::ConnectParam connect_param{"127.0.0.1", server_.ListenPort()};
@@ -33,13 +32,17 @@ TEST_F(MilvusMockedTest, DropIndexProperties) {
 
     const std::string collection_name = "Foo";
     const std::string index_name = "Bar";
-    EXPECT_CALL(service_,
-                AlterIndex(_,
-                           AllOf(Property(&AlterIndexRequest::collection_name, collection_name),
-                                 Property(&AlterIndexRequest::index_name, index_name),
-                                 Property(&AlterIndexRequest::delete_keys, UnorderedElementsAre(milvus::MMAP_ENABLED))),
-                           _))
+    EXPECT_CALL(service_, AlterIndex(_,
+                                     AllOf(Property(&AlterIndexRequest::collection_name, collection_name),
+                                           Property(&AlterIndexRequest::index_name, index_name)),
+                                     _))
         .WillOnce([](::grpc::ServerContext*, const AlterIndexRequest* request, ::milvus::proto::common::Status*) {
+            std::set<std::string> got{};
+            for (const auto& k : request->delete_keys()) {
+                got.insert(k);
+            }
+            EXPECT_EQ(got.size(), 1);
+            EXPECT_TRUE(got.find(milvus::MMAP_ENABLED) != got.end());
             return ::grpc::Status{};
         });
     std::set<std::string> delete_keys{};

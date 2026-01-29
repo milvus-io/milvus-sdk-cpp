@@ -15,3 +15,8 @@ code_coverage/
 src/impl/version.h
 
 
+# conan
+CMakePresets.json
+CMakeUserPresets.json
+
+
