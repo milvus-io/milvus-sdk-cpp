@@ -33,6 +33,14 @@ build-sdk-release:
 	@echo "Building Milvus SDK release version ..."
 	@(env bash $(PWD)/scripts/build.sh -t Release)
 
+build-no-conan-debug:
+	@echo "Building Milvus SDK debug version ..."
+	@(env bash $(PWD)/scripts/build.sh -z -t Debug)
+
+build-no-conan-release:
+	@echo "Building Milvus SDK release version ..."
+	@(env bash $(PWD)/scripts/build.sh -z -t Release)
+
 install: install-release
 
 install-release:
@@ -46,6 +54,10 @@ install-debug:
 test:
 	@echo "Testing with Milvus SDK"
 	@(env bash $(PWD)/scripts/build.sh -u)
+
+test-no-conan:
+	@echo "Testing with Milvus SDK"
+	@(env bash $(PWD)/scripts/build.sh -z -u)
 
 st:
 	@echo "System Testing with Milvus SDK"

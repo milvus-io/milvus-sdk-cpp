@@ -71,16 +71,36 @@ DoSearchVectors(testing::StrictMock<milvus::MilvusMockedService>& service_, milv
                   Property(&SearchRequest::dsl_type, milvus::proto::common::DslType::BoolExprV1),
                   Property(&SearchRequest::consistency_level, milvus::proto::common::ConsistencyLevel::Strong),
                   Property(&SearchRequest::guarantee_timestamp, milvus::GuaranteeStrongTs()),
-                  Property(&SearchRequest::partition_names, UnorderedElementsAre("part1", "part2")),
-                  Property(&SearchRequest::output_fields, UnorderedElementsAre("f1", "f2")),
-                  Property(&SearchRequest::search_params,
-                           UnorderedElementsAre(TestKv(milvus::ANNS_FIELD, "anns_dummy"), TestKv(milvus::TOPK, "10"),
-                                                TestKv(milvus::METRIC_TYPE, "IP"), TestKv(milvus::ROUND_DECIMAL, "1"),
-                                                TestKv(milvus::IGNORE_GROWING, "true"), TestKv(milvus::NPROBE, "10"),
-                                                TestKv(milvus::OFFSET, "5"), _))),
+                  Property(&SearchRequest::partition_names_size, 2), Property(&SearchRequest::output_fields_size, 2),
+                  Property(&SearchRequest::search_params_size, 8)),
             _))
         .WillOnce([&vectors, simulate_timeout](::grpc::ServerContext*, const SearchRequest* request,
                                                SearchResults* response) {
+            // Avoid gMock protobuf printing paths by validating repeated fields manually.
+            {
+                std::set<std::string> partitions;
+                for (const auto& p : request->partition_names()) partitions.insert(p);
+                EXPECT_EQ(partitions, (std::set<std::string>{"part1", "part2"}));
+            }
+            {
+                std::set<std::string> output_fields;
+                for (const auto& f : request->output_fields()) output_fields.insert(f);
+                EXPECT_EQ(output_fields, (std::set<std::string>{"f1", "f2"}));
+            }
+            {
+                std::unordered_map<std::string, std::string> params;
+                for (const auto& kv : request->search_params()) {
+                    params.emplace(kv.key(), kv.value());
+                }
+                EXPECT_EQ(params[milvus::ANNS_FIELD], "anns_dummy");
+                EXPECT_EQ(params[milvus::TOPK], "10");
+                EXPECT_EQ(params[milvus::METRIC_TYPE], "IP");
+                EXPECT_EQ(params[milvus::ROUND_DECIMAL], "1");
+                EXPECT_EQ(params[milvus::IGNORE_GROWING], "true");
+                EXPECT_EQ(params[milvus::NPROBE], "10");
+                EXPECT_EQ(params[milvus::OFFSET], "5");
+            }
+
             // check placeholder
             const auto& placeholder_group_payload = request->placeholder_group();
             milvus::proto::common::PlaceholderGroup placeholder_group;
