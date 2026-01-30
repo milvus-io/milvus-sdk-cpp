@@ -13,43 +13,35 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+#pragma once
 
-#include "MilvusServerTest.h"
+#include <gtest/gtest.h>
 
-#include <cstdlib>
-#include <random>
+#include <cstdint>
+#include <string>
 
 namespace milvus {
 namespace test {
 
-std::string
-RanName(const std::string& prefix) {
-    std::default_random_engine ran(time(nullptr));
-    std::uniform_int_distribution<int> int_gen(1000, 10000);
-    return prefix + std::to_string(int_gen(ran));
-}
+class MilvusTestcontainersEnvironment : public ::testing::Environment {
+ public:
+    explicit MilvusTestcontainersEnvironment(bool enabled);
 
-std::string
-MilvusTestHost() {
-    const char* host = std::getenv("MILVUS_TEST_HOST");
-    if (host && host[0] != '\0') {
-        return host;
-    }
-    return "localhost";
-}
+    void
+    SetUp() override;
 
-std::uint16_t
-MilvusTestPort() {
-    const char* port_env = std::getenv("MILVUS_TEST_PORT");
-    if (port_env && port_env[0] != '\0') {
-        char* end = nullptr;
-        auto parsed = std::strtoul(port_env, &end, 10);
-        if (end != port_env && parsed <= 65535) {
-            return static_cast<std::uint16_t>(parsed);
-        }
-    }
-    return 19530;
-}
+    void
+    TearDown() override;
+
+    bool
+    Enabled() const;
+
+ private:
+    bool enabled_{false};
+    int container_id_{-1};
+    std::string host_{};
+    std::uint16_t port_{19530};
+};
 
 }  // namespace test
 }  // namespace milvus

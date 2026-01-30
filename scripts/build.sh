@@ -30,6 +30,7 @@ DO_INSTALL="OFF"
 CMAKE_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX:-/usr/local}
 BUILD_SHARED_LIBS=${BUILD_SHARED_LIBS:-ON}
 BUILD_FROM_CONAN="ON"
+MILVUS_WITH_TESTCONTAINERS=${MILVUS_WITH_TESTCONTAINERS:-OFF}
 
 
 JOBS="$(nproc 2>/dev/null || sysctl -n hw.logicalcpu 2>/dev/null || echo 3)"
@@ -40,7 +41,7 @@ if [ ${JOBS} -gt 10 ] ; then
     JOBS=10
 fi
 
-while getopts "t:v:ulrcsphiz" arg; do
+while getopts "t:v:ulrcsphizT" arg; do
   case $arg in
   t)
     BUILD_TYPE=$OPTARG # BUILD_TYPE
@@ -68,6 +69,7 @@ while getopts "t:v:ulrcsphiz" arg; do
   s)
     SYS_TEST="ON"
     BUILD_TEST="ON"
+    MILVUS_WITH_TESTCONTAINERS="ON"
     ;;
   p)
     BUILD_TYPE=RelWithDebInfo
@@ -83,6 +85,9 @@ while getopts "t:v:ulrcsphiz" arg; do
   z)
     BUILD_FROM_CONAN="OFF"
     ;;
+  T)
+    MILVUS_WITH_TESTCONTAINERS="ON"
+    ;;
   h) # help
     echo "
 
@@ -92,13 +97,15 @@ parameter:
 -u: build with unit testing(default: OFF)
 -r: clean before build
 -s: build with system testing(default: OFF)
+-T: enable Testcontainers for system tests(default: OFF)
 -c: build with coverage
 -p: build with production(-t RelWithDebInfo -r)
 -i: do install
+-z: disable conan build
 -h: help
 
 usage:
-./build.sh -t \${BUILD_TYPE} -v \${MILVUS_SDK_VERSION} [-l] [-r] [-r] [-s] [-p] [-h]"
+./build.sh -t \${BUILD_TYPE} -v \${MILVUS_SDK_VERSION} [-l] [-r] [-r] [-s] [-T] [-p] [-i] [-z] [-h]"
     exit 0
     ;;
   ?)
@@ -183,6 +190,7 @@ CMAKE_CMD="cmake \
 -DCMAKE_BUILD_TYPE=${BUILD_TYPE} \
 -DMILVUS_BUILD_TEST=${BUILD_TEST} \
 -DMILVUS_BUILD_COVERAGE=${BUILD_COVERAGE} \
+-DMILVUS_WITH_TESTCONTAINERS=${MILVUS_WITH_TESTCONTAINERS} \
 -DMILVUS_SDK_VERSION=${MILVUS_SDK_VERSION} \
 -DCMAKE_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX} \
 -DBUILD_SHARED_LIBS=${BUILD_SHARED_LIBS} \
@@ -243,7 +251,16 @@ fi
 
 if [[ "${SYS_TEST}" == "ON" ]]; then
   make -j ${JOBS}  || exit 1
-  ./test/testing-st || exit 1
+  if [[ "${MILVUS_WITH_TESTCONTAINERS}" == "ON" ]]; then
+    TESTCONTAINERS_LIB_DIR="${PWD}/_deps/testcontainers_native-build/testcontainers-c"
+    if [[ -d "${TESTCONTAINERS_LIB_DIR}" ]]; then
+      export LD_LIBRARY_PATH="${TESTCONTAINERS_LIB_DIR}:${LD_LIBRARY_PATH}"
+      export DYLD_LIBRARY_PATH="${TESTCONTAINERS_LIB_DIR}:${DYLD_LIBRARY_PATH}"
+    fi
+  fi
+  pushd test >/dev/null || exit 1
+  ./testing-st || exit 1
+  popd >/dev/null || exit 1
 fi
 
 if [[ "${DO_INSTALL}" == "ON" ]]; then

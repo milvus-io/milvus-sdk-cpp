@@ -26,6 +26,8 @@ using testing::UnorderedElementsAre;
 using testing::UnorderedElementsAreArray;
 
 using milvus::test::MilvusServerTest;
+using milvus::test::MilvusTestHost;
+using milvus::test::MilvusTestPort;
 
 class MilvusServerTestWithTlsMode : public MilvusServerTest {};
 
@@ -36,7 +38,7 @@ TEST_F(MilvusServerTestWithTlsMode, GenericTest) {
     EXPECT_FALSE(has);
 
     // client without certifications
-    milvus::ConnectParam param{"127.0.0.1", 19530};
+    milvus::ConnectParam param{MilvusTestHost(), MilvusTestPort()};
     param.EnableTls();
     std::shared_ptr<milvus::MilvusClient> tempClient = milvus::MilvusClient::Create();
     status = tempClient->Connect(param);

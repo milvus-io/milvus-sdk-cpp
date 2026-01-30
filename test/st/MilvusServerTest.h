@@ -27,13 +27,19 @@
 namespace milvus {
 namespace test {
 
+std::string
+MilvusTestHost();
+
+std::uint16_t
+MilvusTestPort();
+
 class MilvusServerTest : public ::testing::Test {
  protected:
     std::shared_ptr<milvus::MilvusClient> client_{nullptr};
 
     void
     SetUp() override {
-        milvus::ConnectParam connect_param{"localhost", 19530};
+        milvus::ConnectParam connect_param{MilvusTestHost(), MilvusTestPort()};
         client_ = milvus::MilvusClient::Create();
         client_->Connect(connect_param);
     }
@@ -51,7 +57,7 @@ class MilvusServerTestWithParam : public ::testing::TestWithParam<T> {
 
     void
     SetUp() override {
-        milvus::ConnectParam connect_param{"localhost", 19530};
+        milvus::ConnectParam connect_param{MilvusTestHost(), MilvusTestPort()};
         client_ = milvus::MilvusClient::Create();
         client_->Connect(connect_param);
     }
