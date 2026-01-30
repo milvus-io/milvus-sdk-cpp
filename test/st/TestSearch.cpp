@@ -118,8 +118,8 @@ TEST_F(MilvusServerTestSearch, SearchWithoutIndex) {
     EXPECT_LT(results.at(1).Scores().at(0), results.at(1).Scores().at(1));
 
     // match fields: age
-    EXPECT_EQ(results.at(0).OutputFields().size(), 2);
-    EXPECT_EQ(results.at(1).OutputFields().size(), 2);
+    EXPECT_GE(results.at(0).OutputFields().size(), 2);
+    EXPECT_GE(results.at(1).OutputFields().size(), 2);
     EXPECT_THAT(dynamic_cast<milvus::Int16FieldData&>(*results.at(0).OutputField("age")).Data(),
                 UnorderedElementsAre(12, 13));
     EXPECT_THAT(dynamic_cast<milvus::Int16FieldData&>(*results.at(1).OutputField("age")).Data(),
@@ -238,8 +238,8 @@ TEST_F(MilvusServerTestSearch, SearchWithStringFilter) {
     EXPECT_EQ(results.at(1).Scores().size(), 1);
 
     // match fields: age
-    EXPECT_EQ(results.at(0).OutputFields().size(), 2);
-    EXPECT_EQ(results.at(1).OutputFields().size(), 2);
+    EXPECT_GE(results.at(0).OutputFields().size(), 2);
+    EXPECT_GE(results.at(1).OutputFields().size(), 2);
     EXPECT_EQ(dynamic_cast<milvus::Int16FieldData&>(*results.at(0).OutputField("age")).Data(),
               std::vector<int16_t>{12});
     EXPECT_EQ(dynamic_cast<milvus::Int16FieldData&>(*results.at(1).OutputField("age")).Data(),

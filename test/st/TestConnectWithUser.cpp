@@ -21,6 +21,8 @@
 #include "MilvusServerTest.h"
 
 using milvus::test::MilvusServerTest;
+using milvus::test::MilvusTestHost;
+using milvus::test::MilvusTestPort;
 using testing::UnorderedElementsAre;
 using testing::UnorderedElementsAreArray;
 
@@ -33,7 +35,7 @@ TEST_F(MilvusServerTestWithAuth, GenericTest) {
     EXPECT_FALSE(has);
 
     // client without user/pass
-    milvus::ConnectParam param{"127.0.0.1", 19530};
+    milvus::ConnectParam param{MilvusTestHost(), MilvusTestPort()};
     std::shared_ptr<milvus::MilvusClient> tempClient = milvus::MilvusClient::Create();
     status = tempClient->Connect(param);
     status = tempClient->HasCollection("nosuchcollection", has);

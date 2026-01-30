@@ -59,4 +59,54 @@ file(GLOB_RECURSE st_files
 )
 add_executable(testing-st ${st_files})
 target_link_libraries(testing-st PRIVATE milvus_sdk ${GTEST_LIBRARIES} ${GMOCK_LIBRARIES})
+
+if (MILVUS_WITH_TESTCONTAINERS)
+    include(FetchContent)
+    set(TESTCONTAINERS_ROOT "" CACHE PATH "Path to a testcontainers-native install prefix")
+
+    if (TESTCONTAINERS_ROOT)
+        find_path(TESTCONTAINERS_INCLUDE_DIR
+            NAMES testcontainers-c.h testcontainers-c/container.h
+            HINTS ${TESTCONTAINERS_ROOT}/include)
+        find_library(TESTCONTAINERS_LIBRARY
+            NAMES testcontainers-c
+            HINTS ${TESTCONTAINERS_ROOT}/lib ${TESTCONTAINERS_ROOT}/lib64)
+        set(TESTCONTAINERS_RPATH "${TESTCONTAINERS_ROOT}/lib;${TESTCONTAINERS_ROOT}/lib64")
+    elseif (CMAKE_VERSION VERSION_GREATER_EQUAL "3.26")
+        FetchContent_Declare(
+            testcontainers_native
+            GIT_REPOSITORY https://github.com/testcontainers/testcontainers-native.git
+            GIT_TAG v0.1.0
+            GIT_SHALLOW TRUE
+            GIT_PROGRESS TRUE
+        )
+        FetchContent_MakeAvailable(testcontainers_native)
+        set(TESTCONTAINERS_INCLUDE_DIR
+            ${testcontainers_native_BINARY_DIR}/testcontainers-c
+            CACHE PATH "Testcontainers Native include directory" FORCE)
+        set(TESTCONTAINERS_LIBRARY
+            testcontainers-c
+            CACHE STRING "Testcontainers Native library target" FORCE)
+        set(TESTCONTAINERS_RPATH "${testcontainers_native_BINARY_DIR}/testcontainers-c")
+    else()
+        message(WARNING "Testcontainers requires CMake 3.26+ to build from source. Set TESTCONTAINERS_ROOT to use a prebuilt install.")
+    endif()
+
+    if (TESTCONTAINERS_INCLUDE_DIR AND TESTCONTAINERS_LIBRARY)
+        target_include_directories(testing-st PRIVATE ${TESTCONTAINERS_INCLUDE_DIR})
+        target_link_libraries(testing-st PRIVATE ${TESTCONTAINERS_LIBRARY})
+        target_compile_definitions(testing-st PRIVATE MILVUS_WITH_TESTCONTAINERS=1)
+        if (TESTCONTAINERS_RPATH)
+            set_target_properties(testing-st PROPERTIES BUILD_RPATH "${TESTCONTAINERS_RPATH}")
+            foreach(testcontainers_rpath IN LISTS TESTCONTAINERS_RPATH)
+                if (testcontainers_rpath)
+                    target_link_options(testing-st PRIVATE
+                        $<$<OR:$<CXX_COMPILER_ID:GNU>,$<CXX_COMPILER_ID:Clang>>:-Wl,-rpath,${testcontainers_rpath}>)
+                endif()
+            endforeach()
+        endif()
+    else()
+        message(WARNING "Testcontainers not found; system tests will use localhost:19530.")
+    endif()
+endif()
 endif()

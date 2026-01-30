@@ -51,6 +51,7 @@ set_option_category("Build")
 
 define_option(MILVUS_BUILD_TEST "Build with testing" OFF)
 define_option(MILVUS_BUILD_COVERAGE "Build with coverage" OFF)
+define_option(MILVUS_WITH_TESTCONTAINERS "Use Testcontainers for system tests" OFF)
 
 if (DEFINED MILVUS_SDK_VERSION)
     message("MILVUS_SDK_VERSION = ${MILVUS_SDK_VERSION}")
