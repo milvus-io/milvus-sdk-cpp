@@ -35,7 +35,8 @@ enum class StatusCode {
     NOT_CONNECTED,
 
     // function error section
-    INVALID_AGUMENT = 1000,
+    INVALID_ARGUMENT = 1000,
+    INVALID_AGUMENT = 1000,  // deprecated: spelling mistake, use INVALID_ARGUMENT instead
     RPC_FAILED,
     SERVER_FAILED,
     TIMEOUT,

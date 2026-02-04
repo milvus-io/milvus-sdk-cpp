@@ -761,8 +761,8 @@ class MilvusClientV2 {
 
     /**
      * @brief Manually trigger a compaction action.
-     * Normally, user no need to call this API sicne milvus automatically triggers compactions internally.
-     * It is mainly used for some maintainance or debug purpose.
+     * Normally, user no need to call this API since milvus automatically triggers compactions internally.
+     * It is mainly used for some maintenance or debug purpose.
      *
      * @param [in] request input parameters
      * @param [out] response output results

@@ -138,6 +138,10 @@ if [[ "${BUILD_FROM_CONAN}" == "ON" ]]; then
 
   # Build folder layout follows Conan 2 CMakeToolchain defaults:
   #   cmake_build/build/<BuildType>/generators/conan_toolchain.cmake
+  # Workaround: CMake 4.x removed compat with cmake_minimum_required < 3.5,
+  # which breaks older Conan recipes (e.g. c-ares/1.19.1).
+  export CMAKE_POLICY_VERSION_MINIMUM=3.5
+
   ${CONAN} install .. \
     -of . \
     -s build_type=${BUILD_TYPE} \
@@ -237,13 +241,15 @@ fi
 
 if [[ "${UNIT_TEST}" == "ON" ]]; then
   make -j ${JOBS}  || exit 1
-  ./test/testing-ut || exit 1
-  ./test/testing-it || exit 1
+  # Suppress gRPC verbose logs during tests
+  GRPC_VERBOSITY=ERROR ./test/testing-ut || exit 1
+  GRPC_VERBOSITY=ERROR ./test/testing-it || exit 1
 fi
 
 if [[ "${SYS_TEST}" == "ON" ]]; then
   make -j ${JOBS}  || exit 1
-  ./test/testing-st || exit 1
+  # Suppress gRPC verbose logs during tests
+  GRPC_VERBOSITY=ERROR ./test/testing-st || exit 1
 fi
 
 if [[ "${DO_INSTALL}" == "ON" ]]; then

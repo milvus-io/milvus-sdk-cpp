@@ -745,7 +745,7 @@ SetEmbeddingLists(const std::vector<EmbeddingList>& emb_lists, proto::milvus::Se
     for (const auto& emb_list : emb_lists) {
         auto target = emb_list.TargetVectors();
         if (target == nullptr) {
-            return {StatusCode::INVALID_AGUMENT, "Embedding list is empty"};
+            return {StatusCode::INVALID_ARGUMENT, "Embedding list is empty"};
         }
         if (target->Type() == DataType::FLOAT_VECTOR) {
             // so far only support float vector
@@ -959,7 +959,7 @@ GetRowCountOfFields(const std::vector<FieldDataPtr>& fields, size_t& count) {
     }
     for (const auto& field : fields) {
         if (field != nullptr && first_cnt != field->Count()) {
-            return {StatusCode::INVALID_AGUMENT, "Row numbers of fields are not equal"};
+            return {StatusCode::INVALID_ARGUMENT, "Row numbers of fields are not equal"};
         }
     }
     count = first_cnt;
@@ -1023,7 +1023,7 @@ GetRowFromFieldsData(const std::vector<FieldDataPtr>& fields, size_t i, const st
     }
 
     if (i >= count) {
-        return {StatusCode::INVALID_AGUMENT, std::to_string(i) + " is out of bound: " + std::to_string(count)};
+        return {StatusCode::INVALID_ARGUMENT, std::to_string(i) + " is out of bound: " + std::to_string(count)};
     }
 
     auto getters = GenGetters(fields);
@@ -1062,7 +1062,7 @@ DeduceTemplateArray(const nlohmann::json& array, proto::schema::TemplateArrayVal
     if (first_ele.is_boolean()) {
         for (const auto& ele : array) {
             if (!ele.is_boolean()) {
-                return {StatusCode::INVALID_AGUMENT,
+                return {StatusCode::INVALID_ARGUMENT,
                         "Filter expression template is a list, the first value is Boolean, but some elements are not "
                         "Boolean"};
             }
@@ -1071,7 +1071,7 @@ DeduceTemplateArray(const nlohmann::json& array, proto::schema::TemplateArrayVal
     } else if (first_ele.is_number_integer()) {
         for (const auto& ele : array) {
             if (!ele.is_number_integer()) {
-                return {StatusCode::INVALID_AGUMENT,
+                return {StatusCode::INVALID_ARGUMENT,
                         "Filter expression template is a list, the first value is Integer, but some elements are not "
                         "Integer"};
             }
@@ -1080,7 +1080,7 @@ DeduceTemplateArray(const nlohmann::json& array, proto::schema::TemplateArrayVal
     } else if (first_ele.is_number_float()) {
         for (const auto& ele : array) {
             if (!ele.is_number_float()) {
-                return {StatusCode::INVALID_AGUMENT,
+                return {StatusCode::INVALID_ARGUMENT,
                         "Filter expression template is a list, the first value is Double, but some elements are not "
                         "Double"};
             }
@@ -1089,7 +1089,7 @@ DeduceTemplateArray(const nlohmann::json& array, proto::schema::TemplateArrayVal
     } else if (first_ele.is_string()) {
         for (const auto& ele : array) {
             if (!ele.is_string()) {
-                return {StatusCode::INVALID_AGUMENT,
+                return {StatusCode::INVALID_ARGUMENT,
                         "Filter expression template is a list, the first value is String, but some elements are not "
                         "String"};
             }
@@ -1100,7 +1100,7 @@ DeduceTemplateArray(const nlohmann::json& array, proto::schema::TemplateArrayVal
         for (const auto& ele : array) {
             if (!ele.is_array()) {
                 return {
-                    StatusCode::INVALID_AGUMENT,
+                    StatusCode::INVALID_ARGUMENT,
                     "Filter expression template is a list, the first value is List, but some elements are not List"};
             }
 
@@ -1136,7 +1136,7 @@ ConvertFilterTemplates(const std::unordered_map<std::string, nlohmann::json>& te
         } else if (temp.is_string()) {
             value.set_string_val(temp.get<std::string>());
         } else {
-            return {StatusCode::INVALID_AGUMENT, "Unsupported template type"};
+            return {StatusCode::INVALID_ARGUMENT, "Unsupported template type"};
         }
         rpc_templates->insert(std::make_pair(pair.first, value));
     }
@@ -1353,7 +1353,7 @@ ConvertSearchResults(const proto::milvus::SearchResults& rpc_results, const std:
         item_fields_data.emplace_back(std::move(id_field));
         item_fields_data.emplace_back(std::move(score_field));
 
-        // if the server return different lenth of ids, scores, this line will throw an exception
+        // if the server return different length of ids, scores, this line will throw an exception
         // we never saw such bug, just keep a protection here in case if it happens.
         try {
             single_results.emplace_back(real_pk_name, score_name, std::move(item_fields_data), output_names);
@@ -1490,7 +1490,7 @@ template <typename T>
 Status
 CopyFieldDataRange(const FieldDataPtr& src, uint64_t from, uint64_t to, FieldDataPtr& target) {
     if (from >= to) {
-        return {StatusCode::INVALID_AGUMENT, "Illegal copy range"};
+        return {StatusCode::INVALID_ARGUMENT, "Illegal copy range"};
     }
 
     auto src_ptr = std::static_pointer_cast<T>(src);
@@ -1509,10 +1509,10 @@ CopyFieldDataRange(const FieldDataPtr& src, uint64_t from, uint64_t to, FieldDat
 Status
 CopyFieldData(const FieldDataPtr& src, uint64_t from, uint64_t to, FieldDataPtr& target) {
     if (src == nullptr) {
-        return {StatusCode::INVALID_AGUMENT, "Source field data is null pointer"};
+        return {StatusCode::INVALID_ARGUMENT, "Source field data is null pointer"};
     }
     if (from >= to || from >= src->Count()) {
-        return {StatusCode::INVALID_AGUMENT, "Invalid range to copy"};
+        return {StatusCode::INVALID_ARGUMENT, "Invalid range to copy"};
     }
     if (to > src->Count()) {
         to = src->Count();
@@ -1638,10 +1638,10 @@ Append(const FieldDataPtr& src, FieldDataPtr& target) {
 Status
 AppendFieldData(const FieldDataPtr& from, FieldDataPtr& to) {
     if (from == nullptr || to == nullptr) {
-        return {StatusCode::INVALID_AGUMENT, "Field data is null pointer"};
+        return {StatusCode::INVALID_ARGUMENT, "Field data is null pointer"};
     }
     if ((from->Type() != to->Type()) || (from->ElementType() != to->ElementType())) {
-        return {StatusCode::INVALID_AGUMENT, "Not able to append data, type mismatch"};
+        return {StatusCode::INVALID_ARGUMENT, "Not able to append data, type mismatch"};
     }
     switch (from->Type()) {
         case DataType::BOOL: {
@@ -1763,7 +1763,7 @@ Status
 IsAmbiguousParam(const std::string& key) {
     static std::set<std::string> s_ambiguous = {PARAMS, TOPK, ANNS_FIELD, METRIC_TYPE};
     if (s_ambiguous.find(key) != s_ambiguous.end()) {
-        return Status{StatusCode::INVALID_AGUMENT,
+        return Status{StatusCode::INVALID_ARGUMENT,
                       "Ambiguous parameter: not allow to set '" + key + "' in extra params"};
     }
     return Status::OK();

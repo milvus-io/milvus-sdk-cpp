@@ -42,12 +42,12 @@ SearchRequestBase::AddFilterTemplate(std::string key, const nlohmann::json& filt
     if (filter_template.is_array()) {
         for (const auto& ele : filter_template) {
             if (!IsValidTemplate(ele)) {
-                return {milvus::StatusCode::INVALID_AGUMENT, "Filter template element must be boolean/number/string"};
+                return {milvus::StatusCode::INVALID_ARGUMENT, "Filter template element must be boolean/number/string"};
             }
         }
     } else {
         if (!IsValidTemplate(filter_template)) {
-            return {milvus::StatusCode::INVALID_AGUMENT, "Filter template must be boolean/number/string/array"};
+            return {milvus::StatusCode::INVALID_ARGUMENT, "Filter template must be boolean/number/string/array"};
         }
     }
 
@@ -134,7 +134,7 @@ SearchRequestBase::AddInt8Vector(const Int8VecFieldData::ElementT& vector) {
 Status
 SearchRequestBase::AddEmbeddingList(EmbeddingList&& emb_list) {
     if (this->TargetVectors() != nullptr) {
-        return Status{StatusCode::INVALID_AGUMENT, "Not allow to set both embedding list and target vector"};
+        return Status{StatusCode::INVALID_ARGUMENT, "Not allow to set both embedding list and target vector"};
     }
 
     // check ann field name and dimension
@@ -142,7 +142,7 @@ SearchRequestBase::AddEmbeddingList(EmbeddingList&& emb_list) {
         if (emb_list.Dim() != old_list.Dim()) {
             std::string msg =
                 "The vector dimension must be the same! Previous dimension is " + std::to_string(old_list.Dim());
-            return {StatusCode::INVALID_AGUMENT, msg};
+            return {StatusCode::INVALID_ARGUMENT, msg};
         }
     }
     embedding_lists_.emplace_back(std::move(emb_list));
@@ -259,12 +259,12 @@ SearchRequestBase::SetTimezone(const std::string& timezone) {
 Status
 SearchRequestBase::Validate() const {
     if (this->TargetVectors() != nullptr && !embedding_lists_.empty()) {
-        return Status{StatusCode::INVALID_AGUMENT, "Not allow to set both embedding list and target vector"};
+        return Status{StatusCode::INVALID_ARGUMENT, "Not allow to set both embedding list and target vector"};
     }
 
     // in milvus 2.4+, no need to check index parameters, let the server to check it
     if (target_vectors_.Count() == 0 && embedding_lists_.empty()) {
-        return Status{StatusCode::INVALID_AGUMENT, "No target vector is assigned"};
+        return Status{StatusCode::INVALID_ARGUMENT, "No target vector is assigned"};
     }
     return Status::OK();
 }
