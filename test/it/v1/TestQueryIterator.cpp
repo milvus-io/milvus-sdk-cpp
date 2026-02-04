@@ -74,7 +74,7 @@ TEST_F(MilvusMockedTest, QueryIterator) {
             uint64_t session_ts = 999999;
             bool is_seek = false;
             uint64_t query_limit = 0;
-            for (auto pair : params) {
+            for (const auto& pair : params) {
                 if (pair.key() == milvus::LIMIT) {
                     query_limit = std::atoi(pair.value().c_str());
                     if (query_limit == 1) {

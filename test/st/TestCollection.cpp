@@ -47,50 +47,50 @@ TEST_P(MilvusServerTestCollection, CreateAndDeleteCollection) {
 
     auto status = client_->CreateCollection(collection_schema);
     EXPECT_EQ(status.Message(), "OK");
-    EXPECT_TRUE(status.IsOk());
+    milvus::test::ExpectStatusOK(status);
 
     // create index needed after 2.2.0
     milvus::IndexDesc index_desc("face", "", milvus::IndexType::FLAT, milvus::MetricType::L2);
     status = client_->CreateIndex(collection_name, index_desc);
-    EXPECT_TRUE(status.IsOk());
+    milvus::test::ExpectStatusOK(status);
 
     // test for https://github.com/milvus-io/milvus-sdk-cpp/issues/188
     std::vector<milvus::CollectionInfo> collection_infos;
     status = client_->ListCollections(collection_infos);
-    EXPECT_TRUE(status.IsOk());
+    milvus::test::ExpectStatusOK(status);
     EXPECT_GE(collection_infos.size(), 1);
     EXPECT_TRUE(ContainsCollection(collection_infos, collection_name));
 
     // test for https://github.com/milvus-io/milvus-sdk-cpp/issues/246
     milvus::PartitionsInfo partitions_info{};
     status = client_->ListPartitions(collection_name, partitions_info);
-    EXPECT_TRUE(status.IsOk());
+    milvus::test::ExpectStatusOK(status);
     EXPECT_GE(partitions_info.size(), 1);
 
     // the collection is not loaded, set only_show_loaded = true, the collection is not in the list
     status = client_->ListCollections(collection_infos, true);
-    EXPECT_TRUE(status.IsOk());
+    milvus::test::ExpectStatusOK(status);
     EXPECT_FALSE(ContainsCollection(collection_infos, collection_name));
 
     // load the collection
     collection_infos.clear();
     status = client_->LoadCollection(collection_name);
-    EXPECT_TRUE(status.IsOk());
+    milvus::test::ExpectStatusOK(status);
 
     // the collection is not loaded, set only_show_loaded = true, the collection is in the list
     status = client_->ListCollections(collection_infos);
-    EXPECT_TRUE(status.IsOk());
+    milvus::test::ExpectStatusOK(status);
     EXPECT_TRUE(ContainsCollection(collection_infos, collection_name));
 
     status = client_->RenameCollection(collection_name, "Bar");
-    EXPECT_TRUE(status.IsOk());
+    milvus::test::ExpectStatusOK(status);
 
     // the collection is dropped, not in the list of ListCollections
     status = client_->DropCollection("Bar");
-    EXPECT_TRUE(status.IsOk());
+    milvus::test::ExpectStatusOK(status);
     collection_infos.clear();
     status = client_->ListCollections(collection_infos);
-    EXPECT_TRUE(status.IsOk());
+    milvus::test::ExpectStatusOK(status);
     EXPECT_FALSE(ContainsCollection(collection_infos, collection_name));
 }
 

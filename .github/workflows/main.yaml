@@ -81,6 +81,9 @@ jobs:
       - name: Unit Testing
         run: |
           make test
+      - name: Integration Testing
+        run: |
+          make st
   st-ubuntu:
     name: Test all with coverage
     runs-on: ubuntu-${{ matrix.ubuntu }}

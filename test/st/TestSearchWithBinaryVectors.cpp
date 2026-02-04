@@ -24,11 +24,13 @@ using testing::UnorderedElementsAreArray;
 
 class MilvusServerTestSearchWithBinaryVectors : public MilvusServerTest {
  protected:
-    std::string collection_name{milvus::test::RanName("Foo_")};
-    std::string partition_name{milvus::test::RanName("Bar_")};
+    std::string collection_name;
+    std::string partition_name;
 
     void
     createCollectionAndPartitions() {
+        collection_name = milvus::test::RanName("Foo_");
+        partition_name = milvus::test::RanName("Bar_");
         milvus::CollectionSchema collection_schema(collection_name);
         collection_schema.AddField(milvus::FieldSchema("id", milvus::DataType::INT64, "id", true, true));
         collection_schema.AddField(milvus::FieldSchema("age", milvus::DataType::INT16, "age"));
@@ -37,11 +39,11 @@ class MilvusServerTestSearchWithBinaryVectors : public MilvusServerTest {
 
         auto status = client_->CreateCollection(collection_schema);
         EXPECT_EQ(status.Message(), "OK");
-        EXPECT_TRUE(status.IsOk());
+        milvus::test::ExpectStatusOK(status);
 
         status = client_->CreatePartition(collection_name, partition_name);
         EXPECT_EQ(status.Message(), "OK");
-        EXPECT_TRUE(status.IsOk());
+        milvus::test::ExpectStatusOK(status);
     }
 
     milvus::DmlResults
@@ -49,7 +51,7 @@ class MilvusServerTestSearchWithBinaryVectors : public MilvusServerTest {
         milvus::DmlResults dml_results;
         auto status = client_->Insert(collection_name, partition_name, fields, dml_results);
         EXPECT_EQ(status.Message(), "OK");
-        EXPECT_TRUE(status.IsOk());
+        milvus::test::ExpectStatusOK(status);
         EXPECT_EQ(dml_results.IdArray().IntIDArray().size(), fields.front()->Count());
         EXPECT_EQ(dml_results.InsertCount(), fields.front()->Count());
         return dml_results;
@@ -59,13 +61,13 @@ class MilvusServerTestSearchWithBinaryVectors : public MilvusServerTest {
     loadCollection() {
         auto status = client_->LoadCollection(collection_name);
         EXPECT_EQ(status.Message(), "OK");
-        EXPECT_TRUE(status.IsOk());
+        milvus::test::ExpectStatusOK(status);
     }
 
     void
     dropCollection() {
         auto status = client_->DropCollection(collection_name);
-        EXPECT_TRUE(status.IsOk());
+        milvus::test::ExpectStatusOK(status);
     }
 };
 
@@ -91,7 +93,7 @@ TEST_F(MilvusServerTestSearchWithBinaryVectors, RegressionIssue194) {
     milvus::IndexDesc index_desc("face", "", milvus::IndexType::BIN_FLAT, milvus::MetricType::HAMMING);
     auto status = client_->CreateIndex(collection_name, index_desc);
     EXPECT_EQ(status.Message(), "OK");
-    EXPECT_TRUE(status.IsOk());
+    milvus::test::ExpectStatusOK(status);
 
     loadCollection();
 
@@ -104,7 +106,7 @@ TEST_F(MilvusServerTestSearchWithBinaryVectors, RegressionIssue194) {
     milvus::SearchResults search_results{};
     status = client_->Search(arguments, search_results);
     EXPECT_EQ(status.Message(), "OK");
-    EXPECT_TRUE(status.IsOk());
+    milvus::test::ExpectStatusOK(status);
 
     const auto& results = search_results.Results();
     EXPECT_EQ(results.size(), 2);

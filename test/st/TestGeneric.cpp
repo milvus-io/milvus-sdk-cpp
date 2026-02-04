@@ -20,12 +20,12 @@
 #include "gmock/gmock.h"
 
 using milvus::test::MilvusServerTest;
-
 class MilvusServerTestGeneric : public MilvusServerTest {};
 
 TEST_F(MilvusServerTestGeneric, GetVersion) {
     std::string version;
     auto status = client_->GetServerVersion(version);
-    EXPECT_TRUE(status.IsOk());
+    std::cout << "Milvus version:" << version << std::endl;
+    milvus::test::ExpectStatusOK(status);
     EXPECT_THAT(version, testing::MatchesRegex("v?2.+"));
 }
