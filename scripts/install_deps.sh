@@ -96,6 +96,9 @@ install_deps_for_ubuntu_common() {
                        libssl-dev iwyu lcov git python3-pip clang-format clang-tidy
     install_linux_cmake_clang_toolchain
     install_conan
+
+    echo 'Pip install docker for integration tests.'
+    pip3 install --user "docker>=7.0.0"
 }
 
 install_deps_for_ubuntu_1804() {
@@ -115,6 +118,9 @@ install_deps_for_fedora_common() {
     ${SUDO} dnf -y install gcc gcc-c++ python2 gpg wget ccache make openssl-devel which lcov git rpm-build python3-pip perl perl-core
     install_linux_cmake_clang_toolchain
     install_conan
+
+    echo 'Pip install docker for integration tests.'
+    pip3 install --user "docker>=7.0.0"
 }
 
 install_deps_for_centos_8() {

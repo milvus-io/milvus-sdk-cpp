@@ -22,6 +22,7 @@ import multiprocessing as mp
 import lintutils
 from subprocess import PIPE
 import sys
+import time
 from functools import partial
 
 
@@ -113,6 +114,10 @@ if __name__ == "__main__":
         '-p',
         arguments.compile_commands
     ]
+
+    print("clang-tidy: {} files to check".format(len(linted_filenames)))
+    start_time = time.time()
+
     if arguments.fix:
         cmd.append('-fix')
         results = lintutils.run_parallel(
@@ -123,3 +128,6 @@ if __name__ == "__main__":
 
     else:
         _check_all(cmd, linted_filenames)
+
+    elapsed = time.time() - start_time
+    print("clang-tidy: finished in {:.1f} seconds".format(elapsed))

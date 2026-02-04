@@ -19,51 +19,69 @@
 #include <gtest/gtest.h>
 
 #include <cstdint>
+#include <cstdlib>
 #include <string>
 #include <thread>
 
-#include "milvus/MilvusClient.h"
+#include "milvus/MilvusClientV2.h"
 
 namespace milvus {
 namespace test {
 
 class MilvusServerTest : public ::testing::Test {
  protected:
-    std::shared_ptr<milvus::MilvusClient> client_{nullptr};
+    std::shared_ptr<milvus::MilvusClientV2> client_{nullptr};
 
     void
     SetUp() override {
-        milvus::ConnectParam connect_param{"localhost", 19530};
-        client_ = milvus::MilvusClient::Create();
-        client_->Connect(connect_param);
+        const char* host = std::getenv("MILVUS_HOST");
+        milvus::ConnectParam connect_param{host ? host : "localhost", 19530};
+        client_ = milvus::MilvusClientV2::Create();
+        auto status = client_->Connect(connect_param);
+        if (status.IsOk()) {
+            std::cout << "Connection succeeded" << std::endl;
+        } else {
+            std::cout << "Connection failed: " << status.Message() << std::endl;
+        }
     }
 
     void
     TearDown() override {
         client_->Disconnect();
+        std::cout << "Disconnected" << std::endl;
     }
 };
 
 template <typename T>
 class MilvusServerTestWithParam : public ::testing::TestWithParam<T> {
  protected:
-    std::shared_ptr<milvus::MilvusClient> client_{nullptr};
+    std::shared_ptr<milvus::MilvusClientV2> client_{nullptr};
 
     void
     SetUp() override {
-        milvus::ConnectParam connect_param{"localhost", 19530};
-        client_ = milvus::MilvusClient::Create();
-        client_->Connect(connect_param);
+        const char* host = std::getenv("MILVUS_HOST");
+        milvus::ConnectParam connect_param{host ? host : "localhost", 19530};
+        client_ = milvus::MilvusClientV2::Create();
+        auto status = client_->Connect(connect_param);
+        if (status.IsOk()) {
+            std::cout << "Succeed connected" << std::endl;
+        } else {
+            std::cout << "Connection failed: " << status.Message() << std::endl;
+        }
     }
 
     void
     TearDown() override {
         client_->Disconnect();
+        std::cout << "Succeed disconnected" << std::endl;
     }
 };
 
 std::string
 RanName(const std::string& prefix);
+
+void
+ExpectStatusOK(const milvus::Status& status);
 
 }  // namespace test
 }  // namespace milvus
