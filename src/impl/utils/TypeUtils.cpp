@@ -438,7 +438,7 @@ CheckDefaultValue(const FieldSchema& schema) {
     switch (type) {
         case DataType::BOOL:
             if (!val.is_boolean()) {
-                return {StatusCode::INVALID_AGUMENT, "Field type is BOOL but default value is not boolean"};
+                return {StatusCode::INVALID_ARGUMENT, "Field type is BOOL but default value is not boolean"};
             }
             break;
         case DataType::INT8:
@@ -447,26 +447,26 @@ CheckDefaultValue(const FieldSchema& schema) {
         case DataType::INT64:
             // TODO: check ranges?
             if (!val.is_number_integer() && !val.is_number_unsigned()) {
-                return {StatusCode::INVALID_AGUMENT, "Field type is INT but default value is not integer"};
+                return {StatusCode::INVALID_ARGUMENT, "Field type is INT but default value is not integer"};
             }
             break;
         case DataType::FLOAT:
         case DataType::DOUBLE:
             if (!val.is_number()) {
-                return {StatusCode::INVALID_AGUMENT, "Field type is FLOAT/DOUBLE but default value is not number"};
+                return {StatusCode::INVALID_ARGUMENT, "Field type is FLOAT/DOUBLE but default value is not number"};
             }
             break;
         case DataType::VARCHAR:
         case DataType::GEOMETRY:
         case DataType::TIMESTAMPTZ:
             if (!val.is_string()) {
-                return {StatusCode::INVALID_AGUMENT, "Field type is VARCHAR but default value is not string"};
+                return {StatusCode::INVALID_ARGUMENT, "Field type is VARCHAR but default value is not string"};
             }
             break;
         case DataType::JSON:
             return Status::OK();
         default:
-            return {StatusCode::INVALID_AGUMENT, "Not allow to set default value for " + std::to_string(type)};
+            return {StatusCode::INVALID_ARGUMENT, "Not allow to set default value for " + std::to_string(type)};
     }
 
     return Status::OK();

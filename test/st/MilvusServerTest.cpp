@@ -28,5 +28,13 @@ RanName(const std::string& prefix) {
     return prefix + std::to_string(int_gen(ran));
 }
 
+void
+ExpectStatusOK(const milvus::Status& status) {
+    if (!status.IsOk()) {
+        std::cout << "Status failed: " << status.Message() << std::endl;
+    }
+    EXPECT_TRUE(status.IsOk());
+}
+
 }  // namespace test
 }  // namespace milvus
