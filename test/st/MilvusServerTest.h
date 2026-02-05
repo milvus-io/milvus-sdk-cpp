@@ -35,12 +35,18 @@ class MilvusServerTest : public ::testing::Test {
     SetUp() override {
         milvus::ConnectParam connect_param{"localhost", 19530};
         client_ = milvus::MilvusClient::Create();
-        client_->Connect(connect_param);
+        auto status = client_->Connect(connect_param);
+        if (status.IsOk()) {
+            std::cout << "Connection succeeded" << std::endl;
+        } else {
+            std::cout << "Connection failed: " << status.Message() << std::endl;
+        }
     }
 
     void
     TearDown() override {
         client_->Disconnect();
+        std::cout << "Disconnected" << std::endl;
     }
 };
 
@@ -53,17 +59,26 @@ class MilvusServerTestWithParam : public ::testing::TestWithParam<T> {
     SetUp() override {
         milvus::ConnectParam connect_param{"localhost", 19530};
         client_ = milvus::MilvusClient::Create();
-        client_->Connect(connect_param);
+        auto status = client_->Connect(connect_param);
+        if (status.IsOk()) {
+            std::cout << "Succeed connected" << std::endl;
+        } else {
+            std::cout << "Connection failed: " << status.Message() << std::endl;
+        }
     }
 
     void
     TearDown() override {
         client_->Disconnect();
+        std::cout << "Succeed disconnected" << std::endl;
     }
 };
 
 std::string
 RanName(const std::string& prefix);
+
+void
+ExpectStatusOK(const milvus::Status& status);
 
 }  // namespace test
 }  // namespace milvus

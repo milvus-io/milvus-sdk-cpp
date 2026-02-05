@@ -188,10 +188,7 @@ TEST_F(MilvusMockedTest, LoadPartitionsWithQueryStatusTimeout) {
             return ::grpc::Status{};
         });
 
-    auto started = std::chrono::steady_clock::now();
     auto status = client_->LoadPartitions(collection, partitions, 2, progress_monitor);
-    auto finished = std::chrono::steady_clock::now();
-    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(finished - started).count();
 
     EXPECT_FALSE(status.IsOk());
     EXPECT_EQ(status.Code(), StatusCode::TIMEOUT);
