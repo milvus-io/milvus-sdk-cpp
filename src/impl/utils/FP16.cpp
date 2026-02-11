@@ -100,43 +100,43 @@ BF16toF32(uint16_t val) {
 }
 
 std::vector<uint16_t>
-ArrayF32toF16(std::vector<float> array) {
+ArrayF32toF16(const std::vector<float>& array) {
     std::vector<uint16_t> result;
     result.reserve(array.size());
     for (float v : array) {
         result.push_back(F32toF16(v));
     }
-    return std::move(result);
+    return result;
 }
 
 std::vector<float>
-ArrayF16toF32(std::vector<uint16_t> array) {
+ArrayF16toF32(const std::vector<uint16_t>& array) {
     std::vector<float> result;
     result.reserve(array.size());
     for (uint16_t v : array) {
         result.push_back(F16toF32(v));
     }
-    return std::move(result);
+    return result;
 }
 
 std::vector<uint16_t>
-ArrayF32toBF16(std::vector<float> array) {
+ArrayF32toBF16(const std::vector<float>& array) {
     std::vector<uint16_t> result;
     result.reserve(array.size());
     for (float v : array) {
         result.push_back(F32toBF16(v));
     }
-    return std::move(result);
+    return result;
 }
 
 std::vector<float>
-ArrayBF16toF32(std::vector<uint16_t> array) {
+ArrayBF16toF32(const std::vector<uint16_t>& array) {
     std::vector<float> result;
     result.reserve(array.size());
     for (uint16_t v : array) {
         result.push_back(BF16toF32(v));
     }
-    return std::move(result);
+    return result;
 }
 
 }  // namespace milvus
