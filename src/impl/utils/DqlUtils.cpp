@@ -28,7 +28,7 @@
 namespace milvus {
 
 SparseFloatVecFieldData::ElementT
-DecodeSparseFloatVector(std::string& bytes) {
+DecodeSparseFloatVector(const std::string& bytes) {
     if (bytes.size() % 8 != 0) {
         throw std::runtime_error("Unexpected binary string is received from server side!");
     }
@@ -65,7 +65,7 @@ BuildFieldDataSparseVectors(const google::protobuf::RepeatedPtrField<std::string
     auto end = cursor;
     std::advance(end, count);
     while (cursor != end) {
-        std::string bytes = *cursor;
+        const std::string& bytes = *cursor;
         data.emplace_back(std::move(DecodeSparseFloatVector(bytes)));
         cursor++;
     }
@@ -358,13 +358,14 @@ CreateMilvusFieldData(const proto::schema::FieldData& proto_data, size_t offset,
             return Status::OK();
         }
         case proto::schema::DataType::JSON: {
-            std::vector<nlohmann::json> objects;
             const auto& scalars_data = proto_scalars.json_data().data();
-            for (const auto& s : scalars_data) {
-                objects.emplace_back(std::move(nlohmann::json::parse(s)));
+            auto total = static_cast<size_t>(scalars_data.size());
+            size_t end = (offset + count > total) ? total : offset + count;
+            std::vector<JSONFieldData::ElementT> values;
+            values.reserve(end - offset);
+            for (size_t i = offset; i < end; ++i) {
+                values.emplace_back(nlohmann::json::parse(scalars_data[static_cast<int>(i)]));
             }
-            std::vector<JSONFieldData::ElementT> values =
-                BuildFieldDataScalars<JSONFieldData::ElementT>(objects, offset, count);
             field_data = std::make_shared<JSONFieldData>(std::move(name), std::move(values), std::move(valid_data));
             return Status::OK();
         }
@@ -746,8 +747,7 @@ SetEmbeddingLists(const std::vector<EmbeddingList>& emb_lists, proto::milvus::Se
             std::string content;
             content.reserve(emb_list.Count() * emb_list.Dim() * 4);
             for (const auto& vector : vectors.Data()) {
-                std::string single_content(reinterpret_cast<const char*>(vector.data()), vector.size() * sizeof(float));
-                content += single_content;
+                content.append(reinterpret_cast<const char*>(vector.data()), vector.size() * sizeof(float));
             }
             rpc_request->set_nq(static_cast<int64_t>(emb_list.Count()));
             placeholder_value.add_values(std::move(content));
@@ -798,8 +798,8 @@ GenGetter(const FieldDataPtr& field) {
         // special process float16/bfloat16 vector to float arrays
         if (field->Type() == DataType::FLOAT16_VECTOR || field->Type() == DataType::BFLOAT16_VECTOR) {
             bool is_fp16 = (field->Type() == DataType::FLOAT16_VECTOR);
-            std::vector<uint16_t> f16_vec = is_fp16 ? std::static_pointer_cast<Float16VecFieldData>(field)->Value(i)
-                                                    : std::static_pointer_cast<BFloat16VecFieldData>(field)->Value(i);
+            const auto& f16_vec = is_fp16 ? std::static_pointer_cast<Float16VecFieldData>(field)->Data()[i]
+                                         : std::static_pointer_cast<BFloat16VecFieldData>(field)->Data()[i];
             std::vector<float> f32_vec;
             f32_vec.reserve(f16_vec.size());
             std::transform(f16_vec.begin(), f16_vec.end(), std::back_inserter(f32_vec),
