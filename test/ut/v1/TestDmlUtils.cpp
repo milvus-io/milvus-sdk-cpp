@@ -82,7 +82,7 @@ TEST_F(DmlUtilsTest, IDArray) {
     EXPECT_THAT(id_array.StrIDArray(), ElementsAre("10000", "10001"));
 }
 
-TEST_F(DmlUtilsTest, CreateMilvusFieldDataWithRange_Scalar) {
+TEST_F(DmlUtilsTest, CreateMilvusFieldDataWithRangeScalar) {
     VerifyCreateMilvusFieldData<milvus::BoolFieldData, bool>(std::vector<bool>{false, true, false});
     VerifyCreateMilvusFieldData<milvus::Int8FieldData, int8_t>(std::vector<int8_t>{1, 2, 1});
     VerifyCreateMilvusFieldData<milvus::Int16FieldData, int16_t>(std::vector<int16_t>{6, 5, 2});
@@ -98,7 +98,7 @@ TEST_F(DmlUtilsTest, CreateMilvusFieldDataWithRange_Scalar) {
     VerifyCreateMilvusFieldData<milvus::JSONFieldData, nlohmann::json>(values);
 }
 
-TEST_F(DmlUtilsTest, CreateMilvusFieldDataWithRange_Vector) {
+TEST_F(DmlUtilsTest, CreateMilvusFieldDataWithRangeVector) {
     {
         auto values = std::vector<std::vector<uint8_t>>{{1, 2, 3}, {4, 5, 6}, {7, 8, 9}};
         VerifyCreateMilvusFieldData<milvus::BinaryVecFieldData, std::vector<uint8_t>>(values);
@@ -108,14 +108,15 @@ TEST_F(DmlUtilsTest, CreateMilvusFieldDataWithRange_Vector) {
         VerifyCreateMilvusFieldData<milvus::FloatVecFieldData, std::vector<float>>(values);
 
         std::vector<std::vector<uint16_t>> f16_values;
-        for (auto vec : values) {
-            f16_values.emplace_back(milvus::ArrayF32toF16(vec));
+        f16_values.reserve(values.size());
+        for (const auto& vec : values) {
+            f16_values.push_back(milvus::ArrayF32toF16(vec));
         }
         VerifyCreateMilvusFieldData<milvus::Float16VecFieldData, std::vector<uint16_t>>(f16_values);
 
         f16_values.clear();
-        for (auto vec : values) {
-            f16_values.emplace_back(milvus::ArrayF32toBF16(vec));
+        for (const auto& vec : values) {
+            f16_values.push_back(milvus::ArrayF32toBF16(vec));
         }
         VerifyCreateMilvusFieldData<milvus::BFloat16VecFieldData, std::vector<uint16_t>>(f16_values);
     }
@@ -128,7 +129,7 @@ TEST_F(DmlUtilsTest, CreateMilvusFieldDataWithRange_Vector) {
     }
 }
 
-TEST_F(DmlUtilsTest, CreateMilvusFieldDataWithRange_Array) {
+TEST_F(DmlUtilsTest, CreateMilvusFieldDataWithRangeArray) {
     {
         auto values = std::vector<milvus::ArrayBoolFieldData::ElementT>{{true, false}, {false}, {true, true}};
         VerifyCreateMilvusFieldData<milvus::ArrayBoolFieldData, milvus::ArrayBoolFieldData::ElementT>(values);

@@ -24,41 +24,56 @@ using testing::UnorderedElementsAreArray;
 
 class MilvusServerTestSearch : public MilvusServerTest {
  protected:
-    std::string collection_name{milvus::test::RanName("Foo_")};
-    std::string partition_name{milvus::test::RanName("Bar_")};
+    std::string collection_name;
+    std::string partition_name;
 
     void
     createCollectionAndPartitions(bool create_flat_index) {
-        milvus::CollectionSchema collection_schema(collection_name);
-        collection_schema.AddField(milvus::FieldSchema("id", milvus::DataType::INT64, "id", true, true));
-        collection_schema.AddField(milvus::FieldSchema("age", milvus::DataType::INT16, "age"));
-        collection_schema.AddField(milvus::FieldSchema("name", milvus::DataType::VARCHAR, "name").WithMaxLength(64));
-        collection_schema.AddField(
+        collection_name = milvus::test::RanName("Foo_");
+        partition_name = milvus::test::RanName("Bar_");
+        auto collection_schema = std::make_shared<milvus::CollectionSchema>(collection_name);
+        collection_schema->AddField(milvus::FieldSchema("id", milvus::DataType::INT64, "id", true, true));
+        collection_schema->AddField(milvus::FieldSchema("age", milvus::DataType::INT16, "age"));
+        collection_schema->AddField(
+            milvus::FieldSchema("name", milvus::DataType::VARCHAR, "name").WithMaxLength(64));
+        collection_schema->AddField(
             milvus::FieldSchema("face", milvus::DataType::FLOAT_VECTOR, "face signature").WithDimension(4));
 
-        client_->DropCollection(collection_name);
-        auto status = client_->CreateCollection(collection_schema);
+        client_->DropCollection(milvus::DropCollectionRequest().WithCollectionName(collection_name));
+        auto status = client_->CreateCollection(
+            milvus::CreateCollectionRequest().WithCollectionName(collection_name).WithCollectionSchema(
+                collection_schema));
         EXPECT_EQ(status.Message(), "OK");
-        EXPECT_TRUE(status.IsOk());
+        milvus::test::ExpectStatusOK(status);
 
         if (create_flat_index) {
             milvus::IndexDesc index_desc("face", "", milvus::IndexType::FLAT, milvus::MetricType::L2);
-            status = client_->CreateIndex(collection_name, index_desc);
+            status = client_->CreateIndex(
+                milvus::CreateIndexRequest().WithCollectionName(collection_name).AddIndex(std::move(index_desc)));
             EXPECT_EQ(status.Message(), "OK");
-            EXPECT_TRUE(status.IsOk());
+            milvus::test::ExpectStatusOK(status);
         }
 
-        status = client_->CreatePartition(collection_name, partition_name);
+        status = client_->CreatePartition(
+            milvus::CreatePartitionRequest().WithCollectionName(collection_name).WithPartitionName(partition_name));
         EXPECT_EQ(status.Message(), "OK");
-        EXPECT_TRUE(status.IsOk());
+        milvus::test::ExpectStatusOK(status);
     }
 
     milvus::DmlResults
     insertRecords(const std::vector<milvus::FieldDataPtr>& fields) {
-        milvus::DmlResults dml_results;
-        auto status = client_->Insert(collection_name, partition_name, fields, dml_results);
+        milvus::InsertRequest insert_req;
+        insert_req.WithCollectionName(collection_name).WithPartitionName(partition_name);
+        // make a copy since WithColumnsData takes rvalue
+        std::vector<milvus::FieldDataPtr> fields_copy(fields);
+        insert_req.WithColumnsData(std::move(fields_copy));
+
+        milvus::InsertResponse insert_resp;
+        auto status = client_->Insert(insert_req, insert_resp);
         EXPECT_EQ(status.Message(), "OK");
-        EXPECT_TRUE(status.IsOk());
+        milvus::test::ExpectStatusOK(status);
+
+        const auto& dml_results = insert_resp.Results();
         EXPECT_EQ(dml_results.IdArray().IntIDArray().size(), fields.front()->Count());
         EXPECT_EQ(dml_results.InsertCount(), fields.front()->Count());
         return dml_results;
@@ -66,15 +81,15 @@ class MilvusServerTestSearch : public MilvusServerTest {
 
     void
     loadCollection() {
-        auto status = client_->LoadCollection(collection_name);
+        auto status = client_->LoadCollection(milvus::LoadCollectionRequest().WithCollectionName(collection_name));
         EXPECT_EQ(status.Message(), "OK");
-        EXPECT_TRUE(status.IsOk());
+        milvus::test::ExpectStatusOK(status);
     }
 
     void
     dropCollection() {
-        auto status = client_->DropCollection(collection_name);
-        EXPECT_TRUE(status.IsOk());
+        auto status = client_->DropCollection(milvus::DropCollectionRequest().WithCollectionName(collection_name));
+        milvus::test::ExpectStatusOK(status);
     }
 };
 
@@ -90,23 +105,24 @@ TEST_F(MilvusServerTestSearch, SearchWithoutIndex) {
     auto dml_results = insertRecords(fields);
     loadCollection();
 
-    milvus::SearchArguments arguments{};
-    arguments.SetCollectionName(collection_name);
-    arguments.AddPartitionName(partition_name);
-    arguments.SetLimit(10);
-    arguments.AddOutputField("age");
-    arguments.AddOutputField("name");
-    arguments.SetFilter("id > 0");
-    arguments.AddFloatVector("face", std::vector<float>{0.f, 0.f, 0.f, 0.f});
-    arguments.AddFloatVector("face", std::vector<float>{1.f, 1.f, 1.f, 1.f});
-    arguments.SetConsistencyLevel(milvus::ConsistencyLevel::STRONG);
+    milvus::SearchRequest search_req{};
+    search_req.WithCollectionName(collection_name);
+    search_req.AddPartitionName(partition_name);
+    search_req.WithLimit(10);
+    search_req.AddOutputField("age");
+    search_req.AddOutputField("name");
+    search_req.WithFilter("id > 0");
+    search_req.WithAnnsField("face");
+    search_req.AddFloatVector(std::vector<float>{0.f, 0.f, 0.f, 0.f});
+    search_req.AddFloatVector(std::vector<float>{1.f, 1.f, 1.f, 1.f});
+    search_req.WithConsistencyLevel(milvus::ConsistencyLevel::STRONG);
 
-    milvus::SearchResults search_results{};
-    auto status = client_->Search(arguments, search_results);
+    milvus::SearchResponse search_resp{};
+    auto status = client_->Search(search_req, search_resp);
     EXPECT_EQ(status.Message(), "OK");
-    EXPECT_TRUE(status.IsOk());
+    milvus::test::ExpectStatusOK(status);
 
-    const auto& results = search_results.Results();
+    const auto& results = search_resp.Results().Results();
     EXPECT_EQ(results.size(), 2);
     EXPECT_THAT(results.at(0).Ids().IntIDArray(), UnorderedElementsAreArray(dml_results.IdArray().IntIDArray()));
     EXPECT_THAT(results.at(1).Ids().IntIDArray(), UnorderedElementsAreArray(dml_results.IdArray().IntIDArray()));
@@ -117,9 +133,9 @@ TEST_F(MilvusServerTestSearch, SearchWithoutIndex) {
     EXPECT_LT(results.at(0).Scores().at(0), results.at(0).Scores().at(1));
     EXPECT_LT(results.at(1).Scores().at(0), results.at(1).Scores().at(1));
 
-    // match fields: age
-    EXPECT_EQ(results.at(0).OutputFields().size(), 2);
-    EXPECT_EQ(results.at(1).OutputFields().size(), 2);
+    // match fields: id, score, age, name
+    EXPECT_EQ(results.at(0).OutputFields().size(), 4);
+    EXPECT_EQ(results.at(1).OutputFields().size(), 4);
     EXPECT_THAT(dynamic_cast<milvus::Int16FieldData&>(*results.at(0).OutputField("age")).Data(),
                 UnorderedElementsAre(12, 13));
     EXPECT_THAT(dynamic_cast<milvus::Int16FieldData&>(*results.at(1).OutputField("age")).Data(),
@@ -150,23 +166,25 @@ TEST_F(MilvusServerTestSearch, RangeSearch) {
     auto dml_results = insertRecords(fields);
     loadCollection();
 
-    milvus::SearchArguments arguments{};
-    arguments.SetCollectionName(collection_name);
-    arguments.AddPartitionName(partition_name);
-    arguments.SetRange(0.3, 1.0);
-    arguments.SetLimit(10);
-    arguments.AddOutputField("age");
-    arguments.AddOutputField("name");
-    arguments.AddFloatVector("face", std::vector<float>{0.f, 0.f, 0.f, 0.f});
-    arguments.AddFloatVector("face", std::vector<float>{1.f, 1.f, 1.f, 1.f});
-    arguments.SetConsistencyLevel(milvus::ConsistencyLevel::SESSION);
+    milvus::SearchRequest search_req{};
+    search_req.WithCollectionName(collection_name);
+    search_req.AddPartitionName(partition_name);
+    search_req.WithRangeFilter(0.3);
+    search_req.WithRadius(1.0);
+    search_req.WithLimit(10);
+    search_req.AddOutputField("age");
+    search_req.AddOutputField("name");
+    search_req.WithAnnsField("face");
+    search_req.AddFloatVector(std::vector<float>{0.f, 0.f, 0.f, 0.f});
+    search_req.AddFloatVector(std::vector<float>{1.f, 1.f, 1.f, 1.f});
+    search_req.WithConsistencyLevel(milvus::ConsistencyLevel::SESSION);
 
-    milvus::SearchResults search_results{};
-    auto status = client_->Search(arguments, search_results);
+    milvus::SearchResponse search_resp{};
+    auto status = client_->Search(search_req, search_resp);
     EXPECT_EQ(status.Message(), "OK");
-    EXPECT_TRUE(status.IsOk());
+    milvus::test::ExpectStatusOK(status);
 
-    const auto& results = search_results.Results();
+    const auto& results = search_resp.Results().Results();
     EXPECT_EQ(results.size(), 2);
 
     // validate results
@@ -188,16 +206,16 @@ TEST_F(MilvusServerTestSearch, RangeSearch) {
     // add fields, then search again, should be 6 and 4
     insertRecords(fields);
     loadCollection();
-    status = client_->Search(arguments, search_results);
-    EXPECT_TRUE(status.IsOk());
+    status = client_->Search(search_req, search_resp);
+    milvus::test::ExpectStatusOK(status);
     validateScores(6, 4);
 
     // add fields twice, and now it should be 12, 8, as limit is 10, then should be 10, 8
     insertRecords(fields);
     insertRecords(fields);
     loadCollection();
-    status = client_->Search(arguments, search_results);
-    EXPECT_TRUE(status.IsOk());
+    status = client_->Search(search_req, search_resp);
+    milvus::test::ExpectStatusOK(status);
     validateScores(10, 8);
 
     dropCollection();
@@ -215,31 +233,32 @@ TEST_F(MilvusServerTestSearch, SearchWithStringFilter) {
     auto dml_results = insertRecords(fields);
     loadCollection();
 
-    milvus::SearchArguments arguments{};
-    arguments.SetCollectionName(collection_name);
-    arguments.AddPartitionName(partition_name);
-    arguments.SetLimit(10);
-    arguments.AddOutputField("age");
-    arguments.AddOutputField("name");
-    arguments.SetFilter("name like \"To%\"");  // Tom match To%
-    arguments.AddFloatVector("face", std::vector<float>{0.f, 0.f, 0.f, 0.f});
-    arguments.AddFloatVector("face", std::vector<float>{1.f, 1.f, 1.f, 1.f});
-    arguments.SetConsistencyLevel(milvus::ConsistencyLevel::STRONG);
+    milvus::SearchRequest search_req{};
+    search_req.WithCollectionName(collection_name);
+    search_req.AddPartitionName(partition_name);
+    search_req.WithLimit(10);
+    search_req.AddOutputField("age");
+    search_req.AddOutputField("name");
+    search_req.WithFilter("name like \"To%\"");  // Tom match To%
+    search_req.WithAnnsField("face");
+    search_req.AddFloatVector(std::vector<float>{0.f, 0.f, 0.f, 0.f});
+    search_req.AddFloatVector(std::vector<float>{1.f, 1.f, 1.f, 1.f});
+    search_req.WithConsistencyLevel(milvus::ConsistencyLevel::STRONG);
 
-    milvus::SearchResults search_results{};
-    auto status = client_->Search(arguments, search_results);
+    milvus::SearchResponse search_resp{};
+    auto status = client_->Search(search_req, search_resp);
     EXPECT_EQ(status.Message(), "OK");
-    EXPECT_TRUE(status.IsOk());
+    milvus::test::ExpectStatusOK(status);
 
-    const auto& results = search_results.Results();
+    const auto& results = search_resp.Results().Results();
     EXPECT_EQ(results.size(), 2);
 
     EXPECT_EQ(results.at(0).Scores().size(), 1);
     EXPECT_EQ(results.at(1).Scores().size(), 1);
 
-    // match fields: age
-    EXPECT_EQ(results.at(0).OutputFields().size(), 2);
-    EXPECT_EQ(results.at(1).OutputFields().size(), 2);
+    // match fields: id, score, age, name
+    EXPECT_EQ(results.at(0).OutputFields().size(), 4);
+    EXPECT_EQ(results.at(1).OutputFields().size(), 4);
     EXPECT_EQ(dynamic_cast<milvus::Int16FieldData&>(*results.at(0).OutputField("age")).Data(),
               std::vector<int16_t>{12});
     EXPECT_EQ(dynamic_cast<milvus::Int16FieldData&>(*results.at(1).OutputField("age")).Data(),
@@ -275,27 +294,29 @@ TEST_F(MilvusServerTestSearch, SearchWithIVFIndex) {
 
     milvus::IndexDesc index_desc("face", "", milvus::IndexType::IVF_FLAT, milvus::MetricType::L2);
     index_desc.AddExtraParam("nlist", "1024");
-    auto status = client_->CreateIndex(collection_name, index_desc);
+    auto status = client_->CreateIndex(
+        milvus::CreateIndexRequest().WithCollectionName(collection_name).AddIndex(std::move(index_desc)));
     EXPECT_EQ(status.Message(), "OK");
-    EXPECT_TRUE(status.IsOk());
+    milvus::test::ExpectStatusOK(status);
 
     loadCollection();
 
-    milvus::SearchArguments arguments{};
-    arguments.SetCollectionName(collection_name);
-    arguments.SetLimit(10);
-    arguments.SetMetricType(milvus::MetricType::L2);
-    arguments.AddExtraParam("nprobe", "10");
-    arguments.AddFloatVector("face", std::vector<float>{0.f, 0.f, 0.f, 0.f});
-    arguments.AddFloatVector("face", std::vector<float>{1.f, 1.f, 1.f, 1.f});
-    arguments.SetConsistencyLevel(milvus::ConsistencyLevel::STRONG);
+    milvus::SearchRequest search_req{};
+    search_req.WithCollectionName(collection_name);
+    search_req.WithLimit(10);
+    search_req.WithMetricType(milvus::MetricType::L2);
+    search_req.AddExtraParam("nprobe", "10");
+    search_req.WithAnnsField("face");
+    search_req.AddFloatVector(std::vector<float>{0.f, 0.f, 0.f, 0.f});
+    search_req.AddFloatVector(std::vector<float>{1.f, 1.f, 1.f, 1.f});
+    search_req.WithConsistencyLevel(milvus::ConsistencyLevel::STRONG);
 
-    milvus::SearchResults search_results{};
-    status = client_->Search(arguments, search_results);
+    milvus::SearchResponse search_resp{};
+    status = client_->Search(search_req, search_resp);
     EXPECT_EQ(status.Message(), "OK");
-    EXPECT_TRUE(status.IsOk());
+    milvus::test::ExpectStatusOK(status);
 
-    const auto& results = search_results.Results();
+    const auto& results = search_resp.Results().Results();
     EXPECT_EQ(results.size(), 2);
 
     EXPECT_EQ(results.at(0).Scores().size(), 10);
