@@ -47,3 +47,30 @@ TEST_F(ConnectParamTest, GeneralTesting) {
     param.DisableTls();
     EXPECT_FALSE(param.TlsEnabled());
 }
+
+TEST_F(ConnectParamTest, KeepaliveDefaults) {
+    milvus::ConnectParam param{"localhost", 19530};
+
+    EXPECT_EQ(param.KeepaliveTimeMs(), 10000);
+    EXPECT_EQ(param.KeepaliveTimeoutMs(), 5000);
+    EXPECT_TRUE(param.KeepaliveWithoutCalls());
+}
+
+TEST_F(ConnectParamTest, KeepaliveSettersAndBuilders) {
+    milvus::ConnectParam param{"localhost", 19530};
+
+    param.SetKeepaliveTimeMs(20000);
+    EXPECT_EQ(param.KeepaliveTimeMs(), 20000);
+
+    param.SetKeepaliveTimeoutMs(8000);
+    EXPECT_EQ(param.KeepaliveTimeoutMs(), 8000);
+
+    param.SetKeepaliveWithoutCalls(false);
+    EXPECT_FALSE(param.KeepaliveWithoutCalls());
+
+    // Test builder pattern
+    auto& ref = param.WithKeepaliveTimeMs(30000).WithKeepaliveTimeoutMs(10000).WithKeepaliveWithoutCalls(true);
+    EXPECT_EQ(ref.KeepaliveTimeMs(), 30000);
+    EXPECT_EQ(ref.KeepaliveTimeoutMs(), 10000);
+    EXPECT_TRUE(ref.KeepaliveWithoutCalls());
+}
