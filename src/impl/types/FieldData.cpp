@@ -359,14 +359,14 @@ BinaryVecFieldData::ToBinaryStrings(const std::vector<std::vector<uint8_t>>& dat
     std::vector<std::string> ret;
     ret.reserve(data.size());
     for (const auto& item : data) {
-        ret.emplace_back(std::move(ToBinaryString(item)));
+        ret.emplace_back(ToBinaryString(item));
     }
-    return std::move(ret);
+    return ret;
 }
 
 std::string
 BinaryVecFieldData::ToBinaryString(const std::vector<uint8_t>& data) {
-    return std::move(std::string{data.begin(), data.end()});
+    return std::string{data.begin(), data.end()};
 }
 
 std::vector<std::vector<uint8_t>>
@@ -376,7 +376,7 @@ BinaryVecFieldData::ToUnsignedChars(const std::vector<std::string>& data) {
     for (const auto& item : data) {
         ret.emplace_back(item.begin(), item.end());
     }
-    return std::move(ret);
+    return ret;
 }
 
 std::vector<uint8_t>
@@ -384,7 +384,7 @@ BinaryVecFieldData::ToUnsignedChars(const std::string& data) {
     std::vector<uint8_t> ret;
     ret.reserve(data.size());
     std::copy(data.begin(), data.end(), std::back_inserter(ret));
-    return std::move(ret);
+    return ret;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
