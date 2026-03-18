@@ -339,11 +339,11 @@ class ConnectParam {
  private:
     std::string uri_ = "http://localhost:19530";
 
-    uint64_t connect_timeout_ms_ = 10000;    // the same with pymilvus
-    uint64_t keepalive_time_ms_ = 10000;     // Send keepalive pings every 10 seconds
-    uint64_t keepalive_timeout_ms_ = 5000;   // Keepalive ping timeout after 5 seconds
-    bool keepalive_without_calls_ = true;    // Allow keepalive pings when there are no gRPC calls
-    uint64_t rpc_deadline_ms_ = 0;           // the same with java sdk
+    uint64_t connect_timeout_ms_ = 10000;   // the same with pymilvus
+    uint64_t keepalive_time_ms_ = 10000;    // Send keepalive pings every 10 seconds
+    uint64_t keepalive_timeout_ms_ = 5000;  // Keepalive ping timeout after 5 seconds
+    bool keepalive_without_calls_ = true;   // Allow keepalive pings when there are no gRPC calls
+    uint64_t rpc_deadline_ms_ = 0;          // the same with java sdk
 
     bool tls_{false};
     std::string server_name_;
