@@ -136,7 +136,7 @@ MilvusClientV2Impl::CreateCollection(const CreateCollectionRequest& request) {
         }
 
         // properties
-        for (auto it : request.Properties()) {
+        for (const auto& it : request.Properties()) {
             auto kv = rpc_request.add_properties();
             kv->set_key(it.first);
             kv->set_value(it.second);
