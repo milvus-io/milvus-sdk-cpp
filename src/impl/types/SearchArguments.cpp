@@ -47,7 +47,7 @@ SearchArguments::CollectionName() const {
 Status
 SearchArguments::SetCollectionName(std::string collection_name) {
     if (collection_name.empty()) {
-        return {StatusCode::INVALID_AGUMENT, "Collection name cannot be empty!"};
+        return {StatusCode::INVALID_ARGUMENT, "Collection name cannot be empty!"};
     }
     collection_name_ = std::move(collection_name);
     return Status::OK();
@@ -61,7 +61,7 @@ SearchArguments::PartitionNames() const {
 Status
 SearchArguments::AddPartitionName(std::string partition_name) {
     if (partition_name.empty()) {
-        return {StatusCode::INVALID_AGUMENT, "Partition name cannot be empty!"};
+        return {StatusCode::INVALID_ARGUMENT, "Partition name cannot be empty!"};
     }
     partition_names_.emplace(std::move(partition_name));
     return Status::OK();
@@ -75,7 +75,7 @@ SearchArguments::OutputFields() const {
 Status
 SearchArguments::AddOutputField(std::string field_name) {
     if (field_name.empty()) {
-        return {StatusCode::INVALID_AGUMENT, "Field name cannot be empty!"};
+        return {StatusCode::INVALID_ARGUMENT, "Field name cannot be empty!"};
     }
 
     output_field_names_.emplace(std::move(field_name));

@@ -41,7 +41,7 @@ CheckValueRange(V val, const std::string& field_name) {
         if (!field_name.empty()) {
             err_msg += (" for field: " + field_name);
         }
-        return {milvus::StatusCode::INVALID_AGUMENT, err_msg};
+        return {milvus::StatusCode::INVALID_ARGUMENT, err_msg};
     }
     return milvus::Status::OK();
 }
@@ -97,7 +97,7 @@ CheckInsertInput(const CollectionDescPtr& collection_desc, const std::vector<Fie
     // this loop is for "are there any redundant data?"
     for (const auto& column : columns) {
         if (column == nullptr) {
-            return {StatusCode::INVALID_AGUMENT, "Null pointer field is not allowed"};
+            return {StatusCode::INVALID_ARGUMENT, "Null pointer field is not allowed"};
         }
 
         const auto& column_name = column->Name();
@@ -105,7 +105,7 @@ CheckInsertInput(const CollectionDescPtr& collection_desc, const std::vector<Fie
         if (column_name == DYNAMIC_FIELD) {
             // if dynamic field is not JSON type, no need to update collection schema cache
             if (column_type != DataType::JSON) {
-                return {StatusCode::INVALID_AGUMENT, "Require JSON data for dynamic field: " + column_name};
+                return {StatusCode::INVALID_ARGUMENT, "Require JSON data for dynamic field: " + column_name};
             }
             // if has dynamic field data but enable_dynamic_field is false, maybe the schema cache is out of date
             if (!enable_dynamic_field) {
@@ -244,7 +244,7 @@ ParseSparseFloatVector(const nlohmann::json& obj, const std::string& field_name,
     if (!obj.is_object()) {
         std::cout << obj << std::endl;
         std::string err_msg = "Value type should be a dict for field: " + field_name;
-        return {StatusCode::INVALID_AGUMENT, err_msg};
+        return {StatusCode::INVALID_ARGUMENT, err_msg};
     }
 
     // parse indices/values from json
@@ -255,7 +255,7 @@ ParseSparseFloatVector(const nlohmann::json& obj, const std::string& field_name,
         const auto& values = obj[SPARSE_VALUES];
         if (!indices.is_array() || !values.is_array()) {
             std::string err_msg = "Sparse indices or values must be array for field: " + field_name;
-            return {StatusCode::INVALID_AGUMENT, err_msg};
+            return {StatusCode::INVALID_ARGUMENT, err_msg};
         }
         for (const auto& index : indices) {
             if (index.is_number_integer() || index.is_number_unsigned()) {
@@ -267,7 +267,7 @@ ParseSparseFloatVector(const nlohmann::json& obj, const std::string& field_name,
                 indices_vec.push_back(static_cast<uint32_t>(val));
             } else {
                 std::string err_msg = "Indices array should be integer values for field: " + field_name;
-                return {StatusCode::INVALID_AGUMENT, err_msg};
+                return {StatusCode::INVALID_ARGUMENT, err_msg};
             }
         }
         for (const auto& val : values) {
@@ -275,7 +275,7 @@ ParseSparseFloatVector(const nlohmann::json& obj, const std::string& field_name,
                 values_vec.push_back(val.get<float>());
             } else {
                 std::string err_msg = "Values array should be numeric values for field: " + field_name;
-                return {StatusCode::INVALID_AGUMENT, err_msg};
+                return {StatusCode::INVALID_ARGUMENT, err_msg};
             }
         }
     } else {
@@ -289,7 +289,7 @@ ParseSparseFloatVector(const nlohmann::json& obj, const std::string& field_name,
                 indices_vec.push_back(static_cast<uint32_t>(index));
             } catch (...) {
                 std::string err_msg = "Failed to parse index value'" + pair.key() + "' for field: " + field_name;
-                return {StatusCode::INVALID_AGUMENT, err_msg};
+                return {StatusCode::INVALID_ARGUMENT, err_msg};
             }
 
             auto val = pair.value();
@@ -297,7 +297,7 @@ ParseSparseFloatVector(const nlohmann::json& obj, const std::string& field_name,
                 values_vec.push_back(val.get<float>());
             } else {
                 std::string err_msg = "Values array should be numeric values for field: " + field_name;
-                return {StatusCode::INVALID_AGUMENT, err_msg};
+                return {StatusCode::INVALID_ARGUMENT, err_msg};
             }
         }
     }
@@ -307,7 +307,7 @@ ParseSparseFloatVector(const nlohmann::json& obj, const std::string& field_name,
         std::string err_msg = "Indices length(" + std::to_string(indices_vec.size()) +
                               ") is not equal to values length(" + std::to_string(values_vec.size()) +
                               ") for field: " + field_name;
-        return {StatusCode::INVALID_AGUMENT, err_msg};
+        return {StatusCode::INVALID_ARGUMENT, err_msg};
     }
 
     // the indices must be in accending order, and not allowed duplicated indices
@@ -316,7 +316,7 @@ ParseSparseFloatVector(const nlohmann::json& obj, const std::string& field_name,
         pairs.insert(std::make_pair(indices_vec[i], values_vec[i]));
     }
     if (pairs.size() != indices_vec.size()) {
-        return {StatusCode::INVALID_AGUMENT, "Duplicated indices for field: " + field_name};
+        return {StatusCode::INVALID_ARGUMENT, "Duplicated indices for field: " + field_name};
     }
 
     return Status::OK();
@@ -630,7 +630,7 @@ ProcessNormalFieldValues(const EntityRow& row, const std::vector<FieldSchema>& n
 
             // if the field doesn't have default value and is not nullable, require user to provide the value
             if (!field_schema.IsNullable() && field_schema.DefaultValue().is_null()) {
-                return {StatusCode::INVALID_AGUMENT, "The field: " + name + " is not provided."};
+                return {StatusCode::INVALID_ARGUMENT, "The field: " + name + " is not provided."};
             }
         }
 
@@ -654,12 +654,12 @@ ProcessStructFieldValues(const EntityRow& row, const std::vector<StructFieldSche
     for (const auto& struct_schema : struct_fields) {
         const std::string& name = struct_schema.Name();
         if (!row.contains(name)) {
-            return {StatusCode::INVALID_AGUMENT, "The struct field: " + name + " is not provided."};
+            return {StatusCode::INVALID_ARGUMENT, "The struct field: " + name + " is not provided."};
         }
 
         const auto& field_value = row[name];
         if (!field_value.is_array()) {
-            return {StatusCode::INVALID_AGUMENT, "The value of struct field: " + name + " is not a JSON array."};
+            return {StatusCode::INVALID_ARGUMENT, "The value of struct field: " + name + " is not a JSON array."};
         }
 
         auto dict_list = field_value.get<std::vector<nlohmann::json>>();
@@ -752,7 +752,7 @@ CreateProtoFieldData(const FieldDataSchema& data_schema, proto::schema::FieldDat
 // StructFieldData's data is std::vector<std::vector<nlohmann::json>>
 // Each nlohmann::json represents a struct/dict. each std::vector<nlohmann::json> is a row(a list of structs/dicts)
 // All the nlohmann::json must be consistent with the StructFieldSchema.
-// For example, a struct field schmea is ["A":Varchar, "B":FloatVector(dim=3)]
+// For example, a struct field schema is ["A":Varchar, "B":FloatVector(dim=3)]
 // The input StructFieldData has 2 rows, the first row has 2 dicts, the second row has 1 dict
 // [
 //    [{"A":"x", "B":[0.1, 0.1, 0.1]}, {"A":"y", "B":[0.2, 0.2, 0.3]}],
@@ -779,7 +779,7 @@ FillStructProtoFields(const std::vector<nlohmann::json>& dict_list, const Struct
         std::string error_msg = "Array length " + std::to_string(dict_list.size()) + " exceeds max capacity " +
                                 std::to_string(struct_schema.MaxCapacity()) +
                                 " of struct field: " + struct_schema.Name();
-        return {StatusCode::INVALID_AGUMENT, error_msg};
+        return {StatusCode::INVALID_ARGUMENT, error_msg};
     }
 
     // Assume a struct field is named "st", sub fields are "name" and "vector", the vector field could be BM25 output.
@@ -835,7 +835,7 @@ CreateProtoStructData(const FieldDataPtr& column, const StructFieldSchema& struc
                       const std::set<std::string>& output_fields, proto::schema::FieldData& field_data) {
     auto actual_data = std::dynamic_pointer_cast<StructFieldData>(column);
     if (actual_data == nullptr) {
-        return {StatusCode::INVALID_AGUMENT, "Illegal null pointer for field: " + struct_schema.Name()};
+        return {StatusCode::INVALID_ARGUMENT, "Illegal null pointer for field: " + struct_schema.Name()};
     }
 
     const auto& rows = actual_data->Data();
@@ -934,11 +934,11 @@ Status
 CheckAndSetBinaryVector(const nlohmann::json& obj, const FieldSchema& fs, proto::schema::VectorField* vf) {
     if (!obj.is_array()) {
         std::string err_msg = "Value type should be array for field: " + fs.Name();
-        return {StatusCode::INVALID_AGUMENT, err_msg};
+        return {StatusCode::INVALID_ARGUMENT, err_msg};
     }
     if (obj.size() * 8 != static_cast<std::size_t>(fs.Dimension())) {
         std::string err_msg = "Array length is not equal to dimension/8 for field: " + fs.Name();
-        return {StatusCode::INVALID_AGUMENT, err_msg};
+        return {StatusCode::INVALID_ARGUMENT, err_msg};
     }
 
     vf->set_dim(fs.Dimension());
@@ -953,7 +953,7 @@ CheckAndSetBinaryVector(const nlohmann::json& obj, const FieldSchema& fs, proto:
             data->push_back(static_cast<uint8_t>(val));
         } else {
             std::string err_msg = "Value should be int8 for field: " + fs.Name();
-            return {StatusCode::INVALID_AGUMENT, err_msg};
+            return {StatusCode::INVALID_ARGUMENT, err_msg};
         }
     }
     return Status::OK();
@@ -963,11 +963,11 @@ Status
 CheckAndSetFloatVector(const nlohmann::json& obj, const FieldSchema& fs, proto::schema::VectorField* vf) {
     if (!obj.is_array()) {
         std::string err_msg = "Value type should be array for field: " + fs.Name();
-        return {StatusCode::INVALID_AGUMENT, err_msg};
+        return {StatusCode::INVALID_ARGUMENT, err_msg};
     }
     if (obj.size() != static_cast<std::size_t>(fs.Dimension())) {
         std::string err_msg = "Array length is not equal to dimension for field: " + fs.Name();
-        return {StatusCode::INVALID_AGUMENT, err_msg};
+        return {StatusCode::INVALID_ARGUMENT, err_msg};
     }
 
     vf->set_dim(fs.Dimension());
@@ -975,7 +975,7 @@ CheckAndSetFloatVector(const nlohmann::json& obj, const FieldSchema& fs, proto::
     for (const auto& ele : obj) {
         if (!ele.is_number_float()) {
             std::string err_msg = "Element value should be float for field: " + fs.Name();
-            return {StatusCode::INVALID_AGUMENT, err_msg};
+            return {StatusCode::INVALID_ARGUMENT, err_msg};
         }
         data->Add(ele.get<float>());
     }
@@ -1011,11 +1011,11 @@ Status
 CheckAndSetFloat16Vector(const nlohmann::json& obj, const FieldSchema& fs, proto::schema::VectorField* vf) {
     if (!obj.is_array()) {
         std::string err_msg = "Value type should be array for field: " + fs.Name();
-        return {StatusCode::INVALID_AGUMENT, err_msg};
+        return {StatusCode::INVALID_ARGUMENT, err_msg};
     }
     if (obj.size() != static_cast<std::size_t>(fs.Dimension())) {
         std::string err_msg = "Array length is not equal to dimension for field: " + fs.Name();
-        return {StatusCode::INVALID_AGUMENT, err_msg};
+        return {StatusCode::INVALID_ARGUMENT, err_msg};
     }
 
     bool is_bf16 = (fs.FieldDataType() == DataType::BFLOAT16_VECTOR);
@@ -1025,7 +1025,7 @@ CheckAndSetFloat16Vector(const nlohmann::json& obj, const FieldSchema& fs, proto
     for (const auto& ele : obj) {
         if (!ele.is_number_float()) {
             std::string err_msg = "Element value should be float for field: " + fs.Name();
-            return {StatusCode::INVALID_AGUMENT, err_msg};
+            return {StatusCode::INVALID_ARGUMENT, err_msg};
         }
 
         float fval = ele.get<float>();
@@ -1034,7 +1034,7 @@ CheckAndSetFloat16Vector(const nlohmann::json& obj, const FieldSchema& fs, proto
         // bfloat16, the range is almost equal to float32, no need to check
         if (!is_bf16 && (fval < -65504.0 || fval > 65504.0)) {
             std::string err_msg = "Value should be in range [-65504, 65504] for field: " + fs.Name();
-            return {StatusCode::INVALID_AGUMENT, err_msg};
+            return {StatusCode::INVALID_ARGUMENT, err_msg};
         }
         uint16_t val = is_bf16 ? F32toBF16(fval) : F32toF16(fval);
         auto p = reinterpret_cast<int8_t*>(&val);
@@ -1048,11 +1048,11 @@ Status
 CheckAndSetInt8Vector(const nlohmann::json& obj, const FieldSchema& fs, proto::schema::VectorField* vf) {
     if (!obj.is_array()) {
         std::string err_msg = "Value type should be array for field: " + fs.Name();
-        return {StatusCode::INVALID_AGUMENT, err_msg};
+        return {StatusCode::INVALID_ARGUMENT, err_msg};
     }
     if (obj.size() != static_cast<std::size_t>(fs.Dimension())) {
         std::string err_msg = "Array length is not equal to dimension for field: " + fs.Name();
-        return {StatusCode::INVALID_AGUMENT, err_msg};
+        return {StatusCode::INVALID_ARGUMENT, err_msg};
     }
 
     vf->set_dim(fs.Dimension());
@@ -1061,7 +1061,7 @@ CheckAndSetInt8Vector(const nlohmann::json& obj, const FieldSchema& fs, proto::s
     for (const auto& ele : obj) {
         if (!ele.is_number_integer() && !ele.is_number_unsigned()) {
             std::string err_msg = "Element value should be integer for field: " + fs.Name();
-            return {StatusCode::INVALID_AGUMENT, err_msg};
+            return {StatusCode::INVALID_ARGUMENT, err_msg};
         }
 
         auto val = ele.get<int16_t>();  // get as int16_t to cover int8/uint8
@@ -1069,7 +1069,7 @@ CheckAndSetInt8Vector(const nlohmann::json& obj, const FieldSchema& fs, proto::s
         // int8, the range is [-128, +127]
         if (val < -128 || val > 127) {
             std::string err_msg = "Value should be in range [-128, 127] for field: " + fs.Name();
-            return {StatusCode::INVALID_AGUMENT, err_msg};
+            return {StatusCode::INVALID_ARGUMENT, err_msg};
         }
         data->push_back(static_cast<int8_t>(val));
     }
@@ -1079,12 +1079,12 @@ CheckAndSetInt8Vector(const nlohmann::json& obj, const FieldSchema& fs, proto::s
 Status
 CheckAndSetArray(const nlohmann::json& obj, const FieldSchema& fs, proto::schema::ArrayArray* aa) {
     if (!obj.is_array()) {
-        return {StatusCode::INVALID_AGUMENT, "Value type should be array for field: " + fs.Name()};
+        return {StatusCode::INVALID_ARGUMENT, "Value type should be array for field: " + fs.Name()};
     }
     if (obj.size() > static_cast<std::size_t>(fs.MaxCapacity())) {
         std::string error_msg =
             "Array length " + std::to_string(obj.size()) + " exceeds max capacity of field: " + fs.Name();
-        return {StatusCode::INVALID_AGUMENT, error_msg};
+        return {StatusCode::INVALID_ARGUMENT, error_msg};
     }
     if (aa->element_type() == proto::schema::DataType::None) {
         aa->set_element_type(DataTypeCast(fs.ElementType()));
@@ -1118,7 +1118,7 @@ CheckAndSetNullableDefaultScalar(const nlohmann::json& obj, const FieldSchema& f
         if (temp_obj.is_null()) {
             if (fs.DefaultValue().is_null()) {
                 std::string msg = "Field " + fs.Name() + " is not nullable but the input value is null";
-                return {StatusCode::INVALID_AGUMENT, msg};  // 2.1
+                return {StatusCode::INVALID_ARGUMENT, msg};  // 2.1
             } else {
                 temp_obj = fs.DefaultValue();  // 2.2
             }
@@ -1152,7 +1152,7 @@ CheckAndSetScalar(const nlohmann::json& obj, const FieldSchema& fs, proto::schem
         case DataType::BOOL: {
             auto scalars = sf->mutable_bool_data()->mutable_data();
             if (!obj.is_boolean()) {
-                return {StatusCode::INVALID_AGUMENT, msg_prefix + "bool"};
+                return {StatusCode::INVALID_ARGUMENT, msg_prefix + "bool"};
             }
             scalars->Add(obj.get<bool>());
             break;
@@ -1161,7 +1161,7 @@ CheckAndSetScalar(const nlohmann::json& obj, const FieldSchema& fs, proto::schem
         case DataType::INT16:
         case DataType::INT32: {
             if (!obj.is_number_integer() && !obj.is_number_unsigned()) {
-                return {StatusCode::INVALID_AGUMENT, msg_prefix + "integer"};
+                return {StatusCode::INVALID_ARGUMENT, msg_prefix + "integer"};
             }
             auto val = obj.get<int64_t>();
             auto scalars = sf->mutable_int_data()->mutable_data();
@@ -1188,7 +1188,7 @@ CheckAndSetScalar(const nlohmann::json& obj, const FieldSchema& fs, proto::schem
         }
         case DataType::INT64: {
             if (!obj.is_number_integer() && !obj.is_number_unsigned()) {
-                return {StatusCode::INVALID_AGUMENT, msg_prefix + "integer"};
+                return {StatusCode::INVALID_ARGUMENT, msg_prefix + "integer"};
             }
             auto scalars = sf->mutable_long_data()->mutable_data();
             scalars->Add(obj.get<int64_t>());
@@ -1196,7 +1196,7 @@ CheckAndSetScalar(const nlohmann::json& obj, const FieldSchema& fs, proto::schem
         }
         case DataType::FLOAT: {
             if (!obj.is_number()) {
-                return {StatusCode::INVALID_AGUMENT, msg_prefix + "numeric"};
+                return {StatusCode::INVALID_ARGUMENT, msg_prefix + "numeric"};
             }
             auto val = obj.get<double>();
             auto scalars = sf->mutable_float_data()->mutable_data();
@@ -1209,7 +1209,7 @@ CheckAndSetScalar(const nlohmann::json& obj, const FieldSchema& fs, proto::schem
         }
         case DataType::DOUBLE: {
             if (!obj.is_number()) {
-                return {StatusCode::INVALID_AGUMENT, msg_prefix + "numeric"};
+                return {StatusCode::INVALID_ARGUMENT, msg_prefix + "numeric"};
             }
             auto scalars = sf->mutable_double_data()->mutable_data();
             scalars->Add(obj.get<double>());
@@ -1218,11 +1218,11 @@ CheckAndSetScalar(const nlohmann::json& obj, const FieldSchema& fs, proto::schem
         case DataType::VARCHAR:
         case DataType::TIMESTAMPTZ: {
             if (!obj.is_string()) {
-                return {StatusCode::INVALID_AGUMENT, msg_prefix + "string"};
+                return {StatusCode::INVALID_ARGUMENT, msg_prefix + "string"};
             }
             auto ss = obj.get<std::string>();
             if (ss.size() > fs.MaxLength()) {
-                return {StatusCode::INVALID_AGUMENT, "Exceeds max length of field: " + fs.Name()};
+                return {StatusCode::INVALID_ARGUMENT, "Exceeds max length of field: " + fs.Name()};
             }
             auto scalars = sf->mutable_string_data()->mutable_data();
             scalars->Add(std::move(ss));
@@ -1230,11 +1230,11 @@ CheckAndSetScalar(const nlohmann::json& obj, const FieldSchema& fs, proto::schem
         }
         case DataType::GEOMETRY: {
             if (!obj.is_string()) {
-                return {StatusCode::INVALID_AGUMENT, msg_prefix + "string"};
+                return {StatusCode::INVALID_ARGUMENT, msg_prefix + "string"};
             }
             auto ss = obj.get<std::string>();
             if (ss.size() > fs.MaxLength()) {
-                return {StatusCode::INVALID_AGUMENT, "Exceeds max length of field: " + fs.Name()};
+                return {StatusCode::INVALID_ARGUMENT, "Exceeds max length of field: " + fs.Name()};
             }
             auto scalars = sf->mutable_geometry_wkt_data()->mutable_data();
             scalars->Add(std::move(ss));
@@ -1242,12 +1242,12 @@ CheckAndSetScalar(const nlohmann::json& obj, const FieldSchema& fs, proto::schem
         }
         case DataType::JSON: {
             if (!obj.is_object() && !obj.is_array() && !obj.is_primitive()) {
-                return {StatusCode::INVALID_AGUMENT, msg_prefix + "JSON"};
+                return {StatusCode::INVALID_ARGUMENT, msg_prefix + "JSON"};
             }
             // for dynamic field, the json must be a dict
             // for the case user explicitly input $meta like {"id": 1, "vector": [], "$meta": {}}
             if (fs.Name() == DYNAMIC_FIELD && !obj.is_object()) {
-                return {StatusCode::INVALID_AGUMENT, "'$meta' value must be a JSON dict"};
+                return {StatusCode::INVALID_ARGUMENT, "'$meta' value must be a JSON dict"};
             }
             auto scalars = sf->mutable_json_data()->mutable_data();
             scalars->Add(obj.dump());
@@ -1255,7 +1255,7 @@ CheckAndSetScalar(const nlohmann::json& obj, const FieldSchema& fs, proto::schem
         }
         case DataType::ARRAY: {
             if (is_array) {
-                return {StatusCode::INVALID_AGUMENT, "Not allow nested array for field: " + fs.Name()};
+                return {StatusCode::INVALID_ARGUMENT, "Not allow nested array for field: " + fs.Name()};
             }
             auto status = CheckAndSetArray(obj, fs, sf->mutable_array_data());
             if (!status.IsOk()) {
@@ -1267,7 +1267,7 @@ CheckAndSetScalar(const nlohmann::json& obj, const FieldSchema& fs, proto::schem
             std::string type_name = std::to_string(static_cast<int>(dt));
             std::string err_msg = is_array ? type_name + " is not supportted for field " + fs.Name()
                                            : type_name + " is not supportted in collection schema";
-            return {StatusCode::INVALID_AGUMENT, err_msg};
+            return {StatusCode::INVALID_ARGUMENT, err_msg};
         }
     }
     return Status::OK();
@@ -1353,7 +1353,7 @@ CheckAndSetRowData(const EntityRows& rows, const CollectionSchema& schema, bool 
     for (auto i = 0; i < rows.size(); i++) {
         const auto& row = rows[i];
         if (!row.is_object()) {
-            return {StatusCode::INVALID_AGUMENT,
+            return {StatusCode::INVALID_ARGUMENT,
                     "The No." + std::to_string(i) + " input row is not a JSON dict object"};
         }
 

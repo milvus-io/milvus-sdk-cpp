@@ -56,7 +56,7 @@ $ make
 
 By default, `make` command downloads gRPC source code from github and compile it under the CMake build directory.
 
-You can use a pre-built gRPC lib build by youself. milvus-sdk-cpp 2.4 is using gRPC v1.59.0, make sure your gRPC version is compatible.
+You can use a pre-built gRPC lib build by yourself. milvus-sdk-cpp 2.4 is using gRPC v1.59.0, make sure your gRPC version is compatible.
 
 ### Download gRPC source code
 ```shell
@@ -80,7 +80,7 @@ $ cmake -DCMAKE_INSTALL_PREFIX=/path/to/pre-installed/grpc  -DBUILD_SHARED_LIBS=
 $ make
 $ make install
 ```
-Make sure the `BUILD_SHARED_LIBS` is `ON` since milvus-sdk-cpp dynamiclly links to gRPC.
+Make sure the `BUILD_SHARED_LIBS` is `ON` since milvus-sdk-cpp dynamically links to gRPC.
 
 ### Use `GRPC_PATH` to specify the external gRPC and build milvus-sdk-cpp
 ```shell
@@ -113,7 +113,7 @@ to automatic format all c++ source code
 ## Run tests, and add testing code
 Milvus C++ SDK using googletest as a test framework. You could run `make test` to run unit testing and integration testing.
 
-If you have an pre-installed gRPC, use `GRPC_PATH` to specify the path:
+If you have a pre-installed gRPC, use `GRPC_PATH` to specify the path:
 ```shell
 $ make test GRPC_PATH=/path/to/pre-installed/grpc
 ```
@@ -132,8 +132,8 @@ $ ./cmake_build/test/testing-st
 ```
 
 ### Run acceptance/system tests with real Milvus server
-The acceptance/system tests are not included by default. You cloud using the below commands to run them:
-- `make st` user the top source directory
+The acceptance/system tests are not included by default. You could use the below commands to run them:
+- `make st` under the top source directory
 - `make system-test` under the CMake build directory
 
 The acceptance/system tests will startup container by docker, and using jq to capture the output from docker inspect,
@@ -154,7 +154,7 @@ After the command, a folder named "code_coverage" will be created under the proj
 You could open the **code_coverage/index.html** by a web browser to review the code coverage report.
 
 ## Generate documentation
-Milvus C++ SDK using **doxygen** tool to generate documentation. Run `make documentation` to generate documentation.
+Milvus C++ SDK uses **doxygen** tool to generate documentation. Run `make documentation` to generate documentation.
 Typically, we only publish documentation before releasing a new sdk version.
 Since the **doxygen** is not included in the `install_deps.sh`, you need to manually install it if you want to generate the documentation by yourself.
 
@@ -165,7 +165,7 @@ Since the **doxygen** is not included in the `install_deps.sh`, you need to manu
 The setup steps and development environment for macOS are similar to Linux.
 You could use `install_deps.sh` to install dependencies and use the same `make` commands for build, lint, test, and coverage.
 
-### Prerequests
+### Prerequisites
 Before you run `install_deps.sh` to install dependencies, you should make sure:
-- Already installed (Homebrew)[https://brew.sh/]
-- Install Command line tools for Xcode, by command: `xcode-select --instal`
+- Already installed [Homebrew](https://brew.sh/)
+- Install Command line tools for Xcode, by command: `xcode-select --install`

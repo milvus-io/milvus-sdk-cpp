@@ -218,7 +218,7 @@ template <typename T, typename V>
 Status
 EmbeddingList::addVector(DataType data_type, const V& vector) {
     if (target_vectors_ != nullptr && target_vectors_->Type() != data_type) {
-        return {StatusCode::INVALID_AGUMENT, "Target vector must be the same type!"};
+        return {StatusCode::INVALID_ARGUMENT, "Target vector must be the same type!"};
     }
 
     StatusCode code = StatusCode::OK;
@@ -233,7 +233,7 @@ EmbeddingList::addVector(DataType data_type, const V& vector) {
         if (data_type != DataType::VARCHAR && data_type != DataType::SPARSE_FLOAT_VECTOR && dim_ != dim) {
             std::string msg =
                 "Vector size mismatch, first: " + std::to_string(dim_) + ", current: " + std::to_string(dim);
-            return {StatusCode::INVALID_AGUMENT, msg};
+            return {StatusCode::INVALID_ARGUMENT, msg};
         }
 
         std::shared_ptr<T> vectors = std::static_pointer_cast<T>(target_vectors_);
@@ -251,7 +251,7 @@ template <typename T, typename V>
 Status
 EmbeddingList::setVectors(DataType data_type, std::vector<V>&& vectors) {
     if (vectors.empty()) {
-        return {StatusCode::INVALID_AGUMENT, "Vector list is empty"};
+        return {StatusCode::INVALID_ARGUMENT, "Vector list is empty"};
     }
 
     // this method will reset the vector list
@@ -266,7 +266,7 @@ EmbeddingList::setVectors(DataType data_type, std::vector<V>&& vectors) {
         if (data_type != DataType::VARCHAR && data_type != DataType::SPARSE_FLOAT_VECTOR && dim_ != dim) {
             std::string msg =
                 "Vector size mismatch, first: " + std::to_string(dim_) + ", current: " + std::to_string(dim);
-            status = {StatusCode::INVALID_AGUMENT, msg};
+            status = {StatusCode::INVALID_ARGUMENT, msg};
         }
     }
     target_vectors_ = std::make_shared<T>("", std::move(vectors));

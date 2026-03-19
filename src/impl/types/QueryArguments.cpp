@@ -40,7 +40,7 @@ QueryArguments::CollectionName() const {
 Status
 QueryArguments::SetCollectionName(std::string collection_name) {
     if (collection_name.empty()) {
-        return {StatusCode::INVALID_AGUMENT, "Collection name cannot be empty!"};
+        return {StatusCode::INVALID_ARGUMENT, "Collection name cannot be empty!"};
     }
     collection_name_ = std::move(collection_name);
     return Status::OK();
@@ -54,7 +54,7 @@ QueryArguments::PartitionNames() const {
 Status
 QueryArguments::AddPartitionName(std::string partition_name) {
     if (partition_name.empty()) {
-        return {StatusCode::INVALID_AGUMENT, "Partition name cannot be empty!"};
+        return {StatusCode::INVALID_ARGUMENT, "Partition name cannot be empty!"};
     }
 
     partition_names_.emplace(std::move(partition_name));
@@ -69,7 +69,7 @@ QueryArguments::OutputFields() const {
 Status
 QueryArguments::AddOutputField(std::string field_name) {
     if (field_name.empty()) {
-        return {StatusCode::INVALID_AGUMENT, "Field name cannot be empty!"};
+        return {StatusCode::INVALID_ARGUMENT, "Field name cannot be empty!"};
     }
 
     output_field_names_.emplace(std::move(field_name));
@@ -84,7 +84,7 @@ QueryArguments::Filter() const {
 Status
 QueryArguments::SetFilter(std::string filter) {
     if (filter.empty()) {
-        return {StatusCode::INVALID_AGUMENT, "Filter expression cannot be empty!"};
+        return {StatusCode::INVALID_ARGUMENT, "Filter expression cannot be empty!"};
     }
 
     filter_expression_ = std::move(filter);
@@ -96,12 +96,12 @@ QueryArguments::AddFilterTemplate(std::string key, const nlohmann::json& filter_
     if (filter_template.is_array()) {
         for (const auto& ele : filter_template) {
             if (!IsValidTemplate(ele)) {
-                return {milvus::StatusCode::INVALID_AGUMENT, "Filter template element must be boolean/number/string"};
+                return {milvus::StatusCode::INVALID_ARGUMENT, "Filter template element must be boolean/number/string"};
             }
         }
     } else {
         if (!IsValidTemplate(filter_template)) {
-            return {milvus::StatusCode::INVALID_AGUMENT, "Filter template must be boolean/number/string/array"};
+            return {milvus::StatusCode::INVALID_ARGUMENT, "Filter template must be boolean/number/string/array"};
         }
     }
 

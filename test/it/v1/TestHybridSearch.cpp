@@ -193,7 +193,7 @@ TEST_F(MilvusMockedTest, HybridSearch) {
 
             // ids, topk and scores
             results->mutable_topks()->Add(3);
-            for (auto id : expected_ids) {
+            for (const auto& id : expected_ids) {
                 results->mutable_ids()->mutable_str_id()->add_data(id);
             }
             for (auto score : expected_scores) {

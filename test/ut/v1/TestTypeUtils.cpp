@@ -354,11 +354,11 @@ TEST_F(TypeUtilsTest, DataTypeCast) {
         {milvus::DataType::INT8_VECTOR, milvus::proto::schema::DataType::Int8Vector}};
     {
         for (auto& pair : data_types) {
-            auto dt = milvus::DataTypeCast(milvus::DataType(pair.first));
+            auto dt = milvus::DataTypeCast(pair.first);
             EXPECT_EQ(dt, pair.second);
         }
         for (auto& pair : data_types) {
-            auto dt = milvus::DataTypeCast(milvus::proto::schema::DataType(pair.second));
+            auto dt = milvus::DataTypeCast(pair.second);
             EXPECT_EQ(dt, pair.first);
         }
     }
@@ -382,7 +382,7 @@ TEST_F(TypeUtilsTest, SegmentStateCast) {
 }
 
 TEST_F(TypeUtilsTest, IndexStateCast) {
-    const std::vector<std::pair<int32_t, milvus::IndexStateCode>> states = {
+    const std::vector<std::pair<milvus::proto::common::IndexState, milvus::IndexStateCode>> states = {
         {milvus::proto::common::IndexState::IndexStateNone, milvus::IndexStateCode::NONE},
         {milvus::proto::common::IndexState::Unissued, milvus::IndexStateCode::UNISSUED},
         {milvus::proto::common::IndexState::InProgress, milvus::IndexStateCode::IN_PROGRESS},
@@ -390,7 +390,7 @@ TEST_F(TypeUtilsTest, IndexStateCast) {
         {milvus::proto::common::IndexState::Failed, milvus::IndexStateCode::FAILED}};
 
     for (auto& pair : states) {
-        auto it = milvus::IndexStateCast(milvus::proto::common::IndexState(pair.first));
+        auto it = milvus::IndexStateCast(pair.first);
         EXPECT_EQ(it, milvus::IndexStateCode(pair.second));
     }
 }

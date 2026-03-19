@@ -46,23 +46,23 @@ TEST_F(MilvusMockedTest, CreateResourceGroup) {
             const auto& transfer_from = config.TransferFromGroups();
             const auto& rpc_from = rpc_config.transfer_from();
             EXPECT_EQ(rpc_from.size(), transfer_from.size());
-            for (auto i = 0; i < rpc_from.size(); i++) {
-                EXPECT_TRUE(transfer_from.find(rpc_from.at(i).resource_group()) != transfer_from.end());
+            for (const auto& item : rpc_from) {
+                EXPECT_TRUE(transfer_from.find(item.resource_group()) != transfer_from.end());
             }
 
             const auto& transfer_to = config.TransferToGroups();
             const auto& rpc_to = rpc_config.transfer_to();
             EXPECT_EQ(rpc_to.size(), transfer_to.size());
-            for (auto i = 0; i < rpc_to.size(); i++) {
-                EXPECT_TRUE(transfer_to.find(rpc_to.at(i).resource_group()) != transfer_to.end());
+            for (const auto& item : rpc_to) {
+                EXPECT_TRUE(transfer_to.find(item.resource_group()) != transfer_to.end());
             }
 
             const auto& node_filters = config.NodeFilters();
             const auto& rpc_filters = rpc_config.node_filter().node_labels();
             EXPECT_EQ(rpc_filters.size(), node_filters.size());
-            for (auto i = 0; i < rpc_filters.size(); i++) {
-                EXPECT_TRUE(node_filters.find(rpc_filters.at(i).key()) != node_filters.end());
-                EXPECT_EQ(rpc_filters.at(i).value(), node_filters.at(rpc_filters.at(i).key()));
+            for (const auto& rpc_filter : rpc_filters) {
+                EXPECT_TRUE(node_filters.find(rpc_filter.key()) != node_filters.end());
+                EXPECT_EQ(rpc_filter.value(), node_filters.at(rpc_filter.key()));
             }
 
             return ::grpc::Status{};

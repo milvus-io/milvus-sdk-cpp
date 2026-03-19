@@ -27,10 +27,10 @@ IteratorArguments::BatchSize() const {
 Status
 IteratorArguments::SetBatchSize(int64_t batch_size) {
     if (batch_size == 0) {
-        return {StatusCode::INVALID_AGUMENT, "batch size must be greater than zero"};
+        return {StatusCode::INVALID_ARGUMENT, "batch size must be greater than zero"};
     }
     if (batch_size > MAX_BATCH_SIZE) {
-        return {StatusCode::INVALID_AGUMENT, "batch size cannot be larger than " + std::to_string(MAX_BATCH_SIZE)};
+        return {StatusCode::INVALID_ARGUMENT, "batch size cannot be larger than " + std::to_string(MAX_BATCH_SIZE)};
     }
 
     batch_size_ = batch_size;

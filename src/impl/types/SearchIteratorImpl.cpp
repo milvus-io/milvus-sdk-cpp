@@ -102,28 +102,28 @@ SearchIteratorImpl<T>::CheckInput(const FieldDataPtr& vectors,
                                   MetricType metric_type) {
     // check target vector
     if (vectors == nullptr || vectors->Count() == 0) {
-        return {StatusCode::INVALID_AGUMENT, "vector_data for search cannot be empty"};
+        return {StatusCode::INVALID_ARGUMENT, "vector_data for search cannot be empty"};
     }
     if (vectors != nullptr && vectors->Count() > 1) {
-        return {StatusCode::INVALID_AGUMENT, "not support search iteration over multiple vectors at present"};
+        return {StatusCode::INVALID_ARGUMENT, "not support search iteration over multiple vectors at present"};
     }
 
     // check special index params
     int64_t ef = 0;
     auto status = ParseParameter<int64_t>(params, "ef", ef);
     if (status.IsOk() && ef < batch_size) {
-        return {StatusCode::INVALID_AGUMENT,
+        return {StatusCode::INVALID_ARGUMENT,
                 "when using hnsw index, provided ef must be larger than or equal to batch size"};
     }
 
     // check offset
     if (GetExtraInt64(params, "offset", 0) != 0) {
-        return {StatusCode::INVALID_AGUMENT, "not support offset when searching iteration"};
+        return {StatusCode::INVALID_ARGUMENT, "not support offset when searching iteration"};
     }
 
     // check range search params
     if (metric_type == MetricType::DEFAULT) {
-        return {StatusCode::INVALID_AGUMENT, "must specify metrics type for search iterator"};
+        return {StatusCode::INVALID_ARGUMENT, "must specify metrics type for search iterator"};
     }
     double radius = 0.0, range_filter = 0.0;
     auto status_1 = ParseParameter<double>(params, RADIUS, radius);
@@ -132,12 +132,12 @@ SearchIteratorImpl<T>::CheckInput(const FieldDataPtr& vectors,
         if (SearchIteratorImpl::MetricsPositiveRelated(metric_type) && radius <= range_filter) {
             std::string msg = std::to_string(metric_type) +
                               " metric type, radius must be larger than range_filter, please adjust your parameter";
-            return {StatusCode::INVALID_AGUMENT, msg};
+            return {StatusCode::INVALID_ARGUMENT, msg};
         }
         if (!SearchIteratorImpl::MetricsPositiveRelated(metric_type) && radius >= range_filter) {
             std::string msg = std::to_string(metric_type) +
-                              " metric type, radius must be smalled than range_filter, please adjust your parameter";
-            return {StatusCode::INVALID_AGUMENT, msg};
+                              " metric type, radius must be smaller than range_filter, please adjust your parameter";
+            return {StatusCode::INVALID_ARGUMENT, msg};
         }
     }
 

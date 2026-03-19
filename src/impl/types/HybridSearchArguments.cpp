@@ -44,7 +44,7 @@ HybridSearchArguments::CollectionName() const {
 Status
 HybridSearchArguments::SetCollectionName(std::string collection_name) {
     if (collection_name.empty()) {
-        return {StatusCode::INVALID_AGUMENT, "Collection name cannot be empty!"};
+        return {StatusCode::INVALID_ARGUMENT, "Collection name cannot be empty!"};
     }
     collection_name_ = std::move(collection_name);
     return Status::OK();
@@ -58,7 +58,7 @@ HybridSearchArguments::PartitionNames() const {
 Status
 HybridSearchArguments::AddPartitionName(std::string partition_name) {
     if (partition_name.empty()) {
-        return {StatusCode::INVALID_AGUMENT, "Partition name cannot be empty!"};
+        return {StatusCode::INVALID_ARGUMENT, "Partition name cannot be empty!"};
     }
     partition_names_.emplace(std::move(partition_name));
     return Status::OK();
@@ -72,7 +72,7 @@ HybridSearchArguments::OutputFields() const {
 Status
 HybridSearchArguments::AddOutputField(std::string field_name) {
     if (field_name.empty()) {
-        return {StatusCode::INVALID_AGUMENT, "Field name cannot be empty!"};
+        return {StatusCode::INVALID_ARGUMENT, "Field name cannot be empty!"};
     }
 
     output_field_names_.emplace(std::move(field_name));
@@ -207,7 +207,7 @@ Status
 HybridSearchArguments::Validate() const {
     for (auto& it : sub_requests_) {
         if (it == nullptr) {
-            return {StatusCode::INVALID_AGUMENT, "Sub request can not be null!"};
+            return {StatusCode::INVALID_ARGUMENT, "Sub request can not be null!"};
         }
         auto status = (*it).Validate();
         if (!status.IsOk()) {
@@ -215,10 +215,10 @@ HybridSearchArguments::Validate() const {
         }
     }
     if (function_ == nullptr) {
-        return {StatusCode::INVALID_AGUMENT, "Rerank function is undefined!"};
+        return {StatusCode::INVALID_ARGUMENT, "Rerank function is undefined!"};
     }
     if (function_->GetFunctionType() != FunctionType::RERANK) {
-        return {StatusCode::INVALID_AGUMENT, "Hybrid search only accepts RERANK function!"};
+        return {StatusCode::INVALID_ARGUMENT, "Hybrid search only accepts RERANK function!"};
     }
 
     return Status::OK();

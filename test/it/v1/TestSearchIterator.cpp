@@ -78,7 +78,7 @@ DoSearchIterator(testing::StrictMock<milvus::MilvusMockedService>& service, milv
             }
 
             auto params = request->search_params();
-            for (auto pair : params) {
+            for (const auto& pair : params) {
                 if (pair.key() == milvus::TOPK) {
                     EXPECT_GE(std::stoul(pair.value()), batch_size);
                 }
@@ -144,6 +144,7 @@ DoSearchIterator(testing::StrictMock<milvus::MilvusMockedService>& service, milv
     }
 
     std::vector<float> vector;
+    vector.reserve(milvus::T_DIMENSION);
     for (auto i = 0; i < milvus::T_DIMENSION; i++) {
         vector.push_back(1.0);
     }
