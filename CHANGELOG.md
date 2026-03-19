@@ -85,7 +85,7 @@
 
 ## milvus-sdk-cpp 2.5.2 (2025-12-04)
 ### Feature
-- Introduce MilvusClientV2 for clean/expanable interfaces
+- Introduce MilvusClientV2 for clean/expandable interfaces
 
 ## milvus-sdk-cpp 2.5.1 (2025-11-21)
 ### Feature
@@ -154,10 +154,10 @@
 - Support search with grouping by field
 - Add retry machinery for rpc call
 - Add CurrentUsedDatabase method for MilvusClient
-- Add methods for QuertResults/SearchResults to return row-based results
+- Add methods for QueryResults/SearchResults to return row-based results
 
 
-### Orther changes
+### Other changes
 - Remove unsupported index types(IVF_HNSW/RHNSW_FLAT/RHNSW_SQ/RHNSW_PQ/ANNOY)
 - Remove unsupported metric types(TANIMOTO/SUBSTRUCTURE/SUPERSTRUCTURE)
 - Remove CalcDistance interface, not supported by milvus 2.4

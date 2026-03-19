@@ -39,7 +39,7 @@ Function::Name() const {
 Status
 Function::SetName(std::string name) {
     if (name.empty()) {
-        return {StatusCode::INVALID_AGUMENT, "Function name cannot be empty!"};
+        return {StatusCode::INVALID_ARGUMENT, "Function name cannot be empty!"};
     }
     name_ = std::move(name);
     return Status::OK();
@@ -75,7 +75,7 @@ Function::InputFieldNames() const {
 Status
 Function::AddInputFieldName(std::string name) {
     if (name.empty()) {
-        return {StatusCode::INVALID_AGUMENT, "Field name cannot be empty!"};
+        return {StatusCode::INVALID_ARGUMENT, "Field name cannot be empty!"};
     }
     input_field_names_.emplace_back(std::move(name));
 
@@ -90,7 +90,7 @@ Function::OutputFieldNames() const {
 Status
 Function::AddOutputFieldName(std::string name) {
     if (name.empty()) {
-        return {StatusCode::INVALID_AGUMENT, "Field name cannot be empty!"};
+        return {StatusCode::INVALID_ARGUMENT, "Field name cannot be empty!"};
     }
     output_field_names_.emplace_back(std::move(name));
     return Status::OK();
@@ -124,7 +124,7 @@ RRFRerank::RRFRerank(int k) {
 Status
 RRFRerank::SetFunctionType(FunctionType function_type) {
     if (function_type != FunctionType::RERANK) {
-        return {StatusCode::INVALID_AGUMENT, "RRFRerank only accepts RERANK type!"};
+        return {StatusCode::INVALID_ARGUMENT, "RRFRerank only accepts RERANK type!"};
     }
     return Function::SetFunctionType(function_type);
 }
@@ -149,7 +149,7 @@ WeightedRerank::WeightedRerank(const std::vector<float>& weights) {
 Status
 WeightedRerank::SetFunctionType(FunctionType function_type) {
     if (function_type != FunctionType::RERANK) {
-        return {StatusCode::INVALID_AGUMENT, "WeightedRerank only accepts RERANK type!"};
+        return {StatusCode::INVALID_ARGUMENT, "WeightedRerank only accepts RERANK type!"};
     }
     return Function::SetFunctionType(function_type);
 }
@@ -173,7 +173,7 @@ BoostRerank::BoostRerank(std::string name) : Function(name, FunctionType::RERANK
 Status
 BoostRerank::SetFunctionType(FunctionType function_type) {
     if (function_type != FunctionType::RERANK) {
-        return {StatusCode::INVALID_AGUMENT, "BoostRerank only accepts RERANK type!"};
+        return {StatusCode::INVALID_ARGUMENT, "BoostRerank only accepts RERANK type!"};
     }
     return Function::SetFunctionType(function_type);
 }
@@ -228,7 +228,7 @@ DecayRerank::DecayRerank(std::string name) : Function(name, FunctionType::RERANK
 Status
 DecayRerank::SetFunctionType(FunctionType function_type) {
     if (function_type != FunctionType::RERANK) {
-        return {StatusCode::INVALID_AGUMENT, "DecayRerank only accepts RERANK type!"};
+        return {StatusCode::INVALID_ARGUMENT, "DecayRerank only accepts RERANK type!"};
     }
     return Function::SetFunctionType(function_type);
 }
@@ -255,7 +255,7 @@ ModelRerank::ModelRerank(std::string name) : Function(name, FunctionType::RERANK
 Status
 ModelRerank::SetFunctionType(FunctionType function_type) {
     if (function_type != FunctionType::RERANK) {
-        return {StatusCode::INVALID_AGUMENT, "ModelRerank only accepts RERANK type!"};
+        return {StatusCode::INVALID_ARGUMENT, "ModelRerank only accepts RERANK type!"};
     }
     return Function::SetFunctionType(function_type);
 }

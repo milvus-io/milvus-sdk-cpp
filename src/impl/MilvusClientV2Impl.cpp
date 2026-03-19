@@ -112,7 +112,7 @@ Status
 MilvusClientV2Impl::CreateCollection(const CreateCollectionRequest& request) {
     const auto& schemaPtr = request.CollectionSchema();
     if (schemaPtr == nullptr) {
-        return {StatusCode::INVALID_AGUMENT, "Collection schema is null"};
+        return {StatusCode::INVALID_ARGUMENT, "Collection schema is null"};
     }
 
     CollectionSchema& schema = *schemaPtr;
@@ -188,7 +188,7 @@ MilvusClientV2Impl::CreateCollection(const CreateSimpleCollectionRequest& reques
     if (request.PrimaryFieldType() == DataType::VARCHAR) {
         pk_field.SetMaxLength(static_cast<uint32_t>(request.MaxLength()));
     } else if (request.PrimaryFieldType() != DataType::INT64) {
-        return {StatusCode::INVALID_AGUMENT, "Primary field type is illegal"};
+        return {StatusCode::INVALID_ARGUMENT, "Primary field type is illegal"};
     }
 
     milvus::FieldSchema vector_field = milvus::FieldSchema(request.VectorFieldName(), DataType::FLOAT_VECTOR);
@@ -1062,7 +1062,7 @@ MilvusClientV2Impl::Insert(const InsertRequest& request, InsertResponse& respons
         const auto& fields = request.ColumnsData();
         const auto& rows = request.RowsData();
         if (!fields.empty() && !rows.empty()) {
-            return Status{StatusCode::INVALID_AGUMENT, "Not allow to set ColumnsData and RowsData both"};
+            return Status{StatusCode::INVALID_ARGUMENT, "Not allow to set ColumnsData and RowsData both"};
         }
 
         if (!rows.empty()) {
@@ -1161,7 +1161,7 @@ MilvusClientV2Impl::Upsert(const UpsertRequest& request, UpsertResponse& respons
         const auto& fields = request.ColumnsData();
         const auto& rows = request.RowsData();
         if (!fields.empty() && !rows.empty()) {
-            return Status{StatusCode::INVALID_AGUMENT, "Not allow to set ColumnsData and RowsData both"};
+            return Status{StatusCode::INVALID_ARGUMENT, "Not allow to set ColumnsData and RowsData both"};
         }
 
         if (!rows.empty()) {
@@ -1255,12 +1255,12 @@ MilvusClientV2Impl::Delete(const DeleteRequest& request, DeleteResponse& respons
         rpc_request.set_partition_name(request.PartitionName());
 
         if (request.Filter().empty() && request.IDs().GetRowCount() == 0) {
-            return Status{StatusCode::INVALID_AGUMENT,
+            return Status{StatusCode::INVALID_ARGUMENT,
                           "Deletion condition must be specified, by primary keys or by filter expression"};
         }
 
         if (!request.Filter().empty() && request.IDs().GetRowCount() != 0) {
-            return Status{StatusCode::INVALID_AGUMENT,
+            return Status{StatusCode::INVALID_ARGUMENT,
                           "Ambiguous filter parameter, only one deletion condition can be specified"};
         }
 

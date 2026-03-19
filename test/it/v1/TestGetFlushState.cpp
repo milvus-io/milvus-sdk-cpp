@@ -89,7 +89,7 @@ TEST_F(MilvusMockedTest, GetFlushState) {
 
     // first round set c1 to flushed, c2 to unflushed, progress is 2/5
     // second round set c2 to flushed, progress is 5/5
-    std::vector<milvus::Progress> progresses_expected{{(uint32_t)c1_ids.size(), segment_count},
+    std::vector<milvus::Progress> progresses_expected{{static_cast<uint32_t>(c1_ids.size()), segment_count},
                                                       {segment_count, segment_count}};
 
     EXPECT_THAT(progresses, ElementsAreArray(progresses_expected));

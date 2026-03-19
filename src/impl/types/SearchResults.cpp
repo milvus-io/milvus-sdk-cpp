@@ -57,7 +57,7 @@ SingleResult::verify() const {
             throw std::runtime_error("FieldData is null pointer");
         }
         if (field->Count() != count) {
-            throw std::runtime_error("The lenth of output fields are unequal");
+            throw std::runtime_error("The length of output fields are unequal");
         }
     }
 }

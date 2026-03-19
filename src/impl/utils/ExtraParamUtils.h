@@ -93,7 +93,7 @@ Status
 ParseParameter(const std::unordered_map<std::string, std::string>& params, const std::string& name, T& value) {
     auto iter = params.find(name);
     if (iter == params.end()) {
-        return {StatusCode::INVALID_AGUMENT, "no such parameter"};
+        return {StatusCode::INVALID_ARGUMENT, "no such parameter"};
     }
     try {
         if (std::is_integral<T>::value) {
@@ -101,10 +101,10 @@ ParseParameter(const std::unordered_map<std::string, std::string>& params, const
         } else if (std::is_floating_point<T>::value) {
             value = static_cast<T>(std::stod(iter->second));
         } else {
-            return {StatusCode::INVALID_AGUMENT, "can only parse integer and float type value"};
+            return {StatusCode::INVALID_ARGUMENT, "can only parse integer and float type value"};
         }
     } catch (...) {
-        return {StatusCode::INVALID_AGUMENT, "parameter '" + name + "' value '" + iter->second + "' cannot be parsed"};
+        return {StatusCode::INVALID_ARGUMENT, "parameter '" + name + "' value '" + iter->second + "' cannot be parsed"};
     }
     return Status::OK();
 }

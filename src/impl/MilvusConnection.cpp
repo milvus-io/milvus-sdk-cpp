@@ -158,7 +158,7 @@ MilvusConnection::Connect(const ConnectParam& param) {
     ss << std::put_time(local_time, "%Y-%m-%d %H:%M:%S");
     client_info->set_local_time(ss.str());
 
-    // the defalut value of ConnectTimeout is 10 seconds, means if the server could not return response
+    // the default value of ConnectTimeout is 10 seconds, means if the server could not return response
     // in 10 seconds, the MilvusClient will return an error
     ::grpc::ClientContext context;
     if (param.ConnectTimeout() > 0) {
