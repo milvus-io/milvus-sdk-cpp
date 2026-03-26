@@ -22,10 +22,25 @@
 using milvus::test::MilvusServerTest;
 class MilvusServerTestGeneric : public MilvusServerTest {};
 
-TEST_F(MilvusServerTestGeneric, GetVersion) {
+TEST_F(MilvusServerTestGeneric, GetServerVersion) {
     std::string version;
     auto status = client_->GetServerVersion(version);
     std::cout << "Milvus version: " << version << std::endl;
     milvus::test::ExpectStatusOK(status);
     EXPECT_THAT(version, testing::MatchesRegex("v?2.+"));
+}
+
+TEST_F(MilvusServerTestGeneric, GetSDKVersion) {
+    std::string version;
+    auto status = client_->GetSDKVersion(version);
+    std::cout << "SDK version: " << version << std::endl;
+    milvus::test::ExpectStatusOK(status);
+    EXPECT_FALSE(version.empty());
+}
+
+TEST_F(MilvusServerTestGeneric, CheckHealth) {
+    milvus::CheckHealthResponse resp;
+    auto status = client_->CheckHealth(milvus::CheckHealthRequest(), resp);
+    milvus::test::ExpectStatusOK(status);
+    EXPECT_TRUE(resp.IsHealthy());
 }

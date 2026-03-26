@@ -58,5 +58,6 @@ file(GLOB_RECURSE st_files
     "${ST_DIR}/*.cc"
 )
 add_executable(testing-st ${st_files})
+target_include_directories(testing-st PRIVATE ${ST_DIR})
 target_link_libraries(testing-st PRIVATE milvus_sdk ${GTEST_LIBRARIES} ${GMOCK_LIBRARIES})
 endif()
