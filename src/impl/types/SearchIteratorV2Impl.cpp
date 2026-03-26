@@ -45,7 +45,7 @@ SearchIteratorV2Impl<T>::Next(SingleResult& results) {
     results.Clear();
 
     // returned count already meet the limit value
-    if (original_limit_ > 0 && returned_count_ >= original_limit_) {
+    if (original_limit_ == 0 || (original_limit_ > 0 && returned_count_ >= original_limit_)) {
         return Status::OK();
     }
 

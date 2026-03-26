@@ -23,7 +23,8 @@ namespace test {
 
 std::string
 RanName(const std::string& prefix) {
-    std::default_random_engine ran(time(nullptr));
+    std::random_device rd;
+    std::mt19937 ran(rd());
     std::uniform_int_distribution<int> int_gen(1000, 10000);
     return prefix + std::to_string(int_gen(ran));
 }

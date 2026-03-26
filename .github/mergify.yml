@@ -37,7 +37,6 @@ pull_request_rules:
       - and:
           - "check-success=Build and test AMD64 Ubuntu 20.04"
           - "check-success=Build and test AMD64 Ubuntu 22.04"
-          - "check-success=Build and test AMD64 Fedora 38"
           - "check-success=Build and test AMD64 Fedora 39"
           - "check-success=Build and test macOS 14"
           - "check-success=Build and test windows"
@@ -52,7 +51,6 @@ pull_request_rules:
       - or:
           - "check-failure=Build and test AMD64 Ubuntu 20.04"
           - "check-failure=Build and test AMD64 Ubuntu 22.04"
-          - "check-failure=Build and test AMD64 Fedora 38"
           - "check-failure=Build and test AMD64 Fedora 39"
           - "check-failure=Build and test macOS 14"
           - "check-failure=Build and test windows"
