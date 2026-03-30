@@ -466,7 +466,7 @@ CheckDefaultValue(const FieldSchema& schema) {
         case DataType::JSON:
             return Status::OK();
         default:
-            return {StatusCode::INVALID_ARGUMENT, "Not allow to set default value for " + std::to_string(type)};
+            return {StatusCode::INVALID_ARGUMENT, "Not allow to set default value for: " + std::to_string(type)};
     }
 
     return Status::OK();
