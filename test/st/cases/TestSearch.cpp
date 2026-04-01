@@ -17,6 +17,7 @@
 #include <random>
 
 #include "MilvusServerTest.h"
+#include "milvus/utils/FP16.h"
 using milvus::test::MilvusServerTest;
 
 using testing::UnorderedElementsAre;
@@ -269,6 +270,148 @@ TEST_F(MilvusServerTestSearch, SearchWithStringFilter) {
     dropCollection();
 }
 
+TEST_F(MilvusServerTestSearch, SearchWithMultipleVectorTypes) {
+    // create a collection with 4 vector fields of different types
+    std::string coll_name = milvus::test::RanName("MultiVec_");
+    auto schema = std::make_shared<milvus::CollectionSchema>(coll_name);
+    schema->AddField(milvus::FieldSchema("id", milvus::DataType::INT64, "id", true, true));
+    schema->AddField(milvus::FieldSchema("float_vec", milvus::DataType::FLOAT_VECTOR, "float vector").WithDimension(4));
+    schema->AddField(
+        milvus::FieldSchema("binary_vec", milvus::DataType::BINARY_VECTOR, "binary vector").WithDimension(32));
+    schema->AddField(
+        milvus::FieldSchema("fp16_vec", milvus::DataType::FLOAT16_VECTOR, "float16 vector").WithDimension(4));
+    schema->AddField(milvus::FieldSchema("sparse_vec", milvus::DataType::SPARSE_FLOAT_VECTOR, "sparse vector"));
+
+    client_->DropCollection(milvus::DropCollectionRequest().WithCollectionName(coll_name));
+    auto status = client_->CreateCollection(
+        milvus::CreateCollectionRequest().WithCollectionName(coll_name).WithCollectionSchema(schema));
+    milvus::test::ExpectStatusOK(status);
+
+    // create indexes for each vector field
+    milvus::IndexDesc float_idx("float_vec", "", milvus::IndexType::FLAT, milvus::MetricType::L2);
+    milvus::IndexDesc binary_idx("binary_vec", "", milvus::IndexType::BIN_FLAT, milvus::MetricType::HAMMING);
+    milvus::IndexDesc fp16_idx("fp16_vec", "", milvus::IndexType::FLAT, milvus::MetricType::L2);
+    milvus::IndexDesc sparse_idx("sparse_vec", "", milvus::IndexType::SPARSE_INVERTED_INDEX, milvus::MetricType::IP);
+    sparse_idx.AddExtraParam("drop_ratio_build", "0.2");
+
+    status =
+        client_->CreateIndex(milvus::CreateIndexRequest().WithCollectionName(coll_name).AddIndex(std::move(float_idx)));
+    milvus::test::ExpectStatusOK(status);
+    status = client_->CreateIndex(
+        milvus::CreateIndexRequest().WithCollectionName(coll_name).AddIndex(std::move(binary_idx)));
+    milvus::test::ExpectStatusOK(status);
+    status =
+        client_->CreateIndex(milvus::CreateIndexRequest().WithCollectionName(coll_name).AddIndex(std::move(fp16_idx)));
+    milvus::test::ExpectStatusOK(status);
+    status = client_->CreateIndex(
+        milvus::CreateIndexRequest().WithCollectionName(coll_name).AddIndex(std::move(sparse_idx)));
+    milvus::test::ExpectStatusOK(status);
+
+    // prepare data
+    size_t count = 100;
+    std::mt19937 rng(42);
+    std::uniform_real_distribution<float> float_gen{0.f, 1.f};
+    std::uniform_int_distribution<uint8_t> byte_gen{0, 255};
+
+    std::vector<std::vector<float>> float_vecs;
+    std::vector<std::vector<uint8_t>> binary_vecs;
+    std::vector<std::vector<float>> fp16_vecs;  // will be converted by the SDK
+    std::vector<std::map<uint32_t, float>> sparse_vecs;
+
+    for (size_t i = 0; i < count; ++i) {
+        float_vecs.push_back({float_gen(rng), float_gen(rng), float_gen(rng), float_gen(rng)});
+        binary_vecs.push_back({byte_gen(rng), byte_gen(rng), byte_gen(rng), byte_gen(rng)});  // 32 bits = 4 bytes
+        fp16_vecs.push_back({float_gen(rng), float_gen(rng), float_gen(rng), float_gen(rng)});
+        std::map<uint32_t, float> sparse;
+        sparse[static_cast<uint32_t>(i)] = float_gen(rng);
+        sparse[static_cast<uint32_t>(i + count)] = float_gen(rng);
+        sparse_vecs.push_back(sparse);
+    }
+
+    // convert fp16_vecs (float) to actual float16 representation
+    std::vector<std::vector<uint16_t>> fp16_data;
+    for (const auto& vec : fp16_vecs) {
+        fp16_data.push_back(milvus::ArrayF32toF16(vec));
+    }
+
+    std::vector<milvus::FieldDataPtr> fields{
+        std::make_shared<milvus::FloatVecFieldData>("float_vec", float_vecs),
+        std::make_shared<milvus::BinaryVecFieldData>("binary_vec", binary_vecs),
+        std::make_shared<milvus::Float16VecFieldData>("fp16_vec", fp16_data),
+        std::make_shared<milvus::SparseFloatVecFieldData>("sparse_vec", sparse_vecs)};
+
+    milvus::InsertRequest insert_req;
+    insert_req.WithCollectionName(coll_name).WithColumnsData(std::move(fields));
+    milvus::InsertResponse insert_resp;
+    status = client_->Insert(insert_req, insert_resp);
+    milvus::test::ExpectStatusOK(status);
+    EXPECT_EQ(insert_resp.Results().InsertCount(), count);
+
+    status = client_->LoadCollection(milvus::LoadCollectionRequest().WithCollectionName(coll_name));
+    milvus::test::ExpectStatusOK(status);
+
+    // search on float_vec
+    {
+        milvus::SearchRequest req;
+        req.WithCollectionName(coll_name).WithAnnsField("float_vec").WithLimit(10);
+        req.AddFloatVector({0.5f, 0.5f, 0.5f, 0.5f});
+        req.WithConsistencyLevel(milvus::ConsistencyLevel::STRONG);
+
+        milvus::SearchResponse resp;
+        status = client_->Search(req, resp);
+        milvus::test::ExpectStatusOK(status);
+        EXPECT_EQ(resp.Results().Results().size(), 1);
+        EXPECT_EQ(resp.Results().Results().at(0).Scores().size(), 10);
+    }
+
+    // search on binary_vec
+    {
+        milvus::SearchRequest req;
+        req.WithCollectionName(coll_name).WithAnnsField("binary_vec").WithLimit(10);
+        req.WithMetricType(milvus::MetricType::HAMMING);
+        req.AddBinaryVector(std::vector<uint8_t>{255, 255, 255, 255});
+        req.WithConsistencyLevel(milvus::ConsistencyLevel::STRONG);
+
+        milvus::SearchResponse resp;
+        status = client_->Search(req, resp);
+        milvus::test::ExpectStatusOK(status);
+        EXPECT_EQ(resp.Results().Results().size(), 1);
+        EXPECT_EQ(resp.Results().Results().at(0).Scores().size(), 10);
+    }
+
+    // search on fp16_vec (pass float, SDK converts to fp16)
+    {
+        milvus::SearchRequest req;
+        req.WithCollectionName(coll_name).WithAnnsField("fp16_vec").WithLimit(10);
+        req.AddFloat16Vector(std::vector<float>{0.5f, 0.5f, 0.5f, 0.5f});
+        req.WithConsistencyLevel(milvus::ConsistencyLevel::STRONG);
+
+        milvus::SearchResponse resp;
+        status = client_->Search(req, resp);
+        milvus::test::ExpectStatusOK(status);
+        EXPECT_EQ(resp.Results().Results().size(), 1);
+        EXPECT_EQ(resp.Results().Results().at(0).Scores().size(), 10);
+    }
+
+    // search on sparse_vec
+    {
+        milvus::SearchRequest req;
+        req.WithCollectionName(coll_name).WithAnnsField("sparse_vec").WithLimit(10);
+        req.WithMetricType(milvus::MetricType::IP);
+        std::map<uint32_t, float> query_sparse = {{0, 1.0f}, {1, 0.5f}};
+        req.AddSparseVector(query_sparse);
+        req.WithConsistencyLevel(milvus::ConsistencyLevel::STRONG);
+
+        milvus::SearchResponse resp;
+        status = client_->Search(req, resp);
+        milvus::test::ExpectStatusOK(status);
+        EXPECT_EQ(resp.Results().Results().size(), 1);
+        EXPECT_GE(resp.Results().Results().at(0).Scores().size(), 1);
+    }
+
+    client_->DropCollection(milvus::DropCollectionRequest().WithCollectionName(coll_name));
+}
+
 // for issue #158
 TEST_F(MilvusServerTestSearch, SearchWithIVFIndex) {
     std::mt19937 rng(std::random_device{}());
@@ -320,6 +463,123 @@ TEST_F(MilvusServerTestSearch, SearchWithIVFIndex) {
 
     EXPECT_EQ(results.at(0).Scores().size(), 10);
     EXPECT_EQ(results.at(1).Scores().size(), 10);
+
+    dropCollection();
+}
+
+TEST_F(MilvusServerTestSearch, HybridSearch) {
+    // create a collection with 2 vector fields for hybrid search
+    std::string coll_name = milvus::test::RanName("Hybrid_");
+    auto schema = std::make_shared<milvus::CollectionSchema>(coll_name);
+    schema->AddField(milvus::FieldSchema("id", milvus::DataType::INT64, "id", true, true));
+    schema->AddField(milvus::FieldSchema("age", milvus::DataType::INT16, "age"));
+    schema->AddField(milvus::FieldSchema("vec1", milvus::DataType::FLOAT_VECTOR, "vector 1").WithDimension(4));
+    schema->AddField(milvus::FieldSchema("vec2", milvus::DataType::FLOAT_VECTOR, "vector 2").WithDimension(4));
+
+    client_->DropCollection(milvus::DropCollectionRequest().WithCollectionName(coll_name));
+    auto status = client_->CreateCollection(
+        milvus::CreateCollectionRequest().WithCollectionName(coll_name).WithCollectionSchema(schema));
+    milvus::test::ExpectStatusOK(status);
+
+    // create indexes
+    milvus::IndexDesc idx1("vec1", "", milvus::IndexType::FLAT, milvus::MetricType::L2);
+    milvus::IndexDesc idx2("vec2", "", milvus::IndexType::FLAT, milvus::MetricType::L2);
+    status = client_->CreateIndex(milvus::CreateIndexRequest().WithCollectionName(coll_name).AddIndex(std::move(idx1)));
+    milvus::test::ExpectStatusOK(status);
+    status = client_->CreateIndex(milvus::CreateIndexRequest().WithCollectionName(coll_name).AddIndex(std::move(idx2)));
+    milvus::test::ExpectStatusOK(status);
+
+    // insert data
+    std::mt19937 rng(42);
+    std::uniform_int_distribution<int16_t> age_gen{10, 50};
+    std::uniform_real_distribution<float> vec_gen{0.f, 1.f};
+    size_t count = 200;
+
+    std::vector<int16_t> ages;
+    std::vector<std::vector<float>> vecs1, vecs2;
+    for (size_t i = 0; i < count; ++i) {
+        ages.push_back(age_gen(rng));
+        vecs1.push_back({vec_gen(rng), vec_gen(rng), vec_gen(rng), vec_gen(rng)});
+        vecs2.push_back({vec_gen(rng), vec_gen(rng), vec_gen(rng), vec_gen(rng)});
+    }
+
+    std::vector<milvus::FieldDataPtr> fields{std::make_shared<milvus::Int16FieldData>("age", ages),
+                                             std::make_shared<milvus::FloatVecFieldData>("vec1", vecs1),
+                                             std::make_shared<milvus::FloatVecFieldData>("vec2", vecs2)};
+
+    milvus::InsertRequest insert_req;
+    insert_req.WithCollectionName(coll_name).WithColumnsData(std::move(fields));
+    milvus::InsertResponse insert_resp;
+    status = client_->Insert(insert_req, insert_resp);
+    milvus::test::ExpectStatusOK(status);
+
+    status = client_->LoadCollection(milvus::LoadCollectionRequest().WithCollectionName(coll_name));
+    milvus::test::ExpectStatusOK(status);
+
+    // build sub search requests
+    auto sub1 = std::make_shared<milvus::SubSearchRequest>();
+    sub1->WithAnnsField("vec1").WithLimit(10).WithMetricType(milvus::MetricType::L2);
+    sub1->AddFloatVector({0.5f, 0.5f, 0.5f, 0.5f});
+
+    auto sub2 = std::make_shared<milvus::SubSearchRequest>();
+    sub2->WithAnnsField("vec2").WithLimit(10).WithMetricType(milvus::MetricType::L2);
+    sub2->AddFloatVector({0.5f, 0.5f, 0.5f, 0.5f});
+
+    // hybrid search with RRF rerank
+    milvus::HybridSearchRequest hybrid_req;
+    hybrid_req.WithCollectionName(coll_name);
+    hybrid_req.AddSubRequest(sub1);
+    hybrid_req.AddSubRequest(sub2);
+    hybrid_req.WithRerank(std::make_shared<milvus::RRFRerank>(60));
+    hybrid_req.WithLimit(10);
+    hybrid_req.AddOutputField("age");
+    hybrid_req.WithConsistencyLevel(milvus::ConsistencyLevel::STRONG);
+
+    milvus::HybridSearchResponse hybrid_resp;
+    status = client_->HybridSearch(hybrid_req, hybrid_resp);
+    milvus::test::ExpectStatusOK(status);
+
+    const auto& results = hybrid_resp.Results().Results();
+    EXPECT_EQ(results.size(), 1);
+    EXPECT_EQ(results.at(0).Scores().size(), 10);
+
+    // hybrid search with Weighted rerank
+    milvus::HybridSearchRequest hybrid_req2;
+    hybrid_req2.WithCollectionName(coll_name);
+    hybrid_req2.AddSubRequest(sub1);
+    hybrid_req2.AddSubRequest(sub2);
+    hybrid_req2.WithRerank(std::make_shared<milvus::WeightedRerank>(std::vector<float>{0.7f, 0.3f}));
+    hybrid_req2.WithLimit(5);
+    hybrid_req2.WithConsistencyLevel(milvus::ConsistencyLevel::STRONG);
+
+    milvus::HybridSearchResponse hybrid_resp2;
+    status = client_->HybridSearch(hybrid_req2, hybrid_resp2);
+    milvus::test::ExpectStatusOK(status);
+
+    const auto& results2 = hybrid_resp2.Results().Results();
+    EXPECT_EQ(results2.size(), 1);
+    EXPECT_EQ(results2.at(0).Scores().size(), 5);
+
+    client_->DropCollection(milvus::DropCollectionRequest().WithCollectionName(coll_name));
+}
+
+TEST_F(MilvusServerTestSearch, ListQuerySegments) {
+    createCollectionAndPartitions(true);
+
+    // insert data
+    std::vector<milvus::FieldDataPtr> fields{
+        std::make_shared<milvus::Int16FieldData>("age", std::vector<int16_t>{12, 13}),
+        std::make_shared<milvus::VarCharFieldData>("name", std::vector<std::string>{"Tom", "Jerry"}),
+        std::make_shared<milvus::FloatVecFieldData>(
+            "face", std::vector<std::vector<float>>{{0.1f, 0.2f, 0.3f, 0.4f}, {0.5f, 0.6f, 0.7f, 0.8f}})};
+    insertRecords(fields);
+    loadCollection();
+
+    // list query segments from loaded collection
+    milvus::ListQuerySegmentsResponse seg_resp;
+    auto status =
+        client_->ListQuerySegments(milvus::ListQuerySegmentsRequest().WithCollectionName(collection_name), seg_resp);
+    milvus::test::ExpectStatusOK(status);
 
     dropCollection();
 }
