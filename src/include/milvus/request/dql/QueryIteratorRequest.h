@@ -29,7 +29,7 @@ class QueryIteratorRequest : public IteratorArguments, public QueryRequest {
     /**
      * @brief Constructor
      */
-    QueryIteratorRequest() = default;
+    QueryIteratorRequest();
 
     /**
      * @brief Get the flag of internal retrieve strategy.

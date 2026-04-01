@@ -29,7 +29,7 @@ class SearchIteratorRequest : public IteratorArguments, public SearchRequest {
     /**
      * @brief Constructor
      */
-    SearchIteratorRequest() = default;
+    SearchIteratorRequest();
 };
 
 }  // namespace milvus

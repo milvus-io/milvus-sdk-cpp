@@ -916,7 +916,7 @@ MilvusClientV2Impl::DescribeIndex(const DescribeIndexRequest& request, DescribeI
         // the proto uses field_name to pass index name or field name
         if (!request.IndexName().empty()) {
             rpc_request.set_field_name(request.IndexName());
-        } else {
+        } else if (!request.FieldName().empty()) {
             rpc_request.set_field_name(request.FieldName());
         }
         rpc_request.set_timestamp(request.Timestamp());
@@ -931,10 +931,20 @@ MilvusClientV2Impl::DescribeIndex(const DescribeIndexRequest& request, DescribeI
 
         // althought we have specified the field_name, the server returns all the indexes of the collection,
         // pick the correct index from the list.
+        const std::string& target_index_name = request.IndexName();
+        const std::string& target_field_name = request.FieldName();
         std::vector<IndexDesc> descs;
         for (auto i = 0; i < count; i++) {
             auto rpc_desc = rpc_response.index_descriptions(i);
-            if (rpc_desc.field_name() != request.FieldName() && rpc_desc.index_name() != request.IndexName()) {
+
+            // if field name or index name is specified, compare with the returned index description,
+            // if not match, skip this index description
+            // if both field name and index name are specified, both must match, otherwise skip this index description.
+            // ListIndexes() inputs empty index name and field name, which means to return all indexes.
+            if (!target_index_name.empty() && rpc_desc.index_name() != target_index_name) {
+                continue;
+            }
+            if (!target_field_name.empty() && rpc_desc.field_name() != target_field_name) {
                 continue;
             }
 
@@ -980,20 +990,29 @@ MilvusClientV2Impl::ListIndexes(const ListIndexesRequest& request, ListIndexesRe
                                          .WithFieldName("");
     DescribeIndexResponse d_response;
     auto status = DescribeIndex(d_request, d_response);
-    if (!status.IsOk()) {
-        return status;
+    if (status.IsOk()) {
+        std::vector<IndexDesc> descs = d_response.Descs();
+        std::vector<std::string> index_names;
+        index_names.reserve(descs.size());
+        for (const auto& desc : descs) {
+            index_names.push_back(desc.IndexName());
+        }
+        response.SetDescs(std::move(descs));
+        response.SetIndexNames(std::move(index_names));
+
+        return Status::OK();
     }
 
-    std::vector<IndexDesc> descs = d_response.Descs();
-    std::vector<std::string> index_names;
-    index_names.reserve(descs.size());
-    for (const auto& desc : descs) {
-        index_names.push_back(desc.IndexName());
+    // if the collection has no index, the server returns an error with message like "Index not found:field_name",
+    // treat it as the collection has no index, return empty list.
+    if (status.ServerCode() == 700 ||
+        status.LegacyServerCode() == static_cast<int32_t>(proto::common::ErrorCode::IndexNotExist)) {
+        response.SetDescs({});
+        response.SetIndexNames({});
+        return Status::OK();
     }
-    response.SetDescs(std::move(descs));
-    response.SetIndexNames(std::move(index_names));
 
-    return Status::OK();
+    return status;
 }
 
 Status
@@ -1001,11 +1020,10 @@ MilvusClientV2Impl::DropIndex(const DropIndexRequest& request) {
     auto pre = [&request](proto::milvus::DropIndexRequest& rpc_request) {
         rpc_request.set_db_name(request.DatabaseName());
         rpc_request.set_collection_name(request.CollectionName());
-        // the proto uses field_name to pass index name or field name
         if (!request.IndexName().empty()) {
             rpc_request.set_index_name(request.IndexName());
         } else {
-            rpc_request.set_index_name(request.FieldName());
+            rpc_request.set_field_name(request.FieldName());
         }
         return Status::OK();
     };

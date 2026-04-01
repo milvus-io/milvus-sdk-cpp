@@ -14,28 +14,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "milvus/request/dql/QueryIteratorRequest.h"
+#include "milvus/request/dql/SearchIteratorRequest.h"
 
 namespace milvus {
 
-QueryIteratorRequest::QueryIteratorRequest() {
-    SetLimit(-1);  // default no limit for query iterator
-}
-
-bool
-QueryIteratorRequest::ReduceStopForBest() const {
-    return reduce_stop_for_best_;
-}
-
-void
-QueryIteratorRequest::SetReduceStopForBest(bool reduce_stop_for_best) {
-    reduce_stop_for_best_ = reduce_stop_for_best;
-}
-
-QueryIteratorRequest&
-QueryIteratorRequest::WithReduceStopForBest(bool reduce_stop_for_best) {
-    reduce_stop_for_best_ = reduce_stop_for_best;
-    return *this;
+SearchIteratorRequest::SearchIteratorRequest() {
+    SetLimit(-1);  // default no limit for search iterator
 }
 
 }  // namespace milvus
