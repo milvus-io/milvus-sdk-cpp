@@ -131,11 +131,13 @@ TEST_F(MilvusServerTestIndex, AlterAndDropIndexProperties) {
     status = client_->DescribeIndex(
         milvus::DescribeIndexRequest().WithCollectionName(collection_name).WithIndexName("test_index"), desc_resp);
     milvus::test::ExpectStatusOK(status);
-    // TODO: after index properties are supported in describe index response, verify the altered property here
-    // auto props = desc_resp.Descs()[0].Properties();
-    // EXPECT_GE(props.size(), 1);
-    // EXPECT_TRUE(desc_resp.Descs()[0].Properties().find("mmap.enabled") != desc_resp.Descs()[0].Properties().end());
-    // EXPECT_EQ(desc_resp.Descs()[0].Properties().at("mmap.enabled"), "true");
+
+    EXPECT_EQ(desc_resp.Descs().size(), 1);
+    auto params = desc_resp.Descs()[0].ExtraParams();
+    EXPECT_EQ(params.size(), 3);  // M, efConstruction, mmap.enabled
+    EXPECT_EQ(params["M"], "16");
+    EXPECT_EQ(params["efConstruction"], "200");
+    EXPECT_EQ(params["mmap.enabled"], "true");
 
     // drop index properties
     status = client_->DropIndexProperties(milvus::DropIndexPropertiesRequest()
@@ -143,4 +145,14 @@ TEST_F(MilvusServerTestIndex, AlterAndDropIndexProperties) {
                                               .WithIndexName("test_index")
                                               .AddPropertyKey("mmap.enabled"));
     milvus::test::ExpectStatusOK(status);
+
+    // verify again by describing the index
+    status = client_->DescribeIndex(
+        milvus::DescribeIndexRequest().WithCollectionName(collection_name).WithIndexName("test_index"), desc_resp);
+    milvus::test::ExpectStatusOK(status);
+
+    EXPECT_EQ(desc_resp.Descs().size(), 1);
+    params = desc_resp.Descs()[0].ExtraParams();
+    EXPECT_EQ(params.size(), 2);  // M, efConstruction
+    EXPECT_TRUE(params.find("mmap.enabled") == params.end());
 }

@@ -94,15 +94,20 @@ class MilvusServerTestSearch : public MilvusServerTest {
 };
 
 TEST_F(MilvusServerTestSearch, SearchWithoutIndex) {
-    std::vector<milvus::FieldDataPtr> fields{
-        std::make_shared<milvus::Int16FieldData>("age", std::vector<int16_t>{12, 13}),
-        std::make_shared<milvus::VarCharFieldData>("name", std::vector<std::string>{"Tom", "Jerry"}),
-        std::make_shared<milvus::FloatVecFieldData>(
-            "face", std::vector<std::vector<float>>{std::vector<float>{0.1f, 0.2f, 0.3f, 0.4f},
-                                                    std::vector<float>{0.5f, 0.6f, 0.7f, 0.8f}})};
-
     createCollectionAndPartitions(true);
-    auto dml_results = insertRecords(fields);
+
+    // use row-based insert
+    milvus::EntityRows rows_data;
+    rows_data.push_back(nlohmann::json{{"age", 12}, {"name", "Tom"}, {"face", {0.1f, 0.2f, 0.3f, 0.4f}}});
+    rows_data.push_back(nlohmann::json{{"age", 13}, {"name", "Jerry"}, {"face", {0.5f, 0.6f, 0.7f, 0.8f}}});
+
+    milvus::InsertRequest insert_req;
+    insert_req.WithCollectionName(collection_name).WithPartitionName(partition_name).WithRowsData(std::move(rows_data));
+    milvus::InsertResponse insert_resp;
+    auto status = client_->Insert(insert_req, insert_resp);
+    milvus::test::ExpectStatusOK(status);
+    auto dml_results = insert_resp.Results();
+
     loadCollection();
 
     milvus::SearchRequest search_req{};
@@ -118,7 +123,7 @@ TEST_F(MilvusServerTestSearch, SearchWithoutIndex) {
     search_req.WithConsistencyLevel(milvus::ConsistencyLevel::STRONG);
 
     milvus::SearchResponse search_resp{};
-    auto status = client_->Search(search_req, search_resp);
+    status = client_->Search(search_req, search_resp);
     EXPECT_EQ(status.Message(), "OK");
     milvus::test::ExpectStatusOK(status);
 
@@ -370,7 +375,7 @@ TEST_F(MilvusServerTestSearch, SearchWithMultipleVectorTypes) {
         req.WithCollectionName(coll_name).WithAnnsField("binary_vec").WithLimit(10);
         req.WithMetricType(milvus::MetricType::HAMMING);
         req.AddBinaryVector(std::vector<uint8_t>{255, 255, 255, 255});
-        req.WithConsistencyLevel(milvus::ConsistencyLevel::STRONG);
+        req.WithConsistencyLevel(milvus::ConsistencyLevel::BOUNDED);
 
         milvus::SearchResponse resp;
         status = client_->Search(req, resp);
@@ -384,7 +389,7 @@ TEST_F(MilvusServerTestSearch, SearchWithMultipleVectorTypes) {
         milvus::SearchRequest req;
         req.WithCollectionName(coll_name).WithAnnsField("fp16_vec").WithLimit(10);
         req.AddFloat16Vector(std::vector<float>{0.5f, 0.5f, 0.5f, 0.5f});
-        req.WithConsistencyLevel(milvus::ConsistencyLevel::STRONG);
+        req.WithConsistencyLevel(milvus::ConsistencyLevel::BOUNDED);
 
         milvus::SearchResponse resp;
         status = client_->Search(req, resp);
@@ -400,7 +405,7 @@ TEST_F(MilvusServerTestSearch, SearchWithMultipleVectorTypes) {
         req.WithMetricType(milvus::MetricType::IP);
         std::map<uint32_t, float> query_sparse = {{0, 1.0f}, {1, 0.5f}};
         req.AddSparseVector(query_sparse);
-        req.WithConsistencyLevel(milvus::ConsistencyLevel::STRONG);
+        req.WithConsistencyLevel(milvus::ConsistencyLevel::BOUNDED);
 
         milvus::SearchResponse resp;
         status = client_->Search(req, resp);
@@ -550,7 +555,7 @@ TEST_F(MilvusServerTestSearch, HybridSearch) {
     hybrid_req2.AddSubRequest(sub2);
     hybrid_req2.WithRerank(std::make_shared<milvus::WeightedRerank>(std::vector<float>{0.7f, 0.3f}));
     hybrid_req2.WithLimit(5);
-    hybrid_req2.WithConsistencyLevel(milvus::ConsistencyLevel::STRONG);
+    hybrid_req2.WithConsistencyLevel(milvus::ConsistencyLevel::BOUNDED);
 
     milvus::HybridSearchResponse hybrid_resp2;
     status = client_->HybridSearch(hybrid_req2, hybrid_resp2);
@@ -580,6 +585,224 @@ TEST_F(MilvusServerTestSearch, ListQuerySegments) {
     auto status =
         client_->ListQuerySegments(milvus::ListQuerySegmentsRequest().WithCollectionName(collection_name), seg_resp);
     milvus::test::ExpectStatusOK(status);
+
+    dropCollection();
+}
+
+TEST_F(MilvusServerTestSearch, SearchWithGroupBy) {
+    // create a collection with a grouping field
+    std::string coll_name = milvus::test::RanName("GroupBy_");
+    auto schema = std::make_shared<milvus::CollectionSchema>(coll_name);
+    schema->AddField(milvus::FieldSchema("id", milvus::DataType::INT64, "id", true, true));
+    schema->AddField(milvus::FieldSchema("category", milvus::DataType::VARCHAR, "category").WithMaxLength(64));
+    schema->AddField(milvus::FieldSchema("vec", milvus::DataType::FLOAT_VECTOR, "vector").WithDimension(4));
+
+    client_->DropCollection(milvus::DropCollectionRequest().WithCollectionName(coll_name));
+    auto status = client_->CreateCollection(
+        milvus::CreateCollectionRequest().WithCollectionName(coll_name).WithCollectionSchema(schema));
+    milvus::test::ExpectStatusOK(status);
+
+    milvus::IndexDesc idx("vec", "", milvus::IndexType::FLAT, milvus::MetricType::L2);
+    status = client_->CreateIndex(milvus::CreateIndexRequest().WithCollectionName(coll_name).AddIndex(std::move(idx)));
+    milvus::test::ExpectStatusOK(status);
+
+    // insert data: 3 categories, 10 rows each
+    milvus::EntityRows rows_data;
+    std::vector<std::string> categories = {"cat_A", "cat_B", "cat_C"};
+    for (int i = 0; i < 30; ++i) {
+        nlohmann::json row;
+        row["category"] = categories[i % 3];
+        row["vec"] = std::vector<float>{0.1f * (i + 1), 0.2f, 0.3f, 0.4f};
+        rows_data.emplace_back(std::move(row));
+    }
+
+    milvus::InsertRequest insert_req;
+    insert_req.WithCollectionName(coll_name).WithRowsData(std::move(rows_data));
+    milvus::InsertResponse insert_resp;
+    status = client_->Insert(insert_req, insert_resp);
+    milvus::test::ExpectStatusOK(status);
+    EXPECT_EQ(insert_resp.Results().InsertCount(), 30);
+
+    status = client_->LoadCollection(milvus::LoadCollectionRequest().WithCollectionName(coll_name));
+    milvus::test::ExpectStatusOK(status);
+
+    // search with group_by: should return at most 1 result per category by default (group_size=1)
+    {
+        milvus::SearchRequest req;
+        req.WithCollectionName(coll_name);
+        req.WithAnnsField("vec");
+        req.WithLimit(10);
+        req.AddFloatVector({0.5f, 0.2f, 0.3f, 0.4f});
+        req.WithGroupByField("category");
+        req.AddOutputField("category");
+        req.WithConsistencyLevel(milvus::ConsistencyLevel::STRONG);
+
+        milvus::SearchResponse resp;
+        status = client_->Search(req, resp);
+        milvus::test::ExpectStatusOK(status);
+
+        const auto& results = resp.Results().Results();
+        EXPECT_EQ(results.size(), 1);
+        // with group_by and default group_size=1, we get at most 1 result per group,
+        // so total results should be <= number of categories (3)
+        EXPECT_LE(results.at(0).Ids().IntIDArray().size(), 3);
+
+        // verify results contain distinct categories
+        milvus::EntityRows rows;
+        results.at(0).OutputRows(rows);
+        std::set<std::string> seen_categories;
+        for (const auto& row : rows) {
+            seen_categories.insert(row["category"].get<std::string>());
+        }
+        EXPECT_EQ(seen_categories.size(), rows.size());
+    }
+
+    // search with group_by + group_size=3: should return up to 3 results per category
+    {
+        milvus::SearchRequest req;
+        req.WithCollectionName(coll_name);
+        req.WithAnnsField("vec");
+        req.WithLimit(10);
+        req.AddFloatVector({0.5f, 0.2f, 0.3f, 0.4f});
+        req.WithGroupByField("category");
+        req.WithGroupSize(3);
+        req.AddOutputField("category");
+        req.WithConsistencyLevel(milvus::ConsistencyLevel::BOUNDED);
+
+        milvus::SearchResponse resp;
+        status = client_->Search(req, resp);
+        milvus::test::ExpectStatusOK(status);
+
+        const auto& results = resp.Results().Results();
+        EXPECT_EQ(results.size(), 1);
+        // with 3 categories and group_size=3, we should get up to 9 results
+        EXPECT_GT(results.at(0).Ids().IntIDArray().size(), 3);
+
+        // verify each category appears at most group_size times
+        milvus::EntityRows rows;
+        results.at(0).OutputRows(rows);
+        std::map<std::string, int> category_counts;
+        for (const auto& row : rows) {
+            category_counts[row["category"].get<std::string>()]++;
+        }
+        for (const auto& pair : category_counts) {
+            EXPECT_LE(pair.second, 3);
+        }
+    }
+
+    // search with group_by + group_size=3 + strict_group_size=true:
+    // each category must have exactly group_size results (if enough data)
+    {
+        milvus::SearchRequest req;
+        req.WithCollectionName(coll_name);
+        req.WithAnnsField("vec");
+        req.WithLimit(10);
+        req.AddFloatVector({0.5f, 0.2f, 0.3f, 0.4f});
+        req.WithGroupByField("category");
+        req.WithGroupSize(3);
+        req.WithStrictGroupSize(true);
+        req.AddOutputField("category");
+        req.WithConsistencyLevel(milvus::ConsistencyLevel::BOUNDED);
+
+        milvus::SearchResponse resp;
+        status = client_->Search(req, resp);
+        milvus::test::ExpectStatusOK(status);
+
+        const auto& results = resp.Results().Results();
+        EXPECT_EQ(results.size(), 1);
+        // 3 categories * 3 per group = 9 results
+        EXPECT_EQ(results.at(0).Ids().IntIDArray().size(), 9);
+
+        // verify each category has exactly 3 results
+        milvus::EntityRows rows;
+        results.at(0).OutputRows(rows);
+        std::map<std::string, int> category_counts;
+        for (const auto& row : rows) {
+            category_counts[row["category"].get<std::string>()]++;
+        }
+        EXPECT_EQ(category_counts.size(), 3);
+        for (const auto& pair : category_counts) {
+            EXPECT_EQ(pair.second, 3);
+        }
+    }
+
+    client_->DropCollection(milvus::DropCollectionRequest().WithCollectionName(coll_name));
+}
+
+TEST_F(MilvusServerTestSearch, SearchWithFilterTemplate) {
+    createCollectionAndPartitions(true);
+
+    // insert data with names for filtering
+    milvus::EntityRows rows_data;
+    std::vector<std::string> all_names = {"Tom", "Jerry", "Alice", "Bob", "Charlie"};
+    for (int i = 0; i < 5; ++i) {
+        nlohmann::json row;
+        row["age"] = static_cast<int16_t>(10 + i * 5);
+        row["name"] = all_names[i];
+        row["face"] = std::vector<float>{0.1f * (i + 1), 0.2f * (i + 1), 0.3f * (i + 1), 0.4f * (i + 1)};
+        rows_data.emplace_back(std::move(row));
+    }
+
+    milvus::InsertRequest insert_req;
+    insert_req.WithCollectionName(collection_name).WithPartitionName(partition_name);
+    insert_req.WithRowsData(std::move(rows_data));
+    milvus::InsertResponse insert_resp;
+    auto status = client_->Insert(insert_req, insert_resp);
+    milvus::test::ExpectStatusOK(status);
+
+    loadCollection();
+
+    // search with filter template using numeric value
+    {
+        milvus::SearchRequest req;
+        req.WithCollectionName(collection_name);
+        req.WithAnnsField("face");
+        req.WithLimit(10);
+        req.AddFloatVector({0.5f, 0.5f, 0.5f, 0.5f});
+        req.WithFilter("age > {min_age}");
+        req.AddFilterTemplate("min_age", 15);
+        req.AddOutputField("age");
+        req.WithConsistencyLevel(milvus::ConsistencyLevel::STRONG);
+
+        milvus::SearchResponse resp;
+        status = client_->Search(req, resp);
+        milvus::test::ExpectStatusOK(status);
+
+        const auto& results = resp.Results().Results();
+        EXPECT_EQ(results.size(), 1);
+        // ages are 10,15,20,25,30 — those > 15 are 20,25,30
+        EXPECT_EQ(results.at(0).Scores().size(), 3);
+    }
+
+    // search with filter template using array (IN operator)
+    {
+        milvus::SearchRequest req;
+        req.WithCollectionName(collection_name);
+        req.WithAnnsField("face");
+        req.WithLimit(10);
+        req.AddFloatVector({0.5f, 0.5f, 0.5f, 0.5f});
+        req.WithFilter("name in {target_names}");
+        req.AddFilterTemplate("target_names", nlohmann::json{"Tom", "Alice"});
+        req.AddOutputField("name");
+        req.WithConsistencyLevel(milvus::ConsistencyLevel::BOUNDED);
+
+        milvus::SearchResponse resp;
+        status = client_->Search(req, resp);
+        milvus::test::ExpectStatusOK(status);
+
+        const auto& results = resp.Results().Results();
+        EXPECT_EQ(results.size(), 1);
+        EXPECT_EQ(results.at(0).Scores().size(), 2);
+
+        milvus::EntityRows rows;
+        results.at(0).OutputRows(rows);
+        std::set<std::string> names;
+        for (const auto& row : rows) {
+            names.insert(row["name"].get<std::string>());
+        }
+        EXPECT_TRUE(names.count("Tom"));
+        EXPECT_TRUE(names.count("Alice"));
+    }
 
     dropCollection();
 }

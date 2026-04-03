@@ -102,6 +102,10 @@ class MilvusConnection {
                    const GrpcContextOptions& options);
 
     Status
+    TruncateCollection(const proto::milvus::TruncateCollectionRequest& request,
+                       proto::milvus::TruncateCollectionResponse& response, const GrpcContextOptions& options);
+
+    Status
     HasCollection(const proto::milvus::HasCollectionRequest& request, proto::milvus::BoolResponse& response,
                   const GrpcContextOptions& options);
 

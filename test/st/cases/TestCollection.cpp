@@ -267,18 +267,21 @@ TEST_F(MilvusServerTestCollectionOps, AlterAndDropCollectionFieldProperties) {
                                                               .AddProperty(milvus::MMAP_ENABLED, "true"));
     milvus::test::ExpectStatusOK(status);
 
-    // verify by describing the collection
+    // get field properties in DescribeCollectionResponse and verify the altered property is present and correct
     milvus::DescribeCollectionResponse desc_resp;
     status =
         client_->DescribeCollection(milvus::DescribeCollectionRequest().WithCollectionName(collection_name), desc_resp);
     milvus::test::ExpectStatusOK(status);
 
-    // TODO: get field properties in DescribeCollectionResponse and verify the altered property is present and correct
-    // auto schema = desc_resp.Desc().Schema();
-    // auto props = schema.Fields().at(1).Properties();
-    // EXPECT_GE(props.size(), 1);
-    // EXPECT_TRUE(props.find(milvus::MMAP_ENABLED) != props.end());
-    // EXPECT_EQ(props.at(milvus::MMAP_ENABLED), "true");
+    auto schema = desc_resp.Desc().Schema();
+    auto fields = schema.Fields();
+    for (const auto& field : fields) {
+        if (field.Name() == "name") {
+            auto props = field.TypeParams();
+            EXPECT_TRUE(props.find(milvus::MMAP_ENABLED) != props.end());
+            EXPECT_EQ(props.at(milvus::MMAP_ENABLED), "true");
+        }
+    }
 
     // drop field properties
     status = client_->DropCollectionFieldProperties(milvus::DropCollectionFieldPropertiesRequest()
@@ -293,6 +296,176 @@ TEST_F(MilvusServerTestCollectionOps, AlterAndDropCollectionFieldProperties) {
         client_->DescribeCollection(milvus::DescribeCollectionRequest().WithCollectionName(collection_name), desc_resp);
     milvus::test::ExpectStatusOK(status);
 
-    // props = desc_resp2.Desc().Properties();
-    // EXPECT_TRUE(props.find(milvus::MMAP_ENABLED) == props.end());
+    schema = desc_resp.Desc().Schema();
+    fields = schema.Fields();
+    for (const auto& field : fields) {
+        if (field.Name() == "name") {
+            auto props = field.TypeParams();
+            EXPECT_TRUE(props.find(milvus::MMAP_ENABLED) == props.end());
+        }
+    }
+}
+
+TEST_F(MilvusServerTestCollectionOps, TruncateCollection) {
+    // create index first
+    milvus::IndexDesc index_desc("vec", "", milvus::IndexType::FLAT, milvus::MetricType::L2);
+    auto status = client_->CreateIndex(
+        milvus::CreateIndexRequest().WithCollectionName(collection_name).AddIndex(std::move(index_desc)));
+    milvus::test::ExpectStatusOK(status);
+
+    // insert some data
+    std::vector<milvus::FieldDataPtr> fields{
+        std::make_shared<milvus::VarCharFieldData>("name", std::vector<std::string>{"Alice", "Bob", "Charlie"}),
+        std::make_shared<milvus::FloatVecFieldData>(
+            "vec", std::vector<std::vector<float>>{
+                       {0.1f, 0.2f, 0.3f, 0.4f}, {0.5f, 0.6f, 0.7f, 0.8f}, {0.9f, 1.0f, 1.1f, 1.2f}})};
+
+    milvus::InsertRequest insert_req;
+    insert_req.WithCollectionName(collection_name).WithColumnsData(std::move(fields));
+    milvus::InsertResponse insert_resp;
+    status = client_->Insert(insert_req, insert_resp);
+    milvus::test::ExpectStatusOK(status);
+    EXPECT_EQ(insert_resp.Results().InsertCount(), 3);
+
+    // load and verify data exists
+    status = client_->LoadCollection(milvus::LoadCollectionRequest().WithCollectionName(collection_name));
+    milvus::test::ExpectStatusOK(status);
+
+    milvus::QueryRequest query_req;
+    query_req.WithCollectionName(collection_name);
+    query_req.WithFilter("id >= 0");
+    query_req.AddOutputField("name");
+    query_req.WithConsistencyLevel(milvus::ConsistencyLevel::BOUNDED);
+
+    milvus::QueryResponse query_resp;
+    status = client_->Query(query_req, query_resp);
+    milvus::test::ExpectStatusOK(status);
+    EXPECT_EQ(query_resp.Results().GetRowCount(), 3);
+
+    // release before truncate
+    status = client_->ReleaseCollection(milvus::ReleaseCollectionRequest().WithCollectionName(collection_name));
+    milvus::test::ExpectStatusOK(status);
+
+    // truncate the collection
+    status = client_->TruncateCollection(milvus::TruncateCollectionRequest().WithCollectionName(collection_name));
+    milvus::test::ExpectStatusOK(status);
+
+    // reload and verify data is gone
+    status = client_->LoadCollection(milvus::LoadCollectionRequest().WithCollectionName(collection_name));
+    milvus::test::ExpectStatusOK(status);
+
+    milvus::QueryResponse query_resp2;
+    status = client_->Query(query_req, query_resp2);
+    milvus::test::ExpectStatusOK(status);
+    EXPECT_EQ(query_resp2.Results().GetRowCount(), 0);
+}
+
+TEST_F(MilvusServerTestCollectionOps, DynamicField) {
+    // create a separate collection with dynamic field enabled
+    std::string dyn_coll = milvus::test::RanName("DynField_");
+
+    auto schema = std::make_shared<milvus::CollectionSchema>(dyn_coll);
+    schema->SetEnableDynamicField(true);
+    schema->AddField(milvus::FieldSchema("id", milvus::DataType::INT64, "id", true, false));
+    schema->AddField(milvus::FieldSchema("vec", milvus::DataType::FLOAT_VECTOR, "vector").WithDimension(4));
+    schema->AddField(milvus::FieldSchema("text", milvus::DataType::VARCHAR, "text").WithMaxLength(256));
+
+    auto status = client_->CreateCollection(
+        milvus::CreateCollectionRequest().WithCollectionName(dyn_coll).WithCollectionSchema(schema));
+    milvus::test::ExpectStatusOK(status);
+
+    milvus::IndexDesc idx("vec", "", milvus::IndexType::FLAT, milvus::MetricType::L2);
+    status = client_->CreateIndex(milvus::CreateIndexRequest().WithCollectionName(dyn_coll).AddIndex(std::move(idx)));
+    milvus::test::ExpectStatusOK(status);
+
+    status = client_->LoadCollection(milvus::LoadCollectionRequest().WithCollectionName(dyn_coll));
+    milvus::test::ExpectStatusOK(status);
+
+    // insert with row-based — include dynamic fields "color" and "score"
+    milvus::EntityRows rows_data;
+    rows_data.push_back(nlohmann::json{
+        {"id", 0},
+        {"vec", {0.1f, 0.2f, 0.3f, 0.4f}},
+        {"text", "hello"},
+        {"color", "red"},
+        {"score", 95},
+    });
+    rows_data.push_back(nlohmann::json{
+        {"id", 1},
+        {"vec", {0.5f, 0.6f, 0.7f, 0.8f}},
+        {"text", "world"},
+        {"color", "blue"},
+        {"score", 80},
+    });
+    rows_data.push_back(nlohmann::json{
+        {"id", 2},
+        {"vec", {0.9f, 1.0f, 1.1f, 1.2f}},
+        {"text", "foo"},
+        {"color", "red"},
+        {"score", 60},
+    });
+
+    milvus::InsertRequest insert_req;
+    insert_req.WithCollectionName(dyn_coll).WithRowsData(std::move(rows_data));
+    milvus::InsertResponse insert_resp;
+    status = client_->Insert(insert_req, insert_resp);
+    milvus::test::ExpectStatusOK(status);
+    EXPECT_EQ(insert_resp.Results().InsertCount(), 3);
+
+    // query and output dynamic fields
+    milvus::QueryRequest query_req;
+    query_req.WithCollectionName(dyn_coll);
+    query_req.WithFilter("id >= 0");
+    query_req.AddOutputField("text");
+    query_req.AddOutputField("color");
+    query_req.AddOutputField("score");
+    query_req.WithConsistencyLevel(milvus::ConsistencyLevel::STRONG);
+
+    milvus::QueryResponse query_resp;
+    status = client_->Query(query_req, query_resp);
+    milvus::test::ExpectStatusOK(status);
+
+    milvus::EntityRows rows;
+    query_resp.Results().OutputRows(rows);
+    EXPECT_EQ(rows.size(), 3);
+
+    std::map<int64_t, nlohmann::json> result_map;
+    for (const auto& row : rows) {
+        result_map[row["id"].get<int64_t>()] = row;
+    }
+
+    EXPECT_EQ(result_map[0]["color"].get<std::string>(), "red");
+    EXPECT_EQ(result_map[0]["score"].get<int>(), 95);
+    EXPECT_EQ(result_map[1]["color"].get<std::string>(), "blue");
+    EXPECT_EQ(result_map[1]["score"].get<int>(), 80);
+    EXPECT_EQ(result_map[2]["color"].get<std::string>(), "red");
+    EXPECT_EQ(result_map[2]["score"].get<int>(), 60);
+
+    // search with filter on dynamic field
+    milvus::SearchRequest search_req;
+    search_req.WithCollectionName(dyn_coll);
+    search_req.WithAnnsField("vec");
+    search_req.WithLimit(10);
+    search_req.AddFloatVector({0.5f, 0.5f, 0.5f, 0.5f});
+    search_req.WithFilter(R"(color == "red")");
+    search_req.AddOutputField("color");
+    search_req.AddOutputField("score");
+    search_req.WithConsistencyLevel(milvus::ConsistencyLevel::BOUNDED);
+
+    milvus::SearchResponse search_resp;
+    status = client_->Search(search_req, search_resp);
+    milvus::test::ExpectStatusOK(status);
+
+    const auto& results = search_resp.Results().Results();
+    EXPECT_EQ(results.size(), 1);
+    EXPECT_EQ(results.at(0).Scores().size(), 2);  // only rows 0 and 2
+
+    milvus::EntityRows search_rows;
+    results.at(0).OutputRows(search_rows);
+    for (const auto& row : search_rows) {
+        EXPECT_EQ(row["color"].get<std::string>(), "red");
+    }
+
+    // cleanup
+    client_->DropCollection(milvus::DropCollectionRequest().WithCollectionName(dyn_coll));
 }

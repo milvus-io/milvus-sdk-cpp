@@ -152,3 +152,96 @@ TEST_F(MilvusServerTestPartition, GetPartitionStatistics) {
     milvus::test::ExpectStatusOK(status);
     EXPECT_EQ(stats_resp.Stats().RowCount(), 2);
 }
+
+TEST_F(MilvusServerTestPartition, PartitionKey) {
+    // create a separate collection with partition key field
+    std::string pk_coll = milvus::test::RanName("PKTest_");
+
+    auto schema = std::make_shared<milvus::CollectionSchema>(pk_coll);
+    schema->AddField(milvus::FieldSchema("id", milvus::DataType::INT64, "id", true, true));
+    schema->AddField(milvus::FieldSchema("category", milvus::DataType::VARCHAR, "partition key")
+                         .WithMaxLength(64)
+                         .WithPartitionKey(true));
+    schema->AddField(milvus::FieldSchema("vec", milvus::DataType::FLOAT_VECTOR, "vector").WithDimension(4));
+
+    auto status = client_->CreateCollection(
+        milvus::CreateCollectionRequest().WithCollectionName(pk_coll).WithCollectionSchema(schema).WithNumPartitions(
+            4));
+    milvus::test::ExpectStatusOK(status);
+
+    // verify partitions are auto-created (should have more than 1 partition)
+    milvus::ListPartitionsResponse lp_resp;
+    status = client_->ListPartitions(milvus::ListPartitionsRequest().WithCollectionName(pk_coll), lp_resp);
+    milvus::test::ExpectStatusOK(status);
+    EXPECT_GE(lp_resp.PartitionsNames().size(), 4);
+
+    // create index and load
+    milvus::IndexDesc idx("vec", "", milvus::IndexType::FLAT, milvus::MetricType::L2);
+    status = client_->CreateIndex(milvus::CreateIndexRequest().WithCollectionName(pk_coll).AddIndex(std::move(idx)));
+    milvus::test::ExpectStatusOK(status);
+
+    status = client_->LoadCollection(milvus::LoadCollectionRequest().WithCollectionName(pk_coll));
+    milvus::test::ExpectStatusOK(status);
+
+    // insert data with different category values — milvus distributes them across partitions
+    milvus::EntityRows rows_data;
+    std::vector<std::string> categories = {"electronics", "books", "clothing", "food"};
+    for (int i = 0; i < 40; ++i) {
+        nlohmann::json row;
+        row["category"] = categories[i % 4];
+        row["vec"] = std::vector<float>{0.1f * (i + 1), 0.2f, 0.3f, 0.4f};
+        rows_data.emplace_back(std::move(row));
+    }
+
+    milvus::InsertRequest insert_req;
+    insert_req.WithCollectionName(pk_coll).WithRowsData(std::move(rows_data));
+    milvus::InsertResponse insert_resp;
+    status = client_->Insert(insert_req, insert_resp);
+    milvus::test::ExpectStatusOK(status);
+    EXPECT_EQ(insert_resp.Results().InsertCount(), 40);
+
+    // query with partition key filter — milvus only scans the relevant partition
+    milvus::QueryRequest query_req;
+    query_req.WithCollectionName(pk_coll);
+    query_req.WithFilter(R"(category == "books")");
+    query_req.AddOutputField("category");
+    query_req.WithConsistencyLevel(milvus::ConsistencyLevel::STRONG);
+
+    milvus::QueryResponse query_resp;
+    status = client_->Query(query_req, query_resp);
+    milvus::test::ExpectStatusOK(status);
+
+    milvus::EntityRows rows;
+    query_resp.Results().OutputRows(rows);
+    EXPECT_EQ(rows.size(), 10);  // 40 rows / 4 categories = 10 per category
+    for (const auto& row : rows) {
+        EXPECT_EQ(row["category"].get<std::string>(), "books");
+    }
+
+    // search with partition key filter
+    milvus::SearchRequest search_req;
+    search_req.WithCollectionName(pk_coll);
+    search_req.WithAnnsField("vec");
+    search_req.WithLimit(5);
+    search_req.AddFloatVector({0.5f, 0.2f, 0.3f, 0.4f});
+    search_req.WithFilter(R"(category == "electronics")");
+    search_req.AddOutputField("category");
+    search_req.WithConsistencyLevel(milvus::ConsistencyLevel::STRONG);
+
+    milvus::SearchResponse search_resp;
+    status = client_->Search(search_req, search_resp);
+    milvus::test::ExpectStatusOK(status);
+
+    const auto& results = search_resp.Results().Results();
+    EXPECT_EQ(results.size(), 1);
+    EXPECT_EQ(results.at(0).Scores().size(), 5);
+
+    milvus::EntityRows search_rows;
+    results.at(0).OutputRows(search_rows);
+    for (const auto& row : search_rows) {
+        EXPECT_EQ(row["category"].get<std::string>(), "electronics");
+    }
+
+    // cleanup
+    client_->DropCollection(milvus::DropCollectionRequest().WithCollectionName(pk_coll));
+}

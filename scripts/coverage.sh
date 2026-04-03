@@ -33,7 +33,7 @@ ROOT_DIR="$( cd -P "$( dirname "$SOURCE" )/.." && pwd )"
 echo "ROOT_DIR = ${ROOT_DIR}"
 
 DIR_LCOV_OUTPUT="${ROOT_DIR}/${COVERAGE_OUTPUT_DIR}"
-DIR_GCNO="${ROOT_DIR}/${BUILD_OUTPUT_DIR}/"
+DIR_GCNO="${ROOT_DIR}/${BUILD_OUTPUT_DIR}/src/"
 FILE_INFO_BASE="${DIR_LCOV_OUTPUT}/lcov_base.info"
 FILE_INFO_UT="${DIR_LCOV_OUTPUT}/lcov_ut.info"
 FILE_INFO_COMBINE="${DIR_LCOV_OUTPUT}/lcov_combine.info"
@@ -43,15 +43,17 @@ FILE_INFO_OUTPUT="${DIR_LCOV_OUTPUT}/lcov_output.info"
 rm -rf ${DIR_LCOV_OUTPUT}
 mkdir ${COVERAGE_OUTPUT_DIR}
 
-# generate baseline
-${LCOV_CMD} -c -i -d ${DIR_GCNO} -o ${FILE_INFO_BASE}
+# generate baseline (exclude proto-generated files)
+${LCOV_CMD} -c -i -d ${DIR_GCNO} -o ${FILE_INFO_BASE} \
+    --exclude "*/_deps/*" --exclude "*.pb.cc" --exclude "*.grpc.pb.cc"
 if [ $? -ne 0 ]; then
     echo "Failed to generate coverage baseline"
     exit -1
 fi
 
-# generate ut file
-${LCOV_CMD} -c -d ${DIR_GCNO} -o ${FILE_INFO_UT}
+# generate ut file (exclude proto-generated files)
+${LCOV_CMD} -c -d ${DIR_GCNO} -o ${FILE_INFO_UT} \
+    --exclude "*/_deps/*" --exclude "*.pb.cc" --exclude "*.grpc.pb.cc"
 
 # merge baseline and ut file
 ${LCOV_CMD} -a ${FILE_INFO_BASE} -a ${FILE_INFO_UT} -o ${FILE_INFO_COMBINE}
@@ -64,7 +66,8 @@ ${LCOV_CMD} -r "${FILE_INFO_COMBINE}" -o "${FILE_INFO_OUTPUT}" \
     "*/thirdparty/*" \
     "*/test/*" \
     "*/_deps/*" \
-    "*/examples/*"
+    "*/examples/*" \
+    "*/.conan2/*"
 
 # generate html report
 ${LCOV_GEN_CMD} ${FILE_INFO_OUTPUT} --output-directory ${DIR_LCOV_OUTPUT}/

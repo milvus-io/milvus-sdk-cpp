@@ -64,6 +64,9 @@ class MilvusClientV2Impl : public MilvusClientV2 {
     DropCollection(const DropCollectionRequest& request) final;
 
     Status
+    TruncateCollection(const TruncateCollectionRequest& request) final;
+
+    Status
     LoadCollection(const LoadCollectionRequest& request) final;
 
     Status
