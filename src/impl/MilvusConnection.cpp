@@ -246,6 +246,13 @@ MilvusConnection::DropCollection(const proto::milvus::DropCollectionRequest& req
 }
 
 Status
+MilvusConnection::TruncateCollection(const proto::milvus::TruncateCollectionRequest& request,
+                                     proto::milvus::TruncateCollectionResponse& response,
+                                     const GrpcContextOptions& options) {
+    return grpcCall("TruncateCollection", &Stub::TruncateCollection, request, response, options);
+}
+
+Status
 MilvusConnection::HasCollection(const proto::milvus::HasCollectionRequest& request,
                                 proto::milvus::BoolResponse& response, const GrpcContextOptions& options) {
     return grpcCall("HasCollection", &Stub::HasCollection, request, response, options);

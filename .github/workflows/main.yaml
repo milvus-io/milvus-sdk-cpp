@@ -41,10 +41,6 @@ jobs:
             version: 20.04
             image: ubuntu:20.04
             key: u2004
-          - distro: Ubuntu
-            version: 22.04
-            image: ubuntu:22.04
-            key: u2204
           - distro: Fedora
             version: 39
             image: fedora:39
@@ -60,13 +56,14 @@ jobs:
         run: echo "${HOME}/.local/bin" >> $GITHUB_PATH
       - name: Checkout
         uses: actions/checkout@v4
-      - name: Cache ccache
+      - name: Cache ccache and conan
         uses: actions/cache@v4
         with:
           path: |
             ${{ github.workspace }}/.ccache
-          key: linux-${{ matrix.os.key }}-ccache-${{ github.sha }}
-          restore-keys: linux-${{ matrix.os.key }}-ccache-
+            /github/home/.conan2
+          key: linux-${{ matrix.os.key }}-cache-${{ github.sha }}
+          restore-keys: linux-${{ matrix.os.key }}-cache-
       - name: Prepare
         run: |
           sh scripts/install_deps.sh
@@ -92,13 +89,14 @@ jobs:
         run: echo "${HOME}/.local/bin" >> $GITHUB_PATH
       - name: Checkout
         uses: actions/checkout@v4
-      - name: Cache ccache
+      - name: Cache ccache and conan
         uses: actions/cache@v4
         with:
           path: |
             ${{ github.workspace }}/.ccache
-          key: ubuntu-2204-st-ccache-${{ github.sha }}
-          restore-keys: ubuntu-2204-st-ccache-
+            ~/.conan2
+          key: ubuntu-2204-st-cache-${{ github.sha }}
+          restore-keys: ubuntu-2204-st-cache-
       - name: Prepare
         run: |
           sh scripts/install_deps.sh
@@ -107,12 +105,8 @@ jobs:
           make st
   coverage-ubuntu:
     name: Test all with coverage
-    runs-on: ubuntu-${{ matrix.ubuntu }}
+    runs-on: ubuntu-22.04
     timeout-minutes: 120
-    strategy:
-      fail-fast: false
-      matrix:
-        ubuntu: [22.04]
     env:
       CCACHE_DIR: ${{ github.workspace }}/.ccache
       CCACHE_COMPILERCHECK: content
@@ -130,8 +124,8 @@ jobs:
           path: |
             ${{ github.workspace }}/.ccache
             ~/.conan2
-          key: ubuntu-${{ matrix.ubuntu }}-cache-${{ github.sha }}
-          restore-keys: ubuntu-${{ matrix.ubuntu }}-cache-
+          key: ubuntu-2204-coverage-cache-${{ github.sha }}
+          restore-keys: ubuntu-2204-coverage-cache-
       - uses: actions/setup-python@v4
         with:
           python-version: '3.8'
@@ -145,7 +139,7 @@ jobs:
         uses: codecov/codecov-action@v5
         with:
           files: ./code_coverage/lcov_output.info
-          name: ubuntu-${{ matrix.ubuntu }}-coverage
+          name: ubuntu-22.04-coverage
           disable_safe_directory: true
           verbose: true
   macos:
