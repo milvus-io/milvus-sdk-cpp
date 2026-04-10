@@ -414,6 +414,7 @@ template class FieldData<std::vector<int64_t>, DataType::ARRAY>;
 template class FieldData<std::vector<float>, DataType::ARRAY>;
 template class FieldData<std::vector<double>, DataType::ARRAY>;
 template class FieldData<std::vector<std::string>, DataType::ARRAY>;
+template class FieldData<std::vector<nlohmann::json>, DataType::ARRAY>;  // avoid compile errors on MacOS
 
 template class ArrayFieldData<bool, DataType::BOOL>;
 template class ArrayFieldData<int8_t, DataType::INT8>;

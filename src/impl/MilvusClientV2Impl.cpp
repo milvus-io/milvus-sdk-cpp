@@ -253,6 +253,25 @@ MilvusClientV2Impl::DropCollection(const DropCollectionRequest& request) {
 }
 
 Status
+MilvusClientV2Impl::TruncateCollection(const TruncateCollectionRequest& request) {
+    auto pre = [&request](proto::milvus::TruncateCollectionRequest& rpc_request) {
+        rpc_request.set_db_name(request.DatabaseName());
+        rpc_request.set_collection_name(request.CollectionName());
+        return Status::OK();
+    };
+
+    auto post = [this, &request](const proto::milvus::TruncateCollectionResponse&) {
+        auto db_name = connection_.CurrentDbName(request.DatabaseName());
+        auto collection_name = request.CollectionName();
+        GtsDict::GetInstance().RemoveCollectionTs(db_name, collection_name);
+        return Status::OK();
+    };
+
+    return connection_.Invoke<proto::milvus::TruncateCollectionRequest, proto::milvus::TruncateCollectionResponse>(
+        pre, &MilvusConnection::TruncateCollection, post);
+}
+
+Status
 MilvusClientV2Impl::LoadCollection(const LoadCollectionRequest& request) {
     auto pre = [&request](proto::milvus::LoadCollectionRequest& rpc_request) {
         rpc_request.set_db_name(request.DatabaseName());

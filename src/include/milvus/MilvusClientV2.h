@@ -38,6 +38,7 @@
 #include "request/collection/LoadCollectionRequest.h"
 #include "request/collection/ReleaseCollectionRequest.h"
 #include "request/collection/RenameCollectionRequest.h"
+#include "request/collection/TruncateCollectionRequest.h"
 #include "request/database/AlterDatabasePropertiesRequest.h"
 #include "request/database/CreateDatabaseRequest.h"
 #include "request/database/DescribeDatabaseRequest.h"
@@ -243,6 +244,15 @@ class MilvusClientV2 {
      */
     virtual Status
     DropCollection(const DropCollectionRequest& request) = 0;
+
+    /**
+     * @brief Truncate a collection, removing all data while keeping the collection structure.
+     *
+     * @param [in] request input parameters
+     * @return Status operation successfully or not
+     */
+    virtual Status
+    TruncateCollection(const TruncateCollectionRequest& request) = 0;
 
     /**
      * @brief Load collection data into CPU memory of query node.

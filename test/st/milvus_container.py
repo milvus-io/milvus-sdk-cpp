@@ -15,7 +15,7 @@ import time
 
 import docker
 
-milvus_image = "milvusdb/milvus:v2.6.9"
+milvus_image = "milvusdb/milvus:v2.6.12"
 milvus_port = 19530
 
 
