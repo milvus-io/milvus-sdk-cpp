@@ -30,6 +30,19 @@ target_link_libraries(milvus_sdk gRPC::grpc++)
 target_include_directories(milvus_sdk PUBLIC include)
 target_include_directories(milvus_sdk PRIVATE ${PROJECT_SOURCE_DIR}/thirdparty)
 
+# precompile heavy proto headers to speed up compilation
+target_precompile_headers(milvus_sdk PRIVATE
+    <string>
+    <vector>
+    <map>
+    <memory>
+    <unordered_map>
+    "${PROTO_BINARY_DIR}/common.pb.h"
+    "${PROTO_BINARY_DIR}/schema.pb.h"
+    "${PROTO_BINARY_DIR}/milvus.pb.h"
+    "${PROTO_BINARY_DIR}/milvus.grpc.pb.h"
+)
+
 # install
 include(GNUInstallDirs)
 

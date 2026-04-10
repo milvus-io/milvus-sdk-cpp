@@ -18,16 +18,20 @@
 
 #include "MilvusServerTest.h"
 
-using milvus::test::MilvusServerTest;
-
-class MilvusServerTestIterator : public MilvusServerTest {
+class MilvusServerTestIterator : public ::testing::Test {
  protected:
-    std::string collection_name;
-    size_t total_count = 500;
+    static std::shared_ptr<milvus::MilvusClientV2> client_;
+    static std::string collection_name;
+    static constexpr size_t total_count = 500;
 
-    void
-    SetUp() override {
-        MilvusServerTest::SetUp();
+    static void
+    SetUpTestSuite() {
+        const char* host = std::getenv("MILVUS_HOST");
+        milvus::ConnectParam connect_param{host ? host : "localhost", 19530};
+        client_ = milvus::MilvusClientV2::Create();
+        auto status = client_->Connect(connect_param);
+        milvus::test::ExpectStatusOK(status);
+
         collection_name = milvus::test::RanName("IterTest_");
 
         auto schema = std::make_shared<milvus::CollectionSchema>(collection_name);
@@ -36,7 +40,7 @@ class MilvusServerTestIterator : public MilvusServerTest {
         schema->AddField(milvus::FieldSchema("name", milvus::DataType::VARCHAR, "name").WithMaxLength(64));
         schema->AddField(milvus::FieldSchema("vec", milvus::DataType::FLOAT_VECTOR, "vector").WithDimension(4));
 
-        auto status = client_->CreateCollection(
+        status = client_->CreateCollection(
             milvus::CreateCollectionRequest().WithCollectionName(collection_name).WithCollectionSchema(schema));
         milvus::test::ExpectStatusOK(status);
 
@@ -73,12 +77,19 @@ class MilvusServerTestIterator : public MilvusServerTest {
         milvus::test::ExpectStatusOK(status);
     }
 
-    void
-    TearDown() override {
-        client_->DropCollection(milvus::DropCollectionRequest().WithCollectionName(collection_name));
-        MilvusServerTest::TearDown();
+    static void
+    TearDownTestSuite() {
+        if (client_) {
+            client_->DropCollection(milvus::DropCollectionRequest().WithCollectionName(collection_name));
+            client_->Disconnect();
+            client_.reset();
+        }
     }
 };
+
+std::shared_ptr<milvus::MilvusClientV2> MilvusServerTestIterator::client_;
+std::string MilvusServerTestIterator::collection_name;
+constexpr size_t MilvusServerTestIterator::total_count;
 
 TEST_F(MilvusServerTestIterator, QueryIterator) {
     auto test_func = [&](int64_t batch_size, int64_t limit) {
@@ -89,7 +100,7 @@ TEST_F(MilvusServerTestIterator, QueryIterator) {
         req.AddOutputField("name");
         req.SetBatchSize(batch_size);
         req.SetLimit(limit);
-        req.WithConsistencyLevel(milvus::ConsistencyLevel::STRONG);
+        req.WithConsistencyLevel(milvus::ConsistencyLevel::BOUNDED);
 
         milvus::QueryIteratorPtr iterator;
         auto status = client_->QueryIterator(req, iterator);
@@ -154,7 +165,7 @@ TEST_F(MilvusServerTestIterator, QueryIteratorWithFilter) {
     req.AddOutputField("age");
     req.SetBatchSize(50);
     // req.SetLimit(-1);
-    req.WithConsistencyLevel(milvus::ConsistencyLevel::STRONG);
+    req.WithConsistencyLevel(milvus::ConsistencyLevel::BOUNDED);
 
     milvus::QueryIteratorPtr iterator;
     auto status = client_->QueryIterator(req, iterator);
@@ -197,7 +208,7 @@ TEST_F(MilvusServerTestIterator, SearchIterator) {
         req.AddOutputField("age");
         req.WithLimit(limit);
         req.WithMetricType(milvus::MetricType::L2);
-        req.WithConsistencyLevel(milvus::ConsistencyLevel::STRONG);
+        req.WithConsistencyLevel(milvus::ConsistencyLevel::BOUNDED);
 
         milvus::SearchIteratorPtr iterator;
         auto status = client_->SearchIterator(req, iterator);
@@ -265,7 +276,7 @@ TEST_F(MilvusServerTestIterator, SearchIteratorWithFilter) {
     req.WithMetricType(milvus::MetricType::L2);
     req.WithFilter("age <= 30");
     req.AddOutputField("age");
-    req.WithConsistencyLevel(milvus::ConsistencyLevel::STRONG);
+    req.WithConsistencyLevel(milvus::ConsistencyLevel::BOUNDED);
 
     milvus::SearchIteratorPtr iterator;
     auto status = client_->SearchIterator(req, iterator);
