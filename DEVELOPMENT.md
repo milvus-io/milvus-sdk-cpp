@@ -142,7 +142,7 @@ so you need to install docker and jq tools for running them.
 
 ## Try the examples
 Once the `make test` is done, you will see some executable examples under the path `./cmake_build/examples`.
-See [Examples Guide](examples/example.md) for details.
+See [Examples Guide](examples/README.md) for details.
 
 
 ## Run code coverage
