@@ -221,6 +221,9 @@ IndexTypeCast(const std::string& type) {
     if (type == "IVF_RABITQ") {
         return IndexType::IVF_RABITQ;
     }
+    if (type == "AISAQ") {
+        return IndexType::AISAQ;
+    }
     if (type == "GPU_IVF_FLAT") {
         return IndexType::GPU_IVF_FLAT;
     }
@@ -256,6 +259,9 @@ IndexTypeCast(const std::string& type) {
     }
     if (type == "NGRAM") {
         return IndexType::NGRAM;
+    }
+    if (type == "RTREE") {
+        return IndexType::RTREE;
     }
     if (type == "SPARSE_INVERTED_INDEX") {
         return IndexType::SPARSE_INVERTED_INDEX;
@@ -857,6 +863,8 @@ to_string(milvus::IndexType index_type) {
             return "SCANN";
         case milvus::IndexType::IVF_RABITQ:
             return "IVF_RABITQ";
+        case milvus::IndexType::AISAQ:
+            return "AISAQ";
         case milvus::IndexType::GPU_IVF_FLAT:
             return "GPU_IVF_FLAT";
         case milvus::IndexType::GPU_IVF_PQ:
@@ -881,6 +889,8 @@ to_string(milvus::IndexType index_type) {
             return "BITMAP";
         case milvus::IndexType::NGRAM:
             return "NGRAM";
+        case milvus::IndexType::RTREE:
+            return "RTREE";
         case milvus::IndexType::SPARSE_INVERTED_INDEX:
             return "SPARSE_INVERTED_INDEX";
         case milvus::IndexType::SPARSE_WAND:
