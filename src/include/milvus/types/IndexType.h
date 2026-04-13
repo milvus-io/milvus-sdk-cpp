@@ -42,6 +42,7 @@ enum class IndexType {
     HNSW_PQ = 10,
     HNSW_PRQ = 11,
     IVF_RABITQ = 12,
+    AISAQ = 13,
 
     // GPU indexes only for float vectors
     GPU_IVF_FLAT = 201,
@@ -66,7 +67,10 @@ enum class IndexType {
 
     // Only for sparse vectors
     SPARSE_INVERTED_INDEX = 1201,
-    SPARSE_WAND = 1202
+    SPARSE_WAND = 1202,
+
+    // Only for geometry type field
+    RTREE = 1301,
 };
 }  // namespace milvus
 
