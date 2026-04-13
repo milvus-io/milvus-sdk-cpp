@@ -65,7 +65,9 @@ TEST_F(IndexTypeEnumTest, KnownValues) {
     EXPECT_EQ(static_cast<int>(milvus::IndexType::HNSW), 5);
     EXPECT_EQ(static_cast<int>(milvus::IndexType::DISKANN), 6);
     EXPECT_EQ(static_cast<int>(milvus::IndexType::AUTOINDEX), 7);
+    EXPECT_EQ(static_cast<int>(milvus::IndexType::AISAQ), 13);
     EXPECT_EQ(static_cast<int>(milvus::IndexType::BIN_FLAT), 1001);
+    EXPECT_EQ(static_cast<int>(milvus::IndexType::RTREE), 1301);
     EXPECT_EQ(static_cast<int>(milvus::IndexType::SPARSE_INVERTED_INDEX), 1201);
 }
 
