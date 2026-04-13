@@ -1,5 +1,17 @@
 # Changelog
 
+## milvus-sdk-cpp 2.6.2 (2026-04-13)
+### Improvement
+- Use conan to manage dependencies
+- Set grpc keepalive interval to 10s with 5s timeout
+- Support TruncateCollection() interface
+- Add AISAQ and RTREE index type
+
+### Bug
+- Set limit to -1 for QueryIterator/SearchIterator so that they can iterate entire collection by default
+- Fix a bug in ListIndexes() when listing indexes in an empty collection
+
+
 ## milvus-sdk-cpp 2.6.1 (2026-01-20)
 ### Feature
 - Add CreateSimpleCollectionRequest for quickly creating a simple collection
