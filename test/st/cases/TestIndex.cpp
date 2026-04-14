@@ -87,7 +87,6 @@ TEST_F(MilvusServerTestIndex, CreateDescribeListDrop) {
     status =
         client_->DropIndex(milvus::DropIndexRequest().WithCollectionName(collection_name).WithIndexName("my_index"));
     milvus::test::ExpectStatusOK(status);
-    std::cout << "index dropped" << std::endl;
 
     // verify dropped
     milvus::ListIndexesResponse list_resp2;
@@ -97,16 +96,30 @@ TEST_F(MilvusServerTestIndex, CreateDescribeListDrop) {
 }
 
 TEST_F(MilvusServerTestIndex, CreateHNSWIndex) {
-    milvus::IndexDesc index_desc("vec", "hnsw_index", milvus::IndexType::HNSW, milvus::MetricType::L2);
+    milvus::IndexDesc index_desc("vec", "", milvus::IndexType::HNSW, milvus::MetricType::L2);
     index_desc.AddExtraParam("M", "16");
     index_desc.AddExtraParam("efConstruction", "200");
     auto status = client_->CreateIndex(
         milvus::CreateIndexRequest().WithCollectionName(collection_name).AddIndex(std::move(index_desc)));
     milvus::test::ExpectStatusOK(status);
 
+    status =
+        client_->LoadCollection(milvus::LoadCollectionRequest().WithCollectionName(collection_name).WithReplicaNum(1));
+    milvus::test::ExpectStatusOK(status);
+
     milvus::DescribeIndexResponse desc_resp;
     status = client_->DescribeIndex(
         milvus::DescribeIndexRequest().WithCollectionName(collection_name).WithFieldName("vec"), desc_resp);
+    milvus::test::ExpectStatusOK(status);
+    EXPECT_EQ(desc_resp.Descs().size(), 1);
+    EXPECT_EQ(desc_resp.Descs()[0].FieldName(), "vec");
+    EXPECT_EQ(desc_resp.Descs()[0].IndexName(), "vec");
+
+    status = client_->ReleaseCollection(milvus::ReleaseCollectionRequest().WithCollectionName(collection_name));
+    milvus::test::ExpectStatusOK(status);
+
+    // drop index
+    status = client_->DropIndex(milvus::DropIndexRequest().WithCollectionName(collection_name).WithFieldName("vec"));
     milvus::test::ExpectStatusOK(status);
 }
 
@@ -155,4 +168,8 @@ TEST_F(MilvusServerTestIndex, AlterAndDropIndexProperties) {
     params = desc_resp.Descs()[0].ExtraParams();
     EXPECT_EQ(params.size(), 2);  // M, efConstruction
     EXPECT_TRUE(params.find("mmap.enabled") == params.end());
+
+    // drop index
+    status = client_->DropIndex(milvus::DropIndexRequest().WithCollectionName(collection_name).WithFieldName("vec"));
+    milvus::test::ExpectStatusOK(status);
 }

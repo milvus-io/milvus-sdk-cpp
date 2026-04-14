@@ -1039,11 +1039,13 @@ MilvusClientV2Impl::DropIndex(const DropIndexRequest& request) {
     auto pre = [&request](proto::milvus::DropIndexRequest& rpc_request) {
         rpc_request.set_db_name(request.DatabaseName());
         rpc_request.set_collection_name(request.CollectionName());
+        // the proto uses set_index_name to pass index name or field name
         if (!request.IndexName().empty()) {
             rpc_request.set_index_name(request.IndexName());
-        } else {
-            rpc_request.set_field_name(request.FieldName());
+        } else if (!request.FieldName().empty()) {
+            rpc_request.set_index_name(request.FieldName());
         }
+
         return Status::OK();
     };
     return connection_.Invoke<proto::milvus::DropIndexRequest, proto::common::Status>(pre,
