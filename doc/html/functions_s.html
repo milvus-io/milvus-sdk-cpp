@@ -82,7 +82,7 @@ $(function() {
 , <a class="el" href="classmilvus_1_1_milvus_client_v2.html#ac0eef39ebea2120ba6a2e5217768d9e9">milvus::MilvusClientV2</a>
 </li>
 <li>SearchIteratorRequest()
-: <a class="el" href="classmilvus_1_1_search_iterator_request.html#acfea4726d4638d6714a98f060b868dd9">milvus::SearchIteratorRequest</a>
+: <a class="el" href="classmilvus_1_1_search_iterator_request.html#a26f701a365d6d2662d6a7d92ab6d08f0">milvus::SearchIteratorRequest</a>
 </li>
 <li>SearchRequest()
 : <a class="el" href="classmilvus_1_1_search_request.html#a8d7e58bb238e2d1e2965bc49cb80f83f">milvus::SearchRequest</a>
@@ -107,7 +107,7 @@ $(function() {
 </li>
 <li>SetAlias()
 : <a class="el" href="classmilvus_1_1_alter_alias_request.html#a9a43f658efd481f934756bf41af03c4d">milvus::AlterAliasRequest</a>
-, <a class="el" href="classmilvus_1_1_collection_desc.html#a816cb28d871b36bdaeb872d918ba9619">milvus::CollectionDesc</a>
+, <a class="el" href="classmilvus_1_1_collection_desc.html#ae8f2a6014bb8f8b61e8d4761dd88c163">milvus::CollectionDesc</a>
 , <a class="el" href="classmilvus_1_1_create_alias_request.html#aa9af05346856f68f545614d2439d4f6d">milvus::CreateAliasRequest</a>
 , <a class="el" href="classmilvus_1_1_describe_alias_request.html#a6c1401d3dc3b36bce814294590de91ce">milvus::DescribeAliasRequest</a>
 , <a class="el" href="classmilvus_1_1_drop_alias_request.html#a387bc32376e652975d6cb3948de62448">milvus::DropAliasRequest</a>
@@ -141,6 +141,12 @@ $(function() {
 <li>SetBatchSize()
 : <a class="el" href="classmilvus_1_1_iterator_arguments.html#a72d9b4ca360b26815afbe4f45470c07b">milvus::IteratorArguments</a>
 </li>
+<li>SetBFloat16Vectors()
+: <a class="el" href="classmilvus_1_1_embedding_list.html#a6f66efb26363fafb3267a2537591c85a">milvus::EmbeddingList</a>
+</li>
+<li>SetBinaryVectors()
+: <a class="el" href="classmilvus_1_1_embedding_list.html#a33ccb215900bfa2058a7e3a1344c3584">milvus::EmbeddingList</a>
+</li>
 <li>SetCallbackFunc()
 : <a class="el" href="classmilvus_1_1_progress_monitor.html#aa09517fc3e97addcafc7a1dafeced06b">milvus::ProgressMonitor</a>
 </li>
@@ -164,23 +170,19 @@ $(function() {
 </li>
 <li>SetCollectionName()
 : <a class="el" href="classmilvus_1_1_alias_desc.html#a8f7c30b5bb25997d942e44127e0cbc32">milvus::AliasDesc</a>
-, <a class="el" href="classmilvus_1_1_alter_alias_request.html#a304453e456800d06bd5d29ceaeaefb9d">milvus::AlterAliasRequest</a>
-, <a class="el" href="classmilvus_1_1_collection_request_base.html#a6a8eb81709139c13a9f65324d619d84f">milvus::CollectionRequestBase</a>
+, <a class="el" href="classmilvus_1_1_alias_request_base.html#ace02319e6764ced40029d1ff843b3a1a">milvus::AliasRequestBase&lt; T &gt;</a>
+, <a class="el" href="classmilvus_1_1_collection_request_base.html#adb9fa5b9c2aa26ba49bb66f818902005">milvus::CollectionRequestBase&lt; T &gt;</a>
 , <a class="el" href="classmilvus_1_1_compact_request.html#a16dbb7e06b7c00b05d76bb748b02d6a1">milvus::CompactRequest</a>
-, <a class="el" href="classmilvus_1_1_create_alias_request.html#ae22fccc48550a21fbaae8056e58bc06e">milvus::CreateAliasRequest</a>
 , <a class="el" href="classmilvus_1_1_create_collection_request.html#a1e7f065f5e8e58f8af2f96f35687204c">milvus::CreateCollectionRequest</a>
-, <a class="el" href="classmilvus_1_1_create_simple_collection_request.html#ab9a4b0220f321a358493fa5f725976bf">milvus::CreateSimpleCollectionRequest</a>
-, <a class="el" href="classmilvus_1_1_delete_request.html#ae18f3ab14e1c727e4fbb22bf5a23828f">milvus::DeleteRequest</a>
-, <a class="el" href="classmilvus_1_1_d_q_l_request_base.html#ac5d6963253ebbc251368401870583f19">milvus::DQLRequestBase</a>
+, <a class="el" href="classmilvus_1_1_d_m_l_request_base.html#a1d1343980db60ed1246f52f1a026111f">milvus::DMLRequestBase&lt; T &gt;</a>
+, <a class="el" href="classmilvus_1_1_d_q_l_request_base.html#a5519f0d5403102c414236a25323adda7">milvus::DQLRequestBase&lt; T &gt;</a>
 , <a class="el" href="classmilvus_1_1_hybrid_search_arguments.html#a58ce207df16f5d2e0eb1c9e6681f8a10">milvus::HybridSearchArguments</a>
-, <a class="el" href="classmilvus_1_1_index_request_base.html#a60605e1ca9710472639f484235c86c62">milvus::IndexRequestBase</a>
-, <a class="el" href="classmilvus_1_1_insert_request.html#a18a61f32d4e9a95e19999bc8186b5c8c">milvus::InsertRequest</a>
+, <a class="el" href="classmilvus_1_1_index_request_base.html#a1abc88aae1259b1c16a4c8b0df4152e9">milvus::IndexRequestBase&lt; T &gt;</a>
 , <a class="el" href="classmilvus_1_1_list_aliases_request.html#a0fefca75c202c220114fbf17ce0fd989">milvus::ListAliasesRequest</a>
 , <a class="el" href="classmilvus_1_1_list_aliases_response.html#a227004ef03d8a8462250420e48bb73ce">milvus::ListAliasesResponse</a>
 , <a class="el" href="classmilvus_1_1_list_partitions_request.html#ac4d063ca06ef7ba3bc633df13a60145e">milvus::ListPartitionsRequest</a>
-, <a class="el" href="classmilvus_1_1_load_collection_request.html#a7bd9b8d5307bd6ab302d509abe98a8cf">milvus::LoadCollectionRequest</a>
 , <a class="el" href="classmilvus_1_1_load_partitions_request.html#aed257296795ade693120249aa415a72d">milvus::LoadPartitionsRequest</a>
-, <a class="el" href="classmilvus_1_1_partition_request_base.html#ad6b35c5a3f4b55337c0859dc81624260">milvus::PartitionRequestBase</a>
+, <a class="el" href="classmilvus_1_1_partition_request_base.html#a8105cae1018fb974f1c600f8573c5287">milvus::PartitionRequestBase&lt; T &gt;</a>
 , <a class="el" href="classmilvus_1_1_privilege_v2_request.html#a73c1e6e512d3487711c47244836261cd">milvus::PrivilegeV2Request</a>
 , <a class="el" href="classmilvus_1_1_query_arguments.html#ae1859d665aaf6743196cd7ca89b7dc74">milvus::QueryArguments</a>
 , <a class="el" href="classmilvus_1_1_release_partitions_request.html#a21db266eca7f5547f82379541e5a4138">milvus::ReleasePartitionsRequest</a>
@@ -219,7 +221,7 @@ $(function() {
 <li>SetConsistencyLevel()
 : <a class="el" href="classmilvus_1_1_create_collection_request.html#a4e78787737ae73e96e6c82f9a602373c">milvus::CreateCollectionRequest</a>
 , <a class="el" href="classmilvus_1_1_create_simple_collection_request.html#a7f36581776956e296d4287711b95f077">milvus::CreateSimpleCollectionRequest</a>
-, <a class="el" href="classmilvus_1_1_d_q_l_request_base.html#a287019dd6c69a2e183ca31dd109994a1">milvus::DQLRequestBase</a>
+, <a class="el" href="classmilvus_1_1_d_q_l_request_base.html#afcf6451358cb69dccd2a37a4c6b70d27">milvus::DQLRequestBase&lt; T &gt;</a>
 , <a class="el" href="classmilvus_1_1_hybrid_search_arguments.html#ada59b348e7ff926e46369893e5b4b50a">milvus::HybridSearchArguments</a>
 , <a class="el" href="classmilvus_1_1_query_arguments.html#a95ad79ee1e6ca3977dcc0214240e0049">milvus::QueryArguments</a>
 , <a class="el" href="classmilvus_1_1_search_arguments.html#a40bb703b6d25e06ce990b50c0cd026af">milvus::SearchArguments</a>
@@ -230,35 +232,27 @@ $(function() {
 </li>
 <li>SetDatabaseName()
 : <a class="el" href="classmilvus_1_1_alias_desc.html#aca86d825c1f4c9600ea525703d79a709">milvus::AliasDesc</a>
-, <a class="el" href="classmilvus_1_1_alter_alias_request.html#a36a08c500b12f7edcdc5fbada18f8644">milvus::AlterAliasRequest</a>
-, <a class="el" href="classmilvus_1_1_alter_database_properties_request.html#a5c4061e814e058db5e8958d3052d6bc0">milvus::AlterDatabasePropertiesRequest</a>
+, <a class="el" href="classmilvus_1_1_alias_request_base.html#a3edf7c586a8ac64983f777124fb7494c">milvus::AliasRequestBase&lt; T &gt;</a>
 , <a class="el" href="classmilvus_1_1_collection_desc.html#aa018fb1300a1fcd8ec5cd7a956120a78">milvus::CollectionDesc</a>
-, <a class="el" href="classmilvus_1_1_collection_request_base.html#a2dbc334888bbc00cfe86fa6b4f1f31d5">milvus::CollectionRequestBase</a>
+, <a class="el" href="classmilvus_1_1_collection_request_base.html#a62e3eeca6d92e6b4e1ac47977414b45b">milvus::CollectionRequestBase&lt; T &gt;</a>
 , <a class="el" href="classmilvus_1_1_compact_request.html#ab2a4e4b02391b822e44be2f8ba50ec1f">milvus::CompactRequest</a>
-, <a class="el" href="classmilvus_1_1_create_alias_request.html#a656b742b818f6eacdb2e0c5c6a0d467d">milvus::CreateAliasRequest</a>
 , <a class="el" href="classmilvus_1_1_create_collection_request.html#af9b201d960c01e5ef4b1b53a7b2d31a8">milvus::CreateCollectionRequest</a>
-, <a class="el" href="classmilvus_1_1_create_database_request.html#ac835d3d0ae81b2969954b87e16ab2f44">milvus::CreateDatabaseRequest</a>
-, <a class="el" href="classmilvus_1_1_create_simple_collection_request.html#a90526be9be9f9fa3c9f230f04fb1b5ff">milvus::CreateSimpleCollectionRequest</a>
-, <a class="el" href="classmilvus_1_1_delete_request.html#afe3c33d4a314c0147e132a3229ade631">milvus::DeleteRequest</a>
+, <a class="el" href="classmilvus_1_1_d_b_request_base.html#af452dabfe2c7333fab69b549b014a8e5">milvus::DBRequestBase&lt; T &gt;</a>
 , <a class="el" href="classmilvus_1_1_describe_alias_request.html#a79a45248db7d2898657d645490120b05">milvus::DescribeAliasRequest</a>
-, <a class="el" href="classmilvus_1_1_describe_database_request.html#ae4b48f06e14f764eccf97b88bc5636ca">milvus::DescribeDatabaseRequest</a>
 , <a class="el" href="classmilvus_1_1_describe_role_request.html#a9bc5d859a75d36de261651c917f09cb8">milvus::DescribeRoleRequest</a>
-, <a class="el" href="classmilvus_1_1_d_q_l_request_base.html#ada288cb295cb2fe85f35b792404bdde4">milvus::DQLRequestBase</a>
+, <a class="el" href="classmilvus_1_1_d_m_l_request_base.html#a3891662d437ab3e7ae97719985e97472">milvus::DMLRequestBase&lt; T &gt;</a>
+, <a class="el" href="classmilvus_1_1_d_q_l_request_base.html#afc81b1f601286204153c594eb6653d4e">milvus::DQLRequestBase&lt; T &gt;</a>
 , <a class="el" href="classmilvus_1_1_drop_alias_request.html#a5bcd288fd1d08ca70c123859729e1b1f">milvus::DropAliasRequest</a>
-, <a class="el" href="classmilvus_1_1_drop_database_properties_request.html#ad2f96699bdc37e89bf26ff50d990ad79">milvus::DropDatabasePropertiesRequest</a>
-, <a class="el" href="classmilvus_1_1_drop_database_request.html#a5c2f7cead2220ced1e16d95e9de6abbb">milvus::DropDatabaseRequest</a>
 , <a class="el" href="classmilvus_1_1_flush_request.html#a4a1a6bd870f70fc52d9d96d34f3311f0">milvus::FlushRequest</a>
 , <a class="el" href="classmilvus_1_1_hybrid_search_arguments.html#a030a132422597731b51ea3fa57c90eac">milvus::HybridSearchArguments</a>
-, <a class="el" href="classmilvus_1_1_index_request_base.html#a47491df0128245f1627db79eb410e6cf">milvus::IndexRequestBase</a>
-, <a class="el" href="classmilvus_1_1_insert_request.html#a3d5f82d627ab3a9f90ba5538e1b7960d">milvus::InsertRequest</a>
+, <a class="el" href="classmilvus_1_1_index_request_base.html#ac79ab21ea1d5b0b4a486486376540ca4">milvus::IndexRequestBase&lt; T &gt;</a>
 , <a class="el" href="classmilvus_1_1_list_aliases_request.html#a2b8ce325f99ffbb8405c81b0c4065c5f">milvus::ListAliasesRequest</a>
 , <a class="el" href="classmilvus_1_1_list_aliases_response.html#a85e0770266d09b1e7d78461278413cc1">milvus::ListAliasesResponse</a>
 , <a class="el" href="classmilvus_1_1_list_collections_request.html#ac89786fe71258d833d38a7951c7a6d5e">milvus::ListCollectionsRequest</a>
 , <a class="el" href="classmilvus_1_1_list_partitions_request.html#a5aaa5aa54e77ffdbc1fe8c43ec344c70">milvus::ListPartitionsRequest</a>
 , <a class="el" href="classmilvus_1_1_list_segments_request.html#a1294fb509e939563a86dd1963d01542b">milvus::ListSegmentsRequest</a>
-, <a class="el" href="classmilvus_1_1_load_collection_request.html#ae826d508a60bf59a51debc31fc9aefb1">milvus::LoadCollectionRequest</a>
 , <a class="el" href="classmilvus_1_1_load_partitions_request.html#a28749cfa0ebdf1705e1fb86db2a116b8">milvus::LoadPartitionsRequest</a>
-, <a class="el" href="classmilvus_1_1_partition_request_base.html#a1fcebeffe5ccc323fefc856e983c7f5b">milvus::PartitionRequestBase</a>
+, <a class="el" href="classmilvus_1_1_partition_request_base.html#a881d853c07d266c2243f266af870fd33">milvus::PartitionRequestBase&lt; T &gt;</a>
 , <a class="el" href="classmilvus_1_1_privilege_v2_request.html#a90779a3d110e10dec76eb97fa5d63e13">milvus::PrivilegeV2Request</a>
 , <a class="el" href="classmilvus_1_1_query_arguments.html#a17d9df375dd9881c0e643e9f44982e96">milvus::QueryArguments</a>
 , <a class="el" href="classmilvus_1_1_release_partitions_request.html#a7e5d6e920fa116ee755d2bfc1ac24371">milvus::ReleasePartitionsRequest</a>
@@ -312,6 +306,9 @@ $(function() {
 <li>SetElementType()
 : <a class="el" href="classmilvus_1_1_field_schema.html#aa3a29fdecf9fbd50944940dd253ae3f2">milvus::FieldSchema</a>
 </li>
+<li>SetEmbeddedTexts()
+: <a class="el" href="classmilvus_1_1_embedding_list.html#ae9ecb0019811dc5c1f2711780fa3d717">milvus::EmbeddingList</a>
+</li>
 <li>SetEnableDynamicField()
 : <a class="el" href="classmilvus_1_1_create_simple_collection_request.html#a3061d98d91ee84769c70cad91b5744df">milvus::CreateSimpleCollectionRequest</a>
 </li>
@@ -356,6 +353,12 @@ $(function() {
 : <a class="el" href="classmilvus_1_1_delete_request.html#aca646b01350991585d6540f491209fe3">milvus::DeleteRequest</a>
 , <a class="el" href="classmilvus_1_1_query_request.html#a183be6bf44bd8a3bef2aadfd59ebeffe">milvus::QueryRequest</a>
 , <a class="el" href="classmilvus_1_1_search_request_base.html#a6d5557c5f58a8a108a4531141e49dcb4">milvus::SearchRequestBase</a>
+</li>
+<li>SetFloat16Vectors()
+: <a class="el" href="classmilvus_1_1_embedding_list.html#a4a80090beb45829a5fb16d6f6e1cfff6">milvus::EmbeddingList</a>
+</li>
+<li>SetFloatVectors()
+: <a class="el" href="classmilvus_1_1_embedding_list.html#adc9474dbd6fc12a8bd5018588a91565d">milvus::EmbeddingList</a>
 </li>
 <li>SetForceDrop()
 : <a class="el" href="classmilvus_1_1_drop_role_request.html#a94e009b038d0593c583b6b2dbffc0a8d">milvus::DropRoleRequest</a>
@@ -415,6 +418,7 @@ $(function() {
 </li>
 <li>SetIDs()
 : <a class="el" href="classmilvus_1_1_delete_request.html#a9b8464108b3ffa4a59f54c9675625450">milvus::DeleteRequest</a>
+, <a class="el" href="classmilvus_1_1_get_request.html#a5fa71e82a01521f253a9b7112c9b377e">milvus::GetRequest</a>
 </li>
 <li>SetIgnoreGrowing()
 : <a class="el" href="classmilvus_1_1_hybrid_search_arguments.html#a68ab1d1017758ee7f35811f8d61ae704">milvus::HybridSearchArguments</a>
@@ -453,6 +457,9 @@ $(function() {
 </li>
 <li>SetInsertCount()
 : <a class="el" href="classmilvus_1_1_dml_results.html#ab42816de37e184b2b5d028e81ea7f105">milvus::DmlResults</a>
+</li>
+<li>SetInt8Vectors()
+: <a class="el" href="classmilvus_1_1_embedding_list.html#a4252773330a8b0faf0a155210026dea5">milvus::EmbeddingList</a>
 </li>
 <li>SetIsHealthy()
 : <a class="el" href="classmilvus_1_1_check_health_response.html#a4f2d4ee4bf51e4134e74427efad94367">milvus::CheckHealthResponse</a>
@@ -507,6 +514,9 @@ $(function() {
 : <a class="el" href="classmilvus_1_1_create_simple_collection_request.html#a46bfbd584075d32e5f9b30a750a57503">milvus::CreateSimpleCollectionRequest</a>
 , <a class="el" href="classmilvus_1_1_index_desc.html#a3332e211d4d2ddf8492d4a1425d132a8">milvus::IndexDesc</a>
 , <a class="el" href="classmilvus_1_1_search_request_base.html#a70281d5a84c94ac340404e60ebe43734">milvus::SearchRequestBase</a>
+</li>
+<li>SetMultiAnalyzerParams()
+: <a class="el" href="classmilvus_1_1_field_schema.html#addc62aa815109f93039f324e25f4cfa8">milvus::FieldSchema</a>
 </li>
 <li>SetName()
 : <a class="el" href="classmilvus_1_1_alias_desc.html#ae1ae4ddd10b3b1c9ab75c9b1264bc8d2">milvus::AliasDesc</a>
@@ -566,7 +576,7 @@ $(function() {
 : <a class="el" href="classmilvus_1_1_decay_rerank.html#aa8bae3f034bae4df1bd15e41114caed3">milvus::DecayRerank</a>
 </li>
 <li>SetOutputFields()
-: <a class="el" href="classmilvus_1_1_d_q_l_request_base.html#ae0afcc8505ba4c02c74bdb3665c7b101">milvus::DQLRequestBase</a>
+: <a class="el" href="classmilvus_1_1_d_q_l_request_base.html#a05d11d18e66b9ecc9ca5a210f6ba7f67">milvus::DQLRequestBase&lt; T &gt;</a>
 </li>
 <li>SetParams()
 : <a class="el" href="classmilvus_1_1_function_score.html#a0b413be30bedeaeedb4fc5a28e9e6313">milvus::FunctionScore</a>
@@ -581,12 +591,11 @@ $(function() {
 : <a class="el" href="classmilvus_1_1_field_schema.html#a4264f7206df159ddf9ebdfaa9390e39b">milvus::FieldSchema</a>
 </li>
 <li>SetPartitionName()
-: <a class="el" href="classmilvus_1_1_delete_request.html#ae39a08e5c33b8569c7155c126d215d1e">milvus::DeleteRequest</a>
-, <a class="el" href="classmilvus_1_1_insert_request.html#a5d55f33aa180dda9f869abe5e7475dee">milvus::InsertRequest</a>
-, <a class="el" href="classmilvus_1_1_partition_request_base.html#a53922ccc31622d3d30366e00ae1a7929">milvus::PartitionRequestBase</a>
+: <a class="el" href="classmilvus_1_1_d_m_l_request_base.html#a53e2adbfea76e12e3a04dc268ccdc7be">milvus::DMLRequestBase&lt; T &gt;</a>
+, <a class="el" href="classmilvus_1_1_partition_request_base.html#a174ad68df985882ab023a05db89431f2">milvus::PartitionRequestBase&lt; T &gt;</a>
 </li>
 <li>SetPartitionNames()
-: <a class="el" href="classmilvus_1_1_d_q_l_request_base.html#abdd423a7978d7d05a990a79327afcdb4">milvus::DQLRequestBase</a>
+: <a class="el" href="classmilvus_1_1_d_q_l_request_base.html#a41234d26205ddb66c2f809f455f59897">milvus::DQLRequestBase&lt; T &gt;</a>
 , <a class="el" href="classmilvus_1_1_get_load_state_request.html#a587e7e5057d4812b3726b0c2563b16aa">milvus::GetLoadStateRequest</a>
 , <a class="el" href="classmilvus_1_1_list_partitions_response.html#ab7ebba288d541ff245faafb8ee9730c5">milvus::ListPartitionsResponse</a>
 , <a class="el" href="classmilvus_1_1_load_partitions_request.html#aaaf0b695c901d41de75a3010bdef5acd">milvus::LoadPartitionsRequest</a>
@@ -743,7 +752,10 @@ $(function() {
 , <a class="el" href="classmilvus_1_1_transfer_replica_request.html#a0cb46838ecc86737950c8eaa5d1f6214">milvus::TransferReplicaRequest</a>
 </li>
 <li>SetSourceSegments()
-: <a class="el" href="classmilvus_1_1_compaction_plan.html#a2929a97a02802fe807c9a99b5758c625">milvus::CompactionPlan</a>
+: <a class="el" href="classmilvus_1_1_compaction_plan.html#a2adb630c514a2d8262ef9f9333883bc0">milvus::CompactionPlan</a>
+</li>
+<li>SetSparseVectors()
+: <a class="el" href="classmilvus_1_1_embedding_list.html#acd9fc9e369ea6ae3ca9c298d66f1632d">milvus::EmbeddingList</a>
 </li>
 <li>SetState()
 : <a class="el" href="classmilvus_1_1_compaction_state.html#ae21178d189dc04f51eec8f472de8e720">milvus::CompactionState</a>
@@ -821,6 +833,9 @@ $(function() {
 </li>
 <li>SetUpsertCount()
 : <a class="el" href="classmilvus_1_1_dml_results.html#afc276cf026611fe6663138f87fa2e3b4">milvus::DmlResults</a>
+</li>
+<li>SetUri()
+: <a class="el" href="classmilvus_1_1_connect_param.html#ab31f6315a624e2131e1bcd7d7570bc69">milvus::ConnectParam</a>
 </li>
 <li>SetUserName()
 : <a class="el" href="classmilvus_1_1_create_user_request.html#a4fcc5ab2cae28b5f80b85b4b7e911b32">milvus::CreateUserRequest</a>

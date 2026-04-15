@@ -1,0 +1,52 @@
+\hypertarget{classmilvus_1_1_d_m_l_request_base}{}\doxysection{milvus\+::DMLRequest\+Base$<$ T $>$ Class Template Reference}
+\label{classmilvus_1_1_d_m_l_request_base}\index{milvus::DMLRequestBase$<$ T $>$@{milvus::DMLRequestBase$<$ T $>$}}
+
+
+Base class for DML requests.  
+
+
+
+
+{\ttfamily \#include $<$DMLRequest\+Base.\+h$>$}
+
+\doxysubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{classmilvus_1_1_d_m_l_request_base_abc29eb8055a3f53f011ab564f3dbdf52}\label{classmilvus_1_1_d_m_l_request_base_abc29eb8055a3f53f011ab564f3dbdf52}} 
+const std\+::string \& \mbox{\hyperlink{classmilvus_1_1_d_m_l_request_base_abc29eb8055a3f53f011ab564f3dbdf52}{Database\+Name}} () const
+\begin{DoxyCompactList}\small\item\em Get the target db name. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_d_m_l_request_base_a3891662d437ab3e7ae97719985e97472}\label{classmilvus_1_1_d_m_l_request_base_a3891662d437ab3e7ae97719985e97472}} 
+void \mbox{\hyperlink{classmilvus_1_1_d_m_l_request_base_a3891662d437ab3e7ae97719985e97472}{Set\+Database\+Name}} (const std\+::string \&db\+\_\+name)
+\begin{DoxyCompactList}\small\item\em Set target db name, use default database if it is empty. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_d_m_l_request_base_af7d8c6d4fc7713b08232d1fdffe19431}\label{classmilvus_1_1_d_m_l_request_base_af7d8c6d4fc7713b08232d1fdffe19431}} 
+T \& \mbox{\hyperlink{classmilvus_1_1_d_m_l_request_base_af7d8c6d4fc7713b08232d1fdffe19431}{With\+Database\+Name}} (const std\+::string \&db\+\_\+name)
+\begin{DoxyCompactList}\small\item\em Set target db name, use default database if it is empty. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_d_m_l_request_base_a134e8d363029fead940c336697f6d2e4}\label{classmilvus_1_1_d_m_l_request_base_a134e8d363029fead940c336697f6d2e4}} 
+const std\+::string \& \mbox{\hyperlink{classmilvus_1_1_d_m_l_request_base_a134e8d363029fead940c336697f6d2e4}{Collection\+Name}} () const
+\begin{DoxyCompactList}\small\item\em Get the collection name. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_d_m_l_request_base_a1d1343980db60ed1246f52f1a026111f}\label{classmilvus_1_1_d_m_l_request_base_a1d1343980db60ed1246f52f1a026111f}} 
+void \mbox{\hyperlink{classmilvus_1_1_d_m_l_request_base_a1d1343980db60ed1246f52f1a026111f}{Set\+Collection\+Name}} (const std\+::string \&collection\+\_\+name)
+\begin{DoxyCompactList}\small\item\em Set the collection name. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_d_m_l_request_base_ad3dd990e5bf7233ce3d98ece23d31471}\label{classmilvus_1_1_d_m_l_request_base_ad3dd990e5bf7233ce3d98ece23d31471}} 
+T \& \mbox{\hyperlink{classmilvus_1_1_d_m_l_request_base_ad3dd990e5bf7233ce3d98ece23d31471}{With\+Collection\+Name}} (const std\+::string \&collection\+\_\+name)
+\begin{DoxyCompactList}\small\item\em Set name of the collection. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_d_m_l_request_base_a0f40d190e5758b609558f8ddddea3f92}\label{classmilvus_1_1_d_m_l_request_base_a0f40d190e5758b609558f8ddddea3f92}} 
+const std\+::string \& \mbox{\hyperlink{classmilvus_1_1_d_m_l_request_base_a0f40d190e5758b609558f8ddddea3f92}{Partition\+Name}} () const
+\begin{DoxyCompactList}\small\item\em Get the partition name. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_d_m_l_request_base_a53e2adbfea76e12e3a04dc268ccdc7be}\label{classmilvus_1_1_d_m_l_request_base_a53e2adbfea76e12e3a04dc268ccdc7be}} 
+void \mbox{\hyperlink{classmilvus_1_1_d_m_l_request_base_a53e2adbfea76e12e3a04dc268ccdc7be}{Set\+Partition\+Name}} (const std\+::string \&partition\+\_\+name)
+\begin{DoxyCompactList}\small\item\em Set the partition name. If partition name is empty, will use the default partition. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_d_m_l_request_base_ac6092d9c2d236ac174596353c254763c}\label{classmilvus_1_1_d_m_l_request_base_ac6092d9c2d236ac174596353c254763c}} 
+T \& \mbox{\hyperlink{classmilvus_1_1_d_m_l_request_base_ac6092d9c2d236ac174596353c254763c}{With\+Partition\+Name}} (const std\+::string \&partition\+\_\+name)
+\begin{DoxyCompactList}\small\item\em Set the partition name. If partition name is empty, will use the default partition. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+\subsubsection*{template$<$typename T$>$\newline
+class milvus\+::\+DMLRequest\+Base$<$ T $>$}
+
+Base class for DML requests. 
+
+The documentation for this class was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+src/include/milvus/request/dml/DMLRequest\+Base.\+h\end{DoxyCompactItemize}

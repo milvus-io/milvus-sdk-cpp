@@ -117,6 +117,9 @@ virtual <a class="el" href="classmilvus_1_1_status.html">Status</a>&#160;</td><t
 <tr class="memitem:a7517376960cda794508aefb424e8bf69"><td class="memItemLeft" align="right" valign="top">virtual <a class="el" href="classmilvus_1_1_status.html">Status</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classmilvus_1_1_milvus_client_v2.html#a7517376960cda794508aefb424e8bf69">DropCollection</a> (const <a class="el" href="classmilvus_1_1_drop_collection_request.html">DropCollectionRequest</a> &amp;request)=0</td></tr>
 <tr class="memdesc:a7517376960cda794508aefb424e8bf69"><td class="mdescLeft">&#160;</td><td class="mdescRight">Drop a collection, with all its partitions, index and segments.  <a href="classmilvus_1_1_milvus_client_v2.html#a7517376960cda794508aefb424e8bf69">More...</a><br /></td></tr>
 <tr class="separator:a7517376960cda794508aefb424e8bf69"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6c5e93b767ea465ff615afc2dd0125d2"><td class="memItemLeft" align="right" valign="top">virtual <a class="el" href="classmilvus_1_1_status.html">Status</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classmilvus_1_1_milvus_client_v2.html#a6c5e93b767ea465ff615afc2dd0125d2">TruncateCollection</a> (const <a class="el" href="classmilvus_1_1_truncate_collection_request.html">TruncateCollectionRequest</a> &amp;request)=0</td></tr>
+<tr class="memdesc:a6c5e93b767ea465ff615afc2dd0125d2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Truncate a collection, removing all data while keeping the collection structure.  <a href="classmilvus_1_1_milvus_client_v2.html#a6c5e93b767ea465ff615afc2dd0125d2">More...</a><br /></td></tr>
+<tr class="separator:a6c5e93b767ea465ff615afc2dd0125d2"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a98217a9d33fb2f1f93457b1af7bbc036"><td class="memItemLeft" align="right" valign="top">virtual <a class="el" href="classmilvus_1_1_status.html">Status</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classmilvus_1_1_milvus_client_v2.html#a98217a9d33fb2f1f93457b1af7bbc036">LoadCollection</a> (const <a class="el" href="classmilvus_1_1_load_collection_request.html">LoadCollectionRequest</a> &amp;request)=0</td></tr>
 <tr class="memdesc:a98217a9d33fb2f1f93457b1af7bbc036"><td class="mdescLeft">&#160;</td><td class="mdescRight">Load collection data into CPU memory of query node. If the request is sync mode, this api will check collection's loading progress, waiting until the collection completely loaded into query node. Otherwise, it will return immediately.  <a href="classmilvus_1_1_milvus_client_v2.html#a98217a9d33fb2f1f93457b1af7bbc036">More...</a><br /></td></tr>
 <tr class="separator:a98217a9d33fb2f1f93457b1af7bbc036"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -252,6 +255,9 @@ virtual <a class="el" href="classmilvus_1_1_status.html">Status</a>&#160;</td><t
 <tr class="memitem:af7a057a1394d76c0478e524a6d166a2c"><td class="memItemLeft" align="right" valign="top">virtual <a class="el" href="classmilvus_1_1_status.html">Status</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classmilvus_1_1_milvus_client_v2.html#af7a057a1394d76c0478e524a6d166a2c">Query</a> (const <a class="el" href="classmilvus_1_1_query_request.html">QueryRequest</a> &amp;request, <a class="el" href="classmilvus_1_1_query_response.html">QueryResponse</a> &amp;response)=0</td></tr>
 <tr class="memdesc:af7a057a1394d76c0478e524a6d166a2c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Query with a set of criteria, and results in a list of records that match the query exactly.  <a href="classmilvus_1_1_milvus_client_v2.html#af7a057a1394d76c0478e524a6d166a2c">More...</a><br /></td></tr>
 <tr class="separator:af7a057a1394d76c0478e524a6d166a2c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8582f62e66bad191c1a29803f38c5c05"><td class="memItemLeft" align="right" valign="top">virtual <a class="el" href="classmilvus_1_1_status.html">Status</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classmilvus_1_1_milvus_client_v2.html#a8582f62e66bad191c1a29803f38c5c05">Get</a> (const <a class="el" href="classmilvus_1_1_get_request.html">GetRequest</a> &amp;request, <a class="el" href="classmilvus_1_1_query_response.html">GetResponse</a> &amp;response)=0</td></tr>
+<tr class="memdesc:a8582f62e66bad191c1a29803f38c5c05"><td class="mdescLeft">&#160;</td><td class="mdescRight">Query with primary keys, and results in a list of records.  <a href="classmilvus_1_1_milvus_client_v2.html#a8582f62e66bad191c1a29803f38c5c05">More...</a><br /></td></tr>
+<tr class="separator:a8582f62e66bad191c1a29803f38c5c05"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a8efe443fab894da2fcf934c7792c0806"><td class="memItemLeft" align="right" valign="top">virtual <a class="el" href="classmilvus_1_1_status.html">Status</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classmilvus_1_1_milvus_client_v2.html#a8efe443fab894da2fcf934c7792c0806">QueryIterator</a> (<a class="el" href="classmilvus_1_1_query_iterator_request.html">QueryIteratorRequest</a> &amp;request, QueryIteratorPtr &amp;response)=0</td></tr>
 <tr class="memdesc:a8efe443fab894da2fcf934c7792c0806"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get QueryIterator object based on scalar field(s) by filtering expression. Don't disconnect the <a class="el" href="classmilvus_1_1_milvus_client_v2.html" title="Milvus client abstract class, provide Create() method to create an implementation instance.">MilvusClientV2</a> when the iterator is in using. Read the doc for more info: <a href="https://milvus.io/docs/get-and-scalar-query.md#Use-QueryIterator">https://milvus.io/docs/get-and-scalar-query.md#Use-QueryIterator</a>.  <a href="classmilvus_1_1_milvus_client_v2.html#a8efe443fab894da2fcf934c7792c0806">More...</a><br /></td></tr>
 <tr class="separator:a8efe443fab894da2fcf934c7792c0806"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -268,7 +274,7 @@ virtual <a class="el" href="classmilvus_1_1_status.html">Status</a>&#160;</td><t
 <tr class="memdesc:a5a73ba98d13d8bcc39162881171231f6"><td class="mdescLeft">&#160;</td><td class="mdescRight">Retrieve information of loaded segments from query nodes.  <a href="classmilvus_1_1_milvus_client_v2.html#a5a73ba98d13d8bcc39162881171231f6">More...</a><br /></td></tr>
 <tr class="separator:a5a73ba98d13d8bcc39162881171231f6"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a7c93ee02ec0c28ab01c5ba5a73655e46"><td class="memItemLeft" align="right" valign="top">virtual <a class="el" href="classmilvus_1_1_status.html">Status</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classmilvus_1_1_milvus_client_v2.html#a7c93ee02ec0c28ab01c5ba5a73655e46">Compact</a> (const <a class="el" href="classmilvus_1_1_compact_request.html">CompactRequest</a> &amp;request, <a class="el" href="classmilvus_1_1_compact_response.html">CompactResponse</a> &amp;response)=0</td></tr>
-<tr class="memdesc:a7c93ee02ec0c28ab01c5ba5a73655e46"><td class="mdescLeft">&#160;</td><td class="mdescRight">Manually trigger a compaction action. Normally, user no need to call this API sicne milvus automatically triggers compactions internally. It is mainly used for some maintainance or debug purpose.  <a href="classmilvus_1_1_milvus_client_v2.html#a7c93ee02ec0c28ab01c5ba5a73655e46">More...</a><br /></td></tr>
+<tr class="memdesc:a7c93ee02ec0c28ab01c5ba5a73655e46"><td class="mdescLeft">&#160;</td><td class="mdescRight">Manually trigger a compaction action. Normally, user no need to call this API since milvus automatically triggers compactions internally. It is mainly used for some maintenance or debug purpose.  <a href="classmilvus_1_1_milvus_client_v2.html#a7c93ee02ec0c28ab01c5ba5a73655e46">More...</a><br /></td></tr>
 <tr class="separator:a7c93ee02ec0c28ab01c5ba5a73655e46"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ac6049982f70ef1349555740e02079e9a"><td class="memItemLeft" align="right" valign="top">virtual <a class="el" href="classmilvus_1_1_status.html">Status</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classmilvus_1_1_milvus_client_v2.html#ac6049982f70ef1349555740e02079e9a">GetCompactionState</a> (const <a class="el" href="classmilvus_1_1_get_compaction_request.html">GetCompactionStateRequest</a> &amp;request, <a class="el" href="classmilvus_1_1_get_compaction_state_response.html">GetCompactionStateResponse</a> &amp;response)=0</td></tr>
 <tr class="memdesc:ac6049982f70ef1349555740e02079e9a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get compaction action state.  <a href="classmilvus_1_1_milvus_client_v2.html#ac6049982f70ef1349555740e02079e9a">More...</a><br /></td></tr>
@@ -686,7 +692,7 @@ Static Public Member Functions</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p>Manually trigger a compaction action. Normally, user no need to call this API sicne milvus automatically triggers compactions internally. It is mainly used for some maintainance or debug purpose. </p>
+<p>Manually trigger a compaction action. Normally, user no need to call this API since milvus automatically triggers compactions internally. It is mainly used for some maintenance or debug purpose. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramdir">[in]</td><td class="paramname">request</td><td>input parameters </td></tr>
@@ -2024,6 +2030,52 @@ Static Public Member Functions</h2></td></tr>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramdir">[in]</td><td class="paramname">request</td><td>input parameters </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd><a class="el" href="classmilvus_1_1_status.html" title="Status code and message returned by SDK interface.">Status</a> operation successfully or not </dd></dl>
+
+</div>
+</div>
+<a id="a8582f62e66bad191c1a29803f38c5c05"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a8582f62e66bad191c1a29803f38c5c05">&#9670;&nbsp;</a></span>Get()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual <a class="el" href="classmilvus_1_1_status.html">Status</a> milvus::MilvusClientV2::Get </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="classmilvus_1_1_get_request.html">GetRequest</a> &amp;&#160;</td>
+          <td class="paramname"><em>request</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="classmilvus_1_1_query_response.html">GetResponse</a> &amp;&#160;</td>
+          <td class="paramname"><em>response</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">pure virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Query with primary keys, and results in a list of records. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">request</td><td>input parameters </td></tr>
+    <tr><td class="paramdir">[out]</td><td class="paramname">response</td><td>output results </td></tr>
   </table>
   </dd>
 </dl>
@@ -3695,6 +3747,41 @@ Static Public Member Functions</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Transfer replicas of a collection from a resource group to another. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramdir">[in]</td><td class="paramname">request</td><td>input parameters </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd><a class="el" href="classmilvus_1_1_status.html" title="Status code and message returned by SDK interface.">Status</a> operation successfully or not </dd></dl>
+
+</div>
+</div>
+<a id="a6c5e93b767ea465ff615afc2dd0125d2"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a6c5e93b767ea465ff615afc2dd0125d2">&#9670;&nbsp;</a></span>TruncateCollection()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual <a class="el" href="classmilvus_1_1_status.html">Status</a> milvus::MilvusClientV2::TruncateCollection </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="classmilvus_1_1_truncate_collection_request.html">TruncateCollectionRequest</a> &amp;&#160;</td>
+          <td class="paramname"><em>request</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">pure virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Truncate a collection, removing all data while keeping the collection structure. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramdir">[in]</td><td class="paramname">request</td><td>input parameters </td></tr>

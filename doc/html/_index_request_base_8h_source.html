@@ -91,35 +91,58 @@ $(function() {
 <div class="line"><a name="l00020"></a><span class="lineno">   20</span>&#160; </div>
 <div class="line"><a name="l00021"></a><span class="lineno">   21</span>&#160;<span class="keyword">namespace </span><a class="code" href="namespacemilvus.html">milvus</a> {</div>
 <div class="line"><a name="l00022"></a><span class="lineno">   22</span>&#160; </div>
-<div class="line"><a name="l00026"></a><span class="lineno"><a class="line" href="classmilvus_1_1_index_request_base.html">   26</a></span>&#160;<span class="keyword">class </span><a class="code" href="classmilvus_1_1_index_request_base.html">IndexRequestBase</a> {</div>
-<div class="line"><a name="l00027"></a><span class="lineno">   27</span>&#160; <span class="keyword">protected</span>:</div>
-<div class="line"><a name="l00031"></a><span class="lineno"><a class="line" href="classmilvus_1_1_index_request_base.html#ac2e168631bf0f719f39ecb8a2d9b3c79">   31</a></span>&#160;    <a class="code" href="classmilvus_1_1_index_request_base.html#ac2e168631bf0f719f39ecb8a2d9b3c79">IndexRequestBase</a>() = <span class="keywordflow">default</span>;</div>
-<div class="line"><a name="l00032"></a><span class="lineno">   32</span>&#160; </div>
-<div class="line"><a name="l00033"></a><span class="lineno">   33</span>&#160; <span class="keyword">public</span>:</div>
-<div class="line"><a name="l00037"></a><span class="lineno">   37</span>&#160;    <span class="keyword">const</span> std::string&amp;</div>
-<div class="line"><a name="l00038"></a><span class="lineno">   38</span>&#160;    <a class="code" href="classmilvus_1_1_index_request_base.html#a2ab968e3b512a17f339aadd339c8e224">DatabaseName</a>() <span class="keyword">const</span>;</div>
-<div class="line"><a name="l00039"></a><span class="lineno">   39</span>&#160; </div>
-<div class="line"><a name="l00043"></a><span class="lineno">   43</span>&#160;    <span class="keywordtype">void</span></div>
-<div class="line"><a name="l00044"></a><span class="lineno">   44</span>&#160;    <a class="code" href="classmilvus_1_1_index_request_base.html#a47491df0128245f1627db79eb410e6cf">SetDatabaseName</a>(<span class="keyword">const</span> std::string&amp; db_name);</div>
-<div class="line"><a name="l00045"></a><span class="lineno">   45</span>&#160; </div>
-<div class="line"><a name="l00049"></a><span class="lineno">   49</span>&#160;    <span class="keyword">const</span> std::string&amp;</div>
-<div class="line"><a name="l00050"></a><span class="lineno">   50</span>&#160;    <a class="code" href="classmilvus_1_1_index_request_base.html#ae0c5782534d70dfda9137e6960b9be33">CollectionName</a>() <span class="keyword">const</span>;</div>
-<div class="line"><a name="l00051"></a><span class="lineno">   51</span>&#160; </div>
-<div class="line"><a name="l00055"></a><span class="lineno">   55</span>&#160;    <span class="keywordtype">void</span></div>
-<div class="line"><a name="l00056"></a><span class="lineno">   56</span>&#160;    <a class="code" href="classmilvus_1_1_index_request_base.html#a60605e1ca9710472639f484235c86c62">SetCollectionName</a>(<span class="keyword">const</span> std::string&amp; collection_name);</div>
-<div class="line"><a name="l00057"></a><span class="lineno">   57</span>&#160; </div>
-<div class="line"><a name="l00058"></a><span class="lineno">   58</span>&#160; <span class="keyword">protected</span>:</div>
-<div class="line"><a name="l00059"></a><span class="lineno">   59</span>&#160;    std::string db_name_;</div>
-<div class="line"><a name="l00060"></a><span class="lineno">   60</span>&#160;    std::string collection_name_;</div>
-<div class="line"><a name="l00061"></a><span class="lineno">   61</span>&#160;};</div>
-<div class="line"><a name="l00062"></a><span class="lineno">   62</span>&#160; </div>
-<div class="line"><a name="l00063"></a><span class="lineno">   63</span>&#160;}  <span class="comment">// namespace milvus</span></div>
-<div class="ttc" id="aclassmilvus_1_1_index_request_base_html"><div class="ttname"><a href="classmilvus_1_1_index_request_base.html">milvus::IndexRequestBase</a></div><div class="ttdoc">Base class of index requests.</div><div class="ttdef"><b>Definition:</b> IndexRequestBase.h:26</div></div>
-<div class="ttc" id="aclassmilvus_1_1_index_request_base_html_a2ab968e3b512a17f339aadd339c8e224"><div class="ttname"><a href="classmilvus_1_1_index_request_base.html#a2ab968e3b512a17f339aadd339c8e224">milvus::IndexRequestBase::DatabaseName</a></div><div class="ttdeci">const std::string &amp; DatabaseName() const</div><div class="ttdoc">Database name in which the collection is created.</div><div class="ttdef"><b>Definition:</b> IndexRequestBase.cpp:22</div></div>
-<div class="ttc" id="aclassmilvus_1_1_index_request_base_html_a47491df0128245f1627db79eb410e6cf"><div class="ttname"><a href="classmilvus_1_1_index_request_base.html#a47491df0128245f1627db79eb410e6cf">milvus::IndexRequestBase::SetDatabaseName</a></div><div class="ttdeci">void SetDatabaseName(const std::string &amp;db_name)</div><div class="ttdoc">Set database name in which the collection is created.</div><div class="ttdef"><b>Definition:</b> IndexRequestBase.cpp:27</div></div>
-<div class="ttc" id="aclassmilvus_1_1_index_request_base_html_a60605e1ca9710472639f484235c86c62"><div class="ttname"><a href="classmilvus_1_1_index_request_base.html#a60605e1ca9710472639f484235c86c62">milvus::IndexRequestBase::SetCollectionName</a></div><div class="ttdeci">void SetCollectionName(const std::string &amp;collection_name)</div><div class="ttdoc">Set name of the collection.</div><div class="ttdef"><b>Definition:</b> IndexRequestBase.cpp:37</div></div>
-<div class="ttc" id="aclassmilvus_1_1_index_request_base_html_ac2e168631bf0f719f39ecb8a2d9b3c79"><div class="ttname"><a href="classmilvus_1_1_index_request_base.html#ac2e168631bf0f719f39ecb8a2d9b3c79">milvus::IndexRequestBase::IndexRequestBase</a></div><div class="ttdeci">IndexRequestBase()=default</div><div class="ttdoc">Constructor.</div></div>
-<div class="ttc" id="aclassmilvus_1_1_index_request_base_html_ae0c5782534d70dfda9137e6960b9be33"><div class="ttname"><a href="classmilvus_1_1_index_request_base.html#ae0c5782534d70dfda9137e6960b9be33">milvus::IndexRequestBase::CollectionName</a></div><div class="ttdeci">const std::string &amp; CollectionName() const</div><div class="ttdoc">Name of the collection.</div><div class="ttdef"><b>Definition:</b> IndexRequestBase.cpp:32</div></div>
+<div class="line"><a name="l00026"></a><span class="lineno">   26</span>&#160;<span class="keyword">template</span> &lt;<span class="keyword">typename</span> T&gt;</div>
+<div class="line"><a name="l00027"></a><span class="lineno"><a class="line" href="classmilvus_1_1_index_request_base.html">   27</a></span>&#160;<span class="keyword">class </span><a class="code" href="classmilvus_1_1_index_request_base.html">IndexRequestBase</a> {</div>
+<div class="line"><a name="l00028"></a><span class="lineno">   28</span>&#160; <span class="keyword">protected</span>:</div>
+<div class="line"><a name="l00032"></a><span class="lineno"><a class="line" href="classmilvus_1_1_index_request_base.html#ae2dde196992651b34400654e0d71beb0">   32</a></span>&#160;    <a class="code" href="classmilvus_1_1_index_request_base.html#ae2dde196992651b34400654e0d71beb0">IndexRequestBase</a>() = <span class="keywordflow">default</span>;</div>
+<div class="line"><a name="l00033"></a><span class="lineno">   33</span>&#160; </div>
+<div class="line"><a name="l00034"></a><span class="lineno">   34</span>&#160; <span class="keyword">public</span>:</div>
+<div class="line"><a name="l00038"></a><span class="lineno">   38</span>&#160;    <span class="keyword">const</span> std::string&amp;</div>
+<div class="line"><a name="l00039"></a><span class="lineno"><a class="line" href="classmilvus_1_1_index_request_base.html#a2265a6809763c0027161ea5f519a439f">   39</a></span>&#160;    <a class="code" href="classmilvus_1_1_index_request_base.html#a2265a6809763c0027161ea5f519a439f">DatabaseName</a>()<span class="keyword"> const </span>{</div>
+<div class="line"><a name="l00040"></a><span class="lineno">   40</span>&#160;        <span class="keywordflow">return</span> db_name_;</div>
+<div class="line"><a name="l00041"></a><span class="lineno">   41</span>&#160;    }</div>
+<div class="line"><a name="l00042"></a><span class="lineno">   42</span>&#160; </div>
+<div class="line"><a name="l00046"></a><span class="lineno">   46</span>&#160;    <span class="keywordtype">void</span></div>
+<div class="line"><a name="l00047"></a><span class="lineno"><a class="line" href="classmilvus_1_1_index_request_base.html#ac79ab21ea1d5b0b4a486486376540ca4">   47</a></span>&#160;    <a class="code" href="classmilvus_1_1_index_request_base.html#ac79ab21ea1d5b0b4a486486376540ca4">SetDatabaseName</a>(<span class="keyword">const</span> std::string&amp; db_name) {</div>
+<div class="line"><a name="l00048"></a><span class="lineno">   48</span>&#160;        db_name_ = db_name;</div>
+<div class="line"><a name="l00049"></a><span class="lineno">   49</span>&#160;    }</div>
+<div class="line"><a name="l00050"></a><span class="lineno">   50</span>&#160; </div>
+<div class="line"><a name="l00054"></a><span class="lineno">   54</span>&#160;    T&amp;</div>
+<div class="line"><a name="l00055"></a><span class="lineno"><a class="line" href="classmilvus_1_1_index_request_base.html#ac83edf08a3facdf2f35d03a4634267e5">   55</a></span>&#160;    <a class="code" href="classmilvus_1_1_index_request_base.html#ac83edf08a3facdf2f35d03a4634267e5">WithDatabaseName</a>(<span class="keyword">const</span> std::string&amp; db_name) {</div>
+<div class="line"><a name="l00056"></a><span class="lineno">   56</span>&#160;        <a class="code" href="classmilvus_1_1_index_request_base.html#ac79ab21ea1d5b0b4a486486376540ca4">SetDatabaseName</a>(db_name);</div>
+<div class="line"><a name="l00057"></a><span class="lineno">   57</span>&#160;        <span class="keywordflow">return</span> <span class="keyword">static_cast&lt;</span>T&amp;<span class="keyword">&gt;</span>(*this);</div>
+<div class="line"><a name="l00058"></a><span class="lineno">   58</span>&#160;    }</div>
+<div class="line"><a name="l00059"></a><span class="lineno">   59</span>&#160; </div>
+<div class="line"><a name="l00063"></a><span class="lineno">   63</span>&#160;    <span class="keyword">const</span> std::string&amp;</div>
+<div class="line"><a name="l00064"></a><span class="lineno"><a class="line" href="classmilvus_1_1_index_request_base.html#a1fb2239e4199e06e999972adc9afe604">   64</a></span>&#160;    <a class="code" href="classmilvus_1_1_index_request_base.html#a1fb2239e4199e06e999972adc9afe604">CollectionName</a>()<span class="keyword"> const </span>{</div>
+<div class="line"><a name="l00065"></a><span class="lineno">   65</span>&#160;        <span class="keywordflow">return</span> collection_name_;</div>
+<div class="line"><a name="l00066"></a><span class="lineno">   66</span>&#160;    }</div>
+<div class="line"><a name="l00067"></a><span class="lineno">   67</span>&#160; </div>
+<div class="line"><a name="l00071"></a><span class="lineno">   71</span>&#160;    <span class="keywordtype">void</span></div>
+<div class="line"><a name="l00072"></a><span class="lineno"><a class="line" href="classmilvus_1_1_index_request_base.html#a1abc88aae1259b1c16a4c8b0df4152e9">   72</a></span>&#160;    <a class="code" href="classmilvus_1_1_index_request_base.html#a1abc88aae1259b1c16a4c8b0df4152e9">SetCollectionName</a>(<span class="keyword">const</span> std::string&amp; collection_name) {</div>
+<div class="line"><a name="l00073"></a><span class="lineno">   73</span>&#160;        collection_name_ = collection_name;</div>
+<div class="line"><a name="l00074"></a><span class="lineno">   74</span>&#160;    }</div>
+<div class="line"><a name="l00075"></a><span class="lineno">   75</span>&#160; </div>
+<div class="line"><a name="l00079"></a><span class="lineno">   79</span>&#160;    T&amp;</div>
+<div class="line"><a name="l00080"></a><span class="lineno"><a class="line" href="classmilvus_1_1_index_request_base.html#a8a6ff46be1d70dcafeb1c2c6b6d04529">   80</a></span>&#160;    <a class="code" href="classmilvus_1_1_index_request_base.html#a8a6ff46be1d70dcafeb1c2c6b6d04529">WithCollectionName</a>(<span class="keyword">const</span> std::string&amp; collection_name) {</div>
+<div class="line"><a name="l00081"></a><span class="lineno">   81</span>&#160;        <a class="code" href="classmilvus_1_1_index_request_base.html#a1abc88aae1259b1c16a4c8b0df4152e9">SetCollectionName</a>(collection_name);</div>
+<div class="line"><a name="l00082"></a><span class="lineno">   82</span>&#160;        <span class="keywordflow">return</span> <span class="keyword">static_cast&lt;</span>T&amp;<span class="keyword">&gt;</span>(*this);</div>
+<div class="line"><a name="l00083"></a><span class="lineno">   83</span>&#160;    }</div>
+<div class="line"><a name="l00084"></a><span class="lineno">   84</span>&#160; </div>
+<div class="line"><a name="l00085"></a><span class="lineno">   85</span>&#160; <span class="keyword">protected</span>:</div>
+<div class="line"><a name="l00086"></a><span class="lineno">   86</span>&#160;    std::string db_name_;</div>
+<div class="line"><a name="l00087"></a><span class="lineno">   87</span>&#160;    std::string collection_name_;</div>
+<div class="line"><a name="l00088"></a><span class="lineno">   88</span>&#160;};</div>
+<div class="line"><a name="l00089"></a><span class="lineno">   89</span>&#160; </div>
+<div class="line"><a name="l00090"></a><span class="lineno">   90</span>&#160;}  <span class="comment">// namespace milvus</span></div>
+<div class="ttc" id="aclassmilvus_1_1_index_request_base_html"><div class="ttname"><a href="classmilvus_1_1_index_request_base.html">milvus::IndexRequestBase</a></div><div class="ttdoc">Base class of index requests.</div><div class="ttdef"><b>Definition:</b> IndexRequestBase.h:27</div></div>
+<div class="ttc" id="aclassmilvus_1_1_index_request_base_html_a1abc88aae1259b1c16a4c8b0df4152e9"><div class="ttname"><a href="classmilvus_1_1_index_request_base.html#a1abc88aae1259b1c16a4c8b0df4152e9">milvus::IndexRequestBase::SetCollectionName</a></div><div class="ttdeci">void SetCollectionName(const std::string &amp;collection_name)</div><div class="ttdoc">Set the collection name.</div><div class="ttdef"><b>Definition:</b> IndexRequestBase.h:72</div></div>
+<div class="ttc" id="aclassmilvus_1_1_index_request_base_html_a1fb2239e4199e06e999972adc9afe604"><div class="ttname"><a href="classmilvus_1_1_index_request_base.html#a1fb2239e4199e06e999972adc9afe604">milvus::IndexRequestBase::CollectionName</a></div><div class="ttdeci">const std::string &amp; CollectionName() const</div><div class="ttdoc">Get the collection name.</div><div class="ttdef"><b>Definition:</b> IndexRequestBase.h:64</div></div>
+<div class="ttc" id="aclassmilvus_1_1_index_request_base_html_a2265a6809763c0027161ea5f519a439f"><div class="ttname"><a href="classmilvus_1_1_index_request_base.html#a2265a6809763c0027161ea5f519a439f">milvus::IndexRequestBase::DatabaseName</a></div><div class="ttdeci">const std::string &amp; DatabaseName() const</div><div class="ttdoc">Get the target db name.</div><div class="ttdef"><b>Definition:</b> IndexRequestBase.h:39</div></div>
+<div class="ttc" id="aclassmilvus_1_1_index_request_base_html_a8a6ff46be1d70dcafeb1c2c6b6d04529"><div class="ttname"><a href="classmilvus_1_1_index_request_base.html#a8a6ff46be1d70dcafeb1c2c6b6d04529">milvus::IndexRequestBase::WithCollectionName</a></div><div class="ttdeci">T &amp; WithCollectionName(const std::string &amp;collection_name)</div><div class="ttdoc">Set name of the collection.</div><div class="ttdef"><b>Definition:</b> IndexRequestBase.h:80</div></div>
+<div class="ttc" id="aclassmilvus_1_1_index_request_base_html_ac79ab21ea1d5b0b4a486486376540ca4"><div class="ttname"><a href="classmilvus_1_1_index_request_base.html#ac79ab21ea1d5b0b4a486486376540ca4">milvus::IndexRequestBase::SetDatabaseName</a></div><div class="ttdeci">void SetDatabaseName(const std::string &amp;db_name)</div><div class="ttdoc">Set target db name, use default database if it is empty.</div><div class="ttdef"><b>Definition:</b> IndexRequestBase.h:47</div></div>
+<div class="ttc" id="aclassmilvus_1_1_index_request_base_html_ac83edf08a3facdf2f35d03a4634267e5"><div class="ttname"><a href="classmilvus_1_1_index_request_base.html#ac83edf08a3facdf2f35d03a4634267e5">milvus::IndexRequestBase::WithDatabaseName</a></div><div class="ttdeci">T &amp; WithDatabaseName(const std::string &amp;db_name)</div><div class="ttdoc">Set target db name, use default database if it is empty.</div><div class="ttdef"><b>Definition:</b> IndexRequestBase.h:55</div></div>
+<div class="ttc" id="aclassmilvus_1_1_index_request_base_html_ae2dde196992651b34400654e0d71beb0"><div class="ttname"><a href="classmilvus_1_1_index_request_base.html#ae2dde196992651b34400654e0d71beb0">milvus::IndexRequestBase::IndexRequestBase</a></div><div class="ttdeci">IndexRequestBase()=default</div><div class="ttdoc">Constructor.</div></div>
 <div class="ttc" id="anamespacemilvus_html"><div class="ttname"><a href="namespacemilvus.html">milvus</a></div><div class="ttdoc">namespace milvus</div><div class="ttdef"><b>Definition:</b> BulkImport.cpp:21</div></div>
 </div><!-- fragment --></div><!-- contents -->
 <!-- start footer part -->

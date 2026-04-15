@@ -110,37 +110,41 @@ $(function() {
 <div class="line"><a name="l00042"></a><span class="lineno">   42</span>&#160;    HNSW_PQ = 10,</div>
 <div class="line"><a name="l00043"></a><span class="lineno">   43</span>&#160;    HNSW_PRQ = 11,</div>
 <div class="line"><a name="l00044"></a><span class="lineno">   44</span>&#160;    IVF_RABITQ = 12,</div>
-<div class="line"><a name="l00045"></a><span class="lineno">   45</span>&#160; </div>
-<div class="line"><a name="l00046"></a><span class="lineno">   46</span>&#160;    <span class="comment">// GPU indexes only for float vectors</span></div>
-<div class="line"><a name="l00047"></a><span class="lineno">   47</span>&#160;    GPU_IVF_FLAT = 201,</div>
-<div class="line"><a name="l00048"></a><span class="lineno">   48</span>&#160;    GPU_IVF_PQ = 202,</div>
-<div class="line"><a name="l00049"></a><span class="lineno">   49</span>&#160;    GPU_BRUTE_FORCE = 203,</div>
-<div class="line"><a name="l00050"></a><span class="lineno">   50</span>&#160;    GPU_CAGRA = 204,</div>
-<div class="line"><a name="l00051"></a><span class="lineno">   51</span>&#160; </div>
-<div class="line"><a name="l00052"></a><span class="lineno">   52</span>&#160;    <span class="comment">// Indexes for binary vectors</span></div>
-<div class="line"><a name="l00053"></a><span class="lineno">   53</span>&#160;    BIN_FLAT = 1001,</div>
-<div class="line"><a name="l00054"></a><span class="lineno">   54</span>&#160;    BIN_IVF_FLAT = 1002,</div>
-<div class="line"><a name="l00055"></a><span class="lineno">   55</span>&#160;    MINHASH_LSH = 1003,</div>
-<div class="line"><a name="l00056"></a><span class="lineno">   56</span>&#160; </div>
-<div class="line"><a name="l00057"></a><span class="lineno">   57</span>&#160;    <span class="comment">// Only for varchar type field</span></div>
-<div class="line"><a name="l00058"></a><span class="lineno">   58</span>&#160;    TRIE = 1101,</div>
-<div class="line"><a name="l00059"></a><span class="lineno">   59</span>&#160;    <span class="comment">// Only for scalar type field</span></div>
-<div class="line"><a name="l00060"></a><span class="lineno">   60</span>&#160;    STL_SORT = 1102,  <span class="comment">// only for numeric type field</span></div>
-<div class="line"><a name="l00061"></a><span class="lineno">   61</span>&#160;    INVERTED = 1103,  <span class="comment">// works for all scalar fields except JSON type field</span></div>
-<div class="line"><a name="l00062"></a><span class="lineno">   62</span>&#160;    BITMAP = 1104,    <span class="comment">// works for all scalar fields except JSON, FLOAT and DOUBLE type fields</span></div>
-<div class="line"><a name="l00063"></a><span class="lineno">   63</span>&#160; </div>
-<div class="line"><a name="l00064"></a><span class="lineno">   64</span>&#160;    <span class="comment">// Only for varchar type field and json_path of JSON field</span></div>
-<div class="line"><a name="l00065"></a><span class="lineno">   65</span>&#160;    NGRAM = 1105,</div>
-<div class="line"><a name="l00066"></a><span class="lineno">   66</span>&#160; </div>
-<div class="line"><a name="l00067"></a><span class="lineno">   67</span>&#160;    <span class="comment">// Only for sparse vectors</span></div>
-<div class="line"><a name="l00068"></a><span class="lineno">   68</span>&#160;    SPARSE_INVERTED_INDEX = 1201,</div>
-<div class="line"><a name="l00069"></a><span class="lineno">   69</span>&#160;    SPARSE_WAND = 1202</div>
-<div class="line"><a name="l00070"></a><span class="lineno">   70</span>&#160;};</div>
-<div class="line"><a name="l00071"></a><span class="lineno">   71</span>&#160;}  <span class="comment">// namespace milvus</span></div>
-<div class="line"><a name="l00072"></a><span class="lineno">   72</span>&#160; </div>
-<div class="line"><a name="l00073"></a><span class="lineno">   73</span>&#160;<span class="keyword">namespace </span>std {</div>
-<div class="line"><a name="l00074"></a><span class="lineno">   74</span>&#160;std::string to_string(<a class="code" href="namespacemilvus.html#a6c4ec790e4c2dcd6630b99e90ee1f753">milvus::IndexType</a>);</div>
-<div class="line"><a name="l00075"></a><span class="lineno">   75</span>&#160;}  <span class="comment">// namespace std</span></div>
+<div class="line"><a name="l00045"></a><span class="lineno">   45</span>&#160;    AISAQ = 13,</div>
+<div class="line"><a name="l00046"></a><span class="lineno">   46</span>&#160; </div>
+<div class="line"><a name="l00047"></a><span class="lineno">   47</span>&#160;    <span class="comment">// GPU indexes only for float vectors</span></div>
+<div class="line"><a name="l00048"></a><span class="lineno">   48</span>&#160;    GPU_IVF_FLAT = 201,</div>
+<div class="line"><a name="l00049"></a><span class="lineno">   49</span>&#160;    GPU_IVF_PQ = 202,</div>
+<div class="line"><a name="l00050"></a><span class="lineno">   50</span>&#160;    GPU_BRUTE_FORCE = 203,</div>
+<div class="line"><a name="l00051"></a><span class="lineno">   51</span>&#160;    GPU_CAGRA = 204,</div>
+<div class="line"><a name="l00052"></a><span class="lineno">   52</span>&#160; </div>
+<div class="line"><a name="l00053"></a><span class="lineno">   53</span>&#160;    <span class="comment">// Indexes for binary vectors</span></div>
+<div class="line"><a name="l00054"></a><span class="lineno">   54</span>&#160;    BIN_FLAT = 1001,</div>
+<div class="line"><a name="l00055"></a><span class="lineno">   55</span>&#160;    BIN_IVF_FLAT = 1002,</div>
+<div class="line"><a name="l00056"></a><span class="lineno">   56</span>&#160;    MINHASH_LSH = 1003,</div>
+<div class="line"><a name="l00057"></a><span class="lineno">   57</span>&#160; </div>
+<div class="line"><a name="l00058"></a><span class="lineno">   58</span>&#160;    <span class="comment">// Only for varchar type field</span></div>
+<div class="line"><a name="l00059"></a><span class="lineno">   59</span>&#160;    TRIE = 1101,</div>
+<div class="line"><a name="l00060"></a><span class="lineno">   60</span>&#160;    <span class="comment">// Only for scalar type field</span></div>
+<div class="line"><a name="l00061"></a><span class="lineno">   61</span>&#160;    STL_SORT = 1102,  <span class="comment">// only for numeric type field</span></div>
+<div class="line"><a name="l00062"></a><span class="lineno">   62</span>&#160;    INVERTED = 1103,  <span class="comment">// works for all scalar fields except JSON type field</span></div>
+<div class="line"><a name="l00063"></a><span class="lineno">   63</span>&#160;    BITMAP = 1104,    <span class="comment">// works for all scalar fields except JSON, FLOAT and DOUBLE type fields</span></div>
+<div class="line"><a name="l00064"></a><span class="lineno">   64</span>&#160; </div>
+<div class="line"><a name="l00065"></a><span class="lineno">   65</span>&#160;    <span class="comment">// Only for varchar type field and json_path of JSON field</span></div>
+<div class="line"><a name="l00066"></a><span class="lineno">   66</span>&#160;    NGRAM = 1105,</div>
+<div class="line"><a name="l00067"></a><span class="lineno">   67</span>&#160; </div>
+<div class="line"><a name="l00068"></a><span class="lineno">   68</span>&#160;    <span class="comment">// Only for sparse vectors</span></div>
+<div class="line"><a name="l00069"></a><span class="lineno">   69</span>&#160;    SPARSE_INVERTED_INDEX = 1201,</div>
+<div class="line"><a name="l00070"></a><span class="lineno">   70</span>&#160;    SPARSE_WAND = 1202,</div>
+<div class="line"><a name="l00071"></a><span class="lineno">   71</span>&#160; </div>
+<div class="line"><a name="l00072"></a><span class="lineno">   72</span>&#160;    <span class="comment">// Only for geometry type field</span></div>
+<div class="line"><a name="l00073"></a><span class="lineno">   73</span>&#160;    RTREE = 1301,</div>
+<div class="line"><a name="l00074"></a><span class="lineno">   74</span>&#160;};</div>
+<div class="line"><a name="l00075"></a><span class="lineno">   75</span>&#160;}  <span class="comment">// namespace milvus</span></div>
+<div class="line"><a name="l00076"></a><span class="lineno">   76</span>&#160; </div>
+<div class="line"><a name="l00077"></a><span class="lineno">   77</span>&#160;<span class="keyword">namespace </span>std {</div>
+<div class="line"><a name="l00078"></a><span class="lineno">   78</span>&#160;std::string to_string(<a class="code" href="namespacemilvus.html#a6c4ec790e4c2dcd6630b99e90ee1f753">milvus::IndexType</a>);</div>
+<div class="line"><a name="l00079"></a><span class="lineno">   79</span>&#160;}  <span class="comment">// namespace std</span></div>
 <div class="ttc" id="anamespacemilvus_html"><div class="ttname"><a href="namespacemilvus.html">milvus</a></div><div class="ttdoc">namespace milvus</div><div class="ttdef"><b>Definition:</b> BulkImport.cpp:21</div></div>
 <div class="ttc" id="anamespacemilvus_html_a6c4ec790e4c2dcd6630b99e90ee1f753"><div class="ttname"><a href="namespacemilvus.html#a6c4ec790e4c2dcd6630b99e90ee1f753">milvus::IndexType</a></div><div class="ttdeci">IndexType</div><div class="ttdoc">Supported index types.</div><div class="ttdef"><b>Definition:</b> IndexType.h:26</div></div>
 </div><!-- fragment --></div><!-- contents -->

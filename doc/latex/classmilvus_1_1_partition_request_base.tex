@@ -1,5 +1,5 @@
-\hypertarget{classmilvus_1_1_partition_request_base}{}\doxysection{milvus\+::Partition\+Request\+Base Class Reference}
-\label{classmilvus_1_1_partition_request_base}\index{milvus::PartitionRequestBase@{milvus::PartitionRequestBase}}
+\hypertarget{classmilvus_1_1_partition_request_base}{}\doxysection{milvus\+::Partition\+Request\+Base$<$ T $>$ Class Template Reference}
+\label{classmilvus_1_1_partition_request_base}\index{milvus::PartitionRequestBase$<$ T $>$@{milvus::PartitionRequestBase$<$ T $>$}}
 
 
 Base class of partition requests except \mbox{\hyperlink{classmilvus_1_1_load_partitions_request}{Load\+Partitions\+Request}} and \mbox{\hyperlink{classmilvus_1_1_list_partitions_request}{List\+Partitions\+Request}}.  
@@ -9,43 +9,50 @@ Base class of partition requests except \mbox{\hyperlink{classmilvus_1_1_load_pa
 
 {\ttfamily \#include $<$Partition\+Request\+Base.\+h$>$}
 
-
-
-Inherited by \mbox{\hyperlink{classmilvus_1_1_create_partition_request}{milvus\+::\+Create\+Partition\+Request}}, \mbox{\hyperlink{classmilvus_1_1_drop_partition_request}{milvus\+::\+Drop\+Partition\+Request}}, \mbox{\hyperlink{classmilvus_1_1_get_partition_stats_request}{milvus\+::\+Get\+Partition\+Stats\+Request}}, and \mbox{\hyperlink{classmilvus_1_1_has_partition_request}{milvus\+::\+Has\+Partition\+Request}}.
-
 \doxysubsection*{Public Member Functions}
 \begin{DoxyCompactItemize}
 \item 
-\mbox{\Hypertarget{classmilvus_1_1_partition_request_base_a7320d636226730648669ba1847dbff68}\label{classmilvus_1_1_partition_request_base_a7320d636226730648669ba1847dbff68}} 
-const std\+::string \& \mbox{\hyperlink{classmilvus_1_1_partition_request_base_a7320d636226730648669ba1847dbff68}{Database\+Name}} () const
-\begin{DoxyCompactList}\small\item\em Database name in which the collection is created. \end{DoxyCompactList}\item 
-\mbox{\Hypertarget{classmilvus_1_1_partition_request_base_a1fcebeffe5ccc323fefc856e983c7f5b}\label{classmilvus_1_1_partition_request_base_a1fcebeffe5ccc323fefc856e983c7f5b}} 
-void \mbox{\hyperlink{classmilvus_1_1_partition_request_base_a1fcebeffe5ccc323fefc856e983c7f5b}{Set\+Database\+Name}} (const std\+::string \&db\+\_\+name)
-\begin{DoxyCompactList}\small\item\em Set database name in which the collection is created. \end{DoxyCompactList}\item 
-\mbox{\Hypertarget{classmilvus_1_1_partition_request_base_a73617ce3928bf8984b2e42af2eabeafc}\label{classmilvus_1_1_partition_request_base_a73617ce3928bf8984b2e42af2eabeafc}} 
-const std\+::string \& \mbox{\hyperlink{classmilvus_1_1_partition_request_base_a73617ce3928bf8984b2e42af2eabeafc}{Collection\+Name}} () const
-\begin{DoxyCompactList}\small\item\em Name of the collection. \end{DoxyCompactList}\item 
-\mbox{\Hypertarget{classmilvus_1_1_partition_request_base_ad6b35c5a3f4b55337c0859dc81624260}\label{classmilvus_1_1_partition_request_base_ad6b35c5a3f4b55337c0859dc81624260}} 
-void \mbox{\hyperlink{classmilvus_1_1_partition_request_base_ad6b35c5a3f4b55337c0859dc81624260}{Set\+Collection\+Name}} (const std\+::string \&collection\+\_\+name)
+\mbox{\Hypertarget{classmilvus_1_1_partition_request_base_a55a2ae6f1764aa644171fb98d6817e0a}\label{classmilvus_1_1_partition_request_base_a55a2ae6f1764aa644171fb98d6817e0a}} 
+const std\+::string \& \mbox{\hyperlink{classmilvus_1_1_partition_request_base_a55a2ae6f1764aa644171fb98d6817e0a}{Database\+Name}} () const
+\begin{DoxyCompactList}\small\item\em Get the target db name. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_partition_request_base_a881d853c07d266c2243f266af870fd33}\label{classmilvus_1_1_partition_request_base_a881d853c07d266c2243f266af870fd33}} 
+void \mbox{\hyperlink{classmilvus_1_1_partition_request_base_a881d853c07d266c2243f266af870fd33}{Set\+Database\+Name}} (const std\+::string \&db\+\_\+name)
+\begin{DoxyCompactList}\small\item\em Set target db name, use default database if it is empty. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_partition_request_base_a2462ebf4307c883e99b63ac45b7e048d}\label{classmilvus_1_1_partition_request_base_a2462ebf4307c883e99b63ac45b7e048d}} 
+T \& \mbox{\hyperlink{classmilvus_1_1_partition_request_base_a2462ebf4307c883e99b63ac45b7e048d}{With\+Database\+Name}} (const std\+::string \&db\+\_\+name)
+\begin{DoxyCompactList}\small\item\em Set target db name, use default database if it is empty. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_partition_request_base_a8d10c54868d7a69fc982e4236ab5407a}\label{classmilvus_1_1_partition_request_base_a8d10c54868d7a69fc982e4236ab5407a}} 
+const std\+::string \& \mbox{\hyperlink{classmilvus_1_1_partition_request_base_a8d10c54868d7a69fc982e4236ab5407a}{Collection\+Name}} () const
+\begin{DoxyCompactList}\small\item\em Get the collection name. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_partition_request_base_a8105cae1018fb974f1c600f8573c5287}\label{classmilvus_1_1_partition_request_base_a8105cae1018fb974f1c600f8573c5287}} 
+void \mbox{\hyperlink{classmilvus_1_1_partition_request_base_a8105cae1018fb974f1c600f8573c5287}{Set\+Collection\+Name}} (const std\+::string \&collection\+\_\+name)
+\begin{DoxyCompactList}\small\item\em Set the collection name. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_partition_request_base_a281829f243c4c81df42398ed66e4584f}\label{classmilvus_1_1_partition_request_base_a281829f243c4c81df42398ed66e4584f}} 
+T \& \mbox{\hyperlink{classmilvus_1_1_partition_request_base_a281829f243c4c81df42398ed66e4584f}{With\+Collection\+Name}} (const std\+::string \&collection\+\_\+name)
 \begin{DoxyCompactList}\small\item\em Set name of the collection. \end{DoxyCompactList}\item 
-\mbox{\Hypertarget{classmilvus_1_1_partition_request_base_a7528b82951e6c4e3e8d47f714f87b3f3}\label{classmilvus_1_1_partition_request_base_a7528b82951e6c4e3e8d47f714f87b3f3}} 
-const std\+::string \& \mbox{\hyperlink{classmilvus_1_1_partition_request_base_a7528b82951e6c4e3e8d47f714f87b3f3}{Partition\+Name}} () const
+\mbox{\Hypertarget{classmilvus_1_1_partition_request_base_ae827c2e4b0055a7d53b490986b384399}\label{classmilvus_1_1_partition_request_base_ae827c2e4b0055a7d53b490986b384399}} 
+const std\+::string \& \mbox{\hyperlink{classmilvus_1_1_partition_request_base_ae827c2e4b0055a7d53b490986b384399}{Partition\+Name}} () const
 \begin{DoxyCompactList}\small\item\em Set name of the partition. \end{DoxyCompactList}\item 
-\mbox{\Hypertarget{classmilvus_1_1_partition_request_base_a53922ccc31622d3d30366e00ae1a7929}\label{classmilvus_1_1_partition_request_base_a53922ccc31622d3d30366e00ae1a7929}} 
-void \mbox{\hyperlink{classmilvus_1_1_partition_request_base_a53922ccc31622d3d30366e00ae1a7929}{Set\+Partition\+Name}} (const std\+::string \&partition\+\_\+name)
+\mbox{\Hypertarget{classmilvus_1_1_partition_request_base_a174ad68df985882ab023a05db89431f2}\label{classmilvus_1_1_partition_request_base_a174ad68df985882ab023a05db89431f2}} 
+void \mbox{\hyperlink{classmilvus_1_1_partition_request_base_a174ad68df985882ab023a05db89431f2}{Set\+Partition\+Name}} (const std\+::string \&partition\+\_\+name)
+\begin{DoxyCompactList}\small\item\em Set name of the partition. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_partition_request_base_a0e984979d4e8e91f994ad84b415785ed}\label{classmilvus_1_1_partition_request_base_a0e984979d4e8e91f994ad84b415785ed}} 
+T \& \mbox{\hyperlink{classmilvus_1_1_partition_request_base_a0e984979d4e8e91f994ad84b415785ed}{With\+Partition\+Name}} (const std\+::string \&partition\+\_\+name)
 \begin{DoxyCompactList}\small\item\em Set name of the partition. \end{DoxyCompactList}\end{DoxyCompactItemize}
 \doxysubsection*{Protected Member Functions}
 \begin{DoxyCompactItemize}
 \item 
-\mbox{\Hypertarget{classmilvus_1_1_partition_request_base_a3f50972339aa7e544c1dc56a98f18ba5}\label{classmilvus_1_1_partition_request_base_a3f50972339aa7e544c1dc56a98f18ba5}} 
-\mbox{\hyperlink{classmilvus_1_1_partition_request_base_a3f50972339aa7e544c1dc56a98f18ba5}{Partition\+Request\+Base}} ()=default
+\mbox{\Hypertarget{classmilvus_1_1_partition_request_base_ab1e237304a03e74fc27bd2c675208d4c}\label{classmilvus_1_1_partition_request_base_ab1e237304a03e74fc27bd2c675208d4c}} 
+\mbox{\hyperlink{classmilvus_1_1_partition_request_base_ab1e237304a03e74fc27bd2c675208d4c}{Partition\+Request\+Base}} ()=default
 \begin{DoxyCompactList}\small\item\em Constructor. \end{DoxyCompactList}\end{DoxyCompactItemize}
 
 
 \doxysubsection{Detailed Description}
+\subsubsection*{template$<$typename T$>$\newline
+class milvus\+::\+Partition\+Request\+Base$<$ T $>$}
+
 Base class of partition requests except \mbox{\hyperlink{classmilvus_1_1_load_partitions_request}{Load\+Partitions\+Request}} and \mbox{\hyperlink{classmilvus_1_1_list_partitions_request}{List\+Partitions\+Request}}. 
 
-The documentation for this class was generated from the following files\+:\begin{DoxyCompactItemize}
+The documentation for this class was generated from the following file\+:\begin{DoxyCompactItemize}
 \item 
-src/include/milvus/request/partition/Partition\+Request\+Base.\+h\item 
-src/impl/request/partition/Partition\+Request\+Base.\+cpp\end{DoxyCompactItemize}
+src/include/milvus/request/partition/Partition\+Request\+Base.\+h\end{DoxyCompactItemize}
