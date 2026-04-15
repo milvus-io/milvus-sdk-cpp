@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=9"/>
 <meta name="generator" content="Doxygen 1.9.1"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>milvus-sdk-cpp: milvus::CollectionRequestBase Class Reference</title>
+<title>milvus-sdk-cpp: milvus::CollectionRequestBase&lt; T &gt; Class Template Reference</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -70,7 +70,7 @@ $(function() {
 <a href="#pro-methods">Protected Member Functions</a> &#124;
 <a href="classmilvus_1_1_collection_request_base-members.html">List of all members</a>  </div>
   <div class="headertitle">
-<div class="title">milvus::CollectionRequestBase Class Reference</div>  </div>
+<div class="title">milvus::CollectionRequestBase&lt; T &gt; Class Template Reference</div>  </div>
 </div><!--header-->
 <div class="contents">
 
@@ -78,40 +78,48 @@ $(function() {
  <a href="classmilvus_1_1_collection_request_base.html#details">More...</a></p>
 
 <p><code>#include &lt;<a class="el" href="_collection_request_base_8h_source.html">CollectionRequestBase.h</a>&gt;</code></p>
-
-<p>Inherited by <a class="el" href="classmilvus_1_1_add_collection_field_request.html">milvus::AddCollectionFieldRequest</a>, <a class="el" href="classmilvus_1_1_alter_collection_field_properties_request.html">milvus::AlterCollectionFieldPropertiesRequest</a>, <a class="el" href="classmilvus_1_1_alter_collection_properties_request.html">milvus::AlterCollectionPropertiesRequest</a>, <a class="el" href="classmilvus_1_1_describe_collection_request.html">milvus::DescribeCollectionRequest</a>, <a class="el" href="classmilvus_1_1_drop_collection_field_properties_request.html">milvus::DropCollectionFieldPropertiesRequest</a>, <a class="el" href="classmilvus_1_1_drop_collection_properties_request.html">milvus::DropCollectionPropertiesRequest</a>, <a class="el" href="classmilvus_1_1_drop_collection_request.html">milvus::DropCollectionRequest</a>, <a class="el" href="classmilvus_1_1_get_collection_stats_request.html">milvus::GetCollectionStatsRequest</a>, <a class="el" href="classmilvus_1_1_get_load_state_request.html">milvus::GetLoadStateRequest</a>, <a class="el" href="classmilvus_1_1_has_collection_request.html">milvus::HasCollectionRequest</a>, <a class="el" href="classmilvus_1_1_load_collection_request.html">milvus::LoadCollectionRequest</a>, <a class="el" href="classmilvus_1_1_release_collection_request.html">milvus::ReleaseCollectionRequest</a>, and <a class="el" href="classmilvus_1_1_rename_collection_request.html">milvus::RenameCollectionRequest</a>.</p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:a252e80e7e75b2206722bfd4fff2ca9e0"><td class="memItemLeft" align="right" valign="top"><a id="a252e80e7e75b2206722bfd4fff2ca9e0"></a>
-const std::string &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classmilvus_1_1_collection_request_base.html#a252e80e7e75b2206722bfd4fff2ca9e0">DatabaseName</a> () const</td></tr>
-<tr class="memdesc:a252e80e7e75b2206722bfd4fff2ca9e0"><td class="mdescLeft">&#160;</td><td class="mdescRight">Database name in which the collection is created. <br /></td></tr>
-<tr class="separator:a252e80e7e75b2206722bfd4fff2ca9e0"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a2dbc334888bbc00cfe86fa6b4f1f31d5"><td class="memItemLeft" align="right" valign="top"><a id="a2dbc334888bbc00cfe86fa6b4f1f31d5"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classmilvus_1_1_collection_request_base.html#a2dbc334888bbc00cfe86fa6b4f1f31d5">SetDatabaseName</a> (const std::string &amp;db_name)</td></tr>
-<tr class="memdesc:a2dbc334888bbc00cfe86fa6b4f1f31d5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set database name in which the collection is created. <br /></td></tr>
-<tr class="separator:a2dbc334888bbc00cfe86fa6b4f1f31d5"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a0bdf60d5bc80674288ec2a819d987f03"><td class="memItemLeft" align="right" valign="top"><a id="a0bdf60d5bc80674288ec2a819d987f03"></a>
-const std::string &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classmilvus_1_1_collection_request_base.html#a0bdf60d5bc80674288ec2a819d987f03">CollectionName</a> () const</td></tr>
-<tr class="memdesc:a0bdf60d5bc80674288ec2a819d987f03"><td class="mdescLeft">&#160;</td><td class="mdescRight">Name of the collection. <br /></td></tr>
-<tr class="separator:a0bdf60d5bc80674288ec2a819d987f03"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a6a8eb81709139c13a9f65324d619d84f"><td class="memItemLeft" align="right" valign="top"><a id="a6a8eb81709139c13a9f65324d619d84f"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classmilvus_1_1_collection_request_base.html#a6a8eb81709139c13a9f65324d619d84f">SetCollectionName</a> (const std::string &amp;collection_name)</td></tr>
-<tr class="memdesc:a6a8eb81709139c13a9f65324d619d84f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set name of the collection. <br /></td></tr>
-<tr class="separator:a6a8eb81709139c13a9f65324d619d84f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0a40567253a89d3fd5a2c7a286244fce"><td class="memItemLeft" align="right" valign="top"><a id="a0a40567253a89d3fd5a2c7a286244fce"></a>
+const std::string &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classmilvus_1_1_collection_request_base.html#a0a40567253a89d3fd5a2c7a286244fce">DatabaseName</a> () const</td></tr>
+<tr class="memdesc:a0a40567253a89d3fd5a2c7a286244fce"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get the target db name. <br /></td></tr>
+<tr class="separator:a0a40567253a89d3fd5a2c7a286244fce"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a62e3eeca6d92e6b4e1ac47977414b45b"><td class="memItemLeft" align="right" valign="top"><a id="a62e3eeca6d92e6b4e1ac47977414b45b"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classmilvus_1_1_collection_request_base.html#a62e3eeca6d92e6b4e1ac47977414b45b">SetDatabaseName</a> (const std::string &amp;db_name)</td></tr>
+<tr class="memdesc:a62e3eeca6d92e6b4e1ac47977414b45b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set target db name, use default database if it is empty. <br /></td></tr>
+<tr class="separator:a62e3eeca6d92e6b4e1ac47977414b45b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:abf1b4c235481909e3c8889a023ca95cd"><td class="memItemLeft" align="right" valign="top"><a id="abf1b4c235481909e3c8889a023ca95cd"></a>
+T &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classmilvus_1_1_collection_request_base.html#abf1b4c235481909e3c8889a023ca95cd">WithDatabaseName</a> (const std::string &amp;db_name)</td></tr>
+<tr class="memdesc:abf1b4c235481909e3c8889a023ca95cd"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set target db name, use default database if it is empty. <br /></td></tr>
+<tr class="separator:abf1b4c235481909e3c8889a023ca95cd"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a65ea19d4dec749ef137bee2568c1740b"><td class="memItemLeft" align="right" valign="top"><a id="a65ea19d4dec749ef137bee2568c1740b"></a>
+const std::string &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classmilvus_1_1_collection_request_base.html#a65ea19d4dec749ef137bee2568c1740b">CollectionName</a> () const</td></tr>
+<tr class="memdesc:a65ea19d4dec749ef137bee2568c1740b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get the collection name. <br /></td></tr>
+<tr class="separator:a65ea19d4dec749ef137bee2568c1740b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:adb9fa5b9c2aa26ba49bb66f818902005"><td class="memItemLeft" align="right" valign="top"><a id="adb9fa5b9c2aa26ba49bb66f818902005"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classmilvus_1_1_collection_request_base.html#adb9fa5b9c2aa26ba49bb66f818902005">SetCollectionName</a> (const std::string &amp;collection_name)</td></tr>
+<tr class="memdesc:adb9fa5b9c2aa26ba49bb66f818902005"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set the collection name. <br /></td></tr>
+<tr class="separator:adb9fa5b9c2aa26ba49bb66f818902005"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4f41afae9523d1d2b6cc04c48c152300"><td class="memItemLeft" align="right" valign="top"><a id="a4f41afae9523d1d2b6cc04c48c152300"></a>
+T &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classmilvus_1_1_collection_request_base.html#a4f41afae9523d1d2b6cc04c48c152300">WithCollectionName</a> (const std::string &amp;collection_name)</td></tr>
+<tr class="memdesc:a4f41afae9523d1d2b6cc04c48c152300"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set name of the collection. <br /></td></tr>
+<tr class="separator:a4f41afae9523d1d2b6cc04c48c152300"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pro-methods"></a>
 Protected Member Functions</h2></td></tr>
-<tr class="memitem:a34e276e12fd8fe0c1e09c29bb770c401"><td class="memItemLeft" align="right" valign="top"><a id="a34e276e12fd8fe0c1e09c29bb770c401"></a>
-&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classmilvus_1_1_collection_request_base.html#a34e276e12fd8fe0c1e09c29bb770c401">CollectionRequestBase</a> ()=default</td></tr>
-<tr class="memdesc:a34e276e12fd8fe0c1e09c29bb770c401"><td class="mdescLeft">&#160;</td><td class="mdescRight">Constructor. <br /></td></tr>
-<tr class="separator:a34e276e12fd8fe0c1e09c29bb770c401"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a966608c63e9191780f0f2c5838cc6b32"><td class="memItemLeft" align="right" valign="top"><a id="a966608c63e9191780f0f2c5838cc6b32"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classmilvus_1_1_collection_request_base.html#a966608c63e9191780f0f2c5838cc6b32">CollectionRequestBase</a> ()=default</td></tr>
+<tr class="memdesc:a966608c63e9191780f0f2c5838cc6b32"><td class="mdescLeft">&#160;</td><td class="mdescRight">Constructor. <br /></td></tr>
+<tr class="separator:a966608c63e9191780f0f2c5838cc6b32"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock"><p>Base class of collection requests except <a class="el" href="classmilvus_1_1_create_collection_request.html" title="Used by MilvusClientV2::CreateCollection()">CreateCollectionRequest</a> and <a class="el" href="classmilvus_1_1_list_collections_request.html" title="Used by MilvusClientV2::ListCollections()">ListCollectionsRequest</a>. </p>
-</div><hr/>The documentation for this class was generated from the following files:<ul>
+<div class="textblock"><h3>template&lt;typename T&gt;<br />
+class milvus::CollectionRequestBase&lt; T &gt;</h3>
+
+<p>Base class of collection requests except <a class="el" href="classmilvus_1_1_create_collection_request.html" title="Used by MilvusClientV2::CreateCollection()">CreateCollectionRequest</a> and <a class="el" href="classmilvus_1_1_list_collections_request.html" title="Used by MilvusClientV2::ListCollections()">ListCollectionsRequest</a>. </p>
+</div><hr/>The documentation for this class was generated from the following file:<ul>
 <li>src/include/milvus/request/collection/<a class="el" href="_collection_request_base_8h_source.html">CollectionRequestBase.h</a></li>
-<li>src/impl/request/collection/CollectionRequestBase.cpp</li>
 </ul>
 </div><!-- contents -->
 <!-- start footer part -->

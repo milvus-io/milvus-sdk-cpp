@@ -14,10 +14,11 @@ Currently, we tested the below platform and compilers for developing Milvus C++ 
 
 | Platform | Version      | Compiler Tested      | Support                       |
 | -------- | ------------ | -------------------- | ----------------------------- |
-| Linux    | Ubuntu 18.04 | GCC 7.0.0            | Full (Compile, Lint, Testing) |
 | Linux    | Ubuntu 20.04 | GCC 9.3.0            | Full (Compile, Lint, Testing) |
-| Linux    | Fedora 38/39 | GCC 11.2             | Compile, Testing              |
-| Linux    | CentOS 7     | GCC7 (devtoolset-7)  | Compile, Testing              |
+| Linux    | Ubuntu 22.04 | GCC 11.4             | Full (Compile, Lint, Testing) |
+| Linux    | Fedora 38/39 | GCC 11.2+            | Compile, Testing              |
+| macOS    | macOS 14     | Apple Clang           | Compile, Testing              |
+| Windows  | Windows 2022 | MSVC 2022            | Compile, Testing              |
 
 ### Clone the code
 
@@ -42,55 +43,16 @@ This script could help you set a developing environment from a minimal installat
 
 You could build the debug versioned SDK with `make` in the source directory, or `make all-release` to build the release version.
 
-And you could also create a dedicated CMake build directory, then use CMake to build it from the source by yourself
+By default, `make` uses [Conan 2](https://conan.io/) to manage dependencies (gRPC, protobuf, abseil, etc.). The `scripts/build.sh` handles Conan integration automatically.
 
+## Building without Conan
+
+If you prefer not to use Conan, the following targets will download and compile gRPC from source:
 ```shell
-$ cd milvus-sdk-cpp
-$ mkdir cmake_build
-$ cd cmake_build
-$ cmake ..
-$ make
+$ make build-no-conan-debug    # debug build
+$ make build-no-conan-release  # release build
+$ make test-no-conan           # build and run unit tests
 ```
-
-## Building with external gRPC
-
-By default, `make` command downloads gRPC source code from github and compile it under the CMake build directory.
-
-You can use a pre-built gRPC lib build by yourself. milvus-sdk-cpp 2.4 is using gRPC v1.59.0, make sure your gRPC version is compatible.
-
-### Download gRPC source code
-```shell
-$ git clone https://github.com/grpc/grpc.git
-$ git checkout v1.59.0
-$ git submodule update --init
-```
-Or:
-```shell
-$ git clone git@github.com:grpc/grpc.git
-$ git checkout v1.59.0
-$ git submodule update --init
-```
-
-### Build gRPC dynamic lib from source code and install it
-```shell
-$ cd grpc
-$ mkdir cmake_build
-$ cd cmake_build
-$ cmake -DCMAKE_INSTALL_PREFIX=/path/to/pre-installed/grpc  -DBUILD_SHARED_LIBS=ON ..
-$ make
-$ make install
-```
-Make sure the `BUILD_SHARED_LIBS` is `ON` since milvus-sdk-cpp dynamically links to gRPC.
-
-### Use `GRPC_PATH` to specify the external gRPC and build milvus-sdk-cpp
-```shell
-$ cd milvus-sdk-cpp
-$ mkdir cmake_build
-$ cd cmake_build
-$ cmake ..
-$ make GRPC_PATH=/path/to/pre-installed/grpc
-```
-With `GRPC_PATH`, milvus-sdk-cpp will skip gRPC downloading and compile/link with the external gRPC.
 
 ## Code style for Milvus C++ SDK
 Milvus C++ SDK project using the similar clang-format and clang-tidy rules
@@ -120,9 +82,9 @@ $ make test GRPC_PATH=/path/to/pre-installed/grpc
 
 If you add some new code, you'd better add related testing code together.
 We have below test scopes:
-- Test code under `test/ut`: the code could run without any Milvus server, which we called unit testing. 
-- Test code under `test/it`: the code needs to run with a mocked server, which we called integration testing.
-- Test code under `test/st`: the code needs to run with a real Milvus server, which we called that acceptance testing.
+- Test code under `test/ut`: unit testing, tests run without any server.
+- Test code under `test/it`: mock testing, tests run with a mocked gRPC server.
+- Test code under `test/st`: integration testing, tests run with a real Milvus server via Docker.
 
 The test cases are built as executable binaries under the path `cmake_build/test`:
 ```shell
@@ -136,8 +98,8 @@ The acceptance/system tests are not included by default. You could use the below
 - `make st` under the top source directory
 - `make system-test` under the CMake build directory
 
-The acceptance/system tests will startup container by docker, and using jq to capture the output from docker inspect,
-so you need to install docker and jq tools for running them.
+The acceptance/system tests will start a Milvus container via Docker automatically.
+You need Docker installed and the Python Docker SDK (`pip install docker`) for running them.
 
 
 ## Try the examples
@@ -154,18 +116,73 @@ After the command, a folder named "code_coverage" will be created under the proj
 You could open the **code_coverage/index.html** by a web browser to review the code coverage report.
 
 ## Generate documentation
-Milvus C++ SDK uses **doxygen** tool to generate documentation. Run `make documentation` to generate documentation.
+Milvus C++ SDK uses **doxygen** tool to generate documentation. Run `make doc` to generate documentation.
+After the command, open **doc/html/index.html** in a web browser to view the documentation.
 Typically, we only publish documentation before releasing a new sdk version.
 Since the **doxygen** is not included in the `install_deps.sh`, you need to manually install it if you want to generate the documentation by yourself.
 
 # Build C++ SDK with your macOS
 
+## Prerequisites
+- [Homebrew](https://brew.sh/)
+- Command line tools for Xcode: `xcode-select --install`
+- Python 3 with pip
+
 ## Setup development environment
 
-The setup steps and development environment for macOS are similar to Linux.
-You could use `install_deps.sh` to install dependencies and use the same `make` commands for build, lint, test, and coverage.
+Install dependencies using the provided script:
+```shell
+$ mkdir ~/.venv
+$ python3 -m venv ~/.venv
+$ source ~/.venv/bin/activate
+$ bash scripts/install_deps.sh
+```
 
-### Prerequisites
-Before you run `install_deps.sh` to install dependencies, you should make sure:
-- Already installed [Homebrew](https://brew.sh/)
-- Install Command line tools for Xcode, by command: `xcode-select --install`
+Note: Starting from macOS 14 (Sonoma), Apple prevents pip from modifying system directories.
+A Python virtual environment is required for installing build tools (cmake, clang-format, clang-tidy).
+
+The script installs the following via Homebrew: `wget`, `lcov`, `llvm`, `openssl@3`, `ccache`.
+
+## Building and testing
+
+You can build with Conan (same as Linux):
+```shell
+$ make          # build with Conan-managed dependencies
+$ make test     # build and run unit tests + mock tests
+```
+
+Or build without Conan:
+```shell
+$ make test-no-conan           # build and run tests without Conan
+$ make build-no-conan-debug    # debug build without Conan
+$ make build-no-conan-release  # release build without Conan
+```
+
+# Build C++ SDK with your Windows
+
+## Prerequisites
+- Visual Studio 2022 with C++ workload
+- [CMake](https://cmake.org/) 3.14+
+- [Ninja](https://ninja-build.org/) build system
+- [ccache](https://ccache.dev/) (optional, for faster rebuilds)
+
+You can install CMake, Ninja, and ccache via [Chocolatey](https://chocolatey.org/):
+```cmd
+choco install cmake ninja ccache
+```
+
+## Building and testing
+
+Open a **Developer Command Prompt for VS 2022** (or **x64 Native Tools Command Prompt**), then:
+```cmd
+cmake -S . -B build -DMILVUS_BUILD_TEST=YES -G Ninja
+cmake --build build
+```
+
+Run tests:
+```cmd
+build\test\testing-ut
+build\test\testing-it
+```
+
+Note: The Windows build does not use Conan. CMake downloads and compiles gRPC from source automatically. Conan-based build and system tests (`testing-st`) are not supported on Windows.

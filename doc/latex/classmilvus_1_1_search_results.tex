@@ -20,7 +20,13 @@ Results returned by \mbox{\hyperlink{classmilvus_1_1_milvus_client_a46c70fc2b7c3
 \begin{DoxyCompactList}\small\item\em Constructor. \end{DoxyCompactList}\item 
 \mbox{\Hypertarget{classmilvus_1_1_search_results_ada5f505b22eb32d3d1d1446b3e883ee8}\label{classmilvus_1_1_search_results_ada5f505b22eb32d3d1d1446b3e883ee8}} 
 const std\+::vector$<$ \mbox{\hyperlink{structmilvus_1_1_single_result}{Single\+Result}} $>$ \& \mbox{\hyperlink{classmilvus_1_1_search_results_ada5f505b22eb32d3d1d1446b3e883ee8}{Results}} () const
-\begin{DoxyCompactList}\small\item\em Get search results. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\begin{DoxyCompactList}\small\item\em Get search results. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_search_results_a69a1a47f76be66752dbaf33e0f63ef25}\label{classmilvus_1_1_search_results_a69a1a47f76be66752dbaf33e0f63ef25}} 
+const std\+::vector$<$ float $>$ \& \mbox{\hyperlink{classmilvus_1_1_search_results_a69a1a47f76be66752dbaf33e0f63ef25}{Recalls}} () const
+\begin{DoxyCompactList}\small\item\em Get recalls of search results. Note\+: only works when search with enable\+\_\+recall\+\_\+calculation is true on zilliz cloud instance. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_search_results_a3a18a0c300d28208fe2c5c3a2c030551}\label{classmilvus_1_1_search_results_a3a18a0c300d28208fe2c5c3a2c030551}} 
+\mbox{\hyperlink{classmilvus_1_1_search_results}{Search\+Results}} \& \mbox{\hyperlink{classmilvus_1_1_search_results_a3a18a0c300d28208fe2c5c3a2c030551}{With\+Recalls}} (std\+::vector$<$ float $>$ \&\&recalls)
+\begin{DoxyCompactList}\small\item\em Set recalls of search results. This method is internally used. Note\+: only works when search with enable\+\_\+recall\+\_\+calculation is true on zilliz cloud instance. When enable\+\_\+recall\+\_\+calculation is true, the server will use near-\/brute-\/force search to compute precise results, the search performance is poor. \end{DoxyCompactList}\end{DoxyCompactItemize}
 
 
 \doxysubsection{Detailed Description}
