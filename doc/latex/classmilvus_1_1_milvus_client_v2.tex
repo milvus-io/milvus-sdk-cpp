@@ -39,6 +39,8 @@ virtual \mbox{\hyperlink{classmilvus_1_1_status}{Status}} \mbox{\hyperlink{class
 \begin{DoxyCompactList}\small\item\em Check existence of a collection. \end{DoxyCompactList}\item 
 virtual \mbox{\hyperlink{classmilvus_1_1_status}{Status}} \mbox{\hyperlink{classmilvus_1_1_milvus_client_v2_a7517376960cda794508aefb424e8bf69}{Drop\+Collection}} (const \mbox{\hyperlink{classmilvus_1_1_drop_collection_request}{Drop\+Collection\+Request}} \&request)=0
 \begin{DoxyCompactList}\small\item\em Drop a collection, with all its partitions, index and segments. \end{DoxyCompactList}\item 
+virtual \mbox{\hyperlink{classmilvus_1_1_status}{Status}} \mbox{\hyperlink{classmilvus_1_1_milvus_client_v2_a6c5e93b767ea465ff615afc2dd0125d2}{Truncate\+Collection}} (const \mbox{\hyperlink{classmilvus_1_1_truncate_collection_request}{Truncate\+Collection\+Request}} \&request)=0
+\begin{DoxyCompactList}\small\item\em Truncate a collection, removing all data while keeping the collection structure. \end{DoxyCompactList}\item 
 virtual \mbox{\hyperlink{classmilvus_1_1_status}{Status}} \mbox{\hyperlink{classmilvus_1_1_milvus_client_v2_a98217a9d33fb2f1f93457b1af7bbc036}{Load\+Collection}} (const \mbox{\hyperlink{classmilvus_1_1_load_collection_request}{Load\+Collection\+Request}} \&request)=0
 \begin{DoxyCompactList}\small\item\em Load collection data into CPU memory of query node. If the request is sync mode, this api will check collection\textquotesingle{}s loading progress, waiting until the collection completely loaded into query node. Otherwise, it will return immediately. \end{DoxyCompactList}\item 
 virtual \mbox{\hyperlink{classmilvus_1_1_status}{Status}} \mbox{\hyperlink{classmilvus_1_1_milvus_client_v2_aef1ad4d68b196e17b7da3e91796ec9ed}{Release\+Collection}} (const \mbox{\hyperlink{classmilvus_1_1_release_collection_request}{Release\+Collection\+Request}} \&request)=0
@@ -129,6 +131,8 @@ virtual \mbox{\hyperlink{classmilvus_1_1_status}{Status}} \mbox{\hyperlink{class
 \begin{DoxyCompactList}\small\item\em Hybrid search a collection based on the given parameters and return results. Read the doc for more info\+: \href{https://milvus.io/docs/multi-vector-search.md}{\texttt{ https\+://milvus.\+io/docs/multi-\/vector-\/search.\+md}}. \end{DoxyCompactList}\item 
 virtual \mbox{\hyperlink{classmilvus_1_1_status}{Status}} \mbox{\hyperlink{classmilvus_1_1_milvus_client_v2_af7a057a1394d76c0478e524a6d166a2c}{Query}} (const \mbox{\hyperlink{classmilvus_1_1_query_request}{Query\+Request}} \&request, \mbox{\hyperlink{classmilvus_1_1_query_response}{Query\+Response}} \&response)=0
 \begin{DoxyCompactList}\small\item\em Query with a set of criteria, and results in a list of records that match the query exactly. \end{DoxyCompactList}\item 
+virtual \mbox{\hyperlink{classmilvus_1_1_status}{Status}} \mbox{\hyperlink{classmilvus_1_1_milvus_client_v2_a8582f62e66bad191c1a29803f38c5c05}{Get}} (const \mbox{\hyperlink{classmilvus_1_1_get_request}{Get\+Request}} \&request, \mbox{\hyperlink{classmilvus_1_1_query_response}{Get\+Response}} \&response)=0
+\begin{DoxyCompactList}\small\item\em Query with primary keys, and results in a list of records. \end{DoxyCompactList}\item 
 virtual \mbox{\hyperlink{classmilvus_1_1_status}{Status}} \mbox{\hyperlink{classmilvus_1_1_milvus_client_v2_a8efe443fab894da2fcf934c7792c0806}{Query\+Iterator}} (\mbox{\hyperlink{classmilvus_1_1_query_iterator_request}{Query\+Iterator\+Request}} \&request, Query\+Iterator\+Ptr \&response)=0
 \begin{DoxyCompactList}\small\item\em Get Query\+Iterator object based on scalar field(s) by filtering expression. Don\textquotesingle{}t disconnect the \mbox{\hyperlink{classmilvus_1_1_milvus_client_v2}{Milvus\+Client\+V2}} when the iterator is in using. Read the doc for more info\+: \href{https://milvus.io/docs/get-and-scalar-query.md\#Use-QueryIterator}{\texttt{ https\+://milvus.\+io/docs/get-\/and-\/scalar-\/query.\+md\#\+Use-\/\+Query\+Iterator}}. \end{DoxyCompactList}\item 
 virtual \mbox{\hyperlink{classmilvus_1_1_status}{Status}} \mbox{\hyperlink{classmilvus_1_1_milvus_client_v2_af23d0963c98cee2ca2b20181c57e1de8}{Run\+Analyzer}} (const \mbox{\hyperlink{classmilvus_1_1_run_analyzer_arguments}{Run\+Analyzer\+Request}} \&request, \mbox{\hyperlink{classmilvus_1_1_run_analyzer_response}{Run\+Analyzer\+Response}} \&response)=0
@@ -140,7 +144,7 @@ virtual \mbox{\hyperlink{classmilvus_1_1_status}{Status}} \mbox{\hyperlink{class
 virtual \mbox{\hyperlink{classmilvus_1_1_status}{Status}} \mbox{\hyperlink{classmilvus_1_1_milvus_client_v2_a5a73ba98d13d8bcc39162881171231f6}{List\+Query\+Segments}} (const \mbox{\hyperlink{classmilvus_1_1_list_segments_request}{List\+Query\+Segments\+Request}} \&request, \mbox{\hyperlink{classmilvus_1_1_list_segments_response}{List\+Query\+Segments\+Response}} \&response)=0
 \begin{DoxyCompactList}\small\item\em Retrieve information of loaded segments from query nodes. \end{DoxyCompactList}\item 
 virtual \mbox{\hyperlink{classmilvus_1_1_status}{Status}} \mbox{\hyperlink{classmilvus_1_1_milvus_client_v2_a7c93ee02ec0c28ab01c5ba5a73655e46}{Compact}} (const \mbox{\hyperlink{classmilvus_1_1_compact_request}{Compact\+Request}} \&request, \mbox{\hyperlink{classmilvus_1_1_compact_response}{Compact\+Response}} \&response)=0
-\begin{DoxyCompactList}\small\item\em Manually trigger a compaction action. Normally, user no need to call this API sicne milvus automatically triggers compactions internally. It is mainly used for some maintainance or debug purpose. \end{DoxyCompactList}\item 
+\begin{DoxyCompactList}\small\item\em Manually trigger a compaction action. Normally, user no need to call this API since milvus automatically triggers compactions internally. It is mainly used for some maintenance or debug purpose. \end{DoxyCompactList}\item 
 virtual \mbox{\hyperlink{classmilvus_1_1_status}{Status}} \mbox{\hyperlink{classmilvus_1_1_milvus_client_v2_ac6049982f70ef1349555740e02079e9a}{Get\+Compaction\+State}} (const \mbox{\hyperlink{classmilvus_1_1_get_compaction_request}{Get\+Compaction\+State\+Request}} \&request, \mbox{\hyperlink{classmilvus_1_1_get_compaction_state_response}{Get\+Compaction\+State\+Response}} \&response)=0
 \begin{DoxyCompactList}\small\item\em Get compaction action state. \end{DoxyCompactList}\item 
 virtual \mbox{\hyperlink{classmilvus_1_1_status}{Status}} \mbox{\hyperlink{classmilvus_1_1_milvus_client_v2_a6da972ed183e20df0be8608755b97e54}{Get\+Compaction\+Plans}} (const \mbox{\hyperlink{classmilvus_1_1_get_compaction_request}{Get\+Compaction\+Plans\+Request}} \&request, \mbox{\hyperlink{classmilvus_1_1_get_compaction_plans_response}{Get\+Compaction\+Plans\+Response}} \&response)=0
@@ -360,7 +364,7 @@ Check healthy of the server.
 
 
 
-Manually trigger a compaction action. Normally, user no need to call this API sicne milvus automatically triggers compactions internally. It is mainly used for some maintainance or debug purpose. 
+Manually trigger a compaction action. Normally, user no need to call this API since milvus automatically triggers compactions internally. It is mainly used for some maintenance or debug purpose. 
 
 
 \begin{DoxyParams}[1]{Parameters}
@@ -1018,6 +1022,26 @@ Flush insert buffer data into storage. If the \mbox{\hyperlink{classmilvus_1_1_f
 
 \begin{DoxyParams}[1]{Parameters}
 \mbox{\texttt{ in}}  & {\em request} & input parameters \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+\mbox{\hyperlink{classmilvus_1_1_status}{Status}} operation successfully or not 
+\end{DoxyReturn}
+\mbox{\Hypertarget{classmilvus_1_1_milvus_client_v2_a8582f62e66bad191c1a29803f38c5c05}\label{classmilvus_1_1_milvus_client_v2_a8582f62e66bad191c1a29803f38c5c05}} 
+\index{milvus::MilvusClientV2@{milvus::MilvusClientV2}!Get@{Get}}
+\index{Get@{Get}!milvus::MilvusClientV2@{milvus::MilvusClientV2}}
+\doxysubsubsection{\texorpdfstring{Get()}{Get()}}
+{\footnotesize\ttfamily virtual \mbox{\hyperlink{classmilvus_1_1_status}{Status}} milvus\+::\+Milvus\+Client\+V2\+::\+Get (\begin{DoxyParamCaption}\item[{const \mbox{\hyperlink{classmilvus_1_1_get_request}{Get\+Request}} \&}]{request,  }\item[{\mbox{\hyperlink{classmilvus_1_1_query_response}{Get\+Response}} \&}]{response }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [pure virtual]}}
+
+
+
+Query with primary keys, and results in a list of records. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ in}}  & {\em request} & input parameters \\
+\hline
+\mbox{\texttt{ out}}  & {\em response} & output results \\
 \hline
 \end{DoxyParams}
 \begin{DoxyReturn}{Returns}
@@ -1781,6 +1805,24 @@ Transfer query nodes to another resource groups.
 
 
 Transfer replicas of a collection from a resource group to another. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\texttt{ in}}  & {\em request} & input parameters \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+\mbox{\hyperlink{classmilvus_1_1_status}{Status}} operation successfully or not 
+\end{DoxyReturn}
+\mbox{\Hypertarget{classmilvus_1_1_milvus_client_v2_a6c5e93b767ea465ff615afc2dd0125d2}\label{classmilvus_1_1_milvus_client_v2_a6c5e93b767ea465ff615afc2dd0125d2}} 
+\index{milvus::MilvusClientV2@{milvus::MilvusClientV2}!TruncateCollection@{TruncateCollection}}
+\index{TruncateCollection@{TruncateCollection}!milvus::MilvusClientV2@{milvus::MilvusClientV2}}
+\doxysubsubsection{\texorpdfstring{TruncateCollection()}{TruncateCollection()}}
+{\footnotesize\ttfamily virtual \mbox{\hyperlink{classmilvus_1_1_status}{Status}} milvus\+::\+Milvus\+Client\+V2\+::\+Truncate\+Collection (\begin{DoxyParamCaption}\item[{const \mbox{\hyperlink{classmilvus_1_1_truncate_collection_request}{Truncate\+Collection\+Request}} \&}]{request }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [pure virtual]}}
+
+
+
+Truncate a collection, removing all data while keeping the collection structure. 
 
 
 \begin{DoxyParams}[1]{Parameters}

@@ -22,9 +22,51 @@ The following collection shows Milvus versions and recommended milvus-cpp-sdk ve
 
 ## Installation
 
+### Prerequisites
+- C++ compiler with C++14 support (GCC 7+, Clang 5+, MSVC 2017+)
+- CMake 3.14+
+- Python 3 with pip (for Conan and build tools)
 
-### Install from source
-See [Development Guide](DEVELOPMENT.md) for details on how to compile and install from the source.
+### Quick start
+
+```shell
+git clone https://github.com/milvus-io/milvus-sdk-cpp.git
+cd milvus-sdk-cpp
+bash scripts/install_deps.sh
+make
+```
+
+### Build and run tests
+
+```shell
+make test          # unit tests + integration tests
+make st            # system tests (requires Docker)
+make coverage      # code coverage report
+```
+
+### Install the SDK
+
+```shell
+make install       # install to /usr/local
+```
+
+Or specify a custom install prefix:
+
+```shell
+make install CMAKE_INSTALL_PREFIX=/path/to/install
+```
+
+### Build with Conan
+
+The project uses [Conan 2](https://conan.io/) to manage dependencies. The `scripts/build.sh` handles Conan integration automatically. You can also use Conan directly:
+
+```shell
+conan install . --build=missing -s build_type=Release
+cmake --preset conan-release
+cmake --build build/Release
+```
+
+See [Development Guide](DEVELOPMENT.md) for more details.
 
 
 ## License

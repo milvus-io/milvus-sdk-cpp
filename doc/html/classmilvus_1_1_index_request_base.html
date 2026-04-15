@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=9"/>
 <meta name="generator" content="Doxygen 1.9.1"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>milvus-sdk-cpp: milvus::IndexRequestBase Class Reference</title>
+<title>milvus-sdk-cpp: milvus::IndexRequestBase&lt; T &gt; Class Template Reference</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -70,7 +70,7 @@ $(function() {
 <a href="#pro-methods">Protected Member Functions</a> &#124;
 <a href="classmilvus_1_1_index_request_base-members.html">List of all members</a>  </div>
   <div class="headertitle">
-<div class="title">milvus::IndexRequestBase Class Reference</div>  </div>
+<div class="title">milvus::IndexRequestBase&lt; T &gt; Class Template Reference</div>  </div>
 </div><!--header-->
 <div class="contents">
 
@@ -78,40 +78,48 @@ $(function() {
  <a href="classmilvus_1_1_index_request_base.html#details">More...</a></p>
 
 <p><code>#include &lt;<a class="el" href="_index_request_base_8h_source.html">IndexRequestBase.h</a>&gt;</code></p>
-
-<p>Inherited by <a class="el" href="classmilvus_1_1_alter_index_properties_request.html">milvus::AlterIndexPropertiesRequest</a>, <a class="el" href="classmilvus_1_1_create_index_request.html">milvus::CreateIndexRequest</a>, <a class="el" href="classmilvus_1_1_describe_index_request.html">milvus::DescribeIndexRequest</a>, <a class="el" href="classmilvus_1_1_drop_index_properties_request.html">milvus::DropIndexPropertiesRequest</a>, <a class="el" href="classmilvus_1_1_drop_index_request.html">milvus::DropIndexRequest</a>, and <a class="el" href="classmilvus_1_1_list_indexes_request.html">milvus::ListIndexesRequest</a>.</p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:a2ab968e3b512a17f339aadd339c8e224"><td class="memItemLeft" align="right" valign="top"><a id="a2ab968e3b512a17f339aadd339c8e224"></a>
-const std::string &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classmilvus_1_1_index_request_base.html#a2ab968e3b512a17f339aadd339c8e224">DatabaseName</a> () const</td></tr>
-<tr class="memdesc:a2ab968e3b512a17f339aadd339c8e224"><td class="mdescLeft">&#160;</td><td class="mdescRight">Database name in which the collection is created. <br /></td></tr>
-<tr class="separator:a2ab968e3b512a17f339aadd339c8e224"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a47491df0128245f1627db79eb410e6cf"><td class="memItemLeft" align="right" valign="top"><a id="a47491df0128245f1627db79eb410e6cf"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classmilvus_1_1_index_request_base.html#a47491df0128245f1627db79eb410e6cf">SetDatabaseName</a> (const std::string &amp;db_name)</td></tr>
-<tr class="memdesc:a47491df0128245f1627db79eb410e6cf"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set database name in which the collection is created. <br /></td></tr>
-<tr class="separator:a47491df0128245f1627db79eb410e6cf"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ae0c5782534d70dfda9137e6960b9be33"><td class="memItemLeft" align="right" valign="top"><a id="ae0c5782534d70dfda9137e6960b9be33"></a>
-const std::string &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classmilvus_1_1_index_request_base.html#ae0c5782534d70dfda9137e6960b9be33">CollectionName</a> () const</td></tr>
-<tr class="memdesc:ae0c5782534d70dfda9137e6960b9be33"><td class="mdescLeft">&#160;</td><td class="mdescRight">Name of the collection. <br /></td></tr>
-<tr class="separator:ae0c5782534d70dfda9137e6960b9be33"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a60605e1ca9710472639f484235c86c62"><td class="memItemLeft" align="right" valign="top"><a id="a60605e1ca9710472639f484235c86c62"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classmilvus_1_1_index_request_base.html#a60605e1ca9710472639f484235c86c62">SetCollectionName</a> (const std::string &amp;collection_name)</td></tr>
-<tr class="memdesc:a60605e1ca9710472639f484235c86c62"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set name of the collection. <br /></td></tr>
-<tr class="separator:a60605e1ca9710472639f484235c86c62"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2265a6809763c0027161ea5f519a439f"><td class="memItemLeft" align="right" valign="top"><a id="a2265a6809763c0027161ea5f519a439f"></a>
+const std::string &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classmilvus_1_1_index_request_base.html#a2265a6809763c0027161ea5f519a439f">DatabaseName</a> () const</td></tr>
+<tr class="memdesc:a2265a6809763c0027161ea5f519a439f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get the target db name. <br /></td></tr>
+<tr class="separator:a2265a6809763c0027161ea5f519a439f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac79ab21ea1d5b0b4a486486376540ca4"><td class="memItemLeft" align="right" valign="top"><a id="ac79ab21ea1d5b0b4a486486376540ca4"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classmilvus_1_1_index_request_base.html#ac79ab21ea1d5b0b4a486486376540ca4">SetDatabaseName</a> (const std::string &amp;db_name)</td></tr>
+<tr class="memdesc:ac79ab21ea1d5b0b4a486486376540ca4"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set target db name, use default database if it is empty. <br /></td></tr>
+<tr class="separator:ac79ab21ea1d5b0b4a486486376540ca4"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac83edf08a3facdf2f35d03a4634267e5"><td class="memItemLeft" align="right" valign="top"><a id="ac83edf08a3facdf2f35d03a4634267e5"></a>
+T &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classmilvus_1_1_index_request_base.html#ac83edf08a3facdf2f35d03a4634267e5">WithDatabaseName</a> (const std::string &amp;db_name)</td></tr>
+<tr class="memdesc:ac83edf08a3facdf2f35d03a4634267e5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set target db name, use default database if it is empty. <br /></td></tr>
+<tr class="separator:ac83edf08a3facdf2f35d03a4634267e5"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1fb2239e4199e06e999972adc9afe604"><td class="memItemLeft" align="right" valign="top"><a id="a1fb2239e4199e06e999972adc9afe604"></a>
+const std::string &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classmilvus_1_1_index_request_base.html#a1fb2239e4199e06e999972adc9afe604">CollectionName</a> () const</td></tr>
+<tr class="memdesc:a1fb2239e4199e06e999972adc9afe604"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get the collection name. <br /></td></tr>
+<tr class="separator:a1fb2239e4199e06e999972adc9afe604"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1abc88aae1259b1c16a4c8b0df4152e9"><td class="memItemLeft" align="right" valign="top"><a id="a1abc88aae1259b1c16a4c8b0df4152e9"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classmilvus_1_1_index_request_base.html#a1abc88aae1259b1c16a4c8b0df4152e9">SetCollectionName</a> (const std::string &amp;collection_name)</td></tr>
+<tr class="memdesc:a1abc88aae1259b1c16a4c8b0df4152e9"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set the collection name. <br /></td></tr>
+<tr class="separator:a1abc88aae1259b1c16a4c8b0df4152e9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8a6ff46be1d70dcafeb1c2c6b6d04529"><td class="memItemLeft" align="right" valign="top"><a id="a8a6ff46be1d70dcafeb1c2c6b6d04529"></a>
+T &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classmilvus_1_1_index_request_base.html#a8a6ff46be1d70dcafeb1c2c6b6d04529">WithCollectionName</a> (const std::string &amp;collection_name)</td></tr>
+<tr class="memdesc:a8a6ff46be1d70dcafeb1c2c6b6d04529"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set name of the collection. <br /></td></tr>
+<tr class="separator:a8a6ff46be1d70dcafeb1c2c6b6d04529"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pro-methods"></a>
 Protected Member Functions</h2></td></tr>
-<tr class="memitem:ac2e168631bf0f719f39ecb8a2d9b3c79"><td class="memItemLeft" align="right" valign="top"><a id="ac2e168631bf0f719f39ecb8a2d9b3c79"></a>
-&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classmilvus_1_1_index_request_base.html#ac2e168631bf0f719f39ecb8a2d9b3c79">IndexRequestBase</a> ()=default</td></tr>
-<tr class="memdesc:ac2e168631bf0f719f39ecb8a2d9b3c79"><td class="mdescLeft">&#160;</td><td class="mdescRight">Constructor. <br /></td></tr>
-<tr class="separator:ac2e168631bf0f719f39ecb8a2d9b3c79"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae2dde196992651b34400654e0d71beb0"><td class="memItemLeft" align="right" valign="top"><a id="ae2dde196992651b34400654e0d71beb0"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classmilvus_1_1_index_request_base.html#ae2dde196992651b34400654e0d71beb0">IndexRequestBase</a> ()=default</td></tr>
+<tr class="memdesc:ae2dde196992651b34400654e0d71beb0"><td class="mdescLeft">&#160;</td><td class="mdescRight">Constructor. <br /></td></tr>
+<tr class="separator:ae2dde196992651b34400654e0d71beb0"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock"><p>Base class of index requests. </p>
-</div><hr/>The documentation for this class was generated from the following files:<ul>
+<div class="textblock"><h3>template&lt;typename T&gt;<br />
+class milvus::IndexRequestBase&lt; T &gt;</h3>
+
+<p>Base class of index requests. </p>
+</div><hr/>The documentation for this class was generated from the following file:<ul>
 <li>src/include/milvus/request/index/<a class="el" href="_index_request_base_8h_source.html">IndexRequestBase.h</a></li>
-<li>src/impl/request/index/IndexRequestBase.cpp</li>
 </ul>
 </div><!-- contents -->
 <!-- start footer part -->

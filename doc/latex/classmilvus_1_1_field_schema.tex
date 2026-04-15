@@ -94,6 +94,9 @@ void \mbox{\hyperlink{classmilvus_1_1_field_schema_a0983320f5d1510a5f81583e70eff
 \mbox{\Hypertarget{classmilvus_1_1_field_schema_a2e85d1229a2a1a84f9771bab95d4b471}\label{classmilvus_1_1_field_schema_a2e85d1229a2a1a84f9771bab95d4b471}} 
 void \mbox{\hyperlink{classmilvus_1_1_field_schema_a2e85d1229a2a1a84f9771bab95d4b471}{Set\+Type\+Params}} (std\+::map$<$ std\+::string, std\+::string $>$ \&\&params)
 \begin{DoxyCompactList}\small\item\em Set extra key-\/value pair setting for this field Note\+: the values inputted by Set\+Dimension/\+Set\+Max\+Length/\+Set\+Max\+Capacity are stored in type\+Params as a map. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_field_schema_a3bdbeb04c1e276fe3684a298879f3540}\label{classmilvus_1_1_field_schema_a3bdbeb04c1e276fe3684a298879f3540}} 
+\mbox{\hyperlink{classmilvus_1_1_field_schema}{Field\+Schema}} \& \mbox{\hyperlink{classmilvus_1_1_field_schema_a3bdbeb04c1e276fe3684a298879f3540}{Add\+Type\+Param}} (const std\+::string \&key, const std\+::string \&val)
+\begin{DoxyCompactList}\small\item\em Add an extra key-\/value pair setting for this field. \end{DoxyCompactList}\item 
 \mbox{\Hypertarget{classmilvus_1_1_field_schema_afe4cfe65bb0b33f2ad0996b1e540af45}\label{classmilvus_1_1_field_schema_afe4cfe65bb0b33f2ad0996b1e540af45}} 
 uint32\+\_\+t \mbox{\hyperlink{classmilvus_1_1_field_schema_afe4cfe65bb0b33f2ad0996b1e540af45}{Dimension}} () const
 \begin{DoxyCompactList}\small\item\em Get dimension for a vector field. \end{DoxyCompactList}\item 
@@ -135,13 +138,22 @@ bool \mbox{\hyperlink{classmilvus_1_1_field_schema_ada04216239c758722dcb4dd15ec7
 \begin{DoxyCompactList}\small\item\em Get the flag whether enable text match. \end{DoxyCompactList}\item 
 \mbox{\Hypertarget{classmilvus_1_1_field_schema_abb52b8c2550e974fff3763c6fd7ee4b6}\label{classmilvus_1_1_field_schema_abb52b8c2550e974fff3763c6fd7ee4b6}} 
 void \mbox{\hyperlink{classmilvus_1_1_field_schema_abb52b8c2550e974fff3763c6fd7ee4b6}{Set\+Analyzer\+Params}} (const nlohmann\+::json \&params)
-\begin{DoxyCompactList}\small\item\em Set analyzer parameters. \end{DoxyCompactList}\item 
+\begin{DoxyCompactList}\small\item\em Set analyzer parameters. Note\+: Analyzer\+Params and Multi\+Analyzer\+Params cannot be applied on the same field. Read the doc for more into\+: \href{https://milvus.io/docs/analyzer-overview.md}{\texttt{ https\+://milvus.\+io/docs/analyzer-\/overview.\+md}}. \end{DoxyCompactList}\item 
 \mbox{\Hypertarget{classmilvus_1_1_field_schema_ab57e2a4e4c4bce967dbcc342f0556ac3}\label{classmilvus_1_1_field_schema_ab57e2a4e4c4bce967dbcc342f0556ac3}} 
 \mbox{\hyperlink{classmilvus_1_1_field_schema}{Field\+Schema}} \& \mbox{\hyperlink{classmilvus_1_1_field_schema_ab57e2a4e4c4bce967dbcc342f0556ac3}{With\+Analyzer\+Params}} (const nlohmann\+::json \&params)
-\begin{DoxyCompactList}\small\item\em Set analyzer parameters. \end{DoxyCompactList}\item 
+\begin{DoxyCompactList}\small\item\em Set analyzer parameters. Note\+: Analyzer\+Params and Multi\+Analyzer\+Params cannot be applied on the same field. Read the doc for more into\+: \href{https://milvus.io/docs/analyzer-overview.md}{\texttt{ https\+://milvus.\+io/docs/analyzer-\/overview.\+md}}. \end{DoxyCompactList}\item 
 \mbox{\Hypertarget{classmilvus_1_1_field_schema_aff45d1760dc423d178dcf483502f3e4d}\label{classmilvus_1_1_field_schema_aff45d1760dc423d178dcf483502f3e4d}} 
 nlohmann\+::json \mbox{\hyperlink{classmilvus_1_1_field_schema_aff45d1760dc423d178dcf483502f3e4d}{Analyzer\+Params}} () const
 \begin{DoxyCompactList}\small\item\em Get analyzer parameters. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_field_schema_addc62aa815109f93039f324e25f4cfa8}\label{classmilvus_1_1_field_schema_addc62aa815109f93039f324e25f4cfa8}} 
+void \mbox{\hyperlink{classmilvus_1_1_field_schema_addc62aa815109f93039f324e25f4cfa8}{Set\+Multi\+Analyzer\+Params}} (const nlohmann\+::json \&params)
+\begin{DoxyCompactList}\small\item\em Set multi analyzer parameters. Note\+: Analyzer\+Params and Multi\+Analyzer\+Params cannot be applied on the same field. Read the doc for more info\+: \href{https://milvus.io/docs/multi-language-analyzers.md}{\texttt{ https\+://milvus.\+io/docs/multi-\/language-\/analyzers.\+md}}. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_field_schema_acbf626d236f2e7ca92c61fbc70cd6eb2}\label{classmilvus_1_1_field_schema_acbf626d236f2e7ca92c61fbc70cd6eb2}} 
+\mbox{\hyperlink{classmilvus_1_1_field_schema}{Field\+Schema}} \& \mbox{\hyperlink{classmilvus_1_1_field_schema_acbf626d236f2e7ca92c61fbc70cd6eb2}{With\+Multi\+Analyzer\+Params}} (const nlohmann\+::json \&params)
+\begin{DoxyCompactList}\small\item\em Set multi analyzer parameters. Note\+: Analyzer\+Params and Multi\+Analyzer\+Params cannot be applied on the same field. Read the doc for more info\+: \href{https://milvus.io/docs/multi-language-analyzers.md}{\texttt{ https\+://milvus.\+io/docs/multi-\/language-\/analyzers.\+md}}. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_field_schema_a1a0d73b4af12acfcaaa0a92bf54e91da}\label{classmilvus_1_1_field_schema_a1a0d73b4af12acfcaaa0a92bf54e91da}} 
+nlohmann\+::json \mbox{\hyperlink{classmilvus_1_1_field_schema_a1a0d73b4af12acfcaaa0a92bf54e91da}{Multi\+Analyzer\+Params}} () const
+\begin{DoxyCompactList}\small\item\em Get multi analyzer parameters. \end{DoxyCompactList}\item 
 \mbox{\Hypertarget{classmilvus_1_1_field_schema_ae27ca10d1d078491d138cc54b9ea275d}\label{classmilvus_1_1_field_schema_ae27ca10d1d078491d138cc54b9ea275d}} 
 bool \mbox{\hyperlink{classmilvus_1_1_field_schema_ae27ca10d1d078491d138cc54b9ea275d}{Is\+Nullable}} () const
 \begin{DoxyCompactList}\small\item\em Get the flag whether the field value is nullable. \end{DoxyCompactList}\item 

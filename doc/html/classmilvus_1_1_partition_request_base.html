@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=9"/>
 <meta name="generator" content="Doxygen 1.9.1"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>milvus-sdk-cpp: milvus::PartitionRequestBase Class Reference</title>
+<title>milvus-sdk-cpp: milvus::PartitionRequestBase&lt; T &gt; Class Template Reference</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -70,7 +70,7 @@ $(function() {
 <a href="#pro-methods">Protected Member Functions</a> &#124;
 <a href="classmilvus_1_1_partition_request_base-members.html">List of all members</a>  </div>
   <div class="headertitle">
-<div class="title">milvus::PartitionRequestBase Class Reference</div>  </div>
+<div class="title">milvus::PartitionRequestBase&lt; T &gt; Class Template Reference</div>  </div>
 </div><!--header-->
 <div class="contents">
 
@@ -78,48 +78,60 @@ $(function() {
  <a href="classmilvus_1_1_partition_request_base.html#details">More...</a></p>
 
 <p><code>#include &lt;<a class="el" href="_partition_request_base_8h_source.html">PartitionRequestBase.h</a>&gt;</code></p>
-
-<p>Inherited by <a class="el" href="classmilvus_1_1_create_partition_request.html">milvus::CreatePartitionRequest</a>, <a class="el" href="classmilvus_1_1_drop_partition_request.html">milvus::DropPartitionRequest</a>, <a class="el" href="classmilvus_1_1_get_partition_stats_request.html">milvus::GetPartitionStatsRequest</a>, and <a class="el" href="classmilvus_1_1_has_partition_request.html">milvus::HasPartitionRequest</a>.</p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:a7320d636226730648669ba1847dbff68"><td class="memItemLeft" align="right" valign="top"><a id="a7320d636226730648669ba1847dbff68"></a>
-const std::string &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classmilvus_1_1_partition_request_base.html#a7320d636226730648669ba1847dbff68">DatabaseName</a> () const</td></tr>
-<tr class="memdesc:a7320d636226730648669ba1847dbff68"><td class="mdescLeft">&#160;</td><td class="mdescRight">Database name in which the collection is created. <br /></td></tr>
-<tr class="separator:a7320d636226730648669ba1847dbff68"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a1fcebeffe5ccc323fefc856e983c7f5b"><td class="memItemLeft" align="right" valign="top"><a id="a1fcebeffe5ccc323fefc856e983c7f5b"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classmilvus_1_1_partition_request_base.html#a1fcebeffe5ccc323fefc856e983c7f5b">SetDatabaseName</a> (const std::string &amp;db_name)</td></tr>
-<tr class="memdesc:a1fcebeffe5ccc323fefc856e983c7f5b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set database name in which the collection is created. <br /></td></tr>
-<tr class="separator:a1fcebeffe5ccc323fefc856e983c7f5b"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a73617ce3928bf8984b2e42af2eabeafc"><td class="memItemLeft" align="right" valign="top"><a id="a73617ce3928bf8984b2e42af2eabeafc"></a>
-const std::string &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classmilvus_1_1_partition_request_base.html#a73617ce3928bf8984b2e42af2eabeafc">CollectionName</a> () const</td></tr>
-<tr class="memdesc:a73617ce3928bf8984b2e42af2eabeafc"><td class="mdescLeft">&#160;</td><td class="mdescRight">Name of the collection. <br /></td></tr>
-<tr class="separator:a73617ce3928bf8984b2e42af2eabeafc"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ad6b35c5a3f4b55337c0859dc81624260"><td class="memItemLeft" align="right" valign="top"><a id="ad6b35c5a3f4b55337c0859dc81624260"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classmilvus_1_1_partition_request_base.html#ad6b35c5a3f4b55337c0859dc81624260">SetCollectionName</a> (const std::string &amp;collection_name)</td></tr>
-<tr class="memdesc:ad6b35c5a3f4b55337c0859dc81624260"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set name of the collection. <br /></td></tr>
-<tr class="separator:ad6b35c5a3f4b55337c0859dc81624260"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a7528b82951e6c4e3e8d47f714f87b3f3"><td class="memItemLeft" align="right" valign="top"><a id="a7528b82951e6c4e3e8d47f714f87b3f3"></a>
-const std::string &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classmilvus_1_1_partition_request_base.html#a7528b82951e6c4e3e8d47f714f87b3f3">PartitionName</a> () const</td></tr>
-<tr class="memdesc:a7528b82951e6c4e3e8d47f714f87b3f3"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set name of the partition. <br /></td></tr>
-<tr class="separator:a7528b82951e6c4e3e8d47f714f87b3f3"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a53922ccc31622d3d30366e00ae1a7929"><td class="memItemLeft" align="right" valign="top"><a id="a53922ccc31622d3d30366e00ae1a7929"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classmilvus_1_1_partition_request_base.html#a53922ccc31622d3d30366e00ae1a7929">SetPartitionName</a> (const std::string &amp;partition_name)</td></tr>
-<tr class="memdesc:a53922ccc31622d3d30366e00ae1a7929"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set name of the partition. <br /></td></tr>
-<tr class="separator:a53922ccc31622d3d30366e00ae1a7929"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a55a2ae6f1764aa644171fb98d6817e0a"><td class="memItemLeft" align="right" valign="top"><a id="a55a2ae6f1764aa644171fb98d6817e0a"></a>
+const std::string &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classmilvus_1_1_partition_request_base.html#a55a2ae6f1764aa644171fb98d6817e0a">DatabaseName</a> () const</td></tr>
+<tr class="memdesc:a55a2ae6f1764aa644171fb98d6817e0a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get the target db name. <br /></td></tr>
+<tr class="separator:a55a2ae6f1764aa644171fb98d6817e0a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a881d853c07d266c2243f266af870fd33"><td class="memItemLeft" align="right" valign="top"><a id="a881d853c07d266c2243f266af870fd33"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classmilvus_1_1_partition_request_base.html#a881d853c07d266c2243f266af870fd33">SetDatabaseName</a> (const std::string &amp;db_name)</td></tr>
+<tr class="memdesc:a881d853c07d266c2243f266af870fd33"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set target db name, use default database if it is empty. <br /></td></tr>
+<tr class="separator:a881d853c07d266c2243f266af870fd33"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2462ebf4307c883e99b63ac45b7e048d"><td class="memItemLeft" align="right" valign="top"><a id="a2462ebf4307c883e99b63ac45b7e048d"></a>
+T &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classmilvus_1_1_partition_request_base.html#a2462ebf4307c883e99b63ac45b7e048d">WithDatabaseName</a> (const std::string &amp;db_name)</td></tr>
+<tr class="memdesc:a2462ebf4307c883e99b63ac45b7e048d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set target db name, use default database if it is empty. <br /></td></tr>
+<tr class="separator:a2462ebf4307c883e99b63ac45b7e048d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8d10c54868d7a69fc982e4236ab5407a"><td class="memItemLeft" align="right" valign="top"><a id="a8d10c54868d7a69fc982e4236ab5407a"></a>
+const std::string &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classmilvus_1_1_partition_request_base.html#a8d10c54868d7a69fc982e4236ab5407a">CollectionName</a> () const</td></tr>
+<tr class="memdesc:a8d10c54868d7a69fc982e4236ab5407a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get the collection name. <br /></td></tr>
+<tr class="separator:a8d10c54868d7a69fc982e4236ab5407a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8105cae1018fb974f1c600f8573c5287"><td class="memItemLeft" align="right" valign="top"><a id="a8105cae1018fb974f1c600f8573c5287"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classmilvus_1_1_partition_request_base.html#a8105cae1018fb974f1c600f8573c5287">SetCollectionName</a> (const std::string &amp;collection_name)</td></tr>
+<tr class="memdesc:a8105cae1018fb974f1c600f8573c5287"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set the collection name. <br /></td></tr>
+<tr class="separator:a8105cae1018fb974f1c600f8573c5287"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a281829f243c4c81df42398ed66e4584f"><td class="memItemLeft" align="right" valign="top"><a id="a281829f243c4c81df42398ed66e4584f"></a>
+T &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classmilvus_1_1_partition_request_base.html#a281829f243c4c81df42398ed66e4584f">WithCollectionName</a> (const std::string &amp;collection_name)</td></tr>
+<tr class="memdesc:a281829f243c4c81df42398ed66e4584f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set name of the collection. <br /></td></tr>
+<tr class="separator:a281829f243c4c81df42398ed66e4584f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae827c2e4b0055a7d53b490986b384399"><td class="memItemLeft" align="right" valign="top"><a id="ae827c2e4b0055a7d53b490986b384399"></a>
+const std::string &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classmilvus_1_1_partition_request_base.html#ae827c2e4b0055a7d53b490986b384399">PartitionName</a> () const</td></tr>
+<tr class="memdesc:ae827c2e4b0055a7d53b490986b384399"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set name of the partition. <br /></td></tr>
+<tr class="separator:ae827c2e4b0055a7d53b490986b384399"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a174ad68df985882ab023a05db89431f2"><td class="memItemLeft" align="right" valign="top"><a id="a174ad68df985882ab023a05db89431f2"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classmilvus_1_1_partition_request_base.html#a174ad68df985882ab023a05db89431f2">SetPartitionName</a> (const std::string &amp;partition_name)</td></tr>
+<tr class="memdesc:a174ad68df985882ab023a05db89431f2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set name of the partition. <br /></td></tr>
+<tr class="separator:a174ad68df985882ab023a05db89431f2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0e984979d4e8e91f994ad84b415785ed"><td class="memItemLeft" align="right" valign="top"><a id="a0e984979d4e8e91f994ad84b415785ed"></a>
+T &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classmilvus_1_1_partition_request_base.html#a0e984979d4e8e91f994ad84b415785ed">WithPartitionName</a> (const std::string &amp;partition_name)</td></tr>
+<tr class="memdesc:a0e984979d4e8e91f994ad84b415785ed"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set name of the partition. <br /></td></tr>
+<tr class="separator:a0e984979d4e8e91f994ad84b415785ed"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pro-methods"></a>
 Protected Member Functions</h2></td></tr>
-<tr class="memitem:a3f50972339aa7e544c1dc56a98f18ba5"><td class="memItemLeft" align="right" valign="top"><a id="a3f50972339aa7e544c1dc56a98f18ba5"></a>
-&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classmilvus_1_1_partition_request_base.html#a3f50972339aa7e544c1dc56a98f18ba5">PartitionRequestBase</a> ()=default</td></tr>
-<tr class="memdesc:a3f50972339aa7e544c1dc56a98f18ba5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Constructor. <br /></td></tr>
-<tr class="separator:a3f50972339aa7e544c1dc56a98f18ba5"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab1e237304a03e74fc27bd2c675208d4c"><td class="memItemLeft" align="right" valign="top"><a id="ab1e237304a03e74fc27bd2c675208d4c"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classmilvus_1_1_partition_request_base.html#ab1e237304a03e74fc27bd2c675208d4c">PartitionRequestBase</a> ()=default</td></tr>
+<tr class="memdesc:ab1e237304a03e74fc27bd2c675208d4c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Constructor. <br /></td></tr>
+<tr class="separator:ab1e237304a03e74fc27bd2c675208d4c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock"><p>Base class of partition requests except <a class="el" href="classmilvus_1_1_load_partitions_request.html" title="Used by MilvusClientV2::LoadPartitions()">LoadPartitionsRequest</a> and <a class="el" href="classmilvus_1_1_list_partitions_request.html" title="Used by MilvusClientV2::ListPartitions()">ListPartitionsRequest</a>. </p>
-</div><hr/>The documentation for this class was generated from the following files:<ul>
+<div class="textblock"><h3>template&lt;typename T&gt;<br />
+class milvus::PartitionRequestBase&lt; T &gt;</h3>
+
+<p>Base class of partition requests except <a class="el" href="classmilvus_1_1_load_partitions_request.html" title="Used by MilvusClientV2::LoadPartitions()">LoadPartitionsRequest</a> and <a class="el" href="classmilvus_1_1_list_partitions_request.html" title="Used by MilvusClientV2::ListPartitions()">ListPartitionsRequest</a>. </p>
+</div><hr/>The documentation for this class was generated from the following file:<ul>
 <li>src/include/milvus/request/partition/<a class="el" href="_partition_request_base_8h_source.html">PartitionRequestBase.h</a></li>
-<li>src/impl/request/partition/PartitionRequestBase.cpp</li>
 </ul>
 </div><!-- contents -->
 <!-- start footer part -->

@@ -9,39 +9,16 @@ Used by \mbox{\hyperlink{classmilvus_1_1_milvus_client_v2_a3d3568cbdef075cfd9a3e
 
 {\ttfamily \#include $<$Delete\+Request.\+h$>$}
 
+
+
+Inherits \mbox{\hyperlink{classmilvus_1_1_d_m_l_request_base}{milvus\+::\+DMLRequest\+Base$<$ Delete\+Request $>$}}.
+
 \doxysubsection*{Public Member Functions}
 \begin{DoxyCompactItemize}
 \item 
 \mbox{\Hypertarget{classmilvus_1_1_delete_request_a039cc6831871cdbddb8992de01c725ed}\label{classmilvus_1_1_delete_request_a039cc6831871cdbddb8992de01c725ed}} 
 \mbox{\hyperlink{classmilvus_1_1_delete_request_a039cc6831871cdbddb8992de01c725ed}{Delete\+Request}} ()=default
 \begin{DoxyCompactList}\small\item\em Constructor. \end{DoxyCompactList}\item 
-\mbox{\Hypertarget{classmilvus_1_1_delete_request_a4d1f6dbf3f7a77c24cd21099c9d9ecbb}\label{classmilvus_1_1_delete_request_a4d1f6dbf3f7a77c24cd21099c9d9ecbb}} 
-const std\+::string \& \mbox{\hyperlink{classmilvus_1_1_delete_request_a4d1f6dbf3f7a77c24cd21099c9d9ecbb}{Database\+Name}} () const
-\begin{DoxyCompactList}\small\item\em Database name. \end{DoxyCompactList}\item 
-\mbox{\Hypertarget{classmilvus_1_1_delete_request_afe3c33d4a314c0147e132a3229ade631}\label{classmilvus_1_1_delete_request_afe3c33d4a314c0147e132a3229ade631}} 
-void \mbox{\hyperlink{classmilvus_1_1_delete_request_afe3c33d4a314c0147e132a3229ade631}{Set\+Database\+Name}} (const std\+::string \&db\+\_\+name)
-\begin{DoxyCompactList}\small\item\em Set database name. If database name is empty, will list collections of the default database. \end{DoxyCompactList}\item 
-\mbox{\Hypertarget{classmilvus_1_1_delete_request_aa0a25b597acf1faf8673bb0e127fc237}\label{classmilvus_1_1_delete_request_aa0a25b597acf1faf8673bb0e127fc237}} 
-\mbox{\hyperlink{classmilvus_1_1_delete_request}{Delete\+Request}} \& \mbox{\hyperlink{classmilvus_1_1_delete_request_aa0a25b597acf1faf8673bb0e127fc237}{With\+Database\+Name}} (const std\+::string \&db\+\_\+name)
-\begin{DoxyCompactList}\small\item\em Set database name. If database name is empty, will list collections of the default database. \end{DoxyCompactList}\item 
-\mbox{\Hypertarget{classmilvus_1_1_delete_request_ab02ee3e72d508db13ec559743fb0b680}\label{classmilvus_1_1_delete_request_ab02ee3e72d508db13ec559743fb0b680}} 
-const std\+::string \& \mbox{\hyperlink{classmilvus_1_1_delete_request_ab02ee3e72d508db13ec559743fb0b680}{Collection\+Name}} () const
-\begin{DoxyCompactList}\small\item\em Name of the collection. \end{DoxyCompactList}\item 
-\mbox{\Hypertarget{classmilvus_1_1_delete_request_ae18f3ab14e1c727e4fbb22bf5a23828f}\label{classmilvus_1_1_delete_request_ae18f3ab14e1c727e4fbb22bf5a23828f}} 
-void \mbox{\hyperlink{classmilvus_1_1_delete_request_ae18f3ab14e1c727e4fbb22bf5a23828f}{Set\+Collection\+Name}} (const std\+::string \&collection\+\_\+name)
-\begin{DoxyCompactList}\small\item\em Set name of the collection. \end{DoxyCompactList}\item 
-\mbox{\Hypertarget{classmilvus_1_1_delete_request_a4bc2c0a7f2780e3627a9fec8bc6ce63a}\label{classmilvus_1_1_delete_request_a4bc2c0a7f2780e3627a9fec8bc6ce63a}} 
-\mbox{\hyperlink{classmilvus_1_1_delete_request}{Delete\+Request}} \& \mbox{\hyperlink{classmilvus_1_1_delete_request_a4bc2c0a7f2780e3627a9fec8bc6ce63a}{With\+Collection\+Name}} (const std\+::string \&collection\+\_\+name)
-\begin{DoxyCompactList}\small\item\em Set name of the collection. \end{DoxyCompactList}\item 
-\mbox{\Hypertarget{classmilvus_1_1_delete_request_ab9b6b4d3f8dce3ee1b7289be57133089}\label{classmilvus_1_1_delete_request_ab9b6b4d3f8dce3ee1b7289be57133089}} 
-const std\+::string \& \mbox{\hyperlink{classmilvus_1_1_delete_request_ab9b6b4d3f8dce3ee1b7289be57133089}{Partition\+Name}} () const
-\begin{DoxyCompactList}\small\item\em Name of the partition. \end{DoxyCompactList}\item 
-\mbox{\Hypertarget{classmilvus_1_1_delete_request_ae39a08e5c33b8569c7155c126d215d1e}\label{classmilvus_1_1_delete_request_ae39a08e5c33b8569c7155c126d215d1e}} 
-void \mbox{\hyperlink{classmilvus_1_1_delete_request_ae39a08e5c33b8569c7155c126d215d1e}{Set\+Partition\+Name}} (const std\+::string \&partition\+\_\+name)
-\begin{DoxyCompactList}\small\item\em Set name of the partition. If partition name is empty, it will insert data into the default partition. \end{DoxyCompactList}\item 
-\mbox{\Hypertarget{classmilvus_1_1_delete_request_a9a417abd9c4b6144175d7ffbabd1f2b3}\label{classmilvus_1_1_delete_request_a9a417abd9c4b6144175d7ffbabd1f2b3}} 
-\mbox{\hyperlink{classmilvus_1_1_delete_request}{Delete\+Request}} \& \mbox{\hyperlink{classmilvus_1_1_delete_request_a9a417abd9c4b6144175d7ffbabd1f2b3}{With\+Partition\+Name}} (const std\+::string \&partition\+\_\+name)
-\begin{DoxyCompactList}\small\item\em Set new name of the partition. If partition name is empty, it will insert data into the default partition. \end{DoxyCompactList}\item 
 \mbox{\Hypertarget{classmilvus_1_1_delete_request_a8d324baa54f194a2cf0814823fae35d5}\label{classmilvus_1_1_delete_request_a8d324baa54f194a2cf0814823fae35d5}} 
 const std\+::string \& \mbox{\hyperlink{classmilvus_1_1_delete_request_a8d324baa54f194a2cf0814823fae35d5}{Filter}} () const
 \begin{DoxyCompactList}\small\item\em Get filter expression. \end{DoxyCompactList}\item 

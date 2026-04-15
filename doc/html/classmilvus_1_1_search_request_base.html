@@ -78,7 +78,7 @@ $(function() {
 
 <p><code>#include &lt;<a class="el" href="_search_request_base_8h_source.html">SearchRequestBase.h</a>&gt;</code></p>
 
-<p>Inherited by <a class="el" href="classmilvus_1_1_search_arguments.html">milvus::SearchArguments</a>, <a class="el" href="classmilvus_1_1_search_request.html">milvus::SearchRequest</a>, and <a class="el" href="classmilvus_1_1_sub_search_request.html">milvus::SubSearchRequest</a>.</p>
+<p>Inherited by <a class="el" href="classmilvus_1_1_search_request_vector_assigner.html">milvus::SearchRequestVectorAssigner&lt; SubSearchRequest &gt;</a>, <a class="el" href="classmilvus_1_1_search_request_vector_assigner.html">milvus::SearchRequestVectorAssigner&lt; SearchRequest &gt;</a>, <a class="el" href="classmilvus_1_1_search_arguments.html">milvus::SearchArguments</a>, and <a class="el" href="classmilvus_1_1_search_request_vector_assigner.html">milvus::SearchRequestVectorAssigner&lt; T &gt;</a>.</p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
@@ -280,7 +280,7 @@ std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" hre
 </div><div class="memdoc">
 
 <p>Add a bfloat16 vector to search. </p>
-<dl class="deprecated"><dt><b><a class="el" href="deprecated.html#_deprecated000047">Deprecated:</a></b></dt><dd>replaced by same name method without field_name parameter, use SetAnnField() to set ann field name. </dd></dl>
+<dl class="deprecated"><dt><b><a class="el" href="deprecated.html#_deprecated000050">Deprecated:</a></b></dt><dd>replaced by same name method without field_name parameter, use SetAnnField() to set ann field name. </dd></dl>
 
 </div>
 </div>
@@ -311,7 +311,7 @@ std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" hre
 </div><div class="memdoc">
 
 <p>Add a bfloat16 vector to search. This method automatically converts the float array to bfloat16 binary. </p>
-<dl class="deprecated"><dt><b><a class="el" href="deprecated.html#_deprecated000048">Deprecated:</a></b></dt><dd>replaced by same name method without field_name parameter, use SetAnnField() to set ann field name. </dd></dl>
+<dl class="deprecated"><dt><b><a class="el" href="deprecated.html#_deprecated000051">Deprecated:</a></b></dt><dd>replaced by same name method without field_name parameter, use SetAnnField() to set ann field name. </dd></dl>
 
 </div>
 </div>
@@ -342,7 +342,7 @@ std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" hre
 </div><div class="memdoc">
 
 <p>Add a binary vector to search. </p>
-<dl class="deprecated"><dt><b><a class="el" href="deprecated.html#_deprecated000041">Deprecated:</a></b></dt><dd>replaced by same name method without field_name parameter </dd></dl>
+<dl class="deprecated"><dt><b><a class="el" href="deprecated.html#_deprecated000044">Deprecated:</a></b></dt><dd>replaced by same name method without field_name parameter </dd></dl>
 
 </div>
 </div>
@@ -373,7 +373,7 @@ std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" hre
 </div><div class="memdoc">
 
 <p>Add a binary vector to search. </p>
-<dl class="deprecated"><dt><b><a class="el" href="deprecated.html#_deprecated000040">Deprecated:</a></b></dt><dd>replaced by same name method without field_name parameter, use SetAnnField() to set ann field name. </dd></dl>
+<dl class="deprecated"><dt><b><a class="el" href="deprecated.html#_deprecated000043">Deprecated:</a></b></dt><dd>replaced by same name method without field_name parameter, use SetAnnField() to set ann field name. </dd></dl>
 
 </div>
 </div>
@@ -404,7 +404,7 @@ std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" hre
 </div><div class="memdoc">
 
 <p>Add a text to search. Only works for BM25 function. </p>
-<dl class="deprecated"><dt><b><a class="el" href="deprecated.html#_deprecated000049">Deprecated:</a></b></dt><dd>replaced by same name method without field_name parameter, use SetAnnField() to set ann field name. </dd></dl>
+<dl class="deprecated"><dt><b><a class="el" href="deprecated.html#_deprecated000052">Deprecated:</a></b></dt><dd>replaced by same name method without field_name parameter, use SetAnnField() to set ann field name. </dd></dl>
 
 </div>
 </div>
@@ -435,7 +435,7 @@ std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" hre
 </div><div class="memdoc">
 
 <p>Add a float16 vector to search. </p>
-<dl class="deprecated"><dt><b><a class="el" href="deprecated.html#_deprecated000045">Deprecated:</a></b></dt><dd>replaced by same name method without field_name parameter, use SetAnnField() to set ann field name. </dd></dl>
+<dl class="deprecated"><dt><b><a class="el" href="deprecated.html#_deprecated000048">Deprecated:</a></b></dt><dd>replaced by same name method without field_name parameter, use SetAnnField() to set ann field name. </dd></dl>
 
 </div>
 </div>
@@ -466,7 +466,7 @@ std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" hre
 </div><div class="memdoc">
 
 <p>Add a float16 vector to search. This method automatically converts the float array to float16 binary. </p>
-<dl class="deprecated"><dt><b><a class="el" href="deprecated.html#_deprecated000046">Deprecated:</a></b></dt><dd>replaced by same name method without field_name parameter, use SetAnnField() to set ann field name. </dd></dl>
+<dl class="deprecated"><dt><b><a class="el" href="deprecated.html#_deprecated000049">Deprecated:</a></b></dt><dd>replaced by same name method without field_name parameter, use SetAnnField() to set ann field name. </dd></dl>
 
 </div>
 </div>
@@ -497,7 +497,7 @@ std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" hre
 </div><div class="memdoc">
 
 <p>Add a float vector to search. </p>
-<dl class="deprecated"><dt><b><a class="el" href="deprecated.html#_deprecated000042">Deprecated:</a></b></dt><dd>replaced by same name method without field_name parameter, use SetAnnField() to set ann field name. </dd></dl>
+<dl class="deprecated"><dt><b><a class="el" href="deprecated.html#_deprecated000045">Deprecated:</a></b></dt><dd>replaced by same name method without field_name parameter, use SetAnnField() to set ann field name. </dd></dl>
 
 </div>
 </div>
@@ -528,7 +528,7 @@ std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" hre
 </div><div class="memdoc">
 
 <p>Add an int8 vector to search. </p>
-<dl class="deprecated"><dt><b><a class="el" href="deprecated.html#_deprecated000050">Deprecated:</a></b></dt><dd>replaced by same name method without field_name parameter, use SetAnnField() to set ann field name. </dd></dl>
+<dl class="deprecated"><dt><b><a class="el" href="deprecated.html#_deprecated000053">Deprecated:</a></b></dt><dd>replaced by same name method without field_name parameter, use SetAnnField() to set ann field name. </dd></dl>
 
 </div>
 </div>
@@ -585,7 +585,7 @@ std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" hre
 <p>Add a sparse vector to search. We support two patterns of sparse vector: </p>
 <ol type="1">
 <li>a json dict like {"1": 0.1, "5": 0.2, "8": 0.15}.</li>
-<li>a json dict like {"indices": [1, 5, 8], "values": [0.1, 0.2, 0.15]}. <dl class="deprecated"><dt><b><a class="el" href="deprecated.html#_deprecated000044">Deprecated:</a></b></dt><dd>replaced by same name method without field_name parameter, use SetAnnField() to set ann field name. </dd></dl>
+<li>a json dict like {"indices": [1, 5, 8], "values": [0.1, 0.2, 0.15]}. <dl class="deprecated"><dt><b><a class="el" href="deprecated.html#_deprecated000047">Deprecated:</a></b></dt><dd>replaced by same name method without field_name parameter, use SetAnnField() to set ann field name. </dd></dl>
 </li>
 </ol>
 
@@ -618,7 +618,7 @@ std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" hre
 </div><div class="memdoc">
 
 <p>Add a sparse vector to search. </p>
-<dl class="deprecated"><dt><b><a class="el" href="deprecated.html#_deprecated000043">Deprecated:</a></b></dt><dd>replaced by same name method without field_name parameter, use SetAnnField() to set ann field name. </dd></dl>
+<dl class="deprecated"><dt><b><a class="el" href="deprecated.html#_deprecated000046">Deprecated:</a></b></dt><dd>replaced by same name method without field_name parameter, use SetAnnField() to set ann field name. </dd></dl>
 
 </div>
 </div>

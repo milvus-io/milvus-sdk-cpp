@@ -1,0 +1,132 @@
+\hypertarget{classmilvus_1_1_search_request_vector_assigner}{}\doxysection{milvus\+::Search\+Request\+Vector\+Assigner$<$ T $>$ Class Template Reference}
+\label{classmilvus_1_1_search_request_vector_assigner}\index{milvus::SearchRequestVectorAssigner$<$ T $>$@{milvus::SearchRequestVectorAssigner$<$ T $>$}}
+
+
+Recurring template pattern class for \mbox{\hyperlink{classmilvus_1_1_sub_search_request}{Sub\+Search\+Request}} and \mbox{\hyperlink{classmilvus_1_1_search_request}{Search\+Request}}.  
+
+
+
+
+{\ttfamily \#include $<$Search\+Request\+Base.\+h$>$}
+
+
+
+Inherits \mbox{\hyperlink{classmilvus_1_1_search_request_base}{milvus\+::\+Search\+Request\+Base}}.
+
+\doxysubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{classmilvus_1_1_search_request_vector_assigner_ae34166ec24432f32c149b93fd500ed81}\label{classmilvus_1_1_search_request_vector_assigner_ae34166ec24432f32c149b93fd500ed81}} 
+T \& \mbox{\hyperlink{classmilvus_1_1_search_request_vector_assigner_ae34166ec24432f32c149b93fd500ed81}{Add\+Binary\+Vector}} (const std\+::string \&vector)
+\begin{DoxyCompactList}\small\item\em Add a binary vector to search request. This method automatically converts the string array to uint8 array. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_search_request_vector_assigner_acecf41dc9d567e7258a65fe2f0e6804a}\label{classmilvus_1_1_search_request_vector_assigner_acecf41dc9d567e7258a65fe2f0e6804a}} 
+T \& \mbox{\hyperlink{classmilvus_1_1_search_request_vector_assigner_acecf41dc9d567e7258a65fe2f0e6804a}{Add\+Binary\+Vector}} (const Binary\+Vec\+Field\+Data\+::\+ElementT \&vector)
+\begin{DoxyCompactList}\small\item\em Add a binary vector to search request. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_search_request_vector_assigner_a300d5e5be5bb073bee86a9ec4e1ed6d6}\label{classmilvus_1_1_search_request_vector_assigner_a300d5e5be5bb073bee86a9ec4e1ed6d6}} 
+T \& \mbox{\hyperlink{classmilvus_1_1_search_request_vector_assigner_a300d5e5be5bb073bee86a9ec4e1ed6d6}{Add\+Float\+Vector}} (const \mbox{\hyperlink{classmilvus_1_1_field_data_a921c839e5d8df646cb7a20029ddb17f6}{Float\+Vec\+Field\+Data\+::\+ElementT}} \&vector)
+\begin{DoxyCompactList}\small\item\em Add a float vector to search request. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_search_request_vector_assigner_aff147273d39ff378573aeddc6145eb90}\label{classmilvus_1_1_search_request_vector_assigner_aff147273d39ff378573aeddc6145eb90}} 
+T \& \mbox{\hyperlink{classmilvus_1_1_search_request_vector_assigner_aff147273d39ff378573aeddc6145eb90}{Add\+Sparse\+Vector}} (const \mbox{\hyperlink{classmilvus_1_1_field_data_a921c839e5d8df646cb7a20029ddb17f6}{Sparse\+Float\+Vec\+Field\+Data\+::\+ElementT}} \&vector)
+\begin{DoxyCompactList}\small\item\em Add a sparse vector to search request. \end{DoxyCompactList}\item 
+T \& \mbox{\hyperlink{classmilvus_1_1_search_request_vector_assigner_a100533acedc9aabc4a0d89faff4e636d}{Add\+Sparse\+Vector}} (const nlohmann\+::json \&vector)
+\begin{DoxyCompactList}\small\item\em Add a sparse vector to search request. We support two patterns of sparse vector\+: \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_search_request_vector_assigner_a87654356ca0fe95ed966d2fe7c5e35ad}\label{classmilvus_1_1_search_request_vector_assigner_a87654356ca0fe95ed966d2fe7c5e35ad}} 
+T \& \mbox{\hyperlink{classmilvus_1_1_search_request_vector_assigner_a87654356ca0fe95ed966d2fe7c5e35ad}{Add\+Float16\+Vector}} (const \mbox{\hyperlink{classmilvus_1_1_field_data_a921c839e5d8df646cb7a20029ddb17f6}{Float16\+Vec\+Field\+Data\+::\+ElementT}} \&vector)
+\begin{DoxyCompactList}\small\item\em Add a float16 vector to search request. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_search_request_vector_assigner_aae465553ee15e7baacccc0fea32f5911}\label{classmilvus_1_1_search_request_vector_assigner_aae465553ee15e7baacccc0fea32f5911}} 
+T \& \mbox{\hyperlink{classmilvus_1_1_search_request_vector_assigner_aae465553ee15e7baacccc0fea32f5911}{Add\+Float16\+Vector}} (const std\+::vector$<$ float $>$ \&vector)
+\begin{DoxyCompactList}\small\item\em Add a float16 vector to search request. This method automatically converts the float array to float16 binary. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_search_request_vector_assigner_aee31c382dd8255dba697c3064439d92c}\label{classmilvus_1_1_search_request_vector_assigner_aee31c382dd8255dba697c3064439d92c}} 
+T \& \mbox{\hyperlink{classmilvus_1_1_search_request_vector_assigner_aee31c382dd8255dba697c3064439d92c}{Add\+BFloat16\+Vector}} (const \mbox{\hyperlink{classmilvus_1_1_field_data_a921c839e5d8df646cb7a20029ddb17f6}{BFloat16\+Vec\+Field\+Data\+::\+ElementT}} \&vector)
+\begin{DoxyCompactList}\small\item\em Add a bfloat16 vector to search request. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_search_request_vector_assigner_a74dc61da2eb35ba5a805dedaa3786f9b}\label{classmilvus_1_1_search_request_vector_assigner_a74dc61da2eb35ba5a805dedaa3786f9b}} 
+T \& \mbox{\hyperlink{classmilvus_1_1_search_request_vector_assigner_a74dc61da2eb35ba5a805dedaa3786f9b}{Add\+BFloat16\+Vector}} (const std\+::vector$<$ float $>$ \&vector)
+\begin{DoxyCompactList}\small\item\em Add a bfloat16 vector to search request. This method automatically converts the float array to bfloat16 binary. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_search_request_vector_assigner_a75983f76ae2507c48ea02599e9005c82}\label{classmilvus_1_1_search_request_vector_assigner_a75983f76ae2507c48ea02599e9005c82}} 
+T \& \mbox{\hyperlink{classmilvus_1_1_search_request_vector_assigner_a75983f76ae2507c48ea02599e9005c82}{Add\+Embedded\+Text}} (const std\+::string \&text)
+\begin{DoxyCompactList}\small\item\em Add a text to search request. Only works for BM25 function. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_search_request_vector_assigner_a66ed707c9911d40b6ef92096beda1b43}\label{classmilvus_1_1_search_request_vector_assigner_a66ed707c9911d40b6ef92096beda1b43}} 
+T \& \mbox{\hyperlink{classmilvus_1_1_search_request_vector_assigner_a66ed707c9911d40b6ef92096beda1b43}{Add\+Int8\+Vector}} (const \mbox{\hyperlink{classmilvus_1_1_field_data_a921c839e5d8df646cb7a20029ddb17f6}{Int8\+Vec\+Field\+Data\+::\+ElementT}} \&vector)
+\begin{DoxyCompactList}\small\item\em Add an int8 vector to search request. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_search_request_vector_assigner_a598d97f085211d00affcd41f672f029e}\label{classmilvus_1_1_search_request_vector_assigner_a598d97f085211d00affcd41f672f029e}} 
+T \& \mbox{\hyperlink{classmilvus_1_1_search_request_vector_assigner_a598d97f085211d00affcd41f672f029e}{Add\+Embedding\+List}} (\mbox{\hyperlink{classmilvus_1_1_embedding_list}{Embedding\+List}} \&\&emb\+\_\+list)
+\begin{DoxyCompactList}\small\item\em Add an embedding list to search request on struct field. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_search_request_vector_assigner_af1adb8cc2b0c4429008c0a4305ca3a51}\label{classmilvus_1_1_search_request_vector_assigner_af1adb8cc2b0c4429008c0a4305ca3a51}} 
+T \& \mbox{\hyperlink{classmilvus_1_1_search_request_vector_assigner_af1adb8cc2b0c4429008c0a4305ca3a51}{With\+Binary\+Vectors}} (const std\+::vector$<$ std\+::string $>$ \&vectors)
+\begin{DoxyCompactList}\small\item\em Assign binary vectors to search request. This method automatically converts the string array to uint8 array. Note\+: this method will reset the vector list of the request. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_search_request_vector_assigner_acdf7c60e7cf44763ffc93955021c890f}\label{classmilvus_1_1_search_request_vector_assigner_acdf7c60e7cf44763ffc93955021c890f}} 
+T \& \mbox{\hyperlink{classmilvus_1_1_search_request_vector_assigner_acdf7c60e7cf44763ffc93955021c890f}{With\+Binary\+Vectors}} (std\+::vector$<$ Binary\+Vec\+Field\+Data\+::\+ElementT $>$ \&\&vectors)
+\begin{DoxyCompactList}\small\item\em Assign binary vectors to search request. Note\+: this method will reset the vector list of the request. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_search_request_vector_assigner_a8cfd356d7d683e7e7393178c2f641b9a}\label{classmilvus_1_1_search_request_vector_assigner_a8cfd356d7d683e7e7393178c2f641b9a}} 
+T \& \mbox{\hyperlink{classmilvus_1_1_search_request_vector_assigner_a8cfd356d7d683e7e7393178c2f641b9a}{With\+Float\+Vectors}} (std\+::vector$<$ \mbox{\hyperlink{classmilvus_1_1_field_data_a921c839e5d8df646cb7a20029ddb17f6}{Float\+Vec\+Field\+Data\+::\+ElementT}} $>$ \&\&vectors)
+\begin{DoxyCompactList}\small\item\em Assign float vectors to search request. Note\+: this method will reset the vector list of the request. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_search_request_vector_assigner_ae0fcf7b232def8a1a3f14d3e92d8fea7}\label{classmilvus_1_1_search_request_vector_assigner_ae0fcf7b232def8a1a3f14d3e92d8fea7}} 
+T \& \mbox{\hyperlink{classmilvus_1_1_search_request_vector_assigner_ae0fcf7b232def8a1a3f14d3e92d8fea7}{With\+Sparse\+Vectors}} (std\+::vector$<$ \mbox{\hyperlink{classmilvus_1_1_field_data_a921c839e5d8df646cb7a20029ddb17f6}{Sparse\+Float\+Vec\+Field\+Data\+::\+ElementT}} $>$ \&\&vectors)
+\begin{DoxyCompactList}\small\item\em Assign sparse vectors to search request. Note\+: this method will reset the vector list of the request. \end{DoxyCompactList}\item 
+T \& \mbox{\hyperlink{classmilvus_1_1_search_request_vector_assigner_a48bc4a216ee1cbff56c174b585edc271}{With\+Sparse\+Vectors}} (const std\+::vector$<$ nlohmann\+::json $>$ \&vectors)
+\begin{DoxyCompactList}\small\item\em Assign sparse vectors to search request. Note\+: this method will reset the vector list of the request. We support two patterns of sparse vector\+: \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_search_request_vector_assigner_a2b983a5a1e15ccd592337705651400b0}\label{classmilvus_1_1_search_request_vector_assigner_a2b983a5a1e15ccd592337705651400b0}} 
+T \& \mbox{\hyperlink{classmilvus_1_1_search_request_vector_assigner_a2b983a5a1e15ccd592337705651400b0}{With\+Float16\+Vectors}} (std\+::vector$<$ \mbox{\hyperlink{classmilvus_1_1_field_data_a921c839e5d8df646cb7a20029ddb17f6}{Float16\+Vec\+Field\+Data\+::\+ElementT}} $>$ \&\&vectors)
+\begin{DoxyCompactList}\small\item\em Assign float16 vectors to search request. Note\+: this method will reset the vector list of the request. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_search_request_vector_assigner_afbb82099ba132ab969eeced954642440}\label{classmilvus_1_1_search_request_vector_assigner_afbb82099ba132ab969eeced954642440}} 
+T \& \mbox{\hyperlink{classmilvus_1_1_search_request_vector_assigner_afbb82099ba132ab969eeced954642440}{With\+Float16\+Vectors}} (const std\+::vector$<$ std\+::vector$<$ float $>$$>$ \&vectors)
+\begin{DoxyCompactList}\small\item\em Assign float16 vectors to search request. This method automatically converts the float array to float16 binary. Note\+: this method will reset the vector list of the request. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_search_request_vector_assigner_af8c3169f9fee43a5e8724e430ca285f7}\label{classmilvus_1_1_search_request_vector_assigner_af8c3169f9fee43a5e8724e430ca285f7}} 
+T \& \mbox{\hyperlink{classmilvus_1_1_search_request_vector_assigner_af8c3169f9fee43a5e8724e430ca285f7}{With\+BFloat16\+Vectors}} (std\+::vector$<$ \mbox{\hyperlink{classmilvus_1_1_field_data_a921c839e5d8df646cb7a20029ddb17f6}{BFloat16\+Vec\+Field\+Data\+::\+ElementT}} $>$ \&\&vectors)
+\begin{DoxyCompactList}\small\item\em Assign bfloat16 vectors to search request. Note\+: this method will reset the vector list of the request. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_search_request_vector_assigner_a811ac7cfb791cd919c93486ee79bb654}\label{classmilvus_1_1_search_request_vector_assigner_a811ac7cfb791cd919c93486ee79bb654}} 
+T \& \mbox{\hyperlink{classmilvus_1_1_search_request_vector_assigner_a811ac7cfb791cd919c93486ee79bb654}{With\+BFloat16\+Vectors}} (const std\+::vector$<$ std\+::vector$<$ float $>$$>$ \&vectors)
+\begin{DoxyCompactList}\small\item\em Assign bfloat16 vectors to search request. This method automatically converts the float array to bfloat16 binary. Note\+: this method will reset the vector list of the request. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_search_request_vector_assigner_af0b18f60fb283eea717946fede1d09cb}\label{classmilvus_1_1_search_request_vector_assigner_af0b18f60fb283eea717946fede1d09cb}} 
+T \& \mbox{\hyperlink{classmilvus_1_1_search_request_vector_assigner_af0b18f60fb283eea717946fede1d09cb}{With\+Embedded\+Texts}} (std\+::vector$<$ std\+::string $>$ \&\&texts)
+\begin{DoxyCompactList}\small\item\em Assign texts to search request. Only works for BM25 function. Note\+: this method will reset the vector list of the request. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_search_request_vector_assigner_a9e79a4e35b4cb81ff7054e1b59679082}\label{classmilvus_1_1_search_request_vector_assigner_a9e79a4e35b4cb81ff7054e1b59679082}} 
+T \& \mbox{\hyperlink{classmilvus_1_1_search_request_vector_assigner_a9e79a4e35b4cb81ff7054e1b59679082}{With\+Int8\+Vectors}} (std\+::vector$<$ \mbox{\hyperlink{classmilvus_1_1_field_data_a921c839e5d8df646cb7a20029ddb17f6}{Int8\+Vec\+Field\+Data\+::\+ElementT}} $>$ \&\&vectors)
+\begin{DoxyCompactList}\small\item\em Assign int8 vectors to search request. Note\+: this method will reset the vector list of the request. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_search_request_vector_assigner_abbb932d28ddb6fcc3918e86e9b855ab6}\label{classmilvus_1_1_search_request_vector_assigner_abbb932d28ddb6fcc3918e86e9b855ab6}} 
+T \& \mbox{\hyperlink{classmilvus_1_1_search_request_vector_assigner_abbb932d28ddb6fcc3918e86e9b855ab6}{With\+Embedding\+Lists}} (std\+::vector$<$ \mbox{\hyperlink{classmilvus_1_1_embedding_list}{Embedding\+List}} $>$ \&\&emb\+\_\+lists)
+\begin{DoxyCompactList}\small\item\em Assign embedding lists to search request on struct field. Note\+: this method will reset the vector list of the request. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+\subsubsection*{template$<$typename T$>$\newline
+class milvus\+::\+Search\+Request\+Vector\+Assigner$<$ T $>$}
+
+Recurring template pattern class for \mbox{\hyperlink{classmilvus_1_1_sub_search_request}{Sub\+Search\+Request}} and \mbox{\hyperlink{classmilvus_1_1_search_request}{Search\+Request}}. 
+
+\doxysubsection{Member Function Documentation}
+\mbox{\Hypertarget{classmilvus_1_1_search_request_vector_assigner_a100533acedc9aabc4a0d89faff4e636d}\label{classmilvus_1_1_search_request_vector_assigner_a100533acedc9aabc4a0d89faff4e636d}} 
+\index{milvus::SearchRequestVectorAssigner$<$ T $>$@{milvus::SearchRequestVectorAssigner$<$ T $>$}!AddSparseVector@{AddSparseVector}}
+\index{AddSparseVector@{AddSparseVector}!milvus::SearchRequestVectorAssigner$<$ T $>$@{milvus::SearchRequestVectorAssigner$<$ T $>$}}
+\doxysubsubsection{\texorpdfstring{AddSparseVector()}{AddSparseVector()}}
+{\footnotesize\ttfamily template$<$typename T $>$ \\
+T\& \mbox{\hyperlink{classmilvus_1_1_search_request_vector_assigner}{milvus\+::\+Search\+Request\+Vector\+Assigner}}$<$ T $>$\+::Add\+Sparse\+Vector (\begin{DoxyParamCaption}\item[{const nlohmann\+::json \&}]{vector }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
+
+
+
+Add a sparse vector to search request. We support two patterns of sparse vector\+: 
+
+
+\begin{DoxyEnumerate}
+\item a json dict like \{\char`\"{}1\char`\"{}\+: 0.\+1, \char`\"{}5\char`\"{}\+: 0.\+2, \char`\"{}8\char`\"{}\+: 0.\+15\}.
+\item a json dict like \{\char`\"{}indices\char`\"{}\+: \mbox{[}1, 5, 8\mbox{]}, \char`\"{}values\char`\"{}\+: \mbox{[}0.\+1, 0.\+2, 0.\+15\mbox{]}\}. 
+\end{DoxyEnumerate}\mbox{\Hypertarget{classmilvus_1_1_search_request_vector_assigner_a48bc4a216ee1cbff56c174b585edc271}\label{classmilvus_1_1_search_request_vector_assigner_a48bc4a216ee1cbff56c174b585edc271}} 
+\index{milvus::SearchRequestVectorAssigner$<$ T $>$@{milvus::SearchRequestVectorAssigner$<$ T $>$}!WithSparseVectors@{WithSparseVectors}}
+\index{WithSparseVectors@{WithSparseVectors}!milvus::SearchRequestVectorAssigner$<$ T $>$@{milvus::SearchRequestVectorAssigner$<$ T $>$}}
+\doxysubsubsection{\texorpdfstring{WithSparseVectors()}{WithSparseVectors()}}
+{\footnotesize\ttfamily template$<$typename T $>$ \\
+T\& \mbox{\hyperlink{classmilvus_1_1_search_request_vector_assigner}{milvus\+::\+Search\+Request\+Vector\+Assigner}}$<$ T $>$\+::With\+Sparse\+Vectors (\begin{DoxyParamCaption}\item[{const std\+::vector$<$ nlohmann\+::json $>$ \&}]{vectors }\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}}
+
+
+
+Assign sparse vectors to search request. Note\+: this method will reset the vector list of the request. We support two patterns of sparse vector\+: 
+
+
+\begin{DoxyEnumerate}
+\item a json dict like \{\char`\"{}1\char`\"{}\+: 0.\+1, \char`\"{}5\char`\"{}\+: 0.\+2, \char`\"{}8\char`\"{}\+: 0.\+15\}.
+\item a json dict like \{\char`\"{}indices\char`\"{}\+: \mbox{[}1, 5, 8\mbox{]}, \char`\"{}values\char`\"{}\+: \mbox{[}0.\+1, 0.\+2, 0.\+15\mbox{]}\}. 
+\end{DoxyEnumerate}
+
+The documentation for this class was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+src/include/milvus/types/Search\+Request\+Base.\+h\end{DoxyCompactItemize}
