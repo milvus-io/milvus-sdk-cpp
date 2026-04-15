@@ -1,0 +1,34 @@
+\hypertarget{classmilvus_1_1_d_b_request_base}{}\doxysection{milvus\+::DBRequest\+Base$<$ T $>$ Class Template Reference}
+\label{classmilvus_1_1_d_b_request_base}\index{milvus::DBRequestBase$<$ T $>$@{milvus::DBRequestBase$<$ T $>$}}
+
+
+Base class for database requests, except the \mbox{\hyperlink{classmilvus_1_1_list_databases_request}{List\+Databases\+Request}}.  
+
+
+
+
+{\ttfamily \#include $<$DBRequest\+Base.\+h$>$}
+
+\doxysubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{classmilvus_1_1_d_b_request_base_a34e083bbbf049e41a5d05bc32a743b9c}\label{classmilvus_1_1_d_b_request_base_a34e083bbbf049e41a5d05bc32a743b9c}} 
+const std\+::string \& \mbox{\hyperlink{classmilvus_1_1_d_b_request_base_a34e083bbbf049e41a5d05bc32a743b9c}{Database\+Name}} () const
+\begin{DoxyCompactList}\small\item\em Get the target db name. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_d_b_request_base_af452dabfe2c7333fab69b549b014a8e5}\label{classmilvus_1_1_d_b_request_base_af452dabfe2c7333fab69b549b014a8e5}} 
+void \mbox{\hyperlink{classmilvus_1_1_d_b_request_base_af452dabfe2c7333fab69b549b014a8e5}{Set\+Database\+Name}} (const std\+::string \&db\+\_\+name)
+\begin{DoxyCompactList}\small\item\em Set target db name, use default database if it is empty. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_d_b_request_base_a45a9c49932a2eac54513794dfef3c846}\label{classmilvus_1_1_d_b_request_base_a45a9c49932a2eac54513794dfef3c846}} 
+T \& \mbox{\hyperlink{classmilvus_1_1_d_b_request_base_a45a9c49932a2eac54513794dfef3c846}{With\+Database\+Name}} (const std\+::string \&db\+\_\+name)
+\begin{DoxyCompactList}\small\item\em Set target db name, use default database if it is empty. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+\subsubsection*{template$<$typename T$>$\newline
+class milvus\+::\+DBRequest\+Base$<$ T $>$}
+
+Base class for database requests, except the \mbox{\hyperlink{classmilvus_1_1_list_databases_request}{List\+Databases\+Request}}. 
+
+The documentation for this class was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+src/include/milvus/request/database/DBRequest\+Base.\+h\end{DoxyCompactItemize}

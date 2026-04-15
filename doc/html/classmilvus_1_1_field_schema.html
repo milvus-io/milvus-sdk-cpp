@@ -190,6 +190,10 @@ void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="clas
 void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classmilvus_1_1_field_schema.html#a2e85d1229a2a1a84f9771bab95d4b471">SetTypeParams</a> (std::map&lt; std::string, std::string &gt; &amp;&amp;params)</td></tr>
 <tr class="memdesc:a2e85d1229a2a1a84f9771bab95d4b471"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set extra key-value pair setting for this field Note: the values inputted by SetDimension/SetMaxLength/SetMaxCapacity are stored in typeParams as a map. <br /></td></tr>
 <tr class="separator:a2e85d1229a2a1a84f9771bab95d4b471"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3bdbeb04c1e276fe3684a298879f3540"><td class="memItemLeft" align="right" valign="top"><a id="a3bdbeb04c1e276fe3684a298879f3540"></a>
+<a class="el" href="classmilvus_1_1_field_schema.html">FieldSchema</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classmilvus_1_1_field_schema.html#a3bdbeb04c1e276fe3684a298879f3540">AddTypeParam</a> (const std::string &amp;key, const std::string &amp;val)</td></tr>
+<tr class="memdesc:a3bdbeb04c1e276fe3684a298879f3540"><td class="mdescLeft">&#160;</td><td class="mdescRight">Add an extra key-value pair setting for this field. <br /></td></tr>
+<tr class="separator:a3bdbeb04c1e276fe3684a298879f3540"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:afe4cfe65bb0b33f2ad0996b1e540af45"><td class="memItemLeft" align="right" valign="top"><a id="afe4cfe65bb0b33f2ad0996b1e540af45"></a>
 uint32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classmilvus_1_1_field_schema.html#afe4cfe65bb0b33f2ad0996b1e540af45">Dimension</a> () const</td></tr>
 <tr class="memdesc:afe4cfe65bb0b33f2ad0996b1e540af45"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get dimension for a vector field. <br /></td></tr>
@@ -244,16 +248,28 @@ bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="clas
 <tr class="separator:ada04216239c758722dcb4dd15ec70e62"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:abb52b8c2550e974fff3763c6fd7ee4b6"><td class="memItemLeft" align="right" valign="top"><a id="abb52b8c2550e974fff3763c6fd7ee4b6"></a>
 void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classmilvus_1_1_field_schema.html#abb52b8c2550e974fff3763c6fd7ee4b6">SetAnalyzerParams</a> (const nlohmann::json &amp;params)</td></tr>
-<tr class="memdesc:abb52b8c2550e974fff3763c6fd7ee4b6"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set analyzer parameters. <br /></td></tr>
+<tr class="memdesc:abb52b8c2550e974fff3763c6fd7ee4b6"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set analyzer parameters. Note: AnalyzerParams and MultiAnalyzerParams cannot be applied on the same field. Read the doc for more into: <a href="https://milvus.io/docs/analyzer-overview.md">https://milvus.io/docs/analyzer-overview.md</a>. <br /></td></tr>
 <tr class="separator:abb52b8c2550e974fff3763c6fd7ee4b6"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab57e2a4e4c4bce967dbcc342f0556ac3"><td class="memItemLeft" align="right" valign="top"><a id="ab57e2a4e4c4bce967dbcc342f0556ac3"></a>
 <a class="el" href="classmilvus_1_1_field_schema.html">FieldSchema</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classmilvus_1_1_field_schema.html#ab57e2a4e4c4bce967dbcc342f0556ac3">WithAnalyzerParams</a> (const nlohmann::json &amp;params)</td></tr>
-<tr class="memdesc:ab57e2a4e4c4bce967dbcc342f0556ac3"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set analyzer parameters. <br /></td></tr>
+<tr class="memdesc:ab57e2a4e4c4bce967dbcc342f0556ac3"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set analyzer parameters. Note: AnalyzerParams and MultiAnalyzerParams cannot be applied on the same field. Read the doc for more into: <a href="https://milvus.io/docs/analyzer-overview.md">https://milvus.io/docs/analyzer-overview.md</a>. <br /></td></tr>
 <tr class="separator:ab57e2a4e4c4bce967dbcc342f0556ac3"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aff45d1760dc423d178dcf483502f3e4d"><td class="memItemLeft" align="right" valign="top"><a id="aff45d1760dc423d178dcf483502f3e4d"></a>
 nlohmann::json&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classmilvus_1_1_field_schema.html#aff45d1760dc423d178dcf483502f3e4d">AnalyzerParams</a> () const</td></tr>
 <tr class="memdesc:aff45d1760dc423d178dcf483502f3e4d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get analyzer parameters. <br /></td></tr>
 <tr class="separator:aff45d1760dc423d178dcf483502f3e4d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:addc62aa815109f93039f324e25f4cfa8"><td class="memItemLeft" align="right" valign="top"><a id="addc62aa815109f93039f324e25f4cfa8"></a>
+void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classmilvus_1_1_field_schema.html#addc62aa815109f93039f324e25f4cfa8">SetMultiAnalyzerParams</a> (const nlohmann::json &amp;params)</td></tr>
+<tr class="memdesc:addc62aa815109f93039f324e25f4cfa8"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set multi analyzer parameters. Note: AnalyzerParams and MultiAnalyzerParams cannot be applied on the same field. Read the doc for more info: <a href="https://milvus.io/docs/multi-language-analyzers.md">https://milvus.io/docs/multi-language-analyzers.md</a>. <br /></td></tr>
+<tr class="separator:addc62aa815109f93039f324e25f4cfa8"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:acbf626d236f2e7ca92c61fbc70cd6eb2"><td class="memItemLeft" align="right" valign="top"><a id="acbf626d236f2e7ca92c61fbc70cd6eb2"></a>
+<a class="el" href="classmilvus_1_1_field_schema.html">FieldSchema</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classmilvus_1_1_field_schema.html#acbf626d236f2e7ca92c61fbc70cd6eb2">WithMultiAnalyzerParams</a> (const nlohmann::json &amp;params)</td></tr>
+<tr class="memdesc:acbf626d236f2e7ca92c61fbc70cd6eb2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set multi analyzer parameters. Note: AnalyzerParams and MultiAnalyzerParams cannot be applied on the same field. Read the doc for more info: <a href="https://milvus.io/docs/multi-language-analyzers.md">https://milvus.io/docs/multi-language-analyzers.md</a>. <br /></td></tr>
+<tr class="separator:acbf626d236f2e7ca92c61fbc70cd6eb2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1a0d73b4af12acfcaaa0a92bf54e91da"><td class="memItemLeft" align="right" valign="top"><a id="a1a0d73b4af12acfcaaa0a92bf54e91da"></a>
+nlohmann::json&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classmilvus_1_1_field_schema.html#a1a0d73b4af12acfcaaa0a92bf54e91da">MultiAnalyzerParams</a> () const</td></tr>
+<tr class="memdesc:a1a0d73b4af12acfcaaa0a92bf54e91da"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get multi analyzer parameters. <br /></td></tr>
+<tr class="separator:a1a0d73b4af12acfcaaa0a92bf54e91da"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ae27ca10d1d078491d138cc54b9ea275d"><td class="memItemLeft" align="right" valign="top"><a id="ae27ca10d1d078491d138cc54b9ea275d"></a>
 bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classmilvus_1_1_field_schema.html#ae27ca10d1d078491d138cc54b9ea275d">IsNullable</a> () const</td></tr>
 <tr class="memdesc:ae27ca10d1d078491d138cc54b9ea275d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get the flag whether the field value is nullable. <br /></td></tr>

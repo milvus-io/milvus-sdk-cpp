@@ -1,5 +1,5 @@
-\hypertarget{classmilvus_1_1_index_request_base}{}\doxysection{milvus\+::Index\+Request\+Base Class Reference}
-\label{classmilvus_1_1_index_request_base}\index{milvus::IndexRequestBase@{milvus::IndexRequestBase}}
+\hypertarget{classmilvus_1_1_index_request_base}{}\doxysection{milvus\+::Index\+Request\+Base$<$ T $>$ Class Template Reference}
+\label{classmilvus_1_1_index_request_base}\index{milvus::IndexRequestBase$<$ T $>$@{milvus::IndexRequestBase$<$ T $>$}}
 
 
 Base class of index requests.  
@@ -9,37 +9,41 @@ Base class of index requests.
 
 {\ttfamily \#include $<$Index\+Request\+Base.\+h$>$}
 
-
-
-Inherited by \mbox{\hyperlink{classmilvus_1_1_alter_index_properties_request}{milvus\+::\+Alter\+Index\+Properties\+Request}}, \mbox{\hyperlink{classmilvus_1_1_create_index_request}{milvus\+::\+Create\+Index\+Request}}, \mbox{\hyperlink{classmilvus_1_1_describe_index_request}{milvus\+::\+Describe\+Index\+Request}}, \mbox{\hyperlink{classmilvus_1_1_drop_index_properties_request}{milvus\+::\+Drop\+Index\+Properties\+Request}}, \mbox{\hyperlink{classmilvus_1_1_drop_index_request}{milvus\+::\+Drop\+Index\+Request}}, and \mbox{\hyperlink{classmilvus_1_1_list_indexes_request}{milvus\+::\+List\+Indexes\+Request}}.
-
 \doxysubsection*{Public Member Functions}
 \begin{DoxyCompactItemize}
 \item 
-\mbox{\Hypertarget{classmilvus_1_1_index_request_base_a2ab968e3b512a17f339aadd339c8e224}\label{classmilvus_1_1_index_request_base_a2ab968e3b512a17f339aadd339c8e224}} 
-const std\+::string \& \mbox{\hyperlink{classmilvus_1_1_index_request_base_a2ab968e3b512a17f339aadd339c8e224}{Database\+Name}} () const
-\begin{DoxyCompactList}\small\item\em Database name in which the collection is created. \end{DoxyCompactList}\item 
-\mbox{\Hypertarget{classmilvus_1_1_index_request_base_a47491df0128245f1627db79eb410e6cf}\label{classmilvus_1_1_index_request_base_a47491df0128245f1627db79eb410e6cf}} 
-void \mbox{\hyperlink{classmilvus_1_1_index_request_base_a47491df0128245f1627db79eb410e6cf}{Set\+Database\+Name}} (const std\+::string \&db\+\_\+name)
-\begin{DoxyCompactList}\small\item\em Set database name in which the collection is created. \end{DoxyCompactList}\item 
-\mbox{\Hypertarget{classmilvus_1_1_index_request_base_ae0c5782534d70dfda9137e6960b9be33}\label{classmilvus_1_1_index_request_base_ae0c5782534d70dfda9137e6960b9be33}} 
-const std\+::string \& \mbox{\hyperlink{classmilvus_1_1_index_request_base_ae0c5782534d70dfda9137e6960b9be33}{Collection\+Name}} () const
-\begin{DoxyCompactList}\small\item\em Name of the collection. \end{DoxyCompactList}\item 
-\mbox{\Hypertarget{classmilvus_1_1_index_request_base_a60605e1ca9710472639f484235c86c62}\label{classmilvus_1_1_index_request_base_a60605e1ca9710472639f484235c86c62}} 
-void \mbox{\hyperlink{classmilvus_1_1_index_request_base_a60605e1ca9710472639f484235c86c62}{Set\+Collection\+Name}} (const std\+::string \&collection\+\_\+name)
+\mbox{\Hypertarget{classmilvus_1_1_index_request_base_a2265a6809763c0027161ea5f519a439f}\label{classmilvus_1_1_index_request_base_a2265a6809763c0027161ea5f519a439f}} 
+const std\+::string \& \mbox{\hyperlink{classmilvus_1_1_index_request_base_a2265a6809763c0027161ea5f519a439f}{Database\+Name}} () const
+\begin{DoxyCompactList}\small\item\em Get the target db name. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_index_request_base_ac79ab21ea1d5b0b4a486486376540ca4}\label{classmilvus_1_1_index_request_base_ac79ab21ea1d5b0b4a486486376540ca4}} 
+void \mbox{\hyperlink{classmilvus_1_1_index_request_base_ac79ab21ea1d5b0b4a486486376540ca4}{Set\+Database\+Name}} (const std\+::string \&db\+\_\+name)
+\begin{DoxyCompactList}\small\item\em Set target db name, use default database if it is empty. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_index_request_base_ac83edf08a3facdf2f35d03a4634267e5}\label{classmilvus_1_1_index_request_base_ac83edf08a3facdf2f35d03a4634267e5}} 
+T \& \mbox{\hyperlink{classmilvus_1_1_index_request_base_ac83edf08a3facdf2f35d03a4634267e5}{With\+Database\+Name}} (const std\+::string \&db\+\_\+name)
+\begin{DoxyCompactList}\small\item\em Set target db name, use default database if it is empty. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_index_request_base_a1fb2239e4199e06e999972adc9afe604}\label{classmilvus_1_1_index_request_base_a1fb2239e4199e06e999972adc9afe604}} 
+const std\+::string \& \mbox{\hyperlink{classmilvus_1_1_index_request_base_a1fb2239e4199e06e999972adc9afe604}{Collection\+Name}} () const
+\begin{DoxyCompactList}\small\item\em Get the collection name. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_index_request_base_a1abc88aae1259b1c16a4c8b0df4152e9}\label{classmilvus_1_1_index_request_base_a1abc88aae1259b1c16a4c8b0df4152e9}} 
+void \mbox{\hyperlink{classmilvus_1_1_index_request_base_a1abc88aae1259b1c16a4c8b0df4152e9}{Set\+Collection\+Name}} (const std\+::string \&collection\+\_\+name)
+\begin{DoxyCompactList}\small\item\em Set the collection name. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_index_request_base_a8a6ff46be1d70dcafeb1c2c6b6d04529}\label{classmilvus_1_1_index_request_base_a8a6ff46be1d70dcafeb1c2c6b6d04529}} 
+T \& \mbox{\hyperlink{classmilvus_1_1_index_request_base_a8a6ff46be1d70dcafeb1c2c6b6d04529}{With\+Collection\+Name}} (const std\+::string \&collection\+\_\+name)
 \begin{DoxyCompactList}\small\item\em Set name of the collection. \end{DoxyCompactList}\end{DoxyCompactItemize}
 \doxysubsection*{Protected Member Functions}
 \begin{DoxyCompactItemize}
 \item 
-\mbox{\Hypertarget{classmilvus_1_1_index_request_base_ac2e168631bf0f719f39ecb8a2d9b3c79}\label{classmilvus_1_1_index_request_base_ac2e168631bf0f719f39ecb8a2d9b3c79}} 
-\mbox{\hyperlink{classmilvus_1_1_index_request_base_ac2e168631bf0f719f39ecb8a2d9b3c79}{Index\+Request\+Base}} ()=default
+\mbox{\Hypertarget{classmilvus_1_1_index_request_base_ae2dde196992651b34400654e0d71beb0}\label{classmilvus_1_1_index_request_base_ae2dde196992651b34400654e0d71beb0}} 
+\mbox{\hyperlink{classmilvus_1_1_index_request_base_ae2dde196992651b34400654e0d71beb0}{Index\+Request\+Base}} ()=default
 \begin{DoxyCompactList}\small\item\em Constructor. \end{DoxyCompactList}\end{DoxyCompactItemize}
 
 
 \doxysubsection{Detailed Description}
+\subsubsection*{template$<$typename T$>$\newline
+class milvus\+::\+Index\+Request\+Base$<$ T $>$}
+
 Base class of index requests. 
 
-The documentation for this class was generated from the following files\+:\begin{DoxyCompactItemize}
+The documentation for this class was generated from the following file\+:\begin{DoxyCompactItemize}
 \item 
-src/include/milvus/request/index/Index\+Request\+Base.\+h\item 
-src/impl/request/index/Index\+Request\+Base.\+cpp\end{DoxyCompactItemize}
+src/include/milvus/request/index/Index\+Request\+Base.\+h\end{DoxyCompactItemize}

@@ -1,0 +1,49 @@
+\hypertarget{classmilvus_1_1_alias_request_base}{}\doxysection{milvus\+::Alias\+Request\+Base$<$ T $>$ Class Template Reference}
+\label{classmilvus_1_1_alias_request_base}\index{milvus::AliasRequestBase$<$ T $>$@{milvus::AliasRequestBase$<$ T $>$}}
+
+
+Base class of alias requests except \mbox{\hyperlink{classmilvus_1_1_drop_alias_request}{Drop\+Alias\+Request}}, \mbox{\hyperlink{classmilvus_1_1_describe_alias_request}{Describe\+Alias\+Request}} and \mbox{\hyperlink{classmilvus_1_1_list_aliases_request}{List\+Aliases\+Request}}.  
+
+
+
+
+{\ttfamily \#include $<$Alias\+Request\+Base.\+h$>$}
+
+\doxysubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{classmilvus_1_1_alias_request_base_ac62824f01173ceec29828f4bde968a85}\label{classmilvus_1_1_alias_request_base_ac62824f01173ceec29828f4bde968a85}} 
+const std\+::string \& \mbox{\hyperlink{classmilvus_1_1_alias_request_base_ac62824f01173ceec29828f4bde968a85}{Database\+Name}} () const
+\begin{DoxyCompactList}\small\item\em Get the target db name. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_alias_request_base_a3edf7c586a8ac64983f777124fb7494c}\label{classmilvus_1_1_alias_request_base_a3edf7c586a8ac64983f777124fb7494c}} 
+void \mbox{\hyperlink{classmilvus_1_1_alias_request_base_a3edf7c586a8ac64983f777124fb7494c}{Set\+Database\+Name}} (const std\+::string \&db\+\_\+name)
+\begin{DoxyCompactList}\small\item\em Set target db name, use default database if it is empty. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_alias_request_base_acd17e0c93f921e19235f320d2b518834}\label{classmilvus_1_1_alias_request_base_acd17e0c93f921e19235f320d2b518834}} 
+T \& \mbox{\hyperlink{classmilvus_1_1_alias_request_base_acd17e0c93f921e19235f320d2b518834}{With\+Database\+Name}} (const std\+::string \&db\+\_\+name)
+\begin{DoxyCompactList}\small\item\em Set target db name, use default database if it is empty. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_alias_request_base_a40f70ebfabe44f0a1a722a7b51334dd8}\label{classmilvus_1_1_alias_request_base_a40f70ebfabe44f0a1a722a7b51334dd8}} 
+const std\+::string \& \mbox{\hyperlink{classmilvus_1_1_alias_request_base_a40f70ebfabe44f0a1a722a7b51334dd8}{Collection\+Name}} () const
+\begin{DoxyCompactList}\small\item\em Get the collection name. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_alias_request_base_ace02319e6764ced40029d1ff843b3a1a}\label{classmilvus_1_1_alias_request_base_ace02319e6764ced40029d1ff843b3a1a}} 
+void \mbox{\hyperlink{classmilvus_1_1_alias_request_base_ace02319e6764ced40029d1ff843b3a1a}{Set\+Collection\+Name}} (const std\+::string \&collection\+\_\+name)
+\begin{DoxyCompactList}\small\item\em Set the collection name. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{classmilvus_1_1_alias_request_base_a437bf65d294980dbbdc4325608781dc3}\label{classmilvus_1_1_alias_request_base_a437bf65d294980dbbdc4325608781dc3}} 
+T \& \mbox{\hyperlink{classmilvus_1_1_alias_request_base_a437bf65d294980dbbdc4325608781dc3}{With\+Collection\+Name}} (const std\+::string \&collection\+\_\+name)
+\begin{DoxyCompactList}\small\item\em Set name of the collection. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\doxysubsection*{Protected Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\Hypertarget{classmilvus_1_1_alias_request_base_a5dabbb14f1caa7dd481f3d86344af011}\label{classmilvus_1_1_alias_request_base_a5dabbb14f1caa7dd481f3d86344af011}} 
+\mbox{\hyperlink{classmilvus_1_1_alias_request_base_a5dabbb14f1caa7dd481f3d86344af011}{Alias\+Request\+Base}} ()=default
+\begin{DoxyCompactList}\small\item\em Constructor. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+\subsubsection*{template$<$typename T$>$\newline
+class milvus\+::\+Alias\+Request\+Base$<$ T $>$}
+
+Base class of alias requests except \mbox{\hyperlink{classmilvus_1_1_drop_alias_request}{Drop\+Alias\+Request}}, \mbox{\hyperlink{classmilvus_1_1_describe_alias_request}{Describe\+Alias\+Request}} and \mbox{\hyperlink{classmilvus_1_1_list_aliases_request}{List\+Aliases\+Request}}. 
+
+The documentation for this class was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+src/include/milvus/request/alias/Alias\+Request\+Base.\+h\end{DoxyCompactItemize}

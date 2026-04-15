@@ -73,7 +73,7 @@ $(function() {
 </div><!--header-->
 <div class="contents">
 
-<p>A list of embeddings to search for struct field.  
+<p>A list of embeddings to search for struct field. It is also used to store the target vectors for SearchRequest/SubSearchRequest.  
  <a href="classmilvus_1_1_embedding_list.html#details">More...</a></p>
 
 <p><code>#include &lt;<a class="el" href="_embedding_list_8h_source.html">EmbeddingList.h</a>&gt;</code></p>
@@ -92,6 +92,10 @@ FieldDataPtr&#160;</td><td class="memItemRight" valign="bottom"><a class="el" hr
 size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classmilvus_1_1_embedding_list.html#a345a2bffaa5d208d64f8bca4636a7de5">Count</a> () const</td></tr>
 <tr class="memdesc:a345a2bffaa5d208d64f8bca4636a7de5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get count of target vectors. <br /></td></tr>
 <tr class="separator:a345a2bffaa5d208d64f8bca4636a7de5"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa50eeec8d875cbcbddff92850efc7c1f"><td class="memItemLeft" align="right" valign="top"><a id="aa50eeec8d875cbcbddff92850efc7c1f"></a>
+int64_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classmilvus_1_1_embedding_list.html#aa50eeec8d875cbcbddff92850efc7c1f">Dim</a> () const</td></tr>
+<tr class="memdesc:aa50eeec8d875cbcbddff92850efc7c1f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Dimension of the vectors, for embedded text, the value is 0. <br /></td></tr>
+<tr class="separator:aa50eeec8d875cbcbddff92850efc7c1f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a6f9a590984453eb3d9475336887b3cb6"><td class="memItemLeft" align="right" valign="top"><a id="a6f9a590984453eb3d9475336887b3cb6"></a>
 <a class="el" href="classmilvus_1_1_status.html">Status</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classmilvus_1_1_embedding_list.html#a6f9a590984453eb3d9475336887b3cb6">AddBinaryVector</a> (const std::string &amp;vector)</td></tr>
 <tr class="memdesc:a6f9a590984453eb3d9475336887b3cb6"><td class="mdescLeft">&#160;</td><td class="mdescRight">Add a binary vector to search. <br /></td></tr>
@@ -135,13 +139,52 @@ size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="cl
 <a class="el" href="classmilvus_1_1_status.html">Status</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classmilvus_1_1_embedding_list.html#a1e35c1a2ae6553064fa5438bdfb9c2a0">AddInt8Vector</a> (const <a class="el" href="classmilvus_1_1_field_data.html#a921c839e5d8df646cb7a20029ddb17f6">Int8VecFieldData::ElementT</a> &amp;vector)</td></tr>
 <tr class="memdesc:a1e35c1a2ae6553064fa5438bdfb9c2a0"><td class="mdescLeft">&#160;</td><td class="mdescRight">Add an int8 vector to search. <br /></td></tr>
 <tr class="separator:a1e35c1a2ae6553064fa5438bdfb9c2a0"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aa50eeec8d875cbcbddff92850efc7c1f"><td class="memItemLeft" align="right" valign="top"><a id="aa50eeec8d875cbcbddff92850efc7c1f"></a>
-int64_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classmilvus_1_1_embedding_list.html#aa50eeec8d875cbcbddff92850efc7c1f">Dim</a> () const</td></tr>
-<tr class="memdesc:aa50eeec8d875cbcbddff92850efc7c1f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Dimension of the vectors, for embedded text, the value is 0. <br /></td></tr>
-<tr class="separator:aa50eeec8d875cbcbddff92850efc7c1f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a33ccb215900bfa2058a7e3a1344c3584"><td class="memItemLeft" align="right" valign="top"><a id="a33ccb215900bfa2058a7e3a1344c3584"></a>
+<a class="el" href="classmilvus_1_1_status.html">Status</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classmilvus_1_1_embedding_list.html#a33ccb215900bfa2058a7e3a1344c3584">SetBinaryVectors</a> (const std::vector&lt; std::string &gt; &amp;vectors)</td></tr>
+<tr class="memdesc:a33ccb215900bfa2058a7e3a1344c3584"><td class="mdescLeft">&#160;</td><td class="mdescRight">Assign binary vectors to search request. This method automatically converts the string array to uint8 array. Note: this method will reset the vector list. <br /></td></tr>
+<tr class="separator:a33ccb215900bfa2058a7e3a1344c3584"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4936ef87f3d37f9ebe380faac7b5c61c"><td class="memItemLeft" align="right" valign="top"><a id="a4936ef87f3d37f9ebe380faac7b5c61c"></a>
+<a class="el" href="classmilvus_1_1_status.html">Status</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classmilvus_1_1_embedding_list.html#a4936ef87f3d37f9ebe380faac7b5c61c">SetBinaryVectors</a> (std::vector&lt; BinaryVecFieldData::ElementT &gt; &amp;&amp;vectors)</td></tr>
+<tr class="memdesc:a4936ef87f3d37f9ebe380faac7b5c61c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Assign binary vectors to search request. Note: this method will reset the vector list. <br /></td></tr>
+<tr class="separator:a4936ef87f3d37f9ebe380faac7b5c61c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:adc9474dbd6fc12a8bd5018588a91565d"><td class="memItemLeft" align="right" valign="top"><a id="adc9474dbd6fc12a8bd5018588a91565d"></a>
+<a class="el" href="classmilvus_1_1_status.html">Status</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classmilvus_1_1_embedding_list.html#adc9474dbd6fc12a8bd5018588a91565d">SetFloatVectors</a> (std::vector&lt; <a class="el" href="classmilvus_1_1_field_data.html#a921c839e5d8df646cb7a20029ddb17f6">FloatVecFieldData::ElementT</a> &gt; &amp;&amp;vectors)</td></tr>
+<tr class="memdesc:adc9474dbd6fc12a8bd5018588a91565d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Assign float vectors to search request. Note: this method will reset the vector list. <br /></td></tr>
+<tr class="separator:adc9474dbd6fc12a8bd5018588a91565d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0ce95022d02bd0c46ea24ddce73b73fa"><td class="memItemLeft" align="right" valign="top"><a id="a0ce95022d02bd0c46ea24ddce73b73fa"></a>
+<a class="el" href="classmilvus_1_1_status.html">Status</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classmilvus_1_1_embedding_list.html#a0ce95022d02bd0c46ea24ddce73b73fa">SetSparseVectors</a> (std::vector&lt; <a class="el" href="classmilvus_1_1_field_data.html#a921c839e5d8df646cb7a20029ddb17f6">SparseFloatVecFieldData::ElementT</a> &gt; &amp;&amp;vectors)</td></tr>
+<tr class="memdesc:a0ce95022d02bd0c46ea24ddce73b73fa"><td class="mdescLeft">&#160;</td><td class="mdescRight">Assign sparse vectors to search request. Note: this method will reset the vector list. <br /></td></tr>
+<tr class="separator:a0ce95022d02bd0c46ea24ddce73b73fa"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:acd9fc9e369ea6ae3ca9c298d66f1632d"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classmilvus_1_1_status.html">Status</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classmilvus_1_1_embedding_list.html#acd9fc9e369ea6ae3ca9c298d66f1632d">SetSparseVectors</a> (const std::vector&lt; nlohmann::json &gt; &amp;vectors)</td></tr>
+<tr class="memdesc:acd9fc9e369ea6ae3ca9c298d66f1632d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Assign sparse vectors to search request. Note: this method will reset the vector list. We support two patterns of sparse vector:  <a href="classmilvus_1_1_embedding_list.html#acd9fc9e369ea6ae3ca9c298d66f1632d">More...</a><br /></td></tr>
+<tr class="separator:acd9fc9e369ea6ae3ca9c298d66f1632d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4a80090beb45829a5fb16d6f6e1cfff6"><td class="memItemLeft" align="right" valign="top"><a id="a4a80090beb45829a5fb16d6f6e1cfff6"></a>
+<a class="el" href="classmilvus_1_1_status.html">Status</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classmilvus_1_1_embedding_list.html#a4a80090beb45829a5fb16d6f6e1cfff6">SetFloat16Vectors</a> (std::vector&lt; <a class="el" href="classmilvus_1_1_field_data.html#a921c839e5d8df646cb7a20029ddb17f6">Float16VecFieldData::ElementT</a> &gt; &amp;&amp;vectors)</td></tr>
+<tr class="memdesc:a4a80090beb45829a5fb16d6f6e1cfff6"><td class="mdescLeft">&#160;</td><td class="mdescRight">Assign float16 vectors to search request. Note: this method will reset the vector list. <br /></td></tr>
+<tr class="separator:a4a80090beb45829a5fb16d6f6e1cfff6"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:afe10af1b8afc8a0c814a82ed583086dc"><td class="memItemLeft" align="right" valign="top"><a id="afe10af1b8afc8a0c814a82ed583086dc"></a>
+<a class="el" href="classmilvus_1_1_status.html">Status</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classmilvus_1_1_embedding_list.html#afe10af1b8afc8a0c814a82ed583086dc">SetFloat16Vectors</a> (const std::vector&lt; std::vector&lt; float &gt;&gt; &amp;vectors)</td></tr>
+<tr class="memdesc:afe10af1b8afc8a0c814a82ed583086dc"><td class="mdescLeft">&#160;</td><td class="mdescRight">Assign float16 vectors to search request. This method automatically converts the float array to float16 binary. Note: this method will reset the vector list. <br /></td></tr>
+<tr class="separator:afe10af1b8afc8a0c814a82ed583086dc"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6f66efb26363fafb3267a2537591c85a"><td class="memItemLeft" align="right" valign="top"><a id="a6f66efb26363fafb3267a2537591c85a"></a>
+<a class="el" href="classmilvus_1_1_status.html">Status</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classmilvus_1_1_embedding_list.html#a6f66efb26363fafb3267a2537591c85a">SetBFloat16Vectors</a> (std::vector&lt; <a class="el" href="classmilvus_1_1_field_data.html#a921c839e5d8df646cb7a20029ddb17f6">BFloat16VecFieldData::ElementT</a> &gt; &amp;&amp;vectors)</td></tr>
+<tr class="memdesc:a6f66efb26363fafb3267a2537591c85a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Assign bfloat16 vectors to search request. Note: this method will reset the vector list. <br /></td></tr>
+<tr class="separator:a6f66efb26363fafb3267a2537591c85a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a395d79a906cd9cc5cb643f09b387f033"><td class="memItemLeft" align="right" valign="top"><a id="a395d79a906cd9cc5cb643f09b387f033"></a>
+<a class="el" href="classmilvus_1_1_status.html">Status</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classmilvus_1_1_embedding_list.html#a395d79a906cd9cc5cb643f09b387f033">SetBFloat16Vectors</a> (const std::vector&lt; std::vector&lt; float &gt;&gt; &amp;vectors)</td></tr>
+<tr class="memdesc:a395d79a906cd9cc5cb643f09b387f033"><td class="mdescLeft">&#160;</td><td class="mdescRight">Assign bfloat16 vector. This method automatically converts the float array to bfloat16 binary. Note: this method will reset the vector list. <br /></td></tr>
+<tr class="separator:a395d79a906cd9cc5cb643f09b387f033"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae9ecb0019811dc5c1f2711780fa3d717"><td class="memItemLeft" align="right" valign="top"><a id="ae9ecb0019811dc5c1f2711780fa3d717"></a>
+<a class="el" href="classmilvus_1_1_status.html">Status</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classmilvus_1_1_embedding_list.html#ae9ecb0019811dc5c1f2711780fa3d717">SetEmbeddedTexts</a> (std::vector&lt; std::string &gt; &amp;&amp;texts)</td></tr>
+<tr class="memdesc:ae9ecb0019811dc5c1f2711780fa3d717"><td class="mdescLeft">&#160;</td><td class="mdescRight">Assign texts. Only works for BM25 function. Note: this method will reset the vector list. <br /></td></tr>
+<tr class="separator:ae9ecb0019811dc5c1f2711780fa3d717"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4252773330a8b0faf0a155210026dea5"><td class="memItemLeft" align="right" valign="top"><a id="a4252773330a8b0faf0a155210026dea5"></a>
+<a class="el" href="classmilvus_1_1_status.html">Status</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classmilvus_1_1_embedding_list.html#a4252773330a8b0faf0a155210026dea5">SetInt8Vectors</a> (std::vector&lt; <a class="el" href="classmilvus_1_1_field_data.html#a921c839e5d8df646cb7a20029ddb17f6">Int8VecFieldData::ElementT</a> &gt; &amp;&amp;vectors)</td></tr>
+<tr class="memdesc:a4252773330a8b0faf0a155210026dea5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Assign int8 vectors. Note: this method will reset the vector list. <br /></td></tr>
+<tr class="separator:a4252773330a8b0faf0a155210026dea5"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock"><p>A list of embeddings to search for struct field. </p>
+<div class="textblock"><p>A list of embeddings to search for struct field. It is also used to store the target vectors for SearchRequest/SubSearchRequest. </p>
 </div><h2 class="groupheader">Member Function Documentation</h2>
 <a id="aa14a3530dd69128d8c9d7e1ed66c6b3b"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#aa14a3530dd69128d8c9d7e1ed66c6b3b">&#9670;&nbsp;</a></span>AddSparseVector()</h2>
@@ -160,6 +203,30 @@ int64_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="c
 </div><div class="memdoc">
 
 <p>Add a sparse vector to search. We support two patterns of sparse vector: </p>
+<ol type="1">
+<li>a json dict like {"1": 0.1, "5": 0.2, "8": 0.15}.</li>
+<li>a json dict like {"indices": [1, 5, 8], "values": [0.1, 0.2, 0.15]}. </li>
+</ol>
+
+</div>
+</div>
+<a id="acd9fc9e369ea6ae3ca9c298d66f1632d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#acd9fc9e369ea6ae3ca9c298d66f1632d">&#9670;&nbsp;</a></span>SetSparseVectors()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classmilvus_1_1_status.html">Status</a> milvus::EmbeddingList::SetSparseVectors </td>
+          <td>(</td>
+          <td class="paramtype">const std::vector&lt; nlohmann::json &gt; &amp;&#160;</td>
+          <td class="paramname"><em>vectors</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Assign sparse vectors to search request. Note: this method will reset the vector list. We support two patterns of sparse vector: </p>
 <ol type="1">
 <li>a json dict like {"1": 0.1, "5": 0.2, "8": 0.15}.</li>
 <li>a json dict like {"indices": [1, 5, 8], "values": [0.1, 0.2, 0.15]}. </li>

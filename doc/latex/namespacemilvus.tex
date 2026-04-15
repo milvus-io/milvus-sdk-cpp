@@ -12,6 +12,8 @@ class \mbox{\hyperlink{classmilvus_1_1_milvus_client}{Milvus\+Client}}
 \begin{DoxyCompactList}\small\item\em Milvus client abstract class, provide \mbox{\hyperlink{classmilvus_1_1_milvus_client_a2fadefe95c16f9a5ea11bc899fc878bd}{Create()}} method to create an implementation instance. \end{DoxyCompactList}\item 
 class \mbox{\hyperlink{classmilvus_1_1_milvus_client_v2}{Milvus\+Client\+V2}}
 \begin{DoxyCompactList}\small\item\em Milvus client abstract class, provide \mbox{\hyperlink{classmilvus_1_1_milvus_client_v2_ad2cc52f10dad11b9e4a27b8c69e26245}{Create()}} method to create an implementation instance. \end{DoxyCompactList}\item 
+class \mbox{\hyperlink{classmilvus_1_1_alias_request_base}{Alias\+Request\+Base}}
+\begin{DoxyCompactList}\small\item\em Base class of alias requests except \mbox{\hyperlink{classmilvus_1_1_drop_alias_request}{Drop\+Alias\+Request}}, \mbox{\hyperlink{classmilvus_1_1_describe_alias_request}{Describe\+Alias\+Request}} and \mbox{\hyperlink{classmilvus_1_1_list_aliases_request}{List\+Aliases\+Request}}. \end{DoxyCompactList}\item 
 class \mbox{\hyperlink{classmilvus_1_1_alter_alias_request}{Alter\+Alias\+Request}}
 \begin{DoxyCompactList}\small\item\em Used by \mbox{\hyperlink{classmilvus_1_1_milvus_client_v2_a91e53c02122c588179421d6c4ecb7be0}{Milvus\+Client\+V2\+::\+Alter\+Alias()}}. \end{DoxyCompactList}\item 
 class \mbox{\hyperlink{classmilvus_1_1_create_alias_request}{Create\+Alias\+Request}}
@@ -56,10 +58,14 @@ class \mbox{\hyperlink{classmilvus_1_1_release_collection_request}{Release\+Coll
 \begin{DoxyCompactList}\small\item\em Used by \mbox{\hyperlink{classmilvus_1_1_milvus_client_v2_aef1ad4d68b196e17b7da3e91796ec9ed}{Milvus\+Client\+V2\+::\+Release\+Collection()}} \end{DoxyCompactList}\item 
 class \mbox{\hyperlink{classmilvus_1_1_rename_collection_request}{Rename\+Collection\+Request}}
 \begin{DoxyCompactList}\small\item\em Used by \mbox{\hyperlink{classmilvus_1_1_milvus_client_v2_aa83645d00f86e43902bcef889be5dde7}{Milvus\+Client\+V2\+::\+Rename\+Collection()}} \end{DoxyCompactList}\item 
+class \mbox{\hyperlink{classmilvus_1_1_truncate_collection_request}{Truncate\+Collection\+Request}}
+\begin{DoxyCompactList}\small\item\em Used by \mbox{\hyperlink{classmilvus_1_1_milvus_client_v2_a6c5e93b767ea465ff615afc2dd0125d2}{Milvus\+Client\+V2\+::\+Truncate\+Collection()}} \end{DoxyCompactList}\item 
 class \mbox{\hyperlink{classmilvus_1_1_alter_database_properties_request}{Alter\+Database\+Properties\+Request}}
 \begin{DoxyCompactList}\small\item\em Used by \mbox{\hyperlink{classmilvus_1_1_milvus_client_v2_a7ced323735235f88a218515de06da197}{Milvus\+Client\+V2\+::\+Alter\+Database\+Properties()}} \end{DoxyCompactList}\item 
 class \mbox{\hyperlink{classmilvus_1_1_create_database_request}{Create\+Database\+Request}}
 \begin{DoxyCompactList}\small\item\em Used by \mbox{\hyperlink{classmilvus_1_1_milvus_client_v2_a9681fe008185d8b591c79e8cc7d7ca33}{Milvus\+Client\+V2\+::\+Create\+Database()}} \end{DoxyCompactList}\item 
+class \mbox{\hyperlink{classmilvus_1_1_d_b_request_base}{DBRequest\+Base}}
+\begin{DoxyCompactList}\small\item\em Base class for database requests, except the \mbox{\hyperlink{classmilvus_1_1_list_databases_request}{List\+Databases\+Request}}. \end{DoxyCompactList}\item 
 class \mbox{\hyperlink{classmilvus_1_1_describe_database_request}{Describe\+Database\+Request}}
 \begin{DoxyCompactList}\small\item\em Used by \mbox{\hyperlink{classmilvus_1_1_milvus_client_v2_a57b99246e383694f34dd75681a377a0d}{Milvus\+Client\+V2\+::\+Describe\+Database()}} \end{DoxyCompactList}\item 
 class \mbox{\hyperlink{classmilvus_1_1_drop_database_properties_request}{Drop\+Database\+Properties\+Request}}
@@ -70,12 +76,16 @@ class \mbox{\hyperlink{classmilvus_1_1_list_databases_request}{List\+Databases\+
 \begin{DoxyCompactList}\small\item\em Used by \mbox{\hyperlink{classmilvus_1_1_milvus_client_v2_a4d785c550a060279f64f343a85a95a60}{Milvus\+Client\+V2\+::\+List\+Databases()}} \end{DoxyCompactList}\item 
 class \mbox{\hyperlink{classmilvus_1_1_delete_request}{Delete\+Request}}
 \begin{DoxyCompactList}\small\item\em Used by \mbox{\hyperlink{classmilvus_1_1_milvus_client_v2_a3d3568cbdef075cfd9a3e994a8233782}{Milvus\+Client\+V2\+::\+Delete()}} \end{DoxyCompactList}\item 
+class \mbox{\hyperlink{classmilvus_1_1_d_m_l_request_base}{DMLRequest\+Base}}
+\begin{DoxyCompactList}\small\item\em Base class for DML requests. \end{DoxyCompactList}\item 
 class \mbox{\hyperlink{classmilvus_1_1_insert_request}{Insert\+Request}}
 \begin{DoxyCompactList}\small\item\em Used by \mbox{\hyperlink{classmilvus_1_1_milvus_client_v2_a92b58327125458e8384cd1cf29ebc5d0}{Milvus\+Client\+V2\+::\+Insert()}} \end{DoxyCompactList}\item 
 class \mbox{\hyperlink{classmilvus_1_1_upsert_request}{Upsert\+Request}}
 \begin{DoxyCompactList}\small\item\em Used by \mbox{\hyperlink{classmilvus_1_1_milvus_client_v2_a34854f80532d73c837b08e1ebd8511cb}{Milvus\+Client\+V2\+::\+Upsert()}} \end{DoxyCompactList}\item 
 class \mbox{\hyperlink{classmilvus_1_1_d_q_l_request_base}{DQLRequest\+Base}}
 \begin{DoxyCompactList}\small\item\em Base class for DQL requests. \end{DoxyCompactList}\item 
+class \mbox{\hyperlink{classmilvus_1_1_get_request}{Get\+Request}}
+\begin{DoxyCompactList}\small\item\em Used by \mbox{\hyperlink{classmilvus_1_1_milvus_client_v2_a8582f62e66bad191c1a29803f38c5c05}{Milvus\+Client\+V2\+::\+Get()}} \end{DoxyCompactList}\item 
 class \mbox{\hyperlink{classmilvus_1_1_hybrid_search_request}{Hybrid\+Search\+Request}}
 \begin{DoxyCompactList}\small\item\em Used by \mbox{\hyperlink{classmilvus_1_1_milvus_client_v2_a61af4d91c97a09fffdfa1f4cc8b735cd}{Milvus\+Client\+V2\+::\+Hybrid\+Search()}} \end{DoxyCompactList}\item 
 class \mbox{\hyperlink{classmilvus_1_1_query_iterator_request}{Query\+Iterator\+Request}}
@@ -251,7 +261,7 @@ class \mbox{\hyperlink{classmilvus_1_1_database_desc}{Database\+Desc}}
 class \mbox{\hyperlink{classmilvus_1_1_dml_results}{Dml\+Results}}
 \begin{DoxyCompactList}\small\item\em Result returned by \mbox{\hyperlink{classmilvus_1_1_milvus_client_a64a2dca576e0933571a6889910d56390}{Milvus\+Client\+::\+Insert()}} and \mbox{\hyperlink{classmilvus_1_1_milvus_client_a271b16333636621f24aaf89993c72301}{Milvus\+Client\+::\+Delete()}}. \end{DoxyCompactList}\item 
 class \mbox{\hyperlink{classmilvus_1_1_embedding_list}{Embedding\+List}}
-\begin{DoxyCompactList}\small\item\em A list of embeddings to search for struct field. \end{DoxyCompactList}\item 
+\begin{DoxyCompactList}\small\item\em A list of embeddings to search for struct field. It is also used to store the target vectors for Search\+Request/\+Sub\+Search\+Request. \end{DoxyCompactList}\item 
 class \mbox{\hyperlink{classmilvus_1_1_field_data}{Field\+Data}}
 \begin{DoxyCompactList}\small\item\em Template class represents column-\/based data of a field. Available inheritance classes\+: ~\newline
  Bool\+Field\+Data for boolean scalar field ~\newline
@@ -347,6 +357,8 @@ class \mbox{\hyperlink{classmilvus_1_1_search_arguments}{Search\+Arguments}}
 \begin{DoxyCompactList}\small\item\em Arguments for \mbox{\hyperlink{classmilvus_1_1_milvus_client_a46c70fc2b7c386003babd90e02b299d1}{Milvus\+Client\+::\+Search()}}. \end{DoxyCompactList}\item 
 class \mbox{\hyperlink{classmilvus_1_1_search_request_base}{Search\+Request\+Base}}
 \begin{DoxyCompactList}\small\item\em A base class for \mbox{\hyperlink{classmilvus_1_1_sub_search_request}{Sub\+Search\+Request}} and \mbox{\hyperlink{classmilvus_1_1_search_arguments}{Search\+Arguments}}. \end{DoxyCompactList}\item 
+class \mbox{\hyperlink{classmilvus_1_1_search_request_vector_assigner}{Search\+Request\+Vector\+Assigner}}
+\begin{DoxyCompactList}\small\item\em Recurring template pattern class for \mbox{\hyperlink{classmilvus_1_1_sub_search_request}{Sub\+Search\+Request}} and \mbox{\hyperlink{classmilvus_1_1_search_request}{Search\+Request}}. \end{DoxyCompactList}\item 
 struct \mbox{\hyperlink{structmilvus_1_1_single_result}{Single\+Result}}
 \begin{DoxyCompactList}\small\item\em Topk results for one target vector of \mbox{\hyperlink{classmilvus_1_1_milvus_client_a46c70fc2b7c386003babd90e02b299d1}{Milvus\+Client\+::\+Search()}} \end{DoxyCompactList}\item 
 class \mbox{\hyperlink{classmilvus_1_1_search_results}{Search\+Results}}
@@ -442,17 +454,17 @@ uint16\+\_\+t \mbox{\hyperlink{namespacemilvus_a44387f0b2ebf6ff9eced8c8eb2c38708
 \mbox{\Hypertarget{namespacemilvus_a0fe317fa74c97281eff64bc333d6d914}\label{namespacemilvus_a0fe317fa74c97281eff64bc333d6d914}} 
 float \mbox{\hyperlink{namespacemilvus_a0fe317fa74c97281eff64bc333d6d914}{BF16to\+F32}} (uint16\+\_\+t val)
 \begin{DoxyCompactList}\small\item\em Convert a bfloat16 value to a float32 value. \end{DoxyCompactList}\item 
-\mbox{\Hypertarget{namespacemilvus_a0398a4a69978a16ab050ef1d20927f82}\label{namespacemilvus_a0398a4a69978a16ab050ef1d20927f82}} 
-std\+::vector$<$ uint16\+\_\+t $>$ \mbox{\hyperlink{namespacemilvus_a0398a4a69978a16ab050ef1d20927f82}{Array\+F32to\+F16}} (std\+::vector$<$ float $>$ array)
+\mbox{\Hypertarget{namespacemilvus_a4966d31d36ea03ced766106cd95caa06}\label{namespacemilvus_a4966d31d36ea03ced766106cd95caa06}} 
+std\+::vector$<$ uint16\+\_\+t $>$ \mbox{\hyperlink{namespacemilvus_a4966d31d36ea03ced766106cd95caa06}{Array\+F32to\+F16}} (const std\+::vector$<$ float $>$ \&array)
 \begin{DoxyCompactList}\small\item\em Convert a float32 array to a float16 array represented by uint16\+\_\+t. \end{DoxyCompactList}\item 
-\mbox{\Hypertarget{namespacemilvus_ad1909cecc1bffe12df02df1a41d579b1}\label{namespacemilvus_ad1909cecc1bffe12df02df1a41d579b1}} 
-std\+::vector$<$ float $>$ \mbox{\hyperlink{namespacemilvus_ad1909cecc1bffe12df02df1a41d579b1}{Array\+F16to\+F32}} (std\+::vector$<$ uint16\+\_\+t $>$ array)
+\mbox{\Hypertarget{namespacemilvus_a344719483fe50cd2a26dd592223f5bb0}\label{namespacemilvus_a344719483fe50cd2a26dd592223f5bb0}} 
+std\+::vector$<$ float $>$ \mbox{\hyperlink{namespacemilvus_a344719483fe50cd2a26dd592223f5bb0}{Array\+F16to\+F32}} (const std\+::vector$<$ uint16\+\_\+t $>$ \&array)
 \begin{DoxyCompactList}\small\item\em Convert a float16 array to a float32 array. \end{DoxyCompactList}\item 
-\mbox{\Hypertarget{namespacemilvus_ab12312a9166553ed63de970f85c200c3}\label{namespacemilvus_ab12312a9166553ed63de970f85c200c3}} 
-std\+::vector$<$ uint16\+\_\+t $>$ \mbox{\hyperlink{namespacemilvus_ab12312a9166553ed63de970f85c200c3}{Array\+F32to\+BF16}} (std\+::vector$<$ float $>$ array)
+\mbox{\Hypertarget{namespacemilvus_ae35f9606e3e4df3e9601524b3a737627}\label{namespacemilvus_ae35f9606e3e4df3e9601524b3a737627}} 
+std\+::vector$<$ uint16\+\_\+t $>$ \mbox{\hyperlink{namespacemilvus_ae35f9606e3e4df3e9601524b3a737627}{Array\+F32to\+BF16}} (const std\+::vector$<$ float $>$ \&array)
 \begin{DoxyCompactList}\small\item\em Convert a float32 array to a bfloat16 array represented by uint16\+\_\+t. \end{DoxyCompactList}\item 
-\mbox{\Hypertarget{namespacemilvus_a83b97b30e7337a8dd554414387743721}\label{namespacemilvus_a83b97b30e7337a8dd554414387743721}} 
-std\+::vector$<$ float $>$ \mbox{\hyperlink{namespacemilvus_a83b97b30e7337a8dd554414387743721}{Array\+BF16to\+F32}} (std\+::vector$<$ uint16\+\_\+t $>$ array)
+\mbox{\Hypertarget{namespacemilvus_a14d1e4ce91f670dcfa277032ab41c8e7}\label{namespacemilvus_a14d1e4ce91f670dcfa277032ab41c8e7}} 
+std\+::vector$<$ float $>$ \mbox{\hyperlink{namespacemilvus_a14d1e4ce91f670dcfa277032ab41c8e7}{Array\+BF16to\+F32}} (const std\+::vector$<$ uint16\+\_\+t $>$ \&array)
 \begin{DoxyCompactList}\small\item\em Convert a bfloat16 array to a float32 array. \end{DoxyCompactList}\item 
 \mbox{\Hypertarget{namespacemilvus_ad6ec1996ee202613927217b9eab59bbd}\label{namespacemilvus_ad6ec1996ee202613927217b9eab59bbd}} 
 std\+::string \mbox{\hyperlink{namespacemilvus_ad6ec1996ee202613927217b9eab59bbd}{Key\+Row\+Count}} ()

@@ -11,7 +11,7 @@ Used by \mbox{\hyperlink{classmilvus_1_1_milvus_client_v2_a61af4d91c97a09fffdfa1
 
 
 
-Inherits \mbox{\hyperlink{classmilvus_1_1_d_q_l_request_base}{milvus\+::\+DQLRequest\+Base}}.
+Inherits \mbox{\hyperlink{classmilvus_1_1_d_q_l_request_base}{milvus\+::\+DQLRequest\+Base$<$ Hybrid\+Search\+Request $>$}}.
 
 \doxysubsection*{Public Member Functions}
 \begin{DoxyCompactItemize}
@@ -19,27 +19,6 @@ Inherits \mbox{\hyperlink{classmilvus_1_1_d_q_l_request_base}{milvus\+::\+DQLReq
 \mbox{\Hypertarget{classmilvus_1_1_hybrid_search_request_a7ec0f564198c33bb23a5c60a83e3491c}\label{classmilvus_1_1_hybrid_search_request_a7ec0f564198c33bb23a5c60a83e3491c}} 
 \mbox{\hyperlink{classmilvus_1_1_hybrid_search_request_a7ec0f564198c33bb23a5c60a83e3491c}{Hybrid\+Search\+Request}} ()=default
 \begin{DoxyCompactList}\small\item\em Constructor. \end{DoxyCompactList}\item 
-\mbox{\Hypertarget{classmilvus_1_1_hybrid_search_request_a44189193828fc3cc18dcc44db77dfb5f}\label{classmilvus_1_1_hybrid_search_request_a44189193828fc3cc18dcc44db77dfb5f}} 
-\mbox{\hyperlink{classmilvus_1_1_hybrid_search_request}{Hybrid\+Search\+Request}} \& \mbox{\hyperlink{classmilvus_1_1_hybrid_search_request_a44189193828fc3cc18dcc44db77dfb5f}{With\+Database\+Name}} (const std\+::string \&db\+\_\+name)
-\begin{DoxyCompactList}\small\item\em Set database name in which the collection is created. \end{DoxyCompactList}\item 
-\mbox{\Hypertarget{classmilvus_1_1_hybrid_search_request_aaf085ec77b1dba6198e09848fa66f0cb}\label{classmilvus_1_1_hybrid_search_request_aaf085ec77b1dba6198e09848fa66f0cb}} 
-\mbox{\hyperlink{classmilvus_1_1_hybrid_search_request}{Hybrid\+Search\+Request}} \& \mbox{\hyperlink{classmilvus_1_1_hybrid_search_request_aaf085ec77b1dba6198e09848fa66f0cb}{With\+Collection\+Name}} (const std\+::string \&collection\+\_\+name)
-\begin{DoxyCompactList}\small\item\em Set name of the collection. \end{DoxyCompactList}\item 
-\mbox{\Hypertarget{classmilvus_1_1_hybrid_search_request_a55daeaf546417528e9bb960c1ab87922}\label{classmilvus_1_1_hybrid_search_request_a55daeaf546417528e9bb960c1ab87922}} 
-\mbox{\hyperlink{classmilvus_1_1_hybrid_search_request}{Hybrid\+Search\+Request}} \& \mbox{\hyperlink{classmilvus_1_1_hybrid_search_request_a55daeaf546417528e9bb960c1ab87922}{With\+Partition\+Names}} (std\+::set$<$ std\+::string $>$ \&\&partition\+\_\+names)
-\begin{DoxyCompactList}\small\item\em Set the partition names. If partition nemes are empty, will query in the entire collection. \end{DoxyCompactList}\item 
-\mbox{\Hypertarget{classmilvus_1_1_hybrid_search_request_a52705e0c066b5bcdf3add2baced56c06}\label{classmilvus_1_1_hybrid_search_request_a52705e0c066b5bcdf3add2baced56c06}} 
-\mbox{\hyperlink{classmilvus_1_1_hybrid_search_request}{Hybrid\+Search\+Request}} \& \mbox{\hyperlink{classmilvus_1_1_hybrid_search_request_a52705e0c066b5bcdf3add2baced56c06}{Add\+Partition\+Name}} (const std\+::string \&partition\+\_\+name)
-\begin{DoxyCompactList}\small\item\em Add a partition name. \end{DoxyCompactList}\item 
-\mbox{\Hypertarget{classmilvus_1_1_hybrid_search_request_a09f5fdca012b405cc34dd6781da21623}\label{classmilvus_1_1_hybrid_search_request_a09f5fdca012b405cc34dd6781da21623}} 
-\mbox{\hyperlink{classmilvus_1_1_hybrid_search_request}{Hybrid\+Search\+Request}} \& \mbox{\hyperlink{classmilvus_1_1_hybrid_search_request_a09f5fdca012b405cc34dd6781da21623}{With\+Output\+Fields}} (std\+::set$<$ std\+::string $>$ \&\&output\+\_\+field\+\_\+names)
-\begin{DoxyCompactList}\small\item\em Set the output field names. \end{DoxyCompactList}\item 
-\mbox{\Hypertarget{classmilvus_1_1_hybrid_search_request_a2e7754918d75d845aa764da0e53d466b}\label{classmilvus_1_1_hybrid_search_request_a2e7754918d75d845aa764da0e53d466b}} 
-\mbox{\hyperlink{classmilvus_1_1_hybrid_search_request}{Hybrid\+Search\+Request}} \& \mbox{\hyperlink{classmilvus_1_1_hybrid_search_request_a2e7754918d75d845aa764da0e53d466b}{Add\+Output\+Field}} (const std\+::string \&output\+\_\+field)
-\begin{DoxyCompactList}\small\item\em Add an output field. \end{DoxyCompactList}\item 
-\mbox{\Hypertarget{classmilvus_1_1_hybrid_search_request_a0d886b654c9fb5a82106fdd7c0a6650a}\label{classmilvus_1_1_hybrid_search_request_a0d886b654c9fb5a82106fdd7c0a6650a}} 
-\mbox{\hyperlink{classmilvus_1_1_hybrid_search_request}{Hybrid\+Search\+Request}} \& \mbox{\hyperlink{classmilvus_1_1_hybrid_search_request_a0d886b654c9fb5a82106fdd7c0a6650a}{With\+Consistency\+Level}} (\mbox{\hyperlink{namespacemilvus_a26e8c5ec421df0853e145d04d0fbb414}{Consistency\+Level}} consistency\+\_\+level)
-\begin{DoxyCompactList}\small\item\em Set the consistency level. Read the doc for more info\+: \href{https://milvus.io/docs/consistency.md\#Consistency-Level}{\texttt{ https\+://milvus.\+io/docs/consistency.\+md\#\+Consistency-\/\+Level}}. \end{DoxyCompactList}\item 
 \mbox{\Hypertarget{classmilvus_1_1_hybrid_search_request_ac9b13ff7984f2069bdfd393a39ed76bb}\label{classmilvus_1_1_hybrid_search_request_ac9b13ff7984f2069bdfd393a39ed76bb}} 
 const std\+::vector$<$ Sub\+Search\+Request\+Ptr $>$ \& \mbox{\hyperlink{classmilvus_1_1_hybrid_search_request_ac9b13ff7984f2069bdfd393a39ed76bb}{Sub\+Requests}} () const
 \begin{DoxyCompactList}\small\item\em Get sub search requests. \end{DoxyCompactList}\item 

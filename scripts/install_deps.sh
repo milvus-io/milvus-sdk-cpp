@@ -22,9 +22,8 @@ ensure_conan_default_profile() {
         exit 1
     fi
 
-    # Conan 2 path: ~/.conan2/profiles/default
-    # Conan 1 path: ~/.conan/profiles/default
-    if [ -f "${HOME}/.conan2/profiles/default" ] || [ -f "${HOME}/.conan/profiles/default" ]; then
+    # Check if default profile already exists
+    if conan profile path default >/dev/null 2>&1; then
         echo 'Conan default profile exists.'
         return 0
     fi
@@ -32,7 +31,7 @@ ensure_conan_default_profile() {
     echo 'Detecting Conan default profile...'
     conan profile detect --force || exit 1
 
-    if [ ! -f "${HOME}/.conan2/profiles/default" ] && [ ! -f "${HOME}/.conan/profiles/default" ]; then
+    if ! conan profile path default >/dev/null 2>&1; then
         echo 'ERROR: Conan default profile was not created.'
         exit 1
     fi
