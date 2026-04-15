@@ -9,32 +9,41 @@ Usage:
 """
 
 import argparse
-import socket
 import sys
 import time
 
 import docker
+import requests
 
-milvus_image = "milvusdb/milvus:v2.6.12"
-milvus_port = 19530
+milvus_image = "milvusdb/milvus:v2.6.14"
+milvus_port = 19510
 
 
-def wait_for_container_port(container, port, timeout):
+def wait_for_milvus_ready(host, port, timeout):
     """
-    Wait for a port to be ready inside the container using docker exec.
+    Wait for Milvus to be fully initialized by calling its REST API.
     """
+    url = f"http://{host}:{port}/v2/vectordb/collections/list"
+    headers = {
+        "Authorization": "Bearer root:Milvus",
+        "Content-Type": "application/json",
+    }
+    payload = {"dbName": "_default"}
+
     start_time = time.time()
-
     while time.time() - start_time < timeout:
-        exit_code, _ = container.exec_run(f"bash -c 'echo > /dev/tcp/127.0.0.1/{port}'")
-        if exit_code == 0:
-            return True
+        try:
+            resp = requests.post(url, json=payload, headers=headers, timeout=5)
+            if resp.status_code == 200:
+                return True
+        except (requests.ConnectionError, requests.Timeout):
+            pass
         time.sleep(1)
 
-    raise TimeoutError(f"Timeout waiting for port {port} inside container")
+    raise TimeoutError(f"Timeout waiting for Milvus to be ready at {url}")
 
 
-def start_milvus_container(port: int = milvus_port, image: str = milvus_image, timeout: int = 180):
+def start_milvus_container(port: int = milvus_port, image: str = milvus_image, timeout: int = 60):
     """
     Start a Milvus standalone container for testing.
 
@@ -70,9 +79,9 @@ def start_milvus_container(port: int = milvus_port, image: str = milvus_image, t
         detach=True,
     )
 
-    # Wait for Milvus gRPC port to be ready inside the container
+    # Wait for Milvus to be fully initialized via REST API
     try:
-        wait_for_container_port(container, port, timeout=timeout)
+        wait_for_milvus_ready("localhost", port, timeout=timeout)
     except TimeoutError:
         # Print container logs to help debug
         print("Container logs:", file=sys.stderr)
@@ -80,9 +89,6 @@ def start_milvus_container(port: int = milvus_port, image: str = milvus_image, t
         container.stop()
         container.remove()
         raise
-
-    # Additional wait for Milvus to fully initialize after port is open
-    time.sleep(10)
 
     return container.id
 
