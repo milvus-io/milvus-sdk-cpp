@@ -143,13 +143,17 @@ jobs:
           disable_safe_directory: true
           verbose: true
   macos:
-    name: Build and test macOS ${{ matrix.macos }}
+    name: Build and test macOS ${{ matrix.macos }} (${{ matrix.build_mode }})
     runs-on: macos-${{ matrix.macos }}
     timeout-minutes: 75
     strategy:
       fail-fast: false
       matrix:
-        macos: [14]
+        include:
+          - macos: 14
+            build_mode: no-conan
+          - macos: 15
+            build_mode: conan
     env:
       CCACHE_DIR: ${{ github.workspace }}/.ccache
       CCACHE_COMPILERCHECK: content
@@ -173,9 +177,15 @@ jobs:
           python3 -m venv ~/.venv
           source ~/.venv/bin/activate
           sh scripts/install_deps.sh
-      - name: Unit Testing
+      - name: Unit Testing (no-conan)
+        if: ${{ matrix.build_mode == 'no-conan' }}
         run: |
           make test-no-conan
+      - name: Unit Testing (conan)
+        if: ${{ matrix.build_mode == 'conan' }}
+        run: |
+          source ~/.venv/bin/activate
+          make test
   windows:
     name: Build and test windows
     runs-on: windows-2022
