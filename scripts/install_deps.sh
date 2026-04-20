@@ -55,8 +55,13 @@ install_conan() {
         exit 1
     fi
 
-    # Use user install to avoid requiring sudo/polluting system Python.
-    pip3 install --user -U "conan>=2,<3" || exit 1
+    # Inside a virtualenv, pip --user is invalid; install into the venv.
+    # Otherwise use --user to avoid requiring sudo/polluting system Python.
+    if [ -n "${VIRTUAL_ENV}" ] ; then
+        pip3 install -U "conan>=2,<3" || exit 1
+    else
+        pip3 install --user -U "conan>=2,<3" || exit 1
+    fi
 
     if ! command -v conan >/dev/null 2>&1 ; then
         echo 'ERROR: Conan was installed but is not on PATH.'
@@ -149,6 +154,7 @@ install_deps_for_macos() {
         exit 1
     fi
     install_mac_cmake_clang_toolchain
+    install_conan
 }
 
 if uname | grep -wq Linux ; then

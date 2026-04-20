@@ -33,6 +33,10 @@ build-sdk-release:
 	@echo "Building Milvus SDK release version ..."
 	@(env bash $(PWD)/scripts/build.sh -t Release)
 
+test-release:
+	@echo "Testing Milvus SDK release version ..."
+	@(env bash $(PWD)/scripts/build.sh -u -t Release)
+
 build-no-conan-debug:
 	@echo "Building Milvus SDK debug version ..."
 	@(env bash $(PWD)/scripts/build.sh -z -t Debug)
