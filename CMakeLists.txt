@@ -221,3 +221,63 @@ endif ()
 
 # output config summary
 config_summary()
+
+#
+# Packaging (CPack)
+#
+# Detect the distro to pick the correct generator (DEB / RPM) and embed the
+# distro name in the package filename, so a release tag produces artifacts
+# like `libmilvus-2.6.2-x86_64-Ubuntu_20.04.deb` or
+# `libmilvus-2.6.2-x86_64-Fedora_39.rpm`.
+#
+set(DISTRO_TAG "Linux")
+if (EXISTS "/etc/os-release")
+    file(READ "/etc/os-release" _OS_RELEASE)
+    # Match ID= and VERSION_ID= at start of line (after a newline *or* at the
+    # very beginning of the file — some /etc/os-release variants don't have a
+    # leading blank/comment line before these fields).
+    if (_OS_RELEASE MATCHES "(^|\n)ID=\"?([^\"\n]+)\"?")
+        set(DISTRO_ID "${CMAKE_MATCH_2}")
+    endif()
+    if (_OS_RELEASE MATCHES "(^|\n)VERSION_ID=\"?([^\"\n]+)\"?")
+        set(DISTRO_VERSION "${CMAKE_MATCH_2}")
+    endif()
+    if (DISTRO_ID AND DISTRO_VERSION)
+        # capitalise first letter: ubuntu -> Ubuntu, fedora -> Fedora
+        string(SUBSTRING "${DISTRO_ID}" 0 1 _FIRST)
+        string(TOUPPER "${_FIRST}" _FIRST_UPPER)
+        string(SUBSTRING "${DISTRO_ID}" 1 -1 _REST)
+        set(DISTRO_TAG "${_FIRST_UPPER}${_REST}_${DISTRO_VERSION}")
+    endif()
+endif()
+
+# Normalize the version for packaging: strip a leading "v" so both
+# `git describe` output (e.g. "v2.6.2") and explicit values (e.g. "2.6.2")
+# produce the same DEB/RPM version string, which must be digits-and-dots to
+# satisfy Debian/RPM policy. Keep MILVUS_SDK_VERSION untouched so it still
+# reflects the raw version string in logs and version.h.
+string(REGEX REPLACE "^v" "" MILVUS_PACKAGE_VERSION "${MILVUS_SDK_VERSION}")
+
+set(CPACK_PACKAGE_NAME "libmilvus")
+set(CPACK_PACKAGE_VENDOR "Milvus")
+set(CPACK_PACKAGE_VERSION "${MILVUS_PACKAGE_VERSION}")
+set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Milvus C++ SDK")
+set(CPACK_PACKAGE_HOMEPAGE_URL "https://github.com/milvus-io/milvus-sdk-cpp")
+set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/LICENSE")
+set(CPACK_PACKAGE_DIRECTORY "${CMAKE_BINARY_DIR}/Pack")
+set(CPACK_PACKAGE_FILE_NAME
+    "libmilvus-${MILVUS_PACKAGE_VERSION}-${CMAKE_SYSTEM_PROCESSOR}-${DISTRO_TAG}")
+
+if (DISTRO_ID STREQUAL "ubuntu" OR DISTRO_ID STREQUAL "debian")
+    set(CPACK_GENERATOR "DEB")
+    set(CPACK_DEBIAN_PACKAGE_MAINTAINER "Milvus <maintainer@milvus.io>")
+    set(CPACK_DEBIAN_PACKAGE_SECTION "libs")
+elseif (DISTRO_ID STREQUAL "fedora" OR DISTRO_ID STREQUAL "rhel" OR DISTRO_ID STREQUAL "centos")
+    set(CPACK_GENERATOR "RPM")
+    set(CPACK_RPM_PACKAGE_LICENSE "Apache-2.0")
+    set(CPACK_RPM_PACKAGE_GROUP "Development/Libraries")
+else()
+    set(CPACK_GENERATOR "TGZ")
+endif()
+
+include(CPack)
