@@ -35,11 +35,24 @@ pull_request_rules:
     conditions:
       - or: *BRANCHES
       - and:
+          # The `Detect path changes` job must succeed — otherwise the gated
+          # jobs below would be skipped (because `needs: changes` failed)
+          # and we'd wrongly treat that as ci-passed.
+          - "check-success=Detect path changes"
           - "check-success=Build and test AMD64 Ubuntu 20.04"
           - "check-success=Build and test AMD64 Fedora 39"
-          - "check-success=Build and test macOS 14 (no-conan)"
-          - "check-success=Build and test macOS 15 (conan)"
-          - "check-success=Build and test windows"
+          # The following jobs are gated by the path-filter `changes` job
+          # and are skipped for examples-only changes. Accept success OR
+          # skipped so examples-only PRs still reach ci-passed.
+          - or:
+              - "check-success=Integration test"
+              - "check-skipped=Integration test"
+          - or:
+              - "check-success=Build and test macOS 15"
+              - "check-skipped=Build and test macOS 15"
+          - or:
+              - "check-success=Build and test windows"
+              - "check-skipped=Build and test windows"
     actions:
       label:
         add:
@@ -49,10 +62,11 @@ pull_request_rules:
     conditions:
       - or: *BRANCHES
       - or:
+          - "check-failure=Detect path changes"
           - "check-failure=Build and test AMD64 Ubuntu 20.04"
           - "check-failure=Build and test AMD64 Fedora 39"
-          - "check-failure=Build and test macOS 14 (no-conan)"
-          - "check-failure=Build and test macOS 15 (conan)"
+          - "check-failure=Integration test"
+          - "check-failure=Build and test macOS 15"
           - "check-failure=Build and test windows"
     actions:
       label:
