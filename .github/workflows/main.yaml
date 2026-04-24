@@ -208,14 +208,20 @@ jobs:
       - name: Install dependencies on windows
         shell: cmd
         run: |
-          choco install cmake ninja ccache
+          choco install cmake ninja ccache --no-progress
           cmake --version
           ninja --version
+          where ccache >nul 2>&1 && (ccache --version) || (echo ccache not installed - build will proceed without caching)
       - name: Build
         shell: cmd
         run: |
           call "%ProgramFiles%\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
-          cmake -S . -B build -DMILVUS_BUILD_TEST=YES -G Ninja -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
+          rem Enable ccache launcher only if ccache is available. Chocolatey
+          rem sometimes fails to install it (503/504 outages); without this
+          rem guard every compile would try to spawn a non-existent ccache.exe
+          rem and the build would die with "CreateProcess failed".
+          where ccache >nul 2>&1 && (set LAUNCHER=-DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache) || (set LAUNCHER=)
+          cmake -S . -B build -DMILVUS_BUILD_TEST=YES -G Ninja %LAUNCHER%
           cmake --build build
       - name: Unit Testing
         shell: cmd
