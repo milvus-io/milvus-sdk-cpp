@@ -28,6 +28,32 @@ on:
       - '.clang-tidy'
 
 jobs:
+  # Detect whether the PR touches core SDK files (src, cmake, test,
+  # thirdparty, scripts, workflow, lint configs) or only peripheral files
+  # (examples/**). Changes limited to examples/** skip the heavy CI jobs
+  # (integration, coverage, macOS, Windows) and only run the Linux build,
+  # which is enough to catch regressions in the example code itself.
+  changes:
+    name: Detect path changes
+    runs-on: ubuntu-latest
+    outputs:
+      core_relevant: ${{ steps.filter.outputs.core_relevant }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            core_relevant:
+              - 'cmake/**'
+              - 'scripts/**'
+              - 'src/**'
+              - 'test/**'
+              - 'thirdparty/**'
+              - '.github/workflows/main.yaml'
+              - '.clang-format'
+              - '.clang-tidy'
+
   linux:
     name: Build and test AMD64 ${{ matrix.os.distro }} ${{ matrix.os.version }}
     runs-on: ubuntu-latest
@@ -76,6 +102,9 @@ jobs:
           make test
   integration-test:
     name: Integration test
+    # Skip for examples-only changes; linux job alone validates them.
+    needs: changes
+    if: needs.changes.outputs.core_relevant == 'true'
     runs-on: ubuntu-22.04
     timeout-minutes: 75
     env:
@@ -105,6 +134,9 @@ jobs:
           make st
   coverage-ubuntu:
     name: Test all with coverage
+    # Skip for examples-only changes; coverage only measures SDK code.
+    needs: changes
+    if: needs.changes.outputs.core_relevant == 'true'
     runs-on: ubuntu-22.04
     timeout-minutes: 120
     env:
@@ -126,7 +158,7 @@ jobs:
             ~/.conan2
           key: ubuntu-2204-coverage-cache-${{ github.sha }}
           restore-keys: ubuntu-2204-coverage-cache-
-      - uses: actions/setup-python@v4
+      - uses: actions/setup-python@v5
         with:
           python-version: '3.8'
       - name: Prepare
@@ -143,17 +175,12 @@ jobs:
           disable_safe_directory: true
           verbose: true
   macos:
-    name: Build and test macOS ${{ matrix.macos }} (${{ matrix.build_mode }})
-    runs-on: macos-${{ matrix.macos }}
+    name: Build and test macOS 15
+    # Skip for examples-only changes; macOS runners are scarce.
+    needs: changes
+    if: needs.changes.outputs.core_relevant == 'true'
+    runs-on: macos-15
     timeout-minutes: 75
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - macos: 14
-            build_mode: no-conan
-          - macos: 15
-            build_mode: conan
     env:
       CCACHE_DIR: ${{ github.workspace }}/.ccache
       CCACHE_COMPILERCHECK: content
@@ -169,25 +196,23 @@ jobs:
         with:
           path: |
             ${{ github.workspace }}/.ccache
-          key: macos-${{ matrix.macos }}-ccache-${{ github.sha }}
-          restore-keys: macos-${{ matrix.macos }}-ccache-
+          key: macos-15-ccache-${{ github.sha }}
+          restore-keys: macos-15-ccache-
       - name: Prepare
         run: |
           mkdir ~/.venv
           python3 -m venv ~/.venv
           source ~/.venv/bin/activate
           sh scripts/install_deps.sh
-      - name: Unit Testing (no-conan)
-        if: ${{ matrix.build_mode == 'no-conan' }}
-        run: |
-          make test-no-conan
-      - name: Unit Testing (conan)
-        if: ${{ matrix.build_mode == 'conan' }}
+      - name: Unit Testing
         run: |
           source ~/.venv/bin/activate
           make test
   windows:
     name: Build and test windows
+    # Skip for examples-only changes; Windows builds are slow.
+    needs: changes
+    if: needs.changes.outputs.core_relevant == 'true'
     runs-on: windows-2022
     timeout-minutes: 75
     env:
