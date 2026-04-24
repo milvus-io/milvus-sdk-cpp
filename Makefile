@@ -77,8 +77,16 @@ doc:
 	rm -rf ./doc/html ./doc/latex
 	doxygen ./doc/Doxyfile
 
+package:
+	@echo "Packaging Milvus SDK release version ..."
+	@# Release builds must be reproducible and must not mutate the source
+	@# tree. Invoke build.sh directly with -f to skip the in-place
+	@# clang-format that build-sdk-release would otherwise apply.
+	@(env bash $(PWD)/scripts/build.sh -f -t Release)
+	@(cd cmake_build && cpack)
+
 clean:
 	@echo "Cleaning"
 	rm -fr cmake_build/ build/
 
-.PHONY: test clean doc
+.PHONY: test clean doc package

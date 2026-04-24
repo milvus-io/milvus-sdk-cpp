@@ -14,25 +14,25 @@ jobs:
     timeout-minutes: 45
     strategy:
       fail-fast: false
+      # Release binary matrix — intentionally minimal:                                                                 
+      #   Ubuntu 20.04 (glibc 2.31) covers Ubuntu 20.04+, Debian 11+                                            
+      #   Fedora 39                 covers Fedora 39+                                                                  
+      # Adding more distros is optional; existing users can use the above                                       
+      # packages on any distro with compatible or newer glibc. See CHANGELOG                                    
+      # for the rationale behind dropping Ubuntu 22.04 and Fedora 38. 
       matrix:
         os:
           - distro: Ubuntu
             version: 20.04
             image: ubuntu:20.04
             key: u2004
-          - distro: Ubuntu
-            version: 22.04
-            image: ubuntu:22.04
-            key: u2204
-          - distro: Fedora
-            version: 38
-            image: fedora:38
-            key: fc38
           - distro: Fedora
             version: 39
             image: fedora:39
             key: fc39
     steps:
+      - name: Env
+        run: echo "${HOME}/.local/bin" >> $GITHUB_PATH
       - name: Checkout
         uses: actions/checkout@v4
       - name: Prepare
@@ -44,11 +44,9 @@ jobs:
           make test
           make clean
           make package
-          # remove package with `Linux` from thridpart
-          rm -fr cmake_build/src/Pack/*Linux*
       - name: Release
         uses: ncipollo/release-action@v1
         with:
           allowUpdates: true
-          artifacts: cmake_build/src/Pack/libmilvus-*
+          artifacts: cmake_build/Pack/libmilvus-*
           token: ${{ secrets.GITHUB_TOKEN }}

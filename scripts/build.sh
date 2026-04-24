@@ -40,7 +40,7 @@ if [ ${JOBS} -gt 10 ] ; then
     JOBS=10
 fi
 
-while getopts "t:v:ulrcsphiz" arg; do
+while getopts "t:v:ulrcsphizf" arg; do
   case $arg in
   t)
     BUILD_TYPE=$OPTARG # BUILD_TYPE
@@ -83,6 +83,12 @@ while getopts "t:v:ulrcsphiz" arg; do
   z)
     BUILD_FROM_CONAN="OFF"
     ;;
+  f)
+    # Disable in-place clang-format of source files. Used by reproducible
+    # builds (e.g. the package / release target) that must not mutate the
+    # working tree.
+    RUN_FORMAT="OFF"
+    ;;
   h) # help
     echo "
 
@@ -95,6 +101,8 @@ parameter:
 -c: build with coverage
 -p: build with production(-t RelWithDebInfo -r)
 -i: do install
+-z: build without conan-managed dependencies
+-f: skip in-place clang-format of source files (for reproducible builds)
 -h: help
 
 usage:
@@ -125,9 +133,23 @@ if [[ "${BUILD_FROM_CONAN}" == "ON" ]]; then
   # Users can override the Conan executable via CONAN.
   CONAN=${CONAN:-conan}
   CPPSTD=${CPPSTD:-14}
+  # Host profile uses CPPSTD (default 14) — applies to everything linked into
+  # libmilvus_sdk.so, so the ABI matches the SDK's own compilation.
+  #
+  # Build profile uses a newer C++ standard for build-time tools only
+  # (protoc, grpc_cpp_plugin, cmake, and their transitive deps). Recent
+  # versions of these tools pull in a newer abseil that ConanCenter only
+  # publishes with a higher cppstd; requesting a lower one triggers
+  # "compatible packages" fallback and protobuf's cppstd-match validation
+  # then rejects the combination. Setting the build profile to the cppstd
+  # ConanCenter actually publishes makes Conan hit the cache directly.
+  #
+  # This is purely a build-time concern — nothing from the build profile
+  # ends up in libmilvus_sdk.so, so it doesn't affect the SDK's ABI or
+  # what C++ standard consumers need.
+  BUILD_CPPSTD=17
 
   # Conan install generates a toolchain and CMake dependency config files.
-  # Use both host and build profiles with the same C++ standard to avoid mismatches.
   ${CONAN} --version || exit 1
 
   if [[ "${BUILD_TEST}" == "ON" ]]; then
@@ -147,7 +169,7 @@ if [[ "${BUILD_FROM_CONAN}" == "ON" ]]; then
     -s build_type=${BUILD_TYPE} \
     -s compiler.cppstd=${CPPSTD} \
     -s:b build_type=${BUILD_TYPE} \
-    -s:b compiler.cppstd=${CPPSTD} \
+    -s:b compiler.cppstd=${BUILD_CPPSTD} \
     -o "&:with_tests=${CONAN_WITH_TESTS}" \
     --build=missing || exit 1
 

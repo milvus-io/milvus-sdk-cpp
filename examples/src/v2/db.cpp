@@ -201,7 +201,7 @@ main(int argc, char* argv[]) {
                 .AddOutputField(field_name)
                 .AddOutputField(field_age)
                 .WithFilter(filter_expr)
-                // set to BOUNDED level to accept data inconsistence within a time window(default is 5 seconds)
+                // set to BOUNDED level to accept data inconsistence  within a time window(default is 5 seconds)
                 .WithConsistencyLevel(milvus::ConsistencyLevel::BOUNDED)
                 .AddFloatVector(insert_vectors[q_number_1])
                 .AddFloatVector(insert_vectors[q_number_2]);
