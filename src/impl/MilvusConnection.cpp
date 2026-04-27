@@ -328,6 +328,24 @@ MilvusConnection::AddCollectionField(const proto::milvus::AddCollectionFieldRequ
 }
 
 Status
+MilvusConnection::AddCollectionFunction(const proto::milvus::AddCollectionFunctionRequest& request,
+                                        proto::common::Status& response, const GrpcContextOptions& options) {
+    return grpcCall("AddCollectionFunction", &Stub::AddCollectionFunction, request, response, options);
+}
+
+Status
+MilvusConnection::AlterCollectionFunction(const proto::milvus::AlterCollectionFunctionRequest& request,
+                                          proto::common::Status& response, const GrpcContextOptions& options) {
+    return grpcCall("AlterCollectionFunction", &Stub::AlterCollectionFunction, request, response, options);
+}
+
+Status
+MilvusConnection::DropCollectionFunction(const proto::milvus::DropCollectionFunctionRequest& request,
+                                         proto::common::Status& response, const GrpcContextOptions& options) {
+    return grpcCall("DropCollectionFunction", &Stub::DropCollectionFunction, request, response, options);
+}
+
+Status
 MilvusConnection::CreatePartition(const proto::milvus::CreatePartitionRequest& request, proto::common::Status& response,
                                   const GrpcContextOptions& options) {
     return grpcCall("CreatePartition", &Stub::CreatePartition, request, response, options);

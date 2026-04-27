@@ -58,10 +58,16 @@ pull_request_rules:
         add:
           - ci-passed
 
-  - name: Remove ci-passed when build failed
+  - name: Remove ci-passed when checks are not green
     conditions:
       - or: *BRANCHES
       - or:
+          - "check-pending=Detect path changes"
+          - "check-pending=Build and test AMD64 Ubuntu 20.04"
+          - "check-pending=Build and test AMD64 Fedora 39"
+          - "check-pending=Integration test"
+          - "check-pending=Build and test macOS 15"
+          - "check-pending=Build and test windows"
           - "check-failure=Detect path changes"
           - "check-failure=Build and test AMD64 Ubuntu 20.04"
           - "check-failure=Build and test AMD64 Fedora 39"

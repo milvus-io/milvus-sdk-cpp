@@ -23,12 +23,15 @@
 #include "request/alias/DropAliasRequest.h"
 #include "request/alias/ListAliasesRequest.h"
 #include "request/collection/AddCollectionFieldRequest.h"
+#include "request/collection/AddCollectionFunctionRequest.h"
 #include "request/collection/AlterCollectionFieldPropertiesRequest.h"
+#include "request/collection/AlterCollectionFunctionRequest.h"
 #include "request/collection/AlterCollectionPropertiesRequest.h"
 #include "request/collection/CreateCollectionRequest.h"
 #include "request/collection/CreateSimpleCollectionRequest.h"
 #include "request/collection/DescribeCollectionRequest.h"
 #include "request/collection/DropCollectionFieldPropertiesRequest.h"
+#include "request/collection/DropCollectionFunctionRequest.h"
 #include "request/collection/DropCollectionPropertiesRequest.h"
 #include "request/collection/DropCollectionRequest.h"
 #include "request/collection/GetCollectionStatsRequest.h"
@@ -370,6 +373,34 @@ class MilvusClientV2 {
      */
     virtual Status
     AddCollectionField(const AddCollectionFieldRequest& request) = 0;
+
+    /**
+     * @brief Add a function to an existing collection.
+     *
+     * @param [in] request input parameters
+     * @return Status operation successfully or not
+     */
+    virtual Status
+    AddCollectionFunction(const AddCollectionFunctionRequest& request) = 0;
+
+    /**
+     * @brief Alter a function of an existing collection. The function name
+     * (taken from the Function object) identifies which function to alter.
+     *
+     * @param [in] request input parameters
+     * @return Status operation successfully or not
+     */
+    virtual Status
+    AlterCollectionFunction(const AlterCollectionFunctionRequest& request) = 0;
+
+    /**
+     * @brief Drop a function of an existing collection.
+     *
+     * @param [in] request input parameters
+     * @return Status operation successfully or not
+     */
+    virtual Status
+    DropCollectionFunction(const DropCollectionFunctionRequest& request) = 0;
 
     /**
      * @brief Create a partition in a collection.

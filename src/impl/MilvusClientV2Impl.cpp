@@ -548,6 +548,64 @@ MilvusClientV2Impl::AddCollectionField(const AddCollectionFieldRequest& request)
 }
 
 Status
+MilvusClientV2Impl::AddCollectionFunction(const AddCollectionFunctionRequest& request) {
+    if (request.Function() == nullptr) {
+        return {StatusCode::INVALID_ARGUMENT, "Function cannot be null."};
+    }
+    if (request.Function()->Name().empty()) {
+        return {StatusCode::INVALID_ARGUMENT, "Function name cannot be empty."};
+    }
+
+    auto pre = [&request](proto::milvus::AddCollectionFunctionRequest& rpc_request) {
+        rpc_request.set_db_name(request.DatabaseName());
+        rpc_request.set_collection_name(request.CollectionName());
+        ConvertFunctionSchema(request.Function(), *rpc_request.mutable_functionschema());
+        return Status::OK();
+    };
+
+    return connection_.Invoke<proto::milvus::AddCollectionFunctionRequest, proto::common::Status>(
+        pre, &MilvusConnection::AddCollectionFunction);
+}
+
+Status
+MilvusClientV2Impl::AlterCollectionFunction(const AlterCollectionFunctionRequest& request) {
+    if (request.Function() == nullptr) {
+        return {StatusCode::INVALID_ARGUMENT, "Function cannot be null."};
+    }
+    if (request.Function()->Name().empty()) {
+        return {StatusCode::INVALID_ARGUMENT, "Function name cannot be empty."};
+    }
+
+    auto pre = [&request](proto::milvus::AlterCollectionFunctionRequest& rpc_request) {
+        rpc_request.set_db_name(request.DatabaseName());
+        rpc_request.set_collection_name(request.CollectionName());
+        rpc_request.set_function_name(request.Function()->Name());
+        ConvertFunctionSchema(request.Function(), *rpc_request.mutable_functionschema());
+        return Status::OK();
+    };
+
+    return connection_.Invoke<proto::milvus::AlterCollectionFunctionRequest, proto::common::Status>(
+        pre, &MilvusConnection::AlterCollectionFunction);
+}
+
+Status
+MilvusClientV2Impl::DropCollectionFunction(const DropCollectionFunctionRequest& request) {
+    if (request.FunctionName().empty()) {
+        return {StatusCode::INVALID_ARGUMENT, "Function name cannot be empty."};
+    }
+
+    auto pre = [&request](proto::milvus::DropCollectionFunctionRequest& rpc_request) {
+        rpc_request.set_db_name(request.DatabaseName());
+        rpc_request.set_collection_name(request.CollectionName());
+        rpc_request.set_function_name(request.FunctionName());
+        return Status::OK();
+    };
+
+    return connection_.Invoke<proto::milvus::DropCollectionFunctionRequest, proto::common::Status>(
+        pre, &MilvusConnection::DropCollectionFunction);
+}
+
+Status
 MilvusClientV2Impl::CreatePartition(const CreatePartitionRequest& request) {
     auto pre = [&request](proto::milvus::CreatePartitionRequest& rpc_request) {
         rpc_request.set_db_name(request.DatabaseName());
