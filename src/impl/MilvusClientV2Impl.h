@@ -76,6 +76,12 @@ class MilvusClientV2Impl : public MilvusClientV2 {
     DescribeCollection(const DescribeCollectionRequest& request, DescribeCollectionResponse& response) final;
 
     Status
+    BatchDescribeCollections(const BatchDescribeCollectionsRequest& request, BatchDescribeCollectionsResponse& response) final;
+
+    Status
+    DescribeReplicas(const DescribeReplicasRequest& request, DescribeReplicasResponse& response) final;
+
+    Status
     RenameCollection(const RenameCollectionRequest& request) final;
 
     Status

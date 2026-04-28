@@ -122,6 +122,15 @@ class MilvusConnection {
                        proto::milvus::DescribeCollectionResponse& response, const GrpcContextOptions& options);
 
     Status
+    BatchDescribeCollection(const proto::milvus::BatchDescribeCollectionRequest& request,
+                            proto::milvus::BatchDescribeCollectionResponse& response,
+                            const GrpcContextOptions& options);
+
+    Status
+    GetReplicas(const proto::milvus::GetReplicasRequest& request, proto::milvus::GetReplicasResponse& response,
+                const GrpcContextOptions& options);
+
+    Status
     RenameCollection(const proto::milvus::RenameCollectionRequest& request, proto::common::Status& response,
                      const GrpcContextOptions& options);
 

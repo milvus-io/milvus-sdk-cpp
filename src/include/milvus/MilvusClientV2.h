@@ -23,6 +23,7 @@
 #include "request/alias/DropAliasRequest.h"
 #include "request/alias/ListAliasesRequest.h"
 #include "request/collection/AddCollectionFieldRequest.h"
+#include "request/collection/BatchDescribeCollectionsRequest.h"
 #include "request/collection/AddCollectionFunctionRequest.h"
 #include "request/collection/AlterCollectionFieldPropertiesRequest.h"
 #include "request/collection/AlterCollectionFunctionRequest.h"
@@ -30,6 +31,7 @@
 #include "request/collection/CreateCollectionRequest.h"
 #include "request/collection/CreateSimpleCollectionRequest.h"
 #include "request/collection/DescribeCollectionRequest.h"
+#include "request/collection/DescribeReplicasRequest.h"
 #include "request/collection/DropCollectionFieldPropertiesRequest.h"
 #include "request/collection/DropCollectionFunctionRequest.h"
 #include "request/collection/DropCollectionPropertiesRequest.h"
@@ -97,7 +99,9 @@
 #include "request/utility/RunAnalyzerRequest.h"
 #include "response/alias/DescribeAliasResponse.h"
 #include "response/alias/ListAliasesResponse.h"
+#include "response/collection/BatchDescribeCollectionsResponse.h"
 #include "response/collection/DescribeCollectionResponse.h"
+#include "response/collection/DescribeReplicasResponse.h"
 #include "response/collection/GetCollectionStatsResponse.h"
 #include "response/collection/GetLoadStateResponse.h"
 #include "response/collection/HasCollectionResponse.h"
@@ -287,6 +291,26 @@ class MilvusClientV2 {
      */
     virtual Status
     DescribeCollection(const DescribeCollectionRequest& request, DescribeCollectionResponse& response) = 0;
+
+    /**
+     * @brief Describe multiple collections.
+     *
+     * @param [in] request input parameters
+     * @param [out] response output results
+     * @return Status operation successfully or not
+     */
+    virtual Status
+    BatchDescribeCollections(const BatchDescribeCollectionsRequest& request, BatchDescribeCollectionsResponse& response) = 0;
+
+    /**
+     * @brief Describe replicas of a collection.
+     *
+     * @param [in] request input parameters
+     * @param [out] response output results
+     * @return Status operation successfully or not
+     */
+    virtual Status
+    DescribeReplicas(const DescribeReplicasRequest& request, DescribeReplicasResponse& response) = 0;
 
     /**
      * @brief RenameCollection rename a collection.
