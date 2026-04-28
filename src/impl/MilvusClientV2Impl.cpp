@@ -34,6 +34,41 @@
 #include "utils/TypeUtils.h"
 
 namespace milvus {
+namespace {
+
+Status
+ConvertDescribeCollectionResponse(const proto::milvus::DescribeCollectionResponse& rpc_response,
+                                  CollectionDesc& collection_desc) {
+    const auto& status = rpc_response.status();
+    auto legacy_code = status.error_code();
+    if (status.code() != 0 || legacy_code != proto::common::ErrorCode::Success) {
+        return {StatusCode::SERVER_FAILED, status.reason(), 0, status.code(), legacy_code};
+    }
+
+    CollectionSchema schema;
+    ConvertCollectionSchema(rpc_response.schema(), schema);
+    schema.SetShardsNum(rpc_response.shards_num());
+
+    collection_desc.SetSchema(std::move(schema));
+    collection_desc.SetID(rpc_response.collectionid());
+    collection_desc.SetCreatedTime(rpc_response.created_timestamp());
+
+    std::vector<std::string> aliases;
+    aliases.reserve(rpc_response.aliases_size());
+    aliases.insert(aliases.end(), rpc_response.aliases().begin(), rpc_response.aliases().end());
+    collection_desc.SetAlias(std::move(aliases));
+
+    std::unordered_map<std::string, std::string> properties;
+    for (int i = 0; i < rpc_response.properties_size(); i++) {
+        const auto& prop = rpc_response.properties(i);
+        properties[prop.key()] = prop.value();
+    }
+    collection_desc.SetProperties(std::move(properties));
+
+    return Status::OK();
+}
+
+}  // namespace
 
 std::shared_ptr<MilvusClientV2>
 MilvusClientV2::Create() {
@@ -339,26 +374,11 @@ MilvusClientV2Impl::DescribeCollection(const DescribeCollectionRequest& request,
     };
 
     auto post = [&response](const proto::milvus::DescribeCollectionResponse& rpc_response) {
-        CollectionSchema schema;
-        ConvertCollectionSchema(rpc_response.schema(), schema);
-        schema.SetShardsNum(rpc_response.shards_num());
-
         CollectionDesc collection_desc;
-        collection_desc.SetSchema(std::move(schema));
-        collection_desc.SetID(rpc_response.collectionid());
-        collection_desc.SetCreatedTime(rpc_response.created_timestamp());
-
-        std::vector<std::string> aliases;
-        aliases.reserve(rpc_response.aliases_size());
-        aliases.insert(aliases.end(), rpc_response.aliases().begin(), rpc_response.aliases().end());
-        collection_desc.SetAlias(std::move(aliases));
-
-        std::unordered_map<std::string, std::string> properties;
-        for (int i = 0; i < rpc_response.properties_size(); i++) {
-            const auto& prop = rpc_response.properties(i);
-            properties[prop.key()] = prop.value();
+        auto status = ConvertDescribeCollectionResponse(rpc_response, collection_desc);
+        if (!status.IsOk()) {
+            return status;
         }
-        collection_desc.SetProperties(std::move(properties));
 
         response.SetDesc(std::move(collection_desc));
         return Status::OK();
@@ -366,6 +386,106 @@ MilvusClientV2Impl::DescribeCollection(const DescribeCollectionRequest& request,
 
     return connection_.Invoke<proto::milvus::DescribeCollectionRequest, proto::milvus::DescribeCollectionResponse>(
         pre, &MilvusConnection::DescribeCollection, post);
+}
+
+Status
+MilvusClientV2Impl::BatchDescribeCollections(const BatchDescribeCollectionsRequest& request,
+                                            BatchDescribeCollectionsResponse& response) {
+    auto pre = [&request](proto::milvus::BatchDescribeCollectionRequest& rpc_request) {
+        rpc_request.set_db_name(request.DatabaseName());
+        for (const auto& collection_name : request.CollectionNames()) {
+            rpc_request.add_collection_name(collection_name);
+        }
+        for (auto collection_id : request.CollectionIDs()) {
+            rpc_request.add_collectionid(collection_id);
+        }
+        return Status::OK();
+    };
+
+    auto post = [&response](const proto::milvus::BatchDescribeCollectionResponse& rpc_response) {
+        std::vector<CollectionDesc> descs;
+        descs.reserve(rpc_response.responses_size());
+        for (const auto& rpc_desc : rpc_response.responses()) {
+            CollectionDesc desc;
+            auto status = ConvertDescribeCollectionResponse(rpc_desc, desc);
+            if (!status.IsOk()) {
+                return status;
+            }
+            descs.emplace_back(std::move(desc));
+        }
+
+        response.SetDescs(std::move(descs));
+        return Status::OK();
+    };
+
+    return connection_.Invoke<proto::milvus::BatchDescribeCollectionRequest,
+                              proto::milvus::BatchDescribeCollectionResponse>(
+        pre, &MilvusConnection::BatchDescribeCollection, post);
+}
+
+Status
+MilvusClientV2Impl::DescribeReplicas(const DescribeReplicasRequest& request, DescribeReplicasResponse& response) {
+    if (request.CollectionName().empty()) {
+        return {StatusCode::INVALID_ARGUMENT, "Collection name cannot be empty"};
+    }
+
+    auto pre = [&request](proto::milvus::GetReplicasRequest& rpc_request) {
+        rpc_request.set_db_name(request.DatabaseName());
+        rpc_request.set_collection_name(request.CollectionName());
+        rpc_request.set_with_shard_nodes(true);
+        return Status::OK();
+    };
+
+    auto post = [&response](const proto::milvus::GetReplicasResponse& rpc_response) {
+        std::vector<ReplicaInfo> replicas;
+        replicas.reserve(rpc_response.replicas_size());
+        for (const auto& rpc_replica : rpc_response.replicas()) {
+            ReplicaInfo replica;
+            replica.SetReplicaID(rpc_replica.replicaid());
+            replica.SetCollectionID(rpc_replica.collectionid());
+
+            std::vector<int64_t> partition_ids;
+            partition_ids.reserve(rpc_replica.partition_ids_size());
+            partition_ids.insert(partition_ids.end(), rpc_replica.partition_ids().begin(), rpc_replica.partition_ids().end());
+            replica.SetPartitionIDs(std::move(partition_ids));
+
+            std::vector<int64_t> node_ids;
+            node_ids.reserve(rpc_replica.node_ids_size());
+            node_ids.insert(node_ids.end(), rpc_replica.node_ids().begin(), rpc_replica.node_ids().end());
+            replica.SetNodeIDs(std::move(node_ids));
+
+            replica.SetResourceGroupName(rpc_replica.resource_group_name());
+
+            std::unordered_map<std::string, int32_t> num_outbound_node;
+            num_outbound_node.insert(rpc_replica.num_outbound_node().begin(), rpc_replica.num_outbound_node().end());
+            replica.SetNumOutboundNode(std::move(num_outbound_node));
+
+            std::vector<ShardReplica> shard_replicas;
+            shard_replicas.reserve(rpc_replica.shard_replicas_size());
+            for (const auto& rpc_shard : rpc_replica.shard_replicas()) {
+                ShardReplica shard_replica;
+                shard_replica.SetLeaderID(rpc_shard.leaderid());
+                shard_replica.SetLeaderAddress(rpc_shard.leader_addr());
+                shard_replica.SetChannelName(rpc_shard.dm_channel_name());
+
+                std::vector<int64_t> shard_node_ids;
+                shard_node_ids.reserve(rpc_shard.node_ids_size());
+                shard_node_ids.insert(shard_node_ids.end(), rpc_shard.node_ids().begin(), rpc_shard.node_ids().end());
+                shard_replica.SetNodeIDs(std::move(shard_node_ids));
+
+                shard_replicas.emplace_back(std::move(shard_replica));
+            }
+            replica.SetShardReplicas(std::move(shard_replicas));
+
+            replicas.emplace_back(std::move(replica));
+        }
+
+        response.SetReplicas(std::move(replicas));
+        return Status::OK();
+    };
+
+    return connection_.Invoke<proto::milvus::GetReplicasRequest, proto::milvus::GetReplicasResponse>(
+        pre, &MilvusConnection::GetReplicas, post);
 }
 
 Status

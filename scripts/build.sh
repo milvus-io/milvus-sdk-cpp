@@ -171,6 +171,7 @@ if [[ "${BUILD_FROM_CONAN}" == "ON" ]]; then
     -s:b build_type=${BUILD_TYPE} \
     -s:b compiler.cppstd=${BUILD_CPPSTD} \
     -o "&:with_tests=${CONAN_WITH_TESTS}" \
+    -c tools.build:jobs=${JOBS} \
     --build=missing || exit 1
 
   TOOLCHAIN_FILE="${PWD}/build/${BUILD_TYPE}/generators/conan_toolchain.cmake"
