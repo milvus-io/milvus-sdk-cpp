@@ -278,6 +278,19 @@ MilvusConnection::DescribeCollection(const proto::milvus::DescribeCollectionRequ
 }
 
 Status
+MilvusConnection::BatchDescribeCollection(const proto::milvus::BatchDescribeCollectionRequest& request,
+                                          proto::milvus::BatchDescribeCollectionResponse& response,
+                                          const GrpcContextOptions& options) {
+    return grpcCall("BatchDescribeCollection", &Stub::BatchDescribeCollection, request, response, options);
+}
+
+Status
+MilvusConnection::GetReplicas(const proto::milvus::GetReplicasRequest& request,
+                              proto::milvus::GetReplicasResponse& response, const GrpcContextOptions& options) {
+    return grpcCall("GetReplicas", &Stub::GetReplicas, request, response, options);
+}
+
+Status
 MilvusConnection::RenameCollection(const proto::milvus::RenameCollectionRequest& request,
                                    proto::common::Status& response, const GrpcContextOptions& options) {
     return grpcCall("RenameCollection", &Stub::RenameCollection, request, response, options);
