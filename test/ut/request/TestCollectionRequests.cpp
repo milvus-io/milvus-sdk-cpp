@@ -189,6 +189,48 @@ TEST_F(TruncateCollectionRequestTest, GettersAndSetters) {
     EXPECT_EQ(req.CollectionName(), "trunc_coll");
 }
 
+class BatchDescribeCollectionsRequestTest : public ::testing::Test {};
+
+TEST_F(BatchDescribeCollectionsRequestTest, GettersAndSetters) {
+    milvus::BatchDescribeCollectionsRequest req;
+
+    auto& db_ref = req.WithDatabaseName("test_db");
+    EXPECT_EQ(&db_ref, &req);
+    EXPECT_EQ(req.DatabaseName(), "test_db");
+
+    std::vector<std::string> names{"coll1", "coll2"};
+    auto& names_ref = req.WithCollectionNames(std::move(names));
+    EXPECT_EQ(&names_ref, &req);
+    ASSERT_EQ(req.CollectionNames().size(), 2);
+    EXPECT_EQ(req.CollectionNames()[0], "coll1");
+
+    auto& add_name_ref = req.AddCollectionName("coll3");
+    EXPECT_EQ(&add_name_ref, &req);
+    ASSERT_EQ(req.CollectionNames().size(), 3);
+    EXPECT_EQ(req.CollectionNames()[2], "coll3");
+
+    std::vector<int64_t> ids{101, 102};
+    auto& ids_ref = req.WithCollectionIDs(std::move(ids));
+    EXPECT_EQ(&ids_ref, &req);
+    ASSERT_EQ(req.CollectionIDs().size(), 2);
+    EXPECT_EQ(req.CollectionIDs()[0], 101);
+
+    auto& add_id_ref = req.AddCollectionID(103);
+    EXPECT_EQ(&add_id_ref, &req);
+    ASSERT_EQ(req.CollectionIDs().size(), 3);
+    EXPECT_EQ(req.CollectionIDs()[2], 103);
+}
+
+class DescribeReplicasRequestTest : public ::testing::Test {};
+
+TEST_F(DescribeReplicasRequestTest, GettersAndSetters) {
+    milvus::DescribeReplicasRequest req;
+    auto& ref = req.WithDatabaseName("test_db").WithCollectionName("test_coll");
+    EXPECT_EQ(&ref, &req);
+    EXPECT_EQ(req.DatabaseName(), "test_db");
+    EXPECT_EQ(req.CollectionName(), "test_coll");
+}
+
 class ListCollectionsRequestTest : public ::testing::Test {};
 
 TEST_F(ListCollectionsRequestTest, GettersAndSetters) {
