@@ -103,6 +103,15 @@ class MilvusClientV2Impl : public MilvusClientV2 {
     AddCollectionField(const AddCollectionFieldRequest& request) final;
 
     Status
+    AddCollectionFunction(const AddCollectionFunctionRequest& request) final;
+
+    Status
+    AlterCollectionFunction(const AlterCollectionFunctionRequest& request) final;
+
+    Status
+    DropCollectionFunction(const DropCollectionFunctionRequest& request) final;
+
+    Status
     CreatePartition(const CreatePartitionRequest& request) final;
 
     Status

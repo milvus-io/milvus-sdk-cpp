@@ -155,6 +155,18 @@ class MilvusConnection {
                        const GrpcContextOptions& options);
 
     Status
+    AddCollectionFunction(const proto::milvus::AddCollectionFunctionRequest& request, proto::common::Status& response,
+                          const GrpcContextOptions& options);
+
+    Status
+    AlterCollectionFunction(const proto::milvus::AlterCollectionFunctionRequest& request,
+                            proto::common::Status& response, const GrpcContextOptions& options);
+
+    Status
+    DropCollectionFunction(const proto::milvus::DropCollectionFunctionRequest& request, proto::common::Status& response,
+                           const GrpcContextOptions& options);
+
+    Status
     CreatePartition(const proto::milvus::CreatePartitionRequest& request, proto::common::Status& response,
                     const GrpcContextOptions& options);
 
