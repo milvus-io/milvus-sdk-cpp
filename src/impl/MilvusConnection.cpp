@@ -95,6 +95,7 @@ Status
 MilvusConnection::Connect(const ConnectParam& param) {
     param_ = param;
 
+    std::shared_ptr<grpc::Channel> channel;
     try {
         // ParseURI() might throw exceptions when the uri/port is invalid
         std::shared_ptr<grpc::ChannelCredentials> credentials{nullptr};
@@ -126,21 +127,27 @@ MilvusConnection::Connect(const ConnectParam& param) {
             metadata["dbname"] = db_name;
         }
 
-        channel_ = CreateChannelWithHeaderInterceptor(address, credentials, args, metadata);
+        channel = CreateChannelWithHeaderInterceptor(address, credentials, args, metadata);
     } catch (const std::exception& ex) {
         std::string reason = "Exception caught when creating grpc channel: ";
         reason += ex.what();
         return {StatusCode::NOT_CONNECTED, reason};
     }
 
-    auto connected = channel_->WaitForConnected(std::chrono::system_clock::now() +
-                                                std::chrono::milliseconds{param.ConnectTimeout()});
+    auto connected =
+        channel->WaitForConnected(std::chrono::system_clock::now() + std::chrono::milliseconds{param.ConnectTimeout()});
     if (!connected) {
         std::string reason = "Failed to create grpc channel to the uri: " + param.Uri();
         return {StatusCode::NOT_CONNECTED, reason};
     }
 
-    stub_ = proto::milvus::MilvusService::NewStub(channel_);
+    auto stub_holder = proto::milvus::MilvusService::NewStub(channel);
+    auto stub = std::shared_ptr<Stub>(std::move(stub_holder));
+    {
+        std::lock_guard<std::mutex> lock(stub_mtx_);
+        channel_ = channel;
+        stub_ = stub;
+    }
 
     // grpc channel has been create, now we call the proto::milvus::MilvusClient::Connect() interface
     // to send some basic information of client to the server, including the sdk type, version, etc.
@@ -167,7 +174,7 @@ MilvusConnection::Connect(const ConnectParam& param) {
     }
 
     proto::milvus::ConnectResponse rpc_response;
-    auto grpc_status = stub_->Connect(&context, rpc_request, &rpc_response);
+    auto grpc_status = stub->Connect(&context, rpc_request, &rpc_response);
     return StatusCodeFromGrpcStatus(grpc_status);
 }
 
@@ -178,6 +185,7 @@ MilvusConnection::GetConnectParam() {
 
 Status
 MilvusConnection::Disconnect() {
+    std::lock_guard<std::mutex> lock(stub_mtx_);
     stub_.reset();
     channel_.reset();
     return Status::OK();

@@ -27,6 +27,10 @@ on:
       - '.clang-format'
       - '.clang-tidy'
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
   # Detect whether the PR touches core SDK files (src, cmake, test,
   # thirdparty, scripts, workflow, lint configs) or only peripheral files

@@ -20,6 +20,7 @@
 
 #include "milvus.pb.h"
 #include "milvus/Status.h"
+#include "milvus/types/CollectionDesc.h"
 #include "milvus/types/CollectionSchema.h"
 #include "milvus/types/ConsistencyLevel.h"
 #include "milvus/types/FieldData.h"
@@ -73,6 +74,10 @@ ConvertFunctionSchema(const proto::schema::FunctionSchema& proto_function, Funct
 
 void
 ConvertCollectionSchema(const proto::schema::CollectionSchema& proto_schema, CollectionSchema& schema);
+
+Status
+ConvertDescribeCollectionResponse(const proto::milvus::DescribeCollectionResponse& rpc_response,
+                                  CollectionDesc& collection_desc);
 
 Status
 CheckDefaultValue(const FieldSchema& schema);
