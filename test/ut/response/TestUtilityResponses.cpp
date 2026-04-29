@@ -46,6 +46,31 @@ TEST_F(CompactResponseTest, SetterAndGetter) {
     EXPECT_EQ(resp.CompactionPlanCount(), 5);
 }
 
+class OptimizeResponseTest : public ::testing::Test {};
+
+TEST_F(OptimizeResponseTest, SetterAndGetter) {
+    milvus::OptimizeResponse resp;
+
+    resp.SetStatusText("success");
+    EXPECT_EQ(resp.StatusText(), "success");
+    resp.SetCollectionName("coll");
+    EXPECT_EQ(resp.CollectionName(), "coll");
+    resp.SetCompactionID(1001);
+    EXPECT_EQ(resp.CompactionID(), 1001);
+    resp.SetTargetSize("512MB");
+    EXPECT_EQ(resp.TargetSize(), "512MB");
+
+    resp.AddProgress("initializing");
+    resp.AddProgress("compacting");
+    ASSERT_EQ(resp.ProgressHistory().size(), 2);
+    EXPECT_EQ(resp.ProgressHistory()[1], "compacting");
+
+    std::vector<std::string> history{"done"};
+    resp.SetProgressHistory(std::move(history));
+    ASSERT_EQ(resp.ProgressHistory().size(), 1);
+    EXPECT_EQ(resp.ProgressHistory()[0], "done");
+}
+
 class GetCompactionStateResponseTest : public ::testing::Test {};
 
 TEST_F(GetCompactionStateResponseTest, SetterAndGetter) {

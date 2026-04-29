@@ -14,71 +14,87 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "milvus/request/utility/CompactRequest.h"
+#include "milvus/request/utility/OptimizeRequest.h"
 
 namespace milvus {
 
 const std::string&
-CompactRequest::DatabaseName() const {
+OptimizeRequest::DatabaseName() const {
     return db_name_;
 }
 
 void
-CompactRequest::SetDatabaseName(const std::string& db_name) {
+OptimizeRequest::SetDatabaseName(const std::string& db_name) {
     db_name_ = db_name;
 }
 
-CompactRequest&
-CompactRequest::WithDatabaseName(const std::string& db_name) {
+OptimizeRequest&
+OptimizeRequest::WithDatabaseName(const std::string& db_name) {
     SetDatabaseName(db_name);
     return *this;
 }
 
 const std::string&
-CompactRequest::CollectionName() const {
+OptimizeRequest::CollectionName() const {
     return collection_name_;
 }
 
 void
-CompactRequest::SetCollectionName(const std::string& collection_name) {
+OptimizeRequest::SetCollectionName(const std::string& collection_name) {
     collection_name_ = collection_name;
 }
 
-CompactRequest&
-CompactRequest::WithCollectionName(const std::string& collection_name) {
+OptimizeRequest&
+OptimizeRequest::WithCollectionName(const std::string& collection_name) {
     SetCollectionName(collection_name);
     return *this;
 }
 
-int64_t
-CompactRequest::TargetSize() const {
+const std::string&
+OptimizeRequest::TargetSize() const {
     return target_size_;
 }
 
 void
-CompactRequest::SetTargetSize(int64_t target_size) {
+OptimizeRequest::SetTargetSize(const std::string& target_size) {
     target_size_ = target_size;
 }
 
-CompactRequest&
-CompactRequest::WithTargetSize(int64_t target_size) {
+OptimizeRequest&
+OptimizeRequest::WithTargetSize(const std::string& target_size) {
     SetTargetSize(target_size);
     return *this;
 }
 
 bool
-CompactRequest::ClusteringCompaction() const {
-    return is_clustring_compaction_;
+OptimizeRequest::Async() const {
+    return async_;
 }
 
 void
-CompactRequest::SetClusteringCompaction(bool clustering_compaction) {
-    is_clustring_compaction_ = clustering_compaction;
+OptimizeRequest::SetAsync(bool async) {
+    async_ = async;
 }
 
-CompactRequest&
-CompactRequest::WithClusteringCompaction(bool clustering_compaction) {
-    SetClusteringCompaction(clustering_compaction);
+OptimizeRequest&
+OptimizeRequest::WithAsync(bool async) {
+    SetAsync(async);
+    return *this;
+}
+
+int64_t
+OptimizeRequest::TimeoutMs() const {
+    return timeout_ms_;
+}
+
+void
+OptimizeRequest::SetTimeoutMs(int64_t timeout_ms) {
+    timeout_ms_ = timeout_ms;
+}
+
+OptimizeRequest&
+OptimizeRequest::WithTimeoutMs(int64_t timeout_ms) {
+    SetTimeoutMs(timeout_ms);
     return *this;
 }
 

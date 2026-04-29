@@ -632,6 +632,55 @@ TEST_F(TypeUtilsTest, ConvertCollectionSchema) {
     EXPECT_EQ(sdk_function->Params().at("111"), "222");
 }
 
+TEST_F(TypeUtilsTest, ConvertDescribeCollectionResponse) {
+    const int64_t collection_id = 100;
+    const int32_t shards_num = 3;
+    const uint64_t created_ts = 123456;
+
+    milvus::CollectionSchema collection_schema("test_collection", "test description", 1, true);
+    collection_schema.AddField({"id", milvus::DataType::INT64, "primary key", true, false});
+
+    milvus::proto::milvus::DescribeCollectionResponse rpc_response;
+    rpc_response.mutable_status()->set_code(0);
+    rpc_response.set_collectionid(collection_id);
+    rpc_response.set_shards_num(shards_num);
+    rpc_response.set_created_timestamp(created_ts);
+    rpc_response.add_aliases("alias_a");
+    rpc_response.add_aliases("alias_b");
+    auto* property = rpc_response.add_properties();
+    property->set_key("collection.ttl.seconds");
+    property->set_value("3600");
+    milvus::ConvertCollectionSchema(collection_schema, *rpc_response.mutable_schema());
+
+    milvus::CollectionDesc collection_desc;
+    auto status = milvus::ConvertDescribeCollectionResponse(rpc_response, collection_desc);
+
+    EXPECT_TRUE(status.IsOk());
+    EXPECT_EQ(collection_desc.ID(), collection_id);
+    EXPECT_EQ(collection_desc.CreatedTime(), created_ts);
+    EXPECT_EQ(collection_desc.CollectionName(), collection_schema.Name());
+    EXPECT_EQ(collection_desc.Description(), collection_schema.Description());
+    EXPECT_EQ(collection_desc.NumShards(), shards_num);
+    EXPECT_THAT(collection_desc.Alias(), ElementsAre("alias_a", "alias_b"));
+    ASSERT_EQ(collection_desc.Properties().count("collection.ttl.seconds"), 1);
+    EXPECT_EQ(collection_desc.Properties().at("collection.ttl.seconds"), "3600");
+    ASSERT_EQ(collection_desc.Schema().Fields().size(), 1);
+    EXPECT_EQ(collection_desc.Schema().Fields().at(0).Name(), "id");
+    EXPECT_EQ(collection_desc.Schema().Fields().at(0).FieldDataType(), milvus::DataType::INT64);
+}
+
+TEST_F(TypeUtilsTest, ConvertDescribeCollectionResponseFailure) {
+    milvus::proto::milvus::DescribeCollectionResponse rpc_response;
+    rpc_response.mutable_status()->set_code(100);
+    rpc_response.mutable_status()->set_reason("describe failed");
+
+    milvus::CollectionDesc collection_desc;
+    auto status = milvus::ConvertDescribeCollectionResponse(rpc_response, collection_desc);
+
+    EXPECT_EQ(status.Code(), milvus::StatusCode::SERVER_FAILED);
+    EXPECT_EQ(status.Message(), "describe failed");
+}
+
 TEST_F(TypeUtilsTest, TestB64EncodeGeneric) {
     EXPECT_EQ(milvus::Base64Encode(""), "");
     EXPECT_EQ(milvus::Base64Encode("a"), "YQ==");

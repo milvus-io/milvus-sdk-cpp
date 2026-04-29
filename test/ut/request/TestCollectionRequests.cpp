@@ -162,6 +162,21 @@ TEST_F(LoadCollectionRequestTest, GettersAndSetters) {
     EXPECT_TRUE(req.TargetResourceGroups().count("rg1"));
 }
 
+class RefreshLoadRequestTest : public ::testing::Test {};
+
+TEST_F(RefreshLoadRequestTest, GettersAndSetters) {
+    milvus::RefreshLoadRequest req;
+    EXPECT_TRUE(req.Sync());
+    EXPECT_EQ(req.TimeoutMs(), 60000);
+
+    auto& ref = req.WithDatabaseName("db").WithCollectionName("refresh_coll").WithSync(false).WithTimeoutMs(30000);
+    EXPECT_EQ(&ref, &req);
+    EXPECT_EQ(req.DatabaseName(), "db");
+    EXPECT_EQ(req.CollectionName(), "refresh_coll");
+    EXPECT_FALSE(req.Sync());
+    EXPECT_EQ(req.TimeoutMs(), 30000);
+}
+
 class ReleaseCollectionRequestTest : public ::testing::Test {};
 
 TEST_F(ReleaseCollectionRequestTest, GettersAndSetters) {
