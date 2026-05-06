@@ -433,6 +433,38 @@ ConvertCollectionSchema(const proto::schema::CollectionSchema& proto_schema, Col
 }
 
 Status
+ConvertDescribeCollectionResponse(const proto::milvus::DescribeCollectionResponse& rpc_response,
+                                  CollectionDesc& collection_desc) {
+    const auto& status = rpc_response.status();
+    auto legacy_code = status.error_code();
+    if (status.code() != 0 || legacy_code != proto::common::ErrorCode::Success) {
+        return {StatusCode::SERVER_FAILED, status.reason(), 0, status.code(), legacy_code};
+    }
+
+    CollectionSchema schema;
+    ConvertCollectionSchema(rpc_response.schema(), schema);
+    schema.SetShardsNum(rpc_response.shards_num());
+
+    collection_desc.SetSchema(std::move(schema));
+    collection_desc.SetID(rpc_response.collectionid());
+    collection_desc.SetCreatedTime(rpc_response.created_timestamp());
+
+    std::vector<std::string> aliases;
+    aliases.reserve(rpc_response.aliases_size());
+    aliases.insert(aliases.end(), rpc_response.aliases().begin(), rpc_response.aliases().end());
+    collection_desc.SetAlias(std::move(aliases));
+
+    std::unordered_map<std::string, std::string> properties;
+    for (int i = 0; i < rpc_response.properties_size(); i++) {
+        const auto& prop = rpc_response.properties(i);
+        properties[prop.key()] = prop.value();
+    }
+    collection_desc.SetProperties(std::move(properties));
+
+    return Status::OK();
+}
+
+Status
 CheckDefaultValue(const FieldSchema& schema) {
     const nlohmann::json& val = schema.DefaultValue();
     if (val.is_null()) {

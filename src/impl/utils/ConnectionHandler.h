@@ -16,7 +16,9 @@
 
 #pragma once
 
+#include <cstdint>
 #include <memory>
+#include <mutex>
 #include <string>
 
 #include "../MilvusConnection.h"
@@ -39,7 +41,7 @@ class ConnectionHandler {
     Status
     Disconnect();
 
-    const MilvusConnectionPtr&
+    MilvusConnectionPtr
     GetConnection() const;
 
     Status
@@ -51,7 +53,7 @@ class ConnectionHandler {
     Status
     SetRetryParam(const RetryParam& retry_param);
 
-    const RetryParam&
+    RetryParam
     GetRetryParam() const;
 
     Status
@@ -63,7 +65,7 @@ class ConnectionHandler {
     // This interface is not exposed to users
     Status
     GetLoadingProgress(const std::string& db_name, const std::string& collection_name,
-                       const std::set<std::string> partition_names, uint32_t& progress);
+                       const std::set<std::string> partition_names, uint32_t& progress, uint64_t rpc_timeout_ms = 0);
 
     /**
      * Internal wait for status query done.
@@ -127,6 +129,33 @@ class ConnectionHandler {
         return apiHandler(validate, pre, rpc, wait_for_status, post);
     }
 
+    template <typename Request, typename Response>
+    Status
+    InvokeWithRpcTimeout(uint64_t rpc_timeout_ms, std::function<Status(Request&)> pre,
+                         Status (MilvusConnection::*rpc)(const Request&, Response&, const GrpcOpts&),
+                         std::function<Status(const Response&)> post) {
+        return apiHandler(std::function<Status(void)>{}, pre, rpc, std::function<Status(const Response&)>{}, post,
+                          rpc_timeout_ms);
+    }
+
+    template <typename Request, typename Response>
+    Status
+    InvokeWithRpcTimeout(uint64_t rpc_timeout_ms, std::function<Status(Request&)> pre,
+                         Status (MilvusConnection::*rpc)(const Request&, Response&, const GrpcOpts&)) {
+        return apiHandler(std::function<Status(void)>{}, pre, rpc, std::function<Status(const Response&)>{},
+                          std::function<Status(const Response&)>{}, rpc_timeout_ms);
+    }
+
+    template <typename Request, typename Response>
+    Status
+    InvokeWithRpcTimeout(uint64_t rpc_timeout_ms, const std::function<Status(void)>& validate,
+                         std::function<Status(Request&)> pre,
+                         Status (MilvusConnection::*rpc)(const Request&, Response&, const GrpcOpts&),
+                         std::function<Status(const Response&)> wait_for_status,
+                         std::function<Status(const Response&)> post) {
+        return apiHandler(validate, pre, rpc, wait_for_status, post, rpc_timeout_ms);
+    }
+
  private:
     /**
      * @brief template for public api call
@@ -136,9 +165,19 @@ class ConnectionHandler {
     Status
     apiHandler(const std::function<Status(void)>& validate, std::function<Status(Request&)> pre,
                Status (MilvusConnection::*rpc)(const Request&, Response&, const GrpcOpts&),
-               std::function<Status(const Response&)> wait_for_status, std::function<Status(const Response&)> post) {
-        if (connection_ == nullptr) {
-            return {StatusCode::NOT_CONNECTED, "Connection is not created!"};
+               std::function<Status(const Response&)> wait_for_status, std::function<Status(const Response&)> post,
+               uint64_t rpc_timeout_ms = 0) {
+        MilvusConnectionPtr connection;
+        RetryParam retry_param;
+        uint64_t timeout = 0;
+        {
+            std::lock_guard<std::mutex> lock(mtx_);
+            if (connection_ == nullptr) {
+                return {StatusCode::NOT_CONNECTED, "Connection is not created!"};
+            }
+            connection = connection_;
+            retry_param = retry_param_;
+            timeout = connection_->GetConnectParam().RpcDeadlineMs();
         }
 
         // validate input
@@ -161,10 +200,12 @@ class ConnectionHandler {
         // call rpc interface
         Response rpc_response;
         // the timeout value can be changed by MilvusClient::SetRpcDeadlineMs()
-        uint64_t timeout = connection_->GetConnectParam().RpcDeadlineMs();
-        auto func = std::bind(rpc, connection_.get(), rpc_request, std::placeholders::_1, GrpcOpts{timeout});
+        if (rpc_timeout_ms > 0 && (timeout == 0 || rpc_timeout_ms < timeout)) {
+            timeout = rpc_timeout_ms;
+        }
+        auto func = std::bind(rpc, connection.get(), rpc_request, std::placeholders::_1, GrpcOpts{timeout});
         auto caller = [&func, &rpc_response]() { return func(rpc_response); };
-        auto status = Retry(caller, retry_param_);
+        auto status = Retry(caller, retry_param);
         if (!status.IsOk()) {
             // response's status already checked in connection class
             return status;
@@ -189,6 +230,7 @@ class ConnectionHandler {
     }
 
  private:
+    mutable std::mutex mtx_;
     MilvusConnectionPtr connection_;
     RetryParam retry_param_;
 };

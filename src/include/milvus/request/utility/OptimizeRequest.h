@@ -22,96 +22,111 @@
 namespace milvus {
 
 /**
- * @brief Used by MilvusClientV2::Compact()
+ * @brief Used by MilvusClientV2::Optimize()
  */
-class CompactRequest {
+class OptimizeRequest {
  public:
     /**
      * @brief Constructor
      */
-    CompactRequest() = default;
+    OptimizeRequest() = default;
 
     /**
-     * @brief Database name in which the collections are created.
+     * @brief Database name in which the collection is created.
      */
     const std::string&
     DatabaseName() const;
 
     /**
-     * @brief Set database name in which the collections are created.
+     * @brief Set database name in which the collection is created.
      */
     void
     SetDatabaseName(const std::string& db_name);
 
     /**
-     * @brief Set database name in which the collections are created.
+     * @brief Set database name in which the collection is created.
      */
-    CompactRequest&
+    OptimizeRequest&
     WithDatabaseName(const std::string& db_name);
 
     /**
-     * @brief Name of the collection to be compacted.
+     * @brief Name of the collection to be optimized.
      */
     const std::string&
     CollectionName() const;
 
     /**
-     * @brief Set name of the collection to be compacted.
+     * @brief Set name of the collection to be optimized.
      */
     void
     SetCollectionName(const std::string& collection_name);
 
     /**
-     * @brief Set name of the collection to be compacted.
+     * @brief Set name of the collection to be optimized.
      */
-    CompactRequest&
+    OptimizeRequest&
     WithCollectionName(const std::string& collection_name);
 
     /**
-     * @brief Target segment size in MB. Zero means use server default.
+     * @brief Target segment size, such as "512MB" or "1GB".
      */
-    int64_t
+    const std::string&
     TargetSize() const;
 
     /**
-     * @brief Set target segment size in MB. Zero means use server default.
+     * @brief Set target segment size.
      */
     void
-    SetTargetSize(int64_t target_size);
+    SetTargetSize(const std::string& target_size);
 
     /**
-     * @brief Set target segment size in MB. Zero means use server default.
+     * @brief Set target segment size.
      */
-    CompactRequest&
-    WithTargetSize(int64_t target_size);
+    OptimizeRequest&
+    WithTargetSize(const std::string& target_size);
 
     /**
-     * @brief Get the flag whether it is cluserting compaction or not.
+     * @brief Run optimization asynchronously.
      */
     bool
-    ClusteringCompaction() const;
+    Async() const;
 
     /**
-     * @brief Set cluserting compaction flag.
-     * True: do cluserting compaction, report error if no clustering key.
-     * False: do normal compaction.
+     * @brief Set async option.
      */
     void
-    SetClusteringCompaction(bool clustering_compaction);
+    SetAsync(bool async);
 
     /**
-     * @brief Set cluserting compaction flag.
-     * True: do cluserting compaction, report error if no clustering key.
-     * False: do normal compaction.
+     * @brief Set async option.
      */
-    CompactRequest&
-    WithClusteringCompaction(bool clustering_compaction);
+    OptimizeRequest&
+    WithAsync(bool async);
+
+    /**
+     * @brief Overall task timeout in milliseconds. Zero means no overall timeout.
+     */
+    int64_t
+    TimeoutMs() const;
+
+    /**
+     * @brief Set overall task timeout in milliseconds. Zero means no overall timeout.
+     */
+    void
+    SetTimeoutMs(int64_t timeout_ms);
+
+    /**
+     * @brief Set overall task timeout in milliseconds. Zero means no overall timeout.
+     */
+    OptimizeRequest&
+    WithTimeoutMs(int64_t timeout_ms);
 
  private:
     std::string db_name_;
     std::string collection_name_;
-    int64_t target_size_{0};
-    bool is_clustring_compaction_{false};
+    std::string target_size_;
+    bool async_{false};
+    int64_t timeout_ms_{0};
 };
 
 }  // namespace milvus

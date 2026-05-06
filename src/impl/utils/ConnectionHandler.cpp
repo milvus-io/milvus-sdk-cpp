@@ -22,6 +22,7 @@ namespace milvus {
 
 Status
 ConnectionHandler::Connect(const ConnectParam& connect_param) {
+    std::lock_guard<std::mutex> lock(mtx_);
     if (connection_ != nullptr) {
         connection_->Disconnect();
     }
@@ -33,19 +34,22 @@ ConnectionHandler::Connect(const ConnectParam& connect_param) {
 
 Status
 ConnectionHandler::Disconnect() {
+    std::lock_guard<std::mutex> lock(mtx_);
     if (connection_ != nullptr) {
         return connection_->Disconnect();
     }
     return Status::OK();
 }
 
-const MilvusConnectionPtr&
+MilvusConnectionPtr
 ConnectionHandler::GetConnection() const {
+    std::lock_guard<std::mutex> lock(mtx_);
     return connection_;
 }
 
 Status
 ConnectionHandler::SetRpcDeadlineMs(uint64_t timeout_ms) {
+    std::lock_guard<std::mutex> lock(mtx_);
     if (connection_ == nullptr) {
         return {StatusCode::NOT_CONNECTED, "Connection is not created!"};
     }
@@ -55,6 +59,7 @@ ConnectionHandler::SetRpcDeadlineMs(uint64_t timeout_ms) {
 
 uint64_t
 ConnectionHandler::GetRpcDeadlineMs() const {
+    std::lock_guard<std::mutex> lock(mtx_);
     if (connection_ != nullptr) {
         return connection_->GetConnectParam().RpcDeadlineMs();
     }
@@ -63,6 +68,7 @@ ConnectionHandler::GetRpcDeadlineMs() const {
 
 Status
 ConnectionHandler::SetRetryParam(const RetryParam& retry_param) {
+    std::lock_guard<std::mutex> lock(mtx_);
     if (connection_ == nullptr) {
         return {StatusCode::NOT_CONNECTED, "Connection is not created!"};
     }
@@ -70,13 +76,15 @@ ConnectionHandler::SetRetryParam(const RetryParam& retry_param) {
     return Status::OK();
 }
 
-const RetryParam&
+RetryParam
 ConnectionHandler::GetRetryParam() const {
+    std::lock_guard<std::mutex> lock(mtx_);
     return retry_param_;
 }
 
 Status
 ConnectionHandler::UseDatabase(const std::string& db_name) {
+    std::lock_guard<std::mutex> lock(mtx_);
     if (connection_ != nullptr) {
         return connection_->UseDatabase(db_name);
     }
@@ -91,6 +99,7 @@ ConnectionHandler::CurrentDbName(const std::string& overwrite_db_name) const {
         return overwrite_db_name;
     }
     // no db name is specified, use the current db name used by this connection
+    std::lock_guard<std::mutex> lock(mtx_);
     if (connection_ != nullptr) {
         const ConnectParam& param = connection_->GetConnectParam();
         return param.DbName();
@@ -100,9 +109,17 @@ ConnectionHandler::CurrentDbName(const std::string& overwrite_db_name) const {
 
 Status
 ConnectionHandler::GetLoadingProgress(const std::string& db_name, const std::string& collection_name,
-                                      const std::set<std::string> partition_names, uint32_t& progress) {
-    if (connection_ == nullptr) {
-        return {StatusCode::NOT_CONNECTED, "Connection is not created!"};
+                                      const std::set<std::string> partition_names, uint32_t& progress,
+                                      uint64_t rpc_timeout_ms) {
+    MilvusConnectionPtr connection;
+    uint64_t timeout = 0;
+    {
+        std::lock_guard<std::mutex> lock(mtx_);
+        if (connection_ == nullptr) {
+            return {StatusCode::NOT_CONNECTED, "Connection is not created!"};
+        }
+        connection = connection_;
+        timeout = connection_->GetConnectParam().RpcDeadlineMs();
     }
 
     proto::milvus::GetLoadingProgressRequest progress_req;
@@ -112,9 +129,11 @@ ConnectionHandler::GetLoadingProgress(const std::string& db_name, const std::str
         progress_req.add_partition_names(partition_name);
     }
     proto::milvus::GetLoadingProgressResponse progress_resp;
-    uint64_t timeout = GetRpcDeadlineMs();
+    if (rpc_timeout_ms > 0 && (timeout == 0 || rpc_timeout_ms < timeout)) {
+        timeout = rpc_timeout_ms;
+    }
 
-    auto status = connection_->GetLoadingProgress(progress_req, progress_resp, GrpcOpts{timeout});
+    auto status = connection->GetLoadingProgress(progress_req, progress_resp, GrpcOpts{timeout});
     if (!status.IsOk()) {
         return status;
     }
