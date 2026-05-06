@@ -45,6 +45,7 @@ Examples for MilvusClientV2:
 - `./cmake_build/examples/v2/sdk_json_v2`: example to show the usage of JSON field.
 - `./cmake_build/examples/v2/sdk_multi_analyzer_v2`: example to show the usage of multi-analyzer for full text match.
 - `./cmake_build/examples/v2/sdk_nullable_field_v2`: example to show the usage of nullable field.
+- `./cmake_build/examples/v2/sdk_optimize_v2`: example to show the usage of Optimize().
 - `./cmake_build/examples/v2/sdk_partition_key_v2`: example to show the usage of partition key.
 - `./cmake_build/examples/v2/sdk_rbac_v2`: example to show the usage of RBAC.
 - `./cmake_build/examples/v2/sdk_rerank_function_v2`: example to show the usage of rerank function.
