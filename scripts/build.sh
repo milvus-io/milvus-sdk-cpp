@@ -25,7 +25,7 @@ MAKE_CLEAN="OFF"
 RUN_FORMAT="ON"
 RUN_CPPLINT="OFF"
 BUILD_COVERAGE="OFF"
-MILVUS_SDK_VERSION=${MILVUS_SDK_VERSION:-v2.6.2}
+MILVUS_SDK_VERSION=${MILVUS_SDK_VERSION:-}
 DO_INSTALL="OFF"
 CMAKE_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX:-/usr/local}
 BUILD_SHARED_LIBS=${BUILD_SHARED_LIBS:-ON}
@@ -94,6 +94,7 @@ while getopts "t:v:ulrcsphizf" arg; do
 
 parameter:
 -t: build type(default: Debug)
+-v: sdk version override(default: latest git tag from CMake)
 -l: run cpplint, clang-format and clang-tidy(default: OFF)
 -u: build with unit testing(default: OFF)
 -r: clean before build
@@ -205,12 +206,17 @@ else
   fi
 fi
 
+CMAKE_VERSION_ARG=""
+if [[ -n "${MILVUS_SDK_VERSION}" ]]; then
+  CMAKE_VERSION_ARG="-DMILVUS_SDK_VERSION=${MILVUS_SDK_VERSION}"
+fi
+
 CMAKE_CMD="cmake \
 -DCMAKE_TOOLCHAIN_FILE=${TOOLCHAIN_FILE} \
 -DCMAKE_BUILD_TYPE=${BUILD_TYPE} \
 -DMILVUS_BUILD_TEST=${BUILD_TEST} \
 -DMILVUS_BUILD_COVERAGE=${BUILD_COVERAGE} \
--DMILVUS_SDK_VERSION=${MILVUS_SDK_VERSION} \
+${CMAKE_VERSION_ARG} \
 -DCMAKE_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX} \
 -DBUILD_SHARED_LIBS=${BUILD_SHARED_LIBS} \
 -DGRPC_PATH=${GRPC_PATH} \
