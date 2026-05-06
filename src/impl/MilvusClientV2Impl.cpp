@@ -18,9 +18,11 @@
 
 #include <algorithm>
 #include <chrono>
-#include <cstdlib>
 #include <nlohmann/json.hpp>
+#include <set>
+#include <thread>
 #include <type_traits>
+#include <unordered_set>
 
 #include "rg.pb.h"
 #include "types/QueryIteratorImpl.h"
@@ -31,44 +33,10 @@
 #include "utils/DqlUtils.h"
 #include "utils/FieldDataSchema.h"
 #include "utils/GtsDict.h"
+#include "utils/MiscUtils.h"
 #include "utils/TypeUtils.h"
 
 namespace milvus {
-namespace {
-
-Status
-ConvertDescribeCollectionResponse(const proto::milvus::DescribeCollectionResponse& rpc_response,
-                                  CollectionDesc& collection_desc) {
-    const auto& status = rpc_response.status();
-    auto legacy_code = status.error_code();
-    if (status.code() != 0 || legacy_code != proto::common::ErrorCode::Success) {
-        return {StatusCode::SERVER_FAILED, status.reason(), 0, status.code(), legacy_code};
-    }
-
-    CollectionSchema schema;
-    ConvertCollectionSchema(rpc_response.schema(), schema);
-    schema.SetShardsNum(rpc_response.shards_num());
-
-    collection_desc.SetSchema(std::move(schema));
-    collection_desc.SetID(rpc_response.collectionid());
-    collection_desc.SetCreatedTime(rpc_response.created_timestamp());
-
-    std::vector<std::string> aliases;
-    aliases.reserve(rpc_response.aliases_size());
-    aliases.insert(aliases.end(), rpc_response.aliases().begin(), rpc_response.aliases().end());
-    collection_desc.SetAlias(std::move(aliases));
-
-    std::unordered_map<std::string, std::string> properties;
-    for (int i = 0; i < rpc_response.properties_size(); i++) {
-        const auto& prop = rpc_response.properties(i);
-        properties[prop.key()] = prop.value();
-    }
-    collection_desc.SetProperties(std::move(properties));
-
-    return Status::OK();
-}
-
-}  // namespace
 
 std::shared_ptr<MilvusClientV2>
 MilvusClientV2::Create() {
@@ -354,6 +322,45 @@ MilvusClientV2Impl::LoadCollection(const LoadCollectionRequest& request) {
 }
 
 Status
+MilvusClientV2Impl::RefreshLoad(const RefreshLoadRequest& request) {
+    return refreshLoad(request);
+}
+
+Status
+MilvusClientV2Impl::refreshLoad(const RefreshLoadRequest& request, uint64_t rpc_timeout_ms) {
+    auto pre = [&request](proto::milvus::LoadCollectionRequest& rpc_request) {
+        rpc_request.set_db_name(request.DatabaseName());
+        rpc_request.set_collection_name(request.CollectionName());
+        rpc_request.set_refresh(true);
+        return Status::OK();
+    };
+
+    if (!request.Sync()) {
+        return connection_.InvokeWithRpcTimeout<proto::milvus::LoadCollectionRequest, proto::common::Status>(
+            rpc_timeout_ms, pre, &MilvusConnection::LoadCollection);
+    }
+
+    ProgressMonitor progress_monitor = ProgressMonitor::Forever();
+    if (request.TimeoutMs() > 0) {
+        progress_monitor = ProgressMonitor{static_cast<uint32_t>(request.TimeoutMs() + 999) / 1000};
+    }
+    auto wait_for_status = [this, &request, &progress_monitor, rpc_timeout_ms](const proto::common::Status&) {
+        return ConnectionHandler::WaitForStatus(
+            [&request, this, rpc_timeout_ms](Progress& progress) -> Status {
+                progress.total_ = 100;
+                auto db_name = connection_.CurrentDbName(request.DatabaseName());
+                std::set<std::string> partition_names;
+                return connection_.GetLoadingProgress(db_name, request.CollectionName(), partition_names,
+                                                      progress.finished_, rpc_timeout_ms);
+            },
+            progress_monitor);
+    };
+    return connection_.InvokeWithRpcTimeout<proto::milvus::LoadCollectionRequest, proto::common::Status>(
+        rpc_timeout_ms, std::function<Status(void)>{}, pre, &MilvusConnection::LoadCollection, wait_for_status,
+        std::function<Status(const proto::common::Status&)>{});
+}
+
+Status
 MilvusClientV2Impl::ReleaseCollection(const ReleaseCollectionRequest& request) {
     auto pre = [&request](proto::milvus::ReleaseCollectionRequest& rpc_request) {
         rpc_request.set_db_name(request.DatabaseName());
@@ -367,6 +374,12 @@ MilvusClientV2Impl::ReleaseCollection(const ReleaseCollectionRequest& request) {
 
 Status
 MilvusClientV2Impl::DescribeCollection(const DescribeCollectionRequest& request, DescribeCollectionResponse& response) {
+    return describeCollection(request, response);
+}
+
+Status
+MilvusClientV2Impl::describeCollection(const DescribeCollectionRequest& request, DescribeCollectionResponse& response,
+                                       uint64_t rpc_timeout_ms) {
     auto pre = [&request](proto::milvus::DescribeCollectionRequest& rpc_request) {
         rpc_request.set_db_name(request.DatabaseName());
         rpc_request.set_collection_name(request.CollectionName());
@@ -384,13 +397,14 @@ MilvusClientV2Impl::DescribeCollection(const DescribeCollectionRequest& request,
         return Status::OK();
     };
 
-    return connection_.Invoke<proto::milvus::DescribeCollectionRequest, proto::milvus::DescribeCollectionResponse>(
-        pre, &MilvusConnection::DescribeCollection, post);
+    return connection_
+        .InvokeWithRpcTimeout<proto::milvus::DescribeCollectionRequest, proto::milvus::DescribeCollectionResponse>(
+            rpc_timeout_ms, pre, &MilvusConnection::DescribeCollection, post);
 }
 
 Status
 MilvusClientV2Impl::BatchDescribeCollections(const BatchDescribeCollectionsRequest& request,
-                                            BatchDescribeCollectionsResponse& response) {
+                                             BatchDescribeCollectionsResponse& response) {
     auto pre = [&request](proto::milvus::BatchDescribeCollectionRequest& rpc_request) {
         rpc_request.set_db_name(request.DatabaseName());
         for (const auto& collection_name : request.CollectionNames()) {
@@ -418,9 +432,9 @@ MilvusClientV2Impl::BatchDescribeCollections(const BatchDescribeCollectionsReque
         return Status::OK();
     };
 
-    return connection_.Invoke<proto::milvus::BatchDescribeCollectionRequest,
-                              proto::milvus::BatchDescribeCollectionResponse>(
-        pre, &MilvusConnection::BatchDescribeCollection, post);
+    return connection_
+        .Invoke<proto::milvus::BatchDescribeCollectionRequest, proto::milvus::BatchDescribeCollectionResponse>(
+            pre, &MilvusConnection::BatchDescribeCollection, post);
 }
 
 Status
@@ -446,7 +460,8 @@ MilvusClientV2Impl::DescribeReplicas(const DescribeReplicasRequest& request, Des
 
             std::vector<int64_t> partition_ids;
             partition_ids.reserve(rpc_replica.partition_ids_size());
-            partition_ids.insert(partition_ids.end(), rpc_replica.partition_ids().begin(), rpc_replica.partition_ids().end());
+            partition_ids.insert(partition_ids.end(), rpc_replica.partition_ids().begin(),
+                                 rpc_replica.partition_ids().end());
             replica.SetPartitionIDs(std::move(partition_ids));
 
             std::vector<int64_t> node_ids;
@@ -551,6 +566,12 @@ MilvusClientV2Impl::ListCollections(const ListCollectionsRequest& request, ListC
 
 Status
 MilvusClientV2Impl::GetLoadState(const GetLoadStateRequest& request, GetLoadStateResponse& response) {
+    return getLoadState(request, response);
+}
+
+Status
+MilvusClientV2Impl::getLoadState(const GetLoadStateRequest& request, GetLoadStateResponse& response,
+                                 uint64_t rpc_timeout_ms) {
     auto pre = [&request](proto::milvus::GetLoadStateRequest& rpc_request) {
         rpc_request.set_db_name(request.DatabaseName());
         rpc_request.set_collection_name(request.CollectionName());
@@ -560,14 +581,14 @@ MilvusClientV2Impl::GetLoadState(const GetLoadStateRequest& request, GetLoadStat
         return Status::OK();
     };
 
-    auto post = [this, &request, &response](const proto::milvus::GetLoadStateResponse& rpc_response) {
+    auto post = [this, &request, &response, rpc_timeout_ms](const proto::milvus::GetLoadStateResponse& rpc_response) {
         auto state = rpc_response.state();
         response.SetState(LoadStateCast(state));
 
         if (state == proto::common::LoadState::LoadStateLoading) {
             uint32_t progress = 0;
             auto status = connection_.GetLoadingProgress(request.DatabaseName(), request.CollectionName(),
-                                                         request.PartitionNames(), progress);
+                                                         request.PartitionNames(), progress, rpc_timeout_ms);
             if (!status.IsOk()) {
                 return status;
             }
@@ -578,8 +599,8 @@ MilvusClientV2Impl::GetLoadState(const GetLoadStateRequest& request, GetLoadStat
         return Status::OK();
     };
 
-    return connection_.Invoke<proto::milvus::GetLoadStateRequest, proto::milvus::GetLoadStateResponse>(
-        pre, &MilvusConnection::GetLoadState, post);
+    return connection_.InvokeWithRpcTimeout<proto::milvus::GetLoadStateRequest, proto::milvus::GetLoadStateResponse>(
+        rpc_timeout_ms, pre, &MilvusConnection::GetLoadState, post);
 }
 
 Status
@@ -1107,6 +1128,12 @@ MilvusClientV2Impl::CreateIndex(const CreateIndexRequest& request) {
 
 Status
 MilvusClientV2Impl::DescribeIndex(const DescribeIndexRequest& request, DescribeIndexResponse& response) {
+    return describeIndex(request, response);
+}
+
+Status
+MilvusClientV2Impl::describeIndex(const DescribeIndexRequest& request, DescribeIndexResponse& response,
+                                  uint64_t rpc_timeout_ms) {
     auto pre = [&request](proto::milvus::DescribeIndexRequest& rpc_request) {
         rpc_request.set_db_name(request.DatabaseName());
         rpc_request.set_collection_name(request.CollectionName());
@@ -1175,18 +1202,24 @@ MilvusClientV2Impl::DescribeIndex(const DescribeIndexRequest& request, DescribeI
         return Status::OK();
     };
 
-    return connection_.Invoke<proto::milvus::DescribeIndexRequest, proto::milvus::DescribeIndexResponse>(
-        pre, &MilvusConnection::DescribeIndex, post);
+    return connection_.InvokeWithRpcTimeout<proto::milvus::DescribeIndexRequest, proto::milvus::DescribeIndexResponse>(
+        rpc_timeout_ms, pre, &MilvusConnection::DescribeIndex, post);
 }
 
 Status
 MilvusClientV2Impl::ListIndexes(const ListIndexesRequest& request, ListIndexesResponse& response) {
+    return listIndexes(request, response);
+}
+
+Status
+MilvusClientV2Impl::listIndexes(const ListIndexesRequest& request, ListIndexesResponse& response,
+                                uint64_t rpc_timeout_ms) {
     DescribeIndexRequest d_request = DescribeIndexRequest()
                                          .WithDatabaseName(request.DatabaseName())
                                          .WithCollectionName(request.CollectionName())
                                          .WithFieldName("");
     DescribeIndexResponse d_response;
-    auto status = DescribeIndex(d_request, d_response);
+    auto status = describeIndex(d_request, d_response, rpc_timeout_ms);
     if (status.IsOk()) {
         std::vector<IndexDesc> descs = d_response.Descs();
         std::vector<std::string> index_names;
@@ -1925,14 +1958,28 @@ MilvusClientV2Impl::ListQuerySegments(const ListQuerySegmentsRequest& request, L
 
 Status
 MilvusClientV2Impl::Compact(const CompactRequest& request, CompactResponse& response) {
-    CollectionDescPtr collection_desc;
-    auto status = getCollectionDesc(request.DatabaseName(), request.CollectionName(), false, collection_desc);
-    if (!status.IsOk()) {
-        return status;
+    return compact(request, response);
+}
+
+Status
+MilvusClientV2Impl::compact(const CompactRequest& request, CompactResponse& response, uint64_t rpc_timeout_ms,
+                            CollectionDescPtr collection_desc) {
+    if (collection_desc == nullptr) {
+        auto status =
+            getCollectionDesc(request.DatabaseName(), request.CollectionName(), false, collection_desc, rpc_timeout_ms);
+        if (!status.IsOk()) {
+            return status;
+        }
     }
 
-    auto pre = [&collection_desc](proto::milvus::ManualCompactionRequest& rpc_request) {
+    auto pre = [&request, &collection_desc](proto::milvus::ManualCompactionRequest& rpc_request) {
         rpc_request.set_collectionid(collection_desc->ID());
+        rpc_request.set_db_name(request.DatabaseName());
+        rpc_request.set_collection_name(request.CollectionName());
+        rpc_request.set_majorcompaction(request.ClusteringCompaction());
+        if (request.TargetSize() > 0) {
+            rpc_request.set_target_size(request.TargetSize());
+        }
         return Status::OK();
     };
 
@@ -1942,12 +1989,330 @@ MilvusClientV2Impl::Compact(const CompactRequest& request, CompactResponse& resp
         return Status::OK();
     };
 
-    return connection_.Invoke<proto::milvus::ManualCompactionRequest, proto::milvus::ManualCompactionResponse>(
-        pre, &MilvusConnection::ManualCompaction, post);
+    return connection_
+        .InvokeWithRpcTimeout<proto::milvus::ManualCompactionRequest, proto::milvus::ManualCompactionResponse>(
+            rpc_timeout_ms, pre, &MilvusConnection::ManualCompaction, post);
+}
+
+Status
+MilvusClientV2Impl::Optimize(const OptimizeRequest& request, OptimizeTaskPtr& task) {
+    task = std::make_shared<OptimizeTask>();
+
+    if (!request.Async()) {
+        OptimizeResponse response;
+        auto status = runOptimize(request, *task, response);
+        task->Complete(status, std::move(response));
+        return status;
+    }
+
+    std::shared_ptr<MilvusClientV2Impl> self;
+    try {
+        self = shared_from_this();
+    } catch (const std::bad_weak_ptr&) {
+        return {StatusCode::UNKNOWN_ERROR, "MilvusClientV2Impl must be owned by std::shared_ptr to run Optimize"};
+    }
+
+    auto task_copy = task;
+    auto status = task->Start([self, request, task_copy](OptimizeResponse& response) {
+        return self->runOptimize(request, *task_copy, response);
+    });
+    if (!status.IsOk()) {
+        return status;
+    }
+
+    return Status::OK();
+}
+
+Status
+MilvusClientV2Impl::runOptimize(const OptimizeRequest& request, OptimizeTask& task, OptimizeResponse& response) {
+    response.SetCollectionName(request.CollectionName());
+
+    auto finish = [&task, &response](const Status& status) {
+        if (response.StatusText().empty()) {
+            response.SetStatusText(task.ShouldCancel() ? "cancelled" : (status.IsOk() ? "success" : "failed"));
+        }
+        return status;
+    };
+
+    auto check_cancelled = [&task]() {
+        if (task.ShouldCancel()) {
+            return task.CancelledStatus();
+        }
+        return Status::OK();
+    };
+
+    const auto start = std::chrono::steady_clock::now();
+    const auto has_timeout = request.TimeoutMs() > 0;
+    auto check_timeout = [&request, start, has_timeout]() {
+        if (!has_timeout) {
+            return Status::OK();
+        }
+        auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - start);
+        if (elapsed.count() >= request.TimeoutMs()) {
+            return Status{StatusCode::TIMEOUT, "Optimize timeout"};
+        }
+        return Status::OK();
+    };
+
+    auto remaining_timeout_ms = [&request, start, has_timeout](int64_t& timeout_ms) {
+        if (!has_timeout) {
+            timeout_ms = 0;
+            return Status::OK();
+        }
+        auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - start);
+        auto remaining = request.TimeoutMs() - elapsed.count();
+        if (remaining <= 0) {
+            return Status{StatusCode::TIMEOUT, "Optimize timeout"};
+        }
+        timeout_ms = remaining;
+        return Status::OK();
+    };
+
+    uint64_t fallback_rpc_timeout_ms = connection_.GetRpcDeadlineMs();
+    if (fallback_rpc_timeout_ms == 0) {
+        fallback_rpc_timeout_ms = DEFAULT_OPTIMIZE_RPC_TIMEOUT_MS;
+    }
+    auto remaining_rpc_timeout_ms = [&remaining_timeout_ms, fallback_rpc_timeout_ms](uint64_t& rpc_timeout_ms) {
+        int64_t timeout_ms = 0;
+        auto status = remaining_timeout_ms(timeout_ms);
+        if (!status.IsOk()) {
+            return status;
+        }
+        rpc_timeout_ms = timeout_ms > 0 ? static_cast<uint64_t>(timeout_ms) : fallback_rpc_timeout_ms;
+        return Status::OK();
+    };
+
+    auto check_task_active = [&check_cancelled, &check_timeout]() {
+        auto status = check_cancelled();
+        if (!status.IsOk()) {
+            return status;
+        }
+        return check_timeout();
+    };
+
+    auto wait_interval = [&check_task_active]() {
+        for (int i = 0; i < 10; ++i) {
+            auto status = check_task_active();
+            if (!status.IsOk()) {
+                return status;
+            }
+            std::this_thread::sleep_for(std::chrono::milliseconds(50));
+        }
+        return Status::OK();
+    };
+
+    if (request.CollectionName().empty()) {
+        return finish({StatusCode::INVALID_ARGUMENT, "Collection name cannot be empty"});
+    }
+
+    int64_t target_size_mb = 0;
+    std::string normalized_target_size;
+    auto status = ParseTargetSizeMB(request.TargetSize(), target_size_mb, normalized_target_size);
+    if (!status.IsOk()) {
+        return finish(status);
+    }
+    response.SetTargetSize(normalized_target_size);
+
+    uint64_t rpc_timeout_ms = 0;
+    task.AddProgress("initializing");
+    CollectionDescPtr collection_desc;
+    status = remaining_rpc_timeout_ms(rpc_timeout_ms);
+    if (!status.IsOk()) {
+        return finish(status);
+    }
+    status =
+        getCollectionDesc(request.DatabaseName(), request.CollectionName(), false, collection_desc, rpc_timeout_ms);
+    if (!status.IsOk()) {
+        return finish(status);
+    }
+
+    std::unordered_set<std::string> vector_fields;
+    for (const auto& field : collection_desc->Schema().Fields()) {
+        if (IsVectorType(field.FieldDataType())) {
+            vector_fields.insert(field.Name());
+        }
+    }
+
+    std::vector<IndexDesc> vector_indexes;
+    if (!vector_fields.empty()) {
+        ListIndexesRequest list_request =
+            ListIndexesRequest().WithDatabaseName(request.DatabaseName()).WithCollectionName(request.CollectionName());
+        ListIndexesResponse list_response;
+        status = remaining_rpc_timeout_ms(rpc_timeout_ms);
+        if (!status.IsOk()) {
+            return finish(status);
+        }
+        status = listIndexes(list_request, list_response, rpc_timeout_ms);
+        if (!status.IsOk()) {
+            return finish(status);
+        }
+
+        for (const auto& desc : list_response.Descs()) {
+            if (vector_fields.count(desc.FieldName()) > 0) {
+                vector_indexes.push_back(desc);
+            }
+        }
+    }
+
+    auto wait_vector_indexes = [this, &request, &task, &wait_interval, &remaining_rpc_timeout_ms](
+                                   const std::vector<IndexDesc>& indexes, const std::string& progress) {
+        if (indexes.empty()) {
+            return Status::OK();
+        }
+        task.AddProgress(progress);
+
+        for (;;) {
+            auto all_finished = true;
+            for (const auto& index : indexes) {
+                DescribeIndexRequest describe_request = DescribeIndexRequest()
+                                                            .WithDatabaseName(request.DatabaseName())
+                                                            .WithCollectionName(request.CollectionName())
+                                                            .WithFieldName(index.FieldName())
+                                                            .WithIndexName(index.IndexName());
+                DescribeIndexResponse describe_response;
+                uint64_t rpc_timeout_ms = 0;
+                auto status = remaining_rpc_timeout_ms(rpc_timeout_ms);
+                if (!status.IsOk()) {
+                    return status;
+                }
+                status = describeIndex(describe_request, describe_response, rpc_timeout_ms);
+                if (!status.IsOk()) {
+                    return status;
+                }
+                if (describe_response.Descs().empty()) {
+                    return Status{StatusCode::SERVER_FAILED, "Index not found: " + index.IndexName()};
+                }
+
+                auto state = describe_response.Descs().front().StateCode();
+                if (state == IndexStateCode::FAILED) {
+                    return Status{StatusCode::SERVER_FAILED, describe_response.Descs().front().FailReason()};
+                }
+                if (state != IndexStateCode::FINISHED && state != IndexStateCode::NONE) {
+                    all_finished = false;
+                }
+            }
+
+            if (all_finished) {
+                return Status::OK();
+            }
+
+            auto status = wait_interval();
+            if (!status.IsOk()) {
+                return status;
+            }
+        }
+    };
+
+    status = wait_vector_indexes(vector_indexes, "waiting for indexes before compaction");
+    if (!status.IsOk()) {
+        return finish(status);
+    }
+    status = check_task_active();
+    if (!status.IsOk()) {
+        return finish(status);
+    }
+
+    task.AddProgress("compacting");
+    CompactRequest compact_request = CompactRequest()
+                                         .WithDatabaseName(request.DatabaseName())
+                                         .WithCollectionName(request.CollectionName())
+                                         .WithTargetSize(target_size_mb);
+    CompactResponse compact_response;
+    status = remaining_rpc_timeout_ms(rpc_timeout_ms);
+    if (!status.IsOk()) {
+        return finish(status);
+    }
+    status = compact(compact_request, compact_response, rpc_timeout_ms, collection_desc);
+    if (!status.IsOk()) {
+        return finish(status);
+    }
+    response.SetCompactionID(compact_response.CompactionID());
+
+    task.AddProgress("waiting for compaction");
+    for (;;) {
+        GetCompactionStateRequest state_request =
+            GetCompactionStateRequest().WithCompactionID(compact_response.CompactionID());
+        GetCompactionStateResponse state_response;
+        status = remaining_rpc_timeout_ms(rpc_timeout_ms);
+        if (!status.IsOk()) {
+            return finish(status);
+        }
+        status = getCompactionState(state_request, state_response, rpc_timeout_ms);
+        if (!status.IsOk()) {
+            return finish(status);
+        }
+        if (state_response.State().FailedPlan() > 0) {
+            return finish({StatusCode::SERVER_FAILED, "Compaction failed"});
+        }
+
+        auto compaction_state = state_response.State().State();
+        if (compaction_state == CompactionStateCode::COMPLETED) {
+            break;
+        }
+
+        status = wait_interval();
+        if (!status.IsOk()) {
+            return finish(status);
+        }
+    }
+
+    status = wait_vector_indexes(vector_indexes, "waiting for indexes after compaction");
+    if (!status.IsOk()) {
+        return finish(status);
+    }
+
+    task.AddProgress("checking load state");
+    GetLoadStateRequest load_state_request =
+        GetLoadStateRequest().WithDatabaseName(request.DatabaseName()).WithCollectionName(request.CollectionName());
+    GetLoadStateResponse load_state_response;
+    status = remaining_rpc_timeout_ms(rpc_timeout_ms);
+    if (!status.IsOk()) {
+        return finish(status);
+    }
+    status = getLoadState(load_state_request, load_state_response, rpc_timeout_ms);
+    if (!status.IsOk()) {
+        return finish(status);
+    }
+    if (load_state_response.State() == LoadState::LOAD_STATE_LOADED) {
+        status = check_task_active();
+        if (!status.IsOk()) {
+            return finish(status);
+        }
+        task.AddProgress("refreshing load");
+        int64_t refresh_timeout_ms = 0;
+        status = remaining_timeout_ms(refresh_timeout_ms);
+        if (!status.IsOk()) {
+            return finish(status);
+        }
+        status = remaining_rpc_timeout_ms(rpc_timeout_ms);
+        if (!status.IsOk()) {
+            return finish(status);
+        }
+        RefreshLoadRequest refresh_request = RefreshLoadRequest()
+                                                 .WithDatabaseName(request.DatabaseName())
+                                                 .WithCollectionName(request.CollectionName())
+                                                 .WithSync(true)
+                                                 .WithTimeoutMs(refresh_timeout_ms);
+        status = refreshLoad(refresh_request, rpc_timeout_ms);
+        if (!status.IsOk()) {
+            return finish(status);
+        }
+    } else {
+        task.AddProgress("collection not loaded; skip refreshLoad");
+    }
+
+    response.SetStatusText("success");
+    return finish(Status::OK());
 }
 
 Status
 MilvusClientV2Impl::GetCompactionState(const GetCompactionStateRequest& request, GetCompactionStateResponse& response) {
+    return getCompactionState(request, response);
+}
+
+Status
+MilvusClientV2Impl::getCompactionState(const GetCompactionStateRequest& request, GetCompactionStateResponse& response,
+                                       uint64_t rpc_timeout_ms) {
     auto pre = [&request](proto::milvus::GetCompactionStateRequest& rpc_request) {
         rpc_request.set_compactionid(request.CompactionID());
         return Status::OK();
@@ -1973,8 +2338,9 @@ MilvusClientV2Impl::GetCompactionState(const GetCompactionStateRequest& request,
         return Status::OK();
     };
 
-    return connection_.Invoke<proto::milvus::GetCompactionStateRequest, proto::milvus::GetCompactionStateResponse>(
-        pre, &MilvusConnection::GetCompactionState, post);
+    return connection_
+        .InvokeWithRpcTimeout<proto::milvus::GetCompactionStateRequest, proto::milvus::GetCompactionStateResponse>(
+            rpc_timeout_ms, pre, &MilvusConnection::GetCompactionState, post);
 }
 
 Status
@@ -2514,7 +2880,7 @@ combineDbCollectionName(const std::string& db_name, const std::string& collectio
 
 Status
 MilvusClientV2Impl::getCollectionDesc(const std::string& db_name, const std::string& collection_name, bool force_update,
-                                      CollectionDescPtr& desc_ptr) {
+                                      CollectionDescPtr& desc_ptr, uint64_t rpc_timeout_ms) {
     // if connection is connected to "", equals "default" db, the input db_name is "", actual_db is "default"
     // if connection is connected to "default", the input db_name is "" or "default", actual_db is "default"
     // if connection is connected to "A" but the input db_name is "B", actual_db is "B"
@@ -2537,7 +2903,7 @@ MilvusClientV2Impl::getCollectionDesc(const std::string& db_name, const std::str
     DescribeCollectionRequest rquest =
         DescribeCollectionRequest().WithDatabaseName(actual_db).WithCollectionName(collection_name);
     DescribeCollectionResponse response;
-    auto status = DescribeCollection(rquest, response);
+    auto status = describeCollection(rquest, response, rpc_timeout_ms);
     if (status.IsOk()) {
         desc_ptr = std::make_shared<CollectionDesc>(response.Desc());
         auto name = combineDbCollectionName(actual_db, collection_name);

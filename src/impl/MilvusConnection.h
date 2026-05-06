@@ -24,6 +24,7 @@
 
 #include <chrono>
 #include <memory>
+#include <mutex>
 #include <string>
 
 #include "common.pb.h"
@@ -400,7 +401,8 @@ class MilvusConnection {
                           const GrpcContextOptions& options);
 
  private:
-    std::unique_ptr<proto::milvus::MilvusService::Stub> stub_;
+    std::mutex stub_mtx_;
+    std::shared_ptr<proto::milvus::MilvusService::Stub> stub_;
     std::shared_ptr<grpc::Channel> channel_;
     ConnectParam param_;
 
@@ -419,7 +421,12 @@ class MilvusConnection {
     grpcCall(const char* name,
              grpc::Status (proto::milvus::MilvusService::Stub::*func)(grpc::ClientContext*, const Request&, Response*),
              const Request& request, Response& response, const GrpcContextOptions& options) {
-        if (stub_ == nullptr) {
+        std::shared_ptr<proto::milvus::MilvusService::Stub> stub;
+        {
+            std::lock_guard<std::mutex> lock(stub_mtx_);
+            stub = stub_;
+        }
+        if (stub == nullptr) {
             return {StatusCode::NOT_CONNECTED, "Connection is not ready!"};
         }
 
@@ -429,7 +436,7 @@ class MilvusConnection {
             context.set_deadline(deadline);
         }
 
-        ::grpc::Status grpc_status = (stub_.get()->*func)(&context, request, &response);
+        ::grpc::Status grpc_status = (stub.get()->*func)(&context, request, &response);
 
         // TODO: check the error codes and do retry here
         // The following grpc error codes cannot be retried:

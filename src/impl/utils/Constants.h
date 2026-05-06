@@ -24,6 +24,7 @@ namespace milvus {
 constexpr int64_t MAX_BATCH_SIZE = 16384;
 constexpr uint64_t ITERATION_MAX_FILTERED_IDS_COUNT = 100000;
 constexpr uint64_t ITERATION_MAX_RETRY_TIME = 20;
+constexpr uint64_t DEFAULT_OPTIMIZE_RPC_TIMEOUT_MS = 60000;
 
 // const names for internal common usage
 extern const char* ROW_COUNT;

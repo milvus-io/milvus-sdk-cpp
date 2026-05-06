@@ -88,11 +88,53 @@ TEST_F(CompactRequestTest, AllMethods) {
     req.SetCollectionName("coll1");
     EXPECT_EQ(req.CollectionName(), "coll1");
 
+    // SetTargetSize
+    req.SetTargetSize(512);
+    EXPECT_EQ(req.TargetSize(), 512);
+    auto& ref = req.WithTargetSize(1024);
+    EXPECT_EQ(&ref, &req);
+    EXPECT_EQ(req.TargetSize(), 1024);
+
     // SetClusteringCompaction
     req.SetClusteringCompaction(true);
     EXPECT_TRUE(req.ClusteringCompaction());
     req.SetClusteringCompaction(false);
     EXPECT_FALSE(req.ClusteringCompaction());
+}
+
+class OptimizeRequestTest : public ::testing::Test {};
+
+TEST_F(OptimizeRequestTest, GettersAndSetters) {
+    milvus::OptimizeRequest req;
+
+    EXPECT_TRUE(req.DatabaseName().empty());
+    EXPECT_TRUE(req.CollectionName().empty());
+    EXPECT_TRUE(req.TargetSize().empty());
+    EXPECT_FALSE(req.Async());
+    EXPECT_EQ(req.TimeoutMs(), 0);
+
+    req.SetDatabaseName("db1");
+    EXPECT_EQ(req.DatabaseName(), "db1");
+    req.SetCollectionName("coll1");
+    EXPECT_EQ(req.CollectionName(), "coll1");
+    req.SetTargetSize("512MB");
+    EXPECT_EQ(req.TargetSize(), "512MB");
+    req.SetAsync(true);
+    EXPECT_TRUE(req.Async());
+    req.SetTimeoutMs(60000);
+    EXPECT_EQ(req.TimeoutMs(), 60000);
+}
+
+TEST_F(OptimizeRequestTest, FluentChaining) {
+    milvus::OptimizeRequest req;
+    auto& ref =
+        req.WithDatabaseName("db").WithCollectionName("coll").WithTargetSize("1GB").WithAsync(true).WithTimeoutMs(7);
+    EXPECT_EQ(&ref, &req);
+    EXPECT_EQ(req.DatabaseName(), "db");
+    EXPECT_EQ(req.CollectionName(), "coll");
+    EXPECT_EQ(req.TargetSize(), "1GB");
+    EXPECT_TRUE(req.Async());
+    EXPECT_EQ(req.TimeoutMs(), 7);
 }
 
 class GetCompactionStateRequestTest : public ::testing::Test {};

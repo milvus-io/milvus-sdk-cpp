@@ -23,11 +23,11 @@
 #include "request/alias/DropAliasRequest.h"
 #include "request/alias/ListAliasesRequest.h"
 #include "request/collection/AddCollectionFieldRequest.h"
-#include "request/collection/BatchDescribeCollectionsRequest.h"
 #include "request/collection/AddCollectionFunctionRequest.h"
 #include "request/collection/AlterCollectionFieldPropertiesRequest.h"
 #include "request/collection/AlterCollectionFunctionRequest.h"
 #include "request/collection/AlterCollectionPropertiesRequest.h"
+#include "request/collection/BatchDescribeCollectionsRequest.h"
 #include "request/collection/CreateCollectionRequest.h"
 #include "request/collection/CreateSimpleCollectionRequest.h"
 #include "request/collection/DescribeCollectionRequest.h"
@@ -41,6 +41,7 @@
 #include "request/collection/HasCollectionRequest.h"
 #include "request/collection/ListCollectionsRequest.h"
 #include "request/collection/LoadCollectionRequest.h"
+#include "request/collection/RefreshLoadRequest.h"
 #include "request/collection/ReleaseCollectionRequest.h"
 #include "request/collection/RenameCollectionRequest.h"
 #include "request/collection/TruncateCollectionRequest.h"
@@ -96,6 +97,7 @@
 #include "request/utility/FlushRequest.h"
 #include "request/utility/GetCompactionRequest.h"
 #include "request/utility/ListSegmentsRequest.h"
+#include "request/utility/OptimizeRequest.h"
 #include "request/utility/RunAnalyzerRequest.h"
 #include "response/alias/DescribeAliasResponse.h"
 #include "response/alias/ListAliasesResponse.h"
@@ -128,10 +130,12 @@
 #include "response/utility/GetCompactionPlansResponse.h"
 #include "response/utility/GetCompactionStateResponse.h"
 #include "response/utility/ListSegmentsResponse.h"
+#include "response/utility/OptimizeResponse.h"
 #include "response/utility/RunAnalyzerResponse.h"
 #include "types/ConnectParam.h"
 #include "types/Constants.h"
 #include "types/Iterator.h"
+#include "types/OptimizeTask.h"
 #include "types/RetryParam.h"
 
 /**
@@ -274,6 +278,17 @@ class MilvusClientV2 {
     LoadCollection(const LoadCollectionRequest& request) = 0;
 
     /**
+     * @brief Refresh loaded collection data in query node.
+     * This API loads newly generated segments without changing the collection load options.
+     * If the request is sync mode, this API waits until the refresh is complete.
+     *
+     * @param [in] request input parameters
+     * @return Status operation successfully or not
+     */
+    virtual Status
+    RefreshLoad(const RefreshLoadRequest& request) = 0;
+
+    /**
      * @brief Release collection data from query node.
      *
      * @param [in] request input parameters
@@ -300,7 +315,8 @@ class MilvusClientV2 {
      * @return Status operation successfully or not
      */
     virtual Status
-    BatchDescribeCollections(const BatchDescribeCollectionsRequest& request, BatchDescribeCollectionsResponse& response) = 0;
+    BatchDescribeCollections(const BatchDescribeCollectionsRequest& request,
+                             BatchDescribeCollectionsResponse& response) = 0;
 
     /**
      * @brief Describe replicas of a collection.
@@ -835,6 +851,16 @@ class MilvusClientV2 {
      */
     virtual Status
     Compact(const CompactRequest& request, CompactResponse& response) = 0;
+
+    /**
+     * @brief Optimize collection segments with a Java-style task object.
+     *
+     * @param [in] request input parameters
+     * @param [out] task optimization task
+     * @return Status operation successfully or not
+     */
+    virtual Status
+    Optimize(const OptimizeRequest& request, OptimizeTaskPtr& task) = 0;
 
     /**
      * @brief Get compaction action state.

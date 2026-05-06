@@ -16,6 +16,7 @@
 
 #pragma once
 
+#include <cstdint>
 #include <map>
 #include <memory>
 #include <mutex>
@@ -25,7 +26,7 @@
 
 namespace milvus {
 
-class MilvusClientV2Impl : public MilvusClientV2 {
+class MilvusClientV2Impl : public MilvusClientV2, public std::enable_shared_from_this<MilvusClientV2Impl> {
  public:
     MilvusClientV2Impl() = default;
     ~MilvusClientV2Impl() override;
@@ -70,13 +71,17 @@ class MilvusClientV2Impl : public MilvusClientV2 {
     LoadCollection(const LoadCollectionRequest& request) final;
 
     Status
+    RefreshLoad(const RefreshLoadRequest& request) final;
+
+    Status
     ReleaseCollection(const ReleaseCollectionRequest& request) final;
 
     Status
     DescribeCollection(const DescribeCollectionRequest& request, DescribeCollectionResponse& response) final;
 
     Status
-    BatchDescribeCollections(const BatchDescribeCollectionsRequest& request, BatchDescribeCollectionsResponse& response) final;
+    BatchDescribeCollections(const BatchDescribeCollectionsRequest& request,
+                             BatchDescribeCollectionsResponse& response) final;
 
     Status
     DescribeReplicas(const DescribeReplicasRequest& request, DescribeReplicasResponse& response) final;
@@ -239,6 +244,9 @@ class MilvusClientV2Impl : public MilvusClientV2 {
     Compact(const CompactRequest& request, CompactResponse& response) final;
 
     Status
+    Optimize(const OptimizeRequest& request, OptimizeTaskPtr& task) final;
+
+    Status
     GetCompactionState(const GetCompactionStateRequest& request, GetCompactionStateResponse& response) final;
 
     Status
@@ -328,8 +336,35 @@ class MilvusClientV2Impl : public MilvusClientV2 {
     getFlushState(const std::vector<int64_t>& segments, bool& flushed);
 
     Status
+    describeCollection(const DescribeCollectionRequest& request, DescribeCollectionResponse& response,
+                       uint64_t rpc_timeout_ms = 0);
+
+    Status
+    describeIndex(const DescribeIndexRequest& request, DescribeIndexResponse& response, uint64_t rpc_timeout_ms = 0);
+
+    Status
+    listIndexes(const ListIndexesRequest& request, ListIndexesResponse& response, uint64_t rpc_timeout_ms = 0);
+
+    Status
+    compact(const CompactRequest& request, CompactResponse& response, uint64_t rpc_timeout_ms = 0,
+            CollectionDescPtr collection_desc = nullptr);
+
+    Status
+    getCompactionState(const GetCompactionStateRequest& request, GetCompactionStateResponse& response,
+                       uint64_t rpc_timeout_ms = 0);
+
+    Status
+    getLoadState(const GetLoadStateRequest& request, GetLoadStateResponse& response, uint64_t rpc_timeout_ms = 0);
+
+    Status
+    refreshLoad(const RefreshLoadRequest& request, uint64_t rpc_timeout_ms = 0);
+
+    Status
     getCollectionDesc(const std::string& db_name, const std::string& collection_name, bool force_update,
-                      CollectionDescPtr& desc_ptr);
+                      CollectionDescPtr& desc_ptr, uint64_t rpc_timeout_ms = 0);
+
+    Status
+    runOptimize(const OptimizeRequest& request, OptimizeTask& task, OptimizeResponse& response);
 
     void
     cleanCollectionDescCache();
