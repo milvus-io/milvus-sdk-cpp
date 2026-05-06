@@ -17,7 +17,7 @@ Currently, we tested the below platform and compilers for developing Milvus C++ 
 | Linux    | Ubuntu 20.04 | GCC 9.3.0            | Full (Compile, Lint, Testing) |
 | Linux    | Ubuntu 22.04 | GCC 11.4             | Full (Compile, Lint, Testing) |
 | Linux    | Fedora 38/39 | GCC 11.2+            | Compile, Testing              |
-| macOS    | macOS 14     | Apple Clang           | Compile, Testing              |
+| macOS    | macOS 15     | Apple Clang           | Compile, Testing              |
 | Windows  | Windows 2022 | MSVC 2022            | Compile, Testing              |
 
 ### Clone the code
@@ -41,9 +41,45 @@ This script could help you set a developing environment from a minimal installat
 
 ## Building from source
 
-You could build the debug versioned SDK with `make` in the source directory, or `make all-release` to build the release version.
+You can build the debug versioned SDK with `make` in the source directory, or `make all-release` to build the release version.
 
-By default, `make` uses [Conan 2](https://conan.io/) to manage dependencies (gRPC, protobuf, abseil, etc.). The `scripts/build.sh` handles Conan integration automatically.
+By default, `make` uses [Conan 2](https://conan.io/) to manage dependencies (gRPC, protobuf, abseil, etc.). The top-level `Makefile` delegates to `scripts/build.sh`, which handles Conan integration and CMake configuration automatically.
+
+Common top-level make targets:
+
+```shell
+$ make                    # debug build, same as make all-debug
+$ make all-release        # release build
+$ make test               # debug build with unit tests and mocked integration tests enabled
+$ make test-release       # release build with unit tests and mocked integration tests enabled
+$ make lint               # build with unit tests and run lint checks
+$ make package            # release build and create DEB/RPM packages under cmake_build/Pack
+$ make clean              # remove build directories
+```
+
+You can pass environment variables through `make` to control `scripts/build.sh` and CMake:
+
+```shell
+$ MILVUS_SDK_VERSION=v2.6.3 make all-release
+$ CMAKE_INSTALL_PREFIX=/opt/milvus make install
+$ BUILD_SHARED_LIBS=OFF make all-release
+$ CPPSTD=17 make test
+```
+
+`scripts/build.sh` also supports command-line flags. Most users should prefer the make targets above, but the script can be invoked directly for more control:
+
+```shell
+$ bash scripts/build.sh -t Debug            # debug build
+$ bash scripts/build.sh -t Release          # release build
+$ bash scripts/build.sh -u                  # build and run unit tests
+$ bash scripts/build.sh -l                  # run cpplint, clang-format, and clang-tidy checks
+$ bash scripts/build.sh -r                  # clean before build
+$ bash scripts/build.sh -z                  # build without Conan-managed dependencies
+$ bash scripts/build.sh -f -t Release       # release build without in-place clang-format
+$ bash scripts/build.sh -v v2.6.3 -t Release
+```
+
+`MILVUS_SDK_VERSION` is embedded into the SDK version string generated from `src/impl/version.h.in`. If you do not pass `MILVUS_SDK_VERSION` or `scripts/build.sh -v`, CMake derives the version from the latest reachable git tag. For release builds, pass the intended version explicitly or build from the release tag.
 
 ## Building without Conan
 
