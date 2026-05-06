@@ -1,5 +1,15 @@
 # Changelog
 
+## milvus-sdk-cpp 2.6.3 (2026-05-06)
+### Feature
+- Support AddCollectionFunction(), AlterCollectionFunction(), and DropCollectionFunction() interfaces
+- Support BatchDescribeCollections() and DescribeReplicas() interfaces
+- Support RefreshLoad() and Optimize() interfaces
+
+### Bug
+- Fix a bug in DropIndex()
+
+
 ## milvus-sdk-cpp 2.6.2 (2026-04-13)
 ### Improvement
 - Use conan to manage dependencies
