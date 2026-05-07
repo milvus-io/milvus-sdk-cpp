@@ -19,6 +19,8 @@
 #include <set>
 #include <string>
 
+#include "milvus/types/Constants.h"
+
 namespace milvus {
 // const values for internal common usage
 constexpr int64_t MAX_BATCH_SIZE = 16384;
@@ -27,36 +29,36 @@ constexpr uint64_t ITERATION_MAX_RETRY_TIME = 20;
 constexpr uint64_t DEFAULT_OPTIMIZE_RPC_TIMEOUT_MS = 60000;
 
 // const names for internal common usage
-extern const char* ROW_COUNT;
-extern const char* TOPK;
-extern const char* LIMIT;
-extern const char* OFFSET;
-extern const char* ANNS_FIELD;
-extern const char* RADIUS;
-extern const char* RANGE_FILTER;
-extern const char* IGNORE_GROWING;
-extern const char* ROUND_DECIMAL;
-extern const char* GROUPBY_FIELD;
-extern const char* GROUPBY_SIZE;
-extern const char* GROUPBY_STRICT_SIZE;
-extern const char* PARAMS;
-extern const char* STRATEGY;
-extern const char* SCORE;
-extern const char* ENABLE_ANALYZER;
-extern const char* ENABLE_MATCH;
-extern const char* ANALYZER_PARAMS;
-extern const char* MULTI_ANALYZER_PARAMS;
-extern const char* COLLECTION_ID;
-extern const char* GUARANTEE_TIMESTAMP;
-extern const char* REDUCE_STOP_FOR_BEST;
-extern const char* ITERATOR_FIELD;
-extern const char* ITERATOR_SESSION_TS_FIELD;
-extern const char* ITER_SEARCH_V2_KEY;
-extern const char* ITER_SEARCH_BATCH_SIZE_KEY;
-extern const char* ITER_SEARCH_LAST_BOUND_KEY;
-extern const char* ITER_SEARCH_ID_KEY;
-extern const char* RERANKER;
-extern const char* RANDOM_SCORE;
+extern MILVUS_SDK_API const char* ROW_COUNT;
+extern MILVUS_SDK_API const char* TOPK;
+extern MILVUS_SDK_API const char* LIMIT;
+extern MILVUS_SDK_API const char* OFFSET;
+extern MILVUS_SDK_API const char* ANNS_FIELD;
+extern MILVUS_SDK_API const char* RADIUS;
+extern MILVUS_SDK_API const char* RANGE_FILTER;
+extern MILVUS_SDK_API const char* IGNORE_GROWING;
+extern MILVUS_SDK_API const char* ROUND_DECIMAL;
+extern MILVUS_SDK_API const char* GROUPBY_FIELD;
+extern MILVUS_SDK_API const char* GROUPBY_SIZE;
+extern MILVUS_SDK_API const char* GROUPBY_STRICT_SIZE;
+extern MILVUS_SDK_API const char* PARAMS;
+extern MILVUS_SDK_API const char* STRATEGY;
+extern MILVUS_SDK_API const char* SCORE;
+extern MILVUS_SDK_API const char* ENABLE_ANALYZER;
+extern MILVUS_SDK_API const char* ENABLE_MATCH;
+extern MILVUS_SDK_API const char* ANALYZER_PARAMS;
+extern MILVUS_SDK_API const char* MULTI_ANALYZER_PARAMS;
+extern MILVUS_SDK_API const char* COLLECTION_ID;
+extern MILVUS_SDK_API const char* GUARANTEE_TIMESTAMP;
+extern MILVUS_SDK_API const char* REDUCE_STOP_FOR_BEST;
+extern MILVUS_SDK_API const char* ITERATOR_FIELD;
+extern MILVUS_SDK_API const char* ITERATOR_SESSION_TS_FIELD;
+extern MILVUS_SDK_API const char* ITER_SEARCH_V2_KEY;
+extern MILVUS_SDK_API const char* ITER_SEARCH_BATCH_SIZE_KEY;
+extern MILVUS_SDK_API const char* ITER_SEARCH_LAST_BOUND_KEY;
+extern MILVUS_SDK_API const char* ITER_SEARCH_ID_KEY;
+extern MILVUS_SDK_API const char* RERANKER;
+extern MILVUS_SDK_API const char* RANDOM_SCORE;
 
 std::string
 GetBuildVersion();

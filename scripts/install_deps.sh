@@ -84,7 +84,6 @@ install_mac_cmake_clang_toolchain() {
 }
 
 install_deps_for_ubuntu_common() {
-    dist=$1
     check_sudo
 
     ${SUDO} apt-get update
@@ -96,7 +95,7 @@ install_deps_for_ubuntu_common() {
         ${SUDO} DEBIAN_FRONTEND=noninteractive DEBCONF_NONINTERACTIVE_SEEN=true apt-get -y install tzdata
     fi
 
-    ${SUDO} apt-get -y install python2.7 gpg wget gcc g++ ccache make \
+    ${SUDO} apt-get -y install gpg wget gcc g++ ccache make \
                        libssl-dev iwyu lcov git python3-pip clang-format clang-tidy
     install_linux_cmake_clang_toolchain
     install_conan
@@ -105,21 +104,13 @@ install_deps_for_ubuntu_common() {
     pip3 install --user "docker>=7.0.0"
 }
 
-install_deps_for_ubuntu_1804() {
-    install_deps_for_ubuntu_common bionic
-}
-
-install_deps_for_ubuntu_2004() {
-    install_deps_for_ubuntu_common focal
-}
-
-install_deps_for_ubuntu_2204() {
-    install_deps_for_ubuntu_common jammy
+install_deps_for_ubuntu() {
+    install_deps_for_ubuntu_common
 }
 
 install_deps_for_fedora_common() {
     check_sudo
-    ${SUDO} dnf -y install gcc gcc-c++ python2 gpg wget ccache make openssl-devel which lcov git rpm-build python3-pip perl perl-core
+    ${SUDO} dnf -y install gcc gcc-c++ python2 gpg wget ccache make openssl-devel which lcov git rpm-build cpio python3-pip perl perl-core
     install_linux_cmake_clang_toolchain
     install_conan
 
@@ -161,11 +152,13 @@ if uname | grep -wq Linux ; then
     if [ -x "$(command -v apt)" ]; then
         # for ubuntu
         if grep -q 'Ubuntu 18.04' /etc/issue ; then
-            install_deps_for_ubuntu_1804
+            install_deps_for_ubuntu
         elif grep -q 'Ubuntu 20.04' /etc/issue ; then
-            install_deps_for_ubuntu_2004
+            install_deps_for_ubuntu
         elif grep -q 'Ubuntu 22.04' /etc/issue ; then
-            install_deps_for_ubuntu_2204
+            install_deps_for_ubuntu
+        elif grep -q 'Ubuntu 24.04' /etc/issue ; then
+            install_deps_for_ubuntu
         fi
     elif [ -x "$(command -v yum)" ] ; then
         # for os support yum
