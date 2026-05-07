@@ -89,6 +89,9 @@ if ("${BUILD_FROM_CONAN}" STREQUAL "ON")
     set(MILVUS_WITH_GRPC "package")
     set(MILVUS_WITH_GTEST "package")
 
+    # Do not embed Conan cache paths in installed libraries; Fedora RPM rejects them.
+    set(CMAKE_INSTALL_RPATH_USE_LINK_PATH FALSE)
+
     # Dependencies are provided via find_package() (expected through Conan CMakeDeps).
     find_package(absl CONFIG REQUIRED)
     find_package(Protobuf CONFIG REQUIRED)
@@ -230,7 +233,25 @@ config_summary()
 # like `libmilvus-2.6.2-x86_64-Ubuntu_20.04.deb` or
 # `libmilvus-2.6.2-x86_64-Fedora_39.rpm`.
 #
-set(DISTRO_TAG "Linux")
+set(DISTRO_TAG "${CMAKE_SYSTEM_NAME}")
+if (APPLE)
+    execute_process(
+        COMMAND sw_vers -productVersion
+        OUTPUT_VARIABLE MACOS_VERSION
+        OUTPUT_STRIP_TRAILING_WHITESPACE
+        ERROR_QUIET
+    )
+    if (MACOS_VERSION)
+        string(REGEX MATCH "^[0-9]+" MACOS_MAJOR_VERSION "${MACOS_VERSION}")
+        if (MACOS_MAJOR_VERSION)
+            set(DISTRO_TAG "macOS_${MACOS_MAJOR_VERSION}")
+        else()
+            set(DISTRO_TAG "macOS")
+        endif()
+    else()
+        set(DISTRO_TAG "macOS")
+    endif()
+endif()
 if (EXISTS "/etc/os-release")
     file(READ "/etc/os-release" _OS_RELEASE)
     # Match ID= and VERSION_ID= at start of line (after a newline *or* at the

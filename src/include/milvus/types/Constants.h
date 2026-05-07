@@ -18,25 +18,36 @@
 #include <cstdint>
 #include <string>
 
+// Windows DLL consumers need dllimport for exported constant data symbols.
+#if defined(_WIN32) && defined(MILVUS_SDK_SHARED)
+#if defined(MILVUS_SDK_BUILDING_LIBRARY)
+#define MILVUS_SDK_API __declspec(dllexport)
+#else
+#define MILVUS_SDK_API __declspec(dllimport)
+#endif
+#else
+#define MILVUS_SDK_API
+#endif
+
 namespace milvus {
 
 // const names for external common usage
-extern const char* INDEX_TYPE;
-extern const char* METRIC_TYPE;
-extern const char* NLIST;
-extern const char* NPROBE;
-extern const char* DIM;
-extern const char* MAX_LENGTH;
-extern const char* MAX_CAPACITY;
-extern const char* DYNAMIC_FIELD;
-extern const char* SPARSE_INDICES;
-extern const char* SPARSE_VALUES;
-extern const char* MMAP_ENABLED;
-extern const char* COLLECTION_TTL_SECONDS;
-extern const char* COLLECTION_REPLICA_NUMBER;
-extern const char* COLLECTION_RESOURCE_GROUPS;
-extern const char* DATABASE_REPLICA_NUMBER;
-extern const char* DATABASE_RESOURCE_GROUPS;
+extern MILVUS_SDK_API const char* INDEX_TYPE;
+extern MILVUS_SDK_API const char* METRIC_TYPE;
+extern MILVUS_SDK_API const char* NLIST;
+extern MILVUS_SDK_API const char* NPROBE;
+extern MILVUS_SDK_API const char* DIM;
+extern MILVUS_SDK_API const char* MAX_LENGTH;
+extern MILVUS_SDK_API const char* MAX_CAPACITY;
+extern MILVUS_SDK_API const char* DYNAMIC_FIELD;
+extern MILVUS_SDK_API const char* SPARSE_INDICES;
+extern MILVUS_SDK_API const char* SPARSE_VALUES;
+extern MILVUS_SDK_API const char* MMAP_ENABLED;
+extern MILVUS_SDK_API const char* COLLECTION_TTL_SECONDS;
+extern MILVUS_SDK_API const char* COLLECTION_REPLICA_NUMBER;
+extern MILVUS_SDK_API const char* COLLECTION_RESOURCE_GROUPS;
+extern MILVUS_SDK_API const char* DATABASE_REPLICA_NUMBER;
+extern MILVUS_SDK_API const char* DATABASE_RESOURCE_GROUPS;
 
 /////////////////////////////////////////////////////////////////////////////////
 // the following methods are reserved to compatible with old client code
