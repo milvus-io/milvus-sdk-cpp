@@ -1,56 +1,278 @@
 name: Release packages
 
-# This workflow is triggered on pushes or pull request to the repository.
 on:
-  push:
-    tags:
-      - v*
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Release tag with leading v, for example v2.6.3. Minimum supported: v2.6.3'
+        required: true
+        type: string
+      ubuntu_20_04:
+        description: 'Build Ubuntu 20.04 package'
+        required: false
+        type: boolean
+        default: true
+      ubuntu_22_04:
+        description: 'Build Ubuntu 22.04 package'
+        required: false
+        type: boolean
+        default: false
+      ubuntu_24_04:
+        description: 'Build Ubuntu 24.04 package'
+        required: false
+        type: boolean
+        default: false
+      ubuntu_24_04_arm:
+        description: 'Build Ubuntu 24.04 ARM package'
+        required: false
+        type: boolean
+        default: false
+      fedora_39:
+        description: 'Build Fedora 39 package'
+        required: false
+        type: boolean
+        default: true
+      macos_15:
+        description: 'Build macOS 15 package'
+        required: false
+        type: boolean
+        default: false
+      macos_26:
+        description: 'Build macOS 26 package'
+        required: false
+        type: boolean
+        default: false
+      macos_26_intel:
+        description: 'Build macOS 26 Intel package'
+        required: false
+        type: boolean
+        default: false
+      windows_2022:
+        description: 'Build Windows 2022 package'
+        required: false
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  group: ${{ github.workflow }}-${{ inputs.tag }}
   cancel-in-progress: true
 
 jobs:
+  select-targets:
+    name: Select release targets
+    runs-on: ubuntu-latest
+    outputs:
+      tag: ${{ steps.matrix.outputs.tag }}
+      version: ${{ steps.matrix.outputs.version }}
+      linux: ${{ steps.matrix.outputs.linux }}
+      macos: ${{ steps.matrix.outputs.macos }}
+      windows: ${{ steps.matrix.outputs.windows }}
+    steps:
+      - id: matrix
+        env:
+          RELEASE_TAG: ${{ inputs.tag }}
+          BUILD_UBUNTU_20_04: ${{ inputs.ubuntu_20_04 }}
+          BUILD_UBUNTU_22_04: ${{ inputs.ubuntu_22_04 }}
+          BUILD_UBUNTU_24_04: ${{ inputs.ubuntu_24_04 }}
+          BUILD_UBUNTU_24_04_ARM: ${{ inputs.ubuntu_24_04_arm }}
+          BUILD_FEDORA_39: ${{ inputs.fedora_39 }}
+          BUILD_MACOS_15: ${{ inputs.macos_15 }}
+          BUILD_MACOS_26: ${{ inputs.macos_26 }}
+          BUILD_MACOS_26_INTEL: ${{ inputs.macos_26_intel }}
+          BUILD_WINDOWS_2022: ${{ inputs.windows_2022 }}
+        run: |
+          python3 - <<'PY'
+          import json
+          import os
+          import re
+
+          release_tag = os.environ["RELEASE_TAG"].strip()
+          if not re.fullmatch(r"v[0-9]+\.[0-9]+\.[0-9]+", release_tag):
+              raise SystemExit("Release tag must use format vX.Y.Z, for example v2.6.3.")
+          release_version = release_tag[1:]
+
+          linux = []
+          macos = []
+          windows = []
+          if os.environ["BUILD_UBUNTU_20_04"] == "true":
+              linux.append({"distro": "Ubuntu", "version": "20.04", "image": "ubuntu:20.04", "runner": "ubuntu-latest", "key": "u2004"})
+          if os.environ["BUILD_UBUNTU_22_04"] == "true":
+              linux.append({"distro": "Ubuntu", "version": "22.04", "image": "ubuntu:22.04", "runner": "ubuntu-latest", "key": "u2204"})
+          if os.environ["BUILD_UBUNTU_24_04"] == "true":
+              linux.append({"distro": "Ubuntu", "version": "24.04", "image": "ubuntu:24.04", "runner": "ubuntu-latest", "key": "u2404"})
+          if os.environ["BUILD_UBUNTU_24_04_ARM"] == "true":
+              linux.append({"distro": "Ubuntu", "version": "24.04 ARM", "image": "ubuntu:24.04", "runner": "ubuntu-24.04-arm", "key": "u2404-arm"})
+          if os.environ["BUILD_FEDORA_39"] == "true":
+              linux.append({"distro": "Fedora", "version": "39", "image": "fedora:39", "runner": "ubuntu-latest", "key": "fc39"})
+          if os.environ["BUILD_MACOS_15"] == "true":
+              macos.append({"name": "macOS 15", "runner": "macos-15"})
+          if os.environ["BUILD_MACOS_26"] == "true":
+              macos.append({"name": "macOS 26", "runner": "macos-26"})
+          if os.environ["BUILD_MACOS_26_INTEL"] == "true":
+              macos.append({"name": "macOS 26 Intel", "runner": "macos-26-intel"})
+          if os.environ["BUILD_WINDOWS_2022"] == "true":
+              windows.append({"name": "Windows 2022", "runner": "windows-2022"})
+
+          if not linux and not macos and not windows:
+              raise SystemExit("Select at least one release target.")
+
+          with open(os.environ["GITHUB_OUTPUT"], "a") as output:
+              output.write("tag=" + release_tag + "\n")
+              output.write("version=" + release_version + "\n")
+              output.write("linux=" + json.dumps(linux) + "\n")
+              output.write("macos=" + json.dumps(macos) + "\n")
+              output.write("windows=" + json.dumps(windows) + "\n")
+          PY
+
   linux:
     name: Release package for ${{ matrix.os.distro }} ${{ matrix.os.version }}
-    runs-on: ubuntu-latest
+    needs: select-targets
+    if: needs.select-targets.outputs.linux != '[]'
+    runs-on: ${{ matrix.os.runner }}
     container: ${{ matrix.os.image }}
     timeout-minutes: 45
+    env:
+      BUILD_SHARED_LIBS: ON
     strategy:
       fail-fast: false
-      # Release binary matrix — intentionally minimal:                                                                 
-      #   Ubuntu 20.04 (glibc 2.31) covers Ubuntu 20.04+, Debian 11+                                            
-      #   Fedora 39                 covers Fedora 39+                                                                  
-      # Adding more distros is optional; existing users can use the above                                       
-      # packages on any distro with compatible or newer glibc. See CHANGELOG                                    
-      # for the rationale behind dropping Ubuntu 22.04 and Fedora 38. 
       matrix:
-        os:
-          - distro: Ubuntu
-            version: 20.04
-            image: ubuntu:20.04
-            key: u2004
-          - distro: Fedora
-            version: 39
-            image: fedora:39
-            key: fc39
+        os: ${{ fromJSON(needs.select-targets.outputs.linux) }}
     steps:
       - name: Env
         run: echo "${HOME}/.local/bin" >> $GITHUB_PATH
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.select-targets.outputs.tag }}
       - name: Prepare
         run: |
           sh scripts/install_deps.sh
       - name: Build
         run: |
-          export MILVUS_SDK_VERSION="$(echo ${{ github.event.ref }} | sed s@refs/tags/v@@)"
+          export MILVUS_SDK_VERSION="${{ needs.select-targets.outputs.version }}"
           make test
           make clean
           make package
+      - name: Verify package
+        run: |
+          sh scripts/verify_package_linux.sh cmake_build/Pack
       - name: Release
         uses: ncipollo/release-action@v1
         with:
+          tag: ${{ needs.select-targets.outputs.tag }}
           allowUpdates: true
+          omitNameDuringUpdate: true
+          omitBodyDuringUpdate: true
           artifacts: cmake_build/Pack/libmilvus-*
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+  macos:
+    name: Release package for ${{ matrix.os.name }}
+    needs: select-targets
+    if: needs.select-targets.outputs.macos != '[]'
+    runs-on: ${{ matrix.os.runner }}
+    timeout-minutes: 75
+    strategy:
+      fail-fast: false
+      matrix:
+        os: ${{ fromJSON(needs.select-targets.outputs.macos) }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.select-targets.outputs.tag }}
+      - name: Prepare
+        run: |
+          mkdir ~/.venv
+          python3 -m venv ~/.venv
+          source ~/.venv/bin/activate
+          sh scripts/install_deps.sh
+      - name: Build
+        run: |
+          source ~/.venv/bin/activate
+          export MILVUS_SDK_VERSION="${{ needs.select-targets.outputs.version }}"
+          make test
+          make clean
+          make package
+      - name: Verify package
+        run: |
+          sh scripts/verify_package_linux.sh cmake_build/Pack
+      - name: Release
+        uses: ncipollo/release-action@v1
+        with:
+          tag: ${{ needs.select-targets.outputs.tag }}
+          allowUpdates: true
+          omitNameDuringUpdate: true
+          omitBodyDuringUpdate: true
+          artifacts: cmake_build/Pack/libmilvus-*
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+  windows:
+    name: Release package for ${{ matrix.os.name }}
+    needs: select-targets
+    if: needs.select-targets.outputs.windows != '[]'
+    runs-on: ${{ matrix.os.runner }}
+    timeout-minutes: 75
+    strategy:
+      fail-fast: false
+      matrix:
+        os: ${{ fromJSON(needs.select-targets.outputs.windows) }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.select-targets.outputs.tag }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install dependencies
+        shell: cmd
+        run: |
+          choco install cmake ninja ccache --no-progress
+          if errorlevel 1 exit /b %errorlevel%
+          python -m pip install -U pip
+          if errorlevel 1 exit /b %errorlevel%
+          python -m pip install "conan>=2,<3"
+          if errorlevel 1 exit /b %errorlevel%
+          cmake --version
+          ninja --version
+          conan --version
+          where ccache >nul 2>&1 && (ccache --version) || (echo ccache not installed - build will proceed without caching)
+      - name: Build
+        shell: cmd
+        run: |
+          call "%ProgramFiles%\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
+          if errorlevel 1 exit /b %errorlevel%
+          conan profile detect --force
+          if errorlevel 1 exit /b %errorlevel%
+          where ccache >nul 2>&1 && (set LAUNCHER=-DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache) || (set LAUNCHER=)
+          set CMAKE_POLICY_VERSION_MINIMUM=3.5
+          conan install . -of build -s build_type=Release -s compiler.cppstd=14 -s:b build_type=Release -s:b compiler.cppstd=17 -o "&:shared=True" -o "&:with_tests=True" -c tools.cmake.cmaketoolchain:generator=Ninja -c tools.build:jobs=4 --build=missing
+          if errorlevel 1 exit /b %errorlevel%
+          if not exist build\build\Release\generators\conan_toolchain.cmake exit /b 1
+          cmake -S . -B build -DCMAKE_TOOLCHAIN_FILE=build\build\Release\generators\conan_toolchain.cmake -DMILVUS_BUILD_TEST=YES -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=ON -DBUILD_FROM_CONAN=ON -DMILVUS_SDK_VERSION=${{ needs.select-targets.outputs.version }} -G Ninja %LAUNCHER%
+          if errorlevel 1 exit /b %errorlevel%
+          cmake --build build
+          if errorlevel 1 exit /b %errorlevel%
+          set PATH=%CD%\build\src;%PATH%
+          rem testing-it starts an in-process mocked gRPC server and is unstable across the Windows EXE/DLL boundary.
+          build\test\testing-ut
+          if errorlevel 1 exit /b %errorlevel%
+          cmake --build build --target package
+          if errorlevel 1 exit /b %errorlevel%
+      - name: Verify package
+        shell: pwsh
+        run: |
+          ./scripts/verify_package_windows.ps1 build/Pack
+      - name: Release
+        uses: ncipollo/release-action@v1
+        with:
+          tag: ${{ needs.select-targets.outputs.tag }}
+          allowUpdates: true
+          omitNameDuringUpdate: true
+          omitBodyDuringUpdate: true
+          artifacts: build/Pack/libmilvus-*
           token: ${{ secrets.GITHUB_TOKEN }}

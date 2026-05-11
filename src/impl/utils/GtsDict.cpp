@@ -20,6 +20,12 @@
 
 namespace milvus {
 
+GtsDict&
+GtsDict::GetInstance() {
+    static GtsDict instance;
+    return instance;
+}
+
 void
 GtsDict::UpdateCollectionTs(const std::string& db_name, const std::string& collection_name, uint64_t ts) {
     std::string key = std::move(CombineName(db_name, collection_name));

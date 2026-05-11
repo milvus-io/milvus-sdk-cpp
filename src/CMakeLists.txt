@@ -22,11 +22,21 @@ file(GLOB_RECURSE impl_files
 )
 
 add_library(milvus_sdk ${impl_files})
+if (WIN32)
+    set_target_properties(milvus_sdk PROPERTIES WINDOWS_EXPORT_ALL_SYMBOLS ON)
+    if (BUILD_SHARED_LIBS)
+        # Data symbols need explicit import/export markers for MSVC DLL consumers.
+        target_compile_definitions(milvus_sdk
+            PRIVATE MILVUS_SDK_SHARED MILVUS_SDK_BUILDING_LIBRARY "MILVUS_PROTO_API=__declspec(dllexport)"
+            INTERFACE MILVUS_SDK_SHARED "MILVUS_PROTO_API=__declspec(dllimport)")
+    endif()
+endif()
 
 # add proto gens
 add_milvus_protos(milvus_sdk)
 set_target_properties(milvus_sdk PROPERTIES OUTPUT_NAME milvus_sdk)
 target_link_libraries(milvus_sdk gRPC::grpc++)
+target_compile_options(milvus_sdk PRIVATE $<$<CXX_COMPILER_ID:MSVC>:/bigobj>)
 target_include_directories(milvus_sdk PUBLIC include)
 target_include_directories(milvus_sdk PRIVATE ${PROJECT_SOURCE_DIR}/thirdparty)
 
@@ -57,5 +67,6 @@ install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/include/
 # install libs
 install(TARGETS milvus_sdk
         EXPORT milvus_sdk
+        RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
         LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
         ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})

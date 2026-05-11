@@ -10,6 +10,7 @@ on:
       - 'test/**'
       - 'thirdparty/**'
       - '.github/workflows/main.yaml'
+      - '.github/workflows/release.yaml'
       - '!**.md'
       - '.clang-format'
       - '.clang-tidy'
@@ -42,6 +43,7 @@ jobs:
               - 'test/**'
               - 'thirdparty/**'
               - '.github/workflows/main.yaml'
+              - '.github/workflows/release.yaml'
               - '.clang-format'
               - '.clang-tidy'
 
@@ -58,16 +60,19 @@ jobs:
             version: 20.04
             image: ubuntu:20.04
             key: u2004
+            build_shared_libs: ON
           - distro: Fedora
             version: 39
             image: fedora:39
             key: fc39
+            build_shared_libs: ON
     env:
       CCACHE_DIR: ${{ github.workspace }}/.ccache
       CCACHE_COMPILERCHECK: content
       CCACHE_COMPRESS: 1
       CCACHE_COMPRESSLEVEL: 5
       CCACHE_MAXSIZE: 2G
+      BUILD_SHARED_LIBS: ${{ matrix.os.build_shared_libs }}
     steps:
       - name: Env
         run: echo "${HOME}/.local/bin" >> $GITHUB_PATH
@@ -91,6 +96,10 @@ jobs:
       - name: Unit Testing
         run: |
           make test
+      - name: Verify package
+        run: |
+          cmake --build cmake_build --target package --parallel 4
+          sh scripts/verify_package_linux.sh cmake_build/Pack
   integration-test:
     name: Integration test
     # Skip for examples-only changes; linux job alone validates them.
@@ -136,6 +145,7 @@ jobs:
       CCACHE_COMPRESS: 1
       CCACHE_COMPRESSLEVEL: 5
       CCACHE_MAXSIZE: 2G
+      BUILD_SHARED_LIBS: OFF
     steps:
       - name: Env
         run: echo "${HOME}/.local/bin" >> $GITHUB_PATH
@@ -199,6 +209,11 @@ jobs:
         run: |
           source ~/.venv/bin/activate
           make test
+      - name: Verify package
+        run: |
+          source ~/.venv/bin/activate
+          cmake --build cmake_build --target package --parallel 4
+          sh scripts/verify_package_linux.sh cmake_build/Pack
   windows:
     name: Build and test windows
     # Skip for examples-only changes; Windows builds are slow.
@@ -237,10 +252,26 @@ jobs:
           rem guard every compile would try to spawn a non-existent ccache.exe
           rem and the build would die with "CreateProcess failed".
           where ccache >nul 2>&1 && (set LAUNCHER=-DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache) || (set LAUNCHER=)
-          cmake -S . -B build -DMILVUS_BUILD_TEST=YES -G Ninja %LAUNCHER%
+          cmake -S . -B build -DMILVUS_BUILD_TEST=YES -DBUILD_SHARED_LIBS=ON -G Ninja %LAUNCHER%
           cmake --build build
       - name: Unit Testing
         shell: cmd
         run: |
+          set PATH=%CD%\build\src;%PATH%
+          rem testing-it starts an in-process mocked gRPC server and is unstable across the Windows EXE/DLL boundary.
           build\test\testing-ut
-          build\test\testing-it
+          if errorlevel 1 exit /b %errorlevel%
+      - name: Verify install
+        shell: cmd
+        run: |
+          cmake --install build --prefix build\install
+          if exist build\install\bin\milvus_sdk.dll exit /b 0
+          if exist build\install\bin\libmilvus_sdk.dll exit /b 0
+          dir /s build\install
+          exit /b 1
+      - name: Verify package
+        shell: pwsh
+        run: |
+          cmake --build build --target package
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          ./scripts/verify_package_windows.ps1 build/Pack

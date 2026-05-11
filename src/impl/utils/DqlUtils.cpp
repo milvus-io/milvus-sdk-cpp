@@ -1119,26 +1119,35 @@ Status
 ConvertFilterTemplates(const std::unordered_map<std::string, nlohmann::json>& templates,
                        ::google::protobuf::Map<std::string, proto::schema::TemplateValue>* rpc_templates) {
     for (const auto& pair : templates) {
-        proto::schema::TemplateValue value;
+        proto::schema::TemplateArrayValue array;
         const auto& temp = pair.second;
         if (temp.is_array()) {
-            auto array = value.mutable_array_val();
-            auto status = DeduceTemplateArray(temp, *array);
+            auto status = DeduceTemplateArray(temp, array);
             if (!status.IsOk()) {
                 return status;
             }
+        } else if (!temp.is_boolean() && !temp.is_number_integer() && !temp.is_number_float() && !temp.is_string()) {
+            return {StatusCode::INVALID_ARGUMENT, "Unsupported template type"};
+        }
+
+        // Fill the map-owned protobuf value to avoid copying populated messages across Windows DLL boundaries.
+        auto result = rpc_templates->insert(std::make_pair(pair.first, proto::schema::TemplateValue{}));
+        if (!result.second) {
+            continue;
+        }
+
+        auto& value = result.first->second;
+        if (temp.is_array()) {
+            value.mutable_array_val()->Swap(&array);
         } else if (temp.is_boolean()) {
             value.set_bool_val(temp.get<bool>());
         } else if (temp.is_number_integer()) {
             value.set_int64_val(temp.get<int64_t>());
         } else if (temp.is_number_float()) {
             value.set_float_val(temp.get<double>());
-        } else if (temp.is_string()) {
-            value.set_string_val(temp.get<std::string>());
         } else {
-            return {StatusCode::INVALID_ARGUMENT, "Unsupported template type"};
+            value.set_string_val(temp.get<std::string>());
         }
-        rpc_templates->insert(std::make_pair(pair.first, value));
     }
 
     return Status::OK();

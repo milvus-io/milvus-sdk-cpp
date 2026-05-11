@@ -329,6 +329,10 @@ TEST_F(DqlUtilsTest, ConvertQueryRequestBasic) {
 }
 
 TEST_F(DqlUtilsTest, ConvertFilterTemplatesTest) {
+#if defined(_WIN32) && defined(MILVUS_SDK_SHARED)
+    GTEST_SKIP() << "protobuf Map cannot be safely mutated across Windows DLL boundary";
+#endif
+
     std::unordered_map<std::string, nlohmann::json> templates;
     templates["age"] = 25;
     templates["name"] = "alice";
