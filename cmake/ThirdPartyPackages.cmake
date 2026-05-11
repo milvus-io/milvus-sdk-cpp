@@ -81,6 +81,7 @@ else ()
         set(gRPC_SSL_PROVIDER "module" CACHE INTERNAL "")
         set(gRPC_PROTOBUF_PROVIDER "module" CACHE INTERNAL "")
         set(gRPC_BUILD_TESTS OFF CACHE INTERNAL "")
+        set(gRPC_BUILD_SHARED_LIBS OFF CACHE BOOL "" FORCE)
         set(RE2_BUILD_TESTING OFF CACHE INTERNAL "")
     # Avoid install/export from gRPC's vendored protobuf/utf8_range in this superbuild.
     # CMake export sets in protobuf can fail when its Abseil deps aren't part of the same export.
@@ -91,7 +92,11 @@ else ()
         # depend on googletest/gmock targets that aren't part of the export.
         set(ABSL_ENABLE_INSTALL OFF CACHE INTERNAL "")
         set(ABSL_PROPAGATE_CXX_STD ON CACHE INTERNAL "")
+        set(_MILVUS_BUILD_SHARED_LIBS "${BUILD_SHARED_LIBS}")
+        set(BUILD_SHARED_LIBS OFF)
         add_subdirectory(${grpc_SOURCE_DIR} ${grpc_BINARY_DIR} EXCLUDE_FROM_ALL)
+        set(BUILD_SHARED_LIBS "${_MILVUS_BUILD_SHARED_LIBS}")
+        unset(_MILVUS_BUILD_SHARED_LIBS)
         set(protobuf_SOURCE_DIR ${grpc_SOURCE_DIR}/third_party/protobuf/src)
         add_library(gRPC::grpc++ ALIAS grpc++)
         add_executable(gRPC::grpc_cpp_plugin ALIAS grpc_cpp_plugin)
@@ -109,7 +114,11 @@ else()
         # Disable install to keep the build self-contained.
         set(INSTALL_GTEST OFF CACHE BOOL "" FORCE)
         set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
+        set(_MILVUS_BUILD_SHARED_LIBS "${BUILD_SHARED_LIBS}")
+        set(BUILD_SHARED_LIBS OFF)
         add_subdirectory(${googletest_SOURCE_DIR} ${googletest_BINARY_DIR} EXCLUDE_FROM_ALL)
+        set(BUILD_SHARED_LIBS "${_MILVUS_BUILD_SHARED_LIBS}")
+        unset(_MILVUS_BUILD_SHARED_LIBS)
     endif()
 
     # Normalize target names for consumers.

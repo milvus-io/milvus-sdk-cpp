@@ -41,10 +41,7 @@ class GtsDict {
     operator=(const GtsDict&) = delete;
 
     static GtsDict&
-    GetInstance() {
-        static GtsDict instance;
-        return instance;
-    }
+    GetInstance();
 
     /**
      * @brief If the collection name exists, use its value to compare to the input ts,
