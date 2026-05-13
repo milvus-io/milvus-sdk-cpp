@@ -133,7 +133,7 @@ jobs:
     if: needs.select-targets.outputs.linux != '[]'
     runs-on: ${{ matrix.os.runner }}
     container: ${{ matrix.os.image }}
-    timeout-minutes: 45
+    timeout-minutes: 100
     env:
       BUILD_SHARED_LIBS: ON
     strategy:
@@ -153,9 +153,8 @@ jobs:
       - name: Build
         run: |
           export MILVUS_SDK_VERSION="${{ needs.select-targets.outputs.version }}"
-          make test
-          make clean
-          make package
+          make test-release
+          cmake --build cmake_build --target package --parallel 4
       - name: Verify package
         run: |
           sh scripts/verify_package_linux.sh cmake_build/Pack
@@ -194,9 +193,8 @@ jobs:
         run: |
           source ~/.venv/bin/activate
           export MILVUS_SDK_VERSION="${{ needs.select-targets.outputs.version }}"
-          make test
-          make clean
-          make package
+          make test-release
+          cmake --build cmake_build --target package --parallel 4
       - name: Verify package
         run: |
           sh scripts/verify_package_linux.sh cmake_build/Pack
