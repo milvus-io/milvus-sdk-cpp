@@ -8,10 +8,28 @@ check_sudo() {
     fi
 }
 
+activate_python_venv() {
+    if [ "${MILVUS_USE_PYTHON_VENV}" != "ON" ] ; then
+        return 0
+    fi
+
+    if [ -n "${VIRTUAL_ENV}" ] ; then
+        return 0
+    fi
+
+    python3 -m venv "${HOME}/.venv" || exit 1
+    . "${HOME}/.venv/bin/activate" || exit 1
+}
+
 install_linux_cmake_clang_toolchain() {
     echo 'Pip install clang toolchain.'
-    pip3 install --user -U pip scikit-build wheel
-    pip3 install --user cmake clang-tidy~=17.0 clang-format~=17.0
+    if [ -n "${VIRTUAL_ENV}" ] ; then
+        pip3 install -U pip scikit-build wheel
+        pip3 install cmake clang-tidy~=17.0 clang-format~=17.0
+    else
+        pip3 install --user -U pip scikit-build wheel
+        pip3 install --user cmake clang-tidy~=17.0 clang-format~=17.0
+    fi
 }
 
 ensure_conan_default_profile() {
@@ -96,12 +114,17 @@ install_deps_for_ubuntu_common() {
     fi
 
     ${SUDO} apt-get -y install gpg wget gcc g++ ccache make \
-                       libssl-dev iwyu lcov git python3-pip clang-format clang-tidy
+                       libssl-dev iwyu lcov git python3-pip python3-venv clang-format clang-tidy
+    activate_python_venv
     install_linux_cmake_clang_toolchain
     install_conan
 
     echo 'Pip install docker for integration tests.'
-    pip3 install --user "docker>=7.0.0"
+    if [ -n "${VIRTUAL_ENV}" ] ; then
+        pip3 install "docker>=7.0.0"
+    else
+        pip3 install --user "docker>=7.0.0"
+    fi
 }
 
 install_deps_for_ubuntu() {
@@ -111,11 +134,16 @@ install_deps_for_ubuntu() {
 install_deps_for_fedora_common() {
     check_sudo
     ${SUDO} dnf -y install gcc gcc-c++ python2 gpg wget ccache make openssl-devel which lcov git rpm-build cpio python3-pip perl perl-core
+    activate_python_venv
     install_linux_cmake_clang_toolchain
     install_conan
 
     echo 'Pip install docker for integration tests.'
-    pip3 install --user "docker>=7.0.0"
+    if [ -n "${VIRTUAL_ENV}" ] ; then
+        pip3 install "docker>=7.0.0"
+    else
+        pip3 install --user "docker>=7.0.0"
+    fi
 }
 
 install_deps_for_centos_8() {
