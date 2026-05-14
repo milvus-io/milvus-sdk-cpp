@@ -136,6 +136,7 @@ jobs:
     timeout-minutes: 100
     env:
       BUILD_SHARED_LIBS: ON
+      MILVUS_USE_PYTHON_VENV: ON
     strategy:
       fail-fast: false
       matrix:
@@ -152,11 +153,13 @@ jobs:
           sh scripts/install_deps.sh
       - name: Build
         run: |
+          . ~/.venv/bin/activate
           export MILVUS_SDK_VERSION="${{ needs.select-targets.outputs.version }}"
           make test-release
           cmake --build cmake_build --target package --parallel 4
       - name: Verify package
         run: |
+          . ~/.venv/bin/activate
           sh scripts/verify_package_linux.sh cmake_build/Pack
       - name: Release
         uses: ncipollo/release-action@v1
@@ -251,7 +254,7 @@ jobs:
           conan install . -of build -s build_type=Release -s compiler.cppstd=14 -s:b build_type=Release -s:b compiler.cppstd=17 -o "&:shared=True" -o "&:with_tests=True" -c tools.cmake.cmaketoolchain:generator=Ninja -c tools.build:jobs=4 --build=missing
           if errorlevel 1 exit /b %errorlevel%
           if not exist build\build\Release\generators\conan_toolchain.cmake exit /b 1
-          cmake -S . -B build -DCMAKE_TOOLCHAIN_FILE=build\build\Release\generators\conan_toolchain.cmake -DMILVUS_BUILD_TEST=YES -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=ON -DBUILD_FROM_CONAN=ON -DMILVUS_SDK_VERSION=${{ needs.select-targets.outputs.version }} -G Ninja %LAUNCHER%
+          cmake -S . -B build -DCMAKE_TOOLCHAIN_FILE=build\build\Release\generators\conan_toolchain.cmake -DCMAKE_POLICY_DEFAULT_CMP0091=NEW -DMILVUS_BUILD_TEST=YES -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=ON -DBUILD_FROM_CONAN=ON -DMILVUS_SDK_VERSION=${{ needs.select-targets.outputs.version }} -G Ninja %LAUNCHER%
           if errorlevel 1 exit /b %errorlevel%
           cmake --build build
           if errorlevel 1 exit /b %errorlevel%
