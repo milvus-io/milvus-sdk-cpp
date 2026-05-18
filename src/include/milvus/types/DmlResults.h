@@ -20,13 +20,14 @@
 #include <vector>
 
 #include "IDArray.h"
+#include "milvus/Export.h"
 
 namespace milvus {
 
 /**
  * @brief Result returned by MilvusClient::Insert() and MilvusClient::Delete().
  */
-class DmlResults {
+class MILVUS_SDK_API DmlResults {
  public:
     /**
      * @brief The id array for entities which are inserted or deleted.

@@ -19,13 +19,14 @@
 #include "../../types/Function.h"
 #include "../../types/SubSearchRequest.h"
 #include "./DQLRequestBase.h"
+#include "milvus/Export.h"
 
 namespace milvus {
 
 /**
  * @brief Used by MilvusClientV2::HybridSearch()
  */
-class HybridSearchRequest : public DQLRequestBase<HybridSearchRequest> {
+class MILVUS_SDK_API HybridSearchRequest : public DQLRequestBase<HybridSearchRequest> {
  public:
     /**
      * @brief Constructor

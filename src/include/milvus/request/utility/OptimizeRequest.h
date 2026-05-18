@@ -19,12 +19,14 @@
 #include <cstdint>
 #include <string>
 
+#include "milvus/Export.h"
+
 namespace milvus {
 
 /**
  * @brief Used by MilvusClientV2::Optimize()
  */
-class OptimizeRequest {
+class MILVUS_SDK_API OptimizeRequest {
  public:
     /**
      * @brief Constructor

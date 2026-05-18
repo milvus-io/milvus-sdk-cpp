@@ -19,12 +19,14 @@
 #include <string>
 #include <vector>
 
+#include "milvus/Export.h"
+
 namespace milvus {
 
 /**
  * @brief Used by MilvusClientV2::ListRoles()
  */
-class ListRolesResponse {
+class MILVUS_SDK_API ListRolesResponse {
  public:
     /**
      * @brief Constructor

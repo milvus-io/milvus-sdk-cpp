@@ -29,6 +29,16 @@ set(GTEST_LIBRARIES GTest::gtest)
 set(GMOCK_LIBRARIES GTest::gmock)
 set(GTEST_MAIN_LIBRARIES GTest::gtest_main)
 
+function(link_milvus_test target)
+    if (WIN32 AND BUILD_SHARED_LIBS)
+        add_dependencies(${target} milvus_sdk_objects)
+        target_sources(${target} PRIVATE $<TARGET_OBJECTS:milvus_sdk_objects>)
+        target_link_libraries(${target} PRIVATE gRPC::grpc++ ${GTEST_LIBRARIES} ${GMOCK_LIBRARIES} ${GTEST_MAIN_LIBRARIES})
+    else()
+        target_link_libraries(${target} PRIVATE milvus_sdk ${GTEST_LIBRARIES} ${GMOCK_LIBRARIES} ${GTEST_MAIN_LIBRARIES})
+    endif()
+endfunction()
+
 set(UT_DIR "${CMAKE_CURRENT_SOURCE_DIR}/ut")
 file(GLOB_RECURSE ut_files
     "${UT_DIR}/*.cpp"
@@ -37,7 +47,7 @@ file(GLOB_RECURSE ut_files
 )
 add_executable(testing-ut ${ut_files})
 target_compile_options(testing-ut PRIVATE $<$<CXX_COMPILER_ID:MSVC>:/bigobj>)
-target_link_libraries(testing-ut PRIVATE milvus_sdk ${GTEST_LIBRARIES} ${GMOCK_LIBRARIES} ${GTEST_MAIN_LIBRARIES})
+link_milvus_test(testing-ut)
 
 set(IT_DIR "${CMAKE_CURRENT_SOURCE_DIR}/it")
 file(GLOB_RECURSE it_files
@@ -47,7 +57,7 @@ file(GLOB_RECURSE it_files
 )
 add_executable(testing-it ${it_files})
 target_compile_options(testing-it PRIVATE $<$<CXX_COMPILER_ID:MSVC>:/bigobj>)
-target_link_libraries(testing-it PRIVATE milvus_sdk ${GTEST_LIBRARIES} ${GMOCK_LIBRARIES} ${GTEST_MAIN_LIBRARIES})
+link_milvus_test(testing-it)
 
 # st only available under linux/macos
 if (CMAKE_SYSTEM_NAME MATCHES "(Linux|Darwin)")

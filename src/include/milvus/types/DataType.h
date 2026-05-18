@@ -18,6 +18,8 @@
 
 #include <string>
 
+#include "milvus/Export.h"
+
 namespace milvus {
 
 /**
@@ -57,5 +59,5 @@ enum class DataType {
 }  // namespace milvus
 
 namespace std {
-std::string to_string(milvus::DataType);
+MILVUS_SDK_API std::string to_string(milvus::DataType);
 }  // namespace std

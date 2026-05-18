@@ -20,13 +20,14 @@
 #include <unordered_map>
 
 #include "./DBRequestBase.h"
+#include "milvus/Export.h"
 
 namespace milvus {
 
 /**
  * @brief Used by MilvusClientV2::CreateDatabase()
  */
-class CreateDatabaseRequest : public DBRequestBase<CreateDatabaseRequest> {
+class MILVUS_SDK_API CreateDatabaseRequest : public DBRequestBase<CreateDatabaseRequest> {
  public:
     /**
      * @brief Constructor

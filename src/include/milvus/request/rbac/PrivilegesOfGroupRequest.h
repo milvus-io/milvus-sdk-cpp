@@ -19,12 +19,14 @@
 #include <set>
 #include <string>
 
+#include "milvus/Export.h"
+
 namespace milvus {
 
 /**
  * @brief Used by MilvusClientV2::AddPrivilegesToGroup() and RemovePrivilegesFromGroup().
  */
-class PrivilegesOfGroupRequest {
+class MILVUS_SDK_API PrivilegesOfGroupRequest {
  public:
     /**
      * @brief Constructor

@@ -25,13 +25,14 @@
 #include "Constants.h"
 #include "EmbeddingList.h"
 #include "MetricType.h"
+#include "milvus/Export.h"
 
 namespace milvus {
 
 /**
  * @brief A base class for SubSearchRequest and SearchArguments
  */
-class SearchRequestBase {
+class MILVUS_SDK_API SearchRequestBase {
  protected:
     SearchRequestBase() = default;
     virtual ~SearchRequestBase() = default;

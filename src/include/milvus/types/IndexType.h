@@ -18,6 +18,8 @@
 
 #include <string>
 
+#include "milvus/Export.h"
+
 namespace milvus {
 
 /**
@@ -75,5 +77,5 @@ enum class IndexType {
 }  // namespace milvus
 
 namespace std {
-std::string to_string(milvus::IndexType);
+MILVUS_SDK_API std::string to_string(milvus::IndexType);
 }  // namespace std

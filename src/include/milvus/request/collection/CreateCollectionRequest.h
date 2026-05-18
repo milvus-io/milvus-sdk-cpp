@@ -21,13 +21,14 @@
 #include "../../types/CollectionSchema.h"
 #include "../../types/ConsistencyLevel.h"
 #include "../../types/IndexDesc.h"
+#include "milvus/Export.h"
 
 namespace milvus {
 
 /**
  * @brief Used by MilvusClientV2::CreateCollection()
  */
-class CreateCollectionRequest {
+class MILVUS_SDK_API CreateCollectionRequest {
  public:
     /**
      * @brief Constructor

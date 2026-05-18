@@ -17,13 +17,14 @@
 #pragma once
 
 #include "./DescribeIndexResponse.h"
+#include "milvus/Export.h"
 
 namespace milvus {
 
 /**
  * @brief Used by MilvusClientV2::ListIndexes()
  */
-class ListIndexesResponse : public DescribeIndexResponse {
+class MILVUS_SDK_API ListIndexesResponse : public DescribeIndexResponse {
  public:
     /**
      * @brief Constructor

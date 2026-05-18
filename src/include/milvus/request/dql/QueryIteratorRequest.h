@@ -18,13 +18,14 @@
 
 #include "../../types/IteratorArguments.h"
 #include "./QueryRequest.h"
+#include "milvus/Export.h"
 
 namespace milvus {
 
 /**
  * @brief Used by MilvusClientV2::QueryIterator()
  */
-class QueryIteratorRequest : public IteratorArguments, public QueryRequest {
+class MILVUS_SDK_API QueryIteratorRequest : public IteratorArguments, public QueryRequest {
  public:
     /**
      * @brief Constructor

@@ -18,12 +18,14 @@
 
 #include <string>
 
+#include "milvus/Export.h"
+
 namespace milvus {
 
 /**
  * @brief Used by MilvusClientV2::DropResourceGroup() and DescribeResourceGroup()
  */
-class ResourceGroupRequest {
+class MILVUS_SDK_API ResourceGroupRequest {
  public:
     /**
      * @brief Constructor

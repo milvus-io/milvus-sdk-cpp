@@ -20,12 +20,14 @@
 #include <string>
 #include <unordered_map>
 
+#include "milvus/Export.h"
+
 namespace milvus {
 
 /**
  * @brief Collection statistics returned by MilvusClient::GetCollectionStatistics().
  */
-class CollectionStat {
+class MILVUS_SDK_API CollectionStat {
  public:
     /**
      * @brief Construct a new Collection Stat object

@@ -19,12 +19,14 @@
 #include <string>
 #include <vector>
 
+#include "milvus/Export.h"
+
 namespace milvus {
 
 /**
  * @brief Used by MilvusClientV2::CheckHealth()
  */
-class CheckHealthResponse {
+class MILVUS_SDK_API CheckHealthResponse {
  public:
     /**
      * @brief Constructor

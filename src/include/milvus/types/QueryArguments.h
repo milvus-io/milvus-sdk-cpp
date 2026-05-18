@@ -24,13 +24,14 @@
 
 #include "../Status.h"
 #include "ConsistencyLevel.h"
+#include "milvus/Export.h"
 
 namespace milvus {
 
 /**
  * @brief Arguments for MilvusClient::Query().
  */
-class QueryArguments {
+class MILVUS_SDK_API QueryArguments {
  public:
     virtual ~QueryArguments() = default;
 

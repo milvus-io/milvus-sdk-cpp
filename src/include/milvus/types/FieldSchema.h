@@ -23,13 +23,14 @@
 
 #include "../Status.h"
 #include "DataType.h"
+#include "milvus/Export.h"
 
 namespace milvus {
 
 /**
  * @brief Field schema used by CollectionSchema
  */
-class FieldSchema {
+class MILVUS_SDK_API FieldSchema {
  public:
     FieldSchema();
 

@@ -18,12 +18,14 @@
 
 #include <string>
 
+#include "milvus/Export.h"
+
 namespace milvus {
 
 /**
  * @brief Used by MilvusClientV2::TransferReplica().
  */
-class TransferReplicaRequest {
+class MILVUS_SDK_API TransferReplicaRequest {
  public:
     /**
      * @brief Constructor

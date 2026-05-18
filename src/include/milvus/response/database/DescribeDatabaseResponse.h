@@ -17,13 +17,14 @@
 #pragma once
 
 #include "../../types/DatabaseDesc.h"
+#include "milvus/Export.h"
 
 namespace milvus {
 
 /**
  * @brief Used by MilvusClientV2::DescribeDatabase()
  */
-class DescribeDatabaseResponse {
+class MILVUS_SDK_API DescribeDatabaseResponse {
  public:
     /**
      * @brief Constructor

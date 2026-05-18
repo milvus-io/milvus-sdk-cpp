@@ -18,12 +18,14 @@
 
 #include <string>
 
+#include "milvus/Export.h"
+
 namespace milvus {
 
 /**
  * @brief Used by MilvusClientV2::CreateUser().
  */
-class CreateUserRequest {
+class MILVUS_SDK_API CreateUserRequest {
  public:
     /**
      * @brief Constructor

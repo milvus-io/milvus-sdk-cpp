@@ -25,13 +25,14 @@
 #include "FieldSchema.h"
 #include "Function.h"
 #include "StructFieldSchema.h"
+#include "milvus/Export.h"
 
 namespace milvus {
 
 /**
  * @brief Collection schema for MilvusClient::CreateCollection().
  */
-class CollectionSchema {
+class MILVUS_SDK_API CollectionSchema {
  public:
     /**
      * @brief Constructor

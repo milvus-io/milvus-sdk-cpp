@@ -20,13 +20,14 @@
 #include <unordered_map>
 
 #include "Constants.h"
+#include "milvus/Export.h"
 
 namespace milvus {
 
 /**
  * @brief Partition statistics returned by MilvusClient::GetPartitionStatistics().
  */
-class PartitionStat {
+class MILVUS_SDK_API PartitionStat {
  public:
     /**
      * @brief Return row count of this partition.
