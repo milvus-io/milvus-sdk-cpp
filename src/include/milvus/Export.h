@@ -16,22 +16,12 @@
 
 #pragma once
 
-#include <string>
-
-#include "./CollectionRequestBase.h"
-#include "milvus/Export.h"
-
-namespace milvus {
-
-/**
- * @brief Used by MilvusClientV2::HasCollection()
- */
-class MILVUS_SDK_API HasCollectionRequest : public CollectionRequestBase<HasCollectionRequest> {
- public:
-    /**
-     * @brief Constructor
-     */
-    HasCollectionRequest() = default;
-};
-
-}  // namespace milvus
+#if defined(_WIN32) && defined(MILVUS_SDK_SHARED)
+#if defined(MILVUS_SDK_BUILDING_LIBRARY)
+#define MILVUS_SDK_API __declspec(dllexport)
+#else
+#define MILVUS_SDK_API __declspec(dllimport)
+#endif
+#else
+#define MILVUS_SDK_API
+#endif

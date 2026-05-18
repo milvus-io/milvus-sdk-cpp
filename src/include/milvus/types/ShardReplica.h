@@ -20,9 +20,11 @@
 #include <string>
 #include <vector>
 
+#include "milvus/Export.h"
+
 namespace milvus {
 
-class ShardReplica {
+class MILVUS_SDK_API ShardReplica {
  public:
     /**
      * @brief Constructor

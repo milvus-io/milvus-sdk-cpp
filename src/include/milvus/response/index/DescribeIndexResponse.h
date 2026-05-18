@@ -19,13 +19,14 @@
 #include <vector>
 
 #include "../../types/IndexDesc.h"
+#include "milvus/Export.h"
 
 namespace milvus {
 
 /**
  * @brief Used by MilvusClientV2::DescribeIndex()
  */
-class DescribeIndexResponse {
+class MILVUS_SDK_API DescribeIndexResponse {
  public:
     /**
      * @brief Constructor

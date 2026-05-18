@@ -23,9 +23,10 @@
 
 #include "../Status.h"
 #include "DataType.h"
+#include "milvus/Export.h"
 
 namespace milvus {
-class Field {
+class MILVUS_SDK_API Field {
  public:
     virtual ~Field() = default;
 
@@ -254,7 +255,7 @@ class ArrayFieldData : public FieldData<std::vector<T>, DataType::ARRAY> {
     Add(ArrayFieldData::ElementT&& element) override;
 };
 
-class BinaryVecFieldData : public FieldData<std::vector<uint8_t>, DataType::BINARY_VECTOR> {
+class MILVUS_SDK_API BinaryVecFieldData : public FieldData<std::vector<uint8_t>, DataType::BINARY_VECTOR> {
  public:
     /**
      * @brief Field element type.
@@ -410,32 +411,32 @@ using ArrayVarCharFieldDataPtr = std::shared_ptr<ArrayVarCharFieldData>;
 
 using StructFieldDataPtr = std::shared_ptr<StructFieldData>;
 
-extern template class FieldData<bool, DataType::BOOL>;
-extern template class FieldData<int8_t, DataType::INT8>;
-extern template class FieldData<int16_t, DataType::INT16>;
-extern template class FieldData<int32_t, DataType::INT32>;
-extern template class FieldData<int64_t, DataType::INT64>;
-extern template class FieldData<float, DataType::FLOAT>;
-extern template class FieldData<double, DataType::DOUBLE>;
-extern template class FieldData<std::string, DataType::VARCHAR>;
-extern template class FieldData<nlohmann::json, DataType::JSON>;
-extern template class FieldData<std::vector<uint8_t>, DataType::BINARY_VECTOR>;
-extern template class FieldData<std::vector<float>, DataType::FLOAT_VECTOR>;
-extern template class FieldData<std::map<uint32_t, float>, DataType::SPARSE_FLOAT_VECTOR>;
-extern template class FieldData<std::vector<uint16_t>, DataType::FLOAT16_VECTOR>;
-extern template class FieldData<std::vector<uint16_t>, DataType::BFLOAT16_VECTOR>;
-extern template class FieldData<std::vector<int8_t>, DataType::INT8_VECTOR>;
+extern template class MILVUS_SDK_API FieldData<bool, DataType::BOOL>;
+extern template class MILVUS_SDK_API FieldData<int8_t, DataType::INT8>;
+extern template class MILVUS_SDK_API FieldData<int16_t, DataType::INT16>;
+extern template class MILVUS_SDK_API FieldData<int32_t, DataType::INT32>;
+extern template class MILVUS_SDK_API FieldData<int64_t, DataType::INT64>;
+extern template class MILVUS_SDK_API FieldData<float, DataType::FLOAT>;
+extern template class MILVUS_SDK_API FieldData<double, DataType::DOUBLE>;
+extern template class MILVUS_SDK_API FieldData<std::string, DataType::VARCHAR>;
+extern template class MILVUS_SDK_API FieldData<nlohmann::json, DataType::JSON>;
+extern template class MILVUS_SDK_API FieldData<std::vector<uint8_t>, DataType::BINARY_VECTOR>;
+extern template class MILVUS_SDK_API FieldData<std::vector<float>, DataType::FLOAT_VECTOR>;
+extern template class MILVUS_SDK_API FieldData<std::map<uint32_t, float>, DataType::SPARSE_FLOAT_VECTOR>;
+extern template class MILVUS_SDK_API FieldData<std::vector<uint16_t>, DataType::FLOAT16_VECTOR>;
+extern template class MILVUS_SDK_API FieldData<std::vector<uint16_t>, DataType::BFLOAT16_VECTOR>;
+extern template class MILVUS_SDK_API FieldData<std::vector<int8_t>, DataType::INT8_VECTOR>;
 
-extern template class ArrayFieldData<bool, DataType::BOOL>;
-extern template class ArrayFieldData<int8_t, DataType::INT8>;
-extern template class ArrayFieldData<int16_t, DataType::INT16>;
-extern template class ArrayFieldData<int32_t, DataType::INT32>;
-extern template class ArrayFieldData<int64_t, DataType::INT64>;
-extern template class ArrayFieldData<float, DataType::FLOAT>;
-extern template class ArrayFieldData<double, DataType::DOUBLE>;
-extern template class ArrayFieldData<std::string, DataType::VARCHAR>;
+extern template class MILVUS_SDK_API ArrayFieldData<bool, DataType::BOOL>;
+extern template class MILVUS_SDK_API ArrayFieldData<int8_t, DataType::INT8>;
+extern template class MILVUS_SDK_API ArrayFieldData<int16_t, DataType::INT16>;
+extern template class MILVUS_SDK_API ArrayFieldData<int32_t, DataType::INT32>;
+extern template class MILVUS_SDK_API ArrayFieldData<int64_t, DataType::INT64>;
+extern template class MILVUS_SDK_API ArrayFieldData<float, DataType::FLOAT>;
+extern template class MILVUS_SDK_API ArrayFieldData<double, DataType::DOUBLE>;
+extern template class MILVUS_SDK_API ArrayFieldData<std::string, DataType::VARCHAR>;
 
 // for struct field
-extern template class ArrayFieldData<nlohmann::json, DataType::STRUCT>;
+extern template class MILVUS_SDK_API ArrayFieldData<nlohmann::json, DataType::STRUCT>;
 
 }  // namespace milvus

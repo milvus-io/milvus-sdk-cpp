@@ -19,13 +19,14 @@
 #include <string>
 
 #include "./CollectionRequestBase.h"
+#include "milvus/Export.h"
 
 namespace milvus {
 
 /**
  * @brief Used by MilvusClientV2::ReleaseCollection()
  */
-class ReleaseCollectionRequest : public CollectionRequestBase<ReleaseCollectionRequest> {
+class MILVUS_SDK_API ReleaseCollectionRequest : public CollectionRequestBase<ReleaseCollectionRequest> {
  public:
     /**
      * @brief Constructor

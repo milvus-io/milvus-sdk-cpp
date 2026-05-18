@@ -33,8 +33,10 @@ if (-not $includeMilvus -or -not $libFile -or -not $binFile) {
 $includeDir = Split-Path -Parent $includeMilvus.FullName
 $smokeCpp = Join-Path $smokeDir 'smoke.cpp'
 $smokeObj = Join-Path $smokeDir 'smoke.obj'
+$smokeExe = Join-Path $smokeDir 'smoke.exe'
 $exportsFile = Join-Path $smokeDir 'milvus_sdk.exports.txt'
 @'
+#include <iostream>
 #include <string>
 
 #include "milvus/MilvusClientV2.h"
@@ -49,15 +51,27 @@ main() {
     }
 
     auto client = milvus::MilvusClientV2::Create();
-    return client == nullptr ? 1 : 0;
+    if (client == nullptr) {
+        std::cerr << "failed to create MilvusClientV2" << std::endl;
+        return 1;
+    }
+
+    std::string version;
+    auto status = client->GetSDKVersion(version);
+    if (!status.IsOk()) {
+        std::cerr << status.Message() << std::endl;
+        return 1;
+    }
+
+    std::cout << version << std::endl;
+    return version.empty() ? 1 : 0;
 }
 '@ | Set-Content -Path $smokeCpp
 
 $buildCmd = Join-Path $smokeDir 'build-smoke.cmd'
-# Compile headers and inspect DLL exports instead of linking the oversized Windows import library.
 @"
 call "%ProgramFiles%\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
-cl /std:c++14 /EHsc /DMILVUS_SDK_SHARED /I"$includeDir" /c /Fo"$smokeObj" "$smokeCpp"
+cl /std:c++14 /EHsc /DMILVUS_SDK_SHARED /I"$includeDir" /Fo"$smokeObj" /Fe"$smokeExe" "$smokeCpp" "$($libFile.FullName)"
 if errorlevel 1 exit /b %errorlevel%
 dumpbin /exports "$($binFile.FullName)" > "$exportsFile"
 if errorlevel 1 exit /b %errorlevel%
@@ -88,3 +102,8 @@ if ($handle -eq [IntPtr]::Zero) {
     Write-Error "Failed to load $($binFile.FullName), GetLastError=$errorCode"
 }
 [Win32.NativeMethods]::FreeLibrary($handle) | Out-Null
+
+& $smokeExe
+if ($LASTEXITCODE -ne 0) {
+    exit $LASTEXITCODE
+}

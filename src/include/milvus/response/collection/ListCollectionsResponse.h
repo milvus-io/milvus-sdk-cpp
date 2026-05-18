@@ -20,13 +20,14 @@
 #include <vector>
 
 #include "../../types/CollectionInfo.h"
+#include "milvus/Export.h"
 
 namespace milvus {
 
 /**
  * @brief Used by MilvusClientV2::ListCollections()
  */
-class ListCollectionsResponse {
+class MILVUS_SDK_API ListCollectionsResponse {
  public:
     /**
      * @brief Constructor

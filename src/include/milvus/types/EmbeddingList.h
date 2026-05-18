@@ -20,6 +20,7 @@
 
 #include "../Status.h"
 #include "FieldData.h"
+#include "milvus/Export.h"
 
 namespace milvus {
 
@@ -27,7 +28,7 @@ namespace milvus {
  * @brief A list of embeddings to search for struct field.
  * It is also used to store the target vectors for SearchRequest/SubSearchRequest.
  */
-class EmbeddingList {
+class MILVUS_SDK_API EmbeddingList {
  public:
     /**
      * @brief Constructor

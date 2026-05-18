@@ -20,13 +20,14 @@
 #include <vector>
 
 #include "./InsertRequest.h"
+#include "milvus/Export.h"
 
 namespace milvus {
 
 /**
  * @brief Used by MilvusClientV2::Upsert()
  */
-class UpsertRequest : public InsertRequest {
+class MILVUS_SDK_API UpsertRequest : public InsertRequest {
  public:
     /**
      * @brief Constructor

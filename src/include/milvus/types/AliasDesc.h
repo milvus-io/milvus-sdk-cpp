@@ -19,13 +19,14 @@
 #include <string>
 
 #include "AliasDesc.h"
+#include "milvus/Export.h"
 
 namespace milvus {
 
 /**
  * @brief Aluas description. Used by MilvusClient::DescribeAlias()
  */
-class AliasDesc {
+class MILVUS_SDK_API AliasDesc {
  public:
     /**
      * @brief Construct a new Desc object.

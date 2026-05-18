@@ -25,13 +25,14 @@
 #include "IndexState.h"
 #include "IndexType.h"
 #include "MetricType.h"
+#include "milvus/Export.h"
 
 namespace milvus {
 
 /**
  * @brief Index description. Used by MilvusClient::CreateIndex() and MilvusClient::DescribeIndex().
  */
-class IndexDesc {
+class MILVUS_SDK_API IndexDesc {
  public:
     /**
      * @brief Construct a new IndexDesc object.

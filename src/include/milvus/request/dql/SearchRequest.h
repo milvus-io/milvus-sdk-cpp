@@ -19,13 +19,15 @@
 #include "../../types/FunctionScore.h"
 #include "../../types/SearchRequestBase.h"
 #include "./DQLRequestBase.h"
+#include "milvus/Export.h"
 
 namespace milvus {
 
 /**
  * @brief Used by MilvusClientV2::Search()
  */
-class SearchRequest : public DQLRequestBase<SearchRequest>, public SearchRequestVectorAssigner<SearchRequest> {
+class MILVUS_SDK_API SearchRequest : public DQLRequestBase<SearchRequest>,
+                                     public SearchRequestVectorAssigner<SearchRequest> {
  public:
     /**
      * @brief Constructor

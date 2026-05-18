@@ -19,13 +19,14 @@
 #include <string>
 
 #include "./DBRequestBase.h"
+#include "milvus/Export.h"
 
 namespace milvus {
 
 /**
  * @brief Used by MilvusClientV2::DescribeDatabase()
  */
-class DescribeDatabaseRequest : public DBRequestBase<DescribeDatabaseRequest> {
+class MILVUS_SDK_API DescribeDatabaseRequest : public DBRequestBase<DescribeDatabaseRequest> {
  public:
     /**
      * @brief Constructor

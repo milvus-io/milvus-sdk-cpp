@@ -17,13 +17,14 @@
 #pragma once
 
 #include "../../types/AnalyzerResults.h"
+#include "milvus/Export.h"
 
 namespace milvus {
 
 /**
  * @brief Used by MilvusClientV2::RunAnalyzer()
  */
-class RunAnalyzerResponse {
+class MILVUS_SDK_API RunAnalyzerResponse {
  public:
     /**
      * @brief Constructor
