@@ -16,12 +16,13 @@
 
 #pragma once
 
+#include "milvus/Export.h"
 namespace milvus {
 
 /**
  * @brief Used by MilvusClientV2::ListUsers().
  */
-class ListUsersRequest {
+class MILVUS_SDK_API ListUsersRequest {
  public:
     /**
      * @brief Constructor

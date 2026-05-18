@@ -19,12 +19,14 @@
 #include <string>
 #include <vector>
 
+#include "milvus/Export.h"
+
 namespace milvus {
 
 /**
  * @brief Privilege group information. Used by MilvusClient::ListPrivilegeGroups().
  */
-class PrivilegeGroupInfo {
+class MILVUS_SDK_API PrivilegeGroupInfo {
  public:
     /**
      * @brief Construct a new PrivilegeGroupInfo object.

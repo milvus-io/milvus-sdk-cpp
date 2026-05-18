@@ -20,9 +20,11 @@
 #include <string>
 #include <vector>
 
+#include "milvus/Export.h"
+
 namespace milvus {
 
-class BulkImport {
+class MILVUS_SDK_API BulkImport {
  public:
     /**
      * @brief Create an import job by restful api.

@@ -21,27 +21,21 @@ file(GLOB_RECURSE impl_files
     "${IMPL_DIR}/*.cc"
 )
 
-add_library(milvus_sdk ${impl_files})
-if (WIN32)
-    set_target_properties(milvus_sdk PROPERTIES WINDOWS_EXPORT_ALL_SYMBOLS ON)
-    if (BUILD_SHARED_LIBS)
-        # Data symbols need explicit import/export markers for MSVC DLL consumers.
-        target_compile_definitions(milvus_sdk
-            PRIVATE MILVUS_SDK_SHARED MILVUS_SDK_BUILDING_LIBRARY "MILVUS_PROTO_API=__declspec(dllexport)"
-            INTERFACE MILVUS_SDK_SHARED "MILVUS_PROTO_API=__declspec(dllimport)")
-    endif()
+add_library(milvus_sdk_objects OBJECT ${impl_files})
+set_target_properties(milvus_sdk_objects PROPERTIES POSITION_INDEPENDENT_CODE ON)
+if (WIN32 AND BUILD_SHARED_LIBS)
+    target_compile_definitions(milvus_sdk_objects PRIVATE MILVUS_SDK_SHARED MILVUS_SDK_BUILDING_LIBRARY)
 endif()
 
 # add proto gens
-add_milvus_protos(milvus_sdk)
-set_target_properties(milvus_sdk PROPERTIES OUTPUT_NAME milvus_sdk)
-target_link_libraries(milvus_sdk gRPC::grpc++)
-target_compile_options(milvus_sdk PRIVATE $<$<CXX_COMPILER_ID:MSVC>:/bigobj>)
-target_include_directories(milvus_sdk PUBLIC include)
-target_include_directories(milvus_sdk PRIVATE ${PROJECT_SOURCE_DIR}/thirdparty)
+add_milvus_protos(milvus_sdk_objects)
+target_link_libraries(milvus_sdk_objects PRIVATE gRPC::grpc++)
+target_compile_options(milvus_sdk_objects PRIVATE $<$<CXX_COMPILER_ID:MSVC>:/bigobj>)
+target_include_directories(milvus_sdk_objects PUBLIC include)
+target_include_directories(milvus_sdk_objects PRIVATE ${PROJECT_SOURCE_DIR}/thirdparty)
 
 # precompile heavy headers to speed up compilation
-target_precompile_headers(milvus_sdk PRIVATE
+target_precompile_headers(milvus_sdk_objects PRIVATE
     <string>
     <vector>
     <map>
@@ -53,6 +47,15 @@ target_precompile_headers(milvus_sdk PRIVATE
     "${PROTO_BINARY_DIR}/milvus.pb.h"
     "${PROTO_BINARY_DIR}/milvus.grpc.pb.h"
 )
+
+add_library(milvus_sdk $<TARGET_OBJECTS:milvus_sdk_objects>)
+if (WIN32 AND BUILD_SHARED_LIBS)
+    target_compile_definitions(milvus_sdk INTERFACE MILVUS_SDK_SHARED)
+endif()
+set_target_properties(milvus_sdk PROPERTIES OUTPUT_NAME milvus_sdk)
+target_link_libraries(milvus_sdk gRPC::grpc++)
+target_include_directories(milvus_sdk PUBLIC include)
+target_include_directories(milvus_sdk PRIVATE ${PROJECT_SOURCE_DIR}/thirdparty)
 
 # install
 include(GNUInstallDirs)

@@ -19,13 +19,14 @@
 #include <set>
 
 #include "./CollectionRequestBase.h"
+#include "milvus/Export.h"
 
 namespace milvus {
 
 /**
  * @brief Used by MilvusClientV2::DropCollectionProperties()
  */
-class DropCollectionPropertiesRequest : public CollectionRequestBase<DropCollectionPropertiesRequest> {
+class MILVUS_SDK_API DropCollectionPropertiesRequest : public CollectionRequestBase<DropCollectionPropertiesRequest> {
  public:
     /**
      * @brief Constructor

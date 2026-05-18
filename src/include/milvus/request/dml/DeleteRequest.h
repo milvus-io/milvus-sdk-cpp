@@ -21,13 +21,14 @@
 
 #include "../../types/IDArray.h"
 #include "./DMLRequestBase.h"
+#include "milvus/Export.h"
 
 namespace milvus {
 
 /**
  * @brief Used by MilvusClientV2::Delete()
  */
-class DeleteRequest : public DMLRequestBase<DeleteRequest> {
+class MILVUS_SDK_API DeleteRequest : public DMLRequestBase<DeleteRequest> {
  public:
     /**
      * @brief Constructor

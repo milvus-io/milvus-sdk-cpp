@@ -19,12 +19,14 @@
 #include <set>
 #include <string>
 
+#include "milvus/Export.h"
+
 namespace milvus {
 
 /**
  * @brief Used by MilvusClientV2::LoadPartitions()
  */
-class LoadPartitionsRequest {
+class MILVUS_SDK_API LoadPartitionsRequest {
  public:
     /**
      * @brief Constructor

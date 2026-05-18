@@ -18,12 +18,14 @@
 
 #include <string>
 
+#include "milvus/Export.h"
+
 namespace milvus {
 
 /**
  * @brief Used by MilvusClientV2::DropAlias().
  */
-class DropAliasRequest {
+class MILVUS_SDK_API DropAliasRequest {
  public:
     /**
      * @brief Constructor

@@ -22,6 +22,7 @@
 #include "../../types/DataType.h"
 #include "../../types/MetricType.h"
 #include "./CollectionRequestBase.h"
+#include "milvus/Export.h"
 
 namespace milvus {
 
@@ -31,7 +32,7 @@ namespace milvus {
  * The primary field can be INT64 or VARCHAR type.
  * The vector field is FLOAT_VECTOR type, index is AUTOINDEX.
  */
-class CreateSimpleCollectionRequest : public CollectionRequestBase<CreateSimpleCollectionRequest> {
+class MILVUS_SDK_API CreateSimpleCollectionRequest : public CollectionRequestBase<CreateSimpleCollectionRequest> {
  public:
     /**
      * @brief Constructor

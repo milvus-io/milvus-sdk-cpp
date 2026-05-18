@@ -17,13 +17,14 @@
 #pragma once
 
 #include "../../types/QueryResults.h"
+#include "milvus/Export.h"
 
 namespace milvus {
 
 /**
  * @brief Used by MilvusClientV2::Query()
  */
-class QueryResponse {
+class MILVUS_SDK_API QueryResponse {
  public:
     /**
      * @brief Constructor

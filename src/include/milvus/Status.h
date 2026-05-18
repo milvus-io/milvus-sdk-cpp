@@ -18,6 +18,8 @@
 
 #include <string>
 
+#include "milvus/Export.h"
+
 /**
  * @brief Milvus SDK namespace
  */
@@ -51,7 +53,7 @@ enum class StatusCode {
 /**
  * @brief Status code and message returned by SDK interface.
  */
-class Status {
+class MILVUS_SDK_API Status {
  public:
     /**
      * @brief Constructor of Status

@@ -21,12 +21,14 @@
 #include <string>
 #include <unordered_map>
 
+#include "milvus/Export.h"
+
 namespace milvus {
 
 /**
  * @brief Resource group descriptions for MilvusClient::CreateResourceGroup()
  */
-class ResourceGroupConfig {
+class MILVUS_SDK_API ResourceGroupConfig {
  public:
     ResourceGroupConfig();
 

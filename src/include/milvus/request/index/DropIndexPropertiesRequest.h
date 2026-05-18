@@ -19,13 +19,14 @@
 #include <set>
 
 #include "./IndexRequestBase.h"
+#include "milvus/Export.h"
 
 namespace milvus {
 
 /**
  * @brief Used by MilvusClientV2::DropIndexProperties()
  */
-class DropIndexPropertiesRequest : public IndexRequestBase<DropIndexPropertiesRequest> {
+class MILVUS_SDK_API DropIndexPropertiesRequest : public IndexRequestBase<DropIndexPropertiesRequest> {
  public:
     /**
      * @brief Constructor

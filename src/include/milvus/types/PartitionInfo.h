@@ -20,13 +20,15 @@
 #include <string>
 #include <vector>
 
+#include "milvus/Export.h"
+
 namespace milvus {
 
 /**
  * @brief Partition runtime information including create timestamp and loading percentage, returned by
  * MilvusClient::ListPartitions().
  */
-class PartitionInfo {
+class MILVUS_SDK_API PartitionInfo {
  public:
     /**
      * @brief Constructor
@@ -75,7 +77,7 @@ class PartitionInfo {
 /**
  * @brief To test two PartitionInfo are equal
  */
-bool
+MILVUS_SDK_API bool
 operator==(const PartitionInfo& a, const PartitionInfo& b);
 
 /**

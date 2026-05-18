@@ -18,12 +18,14 @@
 
 #include <string>
 
+#include "milvus/Export.h"
+
 namespace milvus {
 
 /**
  * @brief Used by MilvusClientV2::DropRole().
  */
-class DropRoleRequest {
+class MILVUS_SDK_API DropRoleRequest {
  public:
     /**
      * @brief Constructor

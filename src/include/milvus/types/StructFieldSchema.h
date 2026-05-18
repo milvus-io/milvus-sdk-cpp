@@ -19,13 +19,14 @@
 #include <vector>
 
 #include "FieldSchema.h"
+#include "milvus/Export.h"
 
 namespace milvus {
 
 /**
  * @brief Struct field schema used by CollectionSchema
  */
-class StructFieldSchema {
+class MILVUS_SDK_API StructFieldSchema {
  public:
     /**
      * @brief Constructor

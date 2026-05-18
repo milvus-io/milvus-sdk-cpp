@@ -24,7 +24,7 @@
 #include "../utils/RpcUtils.h"
 
 namespace milvus {
-template class Iterator<QueryResults>;
+template class MILVUS_SDK_API Iterator<QueryResults>;
 
 template <typename T>
 QueryIteratorImpl<T>::QueryIteratorImpl(const MilvusConnectionPtr& connection, const T& args,
@@ -317,7 +317,7 @@ QueryIteratorImpl<T>::updateCursor(const QueryResults& results) {
 }
 
 // explicitly instantiation of template methods to avoid link error
-template class QueryIteratorImpl<QueryIteratorArguments>;
-template class QueryIteratorImpl<QueryIteratorRequest>;
+template class MILVUS_SDK_API QueryIteratorImpl<QueryIteratorArguments>;
+template class MILVUS_SDK_API QueryIteratorImpl<QueryIteratorRequest>;
 
 }  // namespace milvus

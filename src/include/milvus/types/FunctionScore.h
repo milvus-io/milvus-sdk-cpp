@@ -20,13 +20,14 @@
 #include <nlohmann/json.hpp>
 
 #include "Function.h"
+#include "milvus/Export.h"
 
 namespace milvus {
 
 /**
  * @brief Function container class for search rerank.
  */
-class FunctionScore {
+class MILVUS_SDK_API FunctionScore {
  public:
     /**
      * @brief Constructor

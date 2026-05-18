@@ -18,12 +18,14 @@
 
 #include <string>
 
+#include "milvus/Export.h"
+
 namespace milvus {
 
 /**
  * @brief Used by MilvusClientV2::ListPersistentSegments() and ListQuerySegments()
  */
-class ListSegmentsRequest {
+class MILVUS_SDK_API ListSegmentsRequest {
  public:
     /**
      * @brief Constructor

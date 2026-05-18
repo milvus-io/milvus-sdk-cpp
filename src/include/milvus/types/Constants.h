@@ -18,16 +18,7 @@
 #include <cstdint>
 #include <string>
 
-// Windows DLL consumers need dllimport for exported constant data symbols.
-#if defined(_WIN32) && defined(MILVUS_SDK_SHARED)
-#if defined(MILVUS_SDK_BUILDING_LIBRARY)
-#define MILVUS_SDK_API __declspec(dllexport)
-#else
-#define MILVUS_SDK_API __declspec(dllimport)
-#endif
-#else
-#define MILVUS_SDK_API
-#endif
+#include "milvus/Export.h"
 
 namespace milvus {
 

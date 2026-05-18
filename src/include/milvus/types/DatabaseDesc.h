@@ -20,12 +20,14 @@
 #include <string>
 #include <unordered_map>
 
+#include "milvus/Export.h"
+
 namespace milvus {
 
 /**
  * @brief Database infomation
  */
-class DatabaseDesc {
+class MILVUS_SDK_API DatabaseDesc {
  public:
     /**
      * @brief Get database name.

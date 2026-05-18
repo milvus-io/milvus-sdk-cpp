@@ -19,12 +19,14 @@
 #include <string>
 #include <vector>
 
+#include "milvus/Export.h"
+
 namespace milvus {
 
 /**
  * @brief Used by MilvusClientV2::ListAliases()
  */
-class ListAliasesResponse {
+class MILVUS_SDK_API ListAliasesResponse {
  public:
     /**
      * @brief Constructor

@@ -19,13 +19,14 @@
 #include <string>
 
 #include "./CollectionRequestBase.h"
+#include "milvus/Export.h"
 
 namespace milvus {
 
 /**
  * @brief Used by MilvusClientV2::TruncateCollection()
  */
-class TruncateCollectionRequest : public CollectionRequestBase<TruncateCollectionRequest> {
+class MILVUS_SDK_API TruncateCollectionRequest : public CollectionRequestBase<TruncateCollectionRequest> {
  public:
     /**
      * @brief Constructor
