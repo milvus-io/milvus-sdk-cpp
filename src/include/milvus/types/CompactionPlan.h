@@ -19,12 +19,14 @@
 #include <cstdint>
 #include <vector>
 
+#include "milvus/Export.h"
+
 namespace milvus {
 
 /**
  * @brief Compaction plan information. Used by MilvusClient::GetCompactionPlans().
  */
-class CompactionPlan {
+class MILVUS_SDK_API CompactionPlan {
  public:
     /**
      * @brief Construct a new Compaction Plan object.

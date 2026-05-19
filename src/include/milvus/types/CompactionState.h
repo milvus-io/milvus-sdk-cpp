@@ -19,6 +19,8 @@
 #include <cstdint>
 #include <string>
 
+#include "milvus/Export.h"
+
 namespace milvus {
 
 /**
@@ -33,7 +35,7 @@ enum class CompactionStateCode {
 /**
  * @brief Compaction state. Used by MilvusClient::GetCompactionState().
  */
-class CompactionState {
+class MILVUS_SDK_API CompactionState {
  public:
     CompactionState();
 
@@ -109,5 +111,5 @@ class CompactionState {
 }  // namespace milvus
 
 namespace std {
-std::string to_string(milvus::CompactionStateCode);
+MILVUS_SDK_API std::string to_string(milvus::CompactionStateCode);
 }  // namespace std

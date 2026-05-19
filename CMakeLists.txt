@@ -127,11 +127,14 @@ if (MILVUS_BUILD_TEST)
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fprofile-arcs -ftest-coverage")
     endif ()
     enable_testing()
-    add_subdirectory(test)
-    add_subdirectory(examples)
 endif ()
 
 add_subdirectory(src)
+
+if (MILVUS_BUILD_TEST)
+    add_subdirectory(test)
+    add_subdirectory(examples)
+endif ()
 
 #
 # make lint

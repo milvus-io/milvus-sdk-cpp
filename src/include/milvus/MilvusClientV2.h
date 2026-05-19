@@ -17,6 +17,7 @@
 #pragma once
 
 #include "Status.h"
+#include "milvus/Export.h"
 #include "request/alias/AlterAliasRequest.h"
 #include "request/alias/CreateAliasRequest.h"
 #include "request/alias/DescribeAliasRequest.h"
@@ -146,7 +147,7 @@ namespace milvus {
 /**
  * @brief Milvus client abstract class, provide Create() method to create an implementation instance.
  */
-class MilvusClientV2 {
+class MILVUS_SDK_API MilvusClientV2 {
  public:
     virtual ~MilvusClientV2() = default;
 

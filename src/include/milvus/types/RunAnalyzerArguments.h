@@ -22,13 +22,14 @@
 #include <vector>
 
 #include "../Status.h"
+#include "milvus/Export.h"
 
 namespace milvus {
 
 /**
  * @brief Arguments for MilvusClient::RunAnalyzer().
  */
-class RunAnalyzerArguments {
+class MILVUS_SDK_API RunAnalyzerArguments {
  public:
     RunAnalyzerArguments() = default;
     virtual ~RunAnalyzerArguments() = default;

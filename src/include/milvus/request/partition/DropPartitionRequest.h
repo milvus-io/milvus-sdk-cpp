@@ -19,13 +19,14 @@
 #include <string>
 
 #include "./PartitionRequestBase.h"
+#include "milvus/Export.h"
 
 namespace milvus {
 
 /**
  * @brief Used by MilvusClientV2::DropPartition()
  */
-class DropPartitionRequest : public PartitionRequestBase<DropPartitionRequest> {
+class MILVUS_SDK_API DropPartitionRequest : public PartitionRequestBase<DropPartitionRequest> {
  public:
     /**
      * @brief Constructor

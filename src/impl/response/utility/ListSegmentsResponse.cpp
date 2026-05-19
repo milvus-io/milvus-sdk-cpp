@@ -32,7 +32,7 @@ ListSegmentsResponse<T>::SetResult(T&& results) {
     segments_info_ = std::move(results);
 }
 
-template class ListSegmentsResponse<SegmentsInfo>;
-template class ListSegmentsResponse<QuerySegmentsInfo>;
+template class MILVUS_SDK_API ListSegmentsResponse<SegmentsInfo>;
+template class MILVUS_SDK_API ListSegmentsResponse<QuerySegmentsInfo>;
 
 }  // namespace milvus

@@ -19,12 +19,14 @@
 #include <cstdint>
 #include <string>
 
+#include "milvus/Export.h"
+
 namespace milvus {
 
 /**
  * @brief Connection parameters. Used by MilvusClient::Connect()
  */
-class ConnectParam {
+class MILVUS_SDK_API ConnectParam {
  public:
     ConnectParam() = default;
 

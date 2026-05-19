@@ -20,13 +20,14 @@
 #include <vector>
 
 #include "../../types/PartitionInfo.h"
+#include "milvus/Export.h"
 
 namespace milvus {
 
 /**
  * @brief Used by MilvusClientV2::ListPartitions()
  */
-class ListPartitionsResponse {
+class MILVUS_SDK_API ListPartitionsResponse {
  public:
     /**
      * @brief Constructor

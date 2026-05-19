@@ -21,13 +21,14 @@
 
 #include "../../types/IndexDesc.h"
 #include "./IndexRequestBase.h"
+#include "milvus/Export.h"
 
 namespace milvus {
 
 /**
  * @brief Used by MilvusClientV2::CreateIndex()
  */
-class CreateIndexRequest : public IndexRequestBase<CreateIndexRequest> {
+class MILVUS_SDK_API CreateIndexRequest : public IndexRequestBase<CreateIndexRequest> {
  public:
     /**
      * @brief Constructor

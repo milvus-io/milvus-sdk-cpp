@@ -134,6 +134,10 @@ if [[ "${BUILD_FROM_CONAN}" == "ON" ]]; then
   # Users can override the Conan executable via CONAN.
   CONAN=${CONAN:-conan}
   CPPSTD=${CPPSTD:-14}
+  CONAN_LIBCXX_SETTINGS=()
+  if [[ -n "${CONAN_LIBCXX:-}" ]]; then
+    CONAN_LIBCXX_SETTINGS+=("-s" "compiler.libcxx=${CONAN_LIBCXX}")
+  fi
   # Host profile uses CPPSTD (default 14) — applies to everything linked into
   # libmilvus_sdk.so, so the ABI matches the SDK's own compilation.
   #
@@ -169,6 +173,7 @@ if [[ "${BUILD_FROM_CONAN}" == "ON" ]]; then
     -of . \
     -s build_type=${BUILD_TYPE} \
     -s compiler.cppstd=${CPPSTD} \
+    "${CONAN_LIBCXX_SETTINGS[@]}" \
     -s:b build_type=${BUILD_TYPE} \
     -s:b compiler.cppstd=${BUILD_CPPSTD} \
     -o "&:with_tests=${CONAN_WITH_TESTS}" \

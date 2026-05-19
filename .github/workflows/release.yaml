@@ -137,6 +137,7 @@ jobs:
     env:
       BUILD_SHARED_LIBS: ON
       MILVUS_USE_PYTHON_VENV: ON
+      CONAN_LIBCXX: libstdc++11
     strategy:
       fail-fast: false
       matrix:

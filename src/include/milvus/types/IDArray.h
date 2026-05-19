@@ -20,13 +20,15 @@
 #include <string>
 #include <vector>
 
+#include "milvus/Export.h"
+
 namespace milvus {
 
 /**
  * @brief ID array, each ID could be int64 type or string type.
  * Note: v2.0 only support int64 type id.
  */
-class IDArray {
+class MILVUS_SDK_API IDArray {
  public:
     /**
      * @brief Constructor

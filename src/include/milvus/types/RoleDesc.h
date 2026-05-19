@@ -19,12 +19,14 @@
 #include <string>
 #include <vector>
 
+#include "milvus/Export.h"
+
 namespace milvus {
 
 /**
  * @brief Represnet a privilege item for role
  */
-struct GrantItem {
+struct MILVUS_SDK_API GrantItem {
     /**
      * @brief Constructor
      */
@@ -65,7 +67,7 @@ struct GrantItem {
 /**
  * @brief Role description. Used by MilvusClient::DescribeRole().
  */
-class RoleDesc {
+class MILVUS_SDK_API RoleDesc {
  public:
     /**
      * @brief Construct a new RoleDesc object.

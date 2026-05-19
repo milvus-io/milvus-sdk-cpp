@@ -19,13 +19,14 @@
 #include "FieldSchema.h"
 #include "QueryArguments.h"
 #include "SearchArguments.h"
+#include "milvus/Export.h"
 
 namespace milvus {
 
 /**
  * @brief Base class arguments for MilvusClient::QueryIterator() and SearchIterator().
  */
-class IteratorArguments {
+class MILVUS_SDK_API IteratorArguments {
  protected:
     IteratorArguments() = default;
 
@@ -79,7 +80,7 @@ class IteratorArguments {
 /**
  * @brief Arguments for MilvusClient::QueryIterator().
  */
-class QueryIteratorArguments : public IteratorArguments, public QueryArguments {
+class MILVUS_SDK_API QueryIteratorArguments : public IteratorArguments, public QueryArguments {
  public:
     /**
      * @brief Get the flag of internal retrieve strategy.
@@ -100,6 +101,5 @@ class QueryIteratorArguments : public IteratorArguments, public QueryArguments {
 /**
  * @brief Arguments for MilvusClient::SearchIterator().
  */
-class SearchIteratorArguments : public IteratorArguments, public SearchArguments {};
-
+class MILVUS_SDK_API SearchIteratorArguments : public IteratorArguments, public SearchArguments {};
 }  // namespace milvus

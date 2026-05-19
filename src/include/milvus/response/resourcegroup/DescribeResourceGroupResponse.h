@@ -16,6 +16,7 @@
 
 #pragma once
 
+#include "milvus/Export.h"
 #include "milvus/types/ResourceGroupDesc.h"
 
 namespace milvus {
@@ -23,7 +24,7 @@ namespace milvus {
 /**
  * @brief Used by MilvusClientV2::DescribeResourceGroup()
  */
-class DescribeResourceGroupResponse {
+class MILVUS_SDK_API DescribeResourceGroupResponse {
  public:
     /**
      * @brief Constructor

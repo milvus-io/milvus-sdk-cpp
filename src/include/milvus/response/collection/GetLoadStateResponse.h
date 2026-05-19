@@ -19,13 +19,14 @@
 #include <cstdint>
 
 #include "../../types/LoadState.h"
+#include "milvus/Export.h"
 
 namespace milvus {
 
 /**
  * @brief Used by MilvusClientV2::GetLoadState()
  */
-class GetLoadStateResponse {
+class MILVUS_SDK_API GetLoadStateResponse {
  public:
     /**
      * @brief Constructor

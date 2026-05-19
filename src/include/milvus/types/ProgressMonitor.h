@@ -20,13 +20,15 @@
 #include <functional>
 #include <limits>
 
+#include "milvus/Export.h"
+
 namespace milvus {
 
 /**
  * @brief Notify progress of a request, returned by callback function of ProgressMonitor
  * @deprecated no longer used in MilvusClientV2
  */
-struct Progress {
+struct MILVUS_SDK_API Progress {
     Progress();
 
     /**
@@ -54,13 +56,13 @@ struct Progress {
 /**
  * @brief To test two Progress are equal.
  */
-bool
+MILVUS_SDK_API bool
 operator==(const Progress& a, const Progress& b);
 
 /**
  * @brief Monitor progress of a request.
  */
-class ProgressMonitor {
+class MILVUS_SDK_API ProgressMonitor {
  public:
     /**
      * @brief The call back function definition to receive progress notification.

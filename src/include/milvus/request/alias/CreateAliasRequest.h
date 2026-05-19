@@ -19,13 +19,14 @@
 #include <string>
 
 #include "./AliasRequestBase.h"
+#include "milvus/Export.h"
 
 namespace milvus {
 
 /**
  * @brief Used by MilvusClientV2::CreateAlias().
  */
-class CreateAliasRequest : public AliasRequestBase<CreateAliasRequest> {
+class MILVUS_SDK_API CreateAliasRequest : public AliasRequestBase<CreateAliasRequest> {
  public:
     /**
      * @brief Constructor

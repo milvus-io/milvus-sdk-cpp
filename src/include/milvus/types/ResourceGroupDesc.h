@@ -22,13 +22,14 @@
 #include <vector>
 
 #include "ResourceGroupConfig.h"
+#include "milvus/Export.h"
 
 namespace milvus {
 
 /**
  * @brief NodeInfo is used to describe a node information.
  */
-struct NodeInfo {
+struct MILVUS_SDK_API NodeInfo {
     /**
      * @brief Constructor
      */
@@ -53,7 +54,7 @@ struct NodeInfo {
 /**
  * @brief Resource group descriptions for MilvusClient::CreateResourceGroup()
  */
-class ResourceGroupDesc {
+class MILVUS_SDK_API ResourceGroupDesc {
  public:
     ResourceGroupDesc();
 

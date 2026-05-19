@@ -18,6 +18,8 @@
 
 #include <string>
 
+#include "milvus/Export.h"
+
 namespace milvus {
 
 /**
@@ -36,5 +38,5 @@ enum class ConsistencyLevel {
 }  // namespace milvus
 
 namespace std {
-std::string to_string(milvus::ConsistencyLevel);
+MILVUS_SDK_API std::string to_string(milvus::ConsistencyLevel);
 }  // namespace std

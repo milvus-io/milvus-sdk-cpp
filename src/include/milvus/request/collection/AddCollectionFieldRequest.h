@@ -20,13 +20,14 @@
 
 #include "../../types/FieldSchema.h"
 #include "./CollectionRequestBase.h"
+#include "milvus/Export.h"
 
 namespace milvus {
 
 /**
  * @brief Used by MilvusClientV2::AddCollectionField()
  */
-class AddCollectionFieldRequest : public CollectionRequestBase<AddCollectionFieldRequest> {
+class MILVUS_SDK_API AddCollectionFieldRequest : public CollectionRequestBase<AddCollectionFieldRequest> {
  public:
     /**
      * @brief Constructor

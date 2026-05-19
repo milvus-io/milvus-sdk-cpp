@@ -21,13 +21,14 @@
 #include <vector>
 
 #include "FieldData.h"
+#include "milvus/Export.h"
 
 namespace milvus {
 
 /**
  * @brief Results returned by MilvusClient::Query().
  */
-class QueryResults {
+class MILVUS_SDK_API QueryResults {
  public:
     QueryResults();
 

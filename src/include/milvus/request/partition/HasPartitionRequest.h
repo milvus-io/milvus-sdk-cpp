@@ -19,13 +19,14 @@
 #include <string>
 
 #include "./PartitionRequestBase.h"
+#include "milvus/Export.h"
 
 namespace milvus {
 
 /**
  * @brief Used by MilvusClientV2::HasPartition()
  */
-class HasPartitionRequest : public PartitionRequestBase<HasPartitionRequest> {
+class MILVUS_SDK_API HasPartitionRequest : public PartitionRequestBase<HasPartitionRequest> {
  public:
     /**
      * @brief Constructor

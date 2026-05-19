@@ -19,12 +19,14 @@
 #include <cstdint>
 #include <string>
 
+#include "milvus/Export.h"
+
 namespace milvus {
 
 /**
  * @brief Used by MilvusClientV2::Compact()
  */
-class CompactRequest {
+class MILVUS_SDK_API CompactRequest {
  public:
     /**
      * @brief Constructor
