@@ -19,12 +19,14 @@
 #include <string>
 #include <vector>
 
+#include "milvus/Export.h"
+
 namespace milvus {
 
 /**
  * @brief User description. Used by MilvusClient::DescribeUser().
  */
-class UserDesc {
+class MILVUS_SDK_API UserDesc {
  public:
     /**
      * @brief Construct a new UserDesc object.

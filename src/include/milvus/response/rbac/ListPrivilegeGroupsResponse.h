@@ -17,13 +17,14 @@
 #pragma once
 
 #include "../../types/PrivilegeGroupInfo.h"
+#include "milvus/Export.h"
 
 namespace milvus {
 
 /**
  * @brief Used by MilvusClientV2::ListPrivilegeGroups()
  */
-class ListPrivilegeGroupsResponse {
+class MILVUS_SDK_API ListPrivilegeGroupsResponse {
  public:
     /**
      * @brief Constructor

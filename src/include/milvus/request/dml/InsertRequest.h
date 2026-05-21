@@ -21,13 +21,14 @@
 
 #include "../../types/FieldData.h"
 #include "./DMLRequestBase.h"
+#include "milvus/Export.h"
 
 namespace milvus {
 
 /**
  * @brief Used by MilvusClientV2::Insert()
  */
-class InsertRequest : public DMLRequestBase<InsertRequest> {
+class MILVUS_SDK_API InsertRequest : public DMLRequestBase<InsertRequest> {
  public:
     /**
      * @brief Constructor

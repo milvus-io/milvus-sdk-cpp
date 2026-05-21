@@ -19,6 +19,7 @@
 #include <memory>
 
 #include "Status.h"
+#include "milvus/Export.h"
 #include "types/AliasDesc.h"
 #include "types/AnalyzerResults.h"
 #include "types/CollectionDesc.h"
@@ -61,7 +62,7 @@ namespace milvus {
 /**
  * @brief Milvus client abstract class, provide Create() method to create an implementation instance.
  */
-class MilvusClient {
+class MILVUS_SDK_API MilvusClient {
  public:
     virtual ~MilvusClient() = default;
 

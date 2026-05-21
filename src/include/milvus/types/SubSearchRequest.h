@@ -17,13 +17,14 @@
 #pragma once
 
 #include "SearchRequestBase.h"
+#include "milvus/Export.h"
 
 namespace milvus {
 
 /**
  * @brief Sub request for HybridSearchArguments for MilvusClient::HybridSearch().
  */
-class SubSearchRequest : public SearchRequestVectorAssigner<SubSearchRequest> {
+class MILVUS_SDK_API SubSearchRequest : public SearchRequestVectorAssigner<SubSearchRequest> {
  public:
     /**
      * @brief Specifies the metric type.

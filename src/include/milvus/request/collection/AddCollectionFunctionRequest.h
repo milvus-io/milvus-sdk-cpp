@@ -18,13 +18,14 @@
 
 #include "../../types/Function.h"
 #include "./CollectionRequestBase.h"
+#include "milvus/Export.h"
 
 namespace milvus {
 
 /**
  * @brief Used by MilvusClientV2::AddCollectionFunction()
  */
-class AddCollectionFunctionRequest : public CollectionRequestBase<AddCollectionFunctionRequest> {
+class MILVUS_SDK_API AddCollectionFunctionRequest : public CollectionRequestBase<AddCollectionFunctionRequest> {
  public:
     /**
      * @brief Constructor

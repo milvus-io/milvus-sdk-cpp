@@ -17,13 +17,14 @@
 #pragma once
 
 #include "../../types/CollectionStat.h"
+#include "milvus/Export.h"
 
 namespace milvus {
 
 /**
  * @brief Used by MilvusClientV2::GetCollectionStats()
  */
-class GetCollectionStatsResponse {
+class MILVUS_SDK_API GetCollectionStatsResponse {
  public:
     /**
      * @brief Constructor

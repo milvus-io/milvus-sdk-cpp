@@ -21,13 +21,14 @@
 #include <vector>
 
 #include "../Status.h"
+#include "milvus/Export.h"
 
 namespace milvus {
 
 /**
  * @brief Token details for MilvusClient::RunAnalyzer().
  */
-struct AnalyzerToken {
+struct MILVUS_SDK_API AnalyzerToken {
  public:
     std::string token_;
     int64_t start_offset_;
@@ -40,7 +41,7 @@ struct AnalyzerToken {
 /**
  * @brief Result list for MilvusClient::RunAnalyzer().
  */
-class AnalyzerResult {
+class MILVUS_SDK_API AnalyzerResult {
  public:
     explicit AnalyzerResult(std::vector<AnalyzerToken>&& tokens);
 

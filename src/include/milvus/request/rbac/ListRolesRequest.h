@@ -16,12 +16,13 @@
 
 #pragma once
 
+#include "milvus/Export.h"
 namespace milvus {
 
 /**
  * @brief Used by MilvusClientV2::ListRoles().
  */
-class ListRolesRequest {
+class MILVUS_SDK_API ListRolesRequest {
  public:
     /**
      * @brief Constructor

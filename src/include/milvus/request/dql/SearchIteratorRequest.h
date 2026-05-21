@@ -18,13 +18,14 @@
 
 #include "../../types/IteratorArguments.h"
 #include "./SearchRequest.h"
+#include "milvus/Export.h"
 
 namespace milvus {
 
 /**
  * @brief Used by MilvusClientV2::SearchIterator()
  */
-class SearchIteratorRequest : public IteratorArguments, public SearchRequest {
+class MILVUS_SDK_API SearchIteratorRequest : public IteratorArguments, public SearchRequest {
  public:
     /**
      * @brief Constructor

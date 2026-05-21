@@ -17,13 +17,14 @@
 #pragma once
 
 #include "../../types/DmlResults.h"
+#include "milvus/Export.h"
 
 namespace milvus {
 
 /**
  * @brief Base class of dml requests
  */
-class DmlResponse {
+class MILVUS_SDK_API DmlResponse {
  public:
     /**
      * @brief Constructor

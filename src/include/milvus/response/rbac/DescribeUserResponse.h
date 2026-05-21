@@ -17,13 +17,14 @@
 #pragma once
 
 #include "../../types/UserDesc.h"
+#include "milvus/Export.h"
 
 namespace milvus {
 
 /**
  * @brief Used by MilvusClientV2::DescribeUser()
  */
-class DescribeUserResponse {
+class MILVUS_SDK_API DescribeUserResponse {
  public:
     /**
      * @brief Constructor

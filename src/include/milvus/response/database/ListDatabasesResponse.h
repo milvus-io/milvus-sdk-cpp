@@ -19,12 +19,14 @@
 #include <string>
 #include <vector>
 
+#include "milvus/Export.h"
+
 namespace milvus {
 
 /**
  * @brief Used by MilvusClientV2::ListDatabases()
  */
-class ListDatabasesResponse {
+class MILVUS_SDK_API ListDatabasesResponse {
  public:
     /**
      * @brief Constructor

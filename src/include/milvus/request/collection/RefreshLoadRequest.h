@@ -19,13 +19,14 @@
 #include <cstdint>
 
 #include "CollectionRequestBase.h"
+#include "milvus/Export.h"
 
 namespace milvus {
 
 /**
  * @brief Used by MilvusClientV2::RefreshLoad()
  */
-class RefreshLoadRequest : public CollectionRequestBase<RefreshLoadRequest> {
+class MILVUS_SDK_API RefreshLoadRequest : public CollectionRequestBase<RefreshLoadRequest> {
  public:
     /**
      * @brief Constructor

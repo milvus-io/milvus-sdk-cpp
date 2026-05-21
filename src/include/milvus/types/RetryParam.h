@@ -19,6 +19,8 @@
 #include <cstdint>
 #include <string>
 
+#include "milvus/Export.h"
+
 namespace milvus {
 
 /**
@@ -27,7 +29,7 @@ namespace milvus {
  * until the server return response. For network error or unrecoverable error, SDK will slip
  * retry and return errors.
  */
-class RetryParam {
+class MILVUS_SDK_API RetryParam {
  public:
     RetryParam() = default;
 

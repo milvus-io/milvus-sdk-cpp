@@ -21,13 +21,14 @@
 #include <vector>
 
 #include "../../types/CollectionDesc.h"
+#include "milvus/Export.h"
 
 namespace milvus {
 
 /**
  * @brief Used by MilvusClientV2::DescribeCollection()
  */
-class DescribeCollectionResponse {
+class MILVUS_SDK_API DescribeCollectionResponse {
  public:
     /**
      * @brief Constructor

@@ -20,13 +20,15 @@
 #include <string>
 #include <vector>
 
+#include "milvus/Export.h"
+
 namespace milvus {
 
 /**
  * @brief Collection runtime information including create timestamp and loading percentage, returned by
  * MilvusClient::ListCollections().
  */
-class CollectionInfo {
+class MILVUS_SDK_API CollectionInfo {
  public:
     /**
      * @brief Constructor

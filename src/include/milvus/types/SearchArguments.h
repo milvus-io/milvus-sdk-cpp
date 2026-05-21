@@ -26,13 +26,14 @@
 #include "FieldData.h"
 #include "MetricType.h"
 #include "SearchRequestBase.h"
+#include "milvus/Export.h"
 
 namespace milvus {
 
 /**
  * @brief Arguments for MilvusClient::Search().
  */
-class SearchArguments : public SearchRequestBase {
+class MILVUS_SDK_API SearchArguments : public SearchRequestBase {
  public:
     /**
      * @brief Get the target db name.

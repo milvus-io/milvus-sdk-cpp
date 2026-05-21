@@ -19,12 +19,14 @@
 #include <string>
 #include <vector>
 
+#include "milvus/Export.h"
+
 namespace milvus {
 
 /**
  * @brief Used by MilvusClientV2::ListUsers()
  */
-class ListUsersResponse {
+class MILVUS_SDK_API ListUsersResponse {
  public:
     /**
      * @brief Constructor

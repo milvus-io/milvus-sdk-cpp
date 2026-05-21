@@ -20,13 +20,14 @@
 #include <unordered_map>
 
 #include "./DQLRequestBase.h"
+#include "milvus/Export.h"
 
 namespace milvus {
 
 /**
  * @brief Used by MilvusClientV2::Query()
  */
-class QueryRequest : public DQLRequestBase<QueryRequest> {
+class MILVUS_SDK_API QueryRequest : public DQLRequestBase<QueryRequest> {
  public:
     /**
      * @brief Constructor

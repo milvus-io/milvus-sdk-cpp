@@ -18,12 +18,14 @@
 
 #include <string>
 
+#include "milvus/Export.h"
+
 namespace milvus {
 
 /**
  * @brief Used by MilvusClientV2::ListPartitions()
  */
-class ListPartitionsRequest {
+class MILVUS_SDK_API ListPartitionsRequest {
  public:
     /**
      * @brief Constructor

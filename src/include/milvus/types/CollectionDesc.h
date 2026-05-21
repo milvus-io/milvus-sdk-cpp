@@ -22,13 +22,14 @@
 #include <vector>
 
 #include "CollectionSchema.h"
+#include "milvus/Export.h"
 
 namespace milvus {
 
 /**
  * @brief Collection schema and runtime information returned by MilvusClient::DescribeCollection().
  */
-class CollectionDesc {
+class MILVUS_SDK_API CollectionDesc {
  public:
     /**
      * @brief The database name which this collection belong to.

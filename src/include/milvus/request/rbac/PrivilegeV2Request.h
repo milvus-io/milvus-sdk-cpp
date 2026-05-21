@@ -18,12 +18,14 @@
 
 #include <string>
 
+#include "milvus/Export.h"
+
 namespace milvus {
 
 /**
  * @brief Used by MilvusClientV2::GrantPrivilegeV2() and RevokePrivilegeV2().
  */
-class PrivilegeV2Request {
+class MILVUS_SDK_API PrivilegeV2Request {
  public:
     /**
      * @brief Constructor

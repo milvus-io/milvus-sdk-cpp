@@ -26,6 +26,7 @@
 
 #include "../Status.h"
 #include "../response/utility/OptimizeResponse.h"
+#include "milvus/Export.h"
 
 namespace milvus {
 
@@ -34,7 +35,7 @@ class MilvusClientV2Impl;
 /**
  * @brief Task object returned by MilvusClientV2::Optimize().
  */
-class OptimizeTask : public std::enable_shared_from_this<OptimizeTask> {
+class MILVUS_SDK_API OptimizeTask : public std::enable_shared_from_this<OptimizeTask> {
  public:
     /**
      * @brief Constructor

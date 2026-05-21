@@ -26,13 +26,14 @@
 #include "FieldData.h"
 #include "Function.h"
 #include "SubSearchRequest.h"
+#include "milvus/Export.h"
 
 namespace milvus {
 
 /**
  * @brief Arguments for MilvusClient::HybridSearch().
  */
-class HybridSearchArguments {
+class MILVUS_SDK_API HybridSearchArguments {
  public:
     /**
      * @brief Get the target db name.

@@ -20,12 +20,14 @@
 #include <string>
 #include <vector>
 
+#include "milvus/Export.h"
+
 namespace milvus {
 
 /**
  * @brief Result of MilvusClientV2::Optimize().
  */
-class OptimizeResponse {
+class MILVUS_SDK_API OptimizeResponse {
  public:
     /**
      * @brief Constructor
