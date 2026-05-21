@@ -19,6 +19,8 @@
 #include <cstdint>
 #include <string>
 
+#include "milvus/Export.h"
+
 namespace milvus {
 
 /**
@@ -36,7 +38,7 @@ enum class IndexStateCode {
 /**
  * @brief Index state. Used by MilvusClient::GetIndexState().
  */
-class IndexState {
+class MILVUS_SDK_API IndexState {
  public:
     /**
      * @brief Index state code.
@@ -70,7 +72,7 @@ class IndexState {
 /**
  * @brief Index progress. Used by GetIndexBuildProgress().
  */
-class IndexProgress {
+class MILVUS_SDK_API IndexProgress {
  public:
     /**
      * @brief Get number of indexed rows.
@@ -106,5 +108,5 @@ class IndexProgress {
 }  // namespace milvus
 
 namespace std {
-std::string to_string(milvus::IndexStateCode);
+MILVUS_SDK_API std::string to_string(milvus::IndexStateCode);
 }  // namespace std

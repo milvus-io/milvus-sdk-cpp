@@ -17,13 +17,14 @@
 #pragma once
 
 #include "./CollectionRequestBase.h"
+#include "milvus/Export.h"
 
 namespace milvus {
 
 /**
  * @brief Used by MilvusClientV2::DescribeReplicas()
  */
-class DescribeReplicasRequest : public CollectionRequestBase<DescribeReplicasRequest> {
+class MILVUS_SDK_API DescribeReplicasRequest : public CollectionRequestBase<DescribeReplicasRequest> {
  public:
     /**
      * @brief Constructor

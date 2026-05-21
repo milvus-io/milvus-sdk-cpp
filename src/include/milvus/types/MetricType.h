@@ -18,6 +18,8 @@
 
 #include <string>
 
+#include "milvus/Export.h"
+
 namespace milvus {
 
 /**
@@ -51,5 +53,5 @@ enum class MetricType {
 }  // namespace milvus
 
 namespace std {
-std::string to_string(milvus::MetricType);
+MILVUS_SDK_API std::string to_string(milvus::MetricType);
 }  // namespace std

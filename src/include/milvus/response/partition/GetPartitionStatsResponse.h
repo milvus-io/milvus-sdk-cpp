@@ -17,13 +17,14 @@
 #pragma once
 
 #include "../../types/PartitionStat.h"
+#include "milvus/Export.h"
 
 namespace milvus {
 
 /**
  * @brief Used by MilvusClientV2::GetPartitionStats()
  */
-class GetPartitionStatsResponse {
+class MILVUS_SDK_API GetPartitionStatsResponse {
  public:
     /**
      * @brief Constructor

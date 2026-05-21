@@ -73,18 +73,13 @@ message(STATUS "using grpc_cpp_plugin: ${GRPC_CPP_PLUGIN}")
 
 
 function(add_proto_source target name)
-    set(_milvus_proto_cpp_out "${milvus_proto_BINARY_DIR}")
-    # Generated protobuf globals also need import/export markers in Windows DLL builds.
-    if (WIN32 AND BUILD_SHARED_LIBS)
-        set(_milvus_proto_cpp_out "dllexport_decl=MILVUS_PROTO_API:${milvus_proto_BINARY_DIR}")
-    endif()
     add_custom_command(
         OUTPUT ${milvus_proto_BINARY_DIR}/${name}.pb.cc
                ${milvus_proto_BINARY_DIR}/${name}.pb.h
         DEPENDS ${PROTO_IMPORT_DIR}/${name}.proto
                 ${Protobuf_PROTOC_EXECUTABLE}
     COMMAND ${Protobuf_PROTOC_EXECUTABLE}
-        --cpp_out=${_milvus_proto_cpp_out}
+        --cpp_out=${milvus_proto_BINARY_DIR}
         -I${PROTO_IMPORT_DIR}
         ${_milvus_proto_include_args}
         ${PROTO_IMPORT_DIR}/${name}.proto

@@ -17,13 +17,14 @@
 #pragma once
 
 #include "../../types/AliasDesc.h"
+#include "milvus/Export.h"
 
 namespace milvus {
 
 /**
  * @brief Used by MilvusClientV2::DescribeAlias()
  */
-class DescribeAliasResponse {
+class MILVUS_SDK_API DescribeAliasResponse {
  public:
     /**
      * @brief Constructor

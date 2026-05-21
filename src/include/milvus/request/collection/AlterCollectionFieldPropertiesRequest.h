@@ -20,13 +20,15 @@
 #include <unordered_map>
 
 #include "./CollectionRequestBase.h"
+#include "milvus/Export.h"
 
 namespace milvus {
 
 /**
  * @brief Used by MilvusClientV2::AlterCollectionFieldProperties()
  */
-class AlterCollectionFieldPropertiesRequest : public CollectionRequestBase<AlterCollectionFieldPropertiesRequest> {
+class MILVUS_SDK_API AlterCollectionFieldPropertiesRequest
+    : public CollectionRequestBase<AlterCollectionFieldPropertiesRequest> {
  public:
     /**
      * @brief Constructor

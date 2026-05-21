@@ -16,12 +16,13 @@
 
 #pragma once
 
+#include "milvus/Export.h"
 namespace milvus {
 
 /**
  * @brief Used by MilvusClientV2::CreateCollection()
  */
-class HasCollectionResponse {
+class MILVUS_SDK_API HasCollectionResponse {
  public:
     /**
      * @brief Constructor

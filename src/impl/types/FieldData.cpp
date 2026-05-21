@@ -389,43 +389,43 @@ BinaryVecFieldData::ToUnsignedChars(const std::string& data) {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // explicit declare FieldData
-template class FieldData<bool, DataType::BOOL>;
-template class FieldData<int8_t, DataType::INT8>;
-template class FieldData<int16_t, DataType::INT16>;
-template class FieldData<int32_t, DataType::INT32>;
-template class FieldData<int64_t, DataType::INT64>;
-template class FieldData<float, DataType::FLOAT>;
-template class FieldData<double, DataType::DOUBLE>;
-template class FieldData<std::string, DataType::VARCHAR>;
-template class FieldData<nlohmann::json, DataType::JSON>;
-template class FieldData<std::vector<uint8_t>, DataType::BINARY_VECTOR>;
-template class FieldData<std::vector<float>, DataType::FLOAT_VECTOR>;
-template class FieldData<std::map<uint32_t, float>, DataType::SPARSE_FLOAT_VECTOR>;
-template class FieldData<std::vector<uint16_t>, DataType::FLOAT16_VECTOR>;
-template class FieldData<std::vector<uint16_t>, DataType::BFLOAT16_VECTOR>;
-template class FieldData<std::vector<int8_t>, DataType::INT8_VECTOR>;
+template class MILVUS_SDK_API FieldData<bool, DataType::BOOL>;
+template class MILVUS_SDK_API FieldData<int8_t, DataType::INT8>;
+template class MILVUS_SDK_API FieldData<int16_t, DataType::INT16>;
+template class MILVUS_SDK_API FieldData<int32_t, DataType::INT32>;
+template class MILVUS_SDK_API FieldData<int64_t, DataType::INT64>;
+template class MILVUS_SDK_API FieldData<float, DataType::FLOAT>;
+template class MILVUS_SDK_API FieldData<double, DataType::DOUBLE>;
+template class MILVUS_SDK_API FieldData<std::string, DataType::VARCHAR>;
+template class MILVUS_SDK_API FieldData<nlohmann::json, DataType::JSON>;
+template class MILVUS_SDK_API FieldData<std::vector<uint8_t>, DataType::BINARY_VECTOR>;
+template class MILVUS_SDK_API FieldData<std::vector<float>, DataType::FLOAT_VECTOR>;
+template class MILVUS_SDK_API FieldData<std::map<uint32_t, float>, DataType::SPARSE_FLOAT_VECTOR>;
+template class MILVUS_SDK_API FieldData<std::vector<uint16_t>, DataType::FLOAT16_VECTOR>;
+template class MILVUS_SDK_API FieldData<std::vector<uint16_t>, DataType::BFLOAT16_VECTOR>;
+template class MILVUS_SDK_API FieldData<std::vector<int8_t>, DataType::INT8_VECTOR>;
 
 // declare these classes to avoid compile errors on MacOS
-template class FieldData<std::vector<bool>, DataType::ARRAY>;
-template class FieldData<std::vector<int8_t>, DataType::ARRAY>;
-template class FieldData<std::vector<int16_t>, DataType::ARRAY>;
-template class FieldData<std::vector<int32_t>, DataType::ARRAY>;
-template class FieldData<std::vector<int64_t>, DataType::ARRAY>;
-template class FieldData<std::vector<float>, DataType::ARRAY>;
-template class FieldData<std::vector<double>, DataType::ARRAY>;
-template class FieldData<std::vector<std::string>, DataType::ARRAY>;
-template class FieldData<std::vector<nlohmann::json>, DataType::ARRAY>;  // avoid compile errors on MacOS
+template class MILVUS_SDK_API FieldData<std::vector<bool>, DataType::ARRAY>;
+template class MILVUS_SDK_API FieldData<std::vector<int8_t>, DataType::ARRAY>;
+template class MILVUS_SDK_API FieldData<std::vector<int16_t>, DataType::ARRAY>;
+template class MILVUS_SDK_API FieldData<std::vector<int32_t>, DataType::ARRAY>;
+template class MILVUS_SDK_API FieldData<std::vector<int64_t>, DataType::ARRAY>;
+template class MILVUS_SDK_API FieldData<std::vector<float>, DataType::ARRAY>;
+template class MILVUS_SDK_API FieldData<std::vector<double>, DataType::ARRAY>;
+template class MILVUS_SDK_API FieldData<std::vector<std::string>, DataType::ARRAY>;
+template class MILVUS_SDK_API FieldData<std::vector<nlohmann::json>, DataType::ARRAY>;  // avoid compile errors on MacOS
 
-template class ArrayFieldData<bool, DataType::BOOL>;
-template class ArrayFieldData<int8_t, DataType::INT8>;
-template class ArrayFieldData<int16_t, DataType::INT16>;
-template class ArrayFieldData<int32_t, DataType::INT32>;
-template class ArrayFieldData<int64_t, DataType::INT64>;
-template class ArrayFieldData<float, DataType::FLOAT>;
-template class ArrayFieldData<double, DataType::DOUBLE>;
-template class ArrayFieldData<std::string, DataType::VARCHAR>;
+template class MILVUS_SDK_API ArrayFieldData<bool, DataType::BOOL>;
+template class MILVUS_SDK_API ArrayFieldData<int8_t, DataType::INT8>;
+template class MILVUS_SDK_API ArrayFieldData<int16_t, DataType::INT16>;
+template class MILVUS_SDK_API ArrayFieldData<int32_t, DataType::INT32>;
+template class MILVUS_SDK_API ArrayFieldData<int64_t, DataType::INT64>;
+template class MILVUS_SDK_API ArrayFieldData<float, DataType::FLOAT>;
+template class MILVUS_SDK_API ArrayFieldData<double, DataType::DOUBLE>;
+template class MILVUS_SDK_API ArrayFieldData<std::string, DataType::VARCHAR>;
 
 // for struct field
-template class ArrayFieldData<nlohmann::json, DataType::STRUCT>;
+template class MILVUS_SDK_API ArrayFieldData<nlohmann::json, DataType::STRUCT>;
 
 }  // namespace milvus

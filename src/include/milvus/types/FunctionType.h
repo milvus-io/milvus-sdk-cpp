@@ -18,6 +18,8 @@
 
 #include <string>
 
+#include "milvus/Export.h"
+
 namespace milvus {
 
 /**
@@ -35,5 +37,5 @@ enum class FunctionType {
 }  // namespace milvus
 
 namespace std {
-std::string to_string(milvus::FunctionType);
+MILVUS_SDK_API std::string to_string(milvus::FunctionType);
 }  // namespace std

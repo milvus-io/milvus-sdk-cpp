@@ -18,12 +18,14 @@
 
 #include <cstdint>
 
+#include "milvus/Export.h"
+
 namespace milvus {
 
 /**
  * @brief Used by MilvusClientV2::GetCompactionState() and GetCompactionPlans()
  */
-class GetCompactionRequest {
+class MILVUS_SDK_API GetCompactionRequest {
  public:
     /**
      * @brief Constructor

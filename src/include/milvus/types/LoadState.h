@@ -18,6 +18,8 @@
 
 #include <string>
 
+#include "milvus/Export.h"
+
 namespace milvus {
 
 /**
@@ -33,5 +35,5 @@ enum class LoadState {
 }  // namespace milvus
 
 namespace std {
-std::string to_string(milvus::LoadState);
+MILVUS_SDK_API std::string to_string(milvus::LoadState);
 }  // namespace std

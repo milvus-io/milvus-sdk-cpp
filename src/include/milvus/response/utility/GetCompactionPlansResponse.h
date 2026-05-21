@@ -16,6 +16,7 @@
 
 #pragma once
 
+#include "milvus/Export.h"
 #include "milvus/types/CompactionPlan.h"
 
 namespace milvus {
@@ -23,7 +24,7 @@ namespace milvus {
 /**
  * @brief Used by MilvusClientV2::GetCompactionPlans()
  */
-class GetCompactionPlansResponse {
+class MILVUS_SDK_API GetCompactionPlansResponse {
  public:
     /**
      * @brief Constructor

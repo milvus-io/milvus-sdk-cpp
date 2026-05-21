@@ -19,13 +19,14 @@
 #include <unordered_map>
 
 #include "./IndexRequestBase.h"
+#include "milvus/Export.h"
 
 namespace milvus {
 
 /**
  * @brief Used by MilvusClientV2::AlterIndexProperties()
  */
-class AlterIndexPropertiesRequest : public IndexRequestBase<AlterIndexPropertiesRequest> {
+class MILVUS_SDK_API AlterIndexPropertiesRequest : public IndexRequestBase<AlterIndexPropertiesRequest> {
  public:
     /**
      * @brief Constructor

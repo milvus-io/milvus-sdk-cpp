@@ -30,11 +30,19 @@ if (-not $includeMilvus -or -not $libFile -or -not $binFile) {
     Write-Error 'Package does not contain expected include/lib layout'
 }
 
+Write-Host "Package import library: $($libFile.FullName)"
+Write-Host ("Package import library size: {0:N2} MB ({1} bytes)" -f ($libFile.Length / 1MB), $libFile.Length)
+Write-Host "Package DLL: $($binFile.FullName)"
+Write-Host ("Package DLL size: {0:N2} MB ({1} bytes)" -f ($binFile.Length / 1MB), $binFile.Length)
+
 $includeDir = Split-Path -Parent $includeMilvus.FullName
 $smokeCpp = Join-Path $smokeDir 'smoke.cpp'
 $smokeObj = Join-Path $smokeDir 'smoke.obj'
+$smokeExe = Join-Path $smokeDir 'smoke.exe'
 $exportsFile = Join-Path $smokeDir 'milvus_sdk.exports.txt'
+$dllDependentsFile = Join-Path $smokeDir 'milvus_sdk.dll.dependents.txt'
 @'
+#include <iostream>
 #include <string>
 
 #include "milvus/MilvusClientV2.h"
@@ -49,29 +57,59 @@ main() {
     }
 
     auto client = milvus::MilvusClientV2::Create();
-    return client == nullptr ? 1 : 0;
+    if (client == nullptr) {
+        std::cerr << "failed to create MilvusClientV2" << std::endl;
+        return 1;
+    }
+
+    std::string version;
+    auto status = client->GetSDKVersion(version);
+    if (!status.IsOk()) {
+        std::cerr << status.Message() << std::endl;
+        return 1;
+    }
+
+    std::cout << version << std::endl;
+    return version.empty() ? 1 : 0;
 }
 '@ | Set-Content -Path $smokeCpp
 
-$buildCmd = Join-Path $smokeDir 'build-smoke.cmd'
-# Compile headers and inspect DLL exports instead of linking the oversized Windows import library.
+$inspectCmd = Join-Path $smokeDir 'inspect-package.cmd'
 @"
 call "%ProgramFiles%\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
-cl /std:c++14 /EHsc /DMILVUS_SDK_SHARED /I"$includeDir" /c /Fo"$smokeObj" "$smokeCpp"
-if errorlevel 1 exit /b %errorlevel%
 dumpbin /exports "$($binFile.FullName)" > "$exportsFile"
 if errorlevel 1 exit /b %errorlevel%
-"@ | Set-Content -Path $buildCmd
-cmd /c $buildCmd
+dumpbin /dependents "$($binFile.FullName)" > "$dllDependentsFile"
+if errorlevel 1 exit /b %errorlevel%
+"@ | Set-Content -Path $inspectCmd
+cmd /c $inspectCmd
 if ($LASTEXITCODE -ne 0) {
     exit $LASTEXITCODE
 }
 
 $exports = Get-Content -Raw -Path $exportsFile
-foreach ($symbol in @('INDEX_TYPE', 'METRIC_TYPE')) {
+foreach ($symbol in @('INDEX_TYPE', 'METRIC_TYPE', 'Create@MilvusClientV2')) {
     if ($exports -notmatch $symbol) {
         Write-Error "Package DLL does not export $symbol"
     }
+}
+
+$dllDependents = Get-Content -Raw -Path $dllDependentsFile
+$smokeRuntimeFlags = '/MD'
+if ($dllDependents -match '(?i)(msvcp\d+d\.dll|vcruntime\d+d\.dll|ucrtbased\.dll)') {
+    $smokeRuntimeFlags = '/MDd /D_DEBUG'
+}
+Write-Host "Smoke compile runtime flags: $smokeRuntimeFlags"
+
+$buildCmd = Join-Path $smokeDir 'build-smoke.cmd'
+@"
+call "%ProgramFiles%\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
+cl /std:c++14 /EHsc $smokeRuntimeFlags /DMILVUS_SDK_SHARED /I"$includeDir" /Fo"$smokeObj" /Fe"$smokeExe" "$smokeCpp" "$($libFile.FullName)"
+exit /b %errorlevel%
+"@ | Set-Content -Path $buildCmd
+cmd /c $buildCmd
+if ($LASTEXITCODE -ne 0) {
+    exit $LASTEXITCODE
 }
 
 $env:PATH = "$(Split-Path -Parent $binFile.FullName);$env:PATH"
@@ -88,3 +126,5 @@ if ($handle -eq [IntPtr]::Zero) {
     Write-Error "Failed to load $($binFile.FullName), GetLastError=$errorCode"
 }
 [Win32.NativeMethods]::FreeLibrary($handle) | Out-Null
+
+& $smokeExe

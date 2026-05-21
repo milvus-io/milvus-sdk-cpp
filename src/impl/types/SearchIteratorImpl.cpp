@@ -27,7 +27,7 @@
 #include "../utils/TypeUtils.h"
 
 namespace milvus {
-template class Iterator<SingleResult>;
+template class MILVUS_SDK_API Iterator<SingleResult>;
 
 template <typename T>
 SearchIteratorImpl<T>::SearchIteratorImpl(const MilvusConnectionPtr& connection, const T& args,
@@ -544,7 +544,7 @@ SearchIteratorImpl<T>::trySearchFill(int64_t count) {
 }
 
 // explicitly instantiation of template methods to avoid link error
-template class SearchIteratorImpl<SearchIteratorArguments>;
-template class SearchIteratorImpl<SearchIteratorRequest>;
+template class MILVUS_SDK_API SearchIteratorImpl<SearchIteratorArguments>;
+template class MILVUS_SDK_API SearchIteratorImpl<SearchIteratorRequest>;
 
 }  // namespace milvus

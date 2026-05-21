@@ -22,6 +22,7 @@
 
 #include "QueryResults.h"
 #include "SearchResults.h"
+#include "milvus/Export.h"
 
 namespace milvus {
 
@@ -46,8 +47,8 @@ class Iterator {
     Next(T& results) = 0;
 };
 
-extern template class Iterator<QueryResults>;
-extern template class Iterator<SingleResult>;
+extern template class MILVUS_SDK_API Iterator<QueryResults>;
+extern template class MILVUS_SDK_API Iterator<SingleResult>;
 
 using QueryIterator = Iterator<QueryResults>;
 using SearchIterator = Iterator<SingleResult>;

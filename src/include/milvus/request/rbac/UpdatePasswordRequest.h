@@ -18,12 +18,14 @@
 
 #include <string>
 
+#include "milvus/Export.h"
+
 namespace milvus {
 
 /**
  * @brief Used by MilvusClientV2::UpdatePassword().
  */
-class UpdatePasswordRequest {
+class MILVUS_SDK_API UpdatePasswordRequest {
  public:
     /**
      * @brief Constructor

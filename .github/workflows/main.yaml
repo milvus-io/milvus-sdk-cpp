@@ -51,7 +51,8 @@ jobs:
     name: Build and test AMD64 ${{ matrix.os.distro }} ${{ matrix.os.version }}
     runs-on: ubuntu-latest
     container: ${{ matrix.os.image }}
-    timeout-minutes: 75
+    # github automatically evicts no-access caches after 7 days, so we set a longer timeout to avoid unnecessary workflow timeout.
+    timeout-minutes: 200
     strategy:
       fail-fast: false
       matrix:
@@ -106,7 +107,8 @@ jobs:
     needs: changes
     if: needs.changes.outputs.core_relevant == 'true'
     runs-on: ubuntu-22.04
-    timeout-minutes: 75
+    # github automatically evicts no-access caches after 7 days, so we set a longer timeout to avoid unnecessary workflow timeout.
+    timeout-minutes: 200
     env:
       CCACHE_DIR: ${{ github.workspace }}/.ccache
       CCACHE_COMPILERCHECK: content
@@ -138,7 +140,8 @@ jobs:
     needs: changes
     if: needs.changes.outputs.core_relevant == 'true'
     runs-on: ubuntu-22.04
-    timeout-minutes: 120
+    # github automatically evicts no-access caches after 7 days, so we set a longer timeout to avoid unnecessary workflow timeout.
+    timeout-minutes: 200
     env:
       CCACHE_DIR: ${{ github.workspace }}/.ccache
       CCACHE_COMPILERCHECK: content
@@ -181,7 +184,8 @@ jobs:
     needs: changes
     if: needs.changes.outputs.core_relevant == 'true'
     runs-on: macos-15
-    timeout-minutes: 75
+    # github automatically evicts no-access caches after 7 days, so we set a longer timeout to avoid unnecessary workflow timeout.
+    timeout-minutes: 200
     env:
       CCACHE_DIR: ${{ github.workspace }}/.ccache
       CCACHE_COMPILERCHECK: content
@@ -220,7 +224,8 @@ jobs:
     needs: changes
     if: needs.changes.outputs.core_relevant == 'true'
     runs-on: windows-2022
-    timeout-minutes: 75
+    # github automatically evicts no-access caches after 7 days, so we set a longer timeout to avoid unnecessary workflow timeout.
+    timeout-minutes: 200
     env:
       CCACHE_DIR: ${{ github.workspace }}/.ccache
       CCACHE_COMPILERCHECK: content

@@ -19,12 +19,14 @@
 #include <set>
 #include <string>
 
+#include "milvus/Export.h"
+
 namespace milvus {
 
 /**
  * @brief Used by MilvusClientV2::Flush()
  */
-class FlushRequest {
+class MILVUS_SDK_API FlushRequest {
  public:
     /**
      * @brief Constructor

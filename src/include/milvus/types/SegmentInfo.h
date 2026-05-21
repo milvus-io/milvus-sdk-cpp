@@ -20,6 +20,8 @@
 #include <string>
 #include <vector>
 
+#include "milvus/Export.h"
+
 namespace milvus {
 
 /**
@@ -38,7 +40,7 @@ enum class SegmentState {
 /**
  * @brief Persisted segment information returned by MilvusClient::GetPersistentSegmentInfo().
  */
-class SegmentInfo {
+class MILVUS_SDK_API SegmentInfo {
  public:
     /**
      * @brief Constructor
@@ -91,7 +93,7 @@ using SegmentsInfo = std::vector<SegmentInfo>;
 /**
  * @brief In-memory segment information returned by MilvusClient::GetQuerySegmentInfo().
  */
-class QuerySegmentInfo : public SegmentInfo {
+class MILVUS_SDK_API QuerySegmentInfo : public SegmentInfo {
  public:
     /**
      * @brief Constructor

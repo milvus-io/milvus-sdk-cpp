@@ -20,12 +20,14 @@
 #include <string>
 #include <vector>
 
+#include "milvus/Export.h"
+
 namespace milvus {
 
 /**
  * @brief Used by MilvusClientV2::BatchDescribeCollections()
  */
-class BatchDescribeCollectionsRequest {
+class MILVUS_SDK_API BatchDescribeCollectionsRequest {
  public:
     /**
      * @brief Constructor

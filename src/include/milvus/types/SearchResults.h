@@ -23,13 +23,14 @@
 
 #include "FieldData.h"
 #include "IDArray.h"
+#include "milvus/Export.h"
 
 namespace milvus {
 
 /**
  * @brief Topk results for one target vector of MilvusClient::Search()
  */
-struct SingleResult {
+struct MILVUS_SDK_API SingleResult {
     SingleResult() = default;
 
     /**
@@ -144,7 +145,7 @@ using SingleResultPtr = std::shared_ptr<SingleResult>;
 /**
  * @brief Results returned by MilvusClient::Search().
  */
-class SearchResults {
+class MILVUS_SDK_API SearchResults {
  public:
     SearchResults();
 

@@ -19,13 +19,14 @@
 #include <vector>
 
 #include "../../types/ReplicaInfo.h"
+#include "milvus/Export.h"
 
 namespace milvus {
 
 /**
  * @brief Used by MilvusClientV2::DescribeReplicas()
  */
-class DescribeReplicasResponse {
+class MILVUS_SDK_API DescribeReplicasResponse {
  public:
     /**
      * @brief Constructor

@@ -19,6 +19,7 @@
 #include <string>
 #include <unordered_map>
 
+#include "milvus/Export.h"
 #include "milvus/types/ResourceGroupConfig.h"
 
 namespace milvus {
@@ -26,7 +27,7 @@ namespace milvus {
 /**
  * @brief Used by MilvusClientV2::UpdateResourceGroups()
  */
-class UpdateResourceGroupsRequest {
+class MILVUS_SDK_API UpdateResourceGroupsRequest {
  public:
     /**
      * @brief Constructor

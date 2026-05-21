@@ -23,13 +23,14 @@
 
 #include "../Status.h"
 #include "FunctionType.h"
+#include "milvus/Export.h"
 
 namespace milvus {
 
 /**
  * @brief Function class for hybrid search rerank and future BM25/TEXTEMBEDDING usages
  */
-class Function {
+class MILVUS_SDK_API Function {
  public:
     Function();
     virtual ~Function();
@@ -128,7 +129,7 @@ using FunctionPtr = std::shared_ptr<Function>;
 /**
  * @brief RRF rerank function
  */
-class RRFRerank : public Function {
+class MILVUS_SDK_API RRFRerank : public Function {
  public:
     RRFRerank();
     explicit RRFRerank(int k);
@@ -150,7 +151,7 @@ class RRFRerank : public Function {
 /**
  * @brief Weighted rerank function
  */
-class WeightedRerank : public Function {
+class MILVUS_SDK_API WeightedRerank : public Function {
  public:
     explicit WeightedRerank(const std::vector<float>& weights);
 
@@ -171,7 +172,7 @@ class WeightedRerank : public Function {
 /**
  * @brief Boost rerank function
  */
-class BoostRerank : public Function {
+class MILVUS_SDK_API BoostRerank : public Function {
  public:
     explicit BoostRerank(std::string name);
 
@@ -210,7 +211,7 @@ class BoostRerank : public Function {
 /**
  * @brief Decay rerank function
  */
-class DecayRerank : public Function {
+class MILVUS_SDK_API DecayRerank : public Function {
  public:
     explicit DecayRerank(std::string name);
 
@@ -270,7 +271,7 @@ class DecayRerank : public Function {
 /**
  * @brief Model rerank function
  */
-class ModelRerank : public Function {
+class MILVUS_SDK_API ModelRerank : public Function {
  public:
     explicit ModelRerank(std::string name);
 

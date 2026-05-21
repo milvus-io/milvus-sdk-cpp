@@ -16,6 +16,7 @@
 
 #pragma once
 
+#include "milvus/Export.h"
 #include "milvus/types/SegmentInfo.h"
 
 namespace milvus {
@@ -47,8 +48,8 @@ class ListSegmentsResponse {
     T segments_info_;
 };
 
-extern template class ListSegmentsResponse<SegmentsInfo>;
-extern template class ListSegmentsResponse<QuerySegmentsInfo>;
+extern template class MILVUS_SDK_API ListSegmentsResponse<SegmentsInfo>;
+extern template class MILVUS_SDK_API ListSegmentsResponse<QuerySegmentsInfo>;
 
 using ListPersistentSegmentsResponse = ListSegmentsResponse<SegmentsInfo>;
 using ListQuerySegmentsResponse = ListSegmentsResponse<QuerySegmentsInfo>;

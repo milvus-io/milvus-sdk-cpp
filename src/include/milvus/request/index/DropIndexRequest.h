@@ -17,13 +17,14 @@
 #pragma once
 
 #include "./IndexRequestBase.h"
+#include "milvus/Export.h"
 
 namespace milvus {
 
 /**
  * @brief Used by MilvusClientV2::DropIndex()
  */
-class DropIndexRequest : public IndexRequestBase<DropIndexRequest> {
+class MILVUS_SDK_API DropIndexRequest : public IndexRequestBase<DropIndexRequest> {
  public:
     /**
      * @brief Constructor
