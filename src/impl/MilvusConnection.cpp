@@ -645,6 +645,19 @@ MilvusConnection::DescribeResourceGroup(const proto::milvus::DescribeResourceGro
 }
 
 Status
+MilvusConnection::GetReplicateConfiguration(const proto::milvus::GetReplicateConfigurationRequest& request,
+                                            proto::milvus::GetReplicateConfigurationResponse& response,
+                                            const GrpcContextOptions& options) {
+    return grpcCall("GetReplicateConfiguration", &Stub::GetReplicateConfiguration, request, response, options);
+}
+
+Status
+MilvusConnection::UpdateReplicateConfiguration(const proto::milvus::UpdateReplicateConfigurationRequest& request,
+                                               proto::common::Status& response, const GrpcContextOptions& options) {
+    return grpcCall("UpdateReplicateConfiguration", &Stub::UpdateReplicateConfiguration, request, response, options);
+}
+
+Status
 MilvusConnection::SelectUser(const proto::milvus::SelectUserRequest& request,
                              proto::milvus::SelectUserResponse& response, const GrpcContextOptions& options) {
     return grpcCall("SelectUser", &Stub::SelectUser, request, response, options);

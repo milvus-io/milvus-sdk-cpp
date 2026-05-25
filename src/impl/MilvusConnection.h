@@ -357,6 +357,15 @@ class MilvusConnection {
                           proto::milvus::DescribeResourceGroupResponse& response, const GrpcContextOptions& options);
 
     Status
+    GetReplicateConfiguration(const proto::milvus::GetReplicateConfigurationRequest& request,
+                              proto::milvus::GetReplicateConfigurationResponse& response,
+                              const GrpcContextOptions& options);
+
+    Status
+    UpdateReplicateConfiguration(const proto::milvus::UpdateReplicateConfigurationRequest& request,
+                                 proto::common::Status& response, const GrpcContextOptions& options);
+
+    Status
     SelectUser(const proto::milvus::SelectUserRequest& request, proto::milvus::SelectUserResponse& response,
                const GrpcContextOptions& options);
 
