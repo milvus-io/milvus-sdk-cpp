@@ -46,6 +46,8 @@
 #include "request/collection/ReleaseCollectionRequest.h"
 #include "request/collection/RenameCollectionRequest.h"
 #include "request/collection/TruncateCollectionRequest.h"
+#include "request/cdc/GetReplicateConfigurationRequest.h"
+#include "request/cdc/UpdateReplicateConfigurationRequest.h"
 #include "request/database/AlterDatabasePropertiesRequest.h"
 #include "request/database/CreateDatabaseRequest.h"
 #include "request/database/DescribeDatabaseRequest.h"
@@ -102,6 +104,7 @@
 #include "request/utility/RunAnalyzerRequest.h"
 #include "response/alias/DescribeAliasResponse.h"
 #include "response/alias/ListAliasesResponse.h"
+#include "response/cdc/GetReplicateConfigurationResponse.h"
 #include "response/collection/BatchDescribeCollectionsResponse.h"
 #include "response/collection/DescribeCollectionResponse.h"
 #include "response/collection/DescribeReplicasResponse.h"
@@ -882,6 +885,26 @@ class MILVUS_SDK_API MilvusClientV2 {
      */
     virtual Status
     GetCompactionPlans(const GetCompactionPlansRequest& request, GetCompactionPlansResponse& response) = 0;
+
+    /**
+     * @brief Get replicate configuration.
+     *
+     * @param [in] request input parameters
+     * @param [out] response output results
+     * @return Status operation successfully or not
+     */
+    virtual Status
+    GetReplicateConfiguration(const GetReplicateConfigurationRequest& request,
+                              GetReplicateConfigurationResponse& response) = 0;
+
+    /**
+     * @brief Update replicate configuration.
+     *
+     * @param [in] request input parameters
+     * @return Status operation successfully or not
+     */
+    virtual Status
+    UpdateReplicateConfiguration(const UpdateReplicateConfigurationRequest& request) = 0;
 
     /**
      * @brief Create a resource group. A resource group to physically isolate certain query nodes from others.

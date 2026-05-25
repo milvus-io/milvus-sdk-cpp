@@ -253,6 +253,13 @@ class MilvusClientV2Impl : public MilvusClientV2, public std::enable_shared_from
     GetCompactionPlans(const GetCompactionPlansRequest& request, GetCompactionPlansResponse& response) final;
 
     Status
+    GetReplicateConfiguration(const GetReplicateConfigurationRequest& request,
+                              GetReplicateConfigurationResponse& response) final;
+
+    Status
+    UpdateReplicateConfiguration(const UpdateReplicateConfigurationRequest& request) final;
+
+    Status
     CreateResourceGroup(const CreateResourceGroupRequest& request) final;
 
     Status

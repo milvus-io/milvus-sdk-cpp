@@ -2369,6 +2369,33 @@ MilvusClientV2Impl::GetCompactionPlans(const GetCompactionPlansRequest& request,
 }
 
 Status
+MilvusClientV2Impl::GetReplicateConfiguration(const GetReplicateConfigurationRequest& request,
+                                               GetReplicateConfigurationResponse& response) {
+    auto post = [&response](const proto::milvus::GetReplicateConfigurationResponse& rpc_response) {
+        ReplicateConfiguration configuration;
+        ConvertReplicateConfiguration(rpc_response.configuration(), configuration);
+        response.SetConfiguration(std::move(configuration));
+        return Status::OK();
+    };
+
+    return connection_
+        .Invoke<proto::milvus::GetReplicateConfigurationRequest, proto::milvus::GetReplicateConfigurationResponse>(
+            nullptr, &MilvusConnection::GetReplicateConfiguration, post);
+}
+
+Status
+MilvusClientV2Impl::UpdateReplicateConfiguration(const UpdateReplicateConfigurationRequest& request) {
+    auto pre = [&request](proto::milvus::UpdateReplicateConfigurationRequest& rpc_request) {
+        ConvertReplicateConfiguration(request.Configuration(), rpc_request.mutable_replicate_configuration());
+        rpc_request.set_force_promote(request.ForcePromote());
+        return Status::OK();
+    };
+
+    return connection_.Invoke<proto::milvus::UpdateReplicateConfigurationRequest, proto::common::Status>(
+        pre, &MilvusConnection::UpdateReplicateConfiguration, nullptr);
+}
+
+Status
 MilvusClientV2Impl::CreateResourceGroup(const CreateResourceGroupRequest& request) {
     auto pre = [&request](proto::milvus::CreateResourceGroupRequest& rpc_request) {
         rpc_request.set_resource_group(request.Name());
