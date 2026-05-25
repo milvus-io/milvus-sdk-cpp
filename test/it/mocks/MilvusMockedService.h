@@ -264,6 +264,15 @@ class MilvusMockedService : public ::milvus::proto::milvus::MilvusService::Servi
                  ::grpc::Status(::grpc::ServerContext*, const ::milvus::proto::milvus::DescribeResourceGroupRequest*,
                                 ::milvus::proto::milvus::DescribeResourceGroupResponse*));
 
+    MOCK_METHOD3(GetReplicateConfiguration,
+                 ::grpc::Status(::grpc::ServerContext*, const ::milvus::proto::milvus::GetReplicateConfigurationRequest*,
+                                ::milvus::proto::milvus::GetReplicateConfigurationResponse*));
+
+    MOCK_METHOD3(UpdateReplicateConfiguration,
+                 ::grpc::Status(::grpc::ServerContext*,
+                                const ::milvus::proto::milvus::UpdateReplicateConfigurationRequest*,
+                                ::milvus::proto::common::Status*));
+
     MOCK_METHOD3(SelectUser, ::grpc::Status(::grpc::ServerContext*, const ::milvus::proto::milvus::SelectUserRequest*,
                                             ::milvus::proto::milvus::SelectUserResponse*));
 

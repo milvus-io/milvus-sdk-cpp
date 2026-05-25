@@ -829,6 +829,63 @@ ConvertResourceGroupConfig(const proto::rg::ResourceGroupConfig& rpc_config, Res
     }
 }
 
+void
+ConvertReplicateConfiguration(const ReplicateConfiguration& configuration,
+                              proto::common::ReplicateConfiguration* rpc_config) {
+    rpc_config->Clear();
+    rpc_config->mutable_clusters()->Reserve(configuration.Clusters().size());
+    rpc_config->mutable_cross_cluster_topology()->Reserve(configuration.CrossClusterTopologies().size());
+
+    for (const auto& cluster : configuration.Clusters()) {
+        auto rpc_cluster = rpc_config->add_clusters();
+        rpc_cluster->set_cluster_id(cluster.ClusterID());
+        auto connection_param = rpc_cluster->mutable_connection_param();
+        connection_param->set_uri(cluster.Uri());
+        connection_param->set_token(cluster.Token());
+        rpc_cluster->mutable_pchannels()->Reserve(cluster.PChannels().size());
+        for (const auto& pchannel : cluster.PChannels()) {
+            rpc_cluster->add_pchannels(pchannel);
+        }
+    }
+
+    for (const auto& topology : configuration.CrossClusterTopologies()) {
+        auto rpc_topology = rpc_config->add_cross_cluster_topology();
+        rpc_topology->set_source_cluster_id(topology.SourceClusterID());
+        rpc_topology->set_target_cluster_id(topology.TargetClusterID());
+    }
+}
+
+void
+ConvertReplicateConfiguration(const proto::common::ReplicateConfiguration& rpc_config,
+                              ReplicateConfiguration& configuration) {
+    std::vector<MilvusCluster> clusters;
+    clusters.reserve(rpc_config.clusters_size());
+    for (const auto& rpc_cluster : rpc_config.clusters()) {
+        MilvusCluster cluster;
+        cluster.SetClusterID(rpc_cluster.cluster_id());
+        cluster.SetUri(rpc_cluster.connection_param().uri());
+        cluster.SetToken(rpc_cluster.connection_param().token());
+        std::vector<std::string> pchannels;
+        pchannels.reserve(rpc_cluster.pchannels_size());
+        for (const auto& pchannel : rpc_cluster.pchannels()) {
+            pchannels.push_back(pchannel);
+        }
+        cluster.SetPChannels(std::move(pchannels));
+        clusters.emplace_back(std::move(cluster));
+    }
+    configuration.SetClusters(std::move(clusters));
+
+    std::vector<CrossClusterTopology> topologies;
+    topologies.reserve(rpc_config.cross_cluster_topology_size());
+    for (const auto& rpc_topology : rpc_config.cross_cluster_topology()) {
+        CrossClusterTopology topology;
+        topology.SetSourceClusterID(rpc_topology.source_cluster_id());
+        topology.SetTargetClusterID(rpc_topology.target_cluster_id());
+        topologies.emplace_back(std::move(topology));
+    }
+    configuration.SetCrossClusterTopologies(std::move(topologies));
+}
+
 bool
 IsValidTemplate(const nlohmann::json& filter_template) {
     return filter_template.is_boolean() || filter_template.is_number() || filter_template.is_string();
