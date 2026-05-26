@@ -1,0 +1,32 @@
+name: Cleanup PR caches
+
+on:
+  pull_request_target:
+    types: [closed]
+
+permissions:
+  actions: write
+  contents: read
+  pull-requests: read
+
+jobs:
+  # When a PR is closed, delete all GitHub Actions caches associated with the PR's merge ref (refs/pull/PR_NUMBER/merge).
+  cleanup:
+    name: Cleanup PR caches
+    runs-on: ubuntu-latest
+    steps:
+      - name: Delete PR caches
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          PR_REF: refs/pull/${{ github.event.pull_request.number }}/merge
+        run: |
+          set -euo pipefail
+          cache_ids=$(gh api --paginate "repos/$GH_REPO/actions/caches?ref=$PR_REF&per_page=100" --jq '.actions_caches[].id')
+          if [ -z "$cache_ids" ]; then
+            echo "No caches found for $PR_REF"
+            exit 0
+          fi
+          while read -r cache_id; do
+            gh api --method DELETE "repos/$GH_REPO/actions/caches/$cache_id"
+          done <<< "$cache_ids"

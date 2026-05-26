@@ -5,12 +5,14 @@ run-name: notify conanfiles for ${{ github.ref_name }}
 on:
   push:
     tags:
-      - 'v*'
+      - 'v*.*.*'
 
 permissions:
   contents: read
 
 jobs:
+  # When a new release tag is pushed to milvus-sdk-cpp, send a repository_dispatch event
+  # to the conanfiles repo to trigger the release of the corresponding Conan package.
   dispatch:
     name: send milvus-sdk-cpp release dispatch
     if: github.repository == 'milvus-io/milvus-sdk-cpp'
@@ -34,7 +36,7 @@ jobs:
             exit 1
           fi
 
-          if [[ ! "$TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+          if [[ ! "$TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z][0-9A-Za-z.-]*)?$ ]]; then
             echo "Unsupported tag format: $TAG" >&2
             exit 1
           fi
