@@ -61,6 +61,8 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  # Select release targets based on workflow inputs, and output the selected targets for downstream jobs.
+  # This allows us to conditionally run jobs based on user input, which is not natively supported by GitHub Actions.
   select-targets:
     name: Select release targets
     runs-on: ubuntu-latest
