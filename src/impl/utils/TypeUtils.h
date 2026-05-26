@@ -30,6 +30,7 @@
 #include "milvus/types/IndexType.h"
 #include "milvus/types/LoadState.h"
 #include "milvus/types/MetricType.h"
+#include "milvus/types/ReplicateConfiguration.h"
 #include "milvus/types/ResourceGroupConfig.h"
 #include "milvus/types/SearchResults.h"
 #include "milvus/types/SegmentInfo.h"
@@ -126,6 +127,14 @@ ConvertResourceGroupConfig(const ResourceGroupConfig& config, proto::rg::Resourc
 
 void
 ConvertResourceGroupConfig(const proto::rg::ResourceGroupConfig& rpc_config, ResourceGroupConfig& config);
+
+void
+ConvertReplicateConfiguration(const ReplicateConfiguration& configuration,
+                              proto::common::ReplicateConfiguration* rpc_config);
+
+void
+ConvertReplicateConfiguration(const proto::common::ReplicateConfiguration& rpc_config,
+                              ReplicateConfiguration& configuration);
 
 bool
 IsValidTemplate(const nlohmann::json& filter_template);
