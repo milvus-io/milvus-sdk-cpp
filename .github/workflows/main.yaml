@@ -11,6 +11,26 @@ on:
       - 'thirdparty/**'
       - '.github/workflows/main.yaml'
       - '.github/workflows/release.yaml'
+      - '.github/workflows/cleanup-pr-caches.yaml'
+      - '.github/mergify.yml'
+      - '!**.md'
+      - '.clang-format'
+      - '.clang-tidy'
+  push:
+    branches:
+      - master
+      - '2.6'
+      - '3.0'
+    paths:
+      - 'cmake/**'
+      - 'scripts/**'
+      - 'src/**'
+      - 'test/**'
+      - 'thirdparty/**'
+      - '.github/workflows/main.yaml'
+      - '.github/workflows/release.yaml'
+      - '.github/workflows/cleanup-pr-caches.yaml'
+      - '.github/mergify.yml'
       - '!**.md'
       - '.clang-format'
       - '.clang-tidy'
@@ -23,10 +43,11 @@ jobs:
   # Detect whether the PR touches core SDK files (src, cmake, test,
   # thirdparty, scripts, workflow, lint configs) or only peripheral files
   # (examples/**). Changes limited to examples/** skip the heavy CI jobs
-  # (integration, coverage, macOS, Windows) and only run the Linux build,
+  # (coverage, macOS, Windows) and only run the Linux build,
   # which is enough to catch regressions in the example code itself.
   changes:
     name: Detect path changes
+    if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     outputs:
       core_relevant: ${{ steps.filter.outputs.core_relevant }}
@@ -44,11 +65,13 @@ jobs:
               - 'thirdparty/**'
               - '.github/workflows/main.yaml'
               - '.github/workflows/release.yaml'
+              - '.github/mergify.yml'
               - '.clang-format'
               - '.clang-tidy'
 
   linux:
     name: Build and test AMD64 ${{ matrix.os.distro }} ${{ matrix.os.version }}
+    if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     container: ${{ matrix.os.image }}
     # github automatically evicts no-access caches after 7 days, so we set a longer timeout to avoid unnecessary workflow timeout.
@@ -79,14 +102,12 @@ jobs:
         run: echo "${HOME}/.local/bin" >> $GITHUB_PATH
       - name: Checkout
         uses: actions/checkout@v4
-      - name: Cache ccache and conan
+      - name: Cache ccache
         uses: actions/cache@v4
         with:
-          path: |
-            ${{ github.workspace }}/.ccache
-            /github/home/.conan2
-          key: linux-${{ matrix.os.key }}-cache-${{ github.sha }}
-          restore-keys: linux-${{ matrix.os.key }}-cache-
+          path: ${{ github.workspace }}/.ccache
+          key: linux-${{ matrix.os.key }}-ccache-${{ github.sha }}
+          restore-keys: linux-${{ matrix.os.key }}-ccache-
       - name: Prepare
         run: |
           sh scripts/install_deps.sh
@@ -101,44 +122,11 @@ jobs:
         run: |
           cmake --build cmake_build --target package --parallel 4
           sh scripts/verify_package_linux.sh cmake_build/Pack
-  integration-test:
-    name: Integration test
-    # Skip for examples-only changes; linux job alone validates them.
-    needs: changes
-    if: needs.changes.outputs.core_relevant == 'true'
-    runs-on: ubuntu-22.04
-    # github automatically evicts no-access caches after 7 days, so we set a longer timeout to avoid unnecessary workflow timeout.
-    timeout-minutes: 200
-    env:
-      CCACHE_DIR: ${{ github.workspace }}/.ccache
-      CCACHE_COMPILERCHECK: content
-      CCACHE_COMPRESS: 1
-      CCACHE_COMPRESSLEVEL: 5
-      CCACHE_MAXSIZE: 2G
-    steps:
-      - name: Env
-        run: echo "${HOME}/.local/bin" >> $GITHUB_PATH
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Cache ccache and conan
-        uses: actions/cache@v4
-        with:
-          path: |
-            ${{ github.workspace }}/.ccache
-            ~/.conan2
-          key: ubuntu-2204-st-cache-${{ github.sha }}
-          restore-keys: ubuntu-2204-st-cache-
-      - name: Prepare
-        run: |
-          sh scripts/install_deps.sh
-      - name: Integration Testing
-        run: |
-          make st
   coverage-ubuntu:
     name: Test all with coverage
-    # Skip for examples-only changes; coverage only measures SDK code.
+    # Skip for examples-only changes on PRs; run after pushes to warm branch-scoped caches.
     needs: changes
-    if: needs.changes.outputs.core_relevant == 'true'
+    if: always() && (github.event_name == 'push' || needs.changes.outputs.core_relevant == 'true')
     runs-on: ubuntu-22.04
     # github automatically evicts no-access caches after 7 days, so we set a longer timeout to avoid unnecessary workflow timeout.
     timeout-minutes: 200
@@ -154,14 +142,18 @@ jobs:
         run: echo "${HOME}/.local/bin" >> $GITHUB_PATH
       - name: Checkout
         uses: actions/checkout@v4
-      - name: Cache ccache and conan
+      - name: Cache Conan
         uses: actions/cache@v4
         with:
-          path: |
-            ${{ github.workspace }}/.ccache
-            ~/.conan2
-          key: ubuntu-2204-coverage-cache-${{ github.sha }}
-          restore-keys: ubuntu-2204-coverage-cache-
+          path: ~/.conan2
+          key: ubuntu-2204-conan-${{ github.base_ref || github.ref_name }}-${{ hashFiles('conanfile.*', 'CMakeLists.txt', 'cmake/**', 'scripts/install_deps.sh') }}
+          restore-keys: ubuntu-2204-conan-${{ github.base_ref || github.ref_name }}-
+      - name: Cache ccache
+        uses: actions/cache@v4
+        with:
+          path: ${{ github.workspace }}/.ccache
+          key: ubuntu-2204-coverage-ccache-${{ github.sha }}
+          restore-keys: ubuntu-2204-coverage-ccache-
       - uses: actions/setup-python@v5
         with:
           python-version: '3.8'
@@ -182,7 +174,7 @@ jobs:
     name: Build and test macOS 15
     # Skip for examples-only changes; macOS runners are scarce.
     needs: changes
-    if: needs.changes.outputs.core_relevant == 'true'
+    if: github.event_name == 'pull_request' && needs.changes.outputs.core_relevant == 'true'
     runs-on: macos-15
     # github automatically evicts no-access caches after 7 days, so we set a longer timeout to avoid unnecessary workflow timeout.
     timeout-minutes: 200
@@ -222,7 +214,7 @@ jobs:
     name: Build and test windows
     # Skip for examples-only changes; Windows builds are slow.
     needs: changes
-    if: needs.changes.outputs.core_relevant == 'true'
+    if: github.event_name == 'pull_request' && needs.changes.outputs.core_relevant == 'true'
     runs-on: windows-2022
     # github automatically evicts no-access caches after 7 days, so we set a longer timeout to avoid unnecessary workflow timeout.
     timeout-minutes: 200
