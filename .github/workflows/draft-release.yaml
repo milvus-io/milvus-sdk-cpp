@@ -13,6 +13,9 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  # create a draft release for an exact release tag (vX.Y.Z).
+  # Tags that do not match this format are ignored, which allows pushing other tags (e.g. vX.Y)
+  # without triggering the release workflow.
   draft-release:
     name: Create draft release
     runs-on: ubuntu-latest

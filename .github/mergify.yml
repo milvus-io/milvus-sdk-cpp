@@ -45,8 +45,8 @@ pull_request_rules:
           # and are skipped for examples-only changes. Accept success OR
           # skipped so examples-only PRs still reach ci-passed.
           - or:
-              - "check-success=Integration test"
-              - "check-skipped=Integration test"
+              - "check-success=Test all with coverage"
+              - "check-skipped=Test all with coverage"
           - or:
               - "check-success=Build and test macOS 15"
               - "check-skipped=Build and test macOS 15"
@@ -65,13 +65,13 @@ pull_request_rules:
           - "check-pending=Detect path changes"
           - "check-pending=Build and test AMD64 Ubuntu 20.04"
           - "check-pending=Build and test AMD64 Fedora 39"
-          - "check-pending=Integration test"
+          - "check-pending=Test all with coverage"
           - "check-pending=Build and test macOS 15"
           - "check-pending=Build and test windows"
           - "check-failure=Detect path changes"
           - "check-failure=Build and test AMD64 Ubuntu 20.04"
           - "check-failure=Build and test AMD64 Fedora 39"
-          - "check-failure=Integration test"
+          - "check-failure=Test all with coverage"
           - "check-failure=Build and test macOS 15"
           - "check-failure=Build and test windows"
     actions:
@@ -82,7 +82,7 @@ pull_request_rules:
   - name: Add ci-passed when no code changes
     conditions:
       - or: *BRANCHES
-      - -files~=^(?!.*\.(md)).*$
+      - "-files~=^(?!(doc/|.*\\.md$|\\.gitignore$|codecov\\.yml$|LICENSE$|OWNERS$|libmilvus\\.spec\\.rpkg$)).+"
     actions:
       label:
         add:
