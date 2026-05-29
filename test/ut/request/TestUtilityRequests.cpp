@@ -66,6 +66,48 @@ TEST_F(FlushRequestTest, AllMethods) {
     EXPECT_EQ(req.WaitFlushedMs(), 5000);
 }
 
+class FlushAllRequestTest : public ::testing::Test {};
+
+TEST_F(FlushAllRequestTest, GettersAndSetters) {
+    milvus::FlushAllRequest req;
+
+    EXPECT_TRUE(req.DatabaseName().empty());
+    EXPECT_EQ(req.WaitFlushedMs(), 0);
+
+    req.SetDatabaseName("db1");
+    EXPECT_EQ(req.DatabaseName(), "db1");
+    auto& db_ref = req.WithDatabaseName("db2");
+    EXPECT_EQ(&db_ref, &req);
+    EXPECT_EQ(req.DatabaseName(), "db2");
+
+    req.SetWaitFlushedMs(5000);
+    EXPECT_EQ(req.WaitFlushedMs(), 5000);
+    auto& wait_ref = req.WithWaitFlushedMs(10000);
+    EXPECT_EQ(&wait_ref, &req);
+    EXPECT_EQ(req.WaitFlushedMs(), 10000);
+}
+
+class GetFlushAllStateRequestTest : public ::testing::Test {};
+
+TEST_F(GetFlushAllStateRequestTest, GettersAndSetters) {
+    milvus::GetFlushAllStateRequest req;
+
+    EXPECT_TRUE(req.DatabaseName().empty());
+    EXPECT_EQ(req.FlushAllTs(), 0);
+
+    req.SetDatabaseName("db1");
+    EXPECT_EQ(req.DatabaseName(), "db1");
+    auto& db_ref = req.WithDatabaseName("db2");
+    EXPECT_EQ(&db_ref, &req);
+    EXPECT_EQ(req.DatabaseName(), "db2");
+
+    req.SetFlushAllTs(12345);
+    EXPECT_EQ(req.FlushAllTs(), 12345);
+    auto& ts_ref = req.WithFlushAllTs(67890);
+    EXPECT_EQ(&ts_ref, &req);
+    EXPECT_EQ(req.FlushAllTs(), 67890);
+}
+
 class CompactRequestTest : public ::testing::Test {};
 
 TEST_F(CompactRequestTest, GettersAndSetters) {

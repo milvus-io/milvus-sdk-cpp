@@ -1906,6 +1906,69 @@ MilvusClientV2Impl::Flush(const FlushRequest& request) {
 }
 
 Status
+MilvusClientV2Impl::FlushAll(const FlushAllRequest& request, FlushAllResponse& response) {
+    auto pre = [&request](proto::milvus::FlushAllRequest& rpc_request) {
+        rpc_request.set_db_name(request.DatabaseName());
+        return Status::OK();
+    };
+
+    ProgressMonitor progress_monitor = ProgressMonitor::Forever();
+    if (request.WaitFlushedMs() > 0) {
+        progress_monitor = ProgressMonitor{static_cast<uint32_t>(request.WaitFlushedMs() + 999) / 1000};
+    }
+
+    auto wait_for_status = [this, &request, &progress_monitor](const proto::milvus::FlushAllResponse& rpc_response) {
+        GetFlushAllStateRequest state_request = GetFlushAllStateRequest()
+                                                   .WithDatabaseName(request.DatabaseName())
+                                                   .WithFlushAllTs(rpc_response.flush_all_ts());
+        return ConnectionHandler::WaitForStatus(
+            [this, &state_request](Progress& p) -> Status {
+                p.total_ = 1;
+                GetFlushAllStateResponse state_response;
+                auto status = getFlushAllState(state_request, state_response);
+                if (!status.IsOk()) {
+                    return status;
+                }
+                p.finished_ = state_response.Flushed() ? 1 : 0;
+                return Status::OK();
+            },
+            progress_monitor);
+    };
+
+    auto post = [&response](const proto::milvus::FlushAllResponse& rpc_response) {
+        response.SetFlushAllTs(rpc_response.flush_all_ts());
+        return Status::OK();
+    };
+
+    return connection_.Invoke<proto::milvus::FlushAllRequest, proto::milvus::FlushAllResponse>(
+        nullptr, pre, &MilvusConnection::FlushAll, wait_for_status, post);
+}
+
+Status
+MilvusClientV2Impl::GetFlushAllState(const GetFlushAllStateRequest& request, GetFlushAllStateResponse& response) {
+    return getFlushAllState(request, response);
+}
+
+Status
+MilvusClientV2Impl::getFlushAllState(const GetFlushAllStateRequest& request, GetFlushAllStateResponse& response,
+                                      uint64_t rpc_timeout_ms) {
+    auto pre = [&request](proto::milvus::GetFlushAllStateRequest& rpc_request) {
+        rpc_request.set_db_name(request.DatabaseName());
+        rpc_request.set_flush_all_ts(request.FlushAllTs());
+        return Status::OK();
+    };
+
+    auto post = [&response](const proto::milvus::GetFlushAllStateResponse& rpc_response) {
+        response.SetFlushed(rpc_response.flushed());
+        return Status::OK();
+    };
+
+    return connection_
+        .InvokeWithRpcTimeout<proto::milvus::GetFlushAllStateRequest, proto::milvus::GetFlushAllStateResponse>(
+            rpc_timeout_ms, pre, &MilvusConnection::GetFlushAllState, post);
+}
+
+Status
 MilvusClientV2Impl::ListPersistentSegments(const ListPersistentSegmentsRequest& request,
                                            ListPersistentSegmentsResponse& response) {
     auto pre = [&request](proto::milvus::GetPersistentSegmentInfoRequest& rpc_request) {
