@@ -234,6 +234,12 @@ class MilvusClientV2Impl : public MilvusClientV2, public std::enable_shared_from
     Flush(const FlushRequest& request) final;
 
     Status
+    FlushAll(const FlushAllRequest& request, FlushAllResponse& response) final;
+
+    Status
+    GetFlushAllState(const GetFlushAllStateRequest& request, GetFlushAllStateResponse& response) final;
+
+    Status
     ListPersistentSegments(const ListPersistentSegmentsRequest& request,
                            ListPersistentSegmentsResponse& response) final;
 
@@ -341,6 +347,10 @@ class MilvusClientV2Impl : public MilvusClientV2, public std::enable_shared_from
 
     Status
     getFlushState(const std::vector<int64_t>& segments, bool& flushed);
+
+    Status
+    getFlushAllState(const GetFlushAllStateRequest& request, GetFlushAllStateResponse& response,
+                     uint64_t rpc_timeout_ms = 0);
 
     Status
     describeCollection(const DescribeCollectionRequest& request, DescribeCollectionResponse& response,

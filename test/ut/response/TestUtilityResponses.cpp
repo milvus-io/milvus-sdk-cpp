@@ -35,6 +35,29 @@ TEST_F(CheckHealthResponseTest, SetterAndGetter) {
     EXPECT_EQ(resp.Reasons()[0], "node down");
 }
 
+class FlushAllResponseTest : public ::testing::Test {};
+
+TEST_F(FlushAllResponseTest, SetterAndGetter) {
+    milvus::FlushAllResponse resp;
+    EXPECT_EQ(resp.FlushAllTs(), 0);
+
+    resp.SetFlushAllTs(12345);
+    EXPECT_EQ(resp.FlushAllTs(), 12345);
+}
+
+class GetFlushAllStateResponseTest : public ::testing::Test {};
+
+TEST_F(GetFlushAllStateResponseTest, SetterAndGetter) {
+    milvus::GetFlushAllStateResponse resp;
+    EXPECT_FALSE(resp.Flushed());
+
+    resp.SetFlushed(true);
+    EXPECT_TRUE(resp.Flushed());
+
+    resp.SetFlushed(false);
+    EXPECT_FALSE(resp.Flushed());
+}
+
 class CompactResponseTest : public ::testing::Test {};
 
 TEST_F(CompactResponseTest, SetterAndGetter) {
