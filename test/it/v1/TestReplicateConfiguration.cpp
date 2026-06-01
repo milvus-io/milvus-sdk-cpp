@@ -24,6 +24,8 @@ using ::milvus::proto::milvus::ConnectRequest;
 using ::milvus::proto::milvus::ConnectResponse;
 using ::milvus::proto::milvus::GetReplicateConfigurationRequest;
 using ::milvus::proto::milvus::GetReplicateConfigurationResponse;
+using ::milvus::proto::milvus::GetReplicateInfoRequest;
+using ::milvus::proto::milvus::GetReplicateInfoResponse;
 using ::milvus::proto::milvus::UpdateReplicateConfigurationRequest;
 using ::testing::_;
 
@@ -168,4 +170,87 @@ TEST_F(UnconnectMilvusMockedTest, UpdateReplicateConfigurationFailed) {
 
     EXPECT_FALSE(status.IsOk());
     EXPECT_EQ(status.Code(), StatusCode::RPC_FAILED);
+}
+
+TEST_F(UnconnectMilvusMockedTest, GetReplicateInfo) {
+    auto client = CreateConnectedV2Client(service_, server_.ListenPort());
+
+    EXPECT_CALL(service_, GetReplicateInfo(_, _, _))
+        .WillOnce([](::grpc::ServerContext*, const GetReplicateInfoRequest* request,
+                     GetReplicateInfoResponse* response) {
+            EXPECT_EQ(request->source_cluster_id(), "cluster-a");
+            EXPECT_EQ(request->target_pchannel(), "by-dev-rootcoord-dml_0");
+            auto checkpoint = response->mutable_checkpoint();
+            checkpoint->set_cluster_id("cluster-a");
+            checkpoint->set_pchannel("by-dev-rootcoord-dml_0");
+            checkpoint->set_time_tick(123);
+            auto message_id = checkpoint->mutable_message_id();
+            message_id->set_id("message-id");
+            message_id->set_wal_name(::milvus::proto::common::WALName::Pulsar);
+            return ::grpc::Status{};
+        });
+
+    milvus::GetReplicateInfoRequest request;
+    request.WithSourceClusterID("cluster-a").WithTargetPChannel("by-dev-rootcoord-dml_0");
+    milvus::GetReplicateInfoResponse response;
+    auto status = client->GetReplicateInfo(request, response);
+
+    EXPECT_TRUE(status.IsOk());
+    EXPECT_EQ(response.Checkpoint().ClusterID(), "cluster-a");
+    EXPECT_EQ(response.Checkpoint().PChannel(), "by-dev-rootcoord-dml_0");
+    EXPECT_EQ(response.Checkpoint().TimeTick(), 123);
+    EXPECT_EQ(response.Checkpoint().MessageID().ID(), "message-id");
+    EXPECT_EQ(response.Checkpoint().MessageID().WalName(), "Pulsar");
+}
+
+TEST_F(UnconnectMilvusMockedTest, GetReplicateInfoFailed) {
+    auto client = CreateConnectedV2Client(service_, server_.ListenPort());
+
+    EXPECT_CALL(service_, GetReplicateInfo(_, _, _))
+        .WillOnce([](::grpc::ServerContext*, const GetReplicateInfoRequest*, GetReplicateInfoResponse*) {
+            return ::grpc::Status{::grpc::StatusCode::UNAVAILABLE, "unavailable"};
+        });
+
+    milvus::GetReplicateInfoRequest request;
+    request.WithSourceClusterID("cluster-a").WithTargetPChannel("by-dev-rootcoord-dml_0");
+    milvus::GetReplicateInfoResponse response;
+    auto status = client->GetReplicateInfo(request, response);
+
+    EXPECT_FALSE(status.IsOk());
+    EXPECT_EQ(status.Code(), StatusCode::RPC_FAILED);
+}
+
+TEST_F(UnconnectMilvusMockedTest, GetReplicateInfoClearsCheckpointWhenAbsent) {
+    auto client = CreateConnectedV2Client(service_, server_.ListenPort());
+
+    EXPECT_CALL(service_, GetReplicateInfo(_, _, _))
+        .WillOnce([](::grpc::ServerContext*, const GetReplicateInfoRequest*, GetReplicateInfoResponse* response) {
+            auto checkpoint = response->mutable_checkpoint();
+            checkpoint->set_cluster_id("cluster-a");
+            checkpoint->set_pchannel("by-dev-rootcoord-dml_0");
+            checkpoint->set_time_tick(123);
+            auto message_id = checkpoint->mutable_message_id();
+            message_id->set_id("message-id");
+            message_id->set_wal_name(::milvus::proto::common::WALName::Pulsar);
+            return ::grpc::Status{};
+        })
+        .WillOnce([](::grpc::ServerContext*, const GetReplicateInfoRequest*, GetReplicateInfoResponse*) {
+            return ::grpc::Status{};
+        });
+
+    milvus::GetReplicateInfoRequest request;
+    request.WithSourceClusterID("cluster-a").WithTargetPChannel("by-dev-rootcoord-dml_0");
+    milvus::GetReplicateInfoResponse response;
+    auto status = client->GetReplicateInfo(request, response);
+    EXPECT_TRUE(status.IsOk());
+    EXPECT_EQ(response.Checkpoint().ClusterID(), "cluster-a");
+    EXPECT_EQ(response.Checkpoint().MessageID().ID(), "message-id");
+
+    status = client->GetReplicateInfo(request, response);
+    EXPECT_TRUE(status.IsOk());
+    EXPECT_TRUE(response.Checkpoint().ClusterID().empty());
+    EXPECT_TRUE(response.Checkpoint().PChannel().empty());
+    EXPECT_TRUE(response.Checkpoint().MessageID().ID().empty());
+    EXPECT_TRUE(response.Checkpoint().MessageID().WalName().empty());
+    EXPECT_EQ(response.Checkpoint().TimeTick(), 0);
 }

@@ -16,6 +16,7 @@
 
 #pragma once
 
+#include <cstdint>
 #include <string>
 #include <vector>
 
@@ -94,6 +95,76 @@ class MILVUS_SDK_API CrossClusterTopology {
  private:
     std::string source_cluster_id_;
     std::string target_cluster_id_;
+};
+
+class MILVUS_SDK_API ReplicateMessageID {
+ public:
+    const std::string&
+    ID() const;
+
+    void
+    SetID(const std::string& id);
+
+    ReplicateMessageID&
+    WithID(const std::string& id);
+
+    const std::string&
+    WalName() const;
+
+    void
+    SetWalName(const std::string& wal_name);
+
+    ReplicateMessageID&
+    WithWalName(const std::string& wal_name);
+
+ private:
+    std::string id_;
+    std::string wal_name_;
+};
+
+class MILVUS_SDK_API ReplicateCheckpoint {
+ public:
+    const std::string&
+    ClusterID() const;
+
+    void
+    SetClusterID(const std::string& cluster_id);
+
+    ReplicateCheckpoint&
+    WithClusterID(const std::string& cluster_id);
+
+    const std::string&
+    PChannel() const;
+
+    void
+    SetPChannel(const std::string& pchannel);
+
+    ReplicateCheckpoint&
+    WithPChannel(const std::string& pchannel);
+
+    const ReplicateMessageID&
+    MessageID() const;
+
+    void
+    SetMessageID(ReplicateMessageID&& message_id);
+
+    ReplicateCheckpoint&
+    WithMessageID(ReplicateMessageID&& message_id);
+
+    uint64_t
+    TimeTick() const;
+
+    void
+    SetTimeTick(uint64_t time_tick);
+
+    ReplicateCheckpoint&
+    WithTimeTick(uint64_t time_tick);
+
+ private:
+    std::string cluster_id_;
+    std::string pchannel_;
+    ReplicateMessageID message_id_;
+    uint64_t time_tick_{0};
 };
 
 class MILVUS_SDK_API ReplicateConfiguration {

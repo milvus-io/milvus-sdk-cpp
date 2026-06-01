@@ -886,6 +886,21 @@ ConvertReplicateConfiguration(const proto::common::ReplicateConfiguration& rpc_c
     configuration.SetCrossClusterTopologies(std::move(topologies));
 }
 
+void
+ConvertReplicateCheckpoint(const proto::common::ReplicateCheckpoint& rpc_checkpoint,
+                           ReplicateCheckpoint& checkpoint) {
+    checkpoint.SetClusterID(rpc_checkpoint.cluster_id());
+    checkpoint.SetPChannel(rpc_checkpoint.pchannel());
+    checkpoint.SetTimeTick(rpc_checkpoint.time_tick());
+
+    ReplicateMessageID message_id;
+    if (rpc_checkpoint.has_message_id()) {
+        message_id.SetID(rpc_checkpoint.message_id().id());
+        message_id.SetWalName(proto::common::WALName_Name(rpc_checkpoint.message_id().wal_name()));
+    }
+    checkpoint.SetMessageID(std::move(message_id));
+}
+
 bool
 IsValidTemplate(const nlohmann::json& filter_template) {
     return filter_template.is_boolean() || filter_template.is_number() || filter_template.is_string();
