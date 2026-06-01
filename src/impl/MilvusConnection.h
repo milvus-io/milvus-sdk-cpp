@@ -374,6 +374,10 @@ class MilvusConnection {
                                  proto::common::Status& response, const GrpcContextOptions& options);
 
     Status
+    GetReplicateInfo(const proto::milvus::GetReplicateInfoRequest& request,
+                     proto::milvus::GetReplicateInfoResponse& response, const GrpcContextOptions& options);
+
+    Status
     SelectUser(const proto::milvus::SelectUserRequest& request, proto::milvus::SelectUserResponse& response,
                const GrpcContextOptions& options);
 
@@ -425,6 +429,9 @@ class MilvusConnection {
 
     static Status
     StatusByProtoResponse(const proto::common::Status& status);
+
+    static Status
+    StatusByProtoResponse(const proto::milvus::GetReplicateInfoResponse& response);
 
     template <typename Response>
     static Status

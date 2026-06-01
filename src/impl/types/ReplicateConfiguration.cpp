@@ -122,6 +122,102 @@ CrossClusterTopology::WithTargetClusterID(const std::string& cluster_id) {
     return *this;
 }
 
+const std::string&
+ReplicateMessageID::ID() const {
+    return id_;
+}
+
+void
+ReplicateMessageID::SetID(const std::string& id) {
+    id_ = id;
+}
+
+ReplicateMessageID&
+ReplicateMessageID::WithID(const std::string& id) {
+    SetID(id);
+    return *this;
+}
+
+const std::string&
+ReplicateMessageID::WalName() const {
+    return wal_name_;
+}
+
+void
+ReplicateMessageID::SetWalName(const std::string& wal_name) {
+    wal_name_ = wal_name;
+}
+
+ReplicateMessageID&
+ReplicateMessageID::WithWalName(const std::string& wal_name) {
+    SetWalName(wal_name);
+    return *this;
+}
+
+const std::string&
+ReplicateCheckpoint::ClusterID() const {
+    return cluster_id_;
+}
+
+void
+ReplicateCheckpoint::SetClusterID(const std::string& cluster_id) {
+    cluster_id_ = cluster_id;
+}
+
+ReplicateCheckpoint&
+ReplicateCheckpoint::WithClusterID(const std::string& cluster_id) {
+    SetClusterID(cluster_id);
+    return *this;
+}
+
+const std::string&
+ReplicateCheckpoint::PChannel() const {
+    return pchannel_;
+}
+
+void
+ReplicateCheckpoint::SetPChannel(const std::string& pchannel) {
+    pchannel_ = pchannel;
+}
+
+ReplicateCheckpoint&
+ReplicateCheckpoint::WithPChannel(const std::string& pchannel) {
+    SetPChannel(pchannel);
+    return *this;
+}
+
+const ReplicateMessageID&
+ReplicateCheckpoint::MessageID() const {
+    return message_id_;
+}
+
+void
+ReplicateCheckpoint::SetMessageID(ReplicateMessageID&& message_id) {
+    message_id_ = std::move(message_id);
+}
+
+ReplicateCheckpoint&
+ReplicateCheckpoint::WithMessageID(ReplicateMessageID&& message_id) {
+    SetMessageID(std::move(message_id));
+    return *this;
+}
+
+uint64_t
+ReplicateCheckpoint::TimeTick() const {
+    return time_tick_;
+}
+
+void
+ReplicateCheckpoint::SetTimeTick(uint64_t time_tick) {
+    time_tick_ = time_tick;
+}
+
+ReplicateCheckpoint&
+ReplicateCheckpoint::WithTimeTick(uint64_t time_tick) {
+    SetTimeTick(time_tick);
+    return *this;
+}
+
 const std::vector<MilvusCluster>&
 ReplicateConfiguration::Clusters() const {
     return clusters_;

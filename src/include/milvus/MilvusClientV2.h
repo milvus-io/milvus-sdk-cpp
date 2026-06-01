@@ -47,6 +47,7 @@
 #include "request/collection/RenameCollectionRequest.h"
 #include "request/collection/TruncateCollectionRequest.h"
 #include "request/cdc/GetReplicateConfigurationRequest.h"
+#include "request/cdc/GetReplicateInfoRequest.h"
 #include "request/cdc/UpdateReplicateConfigurationRequest.h"
 #include "request/database/AlterDatabasePropertiesRequest.h"
 #include "request/database/CreateDatabaseRequest.h"
@@ -107,6 +108,7 @@
 #include "response/alias/DescribeAliasResponse.h"
 #include "response/alias/ListAliasesResponse.h"
 #include "response/cdc/GetReplicateConfigurationResponse.h"
+#include "response/cdc/GetReplicateInfoResponse.h"
 #include "response/collection/BatchDescribeCollectionsResponse.h"
 #include "response/collection/DescribeCollectionResponse.h"
 #include "response/collection/DescribeReplicasResponse.h"
@@ -931,6 +933,16 @@ class MILVUS_SDK_API MilvusClientV2 {
      */
     virtual Status
     UpdateReplicateConfiguration(const UpdateReplicateConfigurationRequest& request) = 0;
+
+    /**
+     * @brief Get replicate information for a channel.
+     *
+     * @param [in] request input parameters
+     * @param [out] response output results
+     * @return Status operation successfully or not
+     */
+    virtual Status
+    GetReplicateInfo(const GetReplicateInfoRequest& request, GetReplicateInfoResponse& response) = 0;
 
     /**
      * @brief Create a resource group. A resource group to physically isolate certain query nodes from others.
