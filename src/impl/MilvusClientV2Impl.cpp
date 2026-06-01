@@ -2459,6 +2459,27 @@ MilvusClientV2Impl::UpdateReplicateConfiguration(const UpdateReplicateConfigurat
 }
 
 Status
+MilvusClientV2Impl::GetReplicateInfo(const GetReplicateInfoRequest& request, GetReplicateInfoResponse& response) {
+    auto pre = [&request](proto::milvus::GetReplicateInfoRequest& rpc_request) {
+        rpc_request.set_source_cluster_id(request.SourceClusterID());
+        rpc_request.set_target_pchannel(request.TargetPChannel());
+        return Status::OK();
+    };
+
+    auto post = [&response](const proto::milvus::GetReplicateInfoResponse& rpc_response) {
+        ReplicateCheckpoint checkpoint;
+        if (rpc_response.has_checkpoint()) {
+            ConvertReplicateCheckpoint(rpc_response.checkpoint(), checkpoint);
+        }
+        response.SetCheckpoint(std::move(checkpoint));
+        return Status::OK();
+    };
+
+    return connection_.Invoke<proto::milvus::GetReplicateInfoRequest, proto::milvus::GetReplicateInfoResponse>(
+        pre, &MilvusConnection::GetReplicateInfo, post);
+}
+
+Status
 MilvusClientV2Impl::CreateResourceGroup(const CreateResourceGroupRequest& request) {
     auto pre = [&request](proto::milvus::CreateResourceGroupRequest& rpc_request) {
         rpc_request.set_resource_group(request.Name());

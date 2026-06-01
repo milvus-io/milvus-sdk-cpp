@@ -44,6 +44,58 @@ TEST_F(CrossClusterTopologyTest, GettersSettersAndFluentMethods) {
     EXPECT_EQ(topology.TargetClusterID(), "target");
 }
 
+class ReplicateMessageIDTest : public ::testing::Test {};
+
+TEST_F(ReplicateMessageIDTest, GettersSettersAndFluentMethods) {
+    milvus::ReplicateMessageID message_id;
+    EXPECT_TRUE(message_id.ID().empty());
+    EXPECT_TRUE(message_id.WalName().empty());
+
+    message_id.SetID("message-id");
+    message_id.SetWalName("Pulsar");
+    EXPECT_EQ(message_id.ID(), "message-id");
+    EXPECT_EQ(message_id.WalName(), "Pulsar");
+
+    auto& ref = message_id.WithID("new-message-id").WithWalName("Kafka");
+    EXPECT_EQ(&ref, &message_id);
+    EXPECT_EQ(message_id.ID(), "new-message-id");
+    EXPECT_EQ(message_id.WalName(), "Kafka");
+}
+
+class ReplicateCheckpointTest : public ::testing::Test {};
+
+TEST_F(ReplicateCheckpointTest, GettersSettersAndFluentMethods) {
+    milvus::ReplicateCheckpoint checkpoint;
+    EXPECT_TRUE(checkpoint.ClusterID().empty());
+    EXPECT_TRUE(checkpoint.PChannel().empty());
+    EXPECT_EQ(checkpoint.TimeTick(), 0);
+
+    milvus::ReplicateMessageID message_id;
+    message_id.WithID("message-id").WithWalName("Pulsar");
+    checkpoint.SetClusterID("cluster-a");
+    checkpoint.SetPChannel("by-dev-rootcoord-dml_0");
+    checkpoint.SetMessageID(std::move(message_id));
+    checkpoint.SetTimeTick(123);
+    EXPECT_EQ(checkpoint.ClusterID(), "cluster-a");
+    EXPECT_EQ(checkpoint.PChannel(), "by-dev-rootcoord-dml_0");
+    EXPECT_EQ(checkpoint.MessageID().ID(), "message-id");
+    EXPECT_EQ(checkpoint.MessageID().WalName(), "Pulsar");
+    EXPECT_EQ(checkpoint.TimeTick(), 123);
+
+    milvus::ReplicateMessageID new_message_id;
+    new_message_id.WithID("new-message-id").WithWalName("Kafka");
+    auto& ref = checkpoint.WithClusterID("cluster-b")
+                    .WithPChannel("by-dev-rootcoord-dml_1")
+                    .WithMessageID(std::move(new_message_id))
+                    .WithTimeTick(456);
+    EXPECT_EQ(&ref, &checkpoint);
+    EXPECT_EQ(checkpoint.ClusterID(), "cluster-b");
+    EXPECT_EQ(checkpoint.PChannel(), "by-dev-rootcoord-dml_1");
+    EXPECT_EQ(checkpoint.MessageID().ID(), "new-message-id");
+    EXPECT_EQ(checkpoint.MessageID().WalName(), "Kafka");
+    EXPECT_EQ(checkpoint.TimeTick(), 456);
+}
+
 class ReplicateConfigurationTest : public ::testing::Test {};
 
 TEST_F(ReplicateConfigurationTest, GettersSettersAndFluentMethods) {

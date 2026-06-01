@@ -16,6 +16,8 @@
 
 #include <gtest/gtest.h>
 
+#include <utility>
+
 #include "milvus/MilvusClientV2.h"
 
 class GetReplicateConfigurationResponseTest : public ::testing::Test {};
@@ -31,4 +33,25 @@ TEST_F(GetReplicateConfigurationResponseTest, SetterAndGetter) {
 
     ASSERT_EQ(response.Configuration().Clusters().size(), 1u);
     EXPECT_EQ(response.Configuration().Clusters()[0].ClusterID(), "cluster-a");
+}
+
+class GetReplicateInfoResponseTest : public ::testing::Test {};
+
+TEST_F(GetReplicateInfoResponseTest, SetterAndGetter) {
+    milvus::GetReplicateInfoResponse response;
+    milvus::ReplicateMessageID message_id;
+    message_id.WithID("message-id").WithWalName("Pulsar");
+    milvus::ReplicateCheckpoint checkpoint;
+    checkpoint.WithClusterID("cluster-a")
+        .WithPChannel("by-dev-rootcoord-dml_0")
+        .WithMessageID(std::move(message_id))
+        .WithTimeTick(123);
+
+    response.SetCheckpoint(std::move(checkpoint));
+
+    EXPECT_EQ(response.Checkpoint().ClusterID(), "cluster-a");
+    EXPECT_EQ(response.Checkpoint().PChannel(), "by-dev-rootcoord-dml_0");
+    EXPECT_EQ(response.Checkpoint().MessageID().ID(), "message-id");
+    EXPECT_EQ(response.Checkpoint().MessageID().WalName(), "Pulsar");
+    EXPECT_EQ(response.Checkpoint().TimeTick(), 123);
 }

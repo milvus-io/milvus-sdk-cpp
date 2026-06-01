@@ -136,6 +136,10 @@ void
 ConvertReplicateConfiguration(const proto::common::ReplicateConfiguration& rpc_config,
                               ReplicateConfiguration& configuration);
 
+void
+ConvertReplicateCheckpoint(const proto::common::ReplicateCheckpoint& rpc_checkpoint,
+                           ReplicateCheckpoint& checkpoint);
+
 bool
 IsValidTemplate(const nlohmann::json& filter_template);
 
