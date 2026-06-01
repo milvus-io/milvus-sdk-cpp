@@ -266,6 +266,9 @@ class MilvusClientV2Impl : public MilvusClientV2, public std::enable_shared_from
     UpdateReplicateConfiguration(const UpdateReplicateConfigurationRequest& request) final;
 
     Status
+    GetReplicateInfo(const GetReplicateInfoRequest& request, GetReplicateInfoResponse& response) final;
+
+    Status
     CreateResourceGroup(const CreateResourceGroupRequest& request) final;
 
     Status

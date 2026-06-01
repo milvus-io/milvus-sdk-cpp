@@ -49,3 +49,21 @@ TEST_F(GetReplicateConfigurationRequestTest, DefaultConstructible) {
     milvus::GetReplicateConfigurationRequest request;
     (void)request;
 }
+
+class GetReplicateInfoRequestTest : public ::testing::Test {};
+
+TEST_F(GetReplicateInfoRequestTest, GettersSettersAndFluentMethods) {
+    milvus::GetReplicateInfoRequest request;
+    EXPECT_TRUE(request.SourceClusterID().empty());
+    EXPECT_TRUE(request.TargetPChannel().empty());
+
+    request.SetSourceClusterID("cluster-a");
+    request.SetTargetPChannel("by-dev-rootcoord-dml_0");
+    EXPECT_EQ(request.SourceClusterID(), "cluster-a");
+    EXPECT_EQ(request.TargetPChannel(), "by-dev-rootcoord-dml_0");
+
+    auto& ref = request.WithSourceClusterID("cluster-b").WithTargetPChannel("by-dev-rootcoord-dml_1");
+    EXPECT_EQ(&ref, &request);
+    EXPECT_EQ(request.SourceClusterID(), "cluster-b");
+    EXPECT_EQ(request.TargetPChannel(), "by-dev-rootcoord-dml_1");
+}

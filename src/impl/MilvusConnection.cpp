@@ -73,6 +73,12 @@ MilvusConnection::StatusByProtoResponse(const proto::common::Status& status) {
     return Status::OK();
 }
 
+Status
+MilvusConnection::StatusByProtoResponse(const proto::milvus::GetReplicateInfoResponse& response) {
+    (void)response;
+    return Status::OK();
+}
+
 template <typename Response>
 Status
 MilvusConnection::StatusByProtoResponse(const Response& response) {
@@ -668,6 +674,13 @@ Status
 MilvusConnection::UpdateReplicateConfiguration(const proto::milvus::UpdateReplicateConfigurationRequest& request,
                                                proto::common::Status& response, const GrpcContextOptions& options) {
     return grpcCall("UpdateReplicateConfiguration", &Stub::UpdateReplicateConfiguration, request, response, options);
+}
+
+Status
+MilvusConnection::GetReplicateInfo(const proto::milvus::GetReplicateInfoRequest& request,
+                                    proto::milvus::GetReplicateInfoResponse& response,
+                                    const GrpcContextOptions& options) {
+    return grpcCall("GetReplicateInfo", &Stub::GetReplicateInfo, request, response, options);
 }
 
 Status
