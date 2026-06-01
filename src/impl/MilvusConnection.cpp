@@ -531,6 +531,19 @@ MilvusConnection::GetFlushState(const proto::milvus::GetFlushStateRequest& reque
 }
 
 Status
+MilvusConnection::FlushAll(const proto::milvus::FlushAllRequest& request, proto::milvus::FlushAllResponse& response,
+                           const GrpcContextOptions& options) {
+    return grpcCall("FlushAll", &Stub::FlushAll, request, response, options);
+}
+
+Status
+MilvusConnection::GetFlushAllState(const proto::milvus::GetFlushAllStateRequest& request,
+                                   proto::milvus::GetFlushAllStateResponse& response,
+                                   const GrpcContextOptions& options) {
+    return grpcCall("GetFlushAllState", &Stub::GetFlushAllState, request, response, options);
+}
+
+Status
 MilvusConnection::GetPersistentSegmentInfo(const proto::milvus::GetPersistentSegmentInfoRequest& request,
                                            proto::milvus::GetPersistentSegmentInfoResponse& response,
                                            const GrpcContextOptions& options) {

@@ -285,6 +285,14 @@ class MilvusConnection {
                   const GrpcContextOptions& options);
 
     Status
+    FlushAll(const proto::milvus::FlushAllRequest& request, proto::milvus::FlushAllResponse& response,
+             const GrpcContextOptions& options);
+
+    Status
+    GetFlushAllState(const proto::milvus::GetFlushAllStateRequest& request,
+                     proto::milvus::GetFlushAllStateResponse& response, const GrpcContextOptions& options);
+
+    Status
     GetPersistentSegmentInfo(const proto::milvus::GetPersistentSegmentInfoRequest& request,
                              proto::milvus::GetPersistentSegmentInfoResponse& response,
                              const GrpcContextOptions& options);

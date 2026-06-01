@@ -97,8 +97,10 @@
 #include "request/resourcegroup/UpdateResourceGroupsRequest.h"
 #include "request/utility/CheckHealthRequest.h"
 #include "request/utility/CompactRequest.h"
+#include "request/utility/FlushAllRequest.h"
 #include "request/utility/FlushRequest.h"
 #include "request/utility/GetCompactionRequest.h"
+#include "request/utility/GetFlushAllStateRequest.h"
 #include "request/utility/ListSegmentsRequest.h"
 #include "request/utility/OptimizeRequest.h"
 #include "request/utility/RunAnalyzerRequest.h"
@@ -131,8 +133,10 @@
 #include "response/resourcegroup/ListResourceGroupsResponse.h"
 #include "response/utility/CheckHealthResponse.h"
 #include "response/utility/CompactResponse.h"
+#include "response/utility/FlushAllResponse.h"
 #include "response/utility/GetCompactionPlansResponse.h"
 #include "response/utility/GetCompactionStateResponse.h"
+#include "response/utility/GetFlushAllStateResponse.h"
 #include "response/utility/ListSegmentsResponse.h"
 #include "response/utility/OptimizeResponse.h"
 #include "response/utility/RunAnalyzerResponse.h"
@@ -823,6 +827,28 @@ class MILVUS_SDK_API MilvusClientV2 {
      */
     virtual Status
     Flush(const FlushRequest& request) = 0;
+
+    /**
+     * @brief Flush all insert buffer data into storage.
+     * It will check flush-all state in a loop to make sure the data persisted successfully.
+     * FlushAllRequest.WaitFlushedMs controls the wait timeout; zero means forever.
+     *
+     * @param [in] request input parameters
+     * @param [out] response output results
+     * @return Status operation successfully or not
+     */
+    virtual Status
+    FlushAll(const FlushAllRequest& request, FlushAllResponse& response) = 0;
+
+    /**
+     * @brief Get flush-all action state.
+     *
+     * @param [in] request input parameters
+     * @param [out] response output results
+     * @return Status operation successfully or not
+     */
+    virtual Status
+    GetFlushAllState(const GetFlushAllStateRequest& request, GetFlushAllStateResponse& response) = 0;
 
     /**
      * @brief Retrieve information of persisted segments from data nodes.
