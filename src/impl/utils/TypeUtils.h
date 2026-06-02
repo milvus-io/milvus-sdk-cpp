@@ -107,6 +107,12 @@ SegmentStateCast(proto::common::SegmentState state);
 proto::common::SegmentState
 SegmentStateCast(SegmentState state);
 
+SegmentLevel
+SegmentLevelCast(proto::common::SegmentLevel level);
+
+proto::common::SegmentLevel
+SegmentLevelCast(SegmentLevel level);
+
 IndexStateCode
 IndexStateCast(proto::common::IndexState state);
 
@@ -137,8 +143,7 @@ ConvertReplicateConfiguration(const proto::common::ReplicateConfiguration& rpc_c
                               ReplicateConfiguration& configuration);
 
 void
-ConvertReplicateCheckpoint(const proto::common::ReplicateCheckpoint& rpc_checkpoint,
-                           ReplicateCheckpoint& checkpoint);
+ConvertReplicateCheckpoint(const proto::common::ReplicateCheckpoint& rpc_checkpoint, ReplicateCheckpoint& checkpoint);
 
 bool
 IsValidTemplate(const nlohmann::json& filter_template);

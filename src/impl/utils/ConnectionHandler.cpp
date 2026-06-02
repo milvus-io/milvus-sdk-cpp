@@ -109,8 +109,8 @@ ConnectionHandler::CurrentDbName(const std::string& overwrite_db_name) const {
 
 Status
 ConnectionHandler::GetLoadingProgress(const std::string& db_name, const std::string& collection_name,
-                                      const std::set<std::string> partition_names, uint32_t& progress,
-                                      uint64_t rpc_timeout_ms) {
+                                      const std::set<std::string>& partition_names, uint32_t& progress,
+                                      uint32_t& refresh_progress, uint64_t rpc_timeout_ms) {
     MilvusConnectionPtr connection;
     uint64_t timeout = 0;
     {
@@ -138,6 +138,7 @@ ConnectionHandler::GetLoadingProgress(const std::string& db_name, const std::str
         return status;
     }
     progress = static_cast<uint32_t>(progress_resp.progress());
+    refresh_progress = static_cast<uint32_t>(progress_resp.refresh_progress());
     return Status::OK();
 }
 
