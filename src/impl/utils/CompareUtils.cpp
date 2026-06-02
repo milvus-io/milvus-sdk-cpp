@@ -305,14 +305,19 @@ operator==(const proto::schema::FieldData& lhs, const Field& rhs) {
 bool
 operator==(const SegmentInfo& lhs, const SegmentInfo& rhs) {
     return lhs.CollectionID() == rhs.CollectionID() && lhs.PartitionID() == rhs.PartitionID() &&
-           lhs.RowCount() == rhs.RowCount() && lhs.SegmentID() == rhs.SegmentID() && lhs.State() == rhs.State();
+           lhs.RowCount() == rhs.RowCount() && lhs.SegmentID() == rhs.SegmentID() && lhs.State() == rhs.State() &&
+           lhs.CollectionName() == rhs.CollectionName() && lhs.Level() == rhs.Level() &&
+           lhs.StorageVersion() == rhs.StorageVersion() && lhs.IsSorted() == rhs.IsSorted();
 }
 
 bool
 operator==(const QuerySegmentInfo& lhs, const QuerySegmentInfo& rhs) {
     return lhs.CollectionID() == rhs.CollectionID() && lhs.PartitionID() == rhs.PartitionID() &&
            lhs.RowCount() == rhs.RowCount() && lhs.SegmentID() == rhs.SegmentID() && lhs.State() == rhs.State() &&
-           lhs.IndexName() == rhs.IndexName() && lhs.IndexID() == rhs.IndexID() && lhs.NodeID() == rhs.NodeID();
+           lhs.CollectionName() == rhs.CollectionName() && lhs.Level() == rhs.Level() &&
+           lhs.StorageVersion() == rhs.StorageVersion() && lhs.IsSorted() == rhs.IsSorted() &&
+           lhs.IndexName() == rhs.IndexName() && lhs.IndexID() == rhs.IndexID() && lhs.NodeIDs() == rhs.NodeIDs() &&
+           lhs.MemSize() == rhs.MemSize();
 }
 
 }  // namespace milvus

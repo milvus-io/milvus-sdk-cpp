@@ -34,6 +34,10 @@ TEST_F(SegmentInfoTest, GeneralTesting) {
     EXPECT_EQ(segment_id, info.SegmentID());
     EXPECT_EQ(row_count, info.RowCount());
     EXPECT_EQ(state, info.State());
+    EXPECT_TRUE(info.CollectionName().empty());
+    EXPECT_EQ(milvus::SegmentLevel::UNKNOWN, info.Level());
+    EXPECT_EQ(0, info.StorageVersion());
+    EXPECT_FALSE(info.IsSorted());
 
     std::string index_name = "IVF_FLAT";
     int64_t index_id = 5;
@@ -43,15 +47,40 @@ TEST_F(SegmentInfoTest, GeneralTesting) {
     EXPECT_EQ(index_name, query_info.IndexName());
     EXPECT_EQ(index_id, query_info.IndexID());
     EXPECT_EQ(node_ids, query_info.NodeIDs());
+    EXPECT_EQ(0, query_info.MemSize());
+}
+
+TEST_F(SegmentInfoTest, ExtendedSegmentInfoFields) {
+    milvus::SegmentInfo info(1, 2, 3, 4, milvus::SegmentState::FLUSHED, "coll", milvus::SegmentLevel::L1, 5, true);
+
+    EXPECT_EQ(1, info.CollectionID());
+    EXPECT_EQ(2, info.PartitionID());
+    EXPECT_EQ(3, info.SegmentID());
+    EXPECT_EQ(4, info.RowCount());
+    EXPECT_EQ(milvus::SegmentState::FLUSHED, info.State());
+    EXPECT_EQ("coll", info.CollectionName());
+    EXPECT_EQ(milvus::SegmentLevel::L1, info.Level());
+    EXPECT_EQ(5, info.StorageVersion());
+    EXPECT_TRUE(info.IsSorted());
+}
+
+TEST_F(SegmentInfoTest, ExtendedQuerySegmentInfoFields) {
+    std::vector<int64_t> node_ids{5, 6, 9};
+    milvus::QuerySegmentInfo query_info(1, 2, 3, 4, milvus::SegmentState::GROWING, "IVF_FLAT", 5, node_ids, "coll",
+                                        1024, milvus::SegmentLevel::L2, 6, true);
+
+    EXPECT_EQ("coll", query_info.CollectionName());
+    EXPECT_EQ(1024, query_info.MemSize());
+    EXPECT_EQ(milvus::SegmentLevel::L2, query_info.Level());
+    EXPECT_EQ(6, query_info.StorageVersion());
+    EXPECT_TRUE(query_info.IsSorted());
 }
 
 TEST_F(SegmentInfoTest, QuerySegmentInfoNodeID) {
     std::vector<int64_t> node_ids{5, 6, 9};
     milvus::QuerySegmentInfo query_info(1, 2, 3, 4, milvus::SegmentState::GROWING, "IVF_FLAT", 5, node_ids);
-    // NodeID() returns the first node id
     EXPECT_EQ(5, query_info.NodeID());
 
-    // empty node ids
     std::vector<int64_t> empty_ids;
     milvus::QuerySegmentInfo query_info2(1, 2, 3, 4, milvus::SegmentState::GROWING, "IVF_FLAT", 5, empty_ids);
     EXPECT_EQ(0, query_info2.NodeID());

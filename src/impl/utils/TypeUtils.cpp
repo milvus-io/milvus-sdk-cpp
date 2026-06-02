@@ -700,6 +700,38 @@ SegmentStateCast(SegmentState state) {
     }
 }
 
+SegmentLevel
+SegmentLevelCast(proto::common::SegmentLevel level) {
+    switch (level) {
+        case proto::common::SegmentLevel::Legacy:
+            return SegmentLevel::LEGACY;
+        case proto::common::SegmentLevel::L0:
+            return SegmentLevel::L0;
+        case proto::common::SegmentLevel::L1:
+            return SegmentLevel::L1;
+        case proto::common::SegmentLevel::L2:
+            return SegmentLevel::L2;
+        default:
+            return SegmentLevel::UNKNOWN;
+    }
+}
+
+proto::common::SegmentLevel
+SegmentLevelCast(SegmentLevel level) {
+    switch (level) {
+        case SegmentLevel::LEGACY:
+            return proto::common::SegmentLevel::Legacy;
+        case SegmentLevel::L0:
+            return proto::common::SegmentLevel::L0;
+        case SegmentLevel::L1:
+            return proto::common::SegmentLevel::L1;
+        case SegmentLevel::L2:
+            return proto::common::SegmentLevel::L2;
+        default:
+            return static_cast<proto::common::SegmentLevel>(-1);
+    }
+}
+
 IndexStateCode
 IndexStateCast(proto::common::IndexState state) {
     switch (state) {
@@ -887,8 +919,7 @@ ConvertReplicateConfiguration(const proto::common::ReplicateConfiguration& rpc_c
 }
 
 void
-ConvertReplicateCheckpoint(const proto::common::ReplicateCheckpoint& rpc_checkpoint,
-                           ReplicateCheckpoint& checkpoint) {
+ConvertReplicateCheckpoint(const proto::common::ReplicateCheckpoint& rpc_checkpoint, ReplicateCheckpoint& checkpoint) {
     checkpoint.SetClusterID(rpc_checkpoint.cluster_id());
     checkpoint.SetPChannel(rpc_checkpoint.pchannel());
     checkpoint.SetTimeTick(rpc_checkpoint.time_tick());

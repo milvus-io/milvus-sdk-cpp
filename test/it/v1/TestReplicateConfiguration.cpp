@@ -117,10 +117,10 @@ TEST_F(UnconnectMilvusMockedTest, GetReplicateConfigurationFailed) {
     auto client = CreateConnectedV2Client(service_, server_.ListenPort());
 
     EXPECT_CALL(service_, GetReplicateConfiguration(_, _, _))
-        .WillOnce([](::grpc::ServerContext*, const GetReplicateConfigurationRequest*,
-                     GetReplicateConfigurationResponse*) {
-            return ::grpc::Status{::grpc::StatusCode::UNAVAILABLE, "unavailable"};
-        });
+        .WillOnce(
+            [](::grpc::ServerContext*, const GetReplicateConfigurationRequest*, GetReplicateConfigurationResponse*) {
+                return ::grpc::Status{::grpc::StatusCode::UNAVAILABLE, "unavailable"};
+            });
 
     milvus::GetReplicateConfigurationResponse response;
     auto status = client->GetReplicateConfiguration(milvus::GetReplicateConfigurationRequest{}, response);
@@ -159,10 +159,10 @@ TEST_F(UnconnectMilvusMockedTest, UpdateReplicateConfigurationFailed) {
     auto client = CreateConnectedV2Client(service_, server_.ListenPort());
 
     EXPECT_CALL(service_, UpdateReplicateConfiguration(_, _, _))
-        .WillOnce([](::grpc::ServerContext*, const UpdateReplicateConfigurationRequest*,
-                     ::milvus::proto::common::Status*) {
-            return ::grpc::Status{::grpc::StatusCode::UNAVAILABLE, "unavailable"};
-        });
+        .WillOnce(
+            [](::grpc::ServerContext*, const UpdateReplicateConfigurationRequest*, ::milvus::proto::common::Status*) {
+                return ::grpc::Status{::grpc::StatusCode::UNAVAILABLE, "unavailable"};
+            });
 
     milvus::UpdateReplicateConfigurationRequest request;
     request.WithConfiguration(CreateConfiguration());
@@ -176,19 +176,19 @@ TEST_F(UnconnectMilvusMockedTest, GetReplicateInfo) {
     auto client = CreateConnectedV2Client(service_, server_.ListenPort());
 
     EXPECT_CALL(service_, GetReplicateInfo(_, _, _))
-        .WillOnce([](::grpc::ServerContext*, const GetReplicateInfoRequest* request,
-                     GetReplicateInfoResponse* response) {
-            EXPECT_EQ(request->source_cluster_id(), "cluster-a");
-            EXPECT_EQ(request->target_pchannel(), "by-dev-rootcoord-dml_0");
-            auto checkpoint = response->mutable_checkpoint();
-            checkpoint->set_cluster_id("cluster-a");
-            checkpoint->set_pchannel("by-dev-rootcoord-dml_0");
-            checkpoint->set_time_tick(123);
-            auto message_id = checkpoint->mutable_message_id();
-            message_id->set_id("message-id");
-            message_id->set_wal_name(::milvus::proto::common::WALName::Pulsar);
-            return ::grpc::Status{};
-        });
+        .WillOnce(
+            [](::grpc::ServerContext*, const GetReplicateInfoRequest* request, GetReplicateInfoResponse* response) {
+                EXPECT_EQ(request->source_cluster_id(), "cluster-a");
+                EXPECT_EQ(request->target_pchannel(), "by-dev-rootcoord-dml_0");
+                auto checkpoint = response->mutable_checkpoint();
+                checkpoint->set_cluster_id("cluster-a");
+                checkpoint->set_pchannel("by-dev-rootcoord-dml_0");
+                checkpoint->set_time_tick(123);
+                auto message_id = checkpoint->mutable_message_id();
+                message_id->set_id("message-id");
+                message_id->set_wal_name(::milvus::proto::common::WALName::Pulsar);
+                return ::grpc::Status{};
+            });
 
     milvus::GetReplicateInfoRequest request;
     request.WithSourceClusterID("cluster-a").WithTargetPChannel("by-dev-rootcoord-dml_0");
