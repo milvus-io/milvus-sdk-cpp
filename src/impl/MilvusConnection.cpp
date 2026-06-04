@@ -678,8 +678,8 @@ MilvusConnection::UpdateReplicateConfiguration(const proto::milvus::UpdateReplic
 
 Status
 MilvusConnection::GetReplicateInfo(const proto::milvus::GetReplicateInfoRequest& request,
-                                    proto::milvus::GetReplicateInfoResponse& response,
-                                    const GrpcContextOptions& options) {
+                                   proto::milvus::GetReplicateInfoResponse& response,
+                                   const GrpcContextOptions& options) {
     return grpcCall("GetReplicateInfo", &Stub::GetReplicateInfo, request, response, options);
 }
 

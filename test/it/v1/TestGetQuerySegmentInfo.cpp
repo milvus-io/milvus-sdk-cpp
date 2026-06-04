@@ -46,8 +46,10 @@ TEST_F(MilvusMockedTest, GetQuerySegmentInfo) {
     milvus::QuerySegmentsInfo segments_info;
 
     milvus::QuerySegmentsInfo segments_info_expected = {
-        milvus::QuerySegmentInfo{1, 1, 1, 1, milvus::SegmentState::FLUSHED, "foo", 1, std::vector<int64_t>{1}},
-        milvus::QuerySegmentInfo{2, 3, 4, 5, milvus::SegmentState::DROPPED, "bar", 6, std::vector<int64_t>{7}}};
+        milvus::QuerySegmentInfo{1, 1, 1, 1, milvus::SegmentState::FLUSHED, "foo", 1, std::vector<int64_t>{1},
+                                 collection, 1024, milvus::SegmentLevel::L1, 10, true},
+        milvus::QuerySegmentInfo{2, 3, 4, 5, milvus::SegmentState::DROPPED, "bar", 6, std::vector<int64_t>{7, 8},
+                                 collection, 2048, milvus::SegmentLevel::L2, 11, false}};
 
     EXPECT_CALL(service_, GetQuerySegmentInfo(_, Property(&GetQuerySegmentInfoRequest::collectionname, collection), _))
         .WillOnce([&segments_info_expected](::grpc::ServerContext*, const GetQuerySegmentInfoRequest*,
@@ -61,6 +63,10 @@ TEST_F(MilvusMockedTest, GetQuerySegmentInfo) {
                 info->set_state(milvus::SegmentStateCast(info_exp.State()));
                 info->set_index_name(info_exp.IndexName());
                 info->set_indexid(info_exp.IndexID());
+                info->set_mem_size(info_exp.MemSize());
+                info->set_level(milvus::SegmentLevelCast(info_exp.Level()));
+                info->set_storage_version(info_exp.StorageVersion());
+                info->set_is_sorted(info_exp.IsSorted());
                 for (auto id : info_exp.NodeIDs()) {
                     info->add_nodeids(id);
                 }

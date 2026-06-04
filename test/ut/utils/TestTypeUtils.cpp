@@ -376,6 +376,18 @@ TEST_F(TypeUtilsTest, SegmentStateCast) {
     }
 }
 
+TEST_F(TypeUtilsTest, SegmentLevelCast) {
+    auto values = {milvus::SegmentLevel::LEGACY, milvus::SegmentLevel::L0, milvus::SegmentLevel::L1,
+                   milvus::SegmentLevel::L2};
+    for (auto value : values) {
+        EXPECT_EQ(milvus::SegmentLevelCast(milvus::SegmentLevelCast(value)), value);
+    }
+    auto unknown_proto = milvus::SegmentLevelCast(milvus::SegmentLevel::UNKNOWN);
+    EXPECT_EQ(milvus::SegmentLevel::UNKNOWN, milvus::SegmentLevelCast(unknown_proto));
+    EXPECT_EQ(milvus::SegmentLevel::UNKNOWN,
+              milvus::SegmentLevelCast(static_cast<milvus::proto::common::SegmentLevel>(-1)));
+}
+
 TEST_F(TypeUtilsTest, IndexStateCast) {
     const std::vector<std::pair<milvus::proto::common::IndexState, milvus::IndexStateCode>> states = {
         {milvus::proto::common::IndexState::IndexStateNone, milvus::IndexStateCode::NONE},

@@ -312,8 +312,15 @@ MilvusClientV2Impl::LoadCollection(const LoadCollectionRequest& request) {
                 progress.total_ = 100;
                 auto db_name = connection_.CurrentDbName(request.DatabaseName());
                 std::set<std::string> partition_names;
-                return connection_.GetLoadingProgress(db_name, request.CollectionName(), partition_names,
-                                                      progress.finished_);
+                uint32_t loading_progress = 0;
+                uint32_t refresh_progress = 0;
+                auto status = connection_.GetLoadingProgress(db_name, request.CollectionName(), partition_names,
+                                                             loading_progress, refresh_progress);
+                if (!status.IsOk()) {
+                    return status;
+                }
+                progress.finished_ = request.Refresh() ? refresh_progress : loading_progress;
+                return Status::OK();
             },
             progress_monitor);
     };
@@ -350,8 +357,15 @@ MilvusClientV2Impl::refreshLoad(const RefreshLoadRequest& request, uint64_t rpc_
                 progress.total_ = 100;
                 auto db_name = connection_.CurrentDbName(request.DatabaseName());
                 std::set<std::string> partition_names;
-                return connection_.GetLoadingProgress(db_name, request.CollectionName(), partition_names,
-                                                      progress.finished_, rpc_timeout_ms);
+                uint32_t loading_progress = 0;
+                uint32_t refresh_progress = 0;
+                auto status = connection_.GetLoadingProgress(db_name, request.CollectionName(), partition_names,
+                                                             loading_progress, refresh_progress, rpc_timeout_ms);
+                if (!status.IsOk()) {
+                    return status;
+                }
+                progress.finished_ = refresh_progress;
+                return Status::OK();
             },
             progress_monitor);
     };
@@ -585,10 +599,13 @@ MilvusClientV2Impl::getLoadState(const GetLoadStateRequest& request, GetLoadStat
         auto state = rpc_response.state();
         response.SetState(LoadStateCast(state));
 
+        response.SetProgress(0);
         if (state == proto::common::LoadState::LoadStateLoading) {
             uint32_t progress = 0;
-            auto status = connection_.GetLoadingProgress(request.DatabaseName(), request.CollectionName(),
-                                                         request.PartitionNames(), progress, rpc_timeout_ms);
+            uint32_t refresh_progress = 0;
+            auto status =
+                connection_.GetLoadingProgress(request.DatabaseName(), request.CollectionName(),
+                                               request.PartitionNames(), progress, refresh_progress, rpc_timeout_ms);
             if (!status.IsOk()) {
                 return status;
             }
@@ -830,8 +847,15 @@ MilvusClientV2Impl::LoadPartitions(const LoadPartitionsRequest& request) {
             [&request, this](Progress& progress) -> Status {
                 progress.total_ = 100;
                 auto db_name = connection_.CurrentDbName(request.DatabaseName());
-                return connection_.GetLoadingProgress(db_name, request.CollectionName(), request.PartitionNames(),
-                                                      progress.finished_);
+                uint32_t loading_progress = 0;
+                uint32_t refresh_progress = 0;
+                auto status = connection_.GetLoadingProgress(db_name, request.CollectionName(), request.PartitionNames(),
+                                                             loading_progress, refresh_progress);
+                if (!status.IsOk()) {
+                    return status;
+                }
+                progress.finished_ = request.Refresh() ? refresh_progress : loading_progress;
+                return Status::OK();
             },
             progress_monitor);
     };
@@ -1919,8 +1943,8 @@ MilvusClientV2Impl::FlushAll(const FlushAllRequest& request, FlushAllResponse& r
 
     auto wait_for_status = [this, &request, &progress_monitor](const proto::milvus::FlushAllResponse& rpc_response) {
         GetFlushAllStateRequest state_request = GetFlushAllStateRequest()
-                                                   .WithDatabaseName(request.DatabaseName())
-                                                   .WithFlushAllTs(rpc_response.flush_all_ts());
+                                                    .WithDatabaseName(request.DatabaseName())
+                                                    .WithFlushAllTs(rpc_response.flush_all_ts());
         return ConnectionHandler::WaitForStatus(
             [this, &state_request](Progress& p) -> Status {
                 p.total_ = 1;
@@ -1951,7 +1975,7 @@ MilvusClientV2Impl::GetFlushAllState(const GetFlushAllStateRequest& request, Get
 
 Status
 MilvusClientV2Impl::getFlushAllState(const GetFlushAllStateRequest& request, GetFlushAllStateResponse& response,
-                                      uint64_t rpc_timeout_ms) {
+                                     uint64_t rpc_timeout_ms) {
     auto pre = [&request](proto::milvus::GetFlushAllStateRequest& rpc_request) {
         rpc_request.set_db_name(request.DatabaseName());
         rpc_request.set_flush_all_ts(request.FlushAllTs());
@@ -1977,12 +2001,13 @@ MilvusClientV2Impl::ListPersistentSegments(const ListPersistentSegmentsRequest& 
         return Status::OK();
     };
 
-    auto post = [&response](const proto::milvus::GetPersistentSegmentInfoResponse& rpc_response) {
+    auto post = [&request, &response](const proto::milvus::GetPersistentSegmentInfoResponse& rpc_response) {
         SegmentsInfo segments_info;
         segments_info.reserve(rpc_response.infos_size());
         for (const auto& info : rpc_response.infos()) {
             segments_info.emplace_back(info.collectionid(), info.partitionid(), info.segmentid(), info.num_rows(),
-                                       SegmentStateCast(info.state()));
+                                       SegmentStateCast(info.state()), request.CollectionName(),
+                                       SegmentLevelCast(info.level()), info.storage_version(), info.is_sorted());
         }
         response.SetResult(std::move(segments_info));
         return Status::OK();
@@ -2001,16 +2026,19 @@ MilvusClientV2Impl::ListQuerySegments(const ListQuerySegmentsRequest& request, L
         return Status::OK();
     };
 
-    auto post = [&response](const proto::milvus::GetQuerySegmentInfoResponse& rpc_response) {
+    auto post = [&request, &response](const proto::milvus::GetQuerySegmentInfoResponse& rpc_response) {
         QuerySegmentsInfo segments_info;
         segments_info.reserve(rpc_response.infos_size());
         for (const auto& info : rpc_response.infos()) {
             std::vector<int64_t> ids;
+            ids.reserve(info.nodeids_size());
             for (auto id : info.nodeids()) {
                 ids.push_back(id);
             }
             segments_info.emplace_back(info.collectionid(), info.partitionid(), info.segmentid(), info.num_rows(),
-                                       milvus::SegmentStateCast(info.state()), info.index_name(), info.indexid(), ids);
+                                       milvus::SegmentStateCast(info.state()), info.index_name(), info.indexid(), ids,
+                                       request.CollectionName(), info.mem_size(), SegmentLevelCast(info.level()),
+                                       info.storage_version(), info.is_sorted());
         }
         response.SetResult(std::move(segments_info));
         return Status::OK();
@@ -2433,7 +2461,7 @@ MilvusClientV2Impl::GetCompactionPlans(const GetCompactionPlansRequest& request,
 
 Status
 MilvusClientV2Impl::GetReplicateConfiguration(const GetReplicateConfigurationRequest& request,
-                                               GetReplicateConfigurationResponse& response) {
+                                              GetReplicateConfigurationResponse& response) {
     auto post = [&response](const proto::milvus::GetReplicateConfigurationResponse& rpc_response) {
         ReplicateConfiguration configuration;
         ConvertReplicateConfiguration(rpc_response.configuration(), configuration);

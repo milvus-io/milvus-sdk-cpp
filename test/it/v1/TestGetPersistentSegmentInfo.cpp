@@ -45,8 +45,10 @@ TEST_F(MilvusMockedTest, GetPersistentSegmentInfo) {
     std::string collection = "foo";
     milvus::SegmentsInfo segments_info;
 
-    milvus::SegmentsInfo segments_info_expected = {milvus::SegmentInfo{1, 1, 1, 1, milvus::SegmentState::FLUSHED},
-                                                   milvus::SegmentInfo{2, 3, 4, 5, milvus::SegmentState::DROPPED}};
+    milvus::SegmentsInfo segments_info_expected = {
+        milvus::SegmentInfo{1, 1, 1, 1, milvus::SegmentState::FLUSHED, collection, milvus::SegmentLevel::L1, 10, true},
+        milvus::SegmentInfo{2, 3, 4, 5, milvus::SegmentState::DROPPED, collection, milvus::SegmentLevel::L2, 11,
+                            false}};
 
     EXPECT_CALL(service_,
                 GetPersistentSegmentInfo(_, Property(&GetPersistentSegmentInfoRequest::collectionname, collection), _))
@@ -59,6 +61,9 @@ TEST_F(MilvusMockedTest, GetPersistentSegmentInfo) {
                 info->set_segmentid(info_exp.SegmentID());
                 info->set_num_rows(info_exp.RowCount());
                 info->set_state(milvus::SegmentStateCast(info_exp.State()));
+                info->set_level(milvus::SegmentLevelCast(info_exp.Level()));
+                info->set_storage_version(info_exp.StorageVersion());
+                info->set_is_sorted(info_exp.IsSorted());
             }
             return ::grpc::Status{};
         });

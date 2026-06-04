@@ -51,6 +51,7 @@ set_option_category("Build")
 
 define_option(MILVUS_BUILD_TEST "Build with testing" OFF)
 define_option(MILVUS_BUILD_COVERAGE "Build with coverage" OFF)
+define_option(MILVUS_BUILD_EXAMPLES "Build examples" ON)
 
 if (DEFINED MILVUS_SDK_VERSION)
     message("MILVUS_SDK_VERSION = ${MILVUS_SDK_VERSION}")
@@ -133,6 +134,9 @@ add_subdirectory(src)
 
 if (MILVUS_BUILD_TEST)
     add_subdirectory(test)
+endif ()
+
+if (MILVUS_BUILD_EXAMPLES)
     add_subdirectory(examples)
 endif ()
 
