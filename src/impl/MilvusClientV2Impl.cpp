@@ -849,8 +849,8 @@ MilvusClientV2Impl::LoadPartitions(const LoadPartitionsRequest& request) {
                 auto db_name = connection_.CurrentDbName(request.DatabaseName());
                 uint32_t loading_progress = 0;
                 uint32_t refresh_progress = 0;
-                auto status = connection_.GetLoadingProgress(db_name, request.CollectionName(), request.PartitionNames(),
-                                                             loading_progress, refresh_progress);
+                auto status = connection_.GetLoadingProgress(
+                    db_name, request.CollectionName(), request.PartitionNames(), loading_progress, refresh_progress);
                 if (!status.IsOk()) {
                     return status;
                 }
