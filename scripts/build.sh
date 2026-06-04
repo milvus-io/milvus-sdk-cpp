@@ -32,7 +32,7 @@ BUILD_SHARED_LIBS=${BUILD_SHARED_LIBS:-ON}
 BUILD_FROM_CONAN="ON"
 
 
-JOBS="$(nproc 2>/dev/null || sysctl -n hw.logicalcpu 2>/dev/null || echo 3)"
+JOBS="${JOBS:-$(nproc 2>/dev/null || sysctl -n hw.logicalcpu 2>/dev/null || echo 3)}"
 if [ ${JOBS} -lt 3 ] ; then
     JOBS=3
 fi
@@ -216,11 +216,22 @@ if [[ -n "${MILVUS_SDK_VERSION}" ]]; then
   CMAKE_VERSION_ARG="-DMILVUS_SDK_VERSION=${MILVUS_SDK_VERSION}"
 fi
 
+CMAKE_BUILD_EXAMPLES=${CMAKE_BUILD_EXAMPLES:-ON}
+case "${CMAKE_BUILD_EXAMPLES}" in
+  ON|OFF)
+    ;;
+  *)
+    echo "ERROR! CMAKE_BUILD_EXAMPLES must be ON or OFF"
+    exit 1
+    ;;
+esac
+
 CMAKE_CMD="cmake \
 -DCMAKE_TOOLCHAIN_FILE=${TOOLCHAIN_FILE} \
 -DCMAKE_BUILD_TYPE=${BUILD_TYPE} \
 -DMILVUS_BUILD_TEST=${BUILD_TEST} \
 -DMILVUS_BUILD_COVERAGE=${BUILD_COVERAGE} \
+-DMILVUS_BUILD_EXAMPLES=${CMAKE_BUILD_EXAMPLES} \
 ${CMAKE_VERSION_ARG} \
 -DCMAKE_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX} \
 -DBUILD_SHARED_LIBS=${BUILD_SHARED_LIBS} \

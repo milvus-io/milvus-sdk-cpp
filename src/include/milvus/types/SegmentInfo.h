@@ -38,6 +38,17 @@ enum class SegmentState {
 };
 
 /**
+ * @brief Level of segment.
+ */
+enum class SegmentLevel {
+    UNKNOWN = -1,
+    LEGACY = 0,
+    L0 = 1,
+    L1 = 2,
+    L2 = 3,
+};
+
+/**
  * @brief Persisted segment information returned by MilvusClient::GetPersistentSegmentInfo().
  */
 class MILVUS_SDK_API SegmentInfo {
@@ -46,6 +57,12 @@ class MILVUS_SDK_API SegmentInfo {
      * @brief Constructor
      */
     SegmentInfo(int64_t collection_id, int64_t partition_id, int64_t segment_id, int64_t row_count, SegmentState state);
+
+    /**
+     * @brief Constructor
+     */
+    SegmentInfo(int64_t collection_id, int64_t partition_id, int64_t segment_id, int64_t row_count, SegmentState state,
+                std::string collection_name, SegmentLevel level, int64_t storage_version, bool is_sorted);
 
     /**
      * @brief The collection id which this segment belong to.
@@ -76,6 +93,30 @@ class MILVUS_SDK_API SegmentInfo {
     SegmentState
     State() const;
 
+    /**
+     * @brief The collection name which this segment belongs to.
+     */
+    const std::string&
+    CollectionName() const;
+
+    /**
+     * @brief Level of the segment.
+     */
+    SegmentLevel
+    Level() const;
+
+    /**
+     * @brief Storage version of the segment.
+     */
+    int64_t
+    StorageVersion() const;
+
+    /**
+     * @brief Whether the segment is sorted.
+     */
+    bool
+    IsSorted() const;
+
  private:
     int64_t collection_id_{0};
     int64_t partition_id_{0};
@@ -83,6 +124,10 @@ class MILVUS_SDK_API SegmentInfo {
     int64_t row_count_{0};
 
     SegmentState state_{SegmentState::UNKNOWN};
+    std::string collection_name_;
+    SegmentLevel level_{SegmentLevel::UNKNOWN};
+    int64_t storage_version_{0};
+    bool is_sorted_{false};
 };
 
 /**
@@ -101,6 +146,14 @@ class MILVUS_SDK_API QuerySegmentInfo : public SegmentInfo {
     QuerySegmentInfo(int64_t collection_id, int64_t partition_id, int64_t segment_id, int64_t row_count,
                      SegmentState state, std::string index_name, int64_t index_id,
                      const std::vector<int64_t>& node_ids);
+
+    /**
+     * @brief Constructor
+     */
+    QuerySegmentInfo(int64_t collection_id, int64_t partition_id, int64_t segment_id, int64_t row_count,
+                     SegmentState state, std::string index_name, int64_t index_id, const std::vector<int64_t>& node_ids,
+                     std::string collection_name, int64_t mem_size, SegmentLevel level, int64_t storage_version,
+                     bool is_sorted);
 
     /**
      * @brief Index name of the segment.
@@ -128,10 +181,17 @@ class MILVUS_SDK_API QuerySegmentInfo : public SegmentInfo {
     const std::vector<int64_t>&
     NodeIDs() const;
 
+    /**
+     * @brief Memory size of the segment.
+     */
+    int64_t
+    MemSize() const;
+
  private:
     std::string index_name_;
     int64_t index_id_{0};
     std::vector<int64_t> node_ids_;
+    int64_t mem_size_{0};
 };
 
 /**

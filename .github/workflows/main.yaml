@@ -153,7 +153,7 @@ jobs:
           sh scripts/install_deps.sh
       - name: Testing With Coverage
         run: |
-          make coverage
+          JOBS=4 CMAKE_BUILD_EXAMPLES=OFF make coverage
       - name: Upload coverage
         uses: codecov/codecov-action@v5
         with:

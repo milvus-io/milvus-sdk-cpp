@@ -174,7 +174,9 @@ MilvusClientImpl::LoadCollection(const std::string& collection_name, int replica
                 progress.total_ = 100;
                 auto db_name = connection_.CurrentDbName("");
                 std::set<std::string> partition_names;
-                return connection_.GetLoadingProgress(db_name, collection_name, partition_names, progress.finished_);
+                uint32_t refresh_progress = 0;
+                return connection_.GetLoadingProgress(db_name, collection_name, partition_names, progress.finished_,
+                                                      refresh_progress);
             },
             progress_monitor);
     };
@@ -411,8 +413,9 @@ MilvusClientImpl::LoadPartitions(const std::string& collection_name, const std::
                 for (const auto& name : partition_names) {
                     unique_partition_names.insert(name);
                 }
+                uint32_t refresh_progress = 0;
                 return connection_.GetLoadingProgress(db_name, collection_name, unique_partition_names,
-                                                      progress.finished_);
+                                                      progress.finished_, refresh_progress);
             },
             progress_monitor);
     };
@@ -1481,10 +1484,11 @@ MilvusClientImpl::GetPersistentSegmentInfo(const std::string& collection_name, S
         return Status::OK();
     };
 
-    auto post = [&segments_info](const proto::milvus::GetPersistentSegmentInfoResponse& response) {
+    auto post = [&collection_name, &segments_info](const proto::milvus::GetPersistentSegmentInfoResponse& response) {
         for (const auto& info : response.infos()) {
             segments_info.emplace_back(info.collectionid(), info.partitionid(), info.segmentid(), info.num_rows(),
-                                       SegmentStateCast(info.state()));
+                                       SegmentStateCast(info.state()), collection_name, SegmentLevelCast(info.level()),
+                                       info.storage_version(), info.is_sorted());
         }
         return Status::OK();
     };
@@ -1501,14 +1505,17 @@ MilvusClientImpl::GetQuerySegmentInfo(const std::string& collection_name, QueryS
         return Status::OK();
     };
 
-    auto post = [&segments_info](const proto::milvus::GetQuerySegmentInfoResponse& response) {
+    auto post = [&collection_name, &segments_info](const proto::milvus::GetQuerySegmentInfoResponse& response) {
         for (const auto& info : response.infos()) {
             std::vector<int64_t> ids;
+            ids.reserve(info.nodeids_size());
             for (auto id : info.nodeids()) {
                 ids.push_back(id);
             }
             segments_info.emplace_back(info.collectionid(), info.partitionid(), info.segmentid(), info.num_rows(),
-                                       milvus::SegmentStateCast(info.state()), info.index_name(), info.indexid(), ids);
+                                       milvus::SegmentStateCast(info.state()), info.index_name(), info.indexid(), ids,
+                                       collection_name, info.mem_size(), SegmentLevelCast(info.level()),
+                                       info.storage_version(), info.is_sorted());
         }
         return Status::OK();
     };

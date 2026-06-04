@@ -54,13 +54,13 @@ TEST_F(UnconnectMilvusMockedTest, FlushAll) {
             return ::grpc::Status{};
         });
     EXPECT_CALL(service_, GetFlushAllState(_, _, _))
-        .WillOnce([](::grpc::ServerContext*, const GetFlushAllStateRequest* request,
-                     GetFlushAllStateResponse* response) {
-            EXPECT_EQ(request->db_name(), "db1");
-            EXPECT_EQ(request->flush_all_ts(), 12345);
-            response->set_flushed(true);
-            return ::grpc::Status{};
-        });
+        .WillOnce(
+            [](::grpc::ServerContext*, const GetFlushAllStateRequest* request, GetFlushAllStateResponse* response) {
+                EXPECT_EQ(request->db_name(), "db1");
+                EXPECT_EQ(request->flush_all_ts(), 12345);
+                response->set_flushed(true);
+                return ::grpc::Status{};
+            });
 
     milvus::FlushAllResponse response;
     auto status = client->FlushAll(milvus::FlushAllRequest().WithDatabaseName("db1"), response);
@@ -104,13 +104,13 @@ TEST_F(UnconnectMilvusMockedTest, GetFlushAllState) {
     auto client = CreateConnectedV2Client(service_, server_.ListenPort());
 
     EXPECT_CALL(service_, GetFlushAllState(_, _, _))
-        .WillOnce([](::grpc::ServerContext*, const GetFlushAllStateRequest* request,
-                     GetFlushAllStateResponse* response) {
-            EXPECT_EQ(request->db_name(), "db1");
-            EXPECT_EQ(request->flush_all_ts(), 12345);
-            response->set_flushed(true);
-            return ::grpc::Status{};
-        });
+        .WillOnce(
+            [](::grpc::ServerContext*, const GetFlushAllStateRequest* request, GetFlushAllStateResponse* response) {
+                EXPECT_EQ(request->db_name(), "db1");
+                EXPECT_EQ(request->flush_all_ts(), 12345);
+                response->set_flushed(true);
+                return ::grpc::Status{};
+            });
 
     milvus::GetFlushAllStateResponse response;
     auto status = client->GetFlushAllState(
