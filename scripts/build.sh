@@ -30,7 +30,7 @@ DO_INSTALL="OFF"
 CMAKE_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX:-/usr/local}
 BUILD_SHARED_LIBS=${BUILD_SHARED_LIBS:-ON}
 BUILD_FROM_CONAN="ON"
-
+CPPSTD=${CPPSTD:-14}
 
 JOBS="${JOBS:-$(nproc 2>/dev/null || sysctl -n hw.logicalcpu 2>/dev/null || echo 3)}"
 if [ ${JOBS} -lt 3 ] ; then
@@ -133,7 +133,6 @@ if [[ "${BUILD_FROM_CONAN}" == "ON" ]]; then
   # Dependencies must come from Conan; external gRPC is not supported.
   # Users can override the Conan executable via CONAN.
   CONAN=${CONAN:-conan}
-  CPPSTD=${CPPSTD:-14}
   CONAN_LIBCXX_SETTINGS=()
   if [[ -n "${CONAN_LIBCXX:-}" ]]; then
     CONAN_LIBCXX_SETTINGS+=("-s" "compiler.libcxx=${CONAN_LIBCXX}")
@@ -229,6 +228,7 @@ esac
 CMAKE_CMD="cmake \
 -DCMAKE_TOOLCHAIN_FILE=${TOOLCHAIN_FILE} \
 -DCMAKE_BUILD_TYPE=${BUILD_TYPE} \
+-DCMAKE_CXX_STANDARD=${CPPSTD} \
 -DMILVUS_BUILD_TEST=${BUILD_TEST} \
 -DMILVUS_BUILD_COVERAGE=${BUILD_COVERAGE} \
 -DMILVUS_BUILD_EXAMPLES=${CMAKE_BUILD_EXAMPLES} \
