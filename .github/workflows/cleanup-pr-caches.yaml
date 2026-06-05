@@ -10,11 +10,34 @@ permissions:
   pull-requests: read
 
 jobs:
-  # When a PR is closed, delete all GitHub Actions caches associated with the PR's merge ref (refs/pull/PR_NUMBER/merge).
+  # When a PR is closed, cancel any still-running pull_request workflow runs for
+  # that PR and delete all GitHub Actions caches associated with the PR's merge
+  # ref (refs/pull/PR_NUMBER/merge).
   cleanup:
-    name: Cleanup PR caches
+    name: Cleanup PR actions state
     runs-on: ubuntu-latest
     steps:
+      - name: Cancel PR workflow runs
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          RUN_ID: ${{ github.run_id }}
+        run: |
+          set -euo pipefail
+          run_ids=$(gh api --paginate "repos/$GH_REPO/actions/runs?event=pull_request&status=in_progress&per_page=100" --jq '.workflow_runs[] | select(.id != (env.RUN_ID | tonumber) and any(.pull_requests[]?; .number == (env.PR_NUMBER | tonumber))) | .id')
+          queued_run_ids=$(gh api --paginate "repos/$GH_REPO/actions/runs?event=pull_request&status=queued&per_page=100" --jq '.workflow_runs[] | select(.id != (env.RUN_ID | tonumber) and any(.pull_requests[]?; .number == (env.PR_NUMBER | tonumber))) | .id')
+          run_ids=$(printf '%s\n%s\n' "$run_ids" "$queued_run_ids" | sed '/^$/d' | sort -u)
+          if [ -z "$run_ids" ]; then
+            echo "No queued or in-progress pull_request runs found for PR #$PR_NUMBER"
+          else
+            while read -r run_id; do
+              if ! gh api --method POST "repos/$GH_REPO/actions/runs/$run_id/cancel"; then
+                echo "Run $run_id could not be cancelled, likely because it already finished"
+              fi
+            done <<< "$run_ids"
+          fi
+
       - name: Delete PR caches
         env:
           GH_TOKEN: ${{ github.token }}
