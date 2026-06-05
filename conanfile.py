@@ -65,12 +65,6 @@ class MilvusSdkCppConan(ConanFile):
         # The project currently builds with C++14.
         check_min_cppstd(self, 14)
 
-    def configure(self):
-        # Ensure dependency graph variants match the project's C++ standard.
-        # (Without this, Conan may resolve packages for gnu17 and then fail to
-        # find compatible binaries.)
-        self.settings.compiler.cppstd = "14"
-
     def generate(self):
         tc = CMakeToolchain(self)
 

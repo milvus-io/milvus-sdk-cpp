@@ -65,8 +65,8 @@ class ConnectionHandler {
     // This interface is not exposed to users
     Status
     GetLoadingProgress(const std::string& db_name, const std::string& collection_name,
-                       const std::set<std::string>& partition_names, uint32_t& progress,
-                       uint32_t& refresh_progress, uint64_t rpc_timeout_ms = 0);
+                       const std::set<std::string>& partition_names, uint32_t& progress, uint32_t& refresh_progress,
+                       uint64_t rpc_timeout_ms = 0);
 
     /**
      * Internal wait for status query done.
