@@ -224,7 +224,7 @@ MilvusClientV2Impl::HasCollection(const HasCollectionRequest& request, HasCollec
     };
 
     auto post = [&response](const proto::milvus::BoolResponse& rpc_response) {
-        response.SetHas(rpc_response.value());
+        // response.SetHas(rpc_response.value());
         return Status::OK();
     };
 
