@@ -219,7 +219,7 @@ MilvusClientV2Impl::HasCollection(const HasCollectionRequest& request, HasCollec
     auto pre = [&request](proto::milvus::HasCollectionRequest& rpc_request) {
         rpc_request.set_db_name(request.DatabaseName());
         rpc_request.set_collection_name(request.CollectionName());
-        rpc_request.set_time_stamp(0);
+        rpc_request.set_time_stamp(10);
         return Status::OK();
     };
 
