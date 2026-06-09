@@ -227,6 +227,42 @@ class MilvusMockedService : public ::milvus::proto::milvus::MilvusService::Servi
                  ::grpc::Status(::grpc::ServerContext*, const ::milvus::proto::milvus::GetCompactionPlansRequest*,
                                 ::milvus::proto::milvus::GetCompactionPlansResponse*));
 
+    MOCK_METHOD3(CreateSnapshot,
+                 ::grpc::Status(::grpc::ServerContext*, const ::milvus::proto::milvus::CreateSnapshotRequest*,
+                                ::milvus::proto::common::Status*));
+
+    MOCK_METHOD3(DropSnapshot,
+                 ::grpc::Status(::grpc::ServerContext*, const ::milvus::proto::milvus::DropSnapshotRequest*,
+                                ::milvus::proto::common::Status*));
+
+    MOCK_METHOD3(ListSnapshots,
+                 ::grpc::Status(::grpc::ServerContext*, const ::milvus::proto::milvus::ListSnapshotsRequest*,
+                                ::milvus::proto::milvus::ListSnapshotsResponse*));
+
+    MOCK_METHOD3(DescribeSnapshot,
+                 ::grpc::Status(::grpc::ServerContext*, const ::milvus::proto::milvus::DescribeSnapshotRequest*,
+                                ::milvus::proto::milvus::DescribeSnapshotResponse*));
+
+    MOCK_METHOD3(RestoreSnapshot,
+                 ::grpc::Status(::grpc::ServerContext*, const ::milvus::proto::milvus::RestoreSnapshotRequest*,
+                                ::milvus::proto::milvus::RestoreSnapshotResponse*));
+
+    MOCK_METHOD3(GetRestoreSnapshotState,
+                 ::grpc::Status(::grpc::ServerContext*, const ::milvus::proto::milvus::GetRestoreSnapshotStateRequest*,
+                                ::milvus::proto::milvus::GetRestoreSnapshotStateResponse*));
+
+    MOCK_METHOD3(ListRestoreSnapshotJobs,
+                 ::grpc::Status(::grpc::ServerContext*, const ::milvus::proto::milvus::ListRestoreSnapshotJobsRequest*,
+                                ::milvus::proto::milvus::ListRestoreSnapshotJobsResponse*));
+
+    MOCK_METHOD3(PinSnapshotData,
+                 ::grpc::Status(::grpc::ServerContext*, const ::milvus::proto::milvus::PinSnapshotDataRequest*,
+                                ::milvus::proto::milvus::PinSnapshotDataResponse*));
+
+    MOCK_METHOD3(UnpinSnapshotData,
+                 ::grpc::Status(::grpc::ServerContext*, const ::milvus::proto::milvus::UnpinSnapshotDataRequest*,
+                                ::milvus::proto::common::Status*));
+
     MOCK_METHOD3(CreateCredential,
                  ::grpc::Status(::grpc::ServerContext*, const ::milvus::proto::milvus::CreateCredentialRequest*,
                                 ::milvus::proto::common::Status*));

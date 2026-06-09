@@ -322,6 +322,44 @@ class MilvusConnection {
                        proto::milvus::GetCompactionPlansResponse& response, const GrpcContextOptions& options);
 
     Status
+    CreateSnapshot(const proto::milvus::CreateSnapshotRequest& request, proto::common::Status& response,
+                   const GrpcContextOptions& options);
+
+    Status
+    DropSnapshot(const proto::milvus::DropSnapshotRequest& request, proto::common::Status& response,
+                 const GrpcContextOptions& options);
+
+    Status
+    ListSnapshots(const proto::milvus::ListSnapshotsRequest& request, proto::milvus::ListSnapshotsResponse& response,
+                  const GrpcContextOptions& options);
+
+    Status
+    DescribeSnapshot(const proto::milvus::DescribeSnapshotRequest& request,
+                     proto::milvus::DescribeSnapshotResponse& response, const GrpcContextOptions& options);
+
+    Status
+    RestoreSnapshot(const proto::milvus::RestoreSnapshotRequest& request,
+                    proto::milvus::RestoreSnapshotResponse& response, const GrpcContextOptions& options);
+
+    Status
+    GetRestoreSnapshotState(const proto::milvus::GetRestoreSnapshotStateRequest& request,
+                            proto::milvus::GetRestoreSnapshotStateResponse& response,
+                            const GrpcContextOptions& options);
+
+    Status
+    ListRestoreSnapshotJobs(const proto::milvus::ListRestoreSnapshotJobsRequest& request,
+                            proto::milvus::ListRestoreSnapshotJobsResponse& response,
+                            const GrpcContextOptions& options);
+
+    Status
+    PinSnapshotData(const proto::milvus::PinSnapshotDataRequest& request,
+                    proto::milvus::PinSnapshotDataResponse& response, const GrpcContextOptions& options);
+
+    Status
+    UnpinSnapshotData(const proto::milvus::UnpinSnapshotDataRequest& request, proto::common::Status& response,
+                      const GrpcContextOptions& options);
+
+    Status
     CreateCredential(const proto::milvus::CreateCredentialRequest& request, proto::common::Status& response,
                      const GrpcContextOptions& options);
 

@@ -32,6 +32,8 @@
 #include "milvus/types/MetricType.h"
 #include "milvus/types/ReplicateConfiguration.h"
 #include "milvus/types/ResourceGroupConfig.h"
+#include "milvus/types/RestoreSnapshotJobInfo.h"
+#include "milvus/types/RestoreSnapshotState.h"
 #include "milvus/types/SearchResults.h"
 #include "milvus/types/SegmentInfo.h"
 
@@ -60,6 +62,12 @@ IndexTypeCast(const std::string& type);
 
 LoadState
 LoadStateCast(proto::common::LoadState state);
+
+RestoreSnapshotStateCode
+RestoreSnapshotStateCast(proto::milvus::RestoreSnapshotState state);
+
+RestoreSnapshotJobInfo
+ConvertRestoreSnapshotJobInfo(const proto::milvus::RestoreSnapshotInfo& rpc_info);
 
 void
 ConvertValueFieldSchema(const proto::schema::ValueField& value_field, DataType type, nlohmann::json& val);

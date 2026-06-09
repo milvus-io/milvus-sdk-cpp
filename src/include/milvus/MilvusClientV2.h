@@ -96,6 +96,15 @@
 #include "request/resourcegroup/TransferNodeRequest.h"
 #include "request/resourcegroup/TransferReplicaRequest.h"
 #include "request/resourcegroup/UpdateResourceGroupsRequest.h"
+#include "request/snapshot/CreateSnapshotRequest.h"
+#include "request/snapshot/DescribeSnapshotRequest.h"
+#include "request/snapshot/DropSnapshotRequest.h"
+#include "request/snapshot/GetRestoreSnapshotStateRequest.h"
+#include "request/snapshot/ListRestoreSnapshotJobsRequest.h"
+#include "request/snapshot/ListSnapshotsRequest.h"
+#include "request/snapshot/PinSnapshotDataRequest.h"
+#include "request/snapshot/RestoreSnapshotRequest.h"
+#include "request/snapshot/UnpinSnapshotDataRequest.h"
 #include "request/utility/CheckHealthRequest.h"
 #include "request/utility/CompactRequest.h"
 #include "request/utility/FlushAllRequest.h"
@@ -133,6 +142,12 @@
 #include "response/rbac/ListUsersResponse.h"
 #include "response/resourcegroup/DescribeResourceGroupResponse.h"
 #include "response/resourcegroup/ListResourceGroupsResponse.h"
+#include "response/snapshot/DescribeSnapshotResponse.h"
+#include "response/snapshot/GetRestoreSnapshotStateResponse.h"
+#include "response/snapshot/ListRestoreSnapshotJobsResponse.h"
+#include "response/snapshot/ListSnapshotsResponse.h"
+#include "response/snapshot/PinSnapshotDataResponse.h"
+#include "response/snapshot/RestoreSnapshotResponse.h"
 #include "response/utility/CheckHealthResponse.h"
 #include "response/utility/CompactResponse.h"
 #include "response/utility/FlushAllResponse.h"
@@ -913,6 +928,95 @@ class MILVUS_SDK_API MilvusClientV2 {
      */
     virtual Status
     GetCompactionPlans(const GetCompactionPlansRequest& request, GetCompactionPlansResponse& response) = 0;
+
+    /**
+     * @brief Create a snapshot for a collection.
+     *
+     * @param [in] request input parameters
+     * @return Status operation successfully or not
+     */
+    virtual Status
+    CreateSnapshot(const CreateSnapshotRequest& request) = 0;
+
+    /**
+     * @brief Drop a snapshot.
+     *
+     * @param [in] request input parameters
+     * @return Status operation successfully or not
+     */
+    virtual Status
+    DropSnapshot(const DropSnapshotRequest& request) = 0;
+
+    /**
+     * @brief List snapshots.
+     *
+     * @param [in] request input parameters
+     * @param [out] response output results
+     * @return Status operation successfully or not
+     */
+    virtual Status
+    ListSnapshots(const ListSnapshotsRequest& request, ListSnapshotsResponse& response) = 0;
+
+    /**
+     * @brief Describe a snapshot.
+     *
+     * @param [in] request input parameters
+     * @param [out] response output results
+     * @return Status operation successfully or not
+     */
+    virtual Status
+    DescribeSnapshot(const DescribeSnapshotRequest& request, DescribeSnapshotResponse& response) = 0;
+
+    /**
+     * @brief Restore a snapshot to a new collection.
+     *
+     * @param [in] request input parameters
+     * @param [out] response output results
+     * @return Status operation successfully or not
+     */
+    virtual Status
+    RestoreSnapshot(const RestoreSnapshotRequest& request, RestoreSnapshotResponse& response) = 0;
+
+    /**
+     * @brief Get restore snapshot job state.
+     *
+     * @param [in] request input parameters
+     * @param [out] response output results
+     * @return Status operation successfully or not
+     */
+    virtual Status
+    GetRestoreSnapshotState(const GetRestoreSnapshotStateRequest& request,
+                            GetRestoreSnapshotStateResponse& response) = 0;
+
+    /**
+     * @brief List restore snapshot jobs.
+     *
+     * @param [in] request input parameters
+     * @param [out] response output results
+     * @return Status operation successfully or not
+     */
+    virtual Status
+    ListRestoreSnapshotJobs(const ListRestoreSnapshotJobsRequest& request,
+                            ListRestoreSnapshotJobsResponse& response) = 0;
+
+    /**
+     * @brief Pin snapshot data.
+     *
+     * @param [in] request input parameters
+     * @param [out] response output results
+     * @return Status operation successfully or not
+     */
+    virtual Status
+    PinSnapshotData(const PinSnapshotDataRequest& request, PinSnapshotDataResponse& response) = 0;
+
+    /**
+     * @brief Unpin snapshot data.
+     *
+     * @param [in] request input parameters
+     * @return Status operation successfully or not
+     */
+    virtual Status
+    UnpinSnapshotData(const UnpinSnapshotDataRequest& request) = 0;
 
     /**
      * @brief Get replicate configuration.

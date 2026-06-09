@@ -16,15 +16,18 @@
 
 include_guard(GLOBAL)
 
-set(PROTO_VERSION v2.6.13)
-set(PROTO_URL https://github.com/milvus-io/milvus-proto/archive/refs/tags/${PROTO_VERSION}.tar.gz)
-
+set(PROTO_VERSION e90ee63ad3fceea966ff1a051db5b4e4deec76b6)
+set(PROTO_REPOSITORY https://github.com/milvus-io/milvus-proto.git)
 
 include(FetchContent)
 
 # download proto
-FetchContent_Declare(milvus_proto
-    URL         ${PROTO_URL}
+FetchContent_Declare(
+    milvus_proto
+    GIT_REPOSITORY ${PROTO_REPOSITORY}
+    GIT_TAG        ${PROTO_VERSION}
+    SOURCE_DIR     ${CMAKE_CURRENT_BINARY_DIR}/milvus-proto-src
+    BINARY_DIR     ${CMAKE_CURRENT_BINARY_DIR}/milvus-proto-build
 )
 FetchContent_Populate(milvus_proto)
 

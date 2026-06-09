@@ -2460,6 +2460,250 @@ MilvusClientV2Impl::GetCompactionPlans(const GetCompactionPlansRequest& request,
 }
 
 Status
+MilvusClientV2Impl::CreateSnapshot(const CreateSnapshotRequest& request) {
+    auto validate = [&request]() {
+        if (request.SnapshotName().empty()) {
+            return Status{StatusCode::INVALID_ARGUMENT, "Snapshot name is empty"};
+        }
+        if (request.CollectionName().empty()) {
+            return Status{StatusCode::INVALID_ARGUMENT, "Collection name is empty"};
+        }
+        if (request.CompactionProtectionSeconds() < 0) {
+            return Status{StatusCode::INVALID_ARGUMENT, "Compaction protection seconds cannot be negative"};
+        }
+        return Status::OK();
+    };
+
+    auto pre = [&request](proto::milvus::CreateSnapshotRequest& rpc_request) {
+        rpc_request.set_name(request.SnapshotName());
+        rpc_request.set_description(request.Description());
+        rpc_request.set_db_name(request.DatabaseName());
+        rpc_request.set_collection_name(request.CollectionName());
+        rpc_request.set_compaction_protection_seconds(request.CompactionProtectionSeconds());
+        return Status::OK();
+    };
+
+    return connection_.Invoke<proto::milvus::CreateSnapshotRequest, proto::common::Status>(
+        validate, pre, &MilvusConnection::CreateSnapshot);
+}
+
+Status
+MilvusClientV2Impl::DropSnapshot(const DropSnapshotRequest& request) {
+    auto validate = [&request]() {
+        if (request.SnapshotName().empty()) {
+            return Status{StatusCode::INVALID_ARGUMENT, "Snapshot name is empty"};
+        }
+        if (request.CollectionName().empty()) {
+            return Status{StatusCode::INVALID_ARGUMENT, "Collection name is empty"};
+        }
+        return Status::OK();
+    };
+
+    auto pre = [&request](proto::milvus::DropSnapshotRequest& rpc_request) {
+        rpc_request.set_name(request.SnapshotName());
+        rpc_request.set_db_name(request.DatabaseName());
+        rpc_request.set_collection_name(request.CollectionName());
+        return Status::OK();
+    };
+
+    return connection_.Invoke<proto::milvus::DropSnapshotRequest, proto::common::Status>(
+        validate, pre, &MilvusConnection::DropSnapshot);
+}
+
+Status
+MilvusClientV2Impl::ListSnapshots(const ListSnapshotsRequest& request, ListSnapshotsResponse& response) {
+    auto pre = [&request](proto::milvus::ListSnapshotsRequest& rpc_request) {
+        rpc_request.set_db_name(request.DatabaseName());
+        if (!request.CollectionName().empty()) {
+            rpc_request.set_collection_name(request.CollectionName());
+        }
+        return Status::OK();
+    };
+
+    auto post = [&response](const proto::milvus::ListSnapshotsResponse& rpc_response) {
+        std::vector<std::string> snapshots;
+        snapshots.reserve(rpc_response.snapshots_size());
+        snapshots.insert(snapshots.end(), rpc_response.snapshots().begin(), rpc_response.snapshots().end());
+        response.SetSnapshots(std::move(snapshots));
+        return Status::OK();
+    };
+
+    return connection_.Invoke<proto::milvus::ListSnapshotsRequest, proto::milvus::ListSnapshotsResponse>(
+        pre, &MilvusConnection::ListSnapshots, post);
+}
+
+Status
+MilvusClientV2Impl::DescribeSnapshot(const DescribeSnapshotRequest& request, DescribeSnapshotResponse& response) {
+    auto validate = [&request]() {
+        if (request.SnapshotName().empty()) {
+            return Status{StatusCode::INVALID_ARGUMENT, "Snapshot name is empty"};
+        }
+        if (request.CollectionName().empty()) {
+            return Status{StatusCode::INVALID_ARGUMENT, "Collection name is empty"};
+        }
+        return Status::OK();
+    };
+
+    auto pre = [&request](proto::milvus::DescribeSnapshotRequest& rpc_request) {
+        rpc_request.set_name(request.SnapshotName());
+        rpc_request.set_db_name(request.DatabaseName());
+        rpc_request.set_collection_name(request.CollectionName());
+        return Status::OK();
+    };
+
+    auto post = [&response](const proto::milvus::DescribeSnapshotResponse& rpc_response) {
+        response.SetName(rpc_response.name());
+        response.SetDescription(rpc_response.description());
+        response.SetCollectionName(rpc_response.collection_name());
+        std::vector<std::string> partition_names;
+        partition_names.reserve(rpc_response.partition_names_size());
+        partition_names.insert(partition_names.end(), rpc_response.partition_names().begin(),
+                               rpc_response.partition_names().end());
+        response.SetPartitionNames(std::move(partition_names));
+        response.SetCreateTs(rpc_response.create_ts());
+        response.SetS3Location(rpc_response.s3_location());
+        return Status::OK();
+    };
+
+    return connection_.Invoke<proto::milvus::DescribeSnapshotRequest, proto::milvus::DescribeSnapshotResponse>(
+        validate, pre, &MilvusConnection::DescribeSnapshot, post);
+}
+
+Status
+MilvusClientV2Impl::RestoreSnapshot(const RestoreSnapshotRequest& request, RestoreSnapshotResponse& response) {
+    auto validate = [&request]() {
+        if (request.SnapshotName().empty()) {
+            return Status{StatusCode::INVALID_ARGUMENT, "Snapshot name is empty"};
+        }
+        if (request.SourceCollectionName().empty()) {
+            return Status{StatusCode::INVALID_ARGUMENT, "Source collection name is empty"};
+        }
+        if (request.TargetCollectionName().empty()) {
+            return Status{StatusCode::INVALID_ARGUMENT, "Target collection name is empty"};
+        }
+        return Status::OK();
+    };
+
+    auto pre = [&request](proto::milvus::RestoreSnapshotRequest& rpc_request) {
+        rpc_request.set_name(request.SnapshotName());
+        rpc_request.set_db_name(request.SourceDatabaseName());
+        rpc_request.set_collection_name(request.SourceCollectionName());
+        rpc_request.set_target_db_name(request.TargetDatabaseName());
+        rpc_request.set_target_collection_name(request.TargetCollectionName());
+        return Status::OK();
+    };
+
+    auto post = [&response](const proto::milvus::RestoreSnapshotResponse& rpc_response) {
+        response.SetJobID(rpc_response.job_id());
+        return Status::OK();
+    };
+
+    return connection_.Invoke<proto::milvus::RestoreSnapshotRequest, proto::milvus::RestoreSnapshotResponse>(
+        validate, pre, &MilvusConnection::RestoreSnapshot, post);
+}
+
+Status
+MilvusClientV2Impl::GetRestoreSnapshotState(const GetRestoreSnapshotStateRequest& request,
+                                            GetRestoreSnapshotStateResponse& response) {
+    auto validate = [&request]() {
+        if (request.JobID() <= 0) {
+            return Status{StatusCode::INVALID_ARGUMENT, "Restore snapshot job id must be positive"};
+        }
+        return Status::OK();
+    };
+
+    auto pre = [&request](proto::milvus::GetRestoreSnapshotStateRequest& rpc_request) {
+        rpc_request.set_job_id(request.JobID());
+        return Status::OK();
+    };
+
+    auto post = [&response](const proto::milvus::GetRestoreSnapshotStateResponse& rpc_response) {
+        response.SetJobInfo(ConvertRestoreSnapshotJobInfo(rpc_response.info()));
+        return Status::OK();
+    };
+
+    return connection_
+        .Invoke<proto::milvus::GetRestoreSnapshotStateRequest, proto::milvus::GetRestoreSnapshotStateResponse>(
+            validate, pre, &MilvusConnection::GetRestoreSnapshotState, post);
+}
+
+Status
+MilvusClientV2Impl::ListRestoreSnapshotJobs(const ListRestoreSnapshotJobsRequest& request,
+                                            ListRestoreSnapshotJobsResponse& response) {
+    auto pre = [&request](proto::milvus::ListRestoreSnapshotJobsRequest& rpc_request) {
+        rpc_request.set_db_name(request.DatabaseName());
+        if (!request.CollectionName().empty()) {
+            rpc_request.set_collection_name(request.CollectionName());
+        }
+        return Status::OK();
+    };
+
+    auto post = [&response](const proto::milvus::ListRestoreSnapshotJobsResponse& rpc_response) {
+        std::vector<RestoreSnapshotJobInfo> jobs;
+        jobs.reserve(rpc_response.jobs_size());
+        for (const auto& rpc_job : rpc_response.jobs()) {
+            jobs.push_back(ConvertRestoreSnapshotJobInfo(rpc_job));
+        }
+        response.SetJobs(std::move(jobs));
+        return Status::OK();
+    };
+
+    return connection_
+        .Invoke<proto::milvus::ListRestoreSnapshotJobsRequest, proto::milvus::ListRestoreSnapshotJobsResponse>(
+            pre, &MilvusConnection::ListRestoreSnapshotJobs, post);
+}
+
+Status
+MilvusClientV2Impl::PinSnapshotData(const PinSnapshotDataRequest& request, PinSnapshotDataResponse& response) {
+    auto validate = [&request]() {
+        if (request.SnapshotName().empty()) {
+            return Status{StatusCode::INVALID_ARGUMENT, "Snapshot name is empty"};
+        }
+        if (request.CollectionName().empty()) {
+            return Status{StatusCode::INVALID_ARGUMENT, "Collection name is empty"};
+        }
+        if (request.TtlSeconds() < 0) {
+            return Status{StatusCode::INVALID_ARGUMENT, "TTL seconds cannot be negative"};
+        }
+        return Status::OK();
+    };
+
+    auto pre = [&request](proto::milvus::PinSnapshotDataRequest& rpc_request) {
+        rpc_request.set_name(request.SnapshotName());
+        rpc_request.set_db_name(request.DatabaseName());
+        rpc_request.set_collection_name(request.CollectionName());
+        rpc_request.set_ttl_seconds(request.TtlSeconds());
+        return Status::OK();
+    };
+
+    auto post = [&response](const proto::milvus::PinSnapshotDataResponse& rpc_response) {
+        response.SetPinID(rpc_response.pin_id());
+        return Status::OK();
+    };
+
+    return connection_.Invoke<proto::milvus::PinSnapshotDataRequest, proto::milvus::PinSnapshotDataResponse>(
+        validate, pre, &MilvusConnection::PinSnapshotData, post);
+}
+
+Status
+MilvusClientV2Impl::UnpinSnapshotData(const UnpinSnapshotDataRequest& request) {
+    auto validate = [&request]() {
+        if (request.PinID() <= 0) {
+            return Status{StatusCode::INVALID_ARGUMENT, "Snapshot pin id must be positive"};
+        }
+        return Status::OK();
+    };
+
+    auto pre = [&request](proto::milvus::UnpinSnapshotDataRequest& rpc_request) {
+        rpc_request.set_pin_id(request.PinID());
+        return Status::OK();
+    };
+
+    return connection_.Invoke<proto::milvus::UnpinSnapshotDataRequest, proto::common::Status>(
+        validate, pre, &MilvusConnection::UnpinSnapshotData);
+}
+
+Status
 MilvusClientV2Impl::GetReplicateConfiguration(const GetReplicateConfigurationRequest& request,
                                               GetReplicateConfigurationResponse& response) {
     auto post = [&response](const proto::milvus::GetReplicateConfigurationResponse& rpc_response) {
