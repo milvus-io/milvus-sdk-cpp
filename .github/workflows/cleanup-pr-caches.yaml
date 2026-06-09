@@ -25,15 +25,14 @@ jobs:
           RUN_ID: ${{ github.run_id }}
         run: |
           set -euo pipefail
-          run_ids=$(gh api --paginate "repos/$GH_REPO/actions/runs?event=pull_request&status=in_progress&per_page=100" --jq '.workflow_runs[] | select(.id != (env.RUN_ID | tonumber) and any(.pull_requests[]?; .number == (env.PR_NUMBER | tonumber))) | .id')
-          queued_run_ids=$(gh api --paginate "repos/$GH_REPO/actions/runs?event=pull_request&status=queued&per_page=100" --jq '.workflow_runs[] | select(.id != (env.RUN_ID | tonumber) and any(.pull_requests[]?; .number == (env.PR_NUMBER | tonumber))) | .id')
-          run_ids=$(printf '%s\n%s\n' "$run_ids" "$queued_run_ids" | sed '/^$/d' | sort -u)
+          run_ids=$(gh pr view "$PR_NUMBER" --repo "$GH_REPO" --json statusCheckRollup --jq '.statusCheckRollup[] | select(.__typename == "CheckRun" and (.status == "IN_PROGRESS" or .status == "QUEUED") and (.detailsUrl | contains("/actions/runs/"))) | (.detailsUrl | capture("/actions/runs/(?<run_id>[0-9]+)").run_id)' | sed '/^$/d' | sort -u)
+          run_ids=$(printf '%s\n' "$run_ids" | grep -vx "$RUN_ID" || true)
           if [ -z "$run_ids" ]; then
             echo "No queued or in-progress pull_request runs found for PR #$PR_NUMBER"
           else
             while read -r run_id; do
               if ! gh api --method POST "repos/$GH_REPO/actions/runs/$run_id/cancel"; then
-                echo "Run $run_id could not be cancelled, likely because it already finished"
+                echo "Run $run_id could not be cancelled; it may have already finished"
               fi
             done <<< "$run_ids"
           fi
