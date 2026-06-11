@@ -378,7 +378,7 @@ class MilvusClientV2Impl : public MilvusClientV2, public std::enable_shared_from
                 int64_t timeout_ms);
 
     Status
-    getFlushState(const std::vector<int64_t>& segments, bool& flushed);
+    getFlushState(const std::string& db_name, const std::vector<int64_t>& segments, uint64_t flush_ts, bool& flushed);
 
     Status
     getFlushAllState(const GetFlushAllStateRequest& request, GetFlushAllStateResponse& response,
