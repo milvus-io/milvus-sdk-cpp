@@ -259,6 +259,35 @@ class MilvusClientV2Impl : public MilvusClientV2, public std::enable_shared_from
     GetCompactionPlans(const GetCompactionPlansRequest& request, GetCompactionPlansResponse& response) final;
 
     Status
+    CreateSnapshot(const CreateSnapshotRequest& request) final;
+
+    Status
+    DropSnapshot(const DropSnapshotRequest& request) final;
+
+    Status
+    ListSnapshots(const ListSnapshotsRequest& request, ListSnapshotsResponse& response) final;
+
+    Status
+    DescribeSnapshot(const DescribeSnapshotRequest& request, DescribeSnapshotResponse& response) final;
+
+    Status
+    RestoreSnapshot(const RestoreSnapshotRequest& request, RestoreSnapshotResponse& response) final;
+
+    Status
+    GetRestoreSnapshotState(const GetRestoreSnapshotStateRequest& request,
+                            GetRestoreSnapshotStateResponse& response) final;
+
+    Status
+    ListRestoreSnapshotJobs(const ListRestoreSnapshotJobsRequest& request,
+                            ListRestoreSnapshotJobsResponse& response) final;
+
+    Status
+    PinSnapshotData(const PinSnapshotDataRequest& request, PinSnapshotDataResponse& response) final;
+
+    Status
+    UnpinSnapshotData(const UnpinSnapshotDataRequest& request) final;
+
+    Status
     GetReplicateConfiguration(const GetReplicateConfigurationRequest& request,
                               GetReplicateConfigurationResponse& response) final;
 

@@ -597,6 +597,63 @@ MilvusConnection::GetCompactionPlans(const proto::milvus::GetCompactionPlansRequ
 }
 
 Status
+MilvusConnection::CreateSnapshot(const proto::milvus::CreateSnapshotRequest& request, proto::common::Status& response,
+                                 const GrpcContextOptions& options) {
+    return grpcCall("CreateSnapshot", &Stub::CreateSnapshot, request, response, options);
+}
+
+Status
+MilvusConnection::DropSnapshot(const proto::milvus::DropSnapshotRequest& request, proto::common::Status& response,
+                               const GrpcContextOptions& options) {
+    return grpcCall("DropSnapshot", &Stub::DropSnapshot, request, response, options);
+}
+
+Status
+MilvusConnection::ListSnapshots(const proto::milvus::ListSnapshotsRequest& request,
+                                proto::milvus::ListSnapshotsResponse& response, const GrpcContextOptions& options) {
+    return grpcCall("ListSnapshots", &Stub::ListSnapshots, request, response, options);
+}
+
+Status
+MilvusConnection::DescribeSnapshot(const proto::milvus::DescribeSnapshotRequest& request,
+                                   proto::milvus::DescribeSnapshotResponse& response,
+                                   const GrpcContextOptions& options) {
+    return grpcCall("DescribeSnapshot", &Stub::DescribeSnapshot, request, response, options);
+}
+
+Status
+MilvusConnection::RestoreSnapshot(const proto::milvus::RestoreSnapshotRequest& request,
+                                  proto::milvus::RestoreSnapshotResponse& response, const GrpcContextOptions& options) {
+    return grpcCall("RestoreSnapshot", &Stub::RestoreSnapshot, request, response, options);
+}
+
+Status
+MilvusConnection::GetRestoreSnapshotState(const proto::milvus::GetRestoreSnapshotStateRequest& request,
+                                          proto::milvus::GetRestoreSnapshotStateResponse& response,
+                                          const GrpcContextOptions& options) {
+    return grpcCall("GetRestoreSnapshotState", &Stub::GetRestoreSnapshotState, request, response, options);
+}
+
+Status
+MilvusConnection::ListRestoreSnapshotJobs(const proto::milvus::ListRestoreSnapshotJobsRequest& request,
+                                          proto::milvus::ListRestoreSnapshotJobsResponse& response,
+                                          const GrpcContextOptions& options) {
+    return grpcCall("ListRestoreSnapshotJobs", &Stub::ListRestoreSnapshotJobs, request, response, options);
+}
+
+Status
+MilvusConnection::PinSnapshotData(const proto::milvus::PinSnapshotDataRequest& request,
+                                  proto::milvus::PinSnapshotDataResponse& response, const GrpcContextOptions& options) {
+    return grpcCall("PinSnapshotData", &Stub::PinSnapshotData, request, response, options);
+}
+
+Status
+MilvusConnection::UnpinSnapshotData(const proto::milvus::UnpinSnapshotDataRequest& request,
+                                    proto::common::Status& response, const GrpcContextOptions& options) {
+    return grpcCall("UnpinSnapshotData", &Stub::UnpinSnapshotData, request, response, options);
+}
+
+Status
 MilvusConnection::CreateCredential(const proto::milvus::CreateCredentialRequest& request,
                                    proto::common::Status& response, const GrpcContextOptions& options) {
     return grpcCall("CreateCredential", &Stub::CreateCredential, request, response, options);

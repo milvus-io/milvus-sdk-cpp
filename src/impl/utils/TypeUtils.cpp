@@ -288,6 +288,37 @@ LoadStateCast(proto::common::LoadState state) {
     }
 }
 
+RestoreSnapshotStateCode
+RestoreSnapshotStateCast(proto::milvus::RestoreSnapshotState state) {
+    switch (state) {
+        case proto::milvus::RestoreSnapshotState::RestoreSnapshotPending:
+            return RestoreSnapshotStateCode::PENDING;
+        case proto::milvus::RestoreSnapshotState::RestoreSnapshotExecuting:
+            return RestoreSnapshotStateCode::EXECUTING;
+        case proto::milvus::RestoreSnapshotState::RestoreSnapshotCompleted:
+            return RestoreSnapshotStateCode::COMPLETED;
+        case proto::milvus::RestoreSnapshotState::RestoreSnapshotFailed:
+            return RestoreSnapshotStateCode::FAILED;
+        default:
+            return RestoreSnapshotStateCode::UNKNOWN;
+    }
+}
+
+RestoreSnapshotJobInfo
+ConvertRestoreSnapshotJobInfo(const proto::milvus::RestoreSnapshotInfo& rpc_info) {
+    RestoreSnapshotJobInfo info;
+    info.SetJobID(rpc_info.job_id());
+    info.SetSnapshotName(rpc_info.snapshot_name());
+    info.SetDatabaseName(rpc_info.db_name());
+    info.SetCollectionName(rpc_info.collection_name());
+    info.SetState(RestoreSnapshotStateCast(rpc_info.state()));
+    info.SetProgress(rpc_info.progress());
+    info.SetReason(rpc_info.reason());
+    info.SetStartTime(rpc_info.start_time());
+    info.SetTimeCost(rpc_info.time_cost());
+    return info;
+}
+
 ////////////////////////////////////////////////////////////////////////////////////////
 // methods for schema types converting
 void
