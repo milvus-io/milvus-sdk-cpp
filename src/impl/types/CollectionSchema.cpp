@@ -148,4 +148,36 @@ CollectionSchema::AddFunction(const FunctionPtr& function) {
     functions_.push_back(function);
 }
 
+const std::string&
+CollectionSchema::ExternalSource() const {
+    return external_source_;
+}
+
+void
+CollectionSchema::SetExternalSource(std::string external_source) {
+    external_source_ = std::move(external_source);
+}
+
+CollectionSchema&
+CollectionSchema::WithExternalSource(std::string external_source) {
+    SetExternalSource(std::move(external_source));
+    return *this;
+}
+
+const std::string&
+CollectionSchema::ExternalSpec() const {
+    return external_spec_;
+}
+
+void
+CollectionSchema::SetExternalSpec(std::string external_spec) {
+    external_spec_ = std::move(external_spec);
+}
+
+CollectionSchema&
+CollectionSchema::WithExternalSpec(std::string external_spec) {
+    SetExternalSpec(std::move(external_spec));
+    return *this;
+}
+
 }  // namespace milvus

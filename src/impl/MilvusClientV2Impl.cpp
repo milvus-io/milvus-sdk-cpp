@@ -1938,8 +1938,9 @@ MilvusClientV2Impl::Flush(const FlushRequest& request) {
             progress_monitor);
 
         // wait more 1 second to make sure the flushed segments are visible.
-        // there might be a small delay(on server-side) between the flush_ts and the time when the segments are actually flushed,
-        // if user calls createSnapshot immediately after flush returns, it might not find the flushed segments.
+        // there might be a small delay(on server-side) between the flush_ts and the time when the segments are actually
+        // flushed, if user calls createSnapshot immediately after flush returns, it might not find the flushed
+        // segments.
         if (status.IsOk()) {
             std::this_thread::sleep_for(std::chrono::seconds(1));
         }
@@ -2722,6 +2723,139 @@ MilvusClientV2Impl::UnpinSnapshotData(const UnpinSnapshotDataRequest& request) {
 
     return connection_.Invoke<proto::milvus::UnpinSnapshotDataRequest, proto::common::Status>(
         validate, pre, &MilvusConnection::UnpinSnapshotData);
+}
+
+Status
+MilvusClientV2Impl::RefreshExternalCollection(const RefreshExternalCollectionRequest& request,
+                                              RefreshExternalCollectionResponse& response) {
+    auto validate = [&request]() {
+        if (request.CollectionName().empty()) {
+            return Status{StatusCode::INVALID_ARGUMENT, "Collection name is empty"};
+        }
+        return Status::OK();
+    };
+
+    auto pre = [&request](proto::milvus::RefreshExternalCollectionRequest& rpc_request) {
+        rpc_request.set_db_name(request.DatabaseName());
+        rpc_request.set_collection_name(request.CollectionName());
+        rpc_request.set_external_source(request.ExternalSource());
+        rpc_request.set_external_spec(request.ExternalSpec().is_null() ? "" : request.ExternalSpec().dump());
+        return Status::OK();
+    };
+
+    auto post = [&response](const proto::milvus::RefreshExternalCollectionResponse& rpc_response) {
+        response.SetJobID(rpc_response.job_id());
+        return Status::OK();
+    };
+
+    return connection_
+        .Invoke<proto::milvus::RefreshExternalCollectionRequest, proto::milvus::RefreshExternalCollectionResponse>(
+            validate, pre, &MilvusConnection::RefreshExternalCollection, post);
+}
+
+Status
+MilvusClientV2Impl::GetRefreshExternalCollectionProgress(const GetRefreshExternalCollectionProgressRequest& request,
+                                                         GetRefreshExternalCollectionProgressResponse& response) {
+    auto validate = [&request]() {
+        if (request.JobID() <= 0) {
+            return Status{StatusCode::INVALID_ARGUMENT, "Refresh external collection job id must be positive"};
+        }
+        return Status::OK();
+    };
+
+    auto pre = [&request](proto::milvus::GetRefreshExternalCollectionProgressRequest& rpc_request) {
+        rpc_request.set_job_id(request.JobID());
+        return Status::OK();
+    };
+
+    auto post = [&response](const proto::milvus::GetRefreshExternalCollectionProgressResponse& rpc_response) {
+        response.SetJobInfo(ConvertRefreshExternalCollectionJobInfo(rpc_response.job_info()));
+        return Status::OK();
+    };
+
+    return connection_.Invoke<proto::milvus::GetRefreshExternalCollectionProgressRequest,
+                              proto::milvus::GetRefreshExternalCollectionProgressResponse>(
+        validate, pre, &MilvusConnection::GetRefreshExternalCollectionProgress, post);
+}
+
+Status
+MilvusClientV2Impl::ListRefreshExternalCollectionJobs(const ListRefreshExternalCollectionJobsRequest& request,
+                                                      ListRefreshExternalCollectionJobsResponse& response) {
+    auto pre = [&request](proto::milvus::ListRefreshExternalCollectionJobsRequest& rpc_request) {
+        rpc_request.set_db_name(request.DatabaseName());
+        rpc_request.set_collection_name(request.CollectionName());
+        return Status::OK();
+    };
+
+    auto post = [&response](const proto::milvus::ListRefreshExternalCollectionJobsResponse& rpc_response) {
+        std::vector<RefreshExternalCollectionJobInfo> jobs;
+        jobs.reserve(rpc_response.jobs_size());
+        for (const auto& job : rpc_response.jobs()) {
+            jobs.push_back(ConvertRefreshExternalCollectionJobInfo(job));
+        }
+        response.SetJobs(std::move(jobs));
+        return Status::OK();
+    };
+
+    return connection_.Invoke<proto::milvus::ListRefreshExternalCollectionJobsRequest,
+                              proto::milvus::ListRefreshExternalCollectionJobsResponse>(
+        pre, &MilvusConnection::ListRefreshExternalCollectionJobs, post);
+}
+
+Status
+MilvusClientV2Impl::AddFileResource(const AddFileResourceRequest& request) {
+    auto validate = [&request]() {
+        if (request.Name().empty()) {
+            return Status{StatusCode::INVALID_ARGUMENT, "File resource name is empty"};
+        }
+        if (request.Path().empty()) {
+            return Status{StatusCode::INVALID_ARGUMENT, "File resource path is empty"};
+        }
+        return Status::OK();
+    };
+
+    auto pre = [&request](proto::milvus::AddFileResourceRequest& rpc_request) {
+        rpc_request.set_name(request.Name());
+        rpc_request.set_path(request.Path());
+        return Status::OK();
+    };
+
+    return connection_.Invoke<proto::milvus::AddFileResourceRequest, proto::common::Status>(
+        validate, pre, &MilvusConnection::AddFileResource);
+}
+
+Status
+MilvusClientV2Impl::RemoveFileResource(const RemoveFileResourceRequest& request) {
+    auto validate = [&request]() {
+        if (request.Name().empty()) {
+            return Status{StatusCode::INVALID_ARGUMENT, "File resource name is empty"};
+        }
+        return Status::OK();
+    };
+
+    auto pre = [&request](proto::milvus::RemoveFileResourceRequest& rpc_request) {
+        rpc_request.set_name(request.Name());
+        return Status::OK();
+    };
+
+    return connection_.Invoke<proto::milvus::RemoveFileResourceRequest, proto::common::Status>(
+        validate, pre, &MilvusConnection::RemoveFileResource);
+}
+
+Status
+MilvusClientV2Impl::ListFileResources(const ListFileResourcesRequest& request, ListFileResourcesResponse& response) {
+    auto post = [&response](const proto::milvus::ListFileResourcesResponse& rpc_response) {
+        std::vector<FileResourceInfo> resources;
+        resources.reserve(rpc_response.resources_size());
+        for (const auto& resource : rpc_response.resources()) {
+            resources.push_back(ConvertFileResourceInfo(resource));
+        }
+        response.SetResources(std::move(resources));
+        return Status::OK();
+    };
+
+    return connection_.Invoke<proto::milvus::ListFileResourcesRequest, proto::milvus::ListFileResourcesResponse>(
+        nullptr, &MilvusConnection::ListFileResources, post);
 }
 
 Status

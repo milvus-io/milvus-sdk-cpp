@@ -358,4 +358,20 @@ FieldSchema::DefaultValue() const {
     return default_value_;
 }
 
+const std::string&
+FieldSchema::ExternalField() const {
+    return external_field_;
+}
+
+void
+FieldSchema::SetExternalField(std::string external_field) {
+    external_field_ = std::move(external_field);
+}
+
+FieldSchema&
+FieldSchema::WithExternalField(std::string external_field) {
+    SetExternalField(std::move(external_field));
+    return *this;
+}
+
 }  // namespace milvus

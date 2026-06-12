@@ -186,8 +186,8 @@ main(int argc, char* argv[]) {
 
     auto source_row_count = getPersistedRowCount(client, collection_name);
     auto target_row_count = getPersistedRowCount(client, restore_collection_name);
-    std::cout << "Source persisted row count=" << source_row_count << ", target persisted row count="
-              << target_row_count << std::endl;
+    std::cout << "Source persisted row count=" << source_row_count
+              << ", target persisted row count=" << target_row_count << std::endl;
     if (source_row_count != target_row_count) {
         std::cerr << "Restored row count mismatch: source=" << source_row_count << ", target=" << target_row_count
                   << std::endl;

@@ -145,6 +145,18 @@ class MILVUS_SDK_API CollectionDesc {
     void
     SetProperties(std::unordered_map<std::string, std::string>&& properties);
 
+    const std::string&
+    ExternalSource() const;
+
+    void
+    SetExternalSource(std::string external_source);
+
+    const std::string&
+    ExternalSpec() const;
+
+    void
+    SetExternalSpec(std::string external_spec);
+
  private:
     std::string db_name_;
     CollectionSchema schema_;
@@ -153,6 +165,8 @@ class MILVUS_SDK_API CollectionDesc {
     uint64_t created_utc_timestamp_ = 0;
     uint64_t update_timestamp_ = 0;
     std::unordered_map<std::string, std::string> properties_;
+    std::string external_source_;
+    std::string external_spec_;
 };
 
 using CollectionDescPtr = std::shared_ptr<CollectionDesc>;

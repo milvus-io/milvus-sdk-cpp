@@ -304,6 +304,22 @@ RestoreSnapshotStateCast(proto::milvus::RestoreSnapshotState state) {
     }
 }
 
+RefreshExternalCollectionStateCode
+RefreshExternalCollectionStateCast(proto::milvus::RefreshExternalCollectionState state) {
+    switch (state) {
+        case proto::milvus::RefreshExternalCollectionState::RefreshPending:
+            return RefreshExternalCollectionStateCode::PENDING;
+        case proto::milvus::RefreshExternalCollectionState::RefreshInProgress:
+            return RefreshExternalCollectionStateCode::IN_PROGRESS;
+        case proto::milvus::RefreshExternalCollectionState::RefreshCompleted:
+            return RefreshExternalCollectionStateCode::COMPLETED;
+        case proto::milvus::RefreshExternalCollectionState::RefreshFailed:
+            return RefreshExternalCollectionStateCode::FAILED;
+        default:
+            return RefreshExternalCollectionStateCode::PENDING;
+    }
+}
+
 RestoreSnapshotJobInfo
 ConvertRestoreSnapshotJobInfo(const proto::milvus::RestoreSnapshotInfo& rpc_info) {
     RestoreSnapshotJobInfo info;
@@ -316,6 +332,28 @@ ConvertRestoreSnapshotJobInfo(const proto::milvus::RestoreSnapshotInfo& rpc_info
     info.SetReason(rpc_info.reason());
     info.SetStartTime(rpc_info.start_time());
     info.SetTimeCost(rpc_info.time_cost());
+    return info;
+}
+
+RefreshExternalCollectionJobInfo
+ConvertRefreshExternalCollectionJobInfo(const proto::milvus::RefreshExternalCollectionJobInfo& rpc_info) {
+    RefreshExternalCollectionJobInfo info;
+    info.SetJobID(rpc_info.job_id());
+    info.SetCollectionName(rpc_info.collection_name());
+    info.SetState(RefreshExternalCollectionStateCast(rpc_info.state()));
+    info.SetProgress(static_cast<int32_t>(rpc_info.progress()));
+    info.SetReason(rpc_info.reason());
+    info.SetExternalSource(rpc_info.external_source());
+    info.SetStartTime(static_cast<uint64_t>(rpc_info.start_time()));
+    info.SetEndTime(static_cast<uint64_t>(rpc_info.end_time()));
+    return info;
+}
+
+FileResourceInfo
+ConvertFileResourceInfo(const proto::milvus::FileResourceInfo& rpc_info) {
+    FileResourceInfo info;
+    info.SetName(rpc_info.name());
+    info.SetPath(rpc_info.path());
     return info;
 }
 
@@ -393,6 +431,7 @@ ConvertFieldSchema(const proto::schema::FieldSchema& proto_schema, FieldSchema& 
         params.emplace(kv.key(), kv.value());
     }
     field_schema.SetTypeParams(std::move(params));
+    field_schema.SetExternalField(proto_schema.external_field());
 }
 
 void
@@ -440,6 +479,8 @@ ConvertCollectionSchema(const proto::schema::CollectionSchema& proto_schema, Col
     schema.SetName(proto_schema.name());
     schema.SetDescription(proto_schema.description());
     schema.SetEnableDynamicField(proto_schema.enable_dynamic_field());
+    schema.SetExternalSource(proto_schema.external_source());
+    schema.SetExternalSpec(proto_schema.external_spec());
 
     for (int i = 0; i < proto_schema.fields_size(); ++i) {
         auto& proto_field = proto_schema.fields(i);
@@ -491,6 +532,8 @@ ConvertDescribeCollectionResponse(const proto::milvus::DescribeCollectionRespons
         properties[prop.key()] = prop.value();
     }
     collection_desc.SetProperties(std::move(properties));
+    collection_desc.SetExternalSource(rpc_response.schema().external_source());
+    collection_desc.SetExternalSpec(rpc_response.schema().external_spec());
 
     return Status::OK();
 }
@@ -602,6 +645,7 @@ ConvertFieldSchema(const FieldSchema& schema, proto::schema::FieldSchema& proto_
         pair->set_key(kv.first);
         pair->set_value(kv.second);
     }
+    proto_schema.set_external_field(schema.ExternalField());
 }
 
 void
@@ -674,6 +718,8 @@ ConvertCollectionSchema(const CollectionSchema& schema, proto::schema::Collectio
     proto_schema.set_name(schema.Name());
     proto_schema.set_description(schema.Description());
     proto_schema.set_enable_dynamic_field(schema.EnableDynamicField());
+    proto_schema.set_external_source(schema.ExternalSource());
+    proto_schema.set_external_spec(schema.ExternalSpec());
 
     for (const auto& field : schema.Fields()) {
         auto proto_field = proto_schema.add_fields();
