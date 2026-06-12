@@ -293,6 +293,33 @@ class MilvusConnection {
                      proto::milvus::GetFlushAllStateResponse& response, const GrpcContextOptions& options);
 
     Status
+    RefreshExternalCollection(const proto::milvus::RefreshExternalCollectionRequest& request,
+                              proto::milvus::RefreshExternalCollectionResponse& response,
+                              const GrpcContextOptions& options);
+
+    Status
+    GetRefreshExternalCollectionProgress(const proto::milvus::GetRefreshExternalCollectionProgressRequest& request,
+                                         proto::milvus::GetRefreshExternalCollectionProgressResponse& response,
+                                         const GrpcContextOptions& options);
+
+    Status
+    ListRefreshExternalCollectionJobs(const proto::milvus::ListRefreshExternalCollectionJobsRequest& request,
+                                      proto::milvus::ListRefreshExternalCollectionJobsResponse& response,
+                                      const GrpcContextOptions& options);
+
+    Status
+    AddFileResource(const proto::milvus::AddFileResourceRequest& request, proto::common::Status& response,
+                    const GrpcContextOptions& options);
+
+    Status
+    RemoveFileResource(const proto::milvus::RemoveFileResourceRequest& request, proto::common::Status& response,
+                       const GrpcContextOptions& options);
+
+    Status
+    ListFileResources(const proto::milvus::ListFileResourcesRequest& request,
+                      proto::milvus::ListFileResourcesResponse& response, const GrpcContextOptions& options);
+
+    Status
     GetPersistentSegmentInfo(const proto::milvus::GetPersistentSegmentInfoRequest& request,
                              proto::milvus::GetPersistentSegmentInfoResponse& response,
                              const GrpcContextOptions& options);

@@ -113,4 +113,24 @@ CollectionDesc::SetProperties(std::unordered_map<std::string, std::string>&& pro
     properties_ = std::move(properties);
 }
 
+const std::string&
+CollectionDesc::ExternalSource() const {
+    return external_source_;
+}
+
+void
+CollectionDesc::SetExternalSource(std::string external_source) {
+    external_source_ = std::move(external_source);
+}
+
+const std::string&
+CollectionDesc::ExternalSpec() const {
+    return external_spec_;
+}
+
+void
+CollectionDesc::SetExternalSpec(std::string external_spec) {
+    external_spec_ = std::move(external_spec);
+}
+
 }  // namespace milvus

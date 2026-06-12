@@ -550,6 +550,48 @@ MilvusConnection::GetFlushAllState(const proto::milvus::GetFlushAllStateRequest&
 }
 
 Status
+MilvusConnection::RefreshExternalCollection(const proto::milvus::RefreshExternalCollectionRequest& request,
+                                            proto::milvus::RefreshExternalCollectionResponse& response,
+                                            const GrpcContextOptions& options) {
+    return grpcCall("RefreshExternalCollection", &Stub::RefreshExternalCollection, request, response, options);
+}
+
+Status
+MilvusConnection::GetRefreshExternalCollectionProgress(
+    const proto::milvus::GetRefreshExternalCollectionProgressRequest& request,
+    proto::milvus::GetRefreshExternalCollectionProgressResponse& response, const GrpcContextOptions& options) {
+    return grpcCall("GetRefreshExternalCollectionProgress", &Stub::GetRefreshExternalCollectionProgress, request,
+                    response, options);
+}
+
+Status
+MilvusConnection::ListRefreshExternalCollectionJobs(
+    const proto::milvus::ListRefreshExternalCollectionJobsRequest& request,
+    proto::milvus::ListRefreshExternalCollectionJobsResponse& response, const GrpcContextOptions& options) {
+    return grpcCall("ListRefreshExternalCollectionJobs", &Stub::ListRefreshExternalCollectionJobs, request, response,
+                    options);
+}
+
+Status
+MilvusConnection::AddFileResource(const proto::milvus::AddFileResourceRequest& request, proto::common::Status& response,
+                                  const GrpcContextOptions& options) {
+    return grpcCall("AddFileResource", &Stub::AddFileResource, request, response, options);
+}
+
+Status
+MilvusConnection::RemoveFileResource(const proto::milvus::RemoveFileResourceRequest& request,
+                                     proto::common::Status& response, const GrpcContextOptions& options) {
+    return grpcCall("RemoveFileResource", &Stub::RemoveFileResource, request, response, options);
+}
+
+Status
+MilvusConnection::ListFileResources(const proto::milvus::ListFileResourcesRequest& request,
+                                    proto::milvus::ListFileResourcesResponse& response,
+                                    const GrpcContextOptions& options) {
+    return grpcCall("ListFileResources", &Stub::ListFileResources, request, response, options);
+}
+
+Status
 MilvusConnection::GetPersistentSegmentInfo(const proto::milvus::GetPersistentSegmentInfoRequest& request,
                                            proto::milvus::GetPersistentSegmentInfoResponse& response,
                                            const GrpcContextOptions& options) {

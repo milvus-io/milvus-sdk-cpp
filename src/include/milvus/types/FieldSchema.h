@@ -386,6 +386,24 @@ class MILVUS_SDK_API FieldSchema {
     const nlohmann::json&
     DefaultValue() const;
 
+    /**
+     * @brief Get external field mapping name.
+     */
+    const std::string&
+    ExternalField() const;
+
+    /**
+     * @brief Set external field mapping name.
+     */
+    void
+    SetExternalField(std::string external_field);
+
+    /**
+     * @brief Set external field mapping name.
+     */
+    FieldSchema&
+    WithExternalField(std::string external_field);
+
  private:
     std::string name_;
     std::string description_;
@@ -399,5 +417,6 @@ class MILVUS_SDK_API FieldSchema {
 
     bool is_nullable_ = false;
     nlohmann::json default_value_;  // only accept primitive types
+    std::string external_field_;
 };
 }  // namespace milvus

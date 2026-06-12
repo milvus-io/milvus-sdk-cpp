@@ -107,12 +107,16 @@
 #include "request/snapshot/UnpinSnapshotDataRequest.h"
 #include "request/utility/CheckHealthRequest.h"
 #include "request/utility/CompactRequest.h"
+#include "request/utility/FileResourceRequest.h"
 #include "request/utility/FlushAllRequest.h"
 #include "request/utility/FlushRequest.h"
 #include "request/utility/GetCompactionRequest.h"
 #include "request/utility/GetFlushAllStateRequest.h"
+#include "request/utility/GetRefreshExternalCollectionProgressRequest.h"
+#include "request/utility/ListRefreshExternalCollectionJobsRequest.h"
 #include "request/utility/ListSegmentsRequest.h"
 #include "request/utility/OptimizeRequest.h"
+#include "request/utility/RefreshExternalCollectionRequest.h"
 #include "request/utility/RunAnalyzerRequest.h"
 #include "response/alias/DescribeAliasResponse.h"
 #include "response/alias/ListAliasesResponse.h"
@@ -154,8 +158,12 @@
 #include "response/utility/GetCompactionPlansResponse.h"
 #include "response/utility/GetCompactionStateResponse.h"
 #include "response/utility/GetFlushAllStateResponse.h"
+#include "response/utility/GetRefreshExternalCollectionProgressResponse.h"
+#include "response/utility/ListFileResourcesResponse.h"
+#include "response/utility/ListRefreshExternalCollectionJobsResponse.h"
 #include "response/utility/ListSegmentsResponse.h"
 #include "response/utility/OptimizeResponse.h"
+#include "response/utility/RefreshExternalCollectionResponse.h"
 #include "response/utility/RunAnalyzerResponse.h"
 #include "types/ConnectParam.h"
 #include "types/Constants.h"
@@ -866,6 +874,67 @@ class MILVUS_SDK_API MilvusClientV2 {
      */
     virtual Status
     GetFlushAllState(const GetFlushAllStateRequest& request, GetFlushAllStateResponse& response) = 0;
+
+    /**
+     * @brief Refresh an external collection.
+     *
+     * @param [in] request input parameters
+     * @param [out] response output results
+     * @return Status operation successfully or not
+     */
+    virtual Status
+    RefreshExternalCollection(const RefreshExternalCollectionRequest& request,
+                              RefreshExternalCollectionResponse& response) = 0;
+
+    /**
+     * @brief Get refresh progress of an external collection job.
+     *
+     * @param [in] request input parameters
+     * @param [out] response output results
+     * @return Status operation successfully or not
+     */
+    virtual Status
+    GetRefreshExternalCollectionProgress(const GetRefreshExternalCollectionProgressRequest& request,
+                                         GetRefreshExternalCollectionProgressResponse& response) = 0;
+
+    /**
+     * @brief List refresh jobs of external collections.
+     *
+     * @param [in] request input parameters
+     * @param [out] response output results
+     * @return Status operation successfully or not
+     */
+    virtual Status
+    ListRefreshExternalCollectionJobs(const ListRefreshExternalCollectionJobsRequest& request,
+                                      ListRefreshExternalCollectionJobsResponse& response) = 0;
+
+    /**
+     * @brief Add a file resource.
+     *
+     * @param [in] request input parameters
+     * @return Status operation successfully or not
+     */
+    virtual Status
+    AddFileResource(const AddFileResourceRequest& request) = 0;
+
+    /**
+     * @brief Remove a file resource.
+     *
+     * @param [in] request input parameters
+     * @return Status operation successfully or not
+     */
+    virtual Status
+    RemoveFileResource(const RemoveFileResourceRequest& request) = 0;
+
+    /**
+     * @brief List file resources.
+     *
+     * @param [in] request input parameters
+     * @param [out] response output results
+     * @return Status operation successfully or not
+     */
+    virtual Status
+    ListFileResources(const ListFileResourcesRequest& request, ListFileResourcesResponse& response) = 0;
 
     /**
      * @brief Retrieve information of persisted segments from data nodes.
