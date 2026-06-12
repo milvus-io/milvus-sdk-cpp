@@ -1870,23 +1870,31 @@ MilvusClientV2Impl::Flush(const FlushRequest& request) {
         return Status::OK();
     };
 
-    // wait flush progress, check flush state in interval 500ms, until the time cost exceeds request.WaitFlushedMs()
+    // wait flush progress, check flush state in interval 1000ms, until the time cost exceeds request.WaitFlushedMs()
     // ProgressMonitor timeout unit is second, it is a history problem.
     // request.WaitFlushedMs() 0ms is treated as 0 second, which means "forever".
     // request.WaitFlushedMs() in [1, 1000] is treated as 1 second, request.
     // request.WaitFlushedMs() in [1001, 2000] is treated as 2 seconds, etc.
     ProgressMonitor progress_monitor = ProgressMonitor::Forever();
+    progress_monitor.SetCheckInterval(1000);
     if (request.WaitFlushedMs() > 0) {
         progress_monitor = ProgressMonitor{static_cast<uint32_t>(request.WaitFlushedMs() + 999) / 1000};
+        progress_monitor.SetCheckInterval(1000);
     }
-    auto wait_for_status = [this, &progress_monitor](const proto::milvus::FlushResponse& response) {
+
+    std::string db_name = request.DatabaseName();
+    auto wait_for_status = [this, &progress_monitor, &db_name](const proto::milvus::FlushResponse& response) {
         std::map<std::string, std::vector<int64_t>> flush_segments;
+        std::map<std::string, uint64_t> flush_tss;
         for (const auto& iter : response.coll_segids()) {
             const auto& ids = iter.second.data();
             std::vector<int64_t> seg_ids;
             seg_ids.reserve(ids.size());
             seg_ids.insert(seg_ids.end(), ids.begin(), ids.end());
             flush_segments.insert(std::make_pair(iter.first, seg_ids));
+        }
+        for (const auto& iter : response.coll_flush_ts()) {
+            flush_tss.insert(std::make_pair(iter.first, iter.second));
         }
 
         // the segment_count is how many segments need to be flushed
@@ -1899,14 +1907,19 @@ MilvusClientV2Impl::Flush(const FlushRequest& request) {
             return Status::OK();
         }
 
-        return ConnectionHandler::WaitForStatus(
-            [&segment_count, &flush_segments, &finished_count, this](Progress& p) -> Status {
+        auto status = ConnectionHandler::WaitForStatus(
+            [&segment_count, &flush_segments, &flush_tss, &finished_count, &db_name, this](Progress& p) -> Status {
                 p.total_ = segment_count;
 
                 // call GetFlushState() to check segment state
                 for (auto iter = flush_segments.begin(); iter != flush_segments.end();) {
                     bool flushed = false;
-                    Status status = getFlushState(iter->second, flushed);
+                    uint64_t flush_ts = 0;
+                    auto ts_iter = flush_tss.find(iter->first);
+                    if (ts_iter != flush_tss.end()) {
+                        flush_ts = ts_iter->second;
+                    }
+                    Status status = getFlushState(db_name, iter->second, flush_ts, flushed);
                     if (!status.IsOk()) {
                         return status;
                     }
@@ -1923,6 +1936,14 @@ MilvusClientV2Impl::Flush(const FlushRequest& request) {
                 return Status::OK();
             },
             progress_monitor);
+
+        // wait more 1 second to make sure the flushed segments are visible.
+        // there might be a small delay(on server-side) between the flush_ts and the time when the segments are actually flushed,
+        // if user calls createSnapshot immediately after flush returns, it might not find the flushed segments.
+        if (status.IsOk()) {
+            std::this_thread::sleep_for(std::chrono::seconds(1));
+        }
+        return status;
     };
 
     return connection_.Invoke<proto::milvus::FlushRequest, proto::milvus::FlushResponse>(
@@ -3239,11 +3260,15 @@ MilvusClientV2Impl::createIndex(const std::string& db_name, const std::string& c
 }
 
 Status
-MilvusClientV2Impl::getFlushState(const std::vector<int64_t>& segments, bool& flushed) {
-    auto pre = [&segments](proto::milvus::GetFlushStateRequest& rpc_request) {
+MilvusClientV2Impl::getFlushState(const std::string& db_name, const std::vector<int64_t>& segments, uint64_t flush_ts,
+                                  bool& flushed) {
+    auto actual_db = connection_.CurrentDbName(db_name);
+    auto pre = [&actual_db, &segments, flush_ts](proto::milvus::GetFlushStateRequest& rpc_request) {
+        rpc_request.set_db_name(actual_db);
         for (auto id : segments) {
             rpc_request.add_segmentids(id);
         }
+        rpc_request.set_flush_ts(flush_ts);
         return Status::OK();
     };
 

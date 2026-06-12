@@ -51,6 +51,7 @@ Examples for MilvusClientV2:
 - `./cmake_build/examples/v2/sdk_rerank_function_v2`: example to show the usage of rerank function.
 - `./cmake_build/examples/v2/sdk_run_analyzer_v2`: example to show the usage of run_analyzer().
 - `./cmake_build/examples/v2/sdk_simple_v2`: example to quickly create a simple collection.
+- `./cmake_build/examples/v2/sdk_snapshot_v2`: example to show the usage of snapshot interfaces.
 - `./cmake_build/examples/v2/sdk_struct_field_v2`: example to show the usage of struct field.
 - `./cmake_build/examples/v2/sdk_text_match_v2`: example to show the usage of TEXT_MATCH.
 - `./cmake_build/examples/v2/sdk_timestamptz_field_v2`: example to show the usage of Timestamptz field.
