@@ -359,6 +359,33 @@ class MilvusMockedService : public ::milvus::proto::milvus::MilvusService::Servi
     MOCK_METHOD3(OperatePrivilegeGroup,
                  ::grpc::Status(::grpc::ServerContext*, const ::milvus::proto::milvus::OperatePrivilegeGroupRequest*,
                                 ::milvus::proto::common::Status*));
+
+    MOCK_METHOD3(RefreshExternalCollection,
+                 ::grpc::Status(::grpc::ServerContext*,
+                                const ::milvus::proto::milvus::RefreshExternalCollectionRequest*,
+                                ::milvus::proto::milvus::RefreshExternalCollectionResponse*));
+
+    MOCK_METHOD3(GetRefreshExternalCollectionProgress,
+                 ::grpc::Status(::grpc::ServerContext*,
+                                const ::milvus::proto::milvus::GetRefreshExternalCollectionProgressRequest*,
+                                ::milvus::proto::milvus::GetRefreshExternalCollectionProgressResponse*));
+
+    MOCK_METHOD3(ListRefreshExternalCollectionJobs,
+                 ::grpc::Status(::grpc::ServerContext*,
+                                const ::milvus::proto::milvus::ListRefreshExternalCollectionJobsRequest*,
+                                ::milvus::proto::milvus::ListRefreshExternalCollectionJobsResponse*));
+
+    MOCK_METHOD3(AddFileResource,
+                 ::grpc::Status(::grpc::ServerContext*, const ::milvus::proto::milvus::AddFileResourceRequest*,
+                                ::milvus::proto::common::Status*));
+
+    MOCK_METHOD3(RemoveFileResource,
+                 ::grpc::Status(::grpc::ServerContext*, const ::milvus::proto::milvus::RemoveFileResourceRequest*,
+                                ::milvus::proto::common::Status*));
+
+    MOCK_METHOD3(ListFileResources,
+                 ::grpc::Status(::grpc::ServerContext*, const ::milvus::proto::milvus::ListFileResourcesRequest*,
+                                ::milvus::proto::milvus::ListFileResourcesResponse*));
 };
 
 }  // namespace milvus

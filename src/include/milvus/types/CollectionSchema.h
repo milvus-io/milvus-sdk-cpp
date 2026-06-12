@@ -18,6 +18,7 @@
 
 #include <cstdint>
 #include <memory>
+#include <nlohmann/json.hpp>
 #include <string>
 #include <unordered_set>
 #include <vector>
@@ -153,6 +154,42 @@ class MILVUS_SDK_API CollectionSchema {
     void
     AddFunction(const FunctionPtr& function);
 
+    /**
+     * @brief Get external collection source path.
+     */
+    const std::string&
+    ExternalSource() const;
+
+    /**
+     * @brief Set external collection source path.
+     */
+    void
+    SetExternalSource(std::string external_source);
+
+    /**
+     * @brief Set external collection source path.
+     */
+    CollectionSchema&
+    WithExternalSource(std::string external_source);
+
+    /**
+     * @brief Get external collection spec JSON.
+     */
+    const nlohmann::json&
+    ExternalSpec() const;
+
+    /**
+     * @brief Set external collection spec JSON.
+     */
+    void
+    SetExternalSpec(const nlohmann::json& external_spec);
+
+    /**
+     * @brief Set external collection spec JSON.
+     */
+    CollectionSchema&
+    WithExternalSpec(const nlohmann::json& external_spec);
+
  private:
     std::string name_;
     std::string description_;
@@ -162,6 +199,8 @@ class MILVUS_SDK_API CollectionSchema {
     std::vector<StructFieldSchema> struct_fields_;
 
     std::vector<FunctionPtr> functions_;
+    std::string external_source_;
+    nlohmann::json external_spec_;
 };
 
 using CollectionSchemaPtr = std::shared_ptr<CollectionSchema>;

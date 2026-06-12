@@ -18,6 +18,7 @@
 
 #include <cstdint>
 #include <memory>
+#include <nlohmann/json.hpp>
 #include <string>
 #include <vector>
 
@@ -145,6 +146,18 @@ class MILVUS_SDK_API CollectionDesc {
     void
     SetProperties(std::unordered_map<std::string, std::string>&& properties);
 
+    const std::string&
+    ExternalSource() const;
+
+    void
+    SetExternalSource(std::string external_source);
+
+    const nlohmann::json&
+    ExternalSpec() const;
+
+    void
+    SetExternalSpec(const nlohmann::json& external_spec);
+
  private:
     std::string db_name_;
     CollectionSchema schema_;
@@ -153,6 +166,8 @@ class MILVUS_SDK_API CollectionDesc {
     uint64_t created_utc_timestamp_ = 0;
     uint64_t update_timestamp_ = 0;
     std::unordered_map<std::string, std::string> properties_;
+    std::string external_source_;
+    nlohmann::json external_spec_;
 };
 
 using CollectionDescPtr = std::shared_ptr<CollectionDesc>;

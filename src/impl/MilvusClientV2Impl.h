@@ -240,6 +240,27 @@ class MilvusClientV2Impl : public MilvusClientV2, public std::enable_shared_from
     GetFlushAllState(const GetFlushAllStateRequest& request, GetFlushAllStateResponse& response) final;
 
     Status
+    RefreshExternalCollection(const RefreshExternalCollectionRequest& request,
+                              RefreshExternalCollectionResponse& response) final;
+
+    Status
+    GetRefreshExternalCollectionProgress(const GetRefreshExternalCollectionProgressRequest& request,
+                                         GetRefreshExternalCollectionProgressResponse& response) final;
+
+    Status
+    ListRefreshExternalCollectionJobs(const ListRefreshExternalCollectionJobsRequest& request,
+                                      ListRefreshExternalCollectionJobsResponse& response) final;
+
+    Status
+    AddFileResource(const AddFileResourceRequest& request) final;
+
+    Status
+    RemoveFileResource(const RemoveFileResourceRequest& request) final;
+
+    Status
+    ListFileResources(const ListFileResourcesRequest& request, ListFileResourcesResponse& response) final;
+
+    Status
     ListPersistentSegments(const ListPersistentSegmentsRequest& request,
                            ListPersistentSegmentsResponse& response) final;
 
