@@ -41,3 +41,18 @@ TEST_F(CollectionDescTest, GeneralTesting) {
     desc.SetUpdateTime(888);
     EXPECT_EQ(desc.UpdateTime(), 888);
 }
+
+TEST_F(CollectionDescTest, ExternalSpec) {
+    milvus::CollectionDesc desc;
+    EXPECT_TRUE(desc.ExternalSpec().is_null());
+
+    nlohmann::json external_spec = {{"format", "parquet"}, {"extfs", {{"region", "us-east-1"}}}};
+    desc.SetExternalSpec(external_spec);
+    EXPECT_EQ(desc.ExternalSpec(), external_spec);
+}
+
+TEST_F(CollectionDescTest, ExternalSpecNull) {
+    milvus::CollectionDesc desc;
+    desc.SetExternalSpec(nullptr);
+    EXPECT_TRUE(desc.ExternalSpec().is_null());
+}

@@ -24,12 +24,15 @@
 #include "milvus/types/CollectionSchema.h"
 #include "milvus/types/ConsistencyLevel.h"
 #include "milvus/types/FieldData.h"
+#include "milvus/types/FileResourceInfo.h"
 #include "milvus/types/FunctionScore.h"
 #include "milvus/types/IDArray.h"
 #include "milvus/types/IndexState.h"
 #include "milvus/types/IndexType.h"
 #include "milvus/types/LoadState.h"
 #include "milvus/types/MetricType.h"
+#include "milvus/types/RefreshExternalCollectionJobInfo.h"
+#include "milvus/types/RefreshExternalCollectionState.h"
 #include "milvus/types/ReplicateConfiguration.h"
 #include "milvus/types/ResourceGroupConfig.h"
 #include "milvus/types/RestoreSnapshotJobInfo.h"
@@ -66,8 +69,17 @@ LoadStateCast(proto::common::LoadState state);
 RestoreSnapshotStateCode
 RestoreSnapshotStateCast(proto::milvus::RestoreSnapshotState state);
 
+RefreshExternalCollectionStateCode
+RefreshExternalCollectionStateCast(proto::milvus::RefreshExternalCollectionState state);
+
 RestoreSnapshotJobInfo
 ConvertRestoreSnapshotJobInfo(const proto::milvus::RestoreSnapshotInfo& rpc_info);
+
+RefreshExternalCollectionJobInfo
+ConvertRefreshExternalCollectionJobInfo(const proto::milvus::RefreshExternalCollectionJobInfo& rpc_info);
+
+FileResourceInfo
+ConvertFileResourceInfo(const proto::milvus::FileResourceInfo& rpc_info);
 
 void
 ConvertValueFieldSchema(const proto::schema::ValueField& value_field, DataType type, nlohmann::json& val);

@@ -97,3 +97,22 @@ TEST_F(CollectionSchemaTest, Functions) {
     EXPECT_EQ(schema.Functions().size(), 1);
     EXPECT_EQ(schema.Functions().at(0)->Name(), "bm25_func");
 }
+
+TEST_F(CollectionSchemaTest, ExternalSpec) {
+    milvus::CollectionSchema schema;
+    EXPECT_TRUE(schema.ExternalSpec().is_null());
+
+    nlohmann::json external_spec = {{"format", "parquet"}, {"extfs", {{"cloud_provider", "minio"}}}};
+    schema.SetExternalSpec(external_spec);
+    EXPECT_EQ(schema.ExternalSpec(), external_spec);
+
+    milvus::CollectionSchema schema2;
+    schema2.WithExternalSpec(external_spec);
+    EXPECT_EQ(schema2.ExternalSpec(), external_spec);
+}
+
+TEST_F(CollectionSchemaTest, ExternalSpecNullRoundTrip) {
+    milvus::CollectionSchema schema;
+    schema.SetExternalSpec(nullptr);
+    EXPECT_TRUE(schema.ExternalSpec().is_null());
+}

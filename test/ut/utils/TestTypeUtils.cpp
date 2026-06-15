@@ -603,9 +603,12 @@ TEST_F(TypeUtilsTest, ConvertCollectionSchema) {
     const std::string function_name = "bm25_func";
     const std::string function_desc = "bm25 function";
     const milvus::FunctionType function_type = milvus::FunctionType::BM25;
+    const nlohmann::json external_spec = {{"format", "parquet"}, {"extfs", {{"cloud_provider", "minio"}}}};
 
     milvus::CollectionSchema collection_schema(collection_name, collection_desc, 1, enable_dynamic);
     collection_schema.AddField({field_name, milvus::DataType::INT64, "dummy", true, true});
+    collection_schema.SetExternalSource("s3://bucket/path/");
+    collection_schema.SetExternalSpec(external_spec);
 
     milvus::FunctionPtr function = std::make_shared<milvus::Function>(function_name, function_type, function_desc);
     function->AddInputFieldName("aaa");
@@ -619,8 +622,17 @@ TEST_F(TypeUtilsTest, ConvertCollectionSchema) {
     EXPECT_EQ(proto_schema.name(), collection_name);
     EXPECT_EQ(proto_schema.description(), collection_desc);
     EXPECT_EQ(proto_schema.enable_dynamic_field(), enable_dynamic);
+    EXPECT_EQ(proto_schema.external_source(), "s3://bucket/path/");
+    EXPECT_EQ(proto_schema.external_spec(), external_spec.dump());
     EXPECT_EQ(proto_schema.fields_size(), 1);
     EXPECT_EQ(proto_schema.functions_size(), 1);
+
+    milvus::proto::schema::CollectionSchema proto_schema_no_spec;
+    proto_schema_no_spec.set_name("empty_spec");
+    proto_schema_no_spec.set_description("desc");
+    milvus::CollectionSchema sdk_schema_no_spec;
+    ConvertCollectionSchema(proto_schema_no_spec, sdk_schema_no_spec);
+    EXPECT_TRUE(sdk_schema_no_spec.ExternalSpec().is_null());
 
     milvus::CollectionSchema sdk_schema;
     ConvertCollectionSchema(proto_schema, sdk_schema);
@@ -628,6 +640,8 @@ TEST_F(TypeUtilsTest, ConvertCollectionSchema) {
     EXPECT_EQ(sdk_schema.Name(), collection_name);
     EXPECT_EQ(sdk_schema.Description(), collection_desc);
     EXPECT_EQ(sdk_schema.EnableDynamicField(), enable_dynamic);
+    EXPECT_EQ(sdk_schema.ExternalSource(), "s3://bucket/path/");
+    EXPECT_EQ(sdk_schema.ExternalSpec(), external_spec);
     EXPECT_EQ(sdk_schema.Fields().size(), 1);
     EXPECT_EQ(sdk_schema.Fields().at(0).Name(), field_name);
     EXPECT_EQ(sdk_schema.Functions().size(), 1);
@@ -651,6 +665,8 @@ TEST_F(TypeUtilsTest, ConvertDescribeCollectionResponse) {
 
     milvus::CollectionSchema collection_schema("test_collection", "test description", 1, true);
     collection_schema.AddField({"id", milvus::DataType::INT64, "primary key", true, false});
+    collection_schema.SetExternalSource("s3://bucket/path/");
+    collection_schema.SetExternalSpec({{"format", "parquet"}, {"extfs", {{"region", "us-east-1"}}}});
 
     milvus::proto::milvus::DescribeCollectionResponse rpc_response;
     rpc_response.mutable_status()->set_code(0);
@@ -673,6 +689,9 @@ TEST_F(TypeUtilsTest, ConvertDescribeCollectionResponse) {
     EXPECT_EQ(collection_desc.CollectionName(), collection_schema.Name());
     EXPECT_EQ(collection_desc.Description(), collection_schema.Description());
     EXPECT_EQ(collection_desc.NumShards(), shards_num);
+    EXPECT_EQ(collection_desc.ExternalSource(), "s3://bucket/path/");
+    EXPECT_EQ(collection_desc.ExternalSpec(), collection_schema.ExternalSpec());
+    EXPECT_EQ(collection_desc.Schema().ExternalSpec(), collection_schema.ExternalSpec());
     EXPECT_THAT(collection_desc.Alias(), ElementsAre("alias_a", "alias_b"));
     ASSERT_EQ(collection_desc.Properties().count("collection.ttl.seconds"), 1);
     EXPECT_EQ(collection_desc.Properties().at("collection.ttl.seconds"), "3600");
@@ -691,6 +710,17 @@ TEST_F(TypeUtilsTest, ConvertDescribeCollectionResponseFailure) {
 
     EXPECT_EQ(status.Code(), milvus::StatusCode::SERVER_FAILED);
     EXPECT_EQ(status.Message(), "describe failed");
+}
+
+TEST_F(TypeUtilsTest, ConvertDescribeCollectionResponseInvalidExternalSpec) {
+    milvus::proto::milvus::DescribeCollectionResponse rpc_response;
+    rpc_response.mutable_status()->set_code(0);
+    rpc_response.mutable_status()->set_error_code(milvus::proto::common::ErrorCode::Success);
+    rpc_response.mutable_schema()->set_name("coll");
+    rpc_response.mutable_schema()->set_external_spec("{invalid json");
+
+    milvus::CollectionDesc collection_desc;
+    EXPECT_THROW(milvus::ConvertDescribeCollectionResponse(rpc_response, collection_desc), nlohmann::json::parse_error);
 }
 
 TEST_F(TypeUtilsTest, TestB64EncodeGeneric) {
