@@ -19,6 +19,7 @@
 #include <gtest/gtest.h>
 
 #include <array>
+#include <cctype>
 #include <cstdio>
 #include <cstdlib>
 #include <iostream>
@@ -26,7 +27,6 @@
 #include <stdexcept>
 #include <string>
 #include <vector>
-
 /**
  * Google Test Environment that manages Milvus container lifecycle.
  *
@@ -35,6 +35,48 @@
  */
 class MilvusContainerEnv : public ::testing::Environment {
  public:
+    static std::string
+    Trim(std::string value) {
+        auto start = value.find_first_not_of(" \n\r\t");
+        if (start == std::string::npos) {
+            return "";
+        }
+        auto end = value.find_last_not_of(" \n\r\t");
+        return value.substr(start, end - start + 1);
+    }
+
+    static bool
+    IsHexContainerId(const std::string& value) {
+        if (value.length() < 12) {
+            return false;
+        }
+        for (char c : value) {
+            if (!std::isxdigit(static_cast<unsigned char>(c))) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    static std::string
+    ExtractContainerId(const std::string& output) {
+        size_t pos = 0;
+        std::string last_match;
+        while (pos <= output.size()) {
+            auto end = output.find('\n', pos);
+            std::string line = end == std::string::npos ? output.substr(pos) : output.substr(pos, end - pos);
+            line = Trim(line);
+            if (IsHexContainerId(line)) {
+                last_match = line;
+            }
+            if (end == std::string::npos) {
+                break;
+            }
+            pos = end + 1;
+        }
+        return last_match;
+    }
+
     void
     SetUp() override {
         std::string py_version = execCommand("python3 --version 2>&1 | cut -d' ' -f2");
@@ -45,17 +87,13 @@ class MilvusContainerEnv : public ::testing::Environment {
         std::string script_path = findScript();
         std::string cmd = "python3 " + script_path + " start 2>&1";
 
-        container_id_ = execCommand(cmd);
-        std::cout << "execCommand returns: " << container_id_ << std::endl;
+        std::string start_output = execCommand(cmd);
+        std::cout << "execCommand returns: " << start_output << std::endl;
 
-        // Trim whitespace/newlines from container ID
-        container_id_.erase(container_id_.find_last_not_of(" \n\r\t") + 1);
-        container_id_.erase(0, container_id_.find_first_not_of(" \n\r\t"));
-
-        if (container_id_.empty() || container_id_.length() < 12) {
-            throw std::runtime_error("Failed to start Milvus container. Output: " + container_id_);
+        container_id_ = ExtractContainerId(start_output);
+        if (container_id_.empty()) {
+            throw std::runtime_error("Failed to start Milvus container. Output: " + start_output);
         }
-
         std::cout << "Milvus container started: " << container_id_ << std::endl;
 
         // Get container IP for test connections (localhost may not work in CI)

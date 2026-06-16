@@ -356,7 +356,7 @@ TEST_F(SearchRequestTest, SearchRequestBaseAllVectorTypes) {
         EXPECT_NE(req.TargetVectors(), nullptr);
     }
 
-    // AddEmbeddingList
+    // AddEmbeddingList float
     {
         milvus::SearchRequest req;
         req.WithAnnsField("struct_field");
@@ -365,6 +365,61 @@ TEST_F(SearchRequestTest, SearchRequestBaseAllVectorTypes) {
         req.AddEmbeddingList(std::move(emb));
         EXPECT_EQ(req.EmbeddingLists().size(), 1);
     }
+
+    // AddEmbeddingList binary
+    {
+        milvus::SearchRequest req;
+        req.WithAnnsField("struct_field");
+        milvus::EmbeddingList emb;
+        emb.AddBinaryVector(std::vector<uint8_t>{0x01, 0x02});
+        req.AddEmbeddingList(std::move(emb));
+        EXPECT_EQ(req.EmbeddingLists().size(), 1);
+    }
+
+    // AddEmbeddingList float16
+    {
+        milvus::SearchRequest req;
+        req.WithAnnsField("struct_field");
+        milvus::EmbeddingList emb;
+        emb.AddFloat16Vector(std::vector<float>{1.0f, 2.0f, 3.0f});
+        req.AddEmbeddingList(std::move(emb));
+        EXPECT_EQ(req.EmbeddingLists().size(), 1);
+    }
+
+    // AddEmbeddingList bfloat16
+    {
+        milvus::SearchRequest req;
+        req.WithAnnsField("struct_field");
+        milvus::EmbeddingList emb;
+        emb.AddBFloat16Vector(std::vector<float>{1.0f, 2.0f, 3.0f});
+        req.AddEmbeddingList(std::move(emb));
+        EXPECT_EQ(req.EmbeddingLists().size(), 1);
+    }
+
+    // AddEmbeddingList int8
+    {
+        milvus::SearchRequest req;
+        req.WithAnnsField("struct_field");
+        milvus::EmbeddingList emb;
+        emb.AddInt8Vector(std::vector<int8_t>{1, -2, 3});
+        req.AddEmbeddingList(std::move(emb));
+        EXPECT_EQ(req.EmbeddingLists().size(), 1);
+    }
+}
+
+TEST_F(SearchRequestTest, AddEmbeddingListTypeValidation) {
+    milvus::SearchRequest req;
+    req.WithAnnsField("struct_field");
+
+    milvus::EmbeddingList emb1;
+    emb1.AddFloatVector({1.0f, 2.0f, 3.0f});
+    req.AddEmbeddingList(std::move(emb1));
+
+    milvus::EmbeddingList emb2;
+    emb2.AddInt8Vector(std::vector<int8_t>{1, 2, 3});
+    req.AddEmbeddingList(std::move(emb2));
+
+    EXPECT_EQ(req.EmbeddingLists().size(), 2);
 }
 
 TEST_F(SearchRequestTest, SearchRequestBaseSetMethods) {

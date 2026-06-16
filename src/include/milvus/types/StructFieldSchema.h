@@ -93,6 +93,24 @@ class MILVUS_SDK_API StructFieldSchema {
     WithMaxCapacity(int64_t capacity);
 
     /**
+     * @brief Whether the struct field is nullable.
+     */
+    bool
+    IsNullable() const;
+
+    /**
+     * @brief Set nullable for the struct field.
+     */
+    void
+    SetNullable(bool nullable);
+
+    /**
+     * @brief Set nullable for the struct field.
+     */
+    StructFieldSchema&
+    WithNullable(bool nullable);
+
+    /**
      * @brief Get sub fields of the struct field.
      */
     const std::vector<FieldSchema>&
@@ -114,6 +132,7 @@ class MILVUS_SDK_API StructFieldSchema {
     std::string name_;
     std::string description_;
     int64_t capacity_{0};
+    bool is_nullable_{false};
 
     std::vector<FieldSchema> fields_;
 };

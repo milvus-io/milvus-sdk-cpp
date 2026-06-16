@@ -582,11 +582,6 @@ ConvertStructFieldData(const proto::schema::FieldData& proto_data, size_t offset
             }
             case proto::schema::DataType::ArrayOfVector: {
                 const auto& vector_array = field_data.vectors().vector_array();
-                if (vector_array.element_type() != proto::schema::DataType::FloatVector) {
-                    return {StatusCode::NOT_SUPPORTED,
-                            "Unsupported vector field type: " + std::to_string(vector_array.element_type()) +
-                                " for struct field: " + sturct_name};
-                }
 
                 if (offset >= vector_array.data_size() || count == 0) {
                     break;
@@ -596,16 +591,85 @@ ConvertStructFieldData(const proto::schema::FieldData& proto_data, size_t offset
                 }
                 for (size_t k = offset; k < offset + count; k++) {
                     const auto& vector_field = vector_array.data(k);
-                    const auto& floats = vector_field.float_vector().data();
-                    std::vector<std::vector<float>> vectors = BuildFieldDataVectors<float, float>(
-                        vector_field.dim() * 4, floats.data(), floats.size(), 0, floats.size());
                     auto num = k - offset;
-                    if (structs.size() <= num) {
-                        structs.emplace_back();
-                        structs[num].resize(vectors.size());
-                    }
-                    for (auto j = 0; j < vectors.size(); j++) {
-                        structs[num][j][sub_field_name] = vectors[j];
+                    switch (vector_array.element_type()) {
+                        case proto::schema::DataType::FloatVector: {
+                            const auto& floats = vector_field.float_vector().data();
+                            std::vector<std::vector<float>> vectors = BuildFieldDataVectors<float, float>(
+                                vector_field.dim() * sizeof(float), floats.data(), floats.size(), 0, floats.size());
+                            if (structs.size() <= num) {
+                                structs.emplace_back();
+                                structs[num].resize(vectors.size());
+                            }
+                            for (size_t j = 0; j < vectors.size(); j++) {
+                                structs[num][j][sub_field_name] = vectors[j];
+                            }
+                            break;
+                        }
+                        case proto::schema::DataType::BinaryVector: {
+                            const auto& bytes = vector_field.binary_vector();
+                            std::vector<std::vector<uint8_t>> vectors = BuildFieldDataVectors<uint8_t, char>(
+                                vector_field.dim() / 8, bytes.data(), bytes.size(), 0, bytes.size());
+                            if (structs.size() <= num) {
+                                structs.emplace_back();
+                                structs[num].resize(vectors.size());
+                            }
+                            for (size_t j = 0; j < vectors.size(); j++) {
+                                structs[num][j][sub_field_name] = vectors[j];
+                            }
+                            break;
+                        }
+                        case proto::schema::DataType::Float16Vector: {
+                            const auto& bytes = vector_field.float16_vector();
+                            std::vector<std::vector<uint16_t>> vectors = BuildFieldDataVectors<uint16_t, char>(
+                                vector_field.dim() * sizeof(uint16_t), bytes.data(), bytes.size(), 0, bytes.size());
+                            if (structs.size() <= num) {
+                                structs.emplace_back();
+                                structs[num].resize(vectors.size());
+                            }
+                            for (size_t j = 0; j < vectors.size(); j++) {
+                                std::vector<float> decoded;
+                                decoded.reserve(vectors[j].size());
+                                std::transform(vectors[j].begin(), vectors[j].end(), std::back_inserter(decoded),
+                                               [](uint16_t val) { return F16toF32(val); });
+                                structs[num][j][sub_field_name] = decoded;
+                            }
+                            break;
+                        }
+                        case proto::schema::DataType::BFloat16Vector: {
+                            const auto& bytes = vector_field.bfloat16_vector();
+                            std::vector<std::vector<uint16_t>> vectors = BuildFieldDataVectors<uint16_t, char>(
+                                vector_field.dim() * sizeof(uint16_t), bytes.data(), bytes.size(), 0, bytes.size());
+                            if (structs.size() <= num) {
+                                structs.emplace_back();
+                                structs[num].resize(vectors.size());
+                            }
+                            for (size_t j = 0; j < vectors.size(); j++) {
+                                std::vector<float> decoded;
+                                decoded.reserve(vectors[j].size());
+                                std::transform(vectors[j].begin(), vectors[j].end(), std::back_inserter(decoded),
+                                               [](uint16_t val) { return BF16toF32(val); });
+                                structs[num][j][sub_field_name] = decoded;
+                            }
+                            break;
+                        }
+                        case proto::schema::DataType::Int8Vector: {
+                            const auto& bytes = vector_field.int8_vector();
+                            std::vector<std::vector<int8_t>> vectors = BuildFieldDataVectors<int8_t, char>(
+                                vector_field.dim(), bytes.data(), bytes.size(), 0, bytes.size());
+                            if (structs.size() <= num) {
+                                structs.emplace_back();
+                                structs[num].resize(vectors.size());
+                            }
+                            for (size_t j = 0; j < vectors.size(); j++) {
+                                structs[num][j][sub_field_name] = vectors[j];
+                            }
+                            break;
+                        }
+                        default:
+                            return {StatusCode::NOT_SUPPORTED,
+                                    "Unsupported vector field type: " + std::to_string(vector_array.element_type()) +
+                                        " for struct field: " + sturct_name};
                     }
                 }
                 break;
@@ -742,23 +806,62 @@ SetEmbeddingLists(const std::vector<EmbeddingList>& emb_lists, proto::milvus::Se
     auto& placeholder_value = *placeholder_group.add_placeholders();
     placeholder_value.set_tag("$0");
 
+    proto::common::PlaceholderType placeholder_type = proto::common::PlaceholderType::None;
     for (const auto& emb_list : emb_lists) {
         auto target = emb_list.TargetVectors();
-        if (target == nullptr) {
+        if (target == nullptr || emb_list.Count() == 0) {
             return {StatusCode::INVALID_ARGUMENT, "Embedding list is empty"};
         }
+
+        proto::common::PlaceholderType current_placeholder_type = proto::common::PlaceholderType::None;
+        std::string content;
         if (target->Type() == DataType::FLOAT_VECTOR) {
-            // so far only support float vector
-            placeholder_value.set_type(proto::common::PlaceholderType::EmbListFloatVector);
+            current_placeholder_type = proto::common::PlaceholderType::EmbListFloatVector;
             auto& vectors = dynamic_cast<FloatVecFieldData&>(*target);
-            std::string content;
-            content.reserve(emb_list.Count() * emb_list.Dim() * 4);
+            content.reserve(emb_list.Count() * emb_list.Dim() * sizeof(float));
             for (const auto& vector : vectors.Data()) {
                 content.append(reinterpret_cast<const char*>(vector.data()), vector.size() * sizeof(float));
             }
-            rpc_request->set_nq(static_cast<int64_t>(emb_list.Count()));
-            placeholder_value.add_values(std::move(content));
+        } else if (target->Type() == DataType::BINARY_VECTOR) {
+            current_placeholder_type = proto::common::PlaceholderType::EmbListBinaryVector;
+            auto& vectors = dynamic_cast<BinaryVecFieldData&>(*target);
+            content.reserve(emb_list.Count() * emb_list.Dim() / 8);
+            for (const auto& vector : vectors.Data()) {
+                content.append(reinterpret_cast<const char*>(vector.data()), vector.size() * sizeof(uint8_t));
+            }
+        } else if (target->Type() == DataType::FLOAT16_VECTOR) {
+            current_placeholder_type = proto::common::PlaceholderType::EmbListFloat16Vector;
+            auto& vectors = dynamic_cast<Float16VecFieldData&>(*target);
+            content.reserve(emb_list.Count() * emb_list.Dim() * sizeof(uint16_t));
+            for (const auto& vector : vectors.Data()) {
+                content.append(reinterpret_cast<const char*>(vector.data()), vector.size() * sizeof(uint16_t));
+            }
+        } else if (target->Type() == DataType::BFLOAT16_VECTOR) {
+            current_placeholder_type = proto::common::PlaceholderType::EmbListBFloat16Vector;
+            auto& vectors = dynamic_cast<BFloat16VecFieldData&>(*target);
+            content.reserve(emb_list.Count() * emb_list.Dim() * sizeof(uint16_t));
+            for (const auto& vector : vectors.Data()) {
+                content.append(reinterpret_cast<const char*>(vector.data()), vector.size() * sizeof(uint16_t));
+            }
+        } else if (target->Type() == DataType::INT8_VECTOR) {
+            current_placeholder_type = proto::common::PlaceholderType::EmbListInt8Vector;
+            auto& vectors = dynamic_cast<Int8VecFieldData&>(*target);
+            content.reserve(emb_list.Count() * emb_list.Dim() * sizeof(int8_t));
+            for (const auto& vector : vectors.Data()) {
+                content.append(reinterpret_cast<const char*>(vector.data()), vector.size() * sizeof(int8_t));
+            }
+        } else {
+            return {StatusCode::NOT_SUPPORTED, "Unsupported embedding list type: " + std::to_string(target->Type())};
         }
+
+        if (placeholder_type == proto::common::PlaceholderType::None) {
+            placeholder_type = current_placeholder_type;
+            placeholder_value.set_type(current_placeholder_type);
+        } else if (placeholder_type != current_placeholder_type) {
+            return {StatusCode::INVALID_ARGUMENT, "Embedding lists must use the same vector type"};
+        }
+
+        placeholder_value.add_values(std::move(content));
     }
 
     rpc_request->set_nq(static_cast<int64_t>(emb_lists.size()));
@@ -1362,6 +1465,28 @@ ConvertSearchResults(const proto::milvus::SearchResults& rpc_results, const std:
         item_fields_data.emplace_back(std::move(id_field));
         item_fields_data.emplace_back(std::move(score_field));
 
+        // set element offset field for vector search with payload, the element offset is the position
+        // of the returned vector in the original field data of the entity, which is useful for users to
+        // retrieve the corresponding payload data. For non-vector search or vector search without payload,
+        // the server will not return element offset, client will not set this field.
+        if (result_data.has_element_indices()) {
+            std::string element_offset_name = ELEMENT_OFFSET;
+            while (field_names.find(element_offset_name) != field_names.end() || element_offset_name == score_name) {
+                element_offset_name = "_" + element_offset_name;
+            }
+            output_names.insert(element_offset_name);
+
+            const auto& element_indices = result_data.element_indices().data();
+            std::vector<int64_t> element_offsets;
+            element_offsets.reserve(item_topk);
+            auto begin = element_indices.begin();
+            std::advance(begin, offset);
+            auto end = begin;
+            std::advance(end, item_topk);
+            std::copy(begin, end, std::back_inserter(element_offsets));
+            item_fields_data.emplace_back(
+                std::make_shared<Int64FieldData>(element_offset_name, std::move(element_offsets)));
+        }
         // if the server return different length of ids, scores, this line will throw an exception
         // we never saw such bug, just keep a protection here in case if it happens.
         try {

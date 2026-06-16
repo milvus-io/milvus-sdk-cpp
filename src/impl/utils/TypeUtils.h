@@ -110,7 +110,7 @@ void
 ConvertFieldSchema(const FieldSchema& schema, proto::schema::FieldSchema& proto_schema);
 
 void
-ConvertStructFieldSchema(const proto::schema::StructArrayFieldSchema& proto_schema, StructFieldSchema& schema);
+ConvertStructFieldSchema(const StructFieldSchema& schema, proto::schema::StructArrayFieldSchema& proto_schema);
 
 void
 ConvertFunctionSchema(const FunctionPtr& function_schema, proto::schema::FunctionSchema& proto_function);

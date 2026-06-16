@@ -706,6 +706,72 @@ MilvusClientV2Impl::AddCollectionField(const AddCollectionFieldRequest& request)
 }
 
 Status
+MilvusClientV2Impl::AddCollectionStructField(const AddCollectionStructFieldRequest& request) {
+    auto validate = [&request]() {
+        const auto& field = request.StructField();
+        if (request.CollectionName().empty()) {
+            return Status{StatusCode::INVALID_ARGUMENT, "Collection name is empty"};
+        }
+        if (field.Name().empty()) {
+            return Status{StatusCode::INVALID_ARGUMENT, "Struct field name is empty"};
+        }
+        if (field.MaxCapacity() <= 0) {
+            return Status{StatusCode::INVALID_ARGUMENT, "Struct field max capacity must be positive"};
+        }
+        if (field.Fields().empty()) {
+            return Status{StatusCode::INVALID_ARGUMENT, "Struct field must contain at least one sub field"};
+        }
+        if (!field.IsNullable()) {
+            return Status{StatusCode::INVALID_ARGUMENT,
+                          "added struct field must be nullable, please check it, struct field name = " + field.Name()};
+        }
+        std::set<std::string> names;
+        for (const auto& sub_field : field.Fields()) {
+            if (sub_field.Name().empty()) {
+                return Status{StatusCode::INVALID_ARGUMENT, "Struct sub field name is empty"};
+            }
+            if (!names.insert(sub_field.Name()).second) {
+                return Status{StatusCode::INVALID_ARGUMENT, "Duplicate struct sub field name: " + sub_field.Name()};
+            }
+            if (sub_field.IsPrimaryKey()) {
+                return Status{StatusCode::INVALID_ARGUMENT,
+                              "Struct sub field cannot be primary key: " + sub_field.Name()};
+            }
+            if (sub_field.IsPartitionKey()) {
+                return Status{StatusCode::INVALID_ARGUMENT,
+                              "Struct sub field cannot be partition key: " + sub_field.Name()};
+            }
+            if (sub_field.IsClusteringKey()) {
+                return Status{StatusCode::INVALID_ARGUMENT,
+                              "Struct sub field cannot be clustering key: " + sub_field.Name()};
+            }
+            if (sub_field.AutoID()) {
+                return Status{StatusCode::INVALID_ARGUMENT,
+                              "Struct sub field cannot enable auto id: " + sub_field.Name()};
+            }
+            if (sub_field.IsNullable()) {
+                return Status{StatusCode::INVALID_ARGUMENT, "Struct sub field cannot be nullable: " + sub_field.Name()};
+            }
+            if (!sub_field.DefaultValue().is_null()) {
+                return Status{StatusCode::INVALID_ARGUMENT,
+                              "Struct sub field cannot have default value: " + sub_field.Name()};
+            }
+        }
+        return Status::OK();
+    };
+
+    auto pre = [&request](proto::milvus::AddCollectionStructFieldRequest& rpc_request) {
+        rpc_request.set_db_name(request.DatabaseName());
+        rpc_request.set_collection_name(request.CollectionName());
+        ConvertStructFieldSchema(request.StructField(), *rpc_request.mutable_struct_array_field_schema());
+        return Status::OK();
+    };
+
+    return connection_.Invoke<proto::milvus::AddCollectionStructFieldRequest, proto::common::Status>(
+        validate, pre, &MilvusConnection::AddCollectionStructField);
+}
+
+Status
 MilvusClientV2Impl::AddCollectionFunction(const AddCollectionFunctionRequest& request) {
     if (request.Function() == nullptr) {
         return {StatusCode::INVALID_ARGUMENT, "Function cannot be null."};
