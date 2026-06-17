@@ -1,7 +1,16 @@
 # Changelog
 
-## milvus-sdk-cpp 2.6.3 (2026-05-06)
+## milvus-sdk-cpp 2.6.4 (2026-06-17)
 ### Feature
+- Support GetReplicateInfo() interface
+- Support FlushAll()/GetFlushAllState() interfaces
+- Support GetReplicateConfiguration()/UpdateReplicateConfiguration() interfaces
+
+### Improvement
+- Align GetLoadState()/LoadCollection()/LoadPartitions() behavior with PyMilvus
+
+
+## milvus-sdk-cpp 2.6.3 (2026-05-06)
 - Support AddCollectionFunction(), AlterCollectionFunction(), and DropCollectionFunction() interfaces
 - Support BatchDescribeCollections() and DescribeReplicas() interfaces
 - Support RefreshLoad() and Optimize() interfaces
