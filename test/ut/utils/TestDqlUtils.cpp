@@ -182,6 +182,53 @@ TEST_F(DqlUtilsTest, GetRowsFromFieldsDataEmpty) {
     EXPECT_TRUE(rows.empty());
 }
 
+TEST_F(DqlUtilsTest, GetRowsFromStructBinaryVectorFieldData) {
+    std::vector<std::vector<nlohmann::json>> structs = {
+        {nlohmann::json{{"st_bin", std::vector<uint8_t>{0x01, 0x02}}}},
+        {nlohmann::json{{"st_bin", std::vector<uint8_t>{0x03, 0x04}}}},
+    };
+    auto struct_field = std::make_shared<milvus::StructFieldData>("st", structs);
+    std::vector<milvus::FieldDataPtr> fields{struct_field};
+    std::set<std::string> output_names{"st"};
+    milvus::EntityRows rows;
+    auto status = milvus::GetRowsFromFieldsData(fields, output_names, rows);
+    EXPECT_TRUE(status.IsOk());
+    ASSERT_EQ(rows.size(), 2u);
+    EXPECT_EQ(rows[0]["st"][0]["st_bin"], nlohmann::json(std::vector<uint8_t>{0x01, 0x02}));
+    EXPECT_EQ(rows[1]["st"][0]["st_bin"], nlohmann::json(std::vector<uint8_t>{0x03, 0x04}));
+}
+
+TEST_F(DqlUtilsTest, GetRowsFromStructFloat16VectorFieldData) {
+    std::vector<std::vector<nlohmann::json>> structs = {
+        {nlohmann::json{{"st_fp16", std::vector<float>{1.0f, 2.0f}}}},
+        {nlohmann::json{{"st_fp16", std::vector<float>{3.0f, 4.0f}}}},
+    };
+    auto struct_field = std::make_shared<milvus::StructFieldData>("st", structs);
+    std::vector<milvus::FieldDataPtr> fields{struct_field};
+    std::set<std::string> output_names{"st"};
+    milvus::EntityRows rows;
+    auto status = milvus::GetRowsFromFieldsData(fields, output_names, rows);
+    EXPECT_TRUE(status.IsOk());
+    ASSERT_EQ(rows.size(), 2u);
+    EXPECT_EQ(rows[0]["st"][0]["st_fp16"], nlohmann::json(std::vector<float>{1.0f, 2.0f}));
+    EXPECT_EQ(rows[1]["st"][0]["st_fp16"], nlohmann::json(std::vector<float>{3.0f, 4.0f}));
+}
+
+TEST_F(DqlUtilsTest, GetRowsFromStructInt8VectorFieldData) {
+    std::vector<std::vector<nlohmann::json>> structs = {
+        {nlohmann::json{{"st_int8", std::vector<int8_t>{1, -2}}}},
+        {nlohmann::json{{"st_int8", std::vector<int8_t>{3, -4}}}},
+    };
+    auto struct_field = std::make_shared<milvus::StructFieldData>("st", structs);
+    std::vector<milvus::FieldDataPtr> fields{struct_field};
+    std::set<std::string> output_names{"st"};
+    milvus::EntityRows rows;
+    auto status = milvus::GetRowsFromFieldsData(fields, output_names, rows);
+    EXPECT_TRUE(status.IsOk());
+    ASSERT_EQ(rows.size(), 2u);
+    EXPECT_EQ(rows[0]["st"][0]["st_int8"], nlohmann::json(std::vector<int8_t>{1, -2}));
+    EXPECT_EQ(rows[1]["st"][0]["st_int8"], nlohmann::json(std::vector<int8_t>{3, -4}));
+}
 TEST_F(DqlUtilsTest, GetRowFromFieldsDataTest) {
     auto int_field = std::make_shared<milvus::Int64FieldData>("id", std::vector<int64_t>{10, 20, 30});
     auto str_field = std::make_shared<milvus::VarCharFieldData>("name", std::vector<std::string>{"a", "b", "c"});
@@ -436,6 +483,146 @@ TEST_F(DqlUtilsTest, ConvertSearchIteratorRequest) {
     milvus::proto::milvus::SearchRequest rpc_request;
     auto status = milvus::ConvertSearchRequest(req, "default", rpc_request);
     EXPECT_TRUE(status.IsOk());
+}
+
+TEST_F(DqlUtilsTest, ConvertSearchRequestWithFloatEmbeddingList) {
+    milvus::SearchRequest req;
+    req.WithCollectionName("test_coll");
+    req.WithAnnsField("st[vec]");
+    req.WithLimit(10);
+    milvus::EmbeddingList emb;
+    emb.AddFloatVector({0.1f, 0.2f, 0.3f, 0.4f});
+    req.AddEmbeddingList(std::move(emb));
+
+    milvus::proto::milvus::SearchRequest rpc_request;
+    auto status = milvus::ConvertSearchRequest(req, "default", rpc_request);
+    EXPECT_TRUE(status.IsOk());
+    EXPECT_EQ(rpc_request.nq(), 1);
+
+    milvus::proto::common::PlaceholderGroup group;
+    EXPECT_TRUE(group.ParseFromString(rpc_request.placeholder_group()));
+    ASSERT_EQ(group.placeholders_size(), 1);
+    EXPECT_EQ(group.placeholders(0).type(), milvus::proto::common::PlaceholderType::EmbListFloatVector);
+    ASSERT_EQ(group.placeholders(0).values_size(), 1);
+    EXPECT_EQ(group.placeholders(0).values(0).size(), 4 * static_cast<int>(sizeof(float)));
+}
+
+TEST_F(DqlUtilsTest, ConvertSearchRequestWithBinaryEmbeddingList) {
+    milvus::SearchRequest req;
+    req.WithCollectionName("test_coll");
+    req.WithAnnsField("st[vec]");
+    req.WithLimit(10);
+    milvus::EmbeddingList emb;
+    emb.AddBinaryVector(std::vector<uint8_t>{0x01, 0x02});
+    req.AddEmbeddingList(std::move(emb));
+
+    milvus::proto::milvus::SearchRequest rpc_request;
+    auto status = milvus::ConvertSearchRequest(req, "default", rpc_request);
+    EXPECT_TRUE(status.IsOk());
+    EXPECT_EQ(rpc_request.nq(), 1);
+
+    milvus::proto::common::PlaceholderGroup group;
+    EXPECT_TRUE(group.ParseFromString(rpc_request.placeholder_group()));
+    ASSERT_EQ(group.placeholders_size(), 1);
+    EXPECT_EQ(group.placeholders(0).type(), milvus::proto::common::PlaceholderType::EmbListBinaryVector);
+    ASSERT_EQ(group.placeholders(0).values_size(), 1);
+    EXPECT_EQ(group.placeholders(0).values(0).size(), 2);
+}
+
+TEST_F(DqlUtilsTest, ConvertSearchRequestWithFloat16EmbeddingList) {
+    milvus::SearchRequest req;
+    req.WithCollectionName("test_coll");
+    req.WithAnnsField("st[vec]");
+    req.WithLimit(10);
+    milvus::EmbeddingList emb;
+    emb.AddFloat16Vector(std::vector<float>{1.0f, 2.0f, 3.0f, 4.0f});
+    req.AddEmbeddingList(std::move(emb));
+
+    milvus::proto::milvus::SearchRequest rpc_request;
+    auto status = milvus::ConvertSearchRequest(req, "default", rpc_request);
+    EXPECT_TRUE(status.IsOk());
+
+    milvus::proto::common::PlaceholderGroup group;
+    EXPECT_TRUE(group.ParseFromString(rpc_request.placeholder_group()));
+    ASSERT_EQ(group.placeholders_size(), 1);
+    EXPECT_EQ(group.placeholders(0).type(), milvus::proto::common::PlaceholderType::EmbListFloat16Vector);
+    ASSERT_EQ(group.placeholders(0).values_size(), 1);
+    EXPECT_EQ(group.placeholders(0).values(0).size(), 4 * static_cast<int>(sizeof(uint16_t)));
+}
+
+TEST_F(DqlUtilsTest, ConvertSearchRequestWithBFloat16EmbeddingList) {
+    milvus::SearchRequest req;
+    req.WithCollectionName("test_coll");
+    req.WithAnnsField("st[vec]");
+    req.WithLimit(10);
+    milvus::EmbeddingList emb;
+    emb.AddBFloat16Vector(std::vector<float>{1.0f, 2.0f, 3.0f, 4.0f});
+    req.AddEmbeddingList(std::move(emb));
+
+    milvus::proto::milvus::SearchRequest rpc_request;
+    auto status = milvus::ConvertSearchRequest(req, "default", rpc_request);
+    EXPECT_TRUE(status.IsOk());
+
+    milvus::proto::common::PlaceholderGroup group;
+    EXPECT_TRUE(group.ParseFromString(rpc_request.placeholder_group()));
+    ASSERT_EQ(group.placeholders_size(), 1);
+    EXPECT_EQ(group.placeholders(0).type(), milvus::proto::common::PlaceholderType::EmbListBFloat16Vector);
+    ASSERT_EQ(group.placeholders(0).values_size(), 1);
+    EXPECT_EQ(group.placeholders(0).values(0).size(), 4 * static_cast<int>(sizeof(uint16_t)));
+}
+
+TEST_F(DqlUtilsTest, ConvertSearchRequestWithInt8EmbeddingList) {
+    milvus::SearchRequest req;
+    req.WithCollectionName("test_coll");
+    req.WithAnnsField("st[vec]");
+    req.WithLimit(10);
+    milvus::EmbeddingList emb;
+    emb.AddInt8Vector(std::vector<int8_t>{1, -2, 3, -4});
+    req.AddEmbeddingList(std::move(emb));
+
+    milvus::proto::milvus::SearchRequest rpc_request;
+    auto status = milvus::ConvertSearchRequest(req, "default", rpc_request);
+    EXPECT_TRUE(status.IsOk());
+
+    milvus::proto::common::PlaceholderGroup group;
+    EXPECT_TRUE(group.ParseFromString(rpc_request.placeholder_group()));
+    ASSERT_EQ(group.placeholders_size(), 1);
+    EXPECT_EQ(group.placeholders(0).type(), milvus::proto::common::PlaceholderType::EmbListInt8Vector);
+    ASSERT_EQ(group.placeholders(0).values_size(), 1);
+    EXPECT_EQ(group.placeholders(0).values(0).size(), 4 * static_cast<int>(sizeof(int8_t)));
+}
+
+TEST_F(DqlUtilsTest, ConvertSearchRequestWithMixedEmbeddingListTypes) {
+    milvus::SearchRequest req;
+    req.WithCollectionName("test_coll");
+    req.WithAnnsField("st[vec]");
+    req.WithLimit(10);
+
+    milvus::EmbeddingList emb1;
+    emb1.AddFloatVector({0.1f, 0.2f, 0.3f, 0.4f});
+    req.AddEmbeddingList(std::move(emb1));
+
+    milvus::EmbeddingList emb2;
+    emb2.AddInt8Vector(std::vector<int8_t>{1, 2, 3, 4});
+    req.AddEmbeddingList(std::move(emb2));
+
+    milvus::proto::milvus::SearchRequest rpc_request;
+    auto status = milvus::ConvertSearchRequest(req, "default", rpc_request);
+    EXPECT_FALSE(status.IsOk());
+    EXPECT_EQ(status.Code(), milvus::StatusCode::INVALID_ARGUMENT);
+}
+
+TEST_F(DqlUtilsTest, ConvertSearchRequestWithEmptyEmbeddingList) {
+    milvus::SearchRequest req;
+    req.WithCollectionName("test_coll");
+    req.WithAnnsField("st[vec]");
+    req.WithLimit(10);
+    req.AddEmbeddingList(milvus::EmbeddingList{});
+
+    milvus::proto::milvus::SearchRequest rpc_request;
+    auto status = milvus::ConvertSearchRequest(req, "default", rpc_request);
+    EXPECT_FALSE(status.IsOk());
+    EXPECT_EQ(status.Code(), milvus::StatusCode::INVALID_ARGUMENT);
 }
 
 TEST_F(DqlUtilsTest, ConvertHybridSearchRequestV2) {

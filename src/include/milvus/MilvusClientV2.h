@@ -28,6 +28,7 @@
 #include "request/cdc/UpdateReplicateConfigurationRequest.h"
 #include "request/collection/AddCollectionFieldRequest.h"
 #include "request/collection/AddCollectionFunctionRequest.h"
+#include "request/collection/AddCollectionStructFieldRequest.h"
 #include "request/collection/AlterCollectionFieldPropertiesRequest.h"
 #include "request/collection/AlterCollectionFunctionRequest.h"
 #include "request/collection/AlterCollectionPropertiesRequest.h"
@@ -446,6 +447,15 @@ class MILVUS_SDK_API MilvusClientV2 {
      */
     virtual Status
     AddCollectionField(const AddCollectionFieldRequest& request) = 0;
+
+    /**
+     * @brief Add a struct field to an existing collection.
+     *
+     * @param [in] request input parameters
+     * @return Status operation successfully or not
+     */
+    virtual Status
+    AddCollectionStructField(const AddCollectionStructFieldRequest& request) = 0;
 
     /**
      * @brief Add a function to an existing collection.

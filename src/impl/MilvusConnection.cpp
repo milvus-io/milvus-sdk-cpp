@@ -355,6 +355,12 @@ MilvusConnection::AddCollectionField(const proto::milvus::AddCollectionFieldRequ
 }
 
 Status
+MilvusConnection::AddCollectionStructField(const proto::milvus::AddCollectionStructFieldRequest& request,
+                                           proto::common::Status& response, const GrpcContextOptions& options) {
+    return grpcCall("AddCollectionStructField", &Stub::AddCollectionStructField, request, response, options);
+}
+
+Status
 MilvusConnection::AddCollectionFunction(const proto::milvus::AddCollectionFunctionRequest& request,
                                         proto::common::Status& response, const GrpcContextOptions& options) {
     return grpcCall("AddCollectionFunction", &Stub::AddCollectionFunction, request, response, options);

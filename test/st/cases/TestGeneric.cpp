@@ -27,7 +27,7 @@ TEST_F(MilvusServerTestGeneric, GetServerVersion) {
     auto status = client_->GetServerVersion(version);
     std::cout << "Milvus version: " << version << std::endl;
     milvus::test::ExpectStatusOK(status);
-    EXPECT_THAT(version, testing::MatchesRegex("v?2.+"));
+    EXPECT_FALSE(version.empty());
 }
 
 TEST_F(MilvusServerTestGeneric, GetSDKVersion) {

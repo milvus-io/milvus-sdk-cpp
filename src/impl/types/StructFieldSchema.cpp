@@ -75,11 +75,26 @@ StructFieldSchema::WithMaxCapacity(int64_t capacity) {
     return *this;
 }
 
+bool
+StructFieldSchema::IsNullable() const {
+    return is_nullable_;
+}
+
+void
+StructFieldSchema::SetNullable(bool nullable) {
+    is_nullable_ = nullable;
+}
+
+StructFieldSchema&
+StructFieldSchema::WithNullable(bool nullable) {
+    SetNullable(nullable);
+    return *this;
+}
+
 const std::vector<FieldSchema>&
 StructFieldSchema::Fields() const {
     return fields_;
 }
-
 StructFieldSchema&
 StructFieldSchema::AddField(const FieldSchema& field_schema) {
     fields_.push_back(field_schema);

@@ -226,8 +226,50 @@ TEST_F(MilvusServerTestCollectionOps, AddCollectionField) {
     EXPECT_EQ(milvus::DataType::INT16, schema.Fields().at(3).FieldDataType());
 }
 
+TEST_F(MilvusServerTestCollectionOps, AddCollectionStructField) {
+    milvus::StructFieldSchema struct_field;
+    struct_field.WithName("clips")
+        .WithDescription("struct field")
+        .WithMaxCapacity(16)
+        .WithNullable(true)
+        .AddField(milvus::FieldSchema("score", milvus::DataType::FLOAT))
+        .AddField(milvus::FieldSchema("embedding", milvus::DataType::FLOAT_VECTOR).WithDimension(4))
+        .AddField(milvus::FieldSchema("binary_embedding", milvus::DataType::BINARY_VECTOR).WithDimension(32))
+        .AddField(milvus::FieldSchema("float16_embedding", milvus::DataType::FLOAT16_VECTOR).WithDimension(16))
+        .AddField(milvus::FieldSchema("bfloat16_embedding", milvus::DataType::BFLOAT16_VECTOR).WithDimension(16))
+        .AddField(milvus::FieldSchema("int8_embedding", milvus::DataType::INT8_VECTOR).WithDimension(16));
+
+    auto status = client_->AddCollectionStructField(milvus::AddCollectionStructFieldRequest()
+                                                        .WithCollectionName(collection_name)
+                                                        .WithStructField(std::move(struct_field)));
+    milvus::test::ExpectStatusOK(status);
+
+    milvus::DescribeCollectionResponse desc_resp;
+    status =
+        client_->DescribeCollection(milvus::DescribeCollectionRequest().WithCollectionName(collection_name), desc_resp);
+    milvus::test::ExpectStatusOK(status);
+
+    const auto& schema = desc_resp.Desc().Schema();
+    ASSERT_EQ(1, schema.StructFields().size());
+    const auto& added = schema.StructFields().at(0);
+    EXPECT_EQ("clips", added.Name());
+    EXPECT_EQ(16, added.MaxCapacity());
+    ASSERT_EQ(6, added.Fields().size());
+    EXPECT_EQ("score", added.Fields().at(0).Name());
+    EXPECT_EQ(milvus::DataType::FLOAT, added.Fields().at(0).FieldDataType());
+    EXPECT_EQ("embedding", added.Fields().at(1).Name());
+    EXPECT_EQ(milvus::DataType::FLOAT_VECTOR, added.Fields().at(1).FieldDataType());
+    EXPECT_EQ("binary_embedding", added.Fields().at(2).Name());
+    EXPECT_EQ(milvus::DataType::BINARY_VECTOR, added.Fields().at(2).FieldDataType());
+    EXPECT_EQ("float16_embedding", added.Fields().at(3).Name());
+    EXPECT_EQ(milvus::DataType::FLOAT16_VECTOR, added.Fields().at(3).FieldDataType());
+    EXPECT_EQ("bfloat16_embedding", added.Fields().at(4).Name());
+    EXPECT_EQ(milvus::DataType::BFLOAT16_VECTOR, added.Fields().at(4).FieldDataType());
+    EXPECT_EQ("int8_embedding", added.Fields().at(5).Name());
+    EXPECT_EQ(milvus::DataType::INT8_VECTOR, added.Fields().at(5).FieldDataType());
+}
+
 TEST_F(MilvusServerTestCollectionOps, AlterAndDropCollectionProperties) {
-    // alter collection properties
     auto status = client_->AlterCollectionProperties(milvus::AlterCollectionPropertiesRequest()
                                                          .WithCollectionName(collection_name)
                                                          .AddProperty("collection.ttl.seconds", "86400"));

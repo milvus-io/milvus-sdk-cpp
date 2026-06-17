@@ -310,8 +310,24 @@ TEST_F(AddCollectionFieldRequestTest, GettersAndSetters) {
     EXPECT_EQ(req.Field().Name(), "my_field");
 }
 
-class AddCollectionFunctionRequestTest : public ::testing::Test {};
+class AddCollectionStructFieldRequestTest : public ::testing::Test {};
 
+TEST_F(AddCollectionStructFieldRequestTest, GettersAndSetters) {
+    milvus::AddCollectionStructFieldRequest req;
+    req.WithCollectionName("add_struct_field_coll");
+    EXPECT_EQ(req.CollectionName(), "add_struct_field_coll");
+
+    milvus::StructFieldSchema field;
+    field.WithName("my_struct_field")
+        .WithMaxCapacity(8)
+        .AddField(milvus::FieldSchema("sub_int", milvus::DataType::INT32))
+        .AddField(milvus::FieldSchema("sub_text", milvus::DataType::VARCHAR).WithMaxLength(64));
+    req.WithStructField(std::move(field));
+    EXPECT_EQ(req.StructField().Name(), "my_struct_field");
+    EXPECT_EQ(req.StructField().Fields().size(), 2);
+}
+
+class AddCollectionFunctionRequestTest : public ::testing::Test {};
 TEST_F(AddCollectionFunctionRequestTest, GettersAndSetters) {
     milvus::AddCollectionFunctionRequest req;
 
