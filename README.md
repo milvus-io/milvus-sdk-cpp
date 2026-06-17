@@ -68,6 +68,42 @@ cmake --build build/Release
 
 See [Development Guide](DEVELOPMENT.md) for more details.
 
+## Use milvus-sdk-cpp in your project
+
+If you want to integrate `milvus-sdk-cpp` into your own C++ application, the recommended starting point is the companion example repository:
+
+- [milvus-sdk-cpp-example](https://github.com/milvus-io/milvus-sdk-cpp-example)
+
+That repository shows three practical integration modes:
+
+- **without-conan**: build the SDK and its dependencies from source with CMake/FetchContent
+- **conan-for-dependencies**: build `milvus-sdk-cpp` from source while using Conan for its dependencies
+- **conan-managed**: consume `milvus-sdk-cpp` itself as a Conan package
+
+A typical workflow is:
+
+1. Build and install `milvus-sdk-cpp`
+2. Point your project’s CMake build to the installed headers and library
+3. Include SDK headers such as `milvus/MilvusClientV2.h`
+4. Link your executable against `milvus_sdk`
+
+For example, after installing the SDK to a custom prefix:
+
+```shell
+make install CMAKE_INSTALL_PREFIX=/path/to/install
+```
+
+your CMake project can add the SDK include and library paths explicitly:
+
+```cmake
+include_directories(/path/to/install/include)
+link_directories(/path/to/install/lib)
+
+target_link_libraries(my_program milvus_sdk)
+```
+
+If you prefer a complete, working reference project instead of a minimal snippet, use the example repository above. It includes ready-to-build `CMakeLists.txt` files and build scripts for the supported integration approaches.
+
 
 ## License
 [Apache License 2.0](LICENSE)
