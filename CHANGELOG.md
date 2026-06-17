@@ -1,7 +1,21 @@
 # Changelog
 
-## milvus-sdk-cpp 2.6.3 (2026-05-06)
+## milvus-sdk-cpp 3.0.0 (2026-06-18)
 ### Feature
+- Support snapshot interfaces
+- Support external collection and file resource interfaces
+- Support struct field ANN search for BINARY_VECTOR/FLOAT16_VECTOR/BFLOAT16_VECTOR/INT8_VECTOR
+- Support element-level search for Struct field
+- Support AddCollectionStructField() interface
+- Support GetReplicateInfo() interface
+- Support FlushAll()/GetFlushAllState() interface
+
+### Improvement
+- Refine the struct field example to cover supported vector types and element-level search
+- Align GetLoadState/LoadCollection/LoadPartitions with PyMilvus
+
+
+## milvus-sdk-cpp 2.6.3 (2026-05-06)
 - Support AddCollectionFunction(), AlterCollectionFunction(), and DropCollectionFunction() interfaces
 - Support BatchDescribeCollections() and DescribeReplicas() interfaces
 - Support RefreshLoad() and Optimize() interfaces
