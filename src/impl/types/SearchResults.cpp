@@ -27,7 +27,8 @@ SingleResult::SingleResult(const SingleResult& src)
     : pk_name_(src.pk_name_),
       score_name_(src.score_name_),
       output_fields_(src.output_fields_),
-      output_names_(src.output_names_) {
+      output_names_(src.output_names_),
+      highlight_results_(src.highlight_results_) {
     verify();
 }
 
@@ -131,6 +132,15 @@ SingleResult::OutputRow(int i, EntityRow& row) const {
     return GetRowFromFieldsData(output_fields_, i, output_names_, row);
 }
 
+Status
+SingleResult::OutputHighlightResult(int i, HighlightResults& result) const {
+    if (i < 0 || i >= static_cast<int>(highlight_results_.size())) {
+        return {StatusCode::INVALID_ARGUMENT, "The row index is out of bound"};
+    }
+    result = highlight_results_.at(i);
+    return Status::OK();
+}
+
 uint64_t
 SingleResult::GetRowCount() const {
     for (const auto& output_field : output_fields_) {
@@ -148,6 +158,13 @@ SingleResult::Clear() {
     score_name_ = "";
     output_fields_.clear();
     output_names_.clear();
+    highlight_results_.clear();
+}
+
+SingleResult&
+SingleResult::WithHighlightResults(std::vector<HighlightResults>&& highlight_results) {
+    highlight_results_ = std::move(highlight_results);
+    return *this;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////
