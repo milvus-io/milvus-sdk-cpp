@@ -26,6 +26,40 @@
 #include "milvus/utils/FP16.h"
 
 namespace milvus {
+namespace {
+
+Status
+SetSearchHighlighter(const SearchRequest& request, proto::milvus::SearchRequest& rpc_request) {
+    const auto& highlighter = request.GetHighlighter();
+    if (highlighter == nullptr) {
+        return Status::OK();
+    }
+
+    auto* rpc_highlighter = rpc_request.mutable_highlighter();
+    const auto& highlight_type = highlighter->HighlightType();
+    if (highlight_type == "Lexical") {
+        rpc_highlighter->set_type(proto::common::HighlightType::Lexical);
+    } else if (highlight_type == "Semantic") {
+        rpc_highlighter->set_type(proto::common::HighlightType::Semantic);
+    } else {
+        return {StatusCode::INVALID_ARGUMENT, "Unknown highlighter type: " + highlight_type};
+    }
+
+    for (const auto& pair : highlighter->Params()) {
+        auto* kv_pair = rpc_highlighter->add_params();
+        kv_pair->set_key(pair.first);
+        kv_pair->set_value(pair.second);
+    }
+    return Status::OK();
+}
+
+template <typename T>
+Status
+SetSearchHighlighter(const T&, proto::milvus::SearchRequest&) {
+    return Status::OK();
+}
+
+}  // namespace
 
 SparseFloatVecFieldData::ElementT
 DecodeSparseFloatVector(const std::string& bytes) {
@@ -1298,6 +1332,11 @@ ConvertSearchRequest(const T& request, const std::string& current_db, proto::mil
     // extra params offset/round_decimal/group_by/radius/range_filter/nprobe etc.
     SetExtraParams(request.ExtraParams(), rpc_request.mutable_search_params());
 
+    auto highlighter_status = SetSearchHighlighter(request, rpc_request);
+    if (!highlighter_status.IsOk()) {
+        return highlighter_status;
+    }
+
     // consistency level
     ConsistencyLevel level = request.GetConsistencyLevel();
     uint64_t guarantee_ts = DeduceGuaranteeTimestamp(level, current_db, request.CollectionName());
@@ -1357,6 +1396,29 @@ ConvertSearchResults(const proto::milvus::SearchResults& rpc_results, const std:
             score_name = "_" + score_name;
         }
 
+        std::vector<HighlightResults> item_highlight_results;
+        item_highlight_results.resize(item_topk);
+        for (const auto& rpc_highlight_result : result_data.highlight_results()) {
+            for (int j = 0; j < item_topk; ++j) {
+                const auto data_index = offset + j;
+                if (data_index >= rpc_highlight_result.datas_size()) {
+                    continue;
+                }
+                HighlightResult item_highlight_result;
+                item_highlight_result.field_name = rpc_highlight_result.field_name();
+                const auto& rpc_highlight_data = rpc_highlight_result.datas(data_index);
+                item_highlight_result.fragments.reserve(rpc_highlight_data.fragments_size());
+                for (const auto& fragment : rpc_highlight_data.fragments()) {
+                    item_highlight_result.fragments.push_back(fragment);
+                }
+                item_highlight_result.scores.reserve(rpc_highlight_data.scores_size());
+                for (auto score : rpc_highlight_data.scores()) {
+                    item_highlight_result.scores.push_back(score);
+                }
+                item_highlight_results.at(j)[item_highlight_result.field_name] = std::move(item_highlight_result);
+            }
+        }
+
         FieldDataPtr id_field = CreateIDField(real_pk_name, ids, offset, item_topk);
         FieldDataPtr score_field = CreateScoreField(score_name, result_data, offset, item_topk);
         item_fields_data.emplace_back(std::move(id_field));
@@ -1366,6 +1428,7 @@ ConvertSearchResults(const proto::milvus::SearchResults& rpc_results, const std:
         // we never saw such bug, just keep a protection here in case if it happens.
         try {
             single_results.emplace_back(real_pk_name, score_name, std::move(item_fields_data), output_names);
+            single_results.back().WithHighlightResults(std::move(item_highlight_results));
         } catch (const std::exception& e) {
             return {StatusCode::UNKNOWN_ERROR, "Not able to parse search results, error: " + std::string(e.what())};
         }
