@@ -16,15 +16,14 @@
 
 include_guard(GLOBAL)
 
-set(PROTO_VERSION v2.6.13)
-set(PROTO_URL https://github.com/milvus-io/milvus-proto/archive/refs/tags/${PROTO_VERSION}.tar.gz)
-
+set(PROTO_COMMIT fd141a092113dd7a85ab6dc6c1b037b17a3bf96a)
 
 include(FetchContent)
 
 # download proto
 FetchContent_Declare(milvus_proto
-    URL         ${PROTO_URL}
+    GIT_REPOSITORY https://github.com/milvus-io/milvus-proto.git
+    GIT_TAG        ${PROTO_COMMIT}
 )
 FetchContent_Populate(milvus_proto)
 

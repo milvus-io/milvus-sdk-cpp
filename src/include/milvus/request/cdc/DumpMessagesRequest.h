@@ -16,28 +16,57 @@
 
 #pragma once
 
+#include <cstdint>
+#include <string>
+
 #include "milvus/Export.h"
 #include "milvus/types/ReplicateConfiguration.h"
 
 namespace milvus {
 
-class MILVUS_SDK_API GetReplicateInfoResponse {
+class MILVUS_SDK_API DumpMessagesRequest {
  public:
-    const ReplicateCheckpoint&
-    Checkpoint() const;
+    const std::string&
+    PChannel() const;
 
     void
-    SetCheckpoint(ReplicateCheckpoint&& checkpoint);
+    SetPChannel(const std::string& pchannel);
 
-    const ReplicateCheckpoint&
-    SalvageCheckpoint() const;
+    DumpMessagesRequest&
+    WithPChannel(const std::string& pchannel);
+
+    const ReplicateMessageID&
+    StartMessageID() const;
 
     void
-    SetSalvageCheckpoint(ReplicateCheckpoint&& checkpoint);
+    SetStartMessageID(ReplicateMessageID&& start_message_id);
+
+    DumpMessagesRequest&
+    WithStartMessageID(ReplicateMessageID&& start_message_id);
+
+    uint64_t
+    StartTimeTick() const;
+
+    void
+    SetStartTimeTick(uint64_t start_timetick);
+
+    DumpMessagesRequest&
+    WithStartTimeTick(uint64_t start_timetick);
+
+    uint64_t
+    EndTimeTick() const;
+
+    void
+    SetEndTimeTick(uint64_t end_timetick);
+
+    DumpMessagesRequest&
+    WithEndTimeTick(uint64_t end_timetick);
 
  private:
-    ReplicateCheckpoint checkpoint_;
-    ReplicateCheckpoint salvage_checkpoint_;
+    std::string pchannel_;
+    ReplicateMessageID start_message_id_;
+    uint64_t start_timetick_{0};
+    uint64_t end_timetick_{0};
 };
 
 }  // namespace milvus

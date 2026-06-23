@@ -23,6 +23,7 @@ class UserDescTest : public ::testing::Test {};
 TEST_F(UserDescTest, DefaultConstructor) {
     milvus::UserDesc desc;
     EXPECT_TRUE(desc.Name().empty());
+    EXPECT_TRUE(desc.Description().empty());
     EXPECT_TRUE(desc.Roles().empty());
 }
 
@@ -30,15 +31,30 @@ TEST_F(UserDescTest, ParameterizedConstructor) {
     std::vector<std::string> roles = {"admin", "reader"};
     milvus::UserDesc desc("alice", std::move(roles));
     EXPECT_EQ(desc.Name(), "alice");
+    EXPECT_TRUE(desc.Description().empty());
     EXPECT_EQ(desc.Roles().size(), 2);
     EXPECT_EQ(desc.Roles()[0], "admin");
     EXPECT_EQ(desc.Roles()[1], "reader");
+}
+
+TEST_F(UserDescTest, ParameterizedConstructorWithDescription) {
+    std::vector<std::string> roles = {"admin", "reader"};
+    milvus::UserDesc desc("alice", "user description", std::move(roles));
+    EXPECT_EQ(desc.Name(), "alice");
+    EXPECT_EQ(desc.Description(), "user description");
+    EXPECT_EQ(desc.Roles().size(), 2);
 }
 
 TEST_F(UserDescTest, SetName) {
     milvus::UserDesc desc;
     desc.SetName("bob");
     EXPECT_EQ(desc.Name(), "bob");
+}
+
+TEST_F(UserDescTest, SetDescription) {
+    milvus::UserDesc desc;
+    desc.SetDescription("desc");
+    EXPECT_EQ(desc.Description(), "desc");
 }
 
 TEST_F(UserDescTest, AddRole) {

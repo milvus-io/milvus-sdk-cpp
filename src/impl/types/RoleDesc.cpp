@@ -34,6 +34,10 @@ RoleDesc::RoleDesc(const std::string& name, std::vector<GrantItem>&& grant_items
     : name_(name), grant_items_(std::move(grant_items)) {
 }
 
+RoleDesc::RoleDesc(const std::string& name, const std::string& description, std::vector<GrantItem>&& grant_items)
+    : name_(name), description_(description), grant_items_(std::move(grant_items)) {
+}
+
 void
 RoleDesc::SetName(const std::string& name) {
     name_ = name;
@@ -42,6 +46,16 @@ RoleDesc::SetName(const std::string& name) {
 const std::string&
 RoleDesc::Name() const {
     return name_;
+}
+
+const std::string&
+RoleDesc::Description() const {
+    return description_;
+}
+
+void
+RoleDesc::SetDescription(const std::string& description) {
+    description_ = description;
 }
 
 void

@@ -16,28 +16,50 @@
 
 #pragma once
 
+#include <string>
+#include <unordered_map>
+
 #include "milvus/Export.h"
 #include "milvus/types/ReplicateConfiguration.h"
 
 namespace milvus {
 
-class MILVUS_SDK_API GetReplicateInfoResponse {
+class MILVUS_SDK_API DumpedMessage {
  public:
-    const ReplicateCheckpoint&
-    Checkpoint() const;
+    const ReplicateMessageID&
+    MessageID() const;
 
     void
-    SetCheckpoint(ReplicateCheckpoint&& checkpoint);
+    SetMessageID(ReplicateMessageID&& message_id);
 
-    const ReplicateCheckpoint&
-    SalvageCheckpoint() const;
+    DumpedMessage&
+    WithMessageID(ReplicateMessageID&& message_id);
+
+    const std::string&
+    Payload() const;
 
     void
-    SetSalvageCheckpoint(ReplicateCheckpoint&& checkpoint);
+    SetPayload(const std::string& payload);
+
+    DumpedMessage&
+    WithPayload(const std::string& payload);
+
+    const std::unordered_map<std::string, std::string>&
+    Properties() const;
+
+    void
+    SetProperties(std::unordered_map<std::string, std::string>&& properties);
+
+    DumpedMessage&
+    WithProperties(std::unordered_map<std::string, std::string>&& properties);
+
+    DumpedMessage&
+    AddProperty(const std::string& key, const std::string& value);
 
  private:
-    ReplicateCheckpoint checkpoint_;
-    ReplicateCheckpoint salvage_checkpoint_;
+    ReplicateMessageID message_id_;
+    std::string payload_;
+    std::unordered_map<std::string, std::string> properties_;
 };
 
 }  // namespace milvus

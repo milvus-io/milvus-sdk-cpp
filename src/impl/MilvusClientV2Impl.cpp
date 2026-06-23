@@ -2500,11 +2500,52 @@ MilvusClientV2Impl::GetReplicateInfo(const GetReplicateInfoRequest& request, Get
             ConvertReplicateCheckpoint(rpc_response.checkpoint(), checkpoint);
         }
         response.SetCheckpoint(std::move(checkpoint));
+
+        ReplicateCheckpoint salvage_checkpoint;
+        if (rpc_response.has_salvage_checkpoint()) {
+            ConvertReplicateCheckpoint(rpc_response.salvage_checkpoint(), salvage_checkpoint);
+        }
+        response.SetSalvageCheckpoint(std::move(salvage_checkpoint));
         return Status::OK();
     };
 
     return connection_.Invoke<proto::milvus::GetReplicateInfoRequest, proto::milvus::GetReplicateInfoResponse>(
         pre, &MilvusConnection::GetReplicateInfo, post);
+}
+
+Status
+MilvusClientV2Impl::DumpMessages(const DumpMessagesRequest& request,
+                                 const std::function<Status(const DumpedMessage&)>& on_message) {
+    if (!on_message) {
+        return {StatusCode::INVALID_ARGUMENT, "DumpMessages callback cannot be empty"};
+    }
+
+    proto::milvus::DumpMessagesRequest rpc_request;
+    rpc_request.set_pchannel(request.PChannel());
+    rpc_request.mutable_start_message_id()->set_id(request.StartMessageID().ID());
+    const auto& wal_name_str = request.StartMessageID().WalName();
+    if (!wal_name_str.empty()) {
+        proto::common::WALName wal_name;
+        if (!proto::common::WALName_Parse(wal_name_str, &wal_name)) {
+            return {StatusCode::INVALID_ARGUMENT, "Unknown WAL name: " + wal_name_str};
+        }
+        rpc_request.mutable_start_message_id()->set_wal_name(wal_name);
+    }
+    rpc_request.set_start_timetick(request.StartTimeTick());
+    rpc_request.set_end_timetick(request.EndTimeTick());
+
+    auto connection = connection_.GetConnection();
+    if (connection == nullptr) {
+        return {StatusCode::NOT_CONNECTED, "Connection is not created!"};
+    }
+
+    auto callback = [&on_message](const proto::common::ImmutableMessage& rpc_message) {
+        DumpedMessage message;
+        ConvertImmutableMessage(rpc_message, message);
+        return on_message(message);
+    };
+
+    return connection->DumpMessages(rpc_request, GrpcOpts{}, callback);
 }
 
 Status
@@ -2657,6 +2698,18 @@ MilvusClientV2Impl::UpdatePassword(const UpdatePasswordRequest& request) {
 }
 
 Status
+MilvusClientV2Impl::UpdateUser(const UpdateUserRequest& request) {
+    auto pre = [&request](proto::milvus::UpdateCredentialRequest& rpc_request) {
+        rpc_request.set_username(request.UserName());
+        rpc_request.set_description(request.Description());
+        return Status::OK();
+    };
+
+    return connection_.Invoke<proto::milvus::UpdateCredentialRequest, proto::common::Status>(
+        pre, &MilvusConnection::UpdateCredential, nullptr);
+}
+
+Status
 MilvusClientV2Impl::DropUser(const DropUserRequest& request) {
     auto pre = [&request](proto::milvus::DeleteCredentialRequest& rpc_request) {
         rpc_request.set_username(request.UserName());
@@ -2680,6 +2733,8 @@ MilvusClientV2Impl::DescribeUser(const DescribeUserRequest& request, DescribeUse
         desc.SetName(request.UserName());
         if (rpc_response.results().size() > 0) {
             auto result = rpc_response.results().at(0);
+            desc.SetName(result.user().name());
+            desc.SetDescription(result.description());
             for (const auto& role : result.roles()) {
                 desc.AddRole(role.name());
             }
@@ -2720,6 +2775,18 @@ MilvusClientV2Impl::CreateRole(const CreateRoleRequest& request) {
 }
 
 Status
+MilvusClientV2Impl::AlterRole(const AlterRoleRequest& request) {
+    auto pre = [&request](proto::milvus::AlterRoleRequest& rpc_request) {
+        rpc_request.set_role_name(request.RoleName());
+        rpc_request.set_description(request.Description());
+        return Status::OK();
+    };
+
+    return connection_.Invoke<proto::milvus::AlterRoleRequest, proto::common::Status>(pre, &MilvusConnection::AlterRole,
+                                                                                      nullptr);
+}
+
+Status
 MilvusClientV2Impl::DropRole(const DropRoleRequest& request) {
     auto pre = [&request](proto::milvus::DropRoleRequest& rpc_request) {
         rpc_request.set_role_name(request.RoleName());
@@ -2740,13 +2807,32 @@ MilvusClientV2Impl::DescribeRole(const DescribeRoleRequest& request, DescribeRol
         return Status::OK();
     };
 
-    auto post = [&request, &response](const proto::milvus::SelectGrantResponse& rpc_response) {
+    auto post = [this, &request, &response](const proto::milvus::SelectGrantResponse& rpc_response) {
         RoleDesc desc;
         desc.SetName(request.RoleName());
         for (const auto& entity : rpc_response.entities()) {
             desc.AddGrantItem({entity.object().name(), entity.object_name(), entity.db_name(), entity.role().name(),
                                entity.grantor().user().name(), entity.grantor().privilege().name()});
         }
+
+        proto::milvus::SelectRoleRequest role_request;
+        role_request.set_include_user_info(false);
+        role_request.mutable_role()->set_name(request.RoleName());
+        proto::milvus::SelectRoleResponse role_response;
+
+        auto connection = connection_.GetConnection();
+        if (connection == nullptr) {
+            return Status{StatusCode::NOT_CONNECTED, "Connection is not created!"};
+        }
+        auto status = connection->SelectRole(role_request, role_response, GrpcOpts{connection_.GetRpcDeadlineMs()});
+        if (!status.IsOk()) {
+            return status;
+        }
+        if (role_response.results_size() > 0) {
+            desc.SetName(role_response.results(0).role().name());
+            desc.SetDescription(role_response.results(0).role().description());
+        }
+
         response.SetDesc(std::move(desc));
         return Status::OK();
     };

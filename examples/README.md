@@ -30,6 +30,7 @@ Examples for MilvusClient:
 
 Examples for MilvusClientV2:
 - `./cmake_build/examples/v2/sdk_array_v2`: example to show the usage of Array field.
+- `./cmake_build/examples/v2/sdk_cdc_v2`: example to show the usage of CDC interfaces including DumpMessages().
 - `./cmake_build/examples/v2/sdk_db_v2`: example to show the usage of databases.
 - `./cmake_build/examples/v2/sdk_default_value_v2`: example to show the usage of default value.
 - `./cmake_build/examples/v2/sdk_dml_v2`: example to show the usage of dml interfaces.

@@ -16,6 +16,8 @@
 
 #include <gtest/gtest.h>
 
+#include <memory>
+
 #include "../mocks/MilvusMockedTest.h"
 #include "milvus/MilvusClientV2.h"
 
@@ -31,7 +33,7 @@ using ::testing::Property;
 
 namespace {
 
-milvus::MilvusClientV2Ptr
+std::shared_ptr<milvus::MilvusClientV2>
 CreateConnectedV2Client(testing::StrictMock<::milvus::MilvusMockedService>& service, uint16_t port) {
     EXPECT_CALL(service, Connect(_, _, _))
         .WillOnce([](::grpc::ServerContext*, const ConnectRequest*, ConnectResponse*) { return ::grpc::Status{}; });

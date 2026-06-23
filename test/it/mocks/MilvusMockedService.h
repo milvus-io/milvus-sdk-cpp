@@ -285,6 +285,10 @@ class MilvusMockedService : public ::milvus::proto::milvus::MilvusService::Servi
                  ::grpc::Status(::grpc::ServerContext*, const ::milvus::proto::milvus::GetReplicateInfoRequest*,
                                 ::milvus::proto::milvus::GetReplicateInfoResponse*));
 
+    MOCK_METHOD3(DumpMessages,
+                 ::grpc::Status(::grpc::ServerContext*, const ::milvus::proto::milvus::DumpMessagesRequest*,
+                                ::grpc::ServerWriter<::milvus::proto::milvus::DumpMessagesResponse>*));
+
     MOCK_METHOD3(SelectUser, ::grpc::Status(::grpc::ServerContext*, const ::milvus::proto::milvus::SelectUserRequest*,
                                             ::milvus::proto::milvus::SelectUserResponse*));
 
@@ -296,6 +300,9 @@ class MilvusMockedService : public ::milvus::proto::milvus::MilvusService::Servi
 
     MOCK_METHOD3(CreateRole, ::grpc::Status(::grpc::ServerContext*, const ::milvus::proto::milvus::CreateRoleRequest*,
                                             ::milvus::proto::common::Status*));
+
+    MOCK_METHOD3(AlterRole, ::grpc::Status(::grpc::ServerContext*, const ::milvus::proto::milvus::AlterRoleRequest*,
+                                           ::milvus::proto::common::Status*));
 
     MOCK_METHOD3(DropRole, ::grpc::Status(::grpc::ServerContext*, const ::milvus::proto::milvus::DropRoleRequest*,
                                           ::milvus::proto::common::Status*));
