@@ -16,15 +16,37 @@
 
 #include <gtest/gtest.h>
 
-#include "../mocks/MilvusMockedTest.h"
+#include <memory>
 
+#include "../mocks/MilvusMockedTest.h"
+#include "milvus/MilvusClientV2.h"
+
+using ::milvus::proto::milvus::ConnectRequest;
+using ::milvus::proto::milvus::ConnectResponse;
 using ::milvus::proto::milvus::SelectGrantRequest;
 using ::milvus::proto::milvus::SelectGrantResponse;
+using ::milvus::proto::milvus::SelectRoleRequest;
+using ::milvus::proto::milvus::SelectRoleResponse;
 using ::testing::_;
 
-TEST_F(MilvusMockedTest, DescribeRole) {
-    milvus::ConnectParam connect_param{"127.0.0.1", server_.ListenPort()};
-    client_->Connect(connect_param);
+namespace {
+
+std::shared_ptr<milvus::MilvusClientV2>
+CreateConnectedV2Client(testing::StrictMock<::milvus::MilvusMockedService>& service, uint16_t port) {
+    EXPECT_CALL(service, Connect(_, _, _))
+        .WillOnce([](::grpc::ServerContext*, const ConnectRequest*, ConnectResponse*) { return ::grpc::Status{}; });
+
+    auto client = milvus::MilvusClientV2::Create();
+    milvus::ConnectParam connect_param{"127.0.0.1", port};
+    auto status = client->Connect(connect_param);
+    EXPECT_TRUE(status.IsOk());
+    return client;
+}
+
+}  // namespace
+
+TEST_F(UnconnectMilvusMockedTest, DescribeRole) {
+    auto client = CreateConnectedV2Client(service_, server_.ListenPort());
 
     milvus::RoleDesc expected_desc;
     expected_desc.SetName("Foo");
@@ -48,11 +70,24 @@ TEST_F(MilvusMockedTest, DescribeRole) {
                 return ::grpc::Status{};
             });
 
-    milvus::RoleDesc desc;
-    auto status = client_->DescribeRole(expected_desc.Name(), desc);
+    EXPECT_CALL(service_, SelectRole(_, _, _))
+        .WillOnce([](::grpc::ServerContext*, const SelectRoleRequest* request, SelectRoleResponse* response) {
+            EXPECT_EQ(request->role().name(), "Foo");
+            auto result = response->mutable_results()->Add();
+            result->mutable_role()->set_name("Foo");
+            result->mutable_role()->set_description("role description");
+            return ::grpc::Status{};
+        });
+
+    milvus::DescribeRoleRequest request;
+    request.WithRoleName(expected_desc.Name());
+    milvus::DescribeRoleResponse response;
+    auto status = client->DescribeRole(request, response);
     EXPECT_TRUE(status.IsOk());
 
+    const auto& desc = response.Desc();
     EXPECT_EQ(desc.Name(), expected_desc.Name());
+    EXPECT_EQ(desc.Description(), "role description");
     EXPECT_EQ(desc.GrantItems().size(), expected_desc.GrantItems().size());
     for (auto i = 0; i < desc.GrantItems().size(); i++) {
         EXPECT_EQ(desc.GrantItems().at(i).object_type_, expected_desc.GrantItems().at(i).object_type_);

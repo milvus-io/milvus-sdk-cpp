@@ -23,6 +23,7 @@
 #include <grpcpp/security/credentials.h>
 
 #include <chrono>
+#include <functional>
 #include <memory>
 #include <mutex>
 #include <string>
@@ -446,6 +447,10 @@ class MilvusConnection {
                      proto::milvus::GetReplicateInfoResponse& response, const GrpcContextOptions& options);
 
     Status
+    DumpMessages(const proto::milvus::DumpMessagesRequest& request, const GrpcContextOptions& options,
+                 const std::function<Status(const proto::common::ImmutableMessage&)>& on_message);
+
+    Status
     SelectUser(const proto::milvus::SelectUserRequest& request, proto::milvus::SelectUserResponse& response,
                const GrpcContextOptions& options);
 
@@ -460,6 +465,10 @@ class MilvusConnection {
     Status
     CreateRole(const proto::milvus::CreateRoleRequest& request, proto::common::Status& response,
                const GrpcContextOptions& options);
+
+    Status
+    AlterRole(const proto::milvus::AlterRoleRequest& request, proto::common::Status& response,
+              const GrpcContextOptions& options);
 
     Status
     DropRole(const proto::milvus::DropRoleRequest& request, proto::common::Status& response,

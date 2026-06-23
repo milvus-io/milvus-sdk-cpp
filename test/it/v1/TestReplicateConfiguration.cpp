@@ -16,6 +16,10 @@
 
 #include <gtest/gtest.h>
 
+#include <chrono>
+#include <memory>
+#include <thread>
+
 #include "../mocks/MilvusMockedTest.h"
 #include "milvus/MilvusClientV2.h"
 
@@ -31,7 +35,7 @@ using ::testing::_;
 
 namespace {
 
-milvus::MilvusClientV2Ptr
+std::shared_ptr<milvus::MilvusClientV2>
 CreateConnectedV2Client(testing::StrictMock<::milvus::MilvusMockedService>& service, uint16_t port) {
     EXPECT_CALL(service, Connect(_, _, _))
         .WillOnce([](::grpc::ServerContext*, const ConnectRequest*, ConnectResponse*) { return ::grpc::Status{}; });
@@ -187,6 +191,14 @@ TEST_F(UnconnectMilvusMockedTest, GetReplicateInfo) {
                 auto message_id = checkpoint->mutable_message_id();
                 message_id->set_id("message-id");
                 message_id->set_wal_name(::milvus::proto::common::WALName::Pulsar);
+
+                auto salvage_checkpoint = response->mutable_salvage_checkpoint();
+                salvage_checkpoint->set_cluster_id("cluster-a");
+                salvage_checkpoint->set_pchannel("by-dev-rootcoord-dml_1");
+                salvage_checkpoint->set_time_tick(456);
+                auto salvage_message_id = salvage_checkpoint->mutable_message_id();
+                salvage_message_id->set_id("salvage-message-id");
+                salvage_message_id->set_wal_name(::milvus::proto::common::WALName::RocksMQ);
                 return ::grpc::Status{};
             });
 
@@ -201,6 +213,12 @@ TEST_F(UnconnectMilvusMockedTest, GetReplicateInfo) {
     EXPECT_EQ(response.Checkpoint().TimeTick(), 123);
     EXPECT_EQ(response.Checkpoint().MessageID().ID(), "message-id");
     EXPECT_EQ(response.Checkpoint().MessageID().WalName(), "Pulsar");
+
+    EXPECT_EQ(response.SalvageCheckpoint().ClusterID(), "cluster-a");
+    EXPECT_EQ(response.SalvageCheckpoint().PChannel(), "by-dev-rootcoord-dml_1");
+    EXPECT_EQ(response.SalvageCheckpoint().TimeTick(), 456);
+    EXPECT_EQ(response.SalvageCheckpoint().MessageID().ID(), "salvage-message-id");
+    EXPECT_EQ(response.SalvageCheckpoint().MessageID().WalName(), "RocksMQ");
 }
 
 TEST_F(UnconnectMilvusMockedTest, GetReplicateInfoFailed) {
@@ -232,6 +250,14 @@ TEST_F(UnconnectMilvusMockedTest, GetReplicateInfoClearsCheckpointWhenAbsent) {
             auto message_id = checkpoint->mutable_message_id();
             message_id->set_id("message-id");
             message_id->set_wal_name(::milvus::proto::common::WALName::Pulsar);
+
+            auto salvage_checkpoint = response->mutable_salvage_checkpoint();
+            salvage_checkpoint->set_cluster_id("cluster-a");
+            salvage_checkpoint->set_pchannel("by-dev-rootcoord-dml_1");
+            salvage_checkpoint->set_time_tick(456);
+            auto salvage_message_id = salvage_checkpoint->mutable_message_id();
+            salvage_message_id->set_id("salvage-message-id");
+            salvage_message_id->set_wal_name(::milvus::proto::common::WALName::RocksMQ);
             return ::grpc::Status{};
         })
         .WillOnce([](::grpc::ServerContext*, const GetReplicateInfoRequest*, GetReplicateInfoResponse*) {
@@ -245,6 +271,8 @@ TEST_F(UnconnectMilvusMockedTest, GetReplicateInfoClearsCheckpointWhenAbsent) {
     EXPECT_TRUE(status.IsOk());
     EXPECT_EQ(response.Checkpoint().ClusterID(), "cluster-a");
     EXPECT_EQ(response.Checkpoint().MessageID().ID(), "message-id");
+    EXPECT_EQ(response.SalvageCheckpoint().ClusterID(), "cluster-a");
+    EXPECT_EQ(response.SalvageCheckpoint().MessageID().ID(), "salvage-message-id");
 
     status = client->GetReplicateInfo(request, response);
     EXPECT_TRUE(status.IsOk());
@@ -253,4 +281,92 @@ TEST_F(UnconnectMilvusMockedTest, GetReplicateInfoClearsCheckpointWhenAbsent) {
     EXPECT_TRUE(response.Checkpoint().MessageID().ID().empty());
     EXPECT_TRUE(response.Checkpoint().MessageID().WalName().empty());
     EXPECT_EQ(response.Checkpoint().TimeTick(), 0);
+    EXPECT_TRUE(response.SalvageCheckpoint().ClusterID().empty());
+    EXPECT_TRUE(response.SalvageCheckpoint().PChannel().empty());
+    EXPECT_TRUE(response.SalvageCheckpoint().MessageID().ID().empty());
+    EXPECT_TRUE(response.SalvageCheckpoint().MessageID().WalName().empty());
+    EXPECT_EQ(response.SalvageCheckpoint().TimeTick(), 0);
+}
+
+TEST_F(UnconnectMilvusMockedTest, DumpMessagesWithoutConnect) {
+    auto client = milvus::MilvusClientV2::Create();
+    bool callback_called = false;
+
+    milvus::DumpMessagesRequest request;
+    request.WithPChannel("by-dev-rootcoord-dml_0");
+    auto status = client->DumpMessages(request, [&callback_called](const milvus::DumpedMessage&) {
+        callback_called = true;
+        return milvus::Status::OK();
+    });
+
+    EXPECT_FALSE(status.IsOk());
+    EXPECT_EQ(status.Code(), StatusCode::NOT_CONNECTED);
+    EXPECT_FALSE(callback_called);
+}
+
+TEST_F(UnconnectMilvusMockedTest, DumpMessagesRejectsInvalidWalName) {
+    auto client = milvus::MilvusClientV2::Create();
+    bool callback_called = false;
+
+    milvus::ReplicateMessageID start_message_id;
+    start_message_id.WithID("message-id").WithWalName("Rocksmq");
+
+    milvus::DumpMessagesRequest request;
+    request.WithPChannel("by-dev-rootcoord-dml_0").WithStartMessageID(std::move(start_message_id));
+    auto status = client->DumpMessages(request, [&callback_called](const milvus::DumpedMessage&) {
+        callback_called = true;
+        return milvus::Status::OK();
+    });
+
+    EXPECT_FALSE(status.IsOk());
+    EXPECT_EQ(status.Code(), StatusCode::INVALID_ARGUMENT);
+    EXPECT_EQ(status.Message(), "Unknown WAL name: Rocksmq");
+    EXPECT_FALSE(callback_called);
+}
+
+TEST_F(UnconnectMilvusMockedTest, DumpMessagesRejectsEmptyCallback) {
+    auto client = milvus::MilvusClientV2::Create();
+
+    milvus::DumpMessagesRequest request;
+    request.WithPChannel("by-dev-rootcoord-dml_0");
+    std::function<milvus::Status(const milvus::DumpedMessage&)> callback;
+    auto status = client->DumpMessages(request, callback);
+
+    EXPECT_FALSE(status.IsOk());
+    EXPECT_EQ(status.Code(), StatusCode::INVALID_ARGUMENT);
+    EXPECT_EQ(status.Message(), "DumpMessages callback cannot be empty");
+}
+
+TEST_F(UnconnectMilvusMockedTest, DumpMessagesIgnoresGlobalRpcDeadline) {
+    auto client = CreateConnectedV2Client(service_, server_.ListenPort());
+    auto status = client->SetRpcDeadlineMs(1);
+    EXPECT_TRUE(status.IsOk());
+
+    EXPECT_CALL(service_, DumpMessages(_, _, _))
+        .WillOnce([](::grpc::ServerContext*, const ::milvus::proto::milvus::DumpMessagesRequest* request,
+                     ::grpc::ServerWriter<::milvus::proto::milvus::DumpMessagesResponse>* writer) {
+            EXPECT_EQ(request->pchannel(), "by-dev-rootcoord-dml_0");
+            std::this_thread::sleep_for(std::chrono::milliseconds(20));
+
+            ::milvus::proto::milvus::DumpMessagesResponse response;
+            auto* message = response.mutable_message();
+            message->mutable_id()->set_id("message-id");
+            message->mutable_id()->set_wal_name(::milvus::proto::common::WALName::RocksMQ);
+            message->set_payload("payload");
+            writer->Write(response);
+            return ::grpc::Status{};
+        });
+
+    milvus::DumpMessagesRequest request;
+    request.WithPChannel("by-dev-rootcoord-dml_0");
+
+    std::vector<std::string> message_ids;
+    status = client->DumpMessages(request, [&message_ids](const milvus::DumpedMessage& message) {
+        message_ids.push_back(message.MessageID().ID());
+        return milvus::Status::OK();
+    });
+
+    EXPECT_TRUE(status.IsOk());
+    ASSERT_EQ(message_ids.size(), 1);
+    EXPECT_EQ(message_ids[0], "message-id");
 }

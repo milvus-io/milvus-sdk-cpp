@@ -789,6 +789,55 @@ MilvusConnection::GetReplicateInfo(const proto::milvus::GetReplicateInfoRequest&
 }
 
 Status
+MilvusConnection::DumpMessages(const proto::milvus::DumpMessagesRequest& request, const GrpcContextOptions& options,
+                               const std::function<Status(const proto::common::ImmutableMessage&)>& on_message) {
+    std::shared_ptr<proto::milvus::MilvusService::Stub> stub;
+    {
+        std::lock_guard<std::mutex> lock(stub_mtx_);
+        stub = stub_;
+    }
+    if (stub == nullptr) {
+        return {StatusCode::NOT_CONNECTED, "Connection is not ready!"};
+    }
+
+    ::grpc::ClientContext context;
+    if (options.timeout > 0) {
+        auto deadline = std::chrono::system_clock::now() + std::chrono::milliseconds{options.timeout};
+        context.set_deadline(deadline);
+    }
+
+    auto reader = stub->DumpMessages(&context, request);
+    proto::milvus::DumpMessagesResponse response;
+    while (reader->Read(&response)) {
+        switch (response.response_case()) {
+            case proto::milvus::DumpMessagesResponse::kStatus: {
+                auto status = StatusByProtoResponse(response.status());
+                if (!status.IsOk()) {
+                    return status;
+                }
+                break;
+            }
+            case proto::milvus::DumpMessagesResponse::kMessage: {
+                auto status = on_message(response.message());
+                if (!status.IsOk()) {
+                    return status;
+                }
+                break;
+            }
+            case proto::milvus::DumpMessagesResponse::RESPONSE_NOT_SET:
+            default:
+                return {StatusCode::SERVER_FAILED, "Unexpected empty dumpMessages response"};
+        }
+    }
+
+    auto grpc_status = reader->Finish();
+    if (!grpc_status.ok()) {
+        return StatusCodeFromGrpcStatus(grpc_status);
+    }
+    return Status::OK();
+}
+
+Status
 MilvusConnection::SelectUser(const proto::milvus::SelectUserRequest& request,
                              proto::milvus::SelectUserResponse& response, const GrpcContextOptions& options) {
     return grpcCall("SelectUser", &Stub::SelectUser, request, response, options);
@@ -810,6 +859,12 @@ Status
 MilvusConnection::CreateRole(const proto::milvus::CreateRoleRequest& request, proto::common::Status& response,
                              const GrpcContextOptions& options) {
     return grpcCall("CreateRole", &Stub::CreateRole, request, response, options);
+}
+
+Status
+MilvusConnection::AlterRole(const proto::milvus::AlterRoleRequest& request, proto::common::Status& response,
+                            const GrpcContextOptions& options) {
+    return grpcCall("AlterRole", &Stub::AlterRole, request, response, options);
 }
 
 Status

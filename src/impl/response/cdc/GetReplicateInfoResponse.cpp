@@ -30,4 +30,14 @@ GetReplicateInfoResponse::SetCheckpoint(ReplicateCheckpoint&& checkpoint) {
     checkpoint_ = std::move(checkpoint);
 }
 
+const ReplicateCheckpoint&
+GetReplicateInfoResponse::SalvageCheckpoint() const {
+    return salvage_checkpoint_;
+}
+
+void
+GetReplicateInfoResponse::SetSalvageCheckpoint(ReplicateCheckpoint&& checkpoint) {
+    salvage_checkpoint_ = std::move(checkpoint);
+}
+
 }  // namespace milvus

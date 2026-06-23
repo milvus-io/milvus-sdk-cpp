@@ -16,6 +16,8 @@
 
 #pragma once
 
+#include <functional>
+
 #include "Status.h"
 #include "milvus/Export.h"
 #include "request/alias/AlterAliasRequest.h"
@@ -23,6 +25,7 @@
 #include "request/alias/DescribeAliasRequest.h"
 #include "request/alias/DropAliasRequest.h"
 #include "request/alias/ListAliasesRequest.h"
+#include "request/cdc/DumpMessagesRequest.h"
 #include "request/cdc/GetReplicateConfigurationRequest.h"
 #include "request/cdc/GetReplicateInfoRequest.h"
 #include "request/cdc/UpdateReplicateConfigurationRequest.h"
@@ -78,6 +81,7 @@
 #include "request/partition/ListPartitionsRequest.h"
 #include "request/partition/LoadPartitionsRequest.h"
 #include "request/partition/ReleasePartitionsRequest.h"
+#include "request/rbac/AlterRoleRequest.h"
 #include "request/rbac/CreateRoleRequest.h"
 #include "request/rbac/CreateUserRequest.h"
 #include "request/rbac/DescribeRoleRequest.h"
@@ -90,6 +94,7 @@
 #include "request/rbac/PrivilegesOfGroupRequest.h"
 #include "request/rbac/RoleUserRequest.h"
 #include "request/rbac/UpdatePasswordRequest.h"
+#include "request/rbac/UpdateUserRequest.h"
 #include "request/rbac/UserRequest.h"
 #include "request/resourcegroup/CreateResourceGroupRequest.h"
 #include "request/resourcegroup/ListResourceGroupsRequest.h"
@@ -121,6 +126,7 @@
 #include "request/utility/RunAnalyzerRequest.h"
 #include "response/alias/DescribeAliasResponse.h"
 #include "response/alias/ListAliasesResponse.h"
+#include "response/cdc/DumpMessagesTypes.h"
 #include "response/cdc/GetReplicateConfigurationResponse.h"
 #include "response/cdc/GetReplicateInfoResponse.h"
 #include "response/collection/BatchDescribeCollectionsResponse.h"
@@ -1127,6 +1133,9 @@ class MILVUS_SDK_API MilvusClientV2 {
     virtual Status
     GetReplicateInfo(const GetReplicateInfoRequest& request, GetReplicateInfoResponse& response) = 0;
 
+    virtual Status
+    DumpMessages(const DumpMessagesRequest& request, const std::function<Status(const DumpedMessage&)>& on_message) = 0;
+
     /**
      * @brief Create a resource group. A resource group to physically isolate certain query nodes from others.
      * Read the doc for more info: https://milvus.io/docs/resource_group.md#Manage-Resource-Groups
@@ -1212,6 +1221,9 @@ class MILVUS_SDK_API MilvusClientV2 {
     virtual Status
     UpdatePassword(const UpdatePasswordRequest& request) = 0;
 
+    virtual Status
+    UpdateUser(const UpdateUserRequest& request) = 0;
+
     /**
      * @brief Drop an user.
      *
@@ -1250,6 +1262,9 @@ class MILVUS_SDK_API MilvusClientV2 {
      */
     virtual Status
     CreateRole(const CreateRoleRequest& request) = 0;
+
+    virtual Status
+    AlterRole(const AlterRoleRequest& request) = 0;
 
     /**
      * @brief Drop a role.
