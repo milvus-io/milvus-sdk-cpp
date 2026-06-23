@@ -62,3 +62,38 @@ TEST_F(SearchResultsTest, RecallsAndWithRecalls) {
     EXPECT_FLOAT_EQ(ref.Recalls().at(1), 0.88f);
     EXPECT_FLOAT_EQ(ref.Recalls().at(2), 0.92f);
 }
+
+TEST_F(SearchResultsTest, OutputHighlightResult) {
+    std::vector<milvus::FieldDataPtr> fields{
+        std::make_shared<milvus::Int64FieldData>("pk", std::vector<int64_t>{10000, 10001}),
+        std::make_shared<milvus::FloatFieldData>("score", std::vector<float>{0.1f, 0.2f})};
+    std::set<std::string> output_names;
+    milvus::SingleResult result{"pk", "score", std::move(fields), output_names};
+
+    milvus::HighlightResult row0{"text", {"<em>milvus</em>"}, {0.9f}};
+    milvus::HighlightResult row1{"text", {"vector", "database"}, {0.8f, 0.3f}};
+
+    std::vector<milvus::HighlightResults> highlight_results(2);
+    highlight_results[0]["text"] = row0;
+    highlight_results[1]["text"] = row1;
+    result.WithHighlightResults(std::move(highlight_results));
+
+    milvus::HighlightResults row_highlight_result;
+    auto status = result.OutputHighlightResult(0, row_highlight_result);
+    EXPECT_TRUE(status.IsOk());
+    ASSERT_EQ(row_highlight_result.size(), 1u);
+    EXPECT_EQ(row_highlight_result.at("text").field_name, "text");
+    EXPECT_EQ(row_highlight_result.at("text").fragments, std::vector<std::string>({"<em>milvus</em>"}));
+    ASSERT_EQ(row_highlight_result.at("text").scores.size(), 1u);
+    EXPECT_FLOAT_EQ(row_highlight_result.at("text").scores.at(0), 0.9f);
+
+    status = result.OutputHighlightResult(1, row_highlight_result);
+    EXPECT_TRUE(status.IsOk());
+    EXPECT_EQ(row_highlight_result.at("text").fragments, std::vector<std::string>({"vector", "database"}));
+    ASSERT_EQ(row_highlight_result.at("text").scores.size(), 2u);
+    EXPECT_FLOAT_EQ(row_highlight_result.at("text").scores.at(0), 0.8f);
+    EXPECT_FLOAT_EQ(row_highlight_result.at("text").scores.at(1), 0.3f);
+
+    status = result.OutputHighlightResult(2, row_highlight_result);
+    EXPECT_FALSE(status.IsOk());
+}

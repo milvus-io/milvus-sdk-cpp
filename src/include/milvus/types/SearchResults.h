@@ -19,6 +19,7 @@
 #include <memory>
 #include <set>
 #include <string>
+#include <unordered_map>
 #include <vector>
 
 #include "FieldData.h"
@@ -26,6 +27,13 @@
 #include "milvus/Export.h"
 
 namespace milvus {
+
+struct MILVUS_SDK_API HighlightResult {
+    std::string field_name;
+    std::vector<std::string> fragments;
+    std::vector<float> scores;
+};
+using HighlightResults = std::unordered_map<std::string, HighlightResult>;
 
 /**
  * @brief Topk results for one target vector of MilvusClient::Search()
@@ -113,10 +121,16 @@ struct MILVUS_SDK_API SingleResult {
     OutputRows(EntityRows& rows) const;
 
     /**
-     * @brief Get row data. Throw exception if the i is out of bound.
+     * @brief Get row data. Returns INVALID_ARGUMENT status if the i is out of bound.
      */
     Status
     OutputRow(int i, EntityRow& row) const;
+
+    /**
+     * @brief Get highlight results of one row. Returns INVALID_ARGUMENT status if the i is out of bound.
+     */
+    Status
+    OutputHighlightResult(int i, HighlightResults& result) const;
 
     /**
      * @brief Get row count of the result.
@@ -130,6 +144,9 @@ struct MILVUS_SDK_API SingleResult {
     void
     Clear();
 
+    SingleResult&
+    WithHighlightResults(std::vector<HighlightResults>&& highlight_results);
+
  private:
     void
     verify() const;
@@ -139,6 +156,7 @@ struct MILVUS_SDK_API SingleResult {
     std::string score_name_;  // name of score field, default is "score". if duplicated, the name could be "_socre"
     std::vector<FieldDataPtr> output_fields_;
     std::set<std::string> output_names_;  // output_fields list specified by search()
+    std::vector<HighlightResults> highlight_results_;
 };
 using SingleResultPtr = std::shared_ptr<SingleResult>;
 

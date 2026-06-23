@@ -203,4 +203,20 @@ SearchRequest::WithTimezone(const std::string& timezone) {
     return *this;
 }
 
+const HighlighterPtr&
+SearchRequest::GetHighlighter() const {
+    return highlighter_;
+}
+
+void
+SearchRequest::SetHighlighter(const HighlighterPtr& highlighter) {
+    highlighter_ = highlighter;
+}
+
+SearchRequest&
+SearchRequest::WithHighlighter(const HighlighterPtr& highlighter) {
+    highlighter_ = highlighter;
+    return *this;
+}
+
 }  // namespace milvus

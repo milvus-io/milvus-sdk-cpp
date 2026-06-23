@@ -16,15 +16,29 @@
 
 #include <gmock/gmock.h>
 
+#include <memory>
+
 #include "milvus/types/Constants.h"
 #include "milvus/types/FieldData.h"
 #include "milvus/types/FieldSchema.h"
+#include "milvus/types/Highlighter.h"
 #include "milvus/types/QueryArguments.h"
 #include "milvus/types/SearchArguments.h"
 #include "milvus/types/SearchResults.h"
 #include "utils/Constants.h"
 #include "utils/DqlUtils.h"
 #include "utils/GtsDict.h"
+
+namespace {
+class UnknownHighlighter : public milvus::Highlighter {
+ public:
+    const std::string&
+    HighlightType() const override {
+        static const std::string kType = "Unknown";
+        return kType;
+    }
+};
+}  // namespace
 
 using ::testing::ElementsAre;
 
@@ -372,10 +386,96 @@ TEST_F(DqlUtilsTest, ConvertSearchRequestV2) {
     req.WithFilter("id > 0");
     req.AddOutputField("name");
 
+    auto highlighter = std::make_shared<milvus::LexicalHighlighter>();
+    highlighter->AddHighlightQuery("term", "text", "milvus")
+        .WithHighlightSearchText(true)
+        .AddPreTag("<em>")
+        .AddPostTag("</em>")
+        .WithFragmentOffset(1)
+        .WithFragmentSize(16)
+        .WithNumOfFragments(2);
+    req.WithHighlighter(highlighter);
+
     milvus::proto::milvus::SearchRequest rpc_request;
     auto status = milvus::ConvertSearchRequest(req, "default", rpc_request);
     EXPECT_TRUE(status.IsOk());
     EXPECT_EQ(rpc_request.collection_name(), "test_coll");
+    EXPECT_TRUE(rpc_request.has_highlighter());
+    EXPECT_EQ(rpc_request.highlighter().type(), milvus::proto::common::HighlightType::Lexical);
+
+    std::unordered_map<std::string, std::string> params;
+    for (const auto& pair : rpc_request.highlighter().params()) {
+        params[pair.key()] = pair.value();
+    }
+    ASSERT_EQ(params.size(), 7u);
+    EXPECT_EQ(params.at("highlight_search_text"), "true");
+    EXPECT_EQ(params.at("pre_tags"), R"(["<em>"])");
+    EXPECT_EQ(params.at("post_tags"), R"(["</em>"])");
+    EXPECT_EQ(params.at("fragment_offset"), "1");
+    EXPECT_EQ(params.at("fragment_size"), "16");
+    EXPECT_EQ(params.at("num_of_fragments"), "2");
+
+    auto highlight_query = nlohmann::json::parse(params.at("highlight_query"));
+    ASSERT_TRUE(highlight_query.is_array());
+    ASSERT_EQ(highlight_query.size(), 1u);
+    EXPECT_EQ(highlight_query.at(0).at("type"), "term");
+    EXPECT_EQ(highlight_query.at(0).at("field"), "text");
+    EXPECT_EQ(highlight_query.at(0).at("text"), "milvus");
+}
+
+TEST_F(DqlUtilsTest, ConvertSearchRequestV2WithSemanticHighlighter) {
+    milvus::SearchRequest req;
+    req.WithCollectionName("test_coll");
+    req.WithAnnsField("vec");
+    req.WithLimit(10);
+    req.AddFloatVector({0.1f, 0.2f, 0.3f});
+    req.WithConsistencyLevel(milvus::ConsistencyLevel::STRONG);
+
+    auto highlighter = std::make_shared<milvus::SemanticHighlighter>();
+    highlighter->AddQuery("milvus")
+        .AddInputField("text")
+        .AddPreTag("<b>")
+        .AddPostTag("</b>")
+        .WithThreshold(0.8f)
+        .WithHighlightOnly(true)
+        .WithModelDeploymentID("model-1")
+        .WithMaxClientBatchSize(32);
+    req.WithHighlighter(highlighter);
+
+    milvus::proto::milvus::SearchRequest rpc_request;
+    auto status = milvus::ConvertSearchRequest(req, "default", rpc_request);
+    EXPECT_TRUE(status.IsOk());
+    EXPECT_TRUE(rpc_request.has_highlighter());
+    EXPECT_EQ(rpc_request.highlighter().type(), milvus::proto::common::HighlightType::Semantic);
+
+    std::unordered_map<std::string, std::string> params;
+    for (const auto& pair : rpc_request.highlighter().params()) {
+        params[pair.key()] = pair.value();
+    }
+    ASSERT_EQ(params.size(), 8u);
+    EXPECT_EQ(params.at("queries"), R"(["milvus"])");
+    EXPECT_EQ(params.at("input_fields"), R"(["text"])");
+    EXPECT_EQ(params.at("pre_tags"), R"(["<b>"])");
+    EXPECT_EQ(params.at("post_tags"), R"(["</b>"])");
+    EXPECT_EQ(params.at("threshold"), std::to_string(0.8f));
+    EXPECT_EQ(params.at("highlight_only"), "true");
+    EXPECT_EQ(params.at("model_deployment_id"), "model-1");
+    EXPECT_EQ(params.at("max_client_batch_size"), "32");
+}
+
+TEST_F(DqlUtilsTest, ConvertSearchRequestV2WithUnknownHighlighter) {
+    milvus::SearchRequest req;
+    req.WithCollectionName("test_coll");
+    req.WithAnnsField("vec");
+    req.WithLimit(10);
+    req.AddFloatVector({0.1f, 0.2f, 0.3f});
+    req.WithConsistencyLevel(milvus::ConsistencyLevel::STRONG);
+    req.WithHighlighter(std::make_shared<UnknownHighlighter>());
+
+    milvus::proto::milvus::SearchRequest rpc_request;
+    auto status = milvus::ConvertSearchRequest(req, "default", rpc_request);
+    EXPECT_FALSE(status.IsOk());
+    EXPECT_EQ(status.Code(), milvus::StatusCode::INVALID_ARGUMENT);
 }
 
 TEST_F(DqlUtilsTest, ConvertSearchRequestWithRange) {
@@ -391,6 +491,135 @@ TEST_F(DqlUtilsTest, ConvertSearchRequestWithRange) {
     milvus::proto::milvus::SearchRequest rpc_request;
     auto status = milvus::ConvertSearchRequest(req, "default", rpc_request);
     EXPECT_TRUE(status.IsOk());
+}
+
+TEST_F(DqlUtilsTest, ConvertSearchResultsWithoutHighlightResults) {
+    milvus::proto::milvus::SearchResults rpc_results;
+    auto* result_data = rpc_results.mutable_results();
+    result_data->set_num_queries(1);
+    result_data->add_topks(2);
+    result_data->set_primary_field_name("id");
+    result_data->mutable_ids()->mutable_int_id()->add_data(1001);
+    result_data->mutable_ids()->mutable_int_id()->add_data(1002);
+    result_data->add_scores(0.9f);
+    result_data->add_scores(0.8f);
+    result_data->add_recalls(0.95f);
+
+    milvus::SearchResults results;
+    auto status = milvus::ConvertSearchResults(rpc_results, "id", results);
+    EXPECT_TRUE(status.IsOk());
+    ASSERT_EQ(results.Results().size(), 1u);
+    EXPECT_EQ(results.Results().at(0).PrimaryKeyName(), "id");
+    EXPECT_EQ(results.Results().at(0).Ids().IntIDArray(), std::vector<int64_t>({1001, 1002}));
+    EXPECT_EQ(results.Results().at(0).Scores(), std::vector<float>({0.9f, 0.8f}));
+    ASSERT_EQ(results.Recalls().size(), 1u);
+    EXPECT_FLOAT_EQ(results.Recalls().at(0), 0.95f);
+    milvus::HighlightResults highlight_results;
+    status = results.Results().at(0).OutputHighlightResult(0, highlight_results);
+    EXPECT_TRUE(status.IsOk());
+    EXPECT_TRUE(highlight_results.empty());
+}
+
+TEST_F(DqlUtilsTest, ConvertSearchResultsWithHighlightResults) {
+    milvus::proto::milvus::SearchResults rpc_results;
+    auto* result_data = rpc_results.mutable_results();
+    result_data->set_num_queries(1);
+    result_data->add_topks(2);
+    result_data->set_primary_field_name("id");
+    result_data->mutable_ids()->mutable_int_id()->add_data(1001);
+    result_data->mutable_ids()->mutable_int_id()->add_data(1002);
+    result_data->add_scores(0.9f);
+    result_data->add_scores(0.8f);
+
+    auto* highlight_result = result_data->add_highlight_results();
+    highlight_result->set_field_name("text");
+    auto* highlight_data1 = highlight_result->add_datas();
+    highlight_data1->add_fragments("<em>milvus</em>");
+    highlight_data1->add_scores(0.91f);
+    auto* highlight_data2 = highlight_result->add_datas();
+    highlight_data2->add_fragments("vector");
+    highlight_data2->add_fragments("database");
+    highlight_data2->add_scores(0.83f);
+    highlight_data2->add_scores(0.41f);
+
+    milvus::SearchResults results;
+    auto status = milvus::ConvertSearchResults(rpc_results, "id", results);
+    EXPECT_TRUE(status.IsOk());
+
+    milvus::HighlightResults row0;
+    status = results.Results().at(0).OutputHighlightResult(0, row0);
+    EXPECT_TRUE(status.IsOk());
+    ASSERT_EQ(row0.size(), 1u);
+    EXPECT_EQ(row0.at("text").field_name, "text");
+    EXPECT_EQ(row0.at("text").fragments, std::vector<std::string>({"<em>milvus</em>"}));
+    ASSERT_EQ(row0.at("text").scores.size(), 1u);
+    EXPECT_FLOAT_EQ(row0.at("text").scores.at(0), 0.91f);
+
+    milvus::HighlightResults row1;
+    status = results.Results().at(0).OutputHighlightResult(1, row1);
+    EXPECT_TRUE(status.IsOk());
+    ASSERT_EQ(row1.size(), 1u);
+    EXPECT_EQ(row1.at("text").field_name, "text");
+    EXPECT_EQ(row1.at("text").fragments, std::vector<std::string>({"vector", "database"}));
+    ASSERT_EQ(row1.at("text").scores.size(), 2u);
+    EXPECT_FLOAT_EQ(row1.at("text").scores.at(0), 0.83f);
+    EXPECT_FLOAT_EQ(row1.at("text").scores.at(1), 0.41f);
+}
+
+TEST_F(DqlUtilsTest, ConvertSearchResultsWithHighlightResultsForMultipleQueries) {
+    milvus::proto::milvus::SearchResults rpc_results;
+    auto* result_data = rpc_results.mutable_results();
+    result_data->set_num_queries(2);
+    result_data->add_topks(2);
+    result_data->add_topks(1);
+    result_data->set_primary_field_name("id");
+    result_data->mutable_ids()->mutable_int_id()->add_data(1001);
+    result_data->mutable_ids()->mutable_int_id()->add_data(1002);
+    result_data->mutable_ids()->mutable_int_id()->add_data(1003);
+    result_data->add_scores(0.9f);
+    result_data->add_scores(0.8f);
+    result_data->add_scores(0.7f);
+
+    auto* highlight_result = result_data->add_highlight_results();
+    highlight_result->set_field_name("text");
+    auto* highlight_data1 = highlight_result->add_datas();
+    highlight_data1->add_fragments("q0r0");
+    highlight_data1->add_scores(0.91f);
+    auto* highlight_data2 = highlight_result->add_datas();
+    highlight_data2->add_fragments("q0r1");
+    highlight_data2->add_scores(0.82f);
+    auto* highlight_data3 = highlight_result->add_datas();
+    highlight_data3->add_fragments("q1r0");
+    highlight_data3->add_scores(0.73f);
+
+    milvus::SearchResults results;
+    auto status = milvus::ConvertSearchResults(rpc_results, "id", results);
+    EXPECT_TRUE(status.IsOk());
+    ASSERT_EQ(results.Results().size(), 2u);
+
+    milvus::HighlightResults query0row0;
+    status = results.Results().at(0).OutputHighlightResult(0, query0row0);
+    EXPECT_TRUE(status.IsOk());
+    ASSERT_EQ(query0row0.size(), 1u);
+    EXPECT_EQ(query0row0.at("text").fragments, std::vector<std::string>({"q0r0"}));
+    ASSERT_EQ(query0row0.at("text").scores.size(), 1u);
+    EXPECT_FLOAT_EQ(query0row0.at("text").scores.at(0), 0.91f);
+
+    milvus::HighlightResults query0row1;
+    status = results.Results().at(0).OutputHighlightResult(1, query0row1);
+    EXPECT_TRUE(status.IsOk());
+    ASSERT_EQ(query0row1.size(), 1u);
+    EXPECT_EQ(query0row1.at("text").fragments, std::vector<std::string>({"q0r1"}));
+    ASSERT_EQ(query0row1.at("text").scores.size(), 1u);
+    EXPECT_FLOAT_EQ(query0row1.at("text").scores.at(0), 0.82f);
+
+    milvus::HighlightResults query1row0;
+    status = results.Results().at(1).OutputHighlightResult(0, query1row0);
+    EXPECT_TRUE(status.IsOk());
+    ASSERT_EQ(query1row0.size(), 1u);
+    EXPECT_EQ(query1row0.at("text").fragments, std::vector<std::string>({"q1r0"}));
+    ASSERT_EQ(query1row0.at("text").scores.size(), 1u);
+    EXPECT_FLOAT_EQ(query1row0.at("text").scores.at(0), 0.73f);
 }
 
 TEST_F(DqlUtilsTest, ConvertQueryRequestV2) {
