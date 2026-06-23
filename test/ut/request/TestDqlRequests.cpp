@@ -214,11 +214,27 @@ TEST_F(SearchRequestTest, GettersAndSetters) {
     req.AddFloatVector(float_vec);
     EXPECT_NE(req.TargetVectors(), nullptr);
 
+    auto highlighter = std::make_shared<milvus::LexicalHighlighter>();
+    highlighter->AddHighlightQuery("term", "text", "milvus").WithHighlightSearchText(true).AddPreTag("<em>");
+    req.WithHighlighter(highlighter);
+    EXPECT_EQ(req.GetHighlighter(), highlighter);
+
     // AddBinaryVector
     milvus::SearchRequest req2;
     std::vector<uint8_t> bin_vec{0x01, 0x02};
     req2.AddBinaryVector(bin_vec);
     EXPECT_NE(req2.TargetVectors(), nullptr);
+}
+
+TEST_F(SearchRequestTest, WithHighlighter) {
+    milvus::SearchRequest req;
+    auto highlighter = std::make_shared<milvus::SemanticHighlighter>();
+    highlighter->AddQuery("milvus sdk").AddInputField("text").AddPreTag("<b>").AddPostTag("</b>");
+
+    auto& ref = req.WithHighlighter(highlighter);
+    EXPECT_EQ(&ref, &req);
+    EXPECT_EQ(req.GetHighlighter(), highlighter);
+    EXPECT_EQ(req.GetHighlighter()->HighlightType(), "Semantic");
 }
 
 TEST_F(SearchRequestTest, WithExtraParams) {

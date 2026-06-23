@@ -17,6 +17,7 @@
 #pragma once
 
 #include "../../types/FunctionScore.h"
+#include "../../types/Highlighter.h"
 #include "../../types/SearchRequestBase.h"
 #include "./DQLRequestBase.h"
 #include "milvus/Export.h"
@@ -249,8 +250,27 @@ class MILVUS_SDK_API SearchRequest : public DQLRequestBase<SearchRequest>,
     SearchRequest&
     WithTimezone(const std::string& timezone);
 
+    /**
+     * @brief Get highlighter.
+     */
+    const HighlighterPtr&
+    GetHighlighter() const;
+
+    /**
+     * @brief Set highlighter.
+     */
+    void
+    SetHighlighter(const HighlighterPtr& highlighter);
+
+    /**
+     * @brief Set highlighter.
+     */
+    SearchRequest&
+    WithHighlighter(const HighlighterPtr& highlighter);
+
  private:
     FunctionScorePtr ranker_;
+    HighlighterPtr highlighter_;
 };
 
 }  // namespace milvus
