@@ -321,6 +321,10 @@ class MilvusClientV2Impl : public MilvusClientV2, public std::enable_shared_from
     GetReplicateInfo(const GetReplicateInfoRequest& request, GetReplicateInfoResponse& response) final;
 
     Status
+    DumpMessages(const DumpMessagesRequest& request,
+                 const std::function<Status(const DumpedMessage&)>& on_message) final;
+
+    Status
     CreateResourceGroup(const CreateResourceGroupRequest& request) final;
 
     Status
@@ -348,6 +352,9 @@ class MilvusClientV2Impl : public MilvusClientV2, public std::enable_shared_from
     UpdatePassword(const UpdatePasswordRequest& request) final;
 
     Status
+    UpdateUser(const UpdateUserRequest& request) final;
+
+    Status
     DropUser(const DropUserRequest& request) final;
 
     Status
@@ -358,6 +365,9 @@ class MilvusClientV2Impl : public MilvusClientV2, public std::enable_shared_from
 
     Status
     CreateRole(const CreateRoleRequest& request) final;
+
+    Status
+    AlterRole(const AlterRoleRequest& request) final;
 
     Status
     DropRole(const DropRoleRequest& request) final;

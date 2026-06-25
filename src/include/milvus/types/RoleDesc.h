@@ -79,6 +79,8 @@ class MILVUS_SDK_API RoleDesc {
      */
     RoleDesc(const std::string& name, std::vector<GrantItem>&& grant_items);
 
+    RoleDesc(const std::string& name, const std::string& description, std::vector<GrantItem>&& grant_items);
+
     /**
      * @brief Set name of the role.
      */
@@ -90,6 +92,12 @@ class MILVUS_SDK_API RoleDesc {
      */
     const std::string&
     Name() const;
+
+    const std::string&
+    Description() const;
+
+    void
+    SetDescription(const std::string& description);
 
     /**
      * @brief Add a privilege item for the role.
@@ -105,6 +113,7 @@ class MILVUS_SDK_API RoleDesc {
 
  private:
     std::string name_;
+    std::string description_;
     std::vector<GrantItem> grant_items_;
 };
 

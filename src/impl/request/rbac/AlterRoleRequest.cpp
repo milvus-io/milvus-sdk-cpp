@@ -14,47 +14,40 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "milvus/types/UserDesc.h"
+#include "milvus/request/rbac/AlterRoleRequest.h"
 
 namespace milvus {
 
-UserDesc::UserDesc() = default;
-
-UserDesc::UserDesc(const std::string& name, std::vector<std::string>&& roles) : name_(name), roles_(std::move(roles)) {
-}
-
-UserDesc::UserDesc(const std::string& name, const std::string& description, std::vector<std::string>&& roles)
-    : name_(name), description_(description), roles_(std::move(roles)) {
+const std::string&
+AlterRoleRequest::RoleName() const {
+    return role_name_;
 }
 
 void
-UserDesc::SetName(const std::string& name) {
-    name_ = name;
+AlterRoleRequest::SetRoleName(const std::string& role_name) {
+    role_name_ = role_name;
+}
+
+AlterRoleRequest&
+AlterRoleRequest::WithRoleName(const std::string& role_name) {
+    SetRoleName(role_name);
+    return *this;
 }
 
 const std::string&
-UserDesc::Name() const {
-    return name_;
-}
-
-const std::string&
-UserDesc::Description() const {
+AlterRoleRequest::Description() const {
     return description_;
 }
 
 void
-UserDesc::SetDescription(const std::string& description) {
+AlterRoleRequest::SetDescription(const std::string& description) {
     description_ = description;
 }
 
-void
-UserDesc::AddRole(const std::string& role_name) {
-    roles_.push_back(role_name);
-}
-
-const std::vector<std::string>&
-UserDesc::Roles() const {
-    return roles_;
+AlterRoleRequest&
+AlterRoleRequest::WithDescription(const std::string& description) {
+    SetDescription(description);
+    return *this;
 }
 
 }  // namespace milvus

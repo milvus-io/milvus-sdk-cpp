@@ -16,18 +16,14 @@
 
 include_guard(GLOBAL)
 
-set(PROTO_VERSION e90ee63ad3fceea966ff1a051db5b4e4deec76b6)
-set(PROTO_REPOSITORY https://github.com/milvus-io/milvus-proto.git)
+set(PROTO_COMMIT e378dbfa23a2abc16378e8c7e525754c48d82e4b)
 
 include(FetchContent)
 
 # download proto
-FetchContent_Declare(
-    milvus_proto
-    GIT_REPOSITORY ${PROTO_REPOSITORY}
-    GIT_TAG        ${PROTO_VERSION}
-    SOURCE_DIR     ${CMAKE_CURRENT_BINARY_DIR}/milvus-proto-src
-    BINARY_DIR     ${CMAKE_CURRENT_BINARY_DIR}/milvus-proto-build
+FetchContent_Declare(milvus_proto
+    GIT_REPOSITORY https://github.com/milvus-io/milvus-proto.git
+    GIT_TAG        ${PROTO_COMMIT}
 )
 FetchContent_Populate(milvus_proto)
 

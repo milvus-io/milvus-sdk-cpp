@@ -35,6 +35,7 @@ class RoleDescTest : public ::testing::Test {};
 TEST_F(RoleDescTest, DefaultConstructor) {
     milvus::RoleDesc desc;
     EXPECT_TRUE(desc.Name().empty());
+    EXPECT_TRUE(desc.Description().empty());
     EXPECT_TRUE(desc.GrantItems().empty());
 }
 
@@ -43,14 +44,30 @@ TEST_F(RoleDescTest, ParameterizedConstructor) {
     items.emplace_back("Global", "*", "db1", "role1", "root", "Query");
     milvus::RoleDesc desc("my_role", std::move(items));
     EXPECT_EQ(desc.Name(), "my_role");
+    EXPECT_TRUE(desc.Description().empty());
     EXPECT_EQ(desc.GrantItems().size(), 1);
     EXPECT_EQ(desc.GrantItems()[0].privilege_, "Query");
+}
+
+TEST_F(RoleDescTest, ParameterizedConstructorWithDescription) {
+    std::vector<milvus::GrantItem> items;
+    items.emplace_back("Global", "*", "db1", "role1", "root", "Query");
+    milvus::RoleDesc desc("my_role", "role description", std::move(items));
+    EXPECT_EQ(desc.Name(), "my_role");
+    EXPECT_EQ(desc.Description(), "role description");
+    EXPECT_EQ(desc.GrantItems().size(), 1);
 }
 
 TEST_F(RoleDescTest, SetName) {
     milvus::RoleDesc desc;
     desc.SetName("admin");
     EXPECT_EQ(desc.Name(), "admin");
+}
+
+TEST_F(RoleDescTest, SetDescription) {
+    milvus::RoleDesc desc;
+    desc.SetDescription("desc");
+    EXPECT_EQ(desc.Description(), "desc");
 }
 
 TEST_F(RoleDescTest, AddGrantItem) {

@@ -38,6 +38,8 @@ class MILVUS_SDK_API UserDesc {
      */
     UserDesc(const std::string& name, std::vector<std::string>&& roles);
 
+    UserDesc(const std::string& name, const std::string& description, std::vector<std::string>&& roles);
+
     /**
      * @brief Set the name of the user.
      */
@@ -49,6 +51,12 @@ class MILVUS_SDK_API UserDesc {
      */
     const std::string&
     Name() const;
+
+    const std::string&
+    Description() const;
+
+    void
+    SetDescription(const std::string& description);
 
     /**
      * @brief Add a role name for the user.
@@ -64,6 +72,7 @@ class MILVUS_SDK_API UserDesc {
 
  private:
     std::string name_;
+    std::string description_;
     std::vector<std::string> roles_;
 };
 

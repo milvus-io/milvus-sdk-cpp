@@ -1015,6 +1015,23 @@ ConvertReplicateCheckpoint(const proto::common::ReplicateCheckpoint& rpc_checkpo
     checkpoint.SetMessageID(std::move(message_id));
 }
 
+void
+ConvertImmutableMessage(const proto::common::ImmutableMessage& rpc_message, DumpedMessage& message) {
+    ReplicateMessageID message_id;
+    if (rpc_message.has_id()) {
+        message_id.SetID(rpc_message.id().id());
+        message_id.SetWalName(proto::common::WALName_Name(rpc_message.id().wal_name()));
+    }
+    message.SetMessageID(std::move(message_id));
+    message.SetPayload(rpc_message.payload());
+
+    std::unordered_map<std::string, std::string> properties;
+    for (const auto& pair : rpc_message.properties()) {
+        properties.emplace(pair.first, pair.second);
+    }
+    message.SetProperties(std::move(properties));
+}
+
 bool
 IsValidTemplate(const nlohmann::json& filter_template) {
     return filter_template.is_boolean() || filter_template.is_number() || filter_template.is_string();
