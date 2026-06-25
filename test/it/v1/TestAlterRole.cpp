@@ -21,10 +21,10 @@
 #include "../mocks/MilvusMockedTest.h"
 #include "milvus/MilvusClientV2.h"
 
+using ::milvus::StatusCode;
+using ::milvus::proto::milvus::AlterRoleRequest;
 using ::milvus::proto::milvus::ConnectRequest;
 using ::milvus::proto::milvus::ConnectResponse;
-using ::milvus::proto::milvus::SelectUserRequest;
-using ::milvus::proto::milvus::SelectUserResponse;
 using ::testing::_;
 
 namespace {
@@ -43,40 +43,35 @@ CreateConnectedV2Client(testing::StrictMock<::milvus::MilvusMockedService>& serv
 
 }  // namespace
 
-TEST_F(UnconnectMilvusMockedTest, DescribeUser) {
+TEST_F(UnconnectMilvusMockedTest, AlterRole) {
     auto client = CreateConnectedV2Client(service_, server_.ListenPort());
 
-    milvus::UserDesc expected_desc;
-    expected_desc.SetName("Bar");
-    expected_desc.AddRole("role_1");
-    expected_desc.AddRole("role_2");
+    EXPECT_CALL(service_, AlterRole(_, _, _))
+        .WillOnce([](::grpc::ServerContext*, const AlterRoleRequest* request, ::milvus::proto::common::Status*) {
+            EXPECT_EQ(request->role_name(), "role_name");
+            EXPECT_EQ(request->description(), "role description");
+            return ::grpc::Status{};
+        });
 
-    EXPECT_CALL(service_, SelectUser(_, _, _))
-        .WillOnce(
-            [&expected_desc](::grpc::ServerContext*, const SelectUserRequest* request, SelectUserResponse* response) {
-                EXPECT_EQ(request->user().name(), expected_desc.Name());
-                EXPECT_TRUE(request->include_role_info());
+    milvus::AlterRoleRequest request;
+    request.WithRoleName("role_name").WithDescription("role description");
+    auto status = client->AlterRole(request);
 
-                auto result = response->mutable_results()->Add();
-                result->mutable_user()->set_name(expected_desc.Name());
-                result->set_description("user description");
-                for (const auto& role : expected_desc.Roles()) {
-                    result->add_roles()->set_name(role);
-                }
-                return ::grpc::Status{};
-            });
-
-    milvus::DescribeUserRequest request;
-    request.WithUserName(expected_desc.Name());
-    milvus::DescribeUserResponse response;
-    auto status = client->DescribeUser(request, response);
     EXPECT_TRUE(status.IsOk());
+}
 
-    const auto& desc = response.Desc();
-    EXPECT_EQ(desc.Name(), expected_desc.Name());
-    EXPECT_EQ(desc.Description(), "user description");
-    EXPECT_EQ(desc.Roles().size(), expected_desc.Roles().size());
-    for (auto i = 0; i < desc.Roles().size(); i++) {
-        EXPECT_EQ(desc.Roles().at(i), expected_desc.Roles().at(i));
-    }
+TEST_F(UnconnectMilvusMockedTest, AlterRoleFailed) {
+    auto client = CreateConnectedV2Client(service_, server_.ListenPort());
+
+    EXPECT_CALL(service_, AlterRole(_, _, _))
+        .WillOnce([](::grpc::ServerContext*, const AlterRoleRequest*, ::milvus::proto::common::Status*) {
+            return ::grpc::Status{::grpc::StatusCode::UNAVAILABLE, "unavailable"};
+        });
+
+    milvus::AlterRoleRequest request;
+    request.WithRoleName("role_name").WithDescription("role description");
+    auto status = client->AlterRole(request);
+
+    EXPECT_FALSE(status.IsOk());
+    EXPECT_EQ(status.Code(), StatusCode::RPC_FAILED);
 }

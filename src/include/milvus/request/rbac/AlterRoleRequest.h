@@ -16,28 +16,40 @@
 
 #pragma once
 
+#include <string>
+
 #include "milvus/Export.h"
-#include "milvus/types/ReplicateConfiguration.h"
 
 namespace milvus {
 
-class MILVUS_SDK_API GetReplicateInfoResponse {
+/**
+ * @brief Used by MilvusClientV2::AlterRole().
+ */
+class MILVUS_SDK_API AlterRoleRequest {
  public:
-    const ReplicateCheckpoint&
-    Checkpoint() const;
+    AlterRoleRequest() = default;
+
+    const std::string&
+    RoleName() const;
 
     void
-    SetCheckpoint(ReplicateCheckpoint&& checkpoint);
+    SetRoleName(const std::string& role_name);
 
-    const ReplicateCheckpoint&
-    SalvageCheckpoint() const;
+    AlterRoleRequest&
+    WithRoleName(const std::string& role_name);
+
+    const std::string&
+    Description() const;
 
     void
-    SetSalvageCheckpoint(ReplicateCheckpoint&& checkpoint);
+    SetDescription(const std::string& description);
+
+    AlterRoleRequest&
+    WithDescription(const std::string& description);
 
  private:
-    ReplicateCheckpoint checkpoint_;
-    ReplicateCheckpoint salvage_checkpoint_;
+    std::string role_name_;
+    std::string description_;
 };
 
 }  // namespace milvus

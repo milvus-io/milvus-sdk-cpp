@@ -20,6 +20,7 @@
 
 #include "milvus.pb.h"
 #include "milvus/Status.h"
+#include "milvus/response/cdc/DumpMessagesTypes.h"
 #include "milvus/types/CollectionDesc.h"
 #include "milvus/types/CollectionSchema.h"
 #include "milvus/types/ConsistencyLevel.h"
@@ -144,6 +145,9 @@ ConvertReplicateConfiguration(const proto::common::ReplicateConfiguration& rpc_c
 
 void
 ConvertReplicateCheckpoint(const proto::common::ReplicateCheckpoint& rpc_checkpoint, ReplicateCheckpoint& checkpoint);
+
+void
+ConvertImmutableMessage(const proto::common::ImmutableMessage& rpc_message, DumpedMessage& message);
 
 bool
 IsValidTemplate(const nlohmann::json& filter_template);

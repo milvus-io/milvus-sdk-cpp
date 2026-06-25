@@ -16,28 +16,40 @@
 
 #pragma once
 
+#include <string>
+
 #include "milvus/Export.h"
-#include "milvus/types/ReplicateConfiguration.h"
 
 namespace milvus {
 
-class MILVUS_SDK_API GetReplicateInfoResponse {
+/**
+ * @brief Used by MilvusClientV2::UpdateUser().
+ */
+class MILVUS_SDK_API UpdateUserRequest {
  public:
-    const ReplicateCheckpoint&
-    Checkpoint() const;
+    UpdateUserRequest() = default;
+
+    const std::string&
+    UserName() const;
 
     void
-    SetCheckpoint(ReplicateCheckpoint&& checkpoint);
+    SetUserName(const std::string& user_name);
 
-    const ReplicateCheckpoint&
-    SalvageCheckpoint() const;
+    UpdateUserRequest&
+    WithUserName(const std::string& user_name);
+
+    const std::string&
+    Description() const;
 
     void
-    SetSalvageCheckpoint(ReplicateCheckpoint&& checkpoint);
+    SetDescription(const std::string& description);
+
+    UpdateUserRequest&
+    WithDescription(const std::string& description);
 
  private:
-    ReplicateCheckpoint checkpoint_;
-    ReplicateCheckpoint salvage_checkpoint_;
+    std::string user_name_;
+    std::string description_;
 };
 
 }  // namespace milvus
