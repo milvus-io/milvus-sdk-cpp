@@ -32,4 +32,8 @@ UpperWithoutSpaces(const std::string& value);
 Status
 ParseTargetSizeMB(const std::string& target_size, int64_t& target_size_mb, std::string& normalized);
 
+// Protocol and other machine-readable float text should not depend on the process locale.
+bool
+ParseFloatWithLocale(const std::string& text, float& value, const std::locale& locale);
+
 }  // namespace milvus

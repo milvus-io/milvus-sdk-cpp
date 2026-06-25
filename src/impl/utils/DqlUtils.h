@@ -33,6 +33,8 @@
 #include "schema.pb.h"
 
 namespace milvus {
+class SearchResponse;
+
 Status
 CreateMilvusFieldData(const proto::schema::FieldData& proto_data, size_t offset, size_t count,
                       FieldDataPtr& field_data);
@@ -86,6 +88,9 @@ ConvertSearchRequest(const T& request, const std::string& current_db, proto::mil
 Status
 ConvertSearchResults(const proto::milvus::SearchResults& rpc_results, const std::string& pk_name,
                      SearchResults& results);
+
+void
+FillSearchResponseExtraInfo(const proto::common::Status& status, SearchResponse& response);
 
 template <typename T>
 Status
