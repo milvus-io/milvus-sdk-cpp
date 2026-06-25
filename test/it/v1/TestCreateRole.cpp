@@ -16,14 +16,34 @@
 
 #include <gtest/gtest.h>
 
-#include "../mocks/MilvusMockedTest.h"
+#include <memory>
 
+#include "../mocks/MilvusMockedTest.h"
+#include "milvus/MilvusClientV2.h"
+
+using ::milvus::proto::milvus::ConnectRequest;
+using ::milvus::proto::milvus::ConnectResponse;
 using ::milvus::proto::milvus::CreateRoleRequest;
 using ::testing::_;
 
-TEST_F(MilvusMockedTest, CreateRole) {
-    milvus::ConnectParam connect_param{"127.0.0.1", server_.ListenPort()};
-    client_->Connect(connect_param);
+namespace {
+
+std::shared_ptr<milvus::MilvusClientV2>
+CreateConnectedV2Client(testing::StrictMock<::milvus::MilvusMockedService>& service, uint16_t port) {
+    EXPECT_CALL(service, Connect(_, _, _))
+        .WillOnce([](::grpc::ServerContext*, const ConnectRequest*, ConnectResponse*) { return ::grpc::Status{}; });
+
+    auto client = milvus::MilvusClientV2::Create();
+    milvus::ConnectParam connect_param{"127.0.0.1", port};
+    auto status = client->Connect(connect_param);
+    EXPECT_TRUE(status.IsOk());
+    return client;
+}
+
+}  // namespace
+
+TEST_F(UnconnectMilvusMockedTest, CreateRole) {
+    auto client = CreateConnectedV2Client(service_, server_.ListenPort());
 
     const std::string role_name = "Foo";
 
@@ -31,9 +51,12 @@ TEST_F(MilvusMockedTest, CreateRole) {
         .WillOnce(
             [&role_name](::grpc::ServerContext*, const CreateRoleRequest* request, ::milvus::proto::common::Status*) {
                 EXPECT_EQ(request->entity().name(), role_name);
+                EXPECT_EQ(request->entity().description(), "role description");
                 return ::grpc::Status{};
             });
 
-    auto status = client_->CreateRole(role_name);
+    milvus::CreateRoleRequest request;
+    request.WithRoleName(role_name).WithDescription("role description");
+    auto status = client->CreateRole(request);
     EXPECT_TRUE(status.IsOk());
 }
