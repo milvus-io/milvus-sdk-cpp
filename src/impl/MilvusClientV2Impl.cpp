@@ -1627,6 +1627,8 @@ MilvusClientV2Impl::Search(const SearchRequest& request, SearchResponse& respons
         }
         auto status = ConvertSearchResults(rpc_response, pk_name, results);
         response.SetResults(std::move(results));
+        response.SetSessionTs(rpc_response.session_ts());
+        FillSearchResponseExtraInfo(rpc_response.status(), response);
         return status;
     };
 
@@ -1730,6 +1732,8 @@ MilvusClientV2Impl::HybridSearch(const HybridSearchRequest& request, HybridSearc
         }
         auto status = ConvertSearchResults(rpc_response, pk_name, results);
         response.SetResults(std::move(results));
+        response.SetSessionTs(rpc_response.session_ts());
+        FillSearchResponseExtraInfo(rpc_response.status(), response);
         return status;
     };
 
@@ -1748,6 +1752,7 @@ MilvusClientV2Impl::Query(const QueryRequest& request, QueryResponse& response) 
         QueryResults results;
         auto status = ConvertQueryResults(rpc_response, results);
         response.SetResults(std::move(results));
+        response.SetSessionTs(rpc_response.session_ts());
         return status;
     };
 
@@ -2677,6 +2682,7 @@ MilvusClientV2Impl::CreateUser(const CreateUserRequest& request) {
     auto pre = [&request](proto::milvus::CreateCredentialRequest& rpc_request) {
         rpc_request.set_username(request.UserName());
         rpc_request.set_password(milvus::Base64Encode(request.Password()));
+        rpc_request.set_description(request.Description());
         return Status::OK();
     };
 
@@ -2767,6 +2773,7 @@ Status
 MilvusClientV2Impl::CreateRole(const CreateRoleRequest& request) {
     auto pre = [&request](proto::milvus::CreateRoleRequest& rpc_request) {
         rpc_request.mutable_entity()->set_name(request.RoleName());
+        rpc_request.mutable_entity()->set_description(request.Description());
         return Status::OK();
     };
 

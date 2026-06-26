@@ -16,7 +16,21 @@
 
 #include <gtest/gtest.h>
 
+#include <locale>
+
 #include "utils/MiscUtils.h"
+
+namespace {
+
+class CommaDecimalPunct : public std::numpunct<char> {
+ protected:
+    char
+    do_decimal_point() const override {
+        return ',';
+    }
+};
+
+}  // namespace
 
 class MiscUtilsTest : public ::testing::Test {};
 
@@ -105,4 +119,23 @@ TEST_F(MiscUtilsTest, ParseTargetSizeMBInvalid) {
 
     status = milvus::ParseTargetSizeMB("abc", target_size_mb, normalized);
     EXPECT_EQ(status.Code(), milvus::StatusCode::INVALID_ARGUMENT);
+}
+
+TEST_F(MiscUtilsTest, ParseFloatWithLocale) {
+    float value = -1.0f;
+    auto comma_locale = std::locale(std::locale::classic(), new CommaDecimalPunct());
+
+    EXPECT_TRUE(milvus::ParseFloatWithLocale("0.5", value, std::locale::classic()));
+    EXPECT_FLOAT_EQ(value, 0.5f);
+
+    EXPECT_TRUE(milvus::ParseFloatWithLocale("1e-2", value, std::locale::classic()));
+    EXPECT_FLOAT_EQ(value, 0.01f);
+
+    EXPECT_FALSE(milvus::ParseFloatWithLocale("0,5", value, std::locale::classic()));
+    EXPECT_FALSE(milvus::ParseFloatWithLocale("0.5abc", value, std::locale::classic()));
+    EXPECT_FALSE(milvus::ParseFloatWithLocale("abc", value, std::locale::classic()));
+
+    EXPECT_FALSE(milvus::ParseFloatWithLocale("0.5", value, comma_locale));
+    EXPECT_TRUE(milvus::ParseFloatWithLocale("0,5", value, comma_locale));
+    EXPECT_FLOAT_EQ(value, 0.5f);
 }

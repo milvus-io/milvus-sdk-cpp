@@ -28,6 +28,16 @@ TEST_F(CreateUserRequestTest, GettersAndSetters) {
 
     req.WithPassword("secret123");
     EXPECT_EQ(req.Password(), "secret123");
+
+    req.WithDescription("user description");
+    EXPECT_EQ(req.Description(), "user description");
+
+    req.SetUserName("root");
+    req.SetPassword("new_secret");
+    req.SetDescription("updated description");
+    EXPECT_EQ(req.UserName(), "root");
+    EXPECT_EQ(req.Password(), "new_secret");
+    EXPECT_EQ(req.Description(), "updated description");
 }
 
 class UpdatePasswordRequestTest : public ::testing::Test {};
@@ -84,6 +94,14 @@ TEST_F(CreateRoleRequestTest, GettersAndSetters) {
     milvus::CreateRoleRequest req;
     req.WithRoleName("admin_role");
     EXPECT_EQ(req.RoleName(), "admin_role");
+
+    req.WithDescription("role description");
+    EXPECT_EQ(req.Description(), "role description");
+
+    req.SetRoleName("reader_role");
+    req.SetDescription("updated description");
+    EXPECT_EQ(req.RoleName(), "reader_role");
+    EXPECT_EQ(req.Description(), "updated description");
 }
 
 class DropRoleRequestTest : public ::testing::Test {};

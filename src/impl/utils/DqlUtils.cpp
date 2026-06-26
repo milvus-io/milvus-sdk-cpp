@@ -17,11 +17,14 @@
 #include "DqlUtils.h"
 
 #include <set>
+#include <string>
 
 #include "./Constants.h"
 #include "./DmlUtils.h"
 #include "./GtsDict.h"
+#include "./MiscUtils.h"
 #include "./TypeUtils.h"
+#include "milvus/response/dql/SearchResponse.h"
 #include "milvus/types/Constants.h"
 #include "milvus/utils/FP16.h"
 
@@ -60,6 +63,48 @@ SetSearchHighlighter(const T&, proto::milvus::SearchRequest&) {
 }
 
 }  // namespace
+
+void
+FillSearchResponseExtraInfo(const proto::common::Status& status, SearchResponse& response) {
+    response.SetCost(-1);
+    response.SetScannedRemoteBytes(-1);
+    response.SetScannedTotalBytes(-1);
+    response.SetCacheHitRatio(-1.0f);
+
+    const auto& extra_info = status.extra_info();
+
+    const auto cost_it = extra_info.find("report_value");
+    if (cost_it != extra_info.end()) {
+        try {
+            response.SetCost(std::stoll(cost_it->second));
+        } catch (...) {
+        }
+    }
+
+    const auto remote_bytes_it = extra_info.find("scanned_remote_bytes");
+    if (remote_bytes_it != extra_info.end()) {
+        try {
+            response.SetScannedRemoteBytes(std::stoll(remote_bytes_it->second));
+        } catch (...) {
+        }
+    }
+
+    const auto total_bytes_it = extra_info.find("scanned_total_bytes");
+    if (total_bytes_it != extra_info.end()) {
+        try {
+            response.SetScannedTotalBytes(std::stoll(total_bytes_it->second));
+        } catch (...) {
+        }
+    }
+
+    const auto cache_hit_ratio_it = extra_info.find("cache_hit_ratio");
+    if (cache_hit_ratio_it != extra_info.end()) {
+        float cache_hit_ratio = 0.0f;
+        if (ParseFloatWithLocale(cache_hit_ratio_it->second, cache_hit_ratio, std::locale::classic())) {
+            response.SetCacheHitRatio(cache_hit_ratio);
+        }
+    }
+}
 
 SparseFloatVecFieldData::ElementT
 DecodeSparseFloatVector(const std::string& bytes) {
