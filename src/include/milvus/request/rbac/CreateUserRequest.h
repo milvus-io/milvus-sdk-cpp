@@ -68,9 +68,28 @@ class MILVUS_SDK_API CreateUserRequest {
     CreateUserRequest&
     WithPassword(const std::string& password);
 
+    /**
+     * @brief Description of the user.
+     */
+    const std::string&
+    Description() const;
+
+    /**
+     * @brief Set description of the user.
+     */
+    void
+    SetDescription(const std::string& description);
+
+    /**
+     * @brief Set description of the user.
+     */
+    CreateUserRequest&
+    WithDescription(const std::string& description);
+
  protected:
     std::string user_name_;
     std::string password_;
+    std::string description_;
 };
 
 }  // namespace milvus

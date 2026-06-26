@@ -18,6 +18,7 @@
 
 #include <memory>
 
+#include "milvus/response/dql/SearchResponse.h"
 #include "milvus/types/Constants.h"
 #include "milvus/types/FieldData.h"
 #include "milvus/types/FieldSchema.h"
@@ -43,6 +44,71 @@ class UnknownHighlighter : public milvus::Highlighter {
 using ::testing::ElementsAre;
 
 class DqlUtilsTest : public ::testing::Test {};
+
+TEST_F(DqlUtilsTest, FillSearchResponseExtraInfoTest) {
+    milvus::proto::common::Status status;
+    auto* extra_info = status.mutable_extra_info();
+    (*extra_info)["report_value"] = "101";
+    (*extra_info)["scanned_remote_bytes"] = "102";
+    (*extra_info)["scanned_total_bytes"] = "103";
+    (*extra_info)["cache_hit_ratio"] = "0.5";
+
+    milvus::SearchResponse response;
+    milvus::FillSearchResponseExtraInfo(status, response);
+
+    EXPECT_EQ(response.Cost(), 101);
+    EXPECT_EQ(response.ScannedRemoteBytes(), 102);
+    EXPECT_EQ(response.ScannedTotalBytes(), 103);
+    EXPECT_FLOAT_EQ(response.CacheHitRatio(), 0.5f);
+}
+
+TEST_F(DqlUtilsTest, FillSearchResponseExtraInfoRejectsCommaFloatTest) {
+    milvus::proto::common::Status status;
+    auto* extra_info = status.mutable_extra_info();
+    (*extra_info)["cache_hit_ratio"] = "0,5";
+
+    milvus::SearchResponse response;
+    milvus::FillSearchResponseExtraInfo(status, response);
+
+    EXPECT_FLOAT_EQ(response.CacheHitRatio(), -1.0f);
+}
+
+TEST_F(DqlUtilsTest, FillSearchResponseExtraInfoMalformedFallbackTest) {
+    milvus::proto::common::Status status;
+    auto* extra_info = status.mutable_extra_info();
+    (*extra_info)["report_value"] = "abc";
+    (*extra_info)["scanned_remote_bytes"] = "102";
+    (*extra_info)["scanned_total_bytes"] = "bad-total";
+    (*extra_info)["cache_hit_ratio"] = "bad-ratio";
+
+    milvus::SearchResponse response;
+    milvus::FillSearchResponseExtraInfo(status, response);
+
+    EXPECT_EQ(response.Cost(), -1);
+    EXPECT_EQ(response.ScannedRemoteBytes(), 102);
+    EXPECT_EQ(response.ScannedTotalBytes(), -1);
+    EXPECT_FLOAT_EQ(response.CacheHitRatio(), -1.0f);
+}
+
+TEST_F(DqlUtilsTest, FillSearchResponseExtraInfoResetsStaleMetadataTest) {
+    milvus::proto::common::Status first_status;
+    auto* first_extra_info = first_status.mutable_extra_info();
+    (*first_extra_info)["report_value"] = "101";
+    (*first_extra_info)["scanned_remote_bytes"] = "102";
+    (*first_extra_info)["scanned_total_bytes"] = "103";
+    (*first_extra_info)["cache_hit_ratio"] = "0.5";
+
+    milvus::proto::common::Status second_status;
+
+    milvus::SearchResponse response;
+    milvus::FillSearchResponseExtraInfo(first_status, response);
+    milvus::FillSearchResponseExtraInfo(second_status, response);
+
+    EXPECT_EQ(response.Cost(), -1);
+    EXPECT_EQ(response.ScannedRemoteBytes(), -1);
+    EXPECT_EQ(response.ScannedTotalBytes(), -1);
+    EXPECT_FLOAT_EQ(response.CacheHitRatio(), -1.0f);
+}
 
 TEST_F(DqlUtilsTest, DeduceGuaranteeTimestampTest) {
     auto ts = milvus::DeduceGuaranteeTimestamp(milvus::ConsistencyLevel::NONE, "db", "coll");

@@ -25,6 +25,12 @@ TEST_F(QueryResponseTest, SetterAndGetter) {
     milvus::QueryResults results;
     resp.SetResults(std::move(results));
     (void)resp.Results();
+
+    EXPECT_EQ(resp.SessionTs(), 0u);
+
+    resp.SetSessionTs(100);
+
+    EXPECT_EQ(resp.SessionTs(), 100u);
 }
 
 class SearchResponseTest : public ::testing::Test {};
@@ -34,4 +40,22 @@ TEST_F(SearchResponseTest, SetterAndGetter) {
     milvus::SearchResults results;
     resp.SetResults(std::move(results));
     (void)resp.Results();
+
+    EXPECT_EQ(resp.SessionTs(), 0u);
+    EXPECT_EQ(resp.Cost(), -1);
+    EXPECT_EQ(resp.ScannedRemoteBytes(), -1);
+    EXPECT_EQ(resp.ScannedTotalBytes(), -1);
+    EXPECT_FLOAT_EQ(resp.CacheHitRatio(), -1.0f);
+
+    resp.SetSessionTs(100);
+    resp.SetCost(101);
+    resp.SetScannedRemoteBytes(102);
+    resp.SetScannedTotalBytes(103);
+    resp.SetCacheHitRatio(0.5f);
+
+    EXPECT_EQ(resp.SessionTs(), 100u);
+    EXPECT_EQ(resp.Cost(), 101);
+    EXPECT_EQ(resp.ScannedRemoteBytes(), 102);
+    EXPECT_EQ(resp.ScannedTotalBytes(), 103);
+    EXPECT_FLOAT_EQ(resp.CacheHitRatio(), 0.5f);
 }

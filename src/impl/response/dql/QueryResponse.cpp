@@ -30,4 +30,14 @@ QueryResponse::SetResults(QueryResults&& results) {
     results_ = std::move(results);
 }
 
+uint64_t
+QueryResponse::SessionTs() const {
+    return session_ts_;
+}
+
+void
+QueryResponse::SetSessionTs(uint64_t session_ts) {
+    session_ts_ = session_ts;
+}
+
 }  // namespace milvus

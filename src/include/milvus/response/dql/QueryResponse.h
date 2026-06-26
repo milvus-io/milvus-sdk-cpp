@@ -16,6 +16,8 @@
 
 #pragma once
 
+#include <cstdint>
+
 #include "../../types/QueryResults.h"
 #include "milvus/Export.h"
 
@@ -43,8 +45,15 @@ class MILVUS_SDK_API QueryResponse {
     void
     SetResults(QueryResults&& results);
 
+    uint64_t
+    SessionTs() const;
+
+    void
+    SetSessionTs(uint64_t session_ts);
+
  private:
     QueryResults results_;
+    uint64_t session_ts_{0};
 };
 
 using GetResponse = QueryResponse;

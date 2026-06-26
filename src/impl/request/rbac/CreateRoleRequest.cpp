@@ -30,7 +30,23 @@ CreateRoleRequest::SetRoleName(const std::string& name) {
 
 CreateRoleRequest&
 CreateRoleRequest::WithRoleName(const std::string& name) {
-    role_name_ = name;
+    SetRoleName(name);
+    return *this;
+}
+
+const std::string&
+CreateRoleRequest::Description() const {
+    return description_;
+}
+
+void
+CreateRoleRequest::SetDescription(const std::string& description) {
+    description_ = description;
+}
+
+CreateRoleRequest&
+CreateRoleRequest::WithDescription(const std::string& description) {
+    SetDescription(description);
     return *this;
 }
 

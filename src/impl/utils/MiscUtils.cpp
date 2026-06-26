@@ -19,6 +19,8 @@
 #include <cctype>
 #include <cmath>
 #include <limits>
+#include <locale>
+#include <sstream>
 
 namespace {
 
@@ -112,6 +114,14 @@ UpperWithoutSpaces(const std::string& value) {
         }
     }
     return result;
+}
+
+bool
+ParseFloatWithLocale(const std::string& text, float& value, const std::locale& locale) {
+    std::istringstream stream(text);
+    stream.imbue(locale);
+    stream >> std::noskipws >> value;
+    return stream && stream.eof();
 }
 
 Status

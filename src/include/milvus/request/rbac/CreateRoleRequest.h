@@ -50,8 +50,27 @@ class MILVUS_SDK_API CreateRoleRequest {
     CreateRoleRequest&
     WithRoleName(const std::string& name);
 
+    /**
+     * @brief Description of the role.
+     */
+    const std::string&
+    Description() const;
+
+    /**
+     * @brief Set description of the role.
+     */
+    void
+    SetDescription(const std::string& description);
+
+    /**
+     * @brief Set description of the role.
+     */
+    CreateRoleRequest&
+    WithDescription(const std::string& description);
+
  protected:
     std::string role_name_;
+    std::string description_;
 };
 
 }  // namespace milvus

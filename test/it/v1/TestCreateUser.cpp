@@ -16,45 +16,70 @@
 
 #include <gtest/gtest.h>
 
+#include <memory>
+
 #include "../mocks/MilvusMockedTest.h"
+#include "milvus/MilvusClientV2.h"
 
 using ::milvus::StatusCode;
+using ::milvus::proto::milvus::ConnectRequest;
+using ::milvus::proto::milvus::ConnectResponse;
 using ::milvus::proto::milvus::CreateCredentialRequest;
 using ::testing::_;
 using ::testing::AllOf;
-using ::testing::ElementsAre;
 using ::testing::Property;
 
-TEST_F(MilvusMockedTest, CreateUser) {
-    milvus::ConnectParam connect_param{"127.0.0.1", server_.ListenPort()};
-    client_->Connect(connect_param);
+namespace {
+
+std::shared_ptr<milvus::MilvusClientV2>
+CreateConnectedV2Client(testing::StrictMock<::milvus::MilvusMockedService>& service, uint16_t port) {
+    EXPECT_CALL(service, Connect(_, _, _))
+        .WillOnce([](::grpc::ServerContext*, const ConnectRequest*, ConnectResponse*) { return ::grpc::Status{}; });
+
+    auto client = milvus::MilvusClientV2::Create();
+    milvus::ConnectParam connect_param{"127.0.0.1", port};
+    auto status = client->Connect(connect_param);
+    EXPECT_TRUE(status.IsOk());
+    return client;
+}
+
+}  // namespace
+
+TEST_F(UnconnectMilvusMockedTest, CreateUser) {
+    auto client = CreateConnectedV2Client(service_, server_.ListenPort());
 
     EXPECT_CALL(service_, CreateCredential(_,
                                            AllOf(Property(&CreateCredentialRequest::username, "username"),
-                                                 Property(&CreateCredentialRequest::password, "cGFzc3dvcmQ=")),
+                                                 Property(&CreateCredentialRequest::password, "cGFzc3dvcmQ="),
+                                                 Property(&CreateCredentialRequest::description, "user description")),
                                            _))
-        .WillOnce([](::grpc::ServerContext*, const CreateCredentialRequest* request, ::milvus::proto::common::Status*) {
+        .WillOnce([](::grpc::ServerContext*, const CreateCredentialRequest*, ::milvus::proto::common::Status*) {
             return ::grpc::Status{};
         });
-    auto status = client_->CreateUser("username", "password");
+
+    milvus::CreateUserRequest request;
+    request.WithUserName("username").WithPassword("password").WithDescription("user description");
+    auto status = client->CreateUser(request);
 
     EXPECT_TRUE(status.IsOk());
 }
 
-TEST_F(MilvusMockedTest, CreateUserError) {
-    milvus::ConnectParam connect_param{"127.0.0.1", server_.ListenPort()};
-    client_->Connect(connect_param);
+TEST_F(UnconnectMilvusMockedTest, CreateUserError) {
+    auto client = CreateConnectedV2Client(service_, server_.ListenPort());
 
     EXPECT_CALL(service_, CreateCredential(_,
                                            AllOf(Property(&CreateCredentialRequest::username, "username"),
-                                                 Property(&CreateCredentialRequest::password, "cGFzc3dvcmQ=")),
+                                                 Property(&CreateCredentialRequest::password, "cGFzc3dvcmQ="),
+                                                 Property(&CreateCredentialRequest::description, "user description")),
                                            _))
-        .WillOnce([](::grpc::ServerContext*, const CreateCredentialRequest* request,
-                     ::milvus::proto::common::Status* status) {
+        .WillOnce([](::grpc::ServerContext*, const CreateCredentialRequest*, ::milvus::proto::common::Status* status) {
             status->set_code(milvus::proto::common::ErrorCode::CreateCredentialFailure);
             return ::grpc::Status{};
         });
-    auto status = client_->CreateUser("username", "password");
+
+    milvus::CreateUserRequest request;
+    request.WithUserName("username").WithPassword("password").WithDescription("user description");
+    auto status = client->CreateUser(request);
 
     EXPECT_FALSE(status.IsOk());
     EXPECT_EQ(status.Code(), StatusCode::SERVER_FAILED);

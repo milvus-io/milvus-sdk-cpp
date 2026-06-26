@@ -50,4 +50,20 @@ CreateUserRequest::WithPassword(const std::string& password) {
     return *this;
 }
 
+const std::string&
+CreateUserRequest::Description() const {
+    return description_;
+}
+
+void
+CreateUserRequest::SetDescription(const std::string& description) {
+    description_ = description;
+}
+
+CreateUserRequest&
+CreateUserRequest::WithDescription(const std::string& description) {
+    SetDescription(description);
+    return *this;
+}
+
 }  // namespace milvus

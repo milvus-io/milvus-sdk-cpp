@@ -30,4 +30,54 @@ SearchResponse::SetResults(SearchResults&& results) {
     results_ = std::move(results);
 }
 
+uint64_t
+SearchResponse::SessionTs() const {
+    return session_ts_;
+}
+
+void
+SearchResponse::SetSessionTs(uint64_t session_ts) {
+    session_ts_ = session_ts;
+}
+
+int64_t
+SearchResponse::Cost() const {
+    return cost_;
+}
+
+void
+SearchResponse::SetCost(int64_t cost) {
+    cost_ = cost;
+}
+
+int64_t
+SearchResponse::ScannedRemoteBytes() const {
+    return scanned_remote_bytes_;
+}
+
+void
+SearchResponse::SetScannedRemoteBytes(int64_t scanned_remote_bytes) {
+    scanned_remote_bytes_ = scanned_remote_bytes;
+}
+
+int64_t
+SearchResponse::ScannedTotalBytes() const {
+    return scanned_total_bytes_;
+}
+
+void
+SearchResponse::SetScannedTotalBytes(int64_t scanned_total_bytes) {
+    scanned_total_bytes_ = scanned_total_bytes;
+}
+
+float
+SearchResponse::CacheHitRatio() const {
+    return cache_hit_ratio_;
+}
+
+void
+SearchResponse::SetCacheHitRatio(float cache_hit_ratio) {
+    cache_hit_ratio_ = cache_hit_ratio;
+}
+
 }  // namespace milvus
