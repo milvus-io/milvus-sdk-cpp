@@ -327,6 +327,83 @@ TEST_F(AddCollectionStructFieldRequestTest, GettersAndSetters) {
     EXPECT_EQ(req.StructField().Fields().size(), 2);
 }
 
+class DropCollectionFieldRequestTest : public ::testing::Test {};
+
+TEST_F(DropCollectionFieldRequestTest, GettersAndSetters) {
+    milvus::DropCollectionFieldRequest req;
+    req.WithCollectionName("drop_field_coll").WithDatabaseName("my_db");
+    EXPECT_EQ(req.CollectionName(), "drop_field_coll");
+    EXPECT_EQ(req.DatabaseName(), "my_db");
+    EXPECT_EQ(req.FieldName(), "");
+    EXPECT_EQ(req.FieldID(), 0);
+
+    auto& ref = req.WithFieldName("my_field");
+    EXPECT_EQ(&ref, &req);
+    EXPECT_EQ(req.FieldName(), "my_field");
+    EXPECT_EQ(req.FieldID(), 0);
+}
+
+TEST_F(DropCollectionFieldRequestTest, Setters) {
+    milvus::DropCollectionFieldRequest req;
+    req.SetFieldID(202);
+    EXPECT_EQ(req.FieldName(), "");
+    EXPECT_EQ(req.FieldID(), 202);
+}
+
+class AddFunctionFieldRequestTest : public ::testing::Test {};
+
+TEST_F(AddFunctionFieldRequestTest, GettersAndSetters) {
+    milvus::AddFunctionFieldRequest req;
+    req.WithCollectionName("add_fn_field_coll").WithDatabaseName("my_db");
+    EXPECT_EQ(req.CollectionName(), "add_fn_field_coll");
+    EXPECT_EQ(req.DatabaseName(), "my_db");
+    EXPECT_EQ(req.Function(), nullptr);
+
+    milvus::FieldSchema field;
+    field.SetName("sparse_vec");
+    field.SetDataType(milvus::DataType::SPARSE_FLOAT_VECTOR);
+
+    auto function = std::make_shared<milvus::Function>("bm25_fn", milvus::FunctionType::BM25, "tokenize");
+    function->AddInputFieldName("text");
+    function->AddOutputFieldName("sparse_vec");
+
+    auto& ref = req.WithField(std::move(field)).WithFunction(function);
+    EXPECT_EQ(&ref, &req);
+    EXPECT_EQ(req.Field().Name(), "sparse_vec");
+    ASSERT_NE(req.Function(), nullptr);
+    EXPECT_EQ(req.Function()->Name(), "bm25_fn");
+    EXPECT_EQ(req.Function()->OutputFieldNames().size(), 1);
+    EXPECT_EQ(req.Function()->OutputFieldNames()[0], "sparse_vec");
+}
+
+TEST_F(AddFunctionFieldRequestTest, SetFunction) {
+    milvus::AddFunctionFieldRequest req;
+    auto function = std::make_shared<milvus::Function>("bm25_fn", milvus::FunctionType::BM25);
+    req.SetFunction(function);
+    ASSERT_NE(req.Function(), nullptr);
+    EXPECT_EQ(req.Function()->Name(), "bm25_fn");
+}
+
+class DropFunctionFieldRequestTest : public ::testing::Test {};
+
+TEST_F(DropFunctionFieldRequestTest, GettersAndSetters) {
+    milvus::DropFunctionFieldRequest req;
+    req.WithCollectionName("drop_fn_field_coll").WithDatabaseName("my_db");
+    EXPECT_EQ(req.CollectionName(), "drop_fn_field_coll");
+    EXPECT_EQ(req.DatabaseName(), "my_db");
+    EXPECT_EQ(req.FunctionName(), "");
+
+    auto& ref = req.WithFunctionName("bm25_fn");
+    EXPECT_EQ(&ref, &req);
+    EXPECT_EQ(req.FunctionName(), "bm25_fn");
+}
+
+TEST_F(DropFunctionFieldRequestTest, SetFunctionName) {
+    milvus::DropFunctionFieldRequest req;
+    req.SetFunctionName("another_fn");
+    EXPECT_EQ(req.FunctionName(), "another_fn");
+}
+
 class AddCollectionFunctionRequestTest : public ::testing::Test {};
 TEST_F(AddCollectionFunctionRequestTest, GettersAndSetters) {
     milvus::AddCollectionFunctionRequest req;

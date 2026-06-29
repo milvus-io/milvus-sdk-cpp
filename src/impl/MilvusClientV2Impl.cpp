@@ -706,6 +706,38 @@ MilvusClientV2Impl::AddCollectionField(const AddCollectionFieldRequest& request)
 }
 
 Status
+MilvusClientV2Impl::DropCollectionField(const DropCollectionFieldRequest& request) {
+    auto validate = [&request]() {
+        const bool has_field_name = !request.FieldName().empty();
+        if (request.FieldID() < 0) {
+            return Status{StatusCode::INVALID_ARGUMENT, "Field id must be positive."};
+        }
+        const bool has_field_id = request.FieldID() > 0;
+        if (has_field_name == has_field_id) {
+            return Status{StatusCode::INVALID_ARGUMENT, "Exactly one of field name or field id must be provided."};
+        }
+        return Status::OK();
+    };
+
+    auto pre = [&request](proto::milvus::AlterCollectionSchemaRequest& rpc_request) {
+        rpc_request.set_db_name(request.DatabaseName());
+        rpc_request.set_collection_name(request.CollectionName());
+
+        auto* drop_request = rpc_request.mutable_action()->mutable_drop_request();
+        if (!request.FieldName().empty()) {
+            drop_request->set_field_name(request.FieldName());
+        } else {
+            drop_request->set_field_id(request.FieldID());
+        }
+        return Status::OK();
+    };
+
+    return connection_
+        .Invoke<proto::milvus::AlterCollectionSchemaRequest, proto::milvus::AlterCollectionSchemaResponse>(
+            validate, pre, &MilvusConnection::AlterCollectionSchema);
+}
+
+Status
 MilvusClientV2Impl::AddCollectionStructField(const AddCollectionStructFieldRequest& request) {
     auto validate = [&request]() {
         const auto& field = request.StructField();
@@ -792,6 +824,44 @@ MilvusClientV2Impl::AddCollectionFunction(const AddCollectionFunctionRequest& re
 }
 
 Status
+MilvusClientV2Impl::AddFunctionField(const AddFunctionFieldRequest& request) {
+    auto validate = [&request]() {
+        if (request.Function() == nullptr) {
+            return Status{StatusCode::INVALID_ARGUMENT, "Function cannot be null."};
+        }
+        if (request.Function()->Name().empty()) {
+            return Status{StatusCode::INVALID_ARGUMENT, "Function name cannot be empty."};
+        }
+        if (request.Field().Name().empty()) {
+            return Status{StatusCode::INVALID_ARGUMENT, "Field name cannot be empty."};
+        }
+        if (request.Function()->OutputFieldNames().size() != 1) {
+            return Status{StatusCode::INVALID_ARGUMENT, "Function must have exactly one output field."};
+        }
+        if (request.Function()->OutputFieldNames()[0] != request.Field().Name()) {
+            return Status{StatusCode::INVALID_ARGUMENT, "Function output field name must match the field being added."};
+        }
+        return Status::OK();
+    };
+
+    auto pre = [&request](proto::milvus::AlterCollectionSchemaRequest& rpc_request) {
+        rpc_request.set_db_name(request.DatabaseName());
+        rpc_request.set_collection_name(request.CollectionName());
+
+        auto* add_request = rpc_request.mutable_action()->mutable_add_request();
+        auto* field_info = add_request->add_field_infos();
+        ConvertFieldSchema(request.Field(), *field_info->mutable_field_schema());
+        field_info->mutable_field_schema()->set_is_function_output(true);
+        ConvertFunctionSchema(request.Function(), *add_request->add_func_schema());
+        return Status::OK();
+    };
+
+    return connection_
+        .Invoke<proto::milvus::AlterCollectionSchemaRequest, proto::milvus::AlterCollectionSchemaResponse>(
+            validate, pre, &MilvusConnection::AlterCollectionSchema);
+}
+
+Status
 MilvusClientV2Impl::AlterCollectionFunction(const AlterCollectionFunctionRequest& request) {
     if (request.Function() == nullptr) {
         return {StatusCode::INVALID_ARGUMENT, "Function cannot be null."};
@@ -827,6 +897,27 @@ MilvusClientV2Impl::DropCollectionFunction(const DropCollectionFunctionRequest& 
 
     return connection_.Invoke<proto::milvus::DropCollectionFunctionRequest, proto::common::Status>(
         pre, &MilvusConnection::DropCollectionFunction);
+}
+
+Status
+MilvusClientV2Impl::DropFunctionField(const DropFunctionFieldRequest& request) {
+    if (request.FunctionName().empty()) {
+        return {StatusCode::INVALID_ARGUMENT, "Function name cannot be empty."};
+    }
+
+    auto pre = [&request](proto::milvus::AlterCollectionSchemaRequest& rpc_request) {
+        rpc_request.set_db_name(request.DatabaseName());
+        rpc_request.set_collection_name(request.CollectionName());
+
+        auto* drop_request = rpc_request.mutable_action()->mutable_drop_request();
+        drop_request->set_function_name(request.FunctionName());
+        drop_request->set_drop_function_output_fields(true);
+        return Status::OK();
+    };
+
+    return connection_
+        .Invoke<proto::milvus::AlterCollectionSchemaRequest, proto::milvus::AlterCollectionSchemaResponse>(
+            pre, &MilvusConnection::AlterCollectionSchema);
 }
 
 Status

@@ -79,6 +79,11 @@ MilvusConnection::StatusByProtoResponse(const proto::milvus::GetReplicateInfoRes
     return Status::OK();
 }
 
+Status
+MilvusConnection::StatusByProtoResponse(const proto::milvus::AlterCollectionSchemaResponse& response) {
+    return StatusByProtoResponse(response.alter_status());
+}
+
 template <typename Response>
 Status
 MilvusConnection::StatusByProtoResponse(const Response& response) {
@@ -346,6 +351,13 @@ Status
 MilvusConnection::AlterCollectionField(const proto::milvus::AlterCollectionFieldRequest& request,
                                        proto::common::Status& response, const GrpcContextOptions& options) {
     return grpcCall("AlterCollectionField", &Stub::AlterCollectionField, request, response, options);
+}
+
+Status
+MilvusConnection::AlterCollectionSchema(const proto::milvus::AlterCollectionSchemaRequest& request,
+                                        proto::milvus::AlterCollectionSchemaResponse& response,
+                                        const GrpcContextOptions& options) {
+    return grpcCall("AlterCollectionSchema", &Stub::AlterCollectionSchema, request, response, options);
 }
 
 Status

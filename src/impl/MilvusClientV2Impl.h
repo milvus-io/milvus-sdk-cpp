@@ -114,15 +114,25 @@ class MilvusClientV2Impl : public MilvusClientV2, public std::enable_shared_from
     AddCollectionField(const AddCollectionFieldRequest& request) final;
 
     Status
+    DropCollectionField(const DropCollectionFieldRequest& request) final;
+
+    Status
     AddCollectionStructField(const AddCollectionStructFieldRequest& request) final;
 
     Status
     AddCollectionFunction(const AddCollectionFunctionRequest& request) final;
+
+    Status
+    AddFunctionField(const AddFunctionFieldRequest& request) final;
+
     Status
     AlterCollectionFunction(const AlterCollectionFunctionRequest& request) final;
 
     Status
     DropCollectionFunction(const DropCollectionFunctionRequest& request) final;
+
+    Status
+    DropFunctionField(const DropFunctionFieldRequest& request) final;
 
     Status
     CreatePartition(const CreatePartitionRequest& request) final;

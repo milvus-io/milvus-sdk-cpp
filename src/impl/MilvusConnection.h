@@ -162,6 +162,10 @@ class MilvusConnection {
                          const GrpcContextOptions& options);
 
     Status
+    AlterCollectionSchema(const proto::milvus::AlterCollectionSchemaRequest& request,
+                          proto::milvus::AlterCollectionSchemaResponse& response, const GrpcContextOptions& options);
+
+    Status
     AddCollectionField(const proto::milvus::AddCollectionFieldRequest& request, proto::common::Status& response,
                        const GrpcContextOptions& options);
 
@@ -509,6 +513,9 @@ class MilvusConnection {
 
     static Status
     StatusByProtoResponse(const proto::milvus::GetReplicateInfoResponse& response);
+
+    static Status
+    StatusByProtoResponse(const proto::milvus::AlterCollectionSchemaResponse& response);
 
     template <typename Response>
     static Status
