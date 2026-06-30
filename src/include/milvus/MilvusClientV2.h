@@ -32,6 +32,7 @@
 #include "request/collection/AddCollectionFieldRequest.h"
 #include "request/collection/AddCollectionFunctionRequest.h"
 #include "request/collection/AddCollectionStructFieldRequest.h"
+#include "request/collection/AddFunctionFieldRequest.h"
 #include "request/collection/AlterCollectionFieldPropertiesRequest.h"
 #include "request/collection/AlterCollectionFunctionRequest.h"
 #include "request/collection/AlterCollectionPropertiesRequest.h"
@@ -41,9 +42,11 @@
 #include "request/collection/DescribeCollectionRequest.h"
 #include "request/collection/DescribeReplicasRequest.h"
 #include "request/collection/DropCollectionFieldPropertiesRequest.h"
+#include "request/collection/DropCollectionFieldRequest.h"
 #include "request/collection/DropCollectionFunctionRequest.h"
 #include "request/collection/DropCollectionPropertiesRequest.h"
 #include "request/collection/DropCollectionRequest.h"
+#include "request/collection/DropFunctionFieldRequest.h"
 #include "request/collection/GetCollectionStatsRequest.h"
 #include "request/collection/GetLoadStateRequest.h"
 #include "request/collection/HasCollectionRequest.h"
@@ -455,6 +458,15 @@ class MILVUS_SDK_API MilvusClientV2 {
     AddCollectionField(const AddCollectionFieldRequest& request) = 0;
 
     /**
+     * @brief Drop a field from an existing collection.
+     *
+     * @param [in] request input parameters
+     * @return Status operation successfully or not
+     */
+    virtual Status
+    DropCollectionField(const DropCollectionFieldRequest& request) = 0;
+
+    /**
      * @brief Add a struct field to an existing collection.
      *
      * @param [in] request input parameters
@@ -471,6 +483,15 @@ class MILVUS_SDK_API MilvusClientV2 {
      */
     virtual Status
     AddCollectionFunction(const AddCollectionFunctionRequest& request) = 0;
+
+    /**
+     * @brief Add a function-backed output field to an existing collection.
+     *
+     * @param [in] request input parameters
+     * @return Status operation successfully or not
+     */
+    virtual Status
+    AddFunctionField(const AddFunctionFieldRequest& request) = 0;
 
     /**
      * @brief Alter a function of an existing collection. The function name
@@ -490,6 +511,15 @@ class MILVUS_SDK_API MilvusClientV2 {
      */
     virtual Status
     DropCollectionFunction(const DropCollectionFunctionRequest& request) = 0;
+
+    /**
+     * @brief Drop a function from an existing collection together with its generated output fields.
+     *
+     * @param [in] request input parameters
+     * @return Status operation successfully or not
+     */
+    virtual Status
+    DropFunctionField(const DropFunctionFieldRequest& request) = 0;
 
     /**
      * @brief Create a partition in a collection.

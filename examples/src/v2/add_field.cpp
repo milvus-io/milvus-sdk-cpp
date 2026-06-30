@@ -15,11 +15,103 @@
 // limitations under the License.
 
 #include <iostream>
+#include <memory>
 #include <string>
-#include <thread>
+#include <vector>
 
 #include "ExampleUtils.h"
 #include "milvus/MilvusClientV2.h"
+
+namespace {
+const std::string collection_name = "CPP_V2_ADD_FIELD";
+const std::string field_id = "id";
+const std::string field_vector = "vector";
+const std::string field_text = "text";
+const std::string field_sparse = "sparse";
+const std::string function_name = "bm25";
+const uint32_t dimension = 8;
+
+void
+CreateCollection(milvus::MilvusClientV2Ptr& client) {
+    auto collection_schema = std::make_shared<milvus::CollectionSchema>();
+    collection_schema->AddField({field_id, milvus::DataType::INT64, "", true, false});
+    collection_schema->AddField(
+        milvus::FieldSchema(field_vector, milvus::DataType::FLOAT_VECTOR).WithDimension(dimension));
+
+    auto status = client->DropCollection(milvus::DropCollectionRequest().WithCollectionName(collection_name));
+    status = client->CreateCollection(
+        milvus::CreateCollectionRequest().WithCollectionName(collection_name).WithCollectionSchema(collection_schema));
+    util::CheckStatus("create collection: " + collection_name, status);
+
+    milvus::IndexDesc index_vector(field_vector, "", milvus::IndexType::FLAT, milvus::MetricType::COSINE);
+    status = client->CreateIndex(
+        milvus::CreateIndexRequest().WithCollectionName(collection_name).AddIndex(std::move(index_vector)));
+    util::CheckStatus("create index on vector field", status);
+
+    status = client->LoadCollection(milvus::LoadCollectionRequest().WithCollectionName(collection_name));
+    util::CheckStatus("load collection: " + collection_name, status);
+
+    std::cout << "Collection created" << std::endl;
+}
+
+void
+InsertRow(milvus::MilvusClientV2Ptr& client, int64_t id, const std::string* text) {
+    milvus::EntityRow row;
+    row[field_id] = id;
+    row[field_vector] = util::GenerateFloatVector(dimension);
+    if (text != nullptr) {
+        row[field_text] = *text;
+    }
+
+    milvus::EntityRows rows;
+    rows.emplace_back(std::move(row));
+
+    milvus::InsertResponse response;
+    auto status = client->Insert(
+        milvus::InsertRequest().WithCollectionName(collection_name).WithRowsData(std::move(rows)), response);
+    util::CheckStatus("insert", status);
+}
+
+void
+QueryById(milvus::MilvusClientV2Ptr& client, int64_t id) {
+    auto request = milvus::QueryRequest()
+                       .WithCollectionName(collection_name)
+                       .AddOutputField("*")
+                       .WithFilter(field_id + " == " + std::to_string(id))
+                       .WithConsistencyLevel(milvus::ConsistencyLevel::STRONG);
+
+    std::cout << "\nQuery with id: " << id << std::endl;
+    milvus::QueryResponse response;
+    auto status = client->Query(request, response);
+    util::CheckStatus("query", status);
+
+    milvus::EntityRows output_rows;
+    status = response.Results().OutputRows(output_rows);
+    util::CheckStatus("get output rows", status);
+    for (const auto& row : output_rows) {
+        std::cout << row << std::endl;
+    }
+    std::cout << "=============================================================" << std::endl;
+}
+
+void
+DescribeCollection(milvus::MilvusClientV2Ptr& client) {
+    milvus::DescribeCollectionResponse response;
+    auto status =
+        client->DescribeCollection(milvus::DescribeCollectionRequest().WithCollectionName(collection_name), response);
+    util::CheckStatus("describe collection", status);
+
+    std::cout << "\nCollection fields:" << std::endl;
+    for (const auto& field : response.Desc().Schema().Fields()) {
+        std::cout << "  " << field.Name() << std::endl;
+    }
+    for (const auto& function : response.Desc().Schema().Functions()) {
+        std::cout << "  function: " << function->Name() << std::endl;
+    }
+    std::cout << "=============================================================" << std::endl;
+}
+
+}  // namespace
 
 int
 main(int argc, char* argv[]) {
@@ -31,148 +123,65 @@ main(int argc, char* argv[]) {
     auto status = client->Connect(connect_param);
     util::CheckStatus("connect milvus server", status);
 
-    const std::string collection_name = "CPP_V2_ADD_FIELD";
-    const std::string field_id = "pk";
-    const std::string field_vector = "vector";
-    const uint32_t dimension = 4;
+    CreateCollection(client);
 
-    // collection schema, drop and create collection
-    milvus::CollectionSchemaPtr collection_schema = std::make_shared<milvus::CollectionSchema>();
-    collection_schema->AddField({field_id, milvus::DataType::INT64, "", true, true});
-    collection_schema->AddField(
-        milvus::FieldSchema(field_vector, milvus::DataType::FLOAT_VECTOR).WithDimension(dimension));
+    InsertRow(client, 100, nullptr);
 
-    status = client->DropCollection(milvus::DropCollectionRequest().WithCollectionName(collection_name));
-    status = client->CreateCollection(
-        milvus::CreateCollectionRequest().WithCollectionName(collection_name).WithCollectionSchema(collection_schema));
-    util::CheckStatus("create collection: " + collection_name, status);
-
-    // create index
-    milvus::IndexDesc index_vector(field_vector, "", milvus::IndexType::HNSW, milvus::MetricType::L2);
-    status = client->CreateIndex(
-        milvus::CreateIndexRequest().WithCollectionName(collection_name).AddIndex(std::move(index_vector)));
-    util::CheckStatus("create index on vector field", status);
-
-    // tell server prepare to load collection
-    status = client->LoadCollection(milvus::LoadCollectionRequest().WithCollectionName(collection_name));
-    util::CheckStatus("load collection: " + collection_name, status);
-
-    const int64_t row_count = 10;
-    // insert 10 rows by row-based
     {
-        milvus::EntityRows rows;
-        for (auto i = 0; i < row_count; ++i) {
-            milvus::EntityRow row;
-            row[field_vector] = util::GenerateFloatVector(dimension);
-            rows.emplace_back(std::move(row));
-        }
-
-        // insert into partition_1
-        milvus::InsertResponse resp_insert;
-        status = client->Insert(
-            milvus::InsertRequest().WithCollectionName(collection_name).WithRowsData(std::move(rows)), resp_insert);
-        util::CheckStatus("insert", status);
-        std::cout << resp_insert.Results().InsertCount() << " rows inserted by row-based." << std::endl;
-    }
-
-    // add more fields to the existing collection
-    // new fields must be nullable
-    {
-        milvus::FieldSchema new_field_1 = milvus::FieldSchema()
-                                              .WithName("new_1")
-                                              .WithDataType(milvus::DataType::VARCHAR)
-                                              .WithMaxLength(64)
-                                              .WithNullable(true)
-                                              .WithDefaultValue("default text");
-        auto status = client->AddCollectionField(
-            milvus::AddCollectionFieldRequest().WithCollectionName(collection_name).WithField(std::move(new_field_1)));
-        util::CheckStatus("add a new varchar field", status);
-
-        milvus::FieldSchema new_field_2 = milvus::FieldSchema()
-                                              .WithName("new_2")
-                                              .WithDataType(milvus::DataType::ARRAY)
-                                              .WithElementType(milvus::DataType::INT16)
-                                              .WithMaxCapacity(10)
-                                              .WithNullable(true);
+        milvus::FieldSchema text_field =
+            milvus::FieldSchema(field_text, milvus::DataType::VARCHAR).WithMaxLength(100).WithNullable(true);
         status = client->AddCollectionField(
-            milvus::AddCollectionFieldRequest().WithCollectionName(collection_name).WithField(std::move(new_field_2)));
-        util::CheckStatus("add a new array field", status);
-    }
+            milvus::AddCollectionFieldRequest().WithCollectionName(collection_name).WithField(std::move(text_field)));
+        util::CheckStatus("add field 'text'", status);
 
-    // insert another 10 rows by row-based
-    {
-        milvus::EntityRows rows;
-        for (auto i = 0; i < row_count; ++i) {
-            milvus::EntityRow row;
-            row[field_vector] = util::GenerateFloatVector(dimension);
-            row["new_1"] = "inserted value " + std::to_string(i);
-            row["new_2"] = util::RandomeValues<int16_t>(0, 10, i % 10 + 1);
-            rows.emplace_back(std::move(row));
-        }
-
-        // insert into partition_1
-        milvus::InsertResponse resp_insert;
-        status = client->Insert(
-            milvus::InsertRequest().WithCollectionName(collection_name).WithRowsData(std::move(rows)), resp_insert);
-        util::CheckStatus("insert", status);
-        std::cout << resp_insert.Results().InsertCount() << " rows inserted by row-based." << std::endl;
+        DescribeCollection(client);
+        QueryById(client, 100);
     }
 
     {
-        // verify the row count is 20
-        auto request = milvus::QueryRequest()
-                           .WithCollectionName(collection_name)
-                           .AddOutputField("count(*)")
-                           .WithConsistencyLevel(
-                               milvus::ConsistencyLevel::STRONG);  // set to strong level so that the query is executed
-                                                                   // after the inserted data is consumed by server
-
-        milvus::QueryResponse response;
-        status = client->Query(request, response);
-        util::CheckStatus("query count(*)", status);
-        std::cout << "count(*) = " << response.Results().GetRowCount() << std::endl;
+        const std::string text_value = "this is a new row";
+        InsertRow(client, 500, &text_value);
+        QueryById(client, 500);
     }
 
     {
-        // query the 10 rows are default values for the added field
-        auto request = milvus::QueryRequest()
-                           .WithCollectionName(collection_name)
-                           .AddOutputField("*")
-                           .WithFilter("new_1 == 'default text'");
-
-        std::cout << "\nQuery with filter: " << request.Filter() << std::endl;
-        milvus::QueryResponse response;
-        status = client->Query(request, response);
-        util::CheckStatus("query", status);
-
-        milvus::EntityRows output_rows;
-        status = response.Results().OutputRows(output_rows);
-        util::CheckStatus("get output rows", status);
-        std::cout << "Query results:" << std::endl;
-        for (const auto& row : output_rows) {
-            std::cout << "\t" << row << std::endl;
-        }
+        status = client->DropCollectionField(
+            milvus::DropCollectionFieldRequest().WithCollectionName(collection_name).WithFieldName(field_text));
+        util::CheckStatus("drop field 'text'", status);
+        std::cout << "Field 'text' dropped" << std::endl;
+        DescribeCollection(client);
     }
 
     {
-        // query the 10 rows inserted by Insert() the added field
-        auto request = milvus::QueryRequest()
-                           .WithCollectionName(collection_name)
-                           .AddOutputField("*")
-                           .WithFilter("ARRAY_LENGTH(new_2) > 0");
+        milvus::FieldSchema text_field = milvus::FieldSchema(field_text, milvus::DataType::VARCHAR)
+                                             .WithMaxLength(100)
+                                             .EnableAnalyzer(true)
+                                             .EnableMatch(true)
+                                             .WithNullable(true);
+        status = client->AddCollectionField(
+            milvus::AddCollectionFieldRequest().WithCollectionName(collection_name).WithField(std::move(text_field)));
+        util::CheckStatus("add field 'text' for function demo", status);
 
-        std::cout << "\nQuery with filter: " << request.Filter() << std::endl;
-        milvus::QueryResponse response;
-        status = client->Query(request, response);
-        util::CheckStatus("query", status);
+        milvus::FieldSchema sparse_field(field_sparse, milvus::DataType::SPARSE_FLOAT_VECTOR);
+        milvus::FunctionPtr function = std::make_shared<milvus::Function>(function_name, milvus::FunctionType::BM25);
+        function->AddInputFieldName(field_text);
+        function->AddOutputFieldName(field_sparse);
 
-        milvus::EntityRows output_rows;
-        status = response.Results().OutputRows(output_rows);
-        util::CheckStatus("get output rows", status);
-        std::cout << "Query results:" << std::endl;
-        for (const auto& row : output_rows) {
-            std::cout << "\t" << row << std::endl;
-        }
+        status = client->AddFunctionField(milvus::AddFunctionFieldRequest()
+                                              .WithCollectionName(collection_name)
+                                              .WithField(std::move(sparse_field))
+                                              .WithFunction(function));
+        util::CheckStatus("add function-backed field 'sparse'", status);
+        std::cout << "Function-backed field 'sparse' added" << std::endl;
+        DescribeCollection(client);
+    }
+
+    {
+        status = client->DropFunctionField(
+            milvus::DropFunctionFieldRequest().WithCollectionName(collection_name).WithFunctionName(function_name));
+        util::CheckStatus("drop function-backed field 'sparse'", status);
+        std::cout << "Function-backed field 'sparse' dropped" << std::endl;
+        DescribeCollection(client);
     }
 
     client->Disconnect();
