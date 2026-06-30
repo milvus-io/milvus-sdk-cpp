@@ -16,7 +16,7 @@
 
 #include "milvus/types/Function.h"
 
-#include <nlohmann/json.hpp>
+#include <milvus/thirdparty/nlohmann/json.hpp>
 
 #include "../utils/Constants.h"
 

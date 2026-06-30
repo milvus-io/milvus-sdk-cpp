@@ -1,1 +1,0 @@
-Put dependencies(internal use) here, sub-module projects or header-only projects

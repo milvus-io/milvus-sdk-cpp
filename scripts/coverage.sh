@@ -87,7 +87,7 @@ ${LCOV_CMD} --gcov-tool "${GCOV_TOOL}" -a ${FILE_INFO_BASE} -a ${FILE_INFO_UT} -
 ${LCOV_CMD} --gcov-tool "${GCOV_TOOL}" -r "${FILE_INFO_COMBINE}" -o "${FILE_INFO_OUTPUT}" \
     "/usr/*" \
     "*/install/*" \
-    "*/src/include/nlohmann/*" \
+    "*/src/include/milvus/thirdparty/nlohmann/*" \
     "*/thirdparty/*" \
     "*/test/*" \
     "*/_deps/*" \

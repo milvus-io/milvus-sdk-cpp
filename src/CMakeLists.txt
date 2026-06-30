@@ -32,7 +32,7 @@ add_milvus_protos(milvus_sdk_objects)
 target_link_libraries(milvus_sdk_objects PRIVATE gRPC::grpc++)
 target_compile_options(milvus_sdk_objects PRIVATE $<$<CXX_COMPILER_ID:MSVC>:/bigobj>)
 target_include_directories(milvus_sdk_objects PUBLIC include)
-target_include_directories(milvus_sdk_objects PRIVATE ${PROJECT_SOURCE_DIR}/thirdparty)
+target_include_directories(milvus_sdk_objects PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty)
 
 # precompile heavy headers to speed up compilation
 target_precompile_headers(milvus_sdk_objects PRIVATE
@@ -41,7 +41,7 @@ target_precompile_headers(milvus_sdk_objects PRIVATE
     <map>
     <memory>
     <unordered_map>
-    <nlohmann/json.hpp>
+    <milvus/thirdparty/nlohmann/json.hpp>
     "${PROTO_BINARY_DIR}/common.pb.h"
     "${PROTO_BINARY_DIR}/schema.pb.h"
     "${PROTO_BINARY_DIR}/milvus.pb.h"
@@ -55,7 +55,7 @@ endif()
 set_target_properties(milvus_sdk PROPERTIES OUTPUT_NAME milvus_sdk)
 target_link_libraries(milvus_sdk gRPC::grpc++)
 target_include_directories(milvus_sdk PUBLIC include)
-target_include_directories(milvus_sdk PRIVATE ${PROJECT_SOURCE_DIR}/thirdparty)
+target_include_directories(milvus_sdk PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty)
 
 # install
 include(GNUInstallDirs)

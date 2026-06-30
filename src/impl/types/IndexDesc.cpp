@@ -16,7 +16,7 @@
 
 #include "milvus/types/IndexDesc.h"
 
-#include <nlohmann/json.hpp>
+#include <milvus/thirdparty/nlohmann/json.hpp>
 
 namespace milvus {
 
