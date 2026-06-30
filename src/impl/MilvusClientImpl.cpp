@@ -19,7 +19,7 @@
 #include <algorithm>
 #include <chrono>
 #include <cstdlib>
-#include <nlohmann/json.hpp>
+#include <milvus/thirdparty/nlohmann/json.hpp>
 #include <thread>
 #include <type_traits>
 
