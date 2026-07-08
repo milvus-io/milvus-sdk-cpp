@@ -16,8 +16,8 @@
 
 #include "MilvusMockedServer.h"
 
-#include <grpc++/server.h>
-#include <grpc++/server_builder.h>
+#include <grpcpp/server.h>
+#include <grpcpp/server_builder.h>
 
 milvus::MilvusMockedServer::MilvusMockedServer(milvus::MilvusMockedService& service) : service_(service) {
 }

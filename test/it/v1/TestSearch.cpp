@@ -18,7 +18,6 @@
 
 #include <chrono>
 #include <memory>
-#include <nlohmann/json.hpp>
 #include <thread>
 #include <utility>
 

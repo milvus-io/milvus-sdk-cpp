@@ -16,7 +16,7 @@
 
 #include "milvus/types/Highlighter.h"
 
-#include <nlohmann/json.hpp>
+#include <milvus/thirdparty/nlohmann/json.hpp>
 #include <utility>
 
 namespace milvus {

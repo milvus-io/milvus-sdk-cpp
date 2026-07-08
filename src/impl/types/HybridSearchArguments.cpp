@@ -16,7 +16,6 @@
 
 #include "milvus/types/HybridSearchArguments.h"
 
-#include <nlohmann/json.hpp>
 #include <utility>
 
 #include "../utils/Constants.h"

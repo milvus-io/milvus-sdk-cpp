@@ -17,7 +17,7 @@
 #pragma once
 
 #include <memory>
-#include <nlohmann/json.hpp>
+#include <milvus/thirdparty/nlohmann/json.hpp>
 
 #include "Function.h"
 #include "milvus/Export.h"
