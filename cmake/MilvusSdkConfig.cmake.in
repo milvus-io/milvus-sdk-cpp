@@ -1,0 +1,10 @@
+@PACKAGE_INIT@
+
+include(CMakeFindDependencyMacro)
+
+if("@MILVUS_EXPORT_STATIC_DEPS@" STREQUAL "ON")
+    find_dependency(Protobuf CONFIG REQUIRED)
+    find_dependency(gRPC CONFIG REQUIRED)
+endif()
+
+include("${CMAKE_CURRENT_LIST_DIR}/milvus_sdkTargets.cmake")

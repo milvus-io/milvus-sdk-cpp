@@ -17,7 +17,7 @@
 #pragma once
 
 #include <cstdint>
-#include <nlohmann/json.hpp>
+#include <milvus/thirdparty/nlohmann/json.hpp>
 #include <set>
 #include <string>
 #include <unordered_map>

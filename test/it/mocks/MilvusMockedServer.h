@@ -16,7 +16,7 @@
 
 #pragma once
 
-#include <grpc++/server.h>
+#include <grpcpp/server.h>
 #include <gtest/gtest.h>
 
 #include <cstdint>

@@ -29,9 +29,11 @@ endif()
 
 # add proto gens
 add_milvus_protos(milvus_sdk_objects)
-target_link_libraries(milvus_sdk_objects PRIVATE gRPC::grpc++)
+target_link_libraries(milvus_sdk_objects PRIVATE protobuf::libprotobuf gRPC::grpc++)
 target_compile_options(milvus_sdk_objects PRIVATE $<$<CXX_COMPILER_ID:MSVC>:/bigobj>)
-target_include_directories(milvus_sdk_objects PUBLIC include)
+target_include_directories(milvus_sdk_objects PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+        $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)
 target_include_directories(milvus_sdk_objects PRIVATE ${PROJECT_SOURCE_DIR}/thirdparty)
 
 # precompile heavy headers to speed up compilation
@@ -41,7 +43,7 @@ target_precompile_headers(milvus_sdk_objects PRIVATE
     <map>
     <memory>
     <unordered_map>
-    <nlohmann/json.hpp>
+    <milvus/thirdparty/nlohmann/json.hpp>
     "${PROTO_BINARY_DIR}/common.pb.h"
     "${PROTO_BINARY_DIR}/schema.pb.h"
     "${PROTO_BINARY_DIR}/milvus.pb.h"
@@ -53,8 +55,15 @@ if (WIN32 AND BUILD_SHARED_LIBS)
     target_compile_definitions(milvus_sdk INTERFACE MILVUS_SDK_SHARED)
 endif()
 set_target_properties(milvus_sdk PROPERTIES OUTPUT_NAME milvus_sdk)
-target_link_libraries(milvus_sdk gRPC::grpc++)
-target_include_directories(milvus_sdk PUBLIC include)
+target_link_libraries(milvus_sdk PRIVATE gRPC::grpc++)
+if (MILVUS_EXPORT_STATIC_DEPS)
+    target_link_libraries(milvus_sdk PUBLIC
+            $<LINK_ONLY:protobuf::libprotobuf>
+            $<LINK_ONLY:gRPC::grpc++>)
+endif()
+target_include_directories(milvus_sdk PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+        $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)
 target_include_directories(milvus_sdk PRIVATE ${PROJECT_SOURCE_DIR}/thirdparty)
 
 # install
@@ -73,3 +82,15 @@ install(TARGETS milvus_sdk
         RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
         LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
         ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
+
+if (MILVUS_INSTALL_CMAKE_PACKAGE)
+    install(EXPORT milvus_sdk
+            FILE milvus_sdkTargets.cmake
+            NAMESPACE milvus_sdk::
+            DESTINATION ${MILVUS_SDK_CMAKE_DIR})
+
+    install(FILES
+            ${PROJECT_BINARY_DIR}/milvus_sdkConfig.cmake
+            ${PROJECT_BINARY_DIR}/milvus_sdkConfigVersion.cmake
+            DESTINATION ${MILVUS_SDK_CMAKE_DIR})
+endif()

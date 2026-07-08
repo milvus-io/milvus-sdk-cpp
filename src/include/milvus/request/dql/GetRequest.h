@@ -16,7 +16,6 @@
 
 #pragma once
 
-#include <nlohmann/json.hpp>
 #include <unordered_map>
 
 #include "../../types/IDArray.h"
