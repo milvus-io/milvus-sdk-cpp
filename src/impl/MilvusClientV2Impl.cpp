@@ -18,7 +18,7 @@
 
 #include <algorithm>
 #include <chrono>
-#include <nlohmann/json.hpp>
+#include <milvus/thirdparty/nlohmann/json.hpp>
 #include <set>
 #include <thread>
 #include <type_traits>

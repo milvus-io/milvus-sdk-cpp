@@ -18,7 +18,7 @@
 
 #include <map>
 #include <memory>
-#include <nlohmann/json.hpp>
+#include <milvus/thirdparty/nlohmann/json.hpp>
 #include <vector>
 
 #include "../Status.h"

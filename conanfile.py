@@ -53,7 +53,6 @@ class MilvusSdkCppConan(ConanFile):
         # grpc/1.65.0 expects protobuf 5.x and abseil 20240116.x.
         self.requires("protobuf/5.27.0")
         self.requires("abseil/20240116.2")
-        self.requires("nlohmann_json/3.11.3")
 
         if self.options.with_tests:
             self.requires("gtest/1.12.1")
@@ -70,6 +69,7 @@ class MilvusSdkCppConan(ConanFile):
 
         # Map upstream options
         tc.variables["MILVUS_BUILD_TEST"] = bool(self.options.with_tests)
+        tc.variables["BUILD_FROM_CONAN"] = "ON"
 
         # Disable the legacy thirdparty switches. We'll use Conan targets.
         tc.variables["MILVUS_WITH_GRPC"] = "package"
@@ -95,6 +95,13 @@ class MilvusSdkCppConan(ConanFile):
         cmake.install()
 
     def package_info(self):
-        # Consumers should normally use the project's exported CMake targets.
-        # Keep empty for now.
-        pass
+        self.cpp_info.set_property("cmake_file_name", "milvus_sdk")
+        self.cpp_info.set_property("cmake_target_name", "milvus_sdk::milvus_sdk")
+        self.cpp_info.libs = ["milvus_sdk"]
+        self.cpp_info.system_libs = ["dl"] if str(self.settings.os) == "Linux" else []
+        self.cpp_info.builddirs = ["lib/cmake/milvus_sdk"]
+        self.cpp_info.set_property("pkg_config_name", "milvus-sdk-cpp")
+
+        self.cpp_info.includedirs = ["include"]
+        self.cpp_info.libdirs = ["lib"]
+        self.cpp_info.bindirs = ["bin"]
