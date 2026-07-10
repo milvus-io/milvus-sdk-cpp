@@ -48,6 +48,8 @@ endif(CCACHE_FOUND)
 include(FindClangTools)
 include(GoogleTest)
 include(CTest)
+include(CMakePackageConfigHelpers)
+include(GNUInstallDirs)
 
 include(DefineOptions)
 
@@ -103,8 +105,6 @@ if ("${BUILD_FROM_CONAN}" STREQUAL "ON")
     find_package(absl CONFIG REQUIRED)
     find_package(Protobuf CONFIG REQUIRED)
     find_package(gRPC CONFIG REQUIRED)
-
-    find_package(nlohmann_json CONFIG REQUIRED)
 else()
     # set the GRPC_PATH variable to specify external gRPC installed path
     if ("${GRPC_PATH}" STREQUAL "")
@@ -121,6 +121,21 @@ else()
     endif()
 
     include(ThirdPartyPackages)
+endif()
+
+set(MILVUS_SDK_CMAKE_DIR "${CMAKE_INSTALL_LIBDIR}/cmake/milvus_sdk")
+set(MILVUS_INSTALL_CMAKE_PACKAGE ON)
+set(MILVUS_EXPORT_STATIC_DEPS OFF)
+if (NOT BUILD_SHARED_LIBS)
+    if ("${BUILD_FROM_CONAN}" STREQUAL "ON")
+        set(MILVUS_EXPORT_STATIC_DEPS ON)
+    else()
+        set(MILVUS_INSTALL_CMAKE_PACKAGE OFF)
+        message(WARNING
+            "Static non-Conan installs do not export a CMake package because vendored gRPC/Protobuf "
+            "are not installed as consumer packages. Use BUILD_SHARED_LIBS=ON or BUILD_FROM_CONAN=ON."
+        )
+    endif()
 endif()
 
 # load milvus-proto generator
@@ -291,6 +306,20 @@ endif()
 # satisfy Debian/RPM policy. Keep MILVUS_SDK_VERSION untouched so it still
 # reflects the raw version string in logs and version.h.
 string(REGEX REPLACE "^v" "" MILVUS_PACKAGE_VERSION "${MILVUS_SDK_VERSION}")
+
+if (MILVUS_INSTALL_CMAKE_PACKAGE)
+    configure_package_config_file(
+        "${CMAKE_CURRENT_SOURCE_DIR}/cmake/MilvusSdkConfig.cmake.in"
+        "${CMAKE_CURRENT_BINARY_DIR}/milvus_sdkConfig.cmake"
+        INSTALL_DESTINATION "${MILVUS_SDK_CMAKE_DIR}"
+    )
+
+    write_basic_package_version_file(
+        "${CMAKE_CURRENT_BINARY_DIR}/milvus_sdkConfigVersion.cmake"
+        VERSION "${MILVUS_PACKAGE_VERSION}"
+        COMPATIBILITY SameMajorVersion
+    )
+endif()
 
 set(CPACK_PACKAGE_NAME "libmilvus")
 set(CPACK_PACKAGE_VENDOR "Milvus")

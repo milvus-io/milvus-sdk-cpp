@@ -23,9 +23,9 @@
 #include <type_traits>
 
 #include "milvus/Status.h"
+#include "milvus/thirdparty/nlohmann/json.hpp"
 #include "milvus/types/Constants.h"
 #include "milvus/utils/FP16.h"
-#include "nlohmann/json.hpp"
 
 namespace util {
 using REAL_GEN = std::uniform_real_distribution<float>;
