@@ -957,6 +957,9 @@ SetExtraParams(const std::unordered_map<std::string, std::string>& params,
     // the json_params is initialized as a dict, not a primitive or none
     nlohmann::json json_params = nlohmann::json::object();
     for (auto& pair : params) {
+        if (pair.first == CLUSTER_ID) {
+            continue;
+        }
         proto::common::KeyValuePair kv_pair;
         kv_pair.set_key(pair.first);
         kv_pair.set_value(pair.second);
@@ -1344,7 +1347,8 @@ ConvertFilterTemplates(const std::unordered_map<std::string, nlohmann::json>& te
 // - the MilvusClient connects to "db_1", the request.DatabaseName() is "db_2", target db is "db_2"
 template <typename T>
 Status
-ConvertQueryRequest(const T& request, const std::string& current_db, proto::milvus::QueryRequest& rpc_request) {
+ConvertQueryRequest(const T& request, const std::string& current_db, proto::milvus::QueryRequest& rpc_request,
+                    const std::string& cluster_id) {
     auto db_name = request.DatabaseName();
     if (!db_name.empty()) {
         rpc_request.set_db_name(db_name);
@@ -1371,9 +1375,17 @@ ConvertQueryRequest(const T& request, const std::string& current_db, proto::milv
     // limit/offet etc.
     auto& params = request.ExtraParams();
     for (auto& pair : params) {
+        if (pair.first == CLUSTER_ID) {
+            continue;
+        }
         auto kv_pair = rpc_request.add_query_params();
         kv_pair->set_key(pair.first);
         kv_pair->set_value(pair.second);
+    }
+    if (!cluster_id.empty()) {
+        auto kv_pair = rpc_request.add_query_params();
+        kv_pair->set_key(CLUSTER_ID);
+        kv_pair->set_value(cluster_id);
     }
 
     ConsistencyLevel level = request.GetConsistencyLevel();
@@ -1419,7 +1431,8 @@ ConvertQueryResults(const proto::milvus::QueryResults& rpc_results, QueryResults
 // - the MilvusClient connects to "db_1", the request.DatabaseName() is "db_2", target db is "db_2"
 template <typename T>
 Status
-ConvertSearchRequest(const T& request, const std::string& current_db, proto::milvus::SearchRequest& rpc_request) {
+ConvertSearchRequest(const T& request, const std::string& current_db, proto::milvus::SearchRequest& rpc_request,
+                     const std::string& cluster_id) {
     if (!current_db.empty()) {
         rpc_request.set_db_name(current_db);
     }
@@ -1479,6 +1492,9 @@ ConvertSearchRequest(const T& request, const std::string& current_db, proto::mil
 
     // extra params offset/round_decimal/group_by/radius/range_filter/nprobe etc.
     SetExtraParams(request.ExtraParams(), rpc_request.mutable_search_params());
+    if (!cluster_id.empty()) {
+        setParamFunc(CLUSTER_ID, cluster_id);
+    }
 
     auto highlighter_status = SetSearchHighlighter(request, rpc_request);
     if (!highlighter_status.IsOk()) {
@@ -1624,7 +1640,7 @@ ConvertSearchResults(const proto::milvus::SearchResults& rpc_results, const std:
 template <typename T>
 Status
 ConvertHybridSearchRequest(const T& request, const std::string& current_db,
-                           proto::milvus::HybridSearchRequest& rpc_request) {
+                           proto::milvus::HybridSearchRequest& rpc_request, const std::string& cluster_id) {
     auto db_name = request.DatabaseName();
     if (!db_name.empty()) {
         rpc_request.set_db_name(db_name);
@@ -1704,6 +1720,9 @@ ConvertHybridSearchRequest(const T& request, const std::string& current_db,
 
     // extra params offset/round_decimal/group_by etc.
     for (auto& pair : request.ExtraParams()) {
+        if (pair.first == CLUSTER_ID) {
+            continue;
+        }
         auto kv_pair = rpc_request.add_rank_params();
         kv_pair->set_key(pair.first);
         kv_pair->set_value(pair.second);
@@ -1712,7 +1731,13 @@ ConvertHybridSearchRequest(const T& request, const std::string& current_db,
     // set rerank
     auto reranker = request.Rerank();
     for (auto& pair : reranker->Params()) {
+        if (pair.first == CLUSTER_ID) {
+            continue;
+        }
         setParamFunc(pair.first, pair.second);
+    }
+    if (!cluster_id.empty()) {
+        setParamFunc(CLUSTER_ID, cluster_id);
     }
 
     // consistancy level
@@ -2003,7 +2028,7 @@ AppendSearchResult(const SingleResult& from, SingleResult& to) {
 
 Status
 IsAmbiguousParam(const std::string& key) {
-    static std::set<std::string> s_ambiguous = {PARAMS, TOPK, ANNS_FIELD, METRIC_TYPE};
+    static std::set<std::string> s_ambiguous = {PARAMS, TOPK, ANNS_FIELD, METRIC_TYPE, CLUSTER_ID};
     if (s_ambiguous.find(key) != s_ambiguous.end()) {
         return Status{StatusCode::INVALID_ARGUMENT,
                       "Ambiguous parameter: not allow to set '" + key + "' in extra params"};
@@ -2016,40 +2041,44 @@ IsAmbiguousParam(const std::string& key) {
 // query
 template Status
 ConvertQueryRequest<QueryIteratorArguments>(const QueryIteratorArguments&, const std::string&,
-                                            proto::milvus::QueryRequest&);
+                                            proto::milvus::QueryRequest&, const std::string&);
 
 template Status
-ConvertQueryRequest<QueryArguments>(const QueryArguments&, const std::string&, proto::milvus::QueryRequest&);
+ConvertQueryRequest<QueryArguments>(const QueryArguments&, const std::string&, proto::milvus::QueryRequest&,
+                                    const std::string&);
 
 template Status
-ConvertQueryRequest<QueryIteratorRequest>(const QueryIteratorRequest&, const std::string&,
-                                          proto::milvus::QueryRequest&);
+ConvertQueryRequest<QueryIteratorRequest>(const QueryIteratorRequest&, const std::string&, proto::milvus::QueryRequest&,
+                                          const std::string&);
 
 template Status
-ConvertQueryRequest<QueryRequest>(const QueryRequest&, const std::string&, proto::milvus::QueryRequest&);
+ConvertQueryRequest<QueryRequest>(const QueryRequest&, const std::string&, proto::milvus::QueryRequest&,
+                                  const std::string&);
 
 // search
 template Status
 ConvertSearchRequest<SearchIteratorArguments>(const SearchIteratorArguments&, const std::string&,
-                                              proto::milvus::SearchRequest&);
+                                              proto::milvus::SearchRequest&, const std::string&);
 
 template Status
-ConvertSearchRequest<SearchArguments>(const SearchArguments&, const std::string&, proto::milvus::SearchRequest&);
+ConvertSearchRequest<SearchArguments>(const SearchArguments&, const std::string&, proto::milvus::SearchRequest&,
+                                      const std::string&);
 
 template Status
 ConvertSearchRequest<SearchIteratorRequest>(const SearchIteratorRequest&, const std::string&,
-                                            proto::milvus::SearchRequest&);
+                                            proto::milvus::SearchRequest&, const std::string&);
 
 template Status
-ConvertSearchRequest<SearchRequest>(const SearchRequest&, const std::string&, proto::milvus::SearchRequest&);
+ConvertSearchRequest<SearchRequest>(const SearchRequest&, const std::string&, proto::milvus::SearchRequest&,
+                                    const std::string&);
 
 // hybrid search
 template Status
 ConvertHybridSearchRequest<HybridSearchArguments>(const HybridSearchArguments&, const std::string&,
-                                                  proto::milvus::HybridSearchRequest&);
+                                                  proto::milvus::HybridSearchRequest&, const std::string&);
 
 template Status
 ConvertHybridSearchRequest<HybridSearchRequest>(const HybridSearchRequest&, const std::string&,
-                                                proto::milvus::HybridSearchRequest&);
+                                                proto::milvus::HybridSearchRequest&, const std::string&);
 
 }  // namespace milvus

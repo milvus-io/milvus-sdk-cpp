@@ -50,6 +50,7 @@ extern MILVUS_SDK_API const char* ENABLE_ANALYZER;
 extern MILVUS_SDK_API const char* ANALYZER_PARAMS;
 extern MILVUS_SDK_API const char* MULTI_ANALYZER_PARAMS;
 extern MILVUS_SDK_API const char* COLLECTION_ID;
+extern MILVUS_SDK_API const char* CLUSTER_ID;
 extern MILVUS_SDK_API const char* GUARANTEE_TIMESTAMP;
 extern MILVUS_SDK_API const char* REDUCE_STOP_FOR_BEST;
 extern MILVUS_SDK_API const char* ITERATOR_FIELD;

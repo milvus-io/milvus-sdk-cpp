@@ -31,10 +31,11 @@ template class MILVUS_SDK_API Iterator<SingleResult>;
 
 template <typename T>
 SearchIteratorImpl<T>::SearchIteratorImpl(const MilvusConnectionPtr& connection, const T& args,
-                                          const RetryParam& retry_param) {
+                                          const RetryParam& retry_param, std::string cluster_id) {
     connection_ = connection;
     args_ = args;
     retry_param_ = retry_param;
+    cluster_id_ = std::move(cluster_id);
 }
 
 template <typename T>
@@ -372,7 +373,7 @@ SearchIteratorImpl<T>::executeSearch(const std::string& filter, bool extend_batc
     // reset the limit value since the iterator fetches data batch by batch
     args_.SetLimit(extendLimit(extend_batch_size));
 
-    auto status = ConvertSearchRequest<T>(args_, current_db, rpc_request);
+    auto status = ConvertSearchRequest<T>(args_, current_db, rpc_request, cluster_id_);
     if (!status.IsOk()) {
         return status;
     }

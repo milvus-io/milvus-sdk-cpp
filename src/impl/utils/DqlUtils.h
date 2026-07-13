@@ -76,14 +76,16 @@ ConvertFilterTemplates(const std::unordered_map<std::string, nlohmann::json>& te
 
 template <typename T>
 Status
-ConvertQueryRequest(const T& request, const std::string& current_db, proto::milvus::QueryRequest& rpc_request);
+ConvertQueryRequest(const T& request, const std::string& current_db, proto::milvus::QueryRequest& rpc_request,
+                    const std::string& cluster_id = "");
 
 Status
 ConvertQueryResults(const proto::milvus::QueryResults& rpc_results, QueryResults& results);
 
 template <typename T>
 Status
-ConvertSearchRequest(const T& request, const std::string& current_db, proto::milvus::SearchRequest& rpc_request);
+ConvertSearchRequest(const T& request, const std::string& current_db, proto::milvus::SearchRequest& rpc_request,
+                     const std::string& cluster_id = "");
 
 Status
 ConvertSearchResults(const proto::milvus::SearchResults& rpc_results, const std::string& pk_name,
@@ -95,7 +97,7 @@ FillSearchResponseExtraInfo(const proto::common::Status& status, SearchResponse&
 template <typename T>
 Status
 ConvertHybridSearchRequest(const T& request, const std::string& current_db,
-                           proto::milvus::HybridSearchRequest& rpc_request);
+                           proto::milvus::HybridSearchRequest& rpc_request, const std::string& cluster_id = "");
 
 Status
 CopyFieldData(const FieldDataPtr& src, uint64_t from, uint64_t to, FieldDataPtr& target);
@@ -117,40 +119,44 @@ IsAmbiguousParam(const std::string& key);
 // query
 extern template Status
 ConvertQueryRequest<QueryIteratorArguments>(const QueryIteratorArguments&, const std::string&,
-                                            proto::milvus::QueryRequest&);
+                                            proto::milvus::QueryRequest&, const std::string&);
 
 extern template Status
-ConvertQueryRequest<QueryArguments>(const QueryArguments&, const std::string&, proto::milvus::QueryRequest&);
+ConvertQueryRequest<QueryArguments>(const QueryArguments&, const std::string&, proto::milvus::QueryRequest&,
+                                    const std::string&);
 
 extern template Status
-ConvertQueryRequest<QueryIteratorRequest>(const QueryIteratorRequest&, const std::string&,
-                                          proto::milvus::QueryRequest&);
+ConvertQueryRequest<QueryIteratorRequest>(const QueryIteratorRequest&, const std::string&, proto::milvus::QueryRequest&,
+                                          const std::string&);
 
 extern template Status
-ConvertQueryRequest<QueryRequest>(const QueryRequest&, const std::string&, proto::milvus::QueryRequest&);
+ConvertQueryRequest<QueryRequest>(const QueryRequest&, const std::string&, proto::milvus::QueryRequest&,
+                                  const std::string&);
 
 // search
 extern template Status
 ConvertSearchRequest<SearchIteratorArguments>(const SearchIteratorArguments&, const std::string&,
-                                              proto::milvus::SearchRequest&);
+                                              proto::milvus::SearchRequest&, const std::string&);
 
 extern template Status
-ConvertSearchRequest<SearchArguments>(const SearchArguments&, const std::string&, proto::milvus::SearchRequest&);
+ConvertSearchRequest<SearchArguments>(const SearchArguments&, const std::string&, proto::milvus::SearchRequest&,
+                                      const std::string&);
 
 extern template Status
 ConvertSearchRequest<SearchIteratorRequest>(const SearchIteratorRequest&, const std::string&,
-                                            proto::milvus::SearchRequest&);
+                                            proto::milvus::SearchRequest&, const std::string&);
 
 extern template Status
-ConvertSearchRequest<SearchRequest>(const SearchRequest&, const std::string&, proto::milvus::SearchRequest&);
+ConvertSearchRequest<SearchRequest>(const SearchRequest&, const std::string&, proto::milvus::SearchRequest&,
+                                    const std::string&);
 
 // hybrid search
 extern template Status
 ConvertHybridSearchRequest<HybridSearchArguments>(const HybridSearchArguments&, const std::string&,
-                                                  proto::milvus::HybridSearchRequest&);
+                                                  proto::milvus::HybridSearchRequest&, const std::string&);
 
 extern template Status
 ConvertHybridSearchRequest<HybridSearchRequest>(const HybridSearchRequest&, const std::string&,
-                                                proto::milvus::HybridSearchRequest&);
+                                                proto::milvus::HybridSearchRequest&, const std::string&);
 
 }  // namespace milvus

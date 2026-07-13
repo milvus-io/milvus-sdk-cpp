@@ -26,6 +26,8 @@
 
 namespace milvus {
 
+class MilvusClientV2SessionImpl;
+
 class MilvusClientV2Impl : public MilvusClientV2, public std::enable_shared_from_this<MilvusClientV2Impl> {
  public:
     MilvusClientV2Impl() = default;
@@ -415,7 +417,30 @@ class MilvusClientV2Impl : public MilvusClientV2, public std::enable_shared_from
     Status
     RemovePrivilegesFromGroup(const RemovePrivilegesFromGroupRequest& request) final;
 
+    Status
+    Session(const std::string& cluster_id, MilvusClientV2SessionPtr& session) final;
+
  private:
+    friend class MilvusClientV2SessionImpl;
+
+    Status
+    search(const SearchRequest& request, SearchResponse& response, const std::string& cluster_id);
+
+    Status
+    searchIterator(SearchIteratorRequest& request, SearchIteratorPtr& iterator, const std::string& cluster_id);
+
+    Status
+    hybridSearch(const HybridSearchRequest& request, HybridSearchResponse& response, const std::string& cluster_id);
+
+    Status
+    query(const QueryRequest& request, QueryResponse& response, const std::string& cluster_id);
+
+    Status
+    get(const GetRequest& request, GetResponse& response, const std::string& cluster_id);
+
+    Status
+    queryIterator(QueryIteratorRequest& request, QueryIteratorPtr& iterator, const std::string& cluster_id);
+
     Status
     createIndex(const std::string& db_name, const std::string& collection_name, const IndexDesc& desc, bool sync,
                 int64_t timeout_ms);

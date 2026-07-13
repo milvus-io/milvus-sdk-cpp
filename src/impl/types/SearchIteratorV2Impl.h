@@ -18,6 +18,7 @@
 
 #include <list>
 #include <memory>
+#include <string>
 #include <unordered_map>
 
 #include "../MilvusConnection.h"
@@ -32,7 +33,8 @@ namespace milvus {
 template <typename T>
 class SearchIteratorV2Impl : public SearchIterator {
  public:
-    SearchIteratorV2Impl(const MilvusConnectionPtr& connection, const T& args, const RetryParam& retry_param);
+    SearchIteratorV2Impl(const MilvusConnectionPtr& connection, const T& args, const RetryParam& retry_param,
+                         std::string cluster_id = "");
 
     Status
     Next(SingleResult& results) final;
@@ -57,6 +59,7 @@ class SearchIteratorV2Impl : public SearchIterator {
     MilvusConnectionPtr connection_;
     T args_;
     RetryParam retry_param_;
+    std::string cluster_id_;
 
     int64_t original_limit_{0};
     int64_t returned_count_{0};
