@@ -32,11 +32,12 @@ template class MILVUS_SDK_API Iterator<SingleResult>;
 
 template <typename T>
 SearchIteratorV2Impl<T>::SearchIteratorV2Impl(const MilvusConnectionPtr& connection, const T& args,
-                                              const RetryParam& retry_param) {
+                                              const RetryParam& retry_param, std::string cluster_id) {
     connection_ = connection;
     args_ = args;
     original_limit_ = args.Limit();
     retry_param_ = retry_param;
+    cluster_id_ = std::move(cluster_id);
 }
 
 template <typename T>
@@ -148,7 +149,7 @@ SearchIteratorV2Impl<T>::executeSearch(const T& args, proto::milvus::SearchResul
         args.DatabaseName().empty() ? connection_->GetConnectParam().DbName() : args.DatabaseName();
 
     proto::milvus::SearchRequest rpc_request;
-    auto status = ConvertSearchRequest<T>(args, current_db, rpc_request);
+    auto status = ConvertSearchRequest<T>(args, current_db, rpc_request, cluster_id_);
     if (!status.IsOk()) {
         return status;
     }

@@ -16,6 +16,8 @@
 
 #pragma once
 
+#include <string>
+
 #include "../MilvusConnection.h"
 #include "milvus/request/dql/QueryIteratorRequest.h"
 #include "milvus/types/FieldSchema.h"
@@ -28,7 +30,8 @@ namespace milvus {
 template <typename T>
 class QueryIteratorImpl : public QueryIterator {
  public:
-    QueryIteratorImpl(const MilvusConnectionPtr& connection, const T& args, const RetryParam& retry_param);
+    QueryIteratorImpl(const MilvusConnectionPtr& connection, const T& args, const RetryParam& retry_param,
+                      std::string cluster_id = "");
 
     Status
     Next(QueryResults& results) final;
@@ -56,6 +59,7 @@ class QueryIteratorImpl : public QueryIterator {
     MilvusConnectionPtr connection_;
     T args_;
     RetryParam retry_param_;
+    std::string cluster_id_;
 
     int64_t offset_{0};
     int64_t limit_{0};

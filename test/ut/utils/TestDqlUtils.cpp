@@ -416,6 +416,7 @@ TEST_F(DqlUtilsTest, IsAmbiguousParamTest) {
     EXPECT_FALSE(milvus::IsAmbiguousParam("topk").IsOk());
     EXPECT_FALSE(milvus::IsAmbiguousParam("anns_field").IsOk());
     EXPECT_FALSE(milvus::IsAmbiguousParam("metric_type").IsOk());
+    EXPECT_FALSE(milvus::IsAmbiguousParam("cluster_id").IsOk());
 
     // Non-ambiguous param names should return ok
     EXPECT_TRUE(milvus::IsAmbiguousParam("nprobe").IsOk());
@@ -745,10 +746,18 @@ TEST_F(DqlUtilsTest, ConvertQueryRequestV2) {
     req.WithConsistencyLevel(milvus::ConsistencyLevel::STRONG);
 
     milvus::proto::milvus::QueryRequest rpc_request;
-    auto status = milvus::ConvertQueryRequest(req, "default", rpc_request);
+    auto status = milvus::ConvertQueryRequest(req, "default", rpc_request, "cluster-a");
     EXPECT_TRUE(status.IsOk());
     EXPECT_EQ(rpc_request.collection_name(), "test_coll");
     EXPECT_EQ(rpc_request.expr(), "id > 0");
+    int cluster_id_count = 0;
+    for (const auto& param : rpc_request.query_params()) {
+        if (param.key() == "cluster_id") {
+            ++cluster_id_count;
+            EXPECT_EQ(param.value(), "cluster-a");
+        }
+    }
+    EXPECT_EQ(cluster_id_count, 1);
 }
 
 TEST_F(DqlUtilsTest, ConvertQueryIteratorRequest) {
@@ -776,8 +785,16 @@ TEST_F(DqlUtilsTest, ConvertSearchIteratorRequest) {
     req.WithConsistencyLevel(milvus::ConsistencyLevel::STRONG);
 
     milvus::proto::milvus::SearchRequest rpc_request;
-    auto status = milvus::ConvertSearchRequest(req, "default", rpc_request);
+    auto status = milvus::ConvertSearchRequest(req, "default", rpc_request, "cluster-a");
     EXPECT_TRUE(status.IsOk());
+    int cluster_id_count = 0;
+    for (const auto& param : rpc_request.search_params()) {
+        if (param.key() == "cluster_id") {
+            ++cluster_id_count;
+            EXPECT_EQ(param.value(), "cluster-a");
+        }
+    }
+    EXPECT_EQ(cluster_id_count, 1);
 }
 
 TEST_F(DqlUtilsTest, ConvertSearchRequestWithFloatEmbeddingList) {
@@ -937,9 +954,17 @@ TEST_F(DqlUtilsTest, ConvertHybridSearchRequestV2) {
     req.WithConsistencyLevel(milvus::ConsistencyLevel::STRONG);
 
     milvus::proto::milvus::HybridSearchRequest rpc_request;
-    auto status = milvus::ConvertHybridSearchRequest(req, "default", rpc_request);
+    auto status = milvus::ConvertHybridSearchRequest(req, "default", rpc_request, "cluster-a");
     EXPECT_TRUE(status.IsOk());
     EXPECT_EQ(rpc_request.collection_name(), "test_coll");
+    int cluster_id_count = 0;
+    for (const auto& param : rpc_request.rank_params()) {
+        if (param.key() == "cluster_id") {
+            ++cluster_id_count;
+            EXPECT_EQ(param.value(), "cluster-a");
+        }
+    }
+    EXPECT_EQ(cluster_id_count, 1);
 }
 
 TEST_F(DqlUtilsTest, AppendFieldDataAllTypes) {

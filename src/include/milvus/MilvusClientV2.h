@@ -18,6 +18,7 @@
 
 #include <functional>
 
+#include "MilvusClientV2Session.h"
 #include "Status.h"
 #include "milvus/Export.h"
 #include "request/alias/AlterAliasRequest.h"
@@ -1411,6 +1412,16 @@ class MILVUS_SDK_API MilvusClientV2 {
      */
     virtual Status
     RemovePrivilegesFromGroup(const RemovePrivilegesFromGroupRequest& request) = 0;
+
+    /**
+     * @brief Create a cluster-scoped session exposing DQL interfaces only.
+     *
+     * @param [in] cluster_id target cluster identifier
+     * @param [out] session cluster-scoped client view
+     * @return Status operation successfully or not
+     */
+    virtual Status
+    Session(const std::string& cluster_id, MilvusClientV2SessionPtr& session) = 0;
 };
 
 using MilvusClientV2Ptr = std::shared_ptr<MilvusClientV2>;

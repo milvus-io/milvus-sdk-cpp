@@ -24,6 +24,7 @@
 #include <type_traits>
 #include <unordered_set>
 
+#include "MilvusClientV2SessionImpl.h"
 #include "rg.pb.h"
 #include "types/QueryIteratorImpl.h"
 #include "types/SearchIteratorImpl.h"
@@ -45,6 +46,21 @@ MilvusClientV2::Create() {
 
 MilvusClientV2Impl::~MilvusClientV2Impl() {
     Disconnect();
+}
+
+Status
+MilvusClientV2Impl::Session(const std::string& cluster_id, MilvusClientV2SessionPtr& session) {
+    session.reset();
+    if (cluster_id.empty()) {
+        return {StatusCode::INVALID_ARGUMENT, "Cluster ID cannot be empty"};
+    }
+
+    try {
+        session = std::make_shared<MilvusClientV2SessionImpl>(shared_from_this(), cluster_id);
+    } catch (const std::bad_weak_ptr&) {
+        return {StatusCode::UNKNOWN_ERROR, "MilvusClientV2Impl must be owned by std::shared_ptr to create a session"};
+    }
+    return Status::OK();
 }
 
 Status
@@ -1753,11 +1769,16 @@ MilvusClientV2Impl::Delete(const DeleteRequest& request, DeleteResponse& respons
 
 Status
 MilvusClientV2Impl::Search(const SearchRequest& request, SearchResponse& response) {
+    return search(request, response, "");
+}
+
+Status
+MilvusClientV2Impl::search(const SearchRequest& request, SearchResponse& response, const std::string& cluster_id) {
     auto validate = [&request]() { return request.Validate(); };
 
-    auto pre = [this, &request](proto::milvus::SearchRequest& rpc_request) {
+    auto pre = [this, &request, &cluster_id](proto::milvus::SearchRequest& rpc_request) {
         auto current_name = connection_.CurrentDbName(request.DatabaseName());
-        auto status = ConvertSearchRequest<SearchRequest>(request, current_name, rpc_request);
+        auto status = ConvertSearchRequest<SearchRequest>(request, current_name, rpc_request, cluster_id);
         if (!status.IsOk()) {
             return status;
         }
@@ -1795,6 +1816,12 @@ MilvusClientV2Impl::Search(const SearchRequest& request, SearchResponse& respons
 
 Status
 MilvusClientV2Impl::SearchIterator(SearchIteratorRequest& request, SearchIteratorPtr& iterator) {
+    return searchIterator(request, iterator, "");
+}
+
+Status
+MilvusClientV2Impl::searchIterator(SearchIteratorRequest& request, SearchIteratorPtr& iterator,
+                                   const std::string& cluster_id) {
     auto status = iteratorPrepare(request);
     if (!status.IsOk()) {
         return status;
@@ -1852,12 +1879,12 @@ MilvusClientV2Impl::SearchIterator(SearchIteratorRequest& request, SearchIterato
     // SearchIteratorV2 is faster than V1 by 20~30 percent, and the recall is a little better than V1.
     // sdk attempts to use SearchIteratorV2 if supported by the server, otherwise falls back to V1.
     auto ptrV2 = std::make_shared<SearchIteratorV2Impl<SearchIteratorRequest>>(connection_.GetConnection(), request,
-                                                                               connection_.GetRetryParam());
+                                                                               connection_.GetRetryParam(), cluster_id);
     status = ptrV2->Init();
     iterator = ptrV2;
     if (!status.IsOk() && status.Code() == StatusCode::NOT_SUPPORTED) {
-        auto ptrV1 = std::make_shared<SearchIteratorImpl<SearchIteratorRequest>>(connection_.GetConnection(), request,
-                                                                                 connection_.GetRetryParam());
+        auto ptrV1 = std::make_shared<SearchIteratorImpl<SearchIteratorRequest>>(
+            connection_.GetConnection(), request, connection_.GetRetryParam(), cluster_id);
         status = ptrV1->Init();
         if (!status.IsOk()) {
             return {status.Code(), "Unable to create search iterator, error: " + status.Message()};
@@ -1869,9 +1896,15 @@ MilvusClientV2Impl::SearchIterator(SearchIteratorRequest& request, SearchIterato
 
 Status
 MilvusClientV2Impl::HybridSearch(const HybridSearchRequest& request, HybridSearchResponse& response) {
-    auto pre = [this, &request](proto::milvus::HybridSearchRequest& rpc_request) {
+    return hybridSearch(request, response, "");
+}
+
+Status
+MilvusClientV2Impl::hybridSearch(const HybridSearchRequest& request, HybridSearchResponse& response,
+                                 const std::string& cluster_id) {
+    auto pre = [this, &request, &cluster_id](proto::milvus::HybridSearchRequest& rpc_request) {
         auto current_name = connection_.CurrentDbName(request.DatabaseName());
-        return ConvertHybridSearchRequest<HybridSearchRequest>(request, current_name, rpc_request);
+        return ConvertHybridSearchRequest<HybridSearchRequest>(request, current_name, rpc_request, cluster_id);
     };
 
     auto post = [this, &request, &response](const proto::milvus::SearchResults& rpc_response) {
@@ -1900,9 +1933,14 @@ MilvusClientV2Impl::HybridSearch(const HybridSearchRequest& request, HybridSearc
 
 Status
 MilvusClientV2Impl::Query(const QueryRequest& request, QueryResponse& response) {
-    auto pre = [this, &request](proto::milvus::QueryRequest& rpc_request) {
+    return query(request, response, "");
+}
+
+Status
+MilvusClientV2Impl::query(const QueryRequest& request, QueryResponse& response, const std::string& cluster_id) {
+    auto pre = [this, &request, &cluster_id](proto::milvus::QueryRequest& rpc_request) {
         auto current_name = connection_.CurrentDbName(request.DatabaseName());
-        return ConvertQueryRequest<QueryRequest>(request, current_name, rpc_request);
+        return ConvertQueryRequest<QueryRequest>(request, current_name, rpc_request, cluster_id);
     };
 
     auto post = [&response](const proto::milvus::QueryResults& rpc_response) {
@@ -1919,6 +1957,11 @@ MilvusClientV2Impl::Query(const QueryRequest& request, QueryResponse& response) 
 
 Status
 MilvusClientV2Impl::Get(const GetRequest& request, GetResponse& response) {
+    return get(request, response, "");
+}
+
+Status
+MilvusClientV2Impl::get(const GetRequest& request, GetResponse& response, const std::string& cluster_id) {
     CollectionDescPtr collection_desc;
     auto status = getCollectionDesc(request.DatabaseName(), request.CollectionName(), false, collection_desc);
     if (!status.IsOk()) {
@@ -1952,11 +1995,17 @@ MilvusClientV2Impl::Get(const GetRequest& request, GetResponse& response) {
                               .AddFilterTemplate(ids_key, filter_template)
                               .WithOutputFields(std::move(output_fields));
 
-    return Query(actual_request, response);
+    return query(actual_request, response, cluster_id);
 }
 
 Status
 MilvusClientV2Impl::QueryIterator(QueryIteratorRequest& request, QueryIteratorPtr& iterator) {
+    return queryIterator(request, iterator, "");
+}
+
+Status
+MilvusClientV2Impl::queryIterator(QueryIteratorRequest& request, QueryIteratorPtr& iterator,
+                                  const std::string& cluster_id) {
     auto status = iteratorPrepare(request);
     if (!status.IsOk()) {
         return status;
@@ -1964,7 +2013,7 @@ MilvusClientV2Impl::QueryIterator(QueryIteratorRequest& request, QueryIteratorPt
 
     // iterator constructor might return error when it fails to initialize
     auto ptr = std::make_shared<QueryIteratorImpl<QueryIteratorRequest>>(connection_.GetConnection(), request,
-                                                                         connection_.GetRetryParam());
+                                                                         connection_.GetRetryParam(), cluster_id);
     status = ptr->Init();
     if (!status.IsOk()) {
         return {status.Code(), "Unable to create query iterator, error: " + status.Message()};
