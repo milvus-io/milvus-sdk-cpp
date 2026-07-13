@@ -23,6 +23,7 @@
 #include "milvus/request/dql/QueryRequest.h"
 #include "milvus/request/dql/SearchIteratorRequest.h"
 #include "milvus/request/dql/SearchRequest.h"
+#include "milvus/types/AggregationBucket.h"
 #include "milvus/types/FieldData.h"
 #include "milvus/types/HybridSearchArguments.h"
 #include "milvus/types/IteratorArguments.h"
@@ -90,6 +91,12 @@ ConvertSearchRequest(const T& request, const std::string& current_db, proto::mil
 Status
 ConvertSearchResults(const proto::milvus::SearchResults& rpc_results, const std::string& pk_name,
                      SearchResults& results);
+
+void
+ConvertSearchAggregation(const SearchAggregation& aggregation, proto::common::SearchAggregationSpec& rpc_aggregation);
+
+Status
+ConvertAggregationBuckets(const proto::milvus::SearchResults& rpc_results, AggregationBuckets& buckets);
 
 void
 FillSearchResponseExtraInfo(const proto::common::Status& status, SearchResponse& response);

@@ -219,4 +219,35 @@ SearchRequest::WithHighlighter(const HighlighterPtr& highlighter) {
     return *this;
 }
 
+const SearchAggregationPtr&
+SearchRequest::GetSearchAggregation() const {
+    return search_aggregation_;
+}
+
+void
+SearchRequest::SetSearchAggregation(const SearchAggregationPtr& aggregation) {
+    search_aggregation_ = aggregation;
+}
+
+SearchRequest&
+SearchRequest::WithSearchAggregation(const SearchAggregationPtr& aggregation) {
+    SetSearchAggregation(aggregation);
+    return *this;
+}
+
+Status
+SearchRequest::Validate() const {
+    auto status = SearchRequestBase::Validate();
+    if (!status.IsOk()) {
+        return status;
+    }
+    if (search_aggregation_ == nullptr) {
+        return Status::OK();
+    }
+    if (!GroupByField().empty()) {
+        return {StatusCode::INVALID_ARGUMENT, "group_by_field and search_aggregation cannot be used simultaneously"};
+    }
+    return search_aggregation_->Validate();
+}
+
 }  // namespace milvus

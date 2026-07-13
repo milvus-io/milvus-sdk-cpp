@@ -154,6 +154,19 @@ TEST_F(GetRequestTest, DQLRequestBaseMethods) {
 
 class SearchRequestTest : public ::testing::Test {};
 
+namespace {
+
+milvus::SearchRequest
+CreateAggregationSearchRequest() {
+    auto aggregation = std::make_shared<milvus::SearchAggregation>(std::vector<std::string>{"category"}, 5);
+    milvus::SearchRequest request;
+    request.WithCollectionName("search_coll").WithLimit(10).AddFloatVector({0.1f, 0.2f});
+    request.WithSearchAggregation(aggregation);
+    return request;
+}
+
+}  // namespace
+
 TEST_F(SearchRequestTest, GettersAndSetters) {
     milvus::SearchRequest req;
 
@@ -257,6 +270,83 @@ TEST_F(SearchRequestTest, SetGroupByField) {
     milvus::SearchRequest req;
     req.SetGroupByField("category");
     EXPECT_EQ(req.GroupByField(), "category");
+}
+
+TEST_F(SearchRequestTest, SearchAggregation) {
+    auto top_hits = std::make_shared<milvus::AggregationTopHits>(2);
+    top_hits->AddSort({"_score", milvus::AggregationDirection::DESC});
+
+    auto sub_aggregation = std::make_shared<milvus::SearchAggregation>(std::vector<std::string>{"brand"}, 3);
+    auto aggregation = std::make_shared<milvus::SearchAggregation>(std::vector<std::string>{"category", "region"}, 5);
+    aggregation->AddMetric("doc_count", {milvus::AggregationMetricOp::COUNT, "*"})
+        .AddMetric("avg_score", {milvus::AggregationMetricOp::AVG, "score"})
+        .AddOrder({"doc_count", milvus::AggregationDirection::DESC})
+        .WithTopHits(top_hits)
+        .WithSubAggregation(sub_aggregation);
+
+    milvus::SearchRequest request;
+    request.WithCollectionName("search_coll").WithLimit(10).AddFloatVector({0.1f, 0.2f});
+    request.WithSearchAggregation(aggregation);
+
+    EXPECT_EQ(request.GetSearchAggregation(), aggregation);
+    EXPECT_TRUE(request.Validate().IsOk());
+
+    request.WithGroupByField("category");
+    auto status = request.Validate();
+    EXPECT_FALSE(status.IsOk());
+    EXPECT_EQ(status.Code(), milvus::StatusCode::INVALID_ARGUMENT);
+
+    auto raw_request = CreateAggregationSearchRequest();
+    raw_request.AddExtraParam("group_by_field", "category");
+    status = raw_request.Validate();
+    EXPECT_FALSE(status.IsOk());
+    EXPECT_EQ(status.Code(), milvus::StatusCode::INVALID_ARGUMENT);
+}
+
+TEST_F(SearchRequestTest, SearchAggregationAllowsOffset) {
+    auto typed_request = CreateAggregationSearchRequest();
+    typed_request.WithOffset(1);
+    EXPECT_TRUE(typed_request.Validate().IsOk());
+
+    auto raw_request = CreateAggregationSearchRequest();
+    raw_request.AddExtraParam("offset", "1");
+    EXPECT_TRUE(raw_request.Validate().IsOk());
+
+    auto zero_offset_request = CreateAggregationSearchRequest();
+    zero_offset_request.WithOffset(0);
+    EXPECT_TRUE(zero_offset_request.Validate().IsOk());
+}
+
+TEST_F(SearchRequestTest, SearchAggregationAllowsRawGroupByFields) {
+    auto request = CreateAggregationSearchRequest();
+    request.AddExtraParam("group_by_fields", "category,region");
+    EXPECT_TRUE(request.Validate().IsOk());
+}
+
+TEST_F(SearchRequestTest, SearchAggregationAllowsGroupSize) {
+    auto typed_request = CreateAggregationSearchRequest();
+    typed_request.WithGroupSize(2);
+    EXPECT_TRUE(typed_request.Validate().IsOk());
+
+    auto raw_request = CreateAggregationSearchRequest();
+    raw_request.AddExtraParam("group_size", "2");
+    EXPECT_TRUE(raw_request.Validate().IsOk());
+}
+
+TEST_F(SearchRequestTest, SearchAggregationAllowsStrictGroupSize) {
+    auto typed_request = CreateAggregationSearchRequest();
+    typed_request.WithStrictGroupSize(true);
+    EXPECT_TRUE(typed_request.Validate().IsOk());
+
+    auto raw_request = CreateAggregationSearchRequest();
+    raw_request.AddExtraParam("strict_group_size", "true");
+    EXPECT_TRUE(raw_request.Validate().IsOk());
+}
+
+TEST_F(SearchRequestTest, SearchAggregationAllowsHighlighter) {
+    auto request = CreateAggregationSearchRequest();
+    request.WithHighlighter(std::make_shared<milvus::LexicalHighlighter>());
+    EXPECT_TRUE(request.Validate().IsOk());
 }
 
 TEST_F(SearchRequestTest, DQLRequestBaseMethods) {

@@ -18,6 +18,7 @@
 
 #include "../../types/FunctionScore.h"
 #include "../../types/Highlighter.h"
+#include "../../types/SearchAggregation.h"
 #include "../../types/SearchRequestBase.h"
 #include "./DQLRequestBase.h"
 #include "milvus/Export.h"
@@ -268,9 +269,31 @@ class MILVUS_SDK_API SearchRequest : public DQLRequestBase<SearchRequest>,
     SearchRequest&
     WithHighlighter(const HighlighterPtr& highlighter);
 
+    /**
+     * @brief Get search aggregation settings.
+     */
+    const SearchAggregationPtr&
+    GetSearchAggregation() const;
+
+    /**
+     * @brief Set search aggregation settings.
+     */
+    void
+    SetSearchAggregation(const SearchAggregationPtr& aggregation);
+
+    /**
+     * @brief Set search aggregation settings.
+     */
+    SearchRequest&
+    WithSearchAggregation(const SearchAggregationPtr& aggregation);
+
+    Status
+    Validate() const;
+
  private:
     FunctionScorePtr ranker_;
     HighlighterPtr highlighter_;
+    SearchAggregationPtr search_aggregation_;
 };
 
 }  // namespace milvus
