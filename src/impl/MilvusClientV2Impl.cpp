@@ -1787,6 +1787,9 @@ MilvusClientV2Impl::search(const SearchRequest& request, SearchResponse& respons
             auto function_score = rpc_request.mutable_function_score();
             ConvertFunctionScore(request.Rerank(), *function_score);
         }
+        if (request.GetSearchAggregation() != nullptr) {
+            ConvertSearchAggregation(*request.GetSearchAggregation(), *rpc_request.mutable_search_aggregation());
+        }
         return Status::OK();
     };
 
@@ -1804,7 +1807,16 @@ MilvusClientV2Impl::search(const SearchRequest& request, SearchResponse& respons
             }
         }
         auto status = ConvertSearchResults(rpc_response, pk_name, results);
+        if (!status.IsOk()) {
+            return status;
+        }
+        AggregationBuckets aggregation_buckets;
+        status = ConvertAggregationBuckets(rpc_response, aggregation_buckets);
+        if (!status.IsOk()) {
+            return status;
+        }
         response.SetResults(std::move(results));
+        response.SetAggregationBuckets(std::move(aggregation_buckets));
         response.SetSessionTs(rpc_response.session_ts());
         FillSearchResponseExtraInfo(rpc_response.status(), response);
         return status;

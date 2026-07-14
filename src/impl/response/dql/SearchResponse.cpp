@@ -80,4 +80,14 @@ SearchResponse::SetCacheHitRatio(float cache_hit_ratio) {
     cache_hit_ratio_ = cache_hit_ratio;
 }
 
+const milvus::AggregationBuckets&
+SearchResponse::AggregationBuckets() const {
+    return aggregation_buckets_;
+}
+
+void
+SearchResponse::SetAggregationBuckets(milvus::AggregationBuckets&& aggregation_buckets) {
+    aggregation_buckets_ = std::move(aggregation_buckets);
+}
+
 }  // namespace milvus

@@ -1514,6 +1514,54 @@ ConvertSearchRequest(const T& request, const std::string& current_db, proto::mil
     return Status::OK();
 }
 
+void
+ConvertSearchAggregation(const SearchAggregation& from, proto::common::SearchAggregationSpec& to) {
+    for (const auto& field : from.Fields()) {
+        to.add_fields(field);
+    }
+    to.set_size(from.Size());
+    for (const auto& item : from.Metrics()) {
+        auto& metric = (*to.mutable_metrics())[item.first];
+        switch (item.second.op) {
+            case AggregationMetricOp::AVG:
+                metric.set_op("avg");
+                break;
+            case AggregationMetricOp::SUM:
+                metric.set_op("sum");
+                break;
+            case AggregationMetricOp::COUNT:
+                metric.set_op("count");
+                break;
+            case AggregationMetricOp::MIN:
+                metric.set_op("min");
+                break;
+            case AggregationMetricOp::MAX:
+                metric.set_op("max");
+                break;
+        }
+        metric.set_field_name(item.second.field_name);
+    }
+    for (const auto& item : from.Orders()) {
+        auto order = to.add_order();
+        order->set_key(item.key);
+        order->set_direction(item.direction == AggregationDirection::ASC ? "asc" : "desc");
+        order->set_null_first(item.null_first);
+    }
+    if (from.TopHits() != nullptr) {
+        auto top_hits = to.mutable_top_hits();
+        top_hits->set_size(from.TopHits()->Size());
+        for (const auto& item : from.TopHits()->Sorts()) {
+            auto sort = top_hits->add_sort();
+            sort->set_field_name(item.field_name);
+            sort->set_direction(item.direction == AggregationDirection::ASC ? "asc" : "desc");
+            sort->set_null_first(item.null_first);
+        }
+    }
+    if (from.SubAggregation() != nullptr) {
+        ConvertSearchAggregation(*from.SubAggregation(), *to.mutable_sub_aggregation());
+    }
+}
+
 Status
 ConvertSearchResults(const proto::milvus::SearchResults& rpc_results, const std::string& pk_name,
                      SearchResults& results) {
@@ -1544,6 +1592,12 @@ ConvertSearchResults(const proto::milvus::SearchResults& rpc_results, const std:
     for (int i = 0; i < num_of_queries; ++i) {
         std::vector<FieldDataPtr> item_fields_data;
         item_fields_data.reserve(fields_data.size());
+        if (i >= static_cast<int>(topks.size())) {
+            if (result_data.agg_buckets_size() == 0) {
+                return {StatusCode::UNKNOWN_ERROR, "Search results do not contain topk for every query"};
+            }
+            topks.push_back(0);
+        }
         auto item_topk = topks[i];
         std::set<std::string> field_names;
         for (const auto& field_data : fields_data) {
@@ -1627,6 +1681,155 @@ ConvertSearchResults(const proto::milvus::SearchResults& rpc_results, const std:
     }
 
     results = SearchResults(std::move(single_results)).WithRecalls(std::move(recalls));
+    return Status::OK();
+}
+
+namespace {
+
+nlohmann::json
+ConvertAggregationMetricValue(const proto::schema::MetricValue& value) {
+    switch (value.value_case()) {
+        case proto::schema::MetricValue::kIntVal:
+            return value.int_val();
+        case proto::schema::MetricValue::kDoubleVal:
+            return value.double_val();
+        case proto::schema::MetricValue::kStringVal:
+            return value.string_val();
+        case proto::schema::MetricValue::kBoolVal:
+            return value.bool_val();
+        case proto::schema::MetricValue::VALUE_NOT_SET:
+            return nullptr;
+    }
+    return nullptr;
+}
+
+nlohmann::json
+ConvertAggregationKeyValue(const proto::schema::BucketKeyEntry& value) {
+    switch (value.value_case()) {
+        case proto::schema::BucketKeyEntry::kIntVal:
+            return value.int_val();
+        case proto::schema::BucketKeyEntry::kStringVal:
+            return value.string_val();
+        case proto::schema::BucketKeyEntry::kBoolVal:
+            return value.bool_val();
+        case proto::schema::BucketKeyEntry::VALUE_NOT_SET:
+            return nullptr;
+    }
+    return nullptr;
+}
+
+nlohmann::json
+ConvertAggregationHitFieldValue(const proto::schema::AggHitField& value) {
+    switch (value.value_case()) {
+        case proto::schema::AggHitField::kIntVal:
+            return value.int_val();
+        case proto::schema::AggHitField::kBoolVal:
+            return value.bool_val();
+        case proto::schema::AggHitField::kFloatVal:
+            return value.float_val();
+        case proto::schema::AggHitField::kDoubleVal:
+            return value.double_val();
+        case proto::schema::AggHitField::kStringVal:
+            return value.string_val();
+        case proto::schema::AggHitField::kBytesVal: {
+            const auto& bytes = value.bytes_val();
+            return nlohmann::json::binary(std::vector<std::uint8_t>(bytes.begin(), bytes.end()));
+        }
+        case proto::schema::AggHitField::VALUE_NOT_SET:
+            return nullptr;
+    }
+    return nullptr;
+}
+
+AggregationHit
+ConvertAggregationHit(const proto::schema::AggHit& rpc_hit) {
+    AggregationHit hit;
+    switch (rpc_hit.pk_case()) {
+        case proto::schema::AggHit::kIntPk:
+            hit.id = rpc_hit.int_pk();
+            break;
+        case proto::schema::AggHit::kStrPk:
+            hit.id = rpc_hit.str_pk();
+            break;
+        case proto::schema::AggHit::PK_NOT_SET:
+            hit.id = nullptr;
+            break;
+    }
+    hit.score = rpc_hit.score();
+    for (const auto& rpc_field : rpc_hit.fields()) {
+        auto field_name =
+            rpc_field.field_name().empty() ? std::to_string(rpc_field.field_id()) : rpc_field.field_name();
+        hit.fields[field_name] = ConvertAggregationHitFieldValue(rpc_field);
+        hit.field_ids[field_name] = rpc_field.field_id();
+    }
+    return hit;
+}
+
+AggregationBucket
+ConvertAggregationBucket(const proto::schema::AggBucket& rpc_bucket) {
+    AggregationBucket bucket;
+    bucket.count = rpc_bucket.count();
+    for (const auto& rpc_key : rpc_bucket.key()) {
+        AggregationBucketKey key;
+        key.field_id = rpc_key.field_id();
+        key.field_name = rpc_key.field_name().empty() ? std::to_string(rpc_key.field_id()) : rpc_key.field_name();
+        key.value = ConvertAggregationKeyValue(rpc_key);
+        bucket.key.emplace_back(std::move(key));
+    }
+    for (const auto& item : rpc_bucket.metrics()) {
+        bucket.metrics[item.first] = ConvertAggregationMetricValue(item.second);
+    }
+    for (const auto& rpc_hit : rpc_bucket.hits()) {
+        bucket.hits.emplace_back(ConvertAggregationHit(rpc_hit));
+    }
+    for (const auto& rpc_sub_group : rpc_bucket.sub_groups()) {
+        bucket.sub_groups.emplace_back(ConvertAggregationBucket(rpc_sub_group));
+    }
+    return bucket;
+}
+
+}  // namespace
+
+Status
+ConvertAggregationBuckets(const proto::milvus::SearchResults& rpc_results, AggregationBuckets& buckets) {
+    buckets.clear();
+    const auto& result_data = rpc_results.results();
+    if (result_data.agg_buckets_size() == 0 && result_data.agg_topks_size() == 0) {
+        return Status::OK();
+    }
+
+    if (result_data.agg_topks_size() != result_data.num_queries()) {
+        return {StatusCode::INVALID_ARGUMENT, "Aggregation aggTopks count does not match the number of search queries"};
+    }
+
+    size_t total_buckets = 0;
+    const auto bucket_count = static_cast<size_t>(result_data.agg_buckets_size());
+    for (auto size : result_data.agg_topks()) {
+        if (size < 0) {
+            return {StatusCode::INVALID_ARGUMENT, "Aggregation bucket count cannot be negative"};
+        }
+        const auto query_bucket_count = static_cast<uint64_t>(size);
+        if (query_bucket_count > bucket_count - total_buckets) {
+            return {StatusCode::INVALID_ARGUMENT, "Aggregation aggTopks declares more buckets than were returned"};
+        }
+        total_buckets += static_cast<size_t>(query_bucket_count);
+    }
+    if (total_buckets != bucket_count) {
+        return {StatusCode::INVALID_ARGUMENT, "Aggregation aggTopks does not account for every returned bucket"};
+    }
+
+    buckets.reserve(result_data.agg_topks_size());
+    size_t offset = 0;
+    for (auto size : result_data.agg_topks()) {
+        const auto query_bucket_count = static_cast<size_t>(size);
+        buckets.emplace_back();
+        auto& query_buckets = buckets.back();
+        query_buckets.reserve(query_bucket_count);
+        for (size_t i = 0; i < query_bucket_count; ++i) {
+            query_buckets.emplace_back(ConvertAggregationBucket(result_data.agg_buckets(static_cast<int>(offset + i))));
+        }
+        offset += query_bucket_count;
+    }
     return Status::OK();
 }
 

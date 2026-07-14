@@ -58,4 +58,13 @@ TEST_F(SearchResponseTest, SetterAndGetter) {
     EXPECT_EQ(resp.ScannedRemoteBytes(), 102);
     EXPECT_EQ(resp.ScannedTotalBytes(), 103);
     EXPECT_FLOAT_EQ(resp.CacheHitRatio(), 0.5f);
+
+    milvus::AggregationBucket bucket;
+    bucket.count = 7;
+    bucket.key.push_back({101, "category", "books"});
+    milvus::AggregationBuckets aggregation_buckets{{bucket}};
+    resp.SetAggregationBuckets(std::move(aggregation_buckets));
+    ASSERT_EQ(resp.AggregationBuckets().size(), 1);
+    ASSERT_EQ(resp.AggregationBuckets().at(0).size(), 1);
+    EXPECT_EQ(resp.AggregationBuckets().at(0).at(0).count, 7);
 }

@@ -1086,3 +1086,132 @@ TEST_F(DqlUtilsTest, SetExtraParamsTest) {
     milvus::SetExtraParams(params, &kv_pairs);
     EXPECT_GE(kv_pairs.size(), 2);
 }
+
+TEST_F(DqlUtilsTest, ConvertSearchAggregation) {
+    auto top_hits = std::make_shared<milvus::AggregationTopHits>(2);
+    top_hits->AddSort({"_score", milvus::AggregationDirection::DESC, true});
+    auto sub_aggregation = std::make_shared<milvus::SearchAggregation>(std::vector<std::string>{"brand"}, 3);
+    milvus::SearchAggregation aggregation({"category", "region"}, 5);
+    aggregation.AddMetric("doc_count", {milvus::AggregationMetricOp::COUNT, "*"})
+        .AddMetric("avg_score", {milvus::AggregationMetricOp::AVG, "score"})
+        .AddOrder({"doc_count", milvus::AggregationDirection::DESC})
+        .WithTopHits(top_hits)
+        .WithSubAggregation(sub_aggregation);
+
+    milvus::proto::common::SearchAggregationSpec rpc_aggregation;
+    milvus::ConvertSearchAggregation(aggregation, rpc_aggregation);
+
+    EXPECT_EQ(rpc_aggregation.fields_size(), 2);
+    EXPECT_EQ(rpc_aggregation.size(), 5);
+    EXPECT_EQ(rpc_aggregation.metrics().at("doc_count").op(), "count");
+    EXPECT_EQ(rpc_aggregation.metrics().at("avg_score").field_name(), "score");
+    EXPECT_EQ(rpc_aggregation.order(0).direction(), "desc");
+    EXPECT_EQ(rpc_aggregation.top_hits().size(), 2);
+    EXPECT_TRUE(rpc_aggregation.top_hits().sort(0).null_first());
+    EXPECT_EQ(rpc_aggregation.sub_aggregation().fields(0), "brand");
+}
+
+TEST_F(DqlUtilsTest, ConvertAggregationBuckets) {
+    milvus::proto::milvus::SearchResults rpc_results;
+    auto results = rpc_results.mutable_results();
+    results->set_num_queries(2);
+    auto bucket = results->add_agg_buckets();
+    bucket->set_count(7);
+    auto key = bucket->add_key();
+    key->set_field_id(101);
+    key->set_field_name("category");
+    key->set_string_val("books");
+    (*bucket->mutable_metrics())["doc_count"].set_int_val(7);
+    (*bucket->mutable_metrics())["avg_score"].set_double_val(0.88);
+    auto hit = bucket->add_hits();
+    hit->set_int_pk(10);
+    hit->set_score(0.91f);
+    auto field = hit->add_fields();
+    field->set_field_id(201);
+    field->set_field_name("title");
+    field->set_string_val("Book A");
+    auto sub_group = bucket->add_sub_groups();
+    sub_group->set_count(3);
+    sub_group->add_key()->set_string_val("acme");
+    auto second_bucket = results->add_agg_buckets();
+    second_bucket->set_count(4);
+    second_bucket->add_key()->set_string_val("games");
+    (*second_bucket->mutable_metrics())["doc_count"].set_int_val(4);
+    results->add_agg_topks(1);
+    results->add_agg_topks(1);
+
+    milvus::AggregationBuckets aggregation_buckets;
+    auto status = milvus::ConvertAggregationBuckets(rpc_results, aggregation_buckets);
+
+    ASSERT_TRUE(status.IsOk());
+    ASSERT_EQ(aggregation_buckets.size(), 2);
+    ASSERT_EQ(aggregation_buckets.at(0).size(), 1);
+    const auto& converted = aggregation_buckets.at(0).at(0);
+    EXPECT_EQ(converted.count, 7);
+    EXPECT_EQ(converted.key.at(0).value.get<std::string>(), "books");
+    EXPECT_EQ(converted.metrics.at("doc_count").get<int64_t>(), 7);
+    EXPECT_DOUBLE_EQ(converted.metrics.at("avg_score").get<double>(), 0.88);
+    EXPECT_EQ(converted.hits.at(0).id.get<int64_t>(), 10);
+    EXPECT_EQ(converted.hits.at(0).fields.at("title").get<std::string>(), "Book A");
+    EXPECT_EQ(converted.sub_groups.at(0).key.at(0).value.get<std::string>(), "acme");
+    ASSERT_EQ(aggregation_buckets.at(1).size(), 1);
+    EXPECT_EQ(aggregation_buckets.at(1).at(0).count, 4);
+    EXPECT_EQ(aggregation_buckets.at(1).at(0).key.at(0).value.get<std::string>(), "games");
+    EXPECT_EQ(aggregation_buckets.at(1).at(0).metrics.at("doc_count").get<int64_t>(), 4);
+}
+
+TEST_F(DqlUtilsTest, AggregationBucketsPreserveEmptyMultiQueryGroups) {
+    milvus::proto::milvus::SearchResults rpc_results;
+    auto results = rpc_results.mutable_results();
+    results->set_num_queries(2);
+    results->add_agg_topks(0);
+    results->add_agg_topks(0);
+
+    milvus::AggregationBuckets aggregation_buckets;
+    auto status = milvus::ConvertAggregationBuckets(rpc_results, aggregation_buckets);
+
+    ASSERT_TRUE(status.IsOk());
+    ASSERT_EQ(aggregation_buckets.size(), 2);
+    EXPECT_TRUE(aggregation_buckets.at(0).empty());
+    EXPECT_TRUE(aggregation_buckets.at(1).empty());
+}
+
+TEST_F(DqlUtilsTest, AggregationBucketsRejectMismatchedQueryCount) {
+    milvus::proto::milvus::SearchResults rpc_results;
+    rpc_results.mutable_results()->set_num_queries(2);
+    rpc_results.mutable_results()->add_agg_buckets()->set_count(1);
+    rpc_results.mutable_results()->add_agg_topks(1);
+
+    milvus::AggregationBuckets aggregation_buckets;
+    auto status = milvus::ConvertAggregationBuckets(rpc_results, aggregation_buckets);
+
+    EXPECT_FALSE(status.IsOk());
+    EXPECT_EQ(status.Code(), milvus::StatusCode::INVALID_ARGUMENT);
+}
+
+TEST_F(DqlUtilsTest, AggregationBucketsRejectDeclaredOverflow) {
+    milvus::proto::milvus::SearchResults rpc_results;
+    rpc_results.mutable_results()->set_num_queries(1);
+    rpc_results.mutable_results()->add_agg_buckets()->set_count(1);
+    rpc_results.mutable_results()->add_agg_topks(2);
+
+    milvus::AggregationBuckets aggregation_buckets;
+    auto status = milvus::ConvertAggregationBuckets(rpc_results, aggregation_buckets);
+
+    EXPECT_FALSE(status.IsOk());
+    EXPECT_EQ(status.Code(), milvus::StatusCode::INVALID_ARGUMENT);
+}
+
+TEST_F(DqlUtilsTest, AggregationBucketsRejectUnaccountedBuckets) {
+    milvus::proto::milvus::SearchResults rpc_results;
+    rpc_results.mutable_results()->set_num_queries(1);
+    rpc_results.mutable_results()->add_agg_buckets()->set_count(1);
+    rpc_results.mutable_results()->add_agg_buckets()->set_count(2);
+    rpc_results.mutable_results()->add_agg_topks(1);
+
+    milvus::AggregationBuckets aggregation_buckets;
+    auto status = milvus::ConvertAggregationBuckets(rpc_results, aggregation_buckets);
+
+    EXPECT_FALSE(status.IsOk());
+    EXPECT_EQ(status.Code(), milvus::StatusCode::INVALID_ARGUMENT);
+}

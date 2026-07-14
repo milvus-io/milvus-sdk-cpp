@@ -18,6 +18,7 @@
 
 #include <cstdint>
 
+#include "../../types/AggregationBucket.h"
 #include "../../types/SearchResults.h"
 #include "milvus/Export.h"
 
@@ -75,6 +76,18 @@ class MILVUS_SDK_API SearchResponse {
     void
     SetCacheHitRatio(float cache_hit_ratio);
 
+    /**
+     * @brief Get aggregation buckets grouped by search query.
+     *
+     * The outer vector follows query order, and each inner vector contains that query's buckets. Queries with no
+     * buckets retain an empty inner vector so their indexes remain aligned with the search request.
+     */
+    const milvus::AggregationBuckets&
+    AggregationBuckets() const;
+
+    void
+    SetAggregationBuckets(milvus::AggregationBuckets&& aggregation_buckets);
+
  private:
     SearchResults results_;
     uint64_t session_ts_{0};
@@ -82,6 +95,7 @@ class MILVUS_SDK_API SearchResponse {
     int64_t scanned_remote_bytes_{-1};
     int64_t scanned_total_bytes_{-1};
     float cache_hit_ratio_{-1.0f};
+    milvus::AggregationBuckets aggregation_buckets_;
 };
 
 using HybridSearchResponse = SearchResponse;  // hybrid search and search have the same result
