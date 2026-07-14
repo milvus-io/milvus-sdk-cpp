@@ -47,6 +47,7 @@ file(GLOB_RECURSE ut_files
 )
 add_executable(testing-ut ${ut_files})
 target_compile_options(testing-ut PRIVATE $<$<CXX_COMPILER_ID:MSVC>:/bigobj>)
+target_include_directories(testing-ut PRIVATE ${PROJECT_SOURCE_DIR}/thirdparty)
 link_milvus_test(testing-ut)
 
 set(IT_DIR "${CMAKE_CURRENT_SOURCE_DIR}/it")
