@@ -24,15 +24,16 @@ namespace milvus {
 
 /**
  * @brief Supported function types.
- * Note: in v2.4, only support RERANK for hybrid search
- * in v2.5, we have BM25 = 1
- * in v2.6, we have TEXTEMBEDDING = 2
+ * Numeric values mirror schema.proto and are part of the client/server protocol contract.
+ * Existing values must remain stable for wire compatibility.
  */
 enum class FunctionType {
     UNKNOWN = 0,
     BM25 = 1,
     TEXTEMBEDDING = 2,
     RERANK = 3,
+    MINHASH = 4,
+    MOLFINGERPRINT = 5,
 };
 }  // namespace milvus
 

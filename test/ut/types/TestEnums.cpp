@@ -114,4 +114,6 @@ TEST_F(FunctionTypeEnumTest, KnownValues) {
     EXPECT_EQ(static_cast<int>(milvus::FunctionType::BM25), 1);
     EXPECT_EQ(static_cast<int>(milvus::FunctionType::TEXTEMBEDDING), 2);
     EXPECT_EQ(static_cast<int>(milvus::FunctionType::RERANK), 3);
+    EXPECT_EQ(static_cast<int>(milvus::FunctionType::MINHASH), 4);
+    EXPECT_EQ(static_cast<int>(milvus::FunctionType::MOLFINGERPRINT), 5);
 }

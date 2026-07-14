@@ -123,6 +123,10 @@ FunctionTypeCast(FunctionType type) {
             return proto::schema::FunctionType::TextEmbedding;
         case FunctionType::RERANK:
             return proto::schema::FunctionType::Rerank;
+        case FunctionType::MINHASH:
+            return proto::schema::FunctionType::MinHash;
+        case FunctionType::MOLFINGERPRINT:
+            return proto::schema::FunctionType::MolFingerprint;
         default:
             return proto::schema::FunctionType::Unknown;
     }
@@ -137,6 +141,10 @@ FunctionTypeCast(proto::schema::FunctionType type) {
             return FunctionType::TEXTEMBEDDING;
         case proto::schema::FunctionType::Rerank:
             return FunctionType::RERANK;
+        case proto::schema::FunctionType::MinHash:
+            return FunctionType::MINHASH;
+        case proto::schema::FunctionType::MolFingerprint:
+            return FunctionType::MOLFINGERPRINT;
         default:
             return FunctionType::UNKNOWN;
     }
@@ -1173,6 +1181,10 @@ to_string(milvus::FunctionType function_type) {
             return "TEXTEMBEDDING";
         case milvus::FunctionType::RERANK:
             return "RERANK";
+        case milvus::FunctionType::MINHASH:
+            return "MINHASH";
+        case milvus::FunctionType::MOLFINGERPRINT:
+            return "MOLFINGERPRINT";
         default:
             return "UNKNOWN";
     }

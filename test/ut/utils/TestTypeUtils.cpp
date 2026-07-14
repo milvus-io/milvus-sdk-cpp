@@ -360,8 +360,16 @@ TEST_F(TypeUtilsTest, DataTypeCast) {
 }
 
 TEST_F(TypeUtilsTest, FunctionTypeCastTest) {
-    auto values = {milvus::FunctionType::UNKNOWN, milvus::FunctionType::BM25, milvus::FunctionType::TEXTEMBEDDING,
-                   milvus::FunctionType::RERANK};
+    // clang-format off
+    auto values = {
+        milvus::FunctionType::UNKNOWN,
+        milvus::FunctionType::BM25,
+        milvus::FunctionType::TEXTEMBEDDING,
+        milvus::FunctionType::RERANK,
+        milvus::FunctionType::MINHASH,
+        milvus::FunctionType::MOLFINGERPRINT,
+    };
+    // clang-format on
     for (auto value : values) {
         EXPECT_EQ(milvus::FunctionTypeCast(milvus::FunctionTypeCast(value)), value);
     }
@@ -855,6 +863,8 @@ TEST_F(TypeUtilsTest, ConvertResourceGroupConfigRoundtrip) {
 TEST_F(TypeUtilsTest, EnumToString) {
     // test std::to_string overloads for enum types
     EXPECT_FALSE(std::to_string(milvus::FunctionType::BM25).empty());
+    EXPECT_EQ(std::to_string(milvus::FunctionType::MINHASH), "MINHASH");
+    EXPECT_EQ(std::to_string(milvus::FunctionType::MOLFINGERPRINT), "MOLFINGERPRINT");
     EXPECT_FALSE(std::to_string(milvus::IndexStateCode::FINISHED).empty());
     EXPECT_FALSE(std::to_string(milvus::ConsistencyLevel::STRONG).empty());
     // CompactionStateCode to_string is tested via CompactionState tests
