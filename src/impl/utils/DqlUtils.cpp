@@ -971,6 +971,10 @@ SetExtraParams(const std::unordered_map<std::string, std::string>& params,
         //   '{"radius": 2.5, "range_filter": 0.5}' is ok
         if (pair.first == RADIUS || pair.first == RANGE_FILTER) {
             json_params[pair.first] = std::stod(pair.second);
+        } else if (pair.first == "mh_search_with_jaccard") {
+            json_params[pair.first] = pair.second == "true";
+        } else if (pair.first == "refine_k") {
+            json_params[pair.first] = std::stoll(pair.second);
         } else {
             json_params[pair.first] = pair.second;
         }

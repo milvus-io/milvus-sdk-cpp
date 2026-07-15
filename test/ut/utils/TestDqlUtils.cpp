@@ -16,6 +16,7 @@
 
 #include <gmock/gmock.h>
 
+#include <algorithm>
 #include <memory>
 
 #include "milvus/response/dql/SearchResponse.h"
@@ -1085,6 +1086,25 @@ TEST_F(DqlUtilsTest, SetExtraParamsTest) {
     ::google::protobuf::RepeatedPtrField<milvus::proto::common::KeyValuePair> kv_pairs;
     milvus::SetExtraParams(params, &kv_pairs);
     EXPECT_GE(kv_pairs.size(), 2);
+}
+
+TEST_F(DqlUtilsTest, SetExtraParamsMinHashTypes) {
+    std::unordered_map<std::string, std::string> params = {
+        {"mh_search_with_jaccard", "true"},
+        {"refine_k", "50"},
+    };
+    ::google::protobuf::RepeatedPtrField<milvus::proto::common::KeyValuePair> kv_pairs;
+    milvus::SetExtraParams(params, &kv_pairs);
+
+    auto params_pair =
+        std::find_if(kv_pairs.begin(), kv_pairs.end(), [](const auto& pair) { return pair.key() == milvus::PARAMS; });
+    ASSERT_NE(params_pair, kv_pairs.end());
+
+    auto json_params = nlohmann::json::parse(params_pair->value());
+    EXPECT_TRUE(json_params.at("mh_search_with_jaccard").is_boolean());
+    EXPECT_TRUE(json_params.at("mh_search_with_jaccard").get<bool>());
+    EXPECT_TRUE(json_params.at("refine_k").is_number_integer());
+    EXPECT_EQ(json_params.at("refine_k").get<int64_t>(), 50);
 }
 
 TEST_F(DqlUtilsTest, ConvertSearchAggregation) {
