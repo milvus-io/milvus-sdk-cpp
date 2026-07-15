@@ -18,9 +18,11 @@
 
 #include <milvus/thirdparty/nlohmann/json.hpp>
 #include <unordered_map>
+#include <vector>
 
 #include "./DQLRequestBase.h"
 #include "milvus/Export.h"
+#include "milvus/types/OrderByField.h"
 
 namespace milvus {
 
@@ -180,10 +182,35 @@ class MILVUS_SDK_API QueryRequest : public DQLRequestBase<QueryRequest> {
     QueryRequest&
     WithTimezone(const std::string& timezone);
 
+    /**
+     * @brief Get fields used to order query results.
+     */
+    const std::vector<OrderByField>&
+    OrderByFields() const;
+
+    /**
+     * @brief Set fields used to order query results.
+     */
+    void
+    SetOrderByFields(std::vector<OrderByField>&& order_by_fields);
+
+    /**
+     * @brief Set fields used to order query results.
+     */
+    QueryRequest&
+    WithOrderByFields(std::vector<OrderByField>&& order_by_fields);
+
+    /**
+     * @brief Add a field used to order query results.
+     */
+    QueryRequest&
+    AddOrderByField(OrderByField order_by_field);
+
  private:
     std::string filter_;
     std::unordered_map<std::string, nlohmann::json> filter_templates_;
     std::unordered_map<std::string, std::string> extra_params_;
+    std::vector<OrderByField> order_by_fields_;
 };
 
 }  // namespace milvus

@@ -38,6 +38,7 @@ extern MILVUS_SDK_API const char* RADIUS;
 extern MILVUS_SDK_API const char* RANGE_FILTER;
 extern MILVUS_SDK_API const char* IGNORE_GROWING;
 extern MILVUS_SDK_API const char* ROUND_DECIMAL;
+extern MILVUS_SDK_API const char* ORDER_BY_FIELDS;
 extern MILVUS_SDK_API const char* GROUPBY_FIELD;
 extern MILVUS_SDK_API const char* GROUPBY_SIZE;
 extern MILVUS_SDK_API const char* GROUPBY_STRICT_SIZE;

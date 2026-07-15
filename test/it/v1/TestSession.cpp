@@ -94,6 +94,30 @@ TEST_F(UnconnectMilvusMockedTest, V2SessionValidationAndClose) {
     EXPECT_EQ(status.Message(), "MilvusClient session is closed");
 }
 
+TEST_F(UnconnectMilvusMockedTest, V2IteratorsRejectOrderByBeforeRpc) {
+    auto client = CreateConnectedClient(service_, server_.ListenPort());
+
+    EXPECT_CALL(service_, DescribeCollection(_, _, _)).Times(0);
+    EXPECT_CALL(service_, Query(_, _, _)).Times(0);
+    EXPECT_CALL(service_, Search(_, _, _)).Times(0);
+
+    milvus::QueryIteratorRequest query_request;
+    query_request.WithCollectionName("foo").AddOrderByField(milvus::OrderByField("price"));
+    milvus::QueryIteratorPtr query_iterator;
+    auto status = client->QueryIterator(query_request, query_iterator);
+    EXPECT_FALSE(status.IsOk());
+    EXPECT_EQ(status.Code(), milvus::StatusCode::INVALID_ARGUMENT);
+    EXPECT_EQ(status.Message(), "ORDER BY with iterator is not supported");
+
+    milvus::SearchIteratorRequest search_request;
+    search_request.WithCollectionName("foo").AddOrderByField(milvus::OrderByField("price"));
+    milvus::SearchIteratorPtr search_iterator;
+    status = client->SearchIterator(search_request, search_iterator);
+    EXPECT_FALSE(status.IsOk());
+    EXPECT_EQ(status.Code(), milvus::StatusCode::INVALID_ARGUMENT);
+    EXPECT_EQ(status.Message(), "ORDER BY with iterator is not supported");
+}
+
 TEST_F(UnconnectMilvusMockedTest, V2SessionUnaryRoutingAndIsolation) {
     auto client = CreateConnectedClient(service_, server_.ListenPort());
     milvus::MilvusClientV2SessionPtr session_a;

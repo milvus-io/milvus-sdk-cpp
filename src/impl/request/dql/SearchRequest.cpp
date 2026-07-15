@@ -235,6 +235,28 @@ SearchRequest::WithSearchAggregation(const SearchAggregationPtr& aggregation) {
     return *this;
 }
 
+const std::vector<OrderByField>&
+SearchRequest::OrderByFields() const {
+    return order_by_fields_;
+}
+
+void
+SearchRequest::SetOrderByFields(std::vector<OrderByField>&& order_by_fields) {
+    order_by_fields_ = std::move(order_by_fields);
+}
+
+SearchRequest&
+SearchRequest::WithOrderByFields(std::vector<OrderByField>&& order_by_fields) {
+    SetOrderByFields(std::move(order_by_fields));
+    return *this;
+}
+
+SearchRequest&
+SearchRequest::AddOrderByField(OrderByField order_by_field) {
+    order_by_fields_.emplace_back(std::move(order_by_field));
+    return *this;
+}
+
 Status
 SearchRequest::Validate() const {
     auto status = SearchRequestBase::Validate();

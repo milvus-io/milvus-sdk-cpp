@@ -56,6 +56,17 @@ TEST_F(QueryRequestTest, GettersAndSetters) {
 
     req.AddExtraParam("hints", "segcore");
     EXPECT_EQ(req.ExtraParams().at("hints"), "segcore");
+
+    req.AddOrderByField(milvus::OrderByField("price"));
+    ASSERT_EQ(req.OrderByFields().size(), 1);
+    EXPECT_EQ(req.OrderByFields().at(0).FieldName(), "price");
+
+    auto& order_ref = req.WithOrderByFields({
+        milvus::OrderByField("rating", milvus::AggregationDirection::DESC),
+    });
+    EXPECT_EQ(&order_ref, &req);
+    ASSERT_EQ(req.OrderByFields().size(), 1);
+    EXPECT_EQ(req.OrderByFields().at(0).Direction(), milvus::AggregationDirection::DESC);
 }
 
 TEST_F(QueryRequestTest, DQLRequestBaseMethods) {
@@ -222,6 +233,17 @@ TEST_F(SearchRequestTest, GettersAndSetters) {
     req.WithIgnoreGrowing(true);
     EXPECT_TRUE(req.IgnoreGrowing());
 
+    req.AddOrderByField(milvus::OrderByField("price"));
+    ASSERT_EQ(req.OrderByFields().size(), 1);
+    EXPECT_EQ(req.OrderByFields().at(0).FieldName(), "price");
+
+    auto& order_ref = req.WithOrderByFields({
+        milvus::OrderByField("rating", milvus::AggregationDirection::DESC),
+    });
+    EXPECT_EQ(&order_ref, &req);
+    ASSERT_EQ(req.OrderByFields().size(), 1);
+    EXPECT_EQ(req.OrderByFields().at(0).Direction(), milvus::AggregationDirection::DESC);
+
     // AddFloatVector
     std::vector<float> float_vec{1.0f, 2.0f, 3.0f};
     req.AddFloatVector(float_vec);
@@ -270,6 +292,14 @@ TEST_F(SearchRequestTest, SetGroupByField) {
     milvus::SearchRequest req;
     req.SetGroupByField("category");
     EXPECT_EQ(req.GroupByField(), "category");
+}
+
+TEST_F(SearchRequestTest, DelegatesOrderByFieldNameValidationToServer) {
+    milvus::SearchRequest req;
+    req.WithCollectionName("search_coll").WithLimit(10).AddFloatVector({0.1f, 0.2f});
+    req.AddOrderByField(milvus::OrderByField("bad:field"));
+
+    EXPECT_TRUE(req.Validate().IsOk());
 }
 
 TEST_F(SearchRequestTest, SearchAggregation) {

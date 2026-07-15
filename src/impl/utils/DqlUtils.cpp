@@ -18,6 +18,7 @@
 
 #include <set>
 #include <string>
+#include <type_traits>
 
 #include "./Constants.h"
 #include "./DmlUtils.h"
@@ -59,6 +60,49 @@ SetSearchHighlighter(const SearchRequest& request, proto::milvus::SearchRequest&
 template <typename T>
 Status
 SetSearchHighlighter(const T&, proto::milvus::SearchRequest&) {
+    return Status::OK();
+}
+
+template <typename T>
+struct SupportsOrderByFields : std::integral_constant<bool, (std::is_base_of<QueryRequest, T>::value ||
+                                                             std::is_base_of<SearchRequest, T>::value) &&
+                                                                !std::is_base_of<IteratorArguments, T>::value> {};
+
+template <typename T>
+typename std::enable_if<SupportsOrderByFields<T>::value, const std::vector<OrderByField>&>::type
+GetOrderByFields(const T& request) {
+    return request.OrderByFields();
+}
+
+template <typename T>
+typename std::enable_if<!SupportsOrderByFields<T>::value, const std::vector<OrderByField>&>::type
+GetOrderByFields(const T&) {
+    static const std::vector<OrderByField> empty;
+    return empty;
+}
+
+Status
+AppendOrderByFields(const std::vector<OrderByField>& order_by_fields,
+                    ::google::protobuf::RepeatedPtrField<proto::common::KeyValuePair>* params) {
+    if (order_by_fields.empty()) {
+        return Status::OK();
+    }
+
+    std::string value;
+    for (const auto& order_by_field : order_by_fields) {
+        if (order_by_field.FieldName().empty()) {
+            return {StatusCode::INVALID_ARGUMENT, "OrderByField field name cannot be empty"};
+        }
+        if (!value.empty()) {
+            value += ',';
+        }
+        value += order_by_field.FieldName();
+        value += order_by_field.Direction() == AggregationDirection::ASC ? ":asc" : ":desc";
+    }
+
+    auto* pair = params->Add();
+    pair->set_key(ORDER_BY_FIELDS);
+    pair->set_value(std::move(value));
     return Status::OK();
 }
 
@@ -1376,16 +1420,24 @@ ConvertQueryRequest(const T& request, const std::string& current_db, proto::milv
         rpc_request.add_output_fields(field);
     }
 
-    // limit/offet etc.
-    auto& params = request.ExtraParams();
-    for (auto& pair : params) {
-        if (pair.first == CLUSTER_ID) {
-            continue;
-        }
+    // limit/offset etc. make a copy of params here to erase some keys, because they are handled separately
+    auto extra_params = request.ExtraParams();
+    extra_params.erase(CLUSTER_ID);
+    extra_params.erase(ORDER_BY_FIELDS);
+    for (auto& pair : extra_params) {
         auto kv_pair = rpc_request.add_query_params();
         kv_pair->set_key(pair.first);
         kv_pair->set_value(pair.second);
     }
+
+    // order by fields
+    const auto& order_by_fields = GetOrderByFields(request);
+    auto status = AppendOrderByFields(order_by_fields, rpc_request.mutable_query_params());
+    if (!status.IsOk()) {
+        return status;
+    }
+
+    // cluster id
     if (!cluster_id.empty()) {
         auto kv_pair = rpc_request.add_query_params();
         kv_pair->set_key(CLUSTER_ID);
@@ -1495,7 +1547,20 @@ ConvertSearchRequest(const T& request, const std::string& current_db, proto::mil
     }
 
     // extra params offset/round_decimal/group_by/radius/range_filter/nprobe etc.
-    SetExtraParams(request.ExtraParams(), rpc_request.mutable_search_params());
+    // make a copy of params here to erase some keys, because they are handled separately
+    auto extra_params = request.ExtraParams();
+    extra_params.erase(CLUSTER_ID);
+    extra_params.erase(ORDER_BY_FIELDS);
+    SetExtraParams(extra_params, rpc_request.mutable_search_params());
+
+    // order by fields
+    const auto& order_by_fields = GetOrderByFields(request);
+    auto order_by_status = AppendOrderByFields(order_by_fields, rpc_request.mutable_search_params());
+    if (!order_by_status.IsOk()) {
+        return order_by_status;
+    }
+
+    // cluster id
     if (!cluster_id.empty()) {
         setParamFunc(CLUSTER_ID, cluster_id);
     }

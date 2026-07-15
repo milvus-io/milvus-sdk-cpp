@@ -3789,6 +3789,10 @@ MilvusClientV2Impl::removeCollectionDesc(const std::string& db_name, const std::
 template <typename RequestClass>
 Status
 MilvusClientV2Impl::iteratorPrepare(RequestClass& request) {
+    if (!request.OrderByFields().empty()) {
+        return {StatusCode::INVALID_ARGUMENT, "ORDER BY with iterator is not supported"};
+    }
+
     CollectionDescPtr collection_desc;
     auto status = getCollectionDesc(request.DatabaseName(), request.CollectionName(), false, collection_desc);
     if (!status.IsOk()) {

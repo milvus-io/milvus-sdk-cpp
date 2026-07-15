@@ -30,6 +30,7 @@ const char* RADIUS = "radius";
 const char* RANGE_FILTER = "range_filter";
 const char* IGNORE_GROWING = "ignore_growing";
 const char* ROUND_DECIMAL = "round_decimal";
+const char* ORDER_BY_FIELDS = "order_by_fields";
 const char* GROUPBY_FIELD = "group_by_field";
 const char* GROUPBY_SIZE = "group_size";
 const char* GROUPBY_STRICT_SIZE = "strict_group_size";

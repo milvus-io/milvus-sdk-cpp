@@ -500,6 +500,10 @@ TEST_F(DqlUtilsTest, ConvertSearchRequestV2) {
     req.WithConsistencyLevel(milvus::ConsistencyLevel::STRONG);
     req.WithFilter("id > 0");
     req.AddOutputField("name");
+    req.WithOrderByFields({
+        milvus::OrderByField("price"),
+        milvus::OrderByField("rating", milvus::AggregationDirection::DESC),
+    });
 
     auto highlighter = std::make_shared<milvus::LexicalHighlighter>();
     highlighter->AddHighlightQuery("term", "text", "milvus")
@@ -517,6 +521,10 @@ TEST_F(DqlUtilsTest, ConvertSearchRequestV2) {
     EXPECT_EQ(rpc_request.collection_name(), "test_coll");
     EXPECT_TRUE(rpc_request.has_highlighter());
     EXPECT_EQ(rpc_request.highlighter().type(), milvus::proto::common::HighlightType::Lexical);
+    auto search_order_by = std::find_if(rpc_request.search_params().begin(), rpc_request.search_params().end(),
+                                        [](const auto& pair) { return pair.key() == milvus::ORDER_BY_FIELDS; });
+    ASSERT_NE(search_order_by, rpc_request.search_params().end());
+    EXPECT_EQ(search_order_by->value(), "price:asc,rating:desc");
 
     std::unordered_map<std::string, std::string> params;
     for (const auto& pair : rpc_request.highlighter().params()) {
@@ -745,12 +753,20 @@ TEST_F(DqlUtilsTest, ConvertQueryRequestV2) {
     req.AddOutputField("name");
     req.WithLimit(100);
     req.WithConsistencyLevel(milvus::ConsistencyLevel::STRONG);
+    req.WithOrderByFields({
+        milvus::OrderByField("price"),
+        milvus::OrderByField("rating", milvus::AggregationDirection::DESC),
+    });
 
     milvus::proto::milvus::QueryRequest rpc_request;
     auto status = milvus::ConvertQueryRequest(req, "default", rpc_request, "cluster-a");
     EXPECT_TRUE(status.IsOk());
     EXPECT_EQ(rpc_request.collection_name(), "test_coll");
     EXPECT_EQ(rpc_request.expr(), "id > 0");
+    auto query_order_by = std::find_if(rpc_request.query_params().begin(), rpc_request.query_params().end(),
+                                       [](const auto& pair) { return pair.key() == milvus::ORDER_BY_FIELDS; });
+    ASSERT_NE(query_order_by, rpc_request.query_params().end());
+    EXPECT_EQ(query_order_by->value(), "price:asc,rating:desc");
     int cluster_id_count = 0;
     for (const auto& param : rpc_request.query_params()) {
         if (param.key() == "cluster_id") {
@@ -761,6 +777,43 @@ TEST_F(DqlUtilsTest, ConvertQueryRequestV2) {
     EXPECT_EQ(cluster_id_count, 1);
 }
 
+TEST_F(DqlUtilsTest, ConvertOrderByFieldsDelegatesFieldNameValidationToServer) {
+    milvus::QueryRequest req;
+    req.WithCollectionName("test_coll").AddOrderByField(milvus::OrderByField("bad,field"));
+
+    milvus::proto::milvus::QueryRequest rpc_request;
+    auto status = milvus::ConvertQueryRequest(req, "default", rpc_request);
+    ASSERT_TRUE(status.IsOk());
+    auto order_by = std::find_if(rpc_request.query_params().begin(), rpc_request.query_params().end(),
+                                 [](const auto& pair) { return pair.key() == milvus::ORDER_BY_FIELDS; });
+    ASSERT_NE(order_by, rpc_request.query_params().end());
+    EXPECT_EQ(order_by->value(), "bad,field:asc");
+}
+
+TEST_F(DqlUtilsTest, ConvertOrderByFieldsRejectsEmptyFieldName) {
+    milvus::QueryRequest req;
+    req.WithCollectionName("test_coll").AddOrderByField(milvus::OrderByField(""));
+
+    milvus::proto::milvus::QueryRequest rpc_request;
+    auto status = milvus::ConvertQueryRequest(req, "default", rpc_request);
+    EXPECT_FALSE(status.IsOk());
+    EXPECT_EQ(status.Code(), milvus::StatusCode::INVALID_ARGUMENT);
+    EXPECT_EQ(status.Message(), "OrderByField field name cannot be empty");
+}
+
+TEST_F(DqlUtilsTest, ConvertSearchOrderByFieldWithJsonPathColon) {
+    milvus::SearchRequest req;
+    req.WithCollectionName("test_coll").AddOrderByField(milvus::OrderByField("metadata[\"a:b\"]"));
+
+    milvus::proto::milvus::SearchRequest rpc_request;
+    auto status = milvus::ConvertSearchRequest(req, "default", rpc_request);
+    ASSERT_TRUE(status.IsOk());
+    auto order_by = std::find_if(rpc_request.search_params().begin(), rpc_request.search_params().end(),
+                                 [](const auto& pair) { return pair.key() == milvus::ORDER_BY_FIELDS; });
+    ASSERT_NE(order_by, rpc_request.search_params().end());
+    EXPECT_EQ(order_by->value(), "metadata[\"a:b\"]:asc");
+}
+
 TEST_F(DqlUtilsTest, ConvertQueryIteratorRequest) {
     // test ConvertQueryRequest<QueryIteratorRequest> template instantiation
     milvus::QueryIteratorRequest req;
@@ -769,10 +822,14 @@ TEST_F(DqlUtilsTest, ConvertQueryIteratorRequest) {
     req.AddOutputField("name");
     req.SetBatchSize(100);
     req.WithConsistencyLevel(milvus::ConsistencyLevel::STRONG);
+    req.AddOrderByField(milvus::OrderByField("price", milvus::AggregationDirection::DESC));
 
     milvus::proto::milvus::QueryRequest rpc_request;
     auto status = milvus::ConvertQueryRequest(req, "default", rpc_request);
     EXPECT_TRUE(status.IsOk());
+    auto order_by = std::find_if(rpc_request.query_params().begin(), rpc_request.query_params().end(),
+                                 [](const auto& pair) { return pair.key() == milvus::ORDER_BY_FIELDS; });
+    EXPECT_EQ(order_by, rpc_request.query_params().end());
 }
 
 TEST_F(DqlUtilsTest, ConvertSearchIteratorRequest) {
@@ -784,18 +841,23 @@ TEST_F(DqlUtilsTest, ConvertSearchIteratorRequest) {
     req.SetBatchSize(50);
     req.AddFloatVector({0.1f, 0.2f, 0.3f});
     req.WithConsistencyLevel(milvus::ConsistencyLevel::STRONG);
+    req.AddOrderByField(milvus::OrderByField("price"));
 
     milvus::proto::milvus::SearchRequest rpc_request;
     auto status = milvus::ConvertSearchRequest(req, "default", rpc_request, "cluster-a");
     EXPECT_TRUE(status.IsOk());
     int cluster_id_count = 0;
+    int order_by_count = 0;
     for (const auto& param : rpc_request.search_params()) {
         if (param.key() == "cluster_id") {
             ++cluster_id_count;
             EXPECT_EQ(param.value(), "cluster-a");
+        } else if (param.key() == milvus::ORDER_BY_FIELDS) {
+            ++order_by_count;
         }
     }
     EXPECT_EQ(cluster_id_count, 1);
+    EXPECT_EQ(order_by_count, 0);
 }
 
 TEST_F(DqlUtilsTest, ConvertSearchRequestWithFloatEmbeddingList) {
