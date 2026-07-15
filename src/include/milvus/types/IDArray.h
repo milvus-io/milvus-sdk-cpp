@@ -41,6 +41,23 @@ class MILVUS_SDK_API IDArray {
     IDArray(const IDArray&);
 
     /**
+     * @brief Move constructor
+     */
+    IDArray(IDArray&&) noexcept;
+
+    /**
+     * @brief Copy assignment operator
+     */
+    IDArray&
+    operator=(const IDArray&);
+
+    /**
+     * @brief Move assignment operator
+     */
+    IDArray&
+    operator=(IDArray&&) noexcept;
+
+    /**
      * @brief Constructor
      */
     explicit IDArray(const std::vector<int64_t>& id_array);

@@ -31,6 +31,20 @@ class MILVUS_SDK_API SearchIteratorRequest : public IteratorArguments, public Se
      * @brief Constructor
      */
     SearchIteratorRequest();
+
+ private:
+    // Hide SearchRequest ID APIs because search iterators only support a single target vector.
+    void
+    SetIDs(std::vector<int64_t>&& id_array) = delete;
+
+    void
+    SetIDs(std::vector<std::string>&& id_array) = delete;
+
+    SearchIteratorRequest&
+    WithIDs(std::vector<int64_t>&& id_array) = delete;
+
+    SearchIteratorRequest&
+    WithIDs(std::vector<std::string>&& id_array) = delete;
 };
 
 }  // namespace milvus

@@ -21,6 +21,15 @@
 #include "ExampleUtils.h"
 #include "milvus/MilvusClientV2.h"
 
+namespace {
+
+std::string
+makePrimaryKey(int64_t number) {
+    return "primary_key_" + std::to_string(number);
+}
+
+}  // namespace
+
 int
 main(int argc, char* argv[]) {
     printf("Example start...\n");
@@ -62,7 +71,7 @@ main(int argc, char* argv[]) {
 
     {
         // insert some rows by column-based
-        auto ids = std::vector<std::string>{"primary_key_10000", "primary_key_10001"};
+        auto ids = std::vector<std::string>{makePrimaryKey(10000), makePrimaryKey(10001)};
         auto texts = std::vector<std::string>{"column-based-1", "column-based-2"};
         auto vectors = util::GenerateInt8Vectors(dimension, 2);
         std::vector<milvus::FieldDataPtr> fields_data{
@@ -84,7 +93,7 @@ main(int argc, char* argv[]) {
         // insert some rows
         for (auto i = 0; i < row_count; ++i) {
             milvus::EntityRow row;
-            row[field_id] = "primary_key_" + std::to_string(i);
+            row[field_id] = makePrimaryKey(i);
             row[field_text] = "this is text_" + std::to_string(i);
             row[field_vector] = util::GenerateInt8Vector(dimension);
             rows.emplace_back(std::move(row));
@@ -101,10 +110,10 @@ main(int argc, char* argv[]) {
 
     auto q_number_1 = util::RandomeValue<int64_t>(0, row_count - 1);
     auto q_number_2 = util::RandomeValue<int64_t>(0, row_count - 1);
+    auto q_id_1 = makePrimaryKey(q_number_1);
+    auto q_id_2 = makePrimaryKey(q_number_2);
     {
         // query
-        auto q_id_1 = rows[q_number_1][field_id].get<std::string>();
-        auto q_id_2 = rows[q_number_2][field_id].get<std::string>();
         std::string filter = field_id + " in [\"" + q_id_1 + "\", \"" + q_id_2 + "\"]";
         std::cout << "Query with filter expression: " << filter << std::endl;
 
@@ -132,23 +141,20 @@ main(int argc, char* argv[]) {
 
     {
         // do search
-        auto q_vector_1 = rows[q_number_1][field_vector];
-        auto q_vector_2 = rows[q_number_2][field_vector];
-        std::vector<std::vector<int8_t>> query_vectors = {
-            q_vector_1.get<std::vector<int8_t>>(),
-            q_vector_2.get<std::vector<int8_t>>(),
-        };
+        std::vector<std::string> search_ids{q_id_1, q_id_2};
         auto request = milvus::SearchRequest()
                            .WithCollectionName(collection_name)
                            .WithLimit(3)
                            .WithAnnsField(field_vector)
                            .AddOutputField(field_vector)
                            .AddOutputField(field_text)
-                           .WithInt8Vectors(std::move(query_vectors))
+                           .WithIDs(std::move(search_ids))
                            .WithConsistencyLevel(milvus::ConsistencyLevel::BOUNDED);
 
-        std::cout << "Searching the ID." << q_number_1 << " int8 vector: " << q_vector_1 << std::endl;
-        std::cout << "Searching the ID." << q_number_2 << " int8 vector: " << q_vector_2 << std::endl;
+        auto q_vector_1 = rows[q_number_1][field_vector];
+        auto q_vector_2 = rows[q_number_2][field_vector];
+        std::cout << "Searching ID " << q_id_1 << " int8 vector: " << q_vector_1 << std::endl;
+        std::cout << "Searching ID " << q_id_2 << " int8 vector: " << q_vector_2 << std::endl;
 
         milvus::SearchResponse response;
         status = client->Search(request, response);

@@ -118,6 +118,20 @@ TEST_F(UnconnectMilvusMockedTest, V2IteratorsRejectOrderByBeforeRpc) {
     EXPECT_EQ(status.Message(), "ORDER BY with iterator is not supported");
 }
 
+TEST_F(UnconnectMilvusMockedTest, V2SearchIteratorRejectsIDs) {
+    auto client = CreateConnectedClient(service_, server_.ListenPort());
+
+    milvus::SearchIteratorRequest request;
+    static_cast<milvus::SearchRequest&>(request).WithIDs(std::vector<int64_t>{1});
+    milvus::SearchIteratorPtr iterator;
+
+    auto status = client->SearchIterator(request, iterator);
+    EXPECT_FALSE(status.IsOk());
+    EXPECT_EQ(status.Code(), milvus::StatusCode::INVALID_ARGUMENT);
+    EXPECT_EQ(status.Message(), "Search iterator does not support IDs as search targets");
+    EXPECT_EQ(iterator, nullptr);
+}
+
 TEST_F(UnconnectMilvusMockedTest, V2SessionUnaryRoutingAndIsolation) {
     auto client = CreateConnectedClient(service_, server_.ListenPort());
     milvus::MilvusClientV2SessionPtr session_a;

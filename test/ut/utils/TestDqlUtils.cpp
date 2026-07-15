@@ -546,6 +546,37 @@ TEST_F(DqlUtilsTest, ConvertSearchRequestV2) {
     EXPECT_EQ(highlight_query.at(0).at("text"), "milvus");
 }
 
+TEST_F(DqlUtilsTest, ConvertSearchRequestV2WithIntegerIDs) {
+    milvus::SearchRequest req;
+    req.WithCollectionName("test_coll").WithIDs({1, 2, 3});
+
+    milvus::proto::milvus::SearchRequest rpc_request;
+    auto status = milvus::ConvertSearchRequest(req, "default", rpc_request);
+    EXPECT_TRUE(status.IsOk());
+    EXPECT_TRUE(rpc_request.has_ids());
+    EXPECT_TRUE(rpc_request.ids().has_int_id());
+    EXPECT_EQ(rpc_request.ids().int_id().data_size(), 3);
+    EXPECT_EQ(rpc_request.ids().int_id().data(0), 1);
+    EXPECT_EQ(rpc_request.ids().int_id().data(1), 2);
+    EXPECT_EQ(rpc_request.ids().int_id().data(2), 3);
+    EXPECT_EQ(rpc_request.nq(), 3);
+}
+
+TEST_F(DqlUtilsTest, ConvertSearchRequestV2WithStringIDs) {
+    milvus::SearchRequest req;
+    req.WithCollectionName("test_coll").WithIDs(std::vector<std::string>{"a", "b"});
+
+    milvus::proto::milvus::SearchRequest rpc_request;
+    auto status = milvus::ConvertSearchRequest(req, "default", rpc_request);
+    EXPECT_TRUE(status.IsOk());
+    EXPECT_TRUE(rpc_request.has_ids());
+    EXPECT_TRUE(rpc_request.ids().has_str_id());
+    EXPECT_EQ(rpc_request.ids().str_id().data_size(), 2);
+    EXPECT_EQ(rpc_request.ids().str_id().data(0), "a");
+    EXPECT_EQ(rpc_request.ids().str_id().data(1), "b");
+    EXPECT_EQ(rpc_request.nq(), 2);
+}
+
 TEST_F(DqlUtilsTest, ConvertSearchRequestV2WithSemanticHighlighter) {
     milvus::SearchRequest req;
     req.WithCollectionName("test_coll");

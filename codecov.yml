@@ -1,5 +1,6 @@
 # Configuration for CodeCov
 codecov:
+  branch: master
   require_ci_to_pass: no
   notify:
     require_ci_to_pass: no
