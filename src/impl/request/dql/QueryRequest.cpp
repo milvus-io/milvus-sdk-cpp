@@ -137,4 +137,26 @@ QueryRequest::WithTimezone(const std::string& timezone) {
     return *this;
 }
 
+const std::vector<OrderByField>&
+QueryRequest::OrderByFields() const {
+    return order_by_fields_;
+}
+
+void
+QueryRequest::SetOrderByFields(std::vector<OrderByField>&& order_by_fields) {
+    order_by_fields_ = std::move(order_by_fields);
+}
+
+QueryRequest&
+QueryRequest::WithOrderByFields(std::vector<OrderByField>&& order_by_fields) {
+    SetOrderByFields(std::move(order_by_fields));
+    return *this;
+}
+
+QueryRequest&
+QueryRequest::AddOrderByField(OrderByField order_by_field) {
+    order_by_fields_.emplace_back(std::move(order_by_field));
+    return *this;
+}
+
 }  // namespace milvus

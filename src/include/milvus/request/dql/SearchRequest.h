@@ -16,8 +16,11 @@
 
 #pragma once
 
+#include <vector>
+
 #include "../../types/FunctionScore.h"
 #include "../../types/Highlighter.h"
+#include "../../types/OrderByField.h"
 #include "../../types/SearchAggregation.h"
 #include "../../types/SearchRequestBase.h"
 #include "./DQLRequestBase.h"
@@ -287,6 +290,30 @@ class MILVUS_SDK_API SearchRequest : public DQLRequestBase<SearchRequest>,
     SearchRequest&
     WithSearchAggregation(const SearchAggregationPtr& aggregation);
 
+    /**
+     * @brief Get fields used to order search results.
+     */
+    const std::vector<OrderByField>&
+    OrderByFields() const;
+
+    /**
+     * @brief Set fields used to order search results.
+     */
+    void
+    SetOrderByFields(std::vector<OrderByField>&& order_by_fields);
+
+    /**
+     * @brief Set fields used to order search results.
+     */
+    SearchRequest&
+    WithOrderByFields(std::vector<OrderByField>&& order_by_fields);
+
+    /**
+     * @brief Add a field used to order search results.
+     */
+    SearchRequest&
+    AddOrderByField(OrderByField order_by_field);
+
     Status
     Validate() const;
 
@@ -294,6 +321,7 @@ class MILVUS_SDK_API SearchRequest : public DQLRequestBase<SearchRequest>,
     FunctionScorePtr ranker_;
     HighlighterPtr highlighter_;
     SearchAggregationPtr search_aggregation_;
+    std::vector<OrderByField> order_by_fields_;
 };
 
 }  // namespace milvus
