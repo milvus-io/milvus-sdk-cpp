@@ -18,6 +18,7 @@
 
 #include "../../types/FunctionScore.h"
 #include "../../types/Highlighter.h"
+#include "../../types/IDArray.h"
 #include "../../types/SearchRequestBase.h"
 #include "./DQLRequestBase.h"
 #include "milvus/Export.h"
@@ -34,6 +35,40 @@ class MILVUS_SDK_API SearchRequest : public DQLRequestBase<SearchRequest>,
      * @brief Constructor
      */
     SearchRequest() = default;
+
+    /**
+     * @brief Get primary keys whose vectors are used as search targets.
+     */
+    const IDArray&
+    IDs() const;
+
+    /**
+     * @brief Set integer primary keys whose vectors are used as search targets.
+     * Note: IDs and target vectors cannot be specified at the same time.
+     */
+    void
+    SetIDs(std::vector<int64_t>&& id_array);
+
+    /**
+     * @brief Set string primary keys whose vectors are used as search targets.
+     * Note: IDs and target vectors cannot be specified at the same time.
+     */
+    void
+    SetIDs(std::vector<std::string>&& id_array);
+
+    /**
+     * @brief Set integer primary keys whose vectors are used as search targets.
+     * Note: IDs and target vectors cannot be specified at the same time.
+     */
+    SearchRequest&
+    WithIDs(std::vector<int64_t>&& id_array);
+
+    /**
+     * @brief Set string primary keys whose vectors are used as search targets.
+     * Note: IDs and target vectors cannot be specified at the same time.
+     */
+    SearchRequest&
+    WithIDs(std::vector<std::string>&& id_array);
 
     /**
      * @brief Specifies the metric type.
@@ -268,7 +303,11 @@ class MILVUS_SDK_API SearchRequest : public DQLRequestBase<SearchRequest>,
     SearchRequest&
     WithHighlighter(const HighlighterPtr& highlighter);
 
+    Status
+    Validate() const;
+
  private:
+    IDArray ids_;
     FunctionScorePtr ranker_;
     HighlighterPtr highlighter_;
 };

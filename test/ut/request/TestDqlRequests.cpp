@@ -226,6 +226,31 @@ TEST_F(SearchRequestTest, GettersAndSetters) {
     EXPECT_NE(req2.TargetVectors(), nullptr);
 }
 
+TEST_F(SearchRequestTest, IDs) {
+    milvus::SearchRequest int_req;
+    auto& int_ref = int_req.WithIDs({1, 2, 3});
+    EXPECT_EQ(&int_ref, &int_req);
+    EXPECT_TRUE(int_req.IDs().IsIntegerID());
+    EXPECT_EQ(int_req.IDs().IntIDArray(), (std::vector<int64_t>{1, 2, 3}));
+    EXPECT_TRUE(int_req.Validate().IsOk());
+
+    milvus::SearchRequest str_req;
+    str_req.SetIDs(std::vector<std::string>{"a", "b"});
+    EXPECT_FALSE(str_req.IDs().IsIntegerID());
+    EXPECT_EQ(str_req.IDs().StrIDArray(), (std::vector<std::string>{"a", "b"}));
+    EXPECT_TRUE(str_req.Validate().IsOk());
+}
+
+TEST_F(SearchRequestTest, IDsAndVectorsAreMutuallyExclusive) {
+    milvus::SearchRequest req;
+    req.WithIDs({1, 2}).AddFloatVector({0.1f, 0.2f});
+
+    auto status = req.Validate();
+    EXPECT_FALSE(status.IsOk());
+    EXPECT_EQ(status.Code(), milvus::StatusCode::INVALID_ARGUMENT);
+    EXPECT_EQ(status.Message(), "Only one of IDs or target vectors can be provided");
+}
+
 TEST_F(SearchRequestTest, WithHighlighter) {
     milvus::SearchRequest req;
     auto highlighter = std::make_shared<milvus::SemanticHighlighter>();
