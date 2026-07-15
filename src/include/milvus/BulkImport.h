@@ -47,6 +47,20 @@ class MILVUS_SDK_API BulkImport {
     static nlohmann::json
     GetImportJobProgress(const std::string& url, const std::string& job_id, const std::string& db_name = "default",
                          const std::string& api_key = "");
+
+    /**
+     * @brief Commit a 2PC import job created with options.auto_commit=false, making its staged imported data visible.
+     */
+    static nlohmann::json
+    CommitImport(const std::string& url, const std::string& job_id, const std::string& db_name = "default",
+                 const std::string& api_key = "");
+
+    /**
+     * @brief Abort a 2PC import job created with options.auto_commit=false, discarding its staged imported data.
+     */
+    static nlohmann::json
+    AbortImport(const std::string& url, const std::string& job_id, const std::string& db_name = "default",
+                const std::string& api_key = "");
 };
 
 }  // namespace milvus
