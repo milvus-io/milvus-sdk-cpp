@@ -16,6 +16,8 @@
 
 #include <gtest/gtest.h>
 
+#include <utility>
+
 #include "milvus/types/IDArray.h"
 
 class IDArrayTest : public ::testing::Test {};
@@ -65,4 +67,46 @@ TEST_F(IDArrayTest, GetRowCount) {
         milvus::IDArray id_array;
         EXPECT_EQ(id_array.GetRowCount(), 0);
     }
+}
+
+TEST_F(IDArrayTest, CopyConstructor) {
+    milvus::IDArray source(std::vector<std::string>{"a", "b", "c"});
+    milvus::IDArray copied(source);
+
+    EXPECT_FALSE(copied.IsIntegerID());
+    EXPECT_EQ(copied.StrIDArray(), source.StrIDArray());
+    EXPECT_TRUE(copied.IntIDArray().empty());
+}
+
+TEST_F(IDArrayTest, MoveConstructor) {
+    milvus::IDArray source(std::vector<int64_t>{1, 2, 3});
+    const auto* source_data = source.IntIDArray().data();
+    milvus::IDArray moved(std::move(source));
+
+    EXPECT_TRUE(moved.IsIntegerID());
+    EXPECT_EQ(moved.IntIDArray(), std::vector<int64_t>({1, 2, 3}));
+    EXPECT_EQ(moved.IntIDArray().data(), source_data);
+    EXPECT_TRUE(moved.StrIDArray().empty());
+}
+
+TEST_F(IDArrayTest, CopyAssignment) {
+    milvus::IDArray source(std::vector<int64_t>{1, 2, 3});
+    milvus::IDArray copied(std::vector<std::string>{"a", "b"});
+    copied = source;
+
+    EXPECT_TRUE(copied.IsIntegerID());
+    EXPECT_EQ(copied.IntIDArray(), source.IntIDArray());
+    EXPECT_TRUE(copied.StrIDArray().empty());
+}
+
+TEST_F(IDArrayTest, MoveAssignment) {
+    milvus::IDArray source(std::vector<std::string>{"a", "b", "c"});
+    const auto* source_data = source.StrIDArray().data();
+    milvus::IDArray moved(std::vector<int64_t>{1, 2});
+    moved = std::move(source);
+
+    EXPECT_FALSE(moved.IsIntegerID());
+    EXPECT_EQ(moved.StrIDArray(), std::vector<std::string>({"a", "b", "c"}));
+    EXPECT_EQ(moved.StrIDArray().data(), source_data);
+    EXPECT_TRUE(moved.IntIDArray().empty());
 }

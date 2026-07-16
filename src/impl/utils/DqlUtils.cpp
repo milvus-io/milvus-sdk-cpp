@@ -992,6 +992,41 @@ SetEmbeddingLists(const std::vector<EmbeddingList>& emb_lists, proto::milvus::Se
     return Status::OK();
 }
 
+namespace {
+
+Status
+SetSearchTarget(const SearchRequestBase& request, proto::milvus::SearchRequest& rpc_request) {
+    if (request.TargetVectors() != nullptr) {
+        return SetTargetVectors(request.TargetVectors(), &rpc_request);
+    }
+    return SetEmbeddingLists(request.EmbeddingLists(), &rpc_request);
+}
+
+Status
+SetSearchTarget(const SearchRequest& request, proto::milvus::SearchRequest& rpc_request) {
+    const auto& ids = request.IDs();
+    if (ids.GetRowCount() == 0) {
+        return SetSearchTarget(static_cast<const SearchRequestBase&>(request), rpc_request);
+    }
+
+    auto* rpc_ids = rpc_request.mutable_ids();
+    if (ids.IsIntegerID()) {
+        auto* int_ids = rpc_ids->mutable_int_id();
+        for (const auto id : ids.IntIDArray()) {
+            int_ids->add_data(id);
+        }
+    } else {
+        auto* str_ids = rpc_ids->mutable_str_id();
+        for (const auto& id : ids.StrIDArray()) {
+            str_ids->add_data(id);
+        }
+    }
+    rpc_request.set_nq(static_cast<int64_t>(ids.GetRowCount()));
+    return Status::OK();
+}
+
+}  // namespace
+
 void
 SetExtraParams(const std::unordered_map<std::string, std::string>& params,
                ::google::protobuf::RepeatedPtrField<proto::common::KeyValuePair>* kv_pairs) {
@@ -1511,17 +1546,10 @@ ConvertSearchRequest(const T& request, const std::string& current_db, proto::mil
         rpc_request.add_output_fields(output_field);
     }
 
-    // set target vectors
-    if (request.TargetVectors() != nullptr) {
-        auto status = SetTargetVectors(request.TargetVectors(), &rpc_request);
-        if (!status.IsOk()) {
-            return status;
-        }
-    } else {
-        auto status = SetEmbeddingLists(request.EmbeddingLists(), &rpc_request);
-        if (!status.IsOk()) {
-            return status;
-        }
+    // set target vectors or primary keys
+    auto target_status = SetSearchTarget(request, rpc_request);
+    if (!target_status.IsOk()) {
+        return target_status;
     }
 
     auto setParamFunc = [&rpc_request](const std::string& key, const std::string& value) {
