@@ -16,6 +16,7 @@
 
 #include "DqlUtils.h"
 
+#include <algorithm>
 #include <set>
 #include <string>
 #include <type_traits>
@@ -366,9 +367,58 @@ GetValidData(const google::protobuf::RepeatedField<bool>& proto_valid, size_t of
     return Status::OK();
 }
 
+void
+GetNullableVectorRange(const google::protobuf::RepeatedField<bool>& proto_valid, size_t offset,
+                       const std::vector<bool>& valid_data, size_t* packed_vector_offset, size_t& vector_offset,
+                       size_t& vector_count) {
+    vector_offset = offset;
+    if (proto_valid.empty()) {
+        return;
+    }
+
+    if (packed_vector_offset == nullptr) {
+        const auto logical_offset = std::min(offset, static_cast<size_t>(proto_valid.size()));
+        vector_offset =
+            static_cast<size_t>(std::count(proto_valid.begin(), proto_valid.begin() + logical_offset, true));
+    } else {
+        vector_offset = *packed_vector_offset;
+    }
+    vector_count = static_cast<size_t>(std::count(valid_data.begin(), valid_data.end(), true));
+    if (packed_vector_offset != nullptr) {
+        *packed_vector_offset += vector_count;
+    }
+}
+
+template <typename T>
 Status
-CreateMilvusFieldData(const proto::schema::FieldData& proto_data, size_t offset, size_t count,
-                      FieldDataPtr& field_data) {
+ExpandNullableVectorData(const std::string& field_name, const std::vector<bool>& valid_data, std::vector<T>& data) {
+    if (valid_data.empty()) {
+        return Status::OK();
+    }
+
+    const auto valid_count = static_cast<size_t>(std::count(valid_data.begin(), valid_data.end(), true));
+    if (data.size() != valid_count) {
+        return {StatusCode::UNKNOWN_ERROR,
+                "The returned nullable vector data count does not match valid_data for field: " + field_name};
+    }
+
+    std::vector<T> expanded;
+    expanded.reserve(valid_data.size());
+    size_t data_index = 0;
+    for (const auto valid : valid_data) {
+        if (valid) {
+            expanded.emplace_back(std::move(data[data_index++]));
+        } else {
+            expanded.emplace_back(T{});
+        }
+    }
+    data = std::move(expanded);
+    return Status::OK();
+}
+
+Status
+CreateMilvusFieldDataImpl(const proto::schema::FieldData& proto_data, size_t offset, size_t count,
+                          size_t* packed_vector_offset, FieldDataPtr& field_data) {
     field_data = nullptr;
     auto field_type = proto_data.type();
     std::string name = proto_data.field_name();
@@ -377,12 +427,19 @@ CreateMilvusFieldData(const proto::schema::FieldData& proto_data, size_t offset,
     const auto& proto_valid = proto_data.valid_data();
     std::vector<bool> valid_data;
     GetValidData(proto_valid, offset, count, valid_data);
+    size_t vector_offset = offset;
+    size_t vector_count = count;
+    GetNullableVectorRange(proto_valid, offset, valid_data, packed_vector_offset, vector_offset, vector_count);
 
     switch (field_type) {
         case proto::schema::DataType::BinaryVector: {
             const auto& str = proto_vectors.binary_vector();
-            std::vector<BinaryVecFieldData::ElementT> vectors =
-                BuildFieldDataVectors<uint8_t, char>(proto_vectors.dim() / 8, str.data(), str.size(), offset, count);
+            std::vector<BinaryVecFieldData::ElementT> vectors = BuildFieldDataVectors<uint8_t, char>(
+                proto_vectors.dim() / 8, str.data(), str.size(), vector_offset, vector_count);
+            auto status = ExpandNullableVectorData(name, valid_data, vectors);
+            if (!status.IsOk()) {
+                return status;
+            }
             field_data =
                 std::make_shared<BinaryVecFieldData>(std::move(name), std::move(vectors), std::move(valid_data));
             return Status::OK();
@@ -390,38 +447,58 @@ CreateMilvusFieldData(const proto::schema::FieldData& proto_data, size_t offset,
         case proto::schema::DataType::FloatVector: {
             const auto& floats = proto_vectors.float_vector().data();
             std::vector<FloatVecFieldData::ElementT> vectors = BuildFieldDataVectors<float, float>(
-                proto_vectors.dim() * 4, floats.data(), floats.size(), offset, count);
+                proto_vectors.dim() * 4, floats.data(), floats.size(), vector_offset, vector_count);
+            auto status = ExpandNullableVectorData(name, valid_data, vectors);
+            if (!status.IsOk()) {
+                return status;
+            }
             field_data =
                 std::make_shared<FloatVecFieldData>(std::move(name), std::move(vectors), std::move(valid_data));
             return Status::OK();
         }
         case proto::schema::DataType::Float16Vector: {
             const auto& str = proto_vectors.float16_vector();
-            std::vector<Float16VecFieldData::ElementT> vectors =
-                BuildFieldDataVectors<uint16_t, char>(proto_vectors.dim() * 2, str.data(), str.size(), offset, count);
+            std::vector<Float16VecFieldData::ElementT> vectors = BuildFieldDataVectors<uint16_t, char>(
+                proto_vectors.dim() * 2, str.data(), str.size(), vector_offset, vector_count);
+            auto status = ExpandNullableVectorData(name, valid_data, vectors);
+            if (!status.IsOk()) {
+                return status;
+            }
             field_data =
                 std::make_shared<Float16VecFieldData>(std::move(name), std::move(vectors), std::move(valid_data));
             return Status::OK();
         }
         case proto::schema::DataType::BFloat16Vector: {
             const auto& str = proto_vectors.bfloat16_vector();
-            std::vector<BFloat16VecFieldData::ElementT> vectors =
-                BuildFieldDataVectors<uint16_t, char>(proto_vectors.dim() * 2, str.data(), str.size(), offset, count);
+            std::vector<BFloat16VecFieldData::ElementT> vectors = BuildFieldDataVectors<uint16_t, char>(
+                proto_vectors.dim() * 2, str.data(), str.size(), vector_offset, vector_count);
+            auto status = ExpandNullableVectorData(name, valid_data, vectors);
+            if (!status.IsOk()) {
+                return status;
+            }
             field_data =
                 std::make_shared<BFloat16VecFieldData>(std::move(name), std::move(vectors), std::move(valid_data));
             return Status::OK();
         }
         case proto::schema::DataType::SparseFloatVector: {
-            std::vector<SparseFloatVecFieldData::ElementT> vectors =
-                BuildFieldDataSparseVectors(proto_vectors.sparse_float_vector().contents(), offset, count);
+            std::vector<SparseFloatVecFieldData::ElementT> vectors = BuildFieldDataSparseVectors(
+                proto_vectors.sparse_float_vector().contents(), vector_offset, vector_count);
+            auto status = ExpandNullableVectorData(name, valid_data, vectors);
+            if (!status.IsOk()) {
+                return status;
+            }
             field_data =
                 std::make_shared<SparseFloatVecFieldData>(std::move(name), std::move(vectors), std::move(valid_data));
             return Status::OK();
         }
         case proto::schema::DataType::Int8Vector: {
             const auto& str = proto_vectors.int8_vector();
-            std::vector<Int8VecFieldData::ElementT> vectors =
-                BuildFieldDataVectors<int8_t, char>(proto_vectors.dim(), str.data(), str.size(), offset, count);
+            std::vector<Int8VecFieldData::ElementT> vectors = BuildFieldDataVectors<int8_t, char>(
+                proto_vectors.dim(), str.data(), str.size(), vector_offset, vector_count);
+            auto status = ExpandNullableVectorData(name, valid_data, vectors);
+            if (!status.IsOk()) {
+                return status;
+            }
             field_data = std::make_shared<Int8VecFieldData>(std::move(name), std::move(vectors), std::move(valid_data));
             return Status::OK();
         }
@@ -512,8 +589,18 @@ CreateMilvusFieldData(const proto::schema::FieldData& proto_data, size_t offset,
 }
 
 Status
+CreateMilvusFieldData(const proto::schema::FieldData& proto_data, size_t offset, size_t count,
+                      FieldDataPtr& field_data) {
+    return CreateMilvusFieldDataImpl(proto_data, offset, count, nullptr, field_data);
+}
+
+Status
 GetFieldDataRowCount(const proto::schema::FieldData& proto_data, size_t& row_count) {
     row_count = 0;
+    if (!proto_data.valid_data().empty()) {
+        row_count = static_cast<size_t>(proto_data.valid_data_size());
+        return Status::OK();
+    }
     auto field_type = proto_data.type();
     const auto& proto_vectors = proto_data.vectors();
     const auto& proto_scalars = proto_data.scalars();
@@ -1070,6 +1157,10 @@ template <typename T>
 std::function<nlohmann::json(size_t)>
 GenGetter(const FieldDataPtr& field) {
     return [&field](size_t i) {
+        std::shared_ptr<T> real_field = std::static_pointer_cast<T>(field);
+        if (real_field->IsNull(i)) {
+            return nlohmann::json();
+        }
         // special process float16/bfloat16 vector to float arrays
         if (field->Type() == DataType::FLOAT16_VECTOR || field->Type() == DataType::BFLOAT16_VECTOR) {
             bool is_fp16 = (field->Type() == DataType::FLOAT16_VECTOR);
@@ -1081,12 +1172,7 @@ GenGetter(const FieldDataPtr& field) {
                            [&is_fp16](uint16_t val) { return is_fp16 ? F16toF32(val) : BF16toF32(val); });
             return nlohmann::json(f32_vec);
         } else {
-            std::shared_ptr<T> real_field = std::static_pointer_cast<T>(field);
-            if (real_field->IsNull(i)) {
-                return nlohmann::json();
-            } else {
-                return nlohmann::json(real_field->Value(i));
-            }
+            return nlohmann::json(real_field->Value(i));
         }
     };
 }
@@ -1685,6 +1771,7 @@ ConvertSearchResults(const proto::milvus::SearchResults& rpc_results, const std:
     }
     std::vector<SingleResult> single_results;
     single_results.reserve(num_of_queries);
+    std::vector<size_t> packed_vector_offsets(fields_data.size(), 0);
     int offset{0};
     for (int i = 0; i < num_of_queries; ++i) {
         std::vector<FieldDataPtr> item_fields_data;
@@ -1697,9 +1784,11 @@ ConvertSearchResults(const proto::milvus::SearchResults& rpc_results, const std:
         }
         auto item_topk = topks[i];
         std::set<std::string> field_names;
-        for (const auto& field_data : fields_data) {
+        for (int field_index = 0; field_index < fields_data.size(); ++field_index) {
+            const auto& field_data = fields_data.Get(field_index);
             FieldDataPtr field_ptr;
-            auto status = CreateMilvusFieldData(field_data, offset, item_topk, field_ptr);
+            auto status = CreateMilvusFieldDataImpl(field_data, offset, item_topk, &packed_vector_offsets[field_index],
+                                                    field_ptr);
             if (!status.IsOk()) {
                 return status;
             }
@@ -2068,7 +2157,15 @@ CopyFieldDataRange(const FieldDataPtr& src, uint64_t from, uint64_t to, FieldDat
         std::vector<typename T::ElementT> target_data{};
         target_data.reserve(to - from);
         std::copy(src_data.begin() + from, src_data.begin() + to, std::back_inserter(target_data));
-        target = std::make_shared<T>(src->Name(), std::move(target_data));
+        std::vector<bool> target_valid_data;
+        const auto& src_valid_data = src_ptr->ValidData();
+        if (!src_valid_data.empty()) {
+            target_valid_data.reserve(to - from);
+            for (auto i = from; i < to; ++i) {
+                target_valid_data.push_back(!src_ptr->IsNull(i));
+            }
+        }
+        target = std::make_shared<T>(src->Name(), std::move(target_data), std::move(target_valid_data));
     }
     return Status::OK();
 }
@@ -2198,7 +2295,10 @@ Append(const FieldDataPtr& src, FieldDataPtr& target) {
     auto src_ptr = std::static_pointer_cast<T>(src);
     auto target_ptr = std::static_pointer_cast<T>(target);
     const auto& src_data = src_ptr->Data();
-    target_ptr->Append(src_data);
+    auto code = target_ptr->Append(src_data, src_ptr->ValidData());
+    if (code != StatusCode::OK) {
+        return {code, "Not able to append field validity metadata"};
+    }
     return Status::OK();
 }
 

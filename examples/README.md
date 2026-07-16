@@ -49,6 +49,7 @@ Examples for MilvusClientV2:
 - `./cmake_build/examples/v2/sdk_minhash_function_v2`: example to show the usage of the MinHash function for text deduplication.
 - `./cmake_build/examples/v2/sdk_multi_analyzer_v2`: example to show the usage of multi-analyzer for full text match.
 - `./cmake_build/examples/v2/sdk_nullable_field_v2`: example to show the usage of nullable field.
+- `./cmake_build/examples/v2/sdk_nullable_vector_v2`: example to show the usage of nullable vector fields.
 - `./cmake_build/examples/v2/sdk_optimize_v2`: example to show the usage of Optimize().
 - `./cmake_build/examples/v2/sdk_order_by_v2`: example to show the usage of ORDER BY for search and query.
 - `./cmake_build/examples/v2/sdk_partition_key_v2`: example to show the usage of partition key.

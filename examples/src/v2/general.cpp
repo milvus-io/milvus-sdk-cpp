@@ -99,8 +99,8 @@ main(int argc, char* argv[]) {
         }
     }
 
-    // set timeout value for each rpc call
-    client->SetRpcDeadlineMs(1000);
+    // Allow enough time for RPCs when examples run sequentially and the server is handling background work.
+    client->SetRpcDeadlineMs(10000);
 
     // print the server version
     std::string version;

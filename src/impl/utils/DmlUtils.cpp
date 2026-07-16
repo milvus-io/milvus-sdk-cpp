@@ -16,6 +16,7 @@
 
 #include "DmlUtils.h"
 
+#include <algorithm>
 #include <limits>
 #include <set>
 
@@ -324,42 +325,106 @@ ParseSparseFloatVector(const nlohmann::json& obj, const std::string& field_name,
 
 ////////////////////////////////////////////////////////////////////////////////////////
 // methods to convert SDK field types to proto field types
+template <typename T>
+void
+CopyValidData(const Field& field, proto::schema::FieldData& proto_field);
+
+template <typename T>
+Status
+CheckValidDataSize(const Field& field) {
+    const auto& actual_field = dynamic_cast<const T&>(field);
+    const auto& valid_data = actual_field.ValidData();
+    if (!valid_data.empty() && valid_data.size() != actual_field.Count()) {
+        return {StatusCode::INVALID_ARGUMENT,
+                "The valid data count does not match the row count for field: " + field.Name()};
+    }
+    return Status::OK();
+}
+
+template <typename T>
+Status
+CheckDenseVectorDimensions(const Field& field, bool nullable, int64_t schema_dim, size_t dimension_multiplier = 1) {
+    const auto& actual_field = dynamic_cast<const T&>(field);
+    const auto& data = actual_field.Data();
+    auto expected_dim = schema_dim;
+    for (size_t i = 0; i < actual_field.Count(); ++i) {
+        if (nullable && actual_field.IsNull(i)) {
+            continue;
+        }
+        const auto item_dim = static_cast<int64_t>(data[i].size() * dimension_multiplier);
+        if (item_dim == 0) {
+            return {StatusCode::INVALID_ARGUMENT, "Vector data cannot be empty for field: " + field.Name()};
+        }
+        if (expected_dim == 0) {
+            expected_dim = item_dim;
+        } else if (item_dim != expected_dim) {
+            return {StatusCode::DIMENSION_NOT_EQUAL,
+                    "Vector dimension does not match the schema dimension for field: " + field.Name()};
+        }
+    }
+    return Status::OK();
+}
+
 proto::schema::VectorField*
-CreateProtoVectorField(const BinaryVecFieldData& field) {
+CreateProtoVectorField(const BinaryVecFieldData& field, bool nullable, int64_t schema_dim) {
     auto ret = new proto::schema::VectorField{};
     auto& data = field.Data();
-    auto dim = data.front().size() * 8;
+    auto dim = schema_dim;
     auto& vectors_data = *(ret->mutable_binary_vector());
-    vectors_data.reserve(data.size() * data.front().size());
-    for (const auto& item : data) {
+    for (size_t i = 0; i < data.size(); ++i) {
+        if (nullable && field.IsNull(i)) {
+            continue;
+        }
+        const auto& item = data[i];
+        if (dim == 0) {
+            dim = static_cast<int64_t>(item.size() * 8);
+        }
         std::copy(item.begin(), item.end(), std::back_inserter(vectors_data));
     }
-    ret->set_dim(static_cast<int64_t>(dim));
+    ret->set_dim(dim);
     return ret;
 }
 
 proto::schema::VectorField*
-CreateProtoVectorField(const FloatVecFieldData& field) {
+CreateProtoVectorField(const FloatVecFieldData& field, bool nullable, int64_t schema_dim) {
     auto ret = new proto::schema::VectorField{};
     auto& data = field.Data();
-    auto dim = data.front().size();
+    auto dim = schema_dim;
     auto& vectors_data = *(ret->mutable_float_vector()->mutable_data());
-    vectors_data.Reserve(static_cast<int>(data.size() * dim));
-    for (const auto& item : data) {
+    auto packed_row_count = data.size();
+    const auto& valid_data = field.ValidData();
+    if (nullable && !valid_data.empty()) {
+        packed_row_count = static_cast<size_t>(std::count(valid_data.begin(), valid_data.end(), true));
+    }
+    if (dim > 0 && packed_row_count > 0) {
+        vectors_data.Reserve(static_cast<int>(packed_row_count * dim));
+    }
+    for (size_t i = 0; i < data.size(); ++i) {
+        if (nullable && field.IsNull(i)) {
+            continue;
+        }
+        const auto& item = data[i];
+        if (dim == 0) {
+            dim = static_cast<int64_t>(item.size());
+        }
         vectors_data.Add(item.begin(), item.end());
     }
-    ret->set_dim(static_cast<int64_t>(dim));
+    ret->set_dim(dim);
     return ret;
 }
 
 proto::schema::VectorField*
-CreateProtoVectorField(const SparseFloatVecFieldData& field) {
+CreateProtoVectorField(const SparseFloatVecFieldData& field, bool nullable, int64_t schema_dim) {
     auto ret = new proto::schema::VectorField{};
     auto& data = field.Data();
     auto& vectors_data = *(ret->mutable_sparse_float_vector()->mutable_contents());
     vectors_data.Reserve(static_cast<int>(data.size()));
-    size_t max_dim = 0;
-    for (const auto& item : data) {
+    size_t max_dim = static_cast<size_t>(schema_dim);
+    for (size_t i = 0; i < data.size(); ++i) {
+        if (nullable && field.IsNull(i)) {
+            continue;
+        }
+        const auto& item = data[i];
         vectors_data.Add(EncodeSparseFloatVector(item));
         max_dim = item.size() > max_dim ? item.size() : max_dim;
     }
@@ -368,46 +433,62 @@ CreateProtoVectorField(const SparseFloatVecFieldData& field) {
 }
 
 proto::schema::VectorField*
-CreateProtoVectorField(const Float16VecFieldData& field) {
+CreateProtoVectorField(const Float16VecFieldData& field, bool nullable, int64_t schema_dim) {
     auto ret = new proto::schema::VectorField{};
     auto& data = field.Data();
-    auto dim = data.front().size();
-    auto vec_bytes = dim * 2;
+    auto dim = schema_dim;
     auto& vectors_data = *(ret->mutable_float16_vector());
-    vectors_data.resize(data.size() * vec_bytes);
     for (size_t i = 0; i < data.size(); i++) {
-        std::memcpy(&vectors_data[i * vec_bytes], data[i].data(), vec_bytes);
+        if (nullable && field.IsNull(i)) {
+            continue;
+        }
+        const auto& item = data[i];
+        if (dim == 0) {
+            dim = static_cast<int64_t>(item.size());
+        }
+        vectors_data.append(reinterpret_cast<const char*>(item.data()), item.size() * sizeof(uint16_t));
     }
-    ret->set_dim(static_cast<int64_t>(dim));
+    ret->set_dim(dim);
     return ret;
 }
 
 proto::schema::VectorField*
-CreateProtoVectorField(const BFloat16VecFieldData& field) {
+CreateProtoVectorField(const BFloat16VecFieldData& field, bool nullable, int64_t schema_dim) {
     auto ret = new proto::schema::VectorField{};
     auto& data = field.Data();
-    auto dim = data.front().size();
-    auto vec_bytes = dim * 2;
+    auto dim = schema_dim;
     auto& vectors_data = *(ret->mutable_bfloat16_vector());
-    vectors_data.resize(data.size() * vec_bytes);
     for (size_t i = 0; i < data.size(); i++) {
-        std::memcpy(&vectors_data[i * vec_bytes], data[i].data(), vec_bytes);
+        if (nullable && field.IsNull(i)) {
+            continue;
+        }
+        const auto& item = data[i];
+        if (dim == 0) {
+            dim = static_cast<int64_t>(item.size());
+        }
+        vectors_data.append(reinterpret_cast<const char*>(item.data()), item.size() * sizeof(uint16_t));
     }
-    ret->set_dim(static_cast<int64_t>(dim));
+    ret->set_dim(dim);
     return ret;
 }
 
 proto::schema::VectorField*
-CreateProtoVectorField(const Int8VecFieldData& field) {
+CreateProtoVectorField(const Int8VecFieldData& field, bool nullable, int64_t schema_dim) {
     auto ret = new proto::schema::VectorField{};
     auto& data = field.Data();
-    auto dim = data.front().size();
+    auto dim = schema_dim;
     auto& vectors_data = *(ret->mutable_int8_vector());
-    vectors_data.reserve(data.size() * dim);
-    for (const auto& item : data) {
+    for (size_t i = 0; i < data.size(); ++i) {
+        if (nullable && field.IsNull(i)) {
+            continue;
+        }
+        const auto& item = data[i];
+        if (dim == 0) {
+            dim = static_cast<int64_t>(item.size());
+        }
         std::copy(item.begin(), item.end(), std::back_inserter(vectors_data));
     }
-    ret->set_dim(static_cast<int64_t>(dim));
+    ret->set_dim(dim);
     return ret;
 }
 
@@ -681,27 +762,101 @@ CreateProtoFieldData(const FieldDataSchema& data_schema, proto::schema::FieldDat
     const auto field_type = field.Type();
     field_data.set_field_name(field.Name());
     field_data.set_type(DataTypeCast(field_type));
+    auto schema_dim = schema ? schema->Dimension() : 0;
 
     switch (field_type) {
-        case DataType::BINARY_VECTOR:
-            field_data.set_allocated_vectors(CreateProtoVectorField(dynamic_cast<const BinaryVecFieldData&>(field)));
-            break;
-        case DataType::FLOAT_VECTOR:
-            field_data.set_allocated_vectors(CreateProtoVectorField(dynamic_cast<const FloatVecFieldData&>(field)));
-            break;
-        case DataType::SPARSE_FLOAT_VECTOR:
+        case DataType::BINARY_VECTOR: {
+            auto status = CheckValidDataSize<BinaryVecFieldData>(field);
+            if (!status.IsOk()) {
+                return status;
+            }
+            status = CheckDenseVectorDimensions<BinaryVecFieldData>(field, nullable_default, schema_dim, 8);
+            if (!status.IsOk()) {
+                return status;
+            }
+            if (nullable_default) {
+                CopyValidData<BinaryVecFieldData>(field, field_data);
+            }
             field_data.set_allocated_vectors(
-                CreateProtoVectorField(dynamic_cast<const SparseFloatVecFieldData&>(field)));
+                CreateProtoVectorField(dynamic_cast<const BinaryVecFieldData&>(field), nullable_default, schema_dim));
             break;
-        case DataType::FLOAT16_VECTOR:
-            field_data.set_allocated_vectors(CreateProtoVectorField(dynamic_cast<const Float16VecFieldData&>(field)));
+        }
+        case DataType::FLOAT_VECTOR: {
+            auto status = CheckValidDataSize<FloatVecFieldData>(field);
+            if (!status.IsOk()) {
+                return status;
+            }
+            status = CheckDenseVectorDimensions<FloatVecFieldData>(field, nullable_default, schema_dim);
+            if (!status.IsOk()) {
+                return status;
+            }
+            if (nullable_default) {
+                CopyValidData<FloatVecFieldData>(field, field_data);
+            }
+            field_data.set_allocated_vectors(
+                CreateProtoVectorField(dynamic_cast<const FloatVecFieldData&>(field), nullable_default, schema_dim));
             break;
-        case DataType::BFLOAT16_VECTOR:
-            field_data.set_allocated_vectors(CreateProtoVectorField(dynamic_cast<const BFloat16VecFieldData&>(field)));
+        }
+        case DataType::SPARSE_FLOAT_VECTOR: {
+            auto status = CheckValidDataSize<SparseFloatVecFieldData>(field);
+            if (!status.IsOk()) {
+                return status;
+            }
+            if (nullable_default) {
+                CopyValidData<SparseFloatVecFieldData>(field, field_data);
+            }
+            field_data.set_allocated_vectors(CreateProtoVectorField(dynamic_cast<const SparseFloatVecFieldData&>(field),
+                                                                    nullable_default, schema_dim));
             break;
-        case DataType::INT8_VECTOR:
-            field_data.set_allocated_vectors(CreateProtoVectorField(dynamic_cast<const Int8VecFieldData&>(field)));
+        }
+        case DataType::FLOAT16_VECTOR: {
+            auto status = CheckValidDataSize<Float16VecFieldData>(field);
+            if (!status.IsOk()) {
+                return status;
+            }
+            status = CheckDenseVectorDimensions<Float16VecFieldData>(field, nullable_default, schema_dim);
+            if (!status.IsOk()) {
+                return status;
+            }
+            if (nullable_default) {
+                CopyValidData<Float16VecFieldData>(field, field_data);
+            }
+            field_data.set_allocated_vectors(
+                CreateProtoVectorField(dynamic_cast<const Float16VecFieldData&>(field), nullable_default, schema_dim));
             break;
+        }
+        case DataType::BFLOAT16_VECTOR: {
+            auto status = CheckValidDataSize<BFloat16VecFieldData>(field);
+            if (!status.IsOk()) {
+                return status;
+            }
+            status = CheckDenseVectorDimensions<BFloat16VecFieldData>(field, nullable_default, schema_dim);
+            if (!status.IsOk()) {
+                return status;
+            }
+            if (nullable_default) {
+                CopyValidData<BFloat16VecFieldData>(field, field_data);
+            }
+            field_data.set_allocated_vectors(
+                CreateProtoVectorField(dynamic_cast<const BFloat16VecFieldData&>(field), nullable_default, schema_dim));
+            break;
+        }
+        case DataType::INT8_VECTOR: {
+            auto status = CheckValidDataSize<Int8VecFieldData>(field);
+            if (!status.IsOk()) {
+                return status;
+            }
+            status = CheckDenseVectorDimensions<Int8VecFieldData>(field, nullable_default, schema_dim);
+            if (!status.IsOk()) {
+                return status;
+            }
+            if (nullable_default) {
+                CopyValidData<Int8VecFieldData>(field, field_data);
+            }
+            field_data.set_allocated_vectors(
+                CreateProtoVectorField(dynamic_cast<const Int8VecFieldData&>(field), nullable_default, schema_dim));
+            break;
+        }
         case DataType::BOOL:
             scalar->set_allocated_bool_data(
                 CreateProtoScalars<BoolFieldData, proto::schema::BoolArray>(field, field_data, nullable_default));
@@ -1278,6 +1433,14 @@ CheckAndSetFieldValue(const nlohmann::json& obj, const FieldSchema& fs, proto::s
     DataType dt = fs.FieldDataType();
     fd.set_field_name(fs.Name());
     fd.set_type(DataTypeCast(dt));
+    if (IsVectorType(dt) && fs.IsNullable()) {
+        const bool valid = !obj.is_null();
+        fd.mutable_valid_data()->Add(valid);
+        if (!valid) {
+            fd.mutable_vectors()->set_dim(fs.Dimension());
+            return Status::OK();
+        }
+    }
     switch (dt) {
         case DataType::BINARY_VECTOR: {
             auto status = CheckAndSetBinaryVector(obj, fs, fd.mutable_vectors());

@@ -151,6 +151,14 @@ class FieldData : public Field {
     Append(const std::vector<T>& elements);
 
     /**
+     * @brief Append elements and their validity metadata to field data.
+     * An empty validity array means every element is valid. Otherwise, its size must match the elements array,
+     * where true marks a valid value and false marks a null value.
+     */
+    StatusCode
+    Append(const std::vector<T>& elements, const std::vector<bool>& valid_data);
+
+    /**
      * @brief Total number of field elements.
      */
     size_t
