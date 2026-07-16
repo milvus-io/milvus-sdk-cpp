@@ -22,6 +22,14 @@ IDArray::IDArray(const IDArray& src)
     : is_int_array_(src.is_int_array_), int_id_array_(src.int_id_array_), str_id_array_(src.str_id_array_) {
 }
 
+IDArray::IDArray(IDArray&&) noexcept = default;
+
+IDArray&
+IDArray::operator=(const IDArray&) = default;
+
+IDArray&
+IDArray::operator=(IDArray&&) noexcept = default;
+
 IDArray::IDArray(const std::vector<int64_t>& id_array) : int_id_array_(id_array) {
 }
 

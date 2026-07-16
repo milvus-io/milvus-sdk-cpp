@@ -23,6 +23,33 @@
 
 namespace milvus {
 
+const IDArray&
+SearchRequest::IDs() const {
+    return ids_;
+}
+
+void
+SearchRequest::SetIDs(std::vector<int64_t>&& id_array) {
+    ids_ = IDArray(std::move(id_array));
+}
+
+void
+SearchRequest::SetIDs(std::vector<std::string>&& id_array) {
+    ids_ = IDArray(std::move(id_array));
+}
+
+SearchRequest&
+SearchRequest::WithIDs(std::vector<int64_t>&& id_array) {
+    SetIDs(std::move(id_array));
+    return *this;
+}
+
+SearchRequest&
+SearchRequest::WithIDs(std::vector<std::string>&& id_array) {
+    SetIDs(std::move(id_array));
+    return *this;
+}
+
 SearchRequest&
 SearchRequest::WithMetricType(::milvus::MetricType metric_type) {
     SetMetricType(metric_type);
@@ -217,6 +244,18 @@ SearchRequest&
 SearchRequest::WithHighlighter(const HighlighterPtr& highlighter) {
     highlighter_ = highlighter;
     return *this;
+}
+
+Status
+SearchRequest::Validate() const {
+    if (IDs().GetRowCount() != 0 && (TargetVectors() != nullptr || !EmbeddingLists().empty())) {
+        return {StatusCode::INVALID_ARGUMENT, "Only one of IDs or target vectors can be provided"};
+    }
+
+    if (IDs().GetRowCount() != 0) {
+        return Status::OK();
+    }
+    return SearchRequestBase::Validate();
 }
 
 }  // namespace milvus

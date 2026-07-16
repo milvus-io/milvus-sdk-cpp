@@ -1638,6 +1638,10 @@ MilvusClientV2Impl::Search(const SearchRequest& request, SearchResponse& respons
 
 Status
 MilvusClientV2Impl::SearchIterator(SearchIteratorRequest& request, SearchIteratorPtr& iterator) {
+    if (request.IDs().GetRowCount() != 0) {
+        return {StatusCode::INVALID_ARGUMENT, "Search iterator does not support IDs as search targets"};
+    }
+
     auto status = iteratorPrepare(request);
     if (!status.IsOk()) {
         return status;

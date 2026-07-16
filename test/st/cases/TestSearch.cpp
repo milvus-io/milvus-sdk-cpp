@@ -152,6 +152,94 @@ TEST_F(MilvusServerTestSearch, SearchWithoutIndex) {
     dropCollection();
 }
 
+TEST_F(MilvusServerTestSearch, SearchByIntegerIDs) {
+    std::vector<milvus::FieldDataPtr> fields{
+        std::make_shared<milvus::Int16FieldData>("age", std::vector<int16_t>{12, 13, 14}),
+        std::make_shared<milvus::VarCharFieldData>("name", std::vector<std::string>{"Tom", "Jerry", "Lily"}),
+        std::make_shared<milvus::FloatVecFieldData>(
+            "face", std::vector<std::vector<float>>{
+                        {0.1f, 0.2f, 0.3f, 0.4f}, {0.5f, 0.6f, 0.7f, 0.8f}, {0.9f, 1.0f, 1.1f, 1.2f}})};
+
+    createCollectionAndPartitions(true);
+    auto dml_results = insertRecords(fields);
+    loadCollection();
+
+    const auto& inserted_ids = dml_results.IdArray().IntIDArray();
+    ASSERT_EQ(inserted_ids.size(), 3);
+    std::vector<int64_t> search_ids{inserted_ids.at(0), inserted_ids.at(2)};
+
+    milvus::SearchRequest request;
+    request.WithCollectionName(collection_name)
+        .AddPartitionName(partition_name)
+        .WithAnnsField("face")
+        .WithLimit(1)
+        .WithIDs(std::move(search_ids))
+        .WithConsistencyLevel(milvus::ConsistencyLevel::STRONG);
+
+    milvus::SearchResponse response;
+    auto status = client_->Search(request, response);
+    milvus::test::ExpectStatusOK(status);
+
+    const auto& results = response.Results().Results();
+    ASSERT_EQ(results.size(), 2);
+    ASSERT_EQ(results.at(0).Ids().IntIDArray().size(), 1);
+    ASSERT_EQ(results.at(1).Ids().IntIDArray().size(), 1);
+    EXPECT_EQ(results.at(0).Ids().IntIDArray().at(0), inserted_ids.at(0));
+    EXPECT_EQ(results.at(1).Ids().IntIDArray().at(0), inserted_ids.at(2));
+
+    dropCollection();
+}
+
+TEST_F(MilvusServerTestSearch, SearchByStringIDs) {
+    collection_name = milvus::test::RanName("StringPK_");
+    auto schema = std::make_shared<milvus::CollectionSchema>(collection_name);
+    schema->AddField(milvus::FieldSchema("id", milvus::DataType::VARCHAR, "id", true, false).WithMaxLength(64));
+    schema->AddField(milvus::FieldSchema("face", milvus::DataType::FLOAT_VECTOR, "face").WithDimension(4));
+
+    auto status = client_->CreateCollection(
+        milvus::CreateCollectionRequest().WithCollectionName(collection_name).WithCollectionSchema(schema));
+    milvus::test::ExpectStatusOK(status);
+
+    milvus::IndexDesc index_desc("face", "", milvus::IndexType::FLAT, milvus::MetricType::L2);
+    status = client_->CreateIndex(
+        milvus::CreateIndexRequest().WithCollectionName(collection_name).AddIndex(std::move(index_desc)));
+    milvus::test::ExpectStatusOK(status);
+
+    std::vector<std::string> inserted_ids{"pk_0", "pk_1", "pk_2"};
+    std::vector<milvus::FieldDataPtr> fields{
+        std::make_shared<milvus::VarCharFieldData>("id", inserted_ids),
+        std::make_shared<milvus::FloatVecFieldData>(
+            "face", std::vector<std::vector<float>>{
+                        {0.1f, 0.2f, 0.3f, 0.4f}, {0.5f, 0.6f, 0.7f, 0.8f}, {0.9f, 1.0f, 1.1f, 1.2f}})};
+    milvus::InsertResponse insert_response;
+    status =
+        client_->Insert(milvus::InsertRequest().WithCollectionName(collection_name).WithColumnsData(std::move(fields)),
+                        insert_response);
+    milvus::test::ExpectStatusOK(status);
+    loadCollection();
+
+    std::vector<std::string> search_ids{inserted_ids.at(0), inserted_ids.at(2)};
+    milvus::SearchRequest request;
+    request.WithCollectionName(collection_name)
+        .WithAnnsField("face")
+        .WithLimit(1)
+        .WithIDs(std::move(search_ids))
+        .WithConsistencyLevel(milvus::ConsistencyLevel::STRONG);
+
+    milvus::SearchResponse response;
+    status = client_->Search(request, response);
+    milvus::test::ExpectStatusOK(status);
+
+    const auto& results = response.Results().Results();
+    ASSERT_EQ(results.size(), 2);
+    ASSERT_EQ(results.at(0).Ids().StrIDArray().size(), 1);
+    ASSERT_EQ(results.at(1).Ids().StrIDArray().size(), 1);
+    EXPECT_EQ(results.at(0).Ids().StrIDArray().at(0), inserted_ids.at(0));
+    EXPECT_EQ(results.at(1).Ids().StrIDArray().at(0), inserted_ids.at(2));
+
+    dropCollection();
+}
+
 TEST_F(MilvusServerTestSearch, RangeSearch) {
     std::vector<milvus::FieldDataPtr> fields{
         std::make_shared<milvus::Int16FieldData>("age", std::vector<int16_t>{12, 13, 14, 15, 16, 17, 18}),
