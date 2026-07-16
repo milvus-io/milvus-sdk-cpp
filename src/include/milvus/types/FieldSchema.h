@@ -349,7 +349,7 @@ class MILVUS_SDK_API FieldSchema {
     /**
      * @brief Set field value can be nullable or not.
      *
-     * Note: all scalar fields, excluding the primary field, support nullable.
+     * Note: scalar and vector fields, excluding the primary field, support nullable.
      */
     void
     SetNullable(bool nullable);
@@ -357,7 +357,7 @@ class MILVUS_SDK_API FieldSchema {
     /**
      * @brief Set field value can be nullable or not.
      *
-     * Note: all scalar fields, excluding the primary field, support nullable.
+     * Note: scalar and vector fields, excluding the primary field, support nullable.
      */
     FieldSchema&
     WithNullable(bool nullable);

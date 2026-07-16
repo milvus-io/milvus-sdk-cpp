@@ -209,8 +209,9 @@ main(int argc, char* argv[]) {
     // multi rerankers
     {
         auto function_score = std::make_shared<milvus::FunctionScore>();
-        function_score->AddFunction(boost_reranker);
+        // Put the field-dependent reranker first so the server fetches its input field.
         function_score->AddFunction(gauss_decay);
+        function_score->AddFunction(boost_reranker);
         searchWithRerank(client, vector, function_score, topk);
     }
 
