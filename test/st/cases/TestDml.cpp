@@ -21,6 +21,38 @@ using milvus::test::MilvusServerTest;
 class MilvusServerTestDml : public MilvusServerTest {
  protected:
     std::string collection_name;
+    std::vector<std::string> validation_collection_names;
+
+    std::string
+    CreateStructValidationCollection() {
+        auto name = milvus::test::RanName("DmlValidation_");
+        validation_collection_names.emplace_back(name);
+
+        auto schema = std::make_shared<milvus::CollectionSchema>(name);
+        schema->SetEnableDynamicField(false);
+        schema->AddField(milvus::FieldSchema("id", milvus::DataType::INT64, "id", true, false));
+        schema->AddField(milvus::FieldSchema("vector", milvus::DataType::FLOAT_VECTOR).WithDimension(2));
+        schema->AddStructField(milvus::StructFieldSchema("structs").WithMaxCapacity(10).AddField(
+            milvus::FieldSchema("value", milvus::DataType::INT32)));
+
+        auto status = client_->CreateCollection(
+            milvus::CreateCollectionRequest().WithCollectionName(name).WithCollectionSchema(schema));
+        milvus::test::ExpectStatusOK(status);
+
+        status = client_->CreateIndex(milvus::CreateIndexRequest().WithCollectionName(name).AddIndex(
+            milvus::IndexDesc("vector", "", milvus::IndexType::FLAT, milvus::MetricType::L2)));
+        milvus::test::ExpectStatusOK(status);
+
+        status = client_->LoadCollection(milvus::LoadCollectionRequest().WithCollectionName(name));
+        milvus::test::ExpectStatusOK(status);
+        return name;
+    }
+
+    milvus::EntityRow
+    CreateStructValidationRow(int64_t id) {
+        return nlohmann::json{
+            {"id", id}, {"vector", {0.1f, 0.2f}}, {"structs", {{{"value", static_cast<int32_t>(id)}}}}};
+    }
 
     void
     SetUp() override {
@@ -87,10 +119,91 @@ class MilvusServerTestDml : public MilvusServerTest {
 
     void
     TearDown() override {
+        for (const auto& name : validation_collection_names) {
+            client_->DropCollection(milvus::DropCollectionRequest().WithCollectionName(name));
+        }
         client_->DropCollection(milvus::DropCollectionRequest().WithCollectionName(collection_name));
         MilvusServerTest::TearDown();
     }
 };
+
+TEST_F(MilvusServerTestDml, InsertValidation) {
+    const auto name = CreateStructValidationCollection();
+    milvus::InsertResponse response;
+
+    milvus::EntityRows rows{nlohmann::json{{"id", 1}, {"vector", {0.1f, 0.2f}}, {"unknown", 10}}};
+    auto status =
+        client_->Insert(milvus::InsertRequest().WithCollectionName(name).WithRowsData(std::move(rows)), response);
+    EXPECT_EQ(status.Code(), milvus::StatusCode::DATA_UNMATCH_SCHEMA);
+    EXPECT_EQ(status.Message(), "Not a valid field: unknown");
+
+    rows = {nlohmann::json{{"id", 1}, {"structs", {{{"value", 1}}}}}};
+    status = client_->Insert(milvus::InsertRequest().WithCollectionName(name).WithRowsData(std::move(rows)), response);
+    EXPECT_EQ(status.Code(), milvus::StatusCode::INVALID_ARGUMENT);
+    EXPECT_EQ(status.Message(), "The field: vector is not provided.");
+
+    rows = {nlohmann::json{{"id", 1}, {"vector", {0.1f, 0.2f}}}};
+    status = client_->Insert(milvus::InsertRequest().WithCollectionName(name).WithRowsData(std::move(rows)), response);
+    EXPECT_EQ(status.Code(), milvus::StatusCode::INVALID_ARGUMENT);
+    EXPECT_EQ(status.Message(), "The struct field: structs is not provided.");
+
+    rows = {CreateStructValidationRow(1)};
+    status = client_->Insert(milvus::InsertRequest().WithCollectionName(name).WithRowsData(std::move(rows)), response);
+    milvus::test::ExpectStatusOK(status);
+    EXPECT_EQ(response.Results().InsertCount(), 1);
+}
+
+TEST_F(MilvusServerTestDml, UpsertValidation) {
+    const auto name = CreateStructValidationCollection();
+    milvus::UpsertResponse response;
+
+    milvus::EntityRows rows{nlohmann::json{{"vector", {0.1f, 0.2f}}, {"structs", {{{"value", 1}}}}}};
+    auto status =
+        client_->Upsert(milvus::UpsertRequest().WithCollectionName(name).WithRowsData(std::move(rows)), response);
+    EXPECT_EQ(status.Code(), milvus::StatusCode::INVALID_ARGUMENT);
+    EXPECT_EQ(status.Message(), "The field: id is not provided.");
+
+    rows = {nlohmann::json{{"id", 1}, {"vector", {0.1f, 0.2f}}}};
+    status = client_->Upsert(milvus::UpsertRequest().WithCollectionName(name).WithRowsData(std::move(rows)), response);
+    EXPECT_EQ(status.Code(), milvus::StatusCode::INVALID_ARGUMENT);
+    EXPECT_EQ(status.Message(), "The struct field: structs is not provided.");
+
+    rows = {CreateStructValidationRow(1)};
+    status = client_->Upsert(milvus::UpsertRequest().WithCollectionName(name).WithRowsData(std::move(rows)), response);
+    milvus::test::ExpectStatusOK(status);
+    EXPECT_EQ(response.Results().UpsertCount(), 1);
+
+    rows = {nlohmann::json{{"id", 1}, {"vector", {0.3f, 0.4f}}}};
+    status = client_->Upsert(
+        milvus::UpsertRequest().WithCollectionName(name).WithPartialUpdate(true).WithRowsData(std::move(rows)),
+        response);
+    if (status.IsOk()) {
+        EXPECT_EQ(response.Results().UpsertCount(), 1);
+
+        rows = {CreateStructValidationRow(1)};
+        status = client_->Upsert(
+            milvus::UpsertRequest().WithCollectionName(name).WithPartialUpdate(true).WithRowsData(std::move(rows)),
+            response);
+        milvus::test::ExpectStatusOK(status);
+        EXPECT_EQ(response.Results().UpsertCount(), 1);
+    } else {
+        // Milvus 2.6 rejects partial upsert for any collection containing a struct array field.
+        EXPECT_NE(status.Message().find("partial upsert is not supported for collections with struct array fields"),
+                  std::string::npos);
+    }
+
+    rows = {
+        nlohmann::json{{"id", 1}, {"f_bool", true}},
+        nlohmann::json{{"id", 2}, {"f_int8", 2}},
+    };
+    status = client_->Upsert(milvus::UpsertRequest()
+                                 .WithCollectionName(collection_name)
+                                 .WithPartialUpdate(true)
+                                 .WithRowsData(std::move(rows)),
+                             response);
+    EXPECT_EQ(status.Code(), milvus::StatusCode::INVALID_ARGUMENT);
+    EXPECT_EQ(status.Message(), "The row count of partial update fields is inconsistent");
+}
 
 TEST_F(MilvusServerTestDml, InsertAndQuery) {
     // define test data once, used for both insert and verification

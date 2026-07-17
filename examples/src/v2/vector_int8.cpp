@@ -109,7 +109,7 @@ main(int argc, char* argv[]) {
     }
 
     auto q_number_1 = util::RandomeValue<int64_t>(0, row_count - 1);
-    auto q_number_2 = util::RandomeValue<int64_t>(0, row_count - 1);
+    auto q_number_2 = (q_number_1 + 1) % row_count;
     auto q_id_1 = makePrimaryKey(q_number_1);
     auto q_id_2 = makePrimaryKey(q_number_2);
     {
