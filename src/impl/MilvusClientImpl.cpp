@@ -898,6 +898,12 @@ MilvusClientImpl::DropIndexProperties(const std::string& collection_name, const 
 Status
 MilvusClientImpl::Insert(const std::string& collection_name, const std::string& partition_name,
                          const std::vector<FieldDataPtr>& fields, DmlResults& results) {
+    return insert(collection_name, partition_name, fields, results, true);
+}
+
+Status
+MilvusClientImpl::insert(const std::string& collection_name, const std::string& partition_name,
+                         const std::vector<FieldDataPtr>& fields, DmlResults& results, bool allow_retry) {
     std::vector<proto::schema::FieldData> rpc_fields;
     CollectionDescPtr collection_desc;
     auto validate = [this, &collection_name, &fields, &collection_desc, &rpc_fields]() {
@@ -908,14 +914,17 @@ MilvusClientImpl::Insert(const std::string& collection_name, const std::string& 
 
         // if the collection is already recreated, some schema might be changed, we need to update the
         // collectionDesc cache and call CheckInsertInput() again.
-        status = CheckInsertInput(collection_desc, fields, false);
+        status = CheckInsertInput(collection_desc, fields, false, false);
         if (status.Code() == milvus::StatusCode::DATA_UNMATCH_SCHEMA) {
             status = getCollectionDesc(collection_name, true, collection_desc);
             if (!status.IsOk()) {
                 return status;
             }
 
-            status = CheckInsertInput(collection_desc, fields, false);
+            status = CheckInsertInput(collection_desc, fields, false, false);
+        }
+        if (!status.IsOk()) {
+            return status;
         }
 
         return CreateProtoFieldDatas(collection_desc->Schema(), fields, rpc_fields);
@@ -959,9 +968,9 @@ MilvusClientImpl::Insert(const std::string& collection_name, const std::string& 
     // the collection schema. The server might return a special error code "SchemaMismatch".
     // If the client_A gets this special error code, it needs to update the collectionDesc cache and
     // call Insert() again.
-    if (status.LegacyServerCode() == static_cast<int32_t>(proto::common::ErrorCode::SchemaMismatch)) {
+    if (allow_retry && status.LegacyServerCode() == static_cast<int32_t>(proto::common::ErrorCode::SchemaMismatch)) {
         removeCollectionDesc(collection_name);
-        return Insert(collection_name, partition_name, fields, results);
+        return insert(collection_name, partition_name, fields, results, false);
     }
     return status;
 }
@@ -969,6 +978,12 @@ MilvusClientImpl::Insert(const std::string& collection_name, const std::string& 
 Status
 MilvusClientImpl::Insert(const std::string& collection_name, const std::string& partition_name, const EntityRows& rows,
                          DmlResults& results) {
+    return insert(collection_name, partition_name, rows, results, true);
+}
+
+Status
+MilvusClientImpl::insert(const std::string& collection_name, const std::string& partition_name, const EntityRows& rows,
+                         DmlResults& results, bool allow_retry) {
     std::vector<proto::schema::FieldData> rpc_fields;
     CollectionDescPtr collection_desc;
     auto validate = [this, &collection_name, &rows, &rpc_fields, &collection_desc]() {
@@ -976,7 +991,17 @@ MilvusClientImpl::Insert(const std::string& collection_name, const std::string& 
         if (!status.IsOk()) {
             return status;
         }
-        return CheckAndSetRowData(rows, collection_desc->Schema(), false, rpc_fields);
+        status = CheckAndSetRowData(rows, collection_desc->Schema(), false, false, rpc_fields);
+        if (status.Code() == milvus::StatusCode::DATA_UNMATCH_SCHEMA) {
+            status = getCollectionDesc(collection_name, true, collection_desc);
+            if (!status.IsOk()) {
+                return status;
+            }
+
+            rpc_fields.clear();
+            status = CheckAndSetRowData(rows, collection_desc->Schema(), false, false, rpc_fields);
+        }
+        return status;
     };
 
     auto pre = [&collection_name, &partition_name, &rows, &rpc_fields,
@@ -1017,9 +1042,9 @@ MilvusClientImpl::Insert(const std::string& collection_name, const std::string& 
     // the collection schema. The server might return a special error code "SchemaMismatch".
     // If the client_A gets this special error code, it needs to update the collectionDesc cache and
     // call Insert() again.
-    if (status.LegacyServerCode() == static_cast<int32_t>(proto::common::ErrorCode::SchemaMismatch)) {
+    if (allow_retry && status.LegacyServerCode() == static_cast<int32_t>(proto::common::ErrorCode::SchemaMismatch)) {
         removeCollectionDesc(collection_name);
-        return Insert(collection_name, partition_name, rows, results);
+        return insert(collection_name, partition_name, rows, results, false);
     }
     return status;
 }
@@ -1027,6 +1052,12 @@ MilvusClientImpl::Insert(const std::string& collection_name, const std::string& 
 Status
 MilvusClientImpl::Upsert(const std::string& collection_name, const std::string& partition_name,
                          const std::vector<FieldDataPtr>& fields, DmlResults& results) {
+    return upsert(collection_name, partition_name, fields, results, true);
+}
+
+Status
+MilvusClientImpl::upsert(const std::string& collection_name, const std::string& partition_name,
+                         const std::vector<FieldDataPtr>& fields, DmlResults& results, bool allow_retry) {
     bool enable_dynamic_field;
     CollectionDescPtr collection_desc;
     auto validate = [this, &collection_name, &fields, &enable_dynamic_field, &collection_desc]() {
@@ -1037,14 +1068,14 @@ MilvusClientImpl::Upsert(const std::string& collection_name, const std::string& 
 
         // if the collection is already recreated, some schema might be changed, we need to update the
         // collectionDesc cache and call CheckInsertInput() again.
-        status = CheckInsertInput(collection_desc, fields, true);
+        status = CheckInsertInput(collection_desc, fields, true, false);
         if (status.Code() == milvus::StatusCode::DATA_UNMATCH_SCHEMA) {
             status = getCollectionDesc(collection_name, true, collection_desc);
             if (!status.IsOk()) {
                 return status;
             }
 
-            status = CheckInsertInput(collection_desc, fields, true);
+            status = CheckInsertInput(collection_desc, fields, true, false);
         }
         enable_dynamic_field = collection_desc->Schema().EnableDynamicField();
         return status;
@@ -1107,9 +1138,9 @@ MilvusClientImpl::Upsert(const std::string& collection_name, const std::string& 
     // the collection schema. The server might return a special error code "SchemaMismatch".
     // If the client_A gets this special error code, it needs to update the collectionDesc cache and
     // call Upsert() again.
-    if (status.LegacyServerCode() == static_cast<int32_t>(proto::common::ErrorCode::SchemaMismatch)) {
+    if (allow_retry && status.LegacyServerCode() == static_cast<int32_t>(proto::common::ErrorCode::SchemaMismatch)) {
         removeCollectionDesc(collection_name);
-        return Upsert(collection_name, partition_name, fields, results);
+        return upsert(collection_name, partition_name, fields, results, false);
     }
     return status;
 }
@@ -1117,6 +1148,12 @@ MilvusClientImpl::Upsert(const std::string& collection_name, const std::string& 
 Status
 MilvusClientImpl::Upsert(const std::string& collection_name, const std::string& partition_name, const EntityRows& rows,
                          DmlResults& results) {
+    return upsert(collection_name, partition_name, rows, results, true);
+}
+
+Status
+MilvusClientImpl::upsert(const std::string& collection_name, const std::string& partition_name, const EntityRows& rows,
+                         DmlResults& results, bool allow_retry) {
     std::vector<proto::schema::FieldData> rpc_fields;
     CollectionDescPtr collection_desc;
     auto validate = [this, &collection_name, &rows, &rpc_fields, &collection_desc]() {
@@ -1124,7 +1161,17 @@ MilvusClientImpl::Upsert(const std::string& collection_name, const std::string& 
         if (!status.IsOk()) {
             return status;
         }
-        return CheckAndSetRowData(rows, collection_desc->Schema(), true, rpc_fields);
+        status = CheckAndSetRowData(rows, collection_desc->Schema(), true, false, rpc_fields);
+        if (status.Code() == milvus::StatusCode::DATA_UNMATCH_SCHEMA) {
+            status = getCollectionDesc(collection_name, true, collection_desc);
+            if (!status.IsOk()) {
+                return status;
+            }
+
+            rpc_fields.clear();
+            status = CheckAndSetRowData(rows, collection_desc->Schema(), true, false, rpc_fields);
+        }
+        return status;
     };
 
     auto pre = [&collection_name, &partition_name, &rows, &rpc_fields,
@@ -1164,9 +1211,9 @@ MilvusClientImpl::Upsert(const std::string& collection_name, const std::string& 
     // the collection schema. The server might return a special error code "SchemaMismatch".
     // If the client_A gets this special error code, it needs to update the collectionDesc cache and
     // call Upsert() again.
-    if (status.LegacyServerCode() == static_cast<int32_t>(proto::common::ErrorCode::SchemaMismatch)) {
+    if (allow_retry && status.LegacyServerCode() == static_cast<int32_t>(proto::common::ErrorCode::SchemaMismatch)) {
         removeCollectionDesc(collection_name);
-        return Upsert(collection_name, partition_name, rows, results);
+        return upsert(collection_name, partition_name, rows, results, false);
     }
     return status;
 }

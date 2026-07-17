@@ -64,6 +64,11 @@ UpsertRequest::AddRowData(EntityRow&& row_data) {
 
 bool
 UpsertRequest::PartialUpdate() const {
+    for (const auto& field_op : field_ops_) {
+        if (field_op.GetOpType() != FieldPartialUpdateOp::OpType::REPLACE) {
+            return true;
+        }
+    }
     return partial_update_;
 }
 
@@ -75,6 +80,28 @@ UpsertRequest::SetPartialUpdate(bool partial_update) {
 UpsertRequest&
 UpsertRequest::WithPartialUpdate(bool partial_update) {
     partial_update_ = partial_update;
+    return *this;
+}
+
+const std::vector<FieldPartialUpdateOp>&
+UpsertRequest::FieldOps() const {
+    return field_ops_;
+}
+
+void
+UpsertRequest::SetFieldOps(std::vector<FieldPartialUpdateOp>&& field_ops) {
+    field_ops_ = std::move(field_ops);
+}
+
+UpsertRequest&
+UpsertRequest::WithFieldOps(std::vector<FieldPartialUpdateOp>&& field_ops) {
+    SetFieldOps(std::move(field_ops));
+    return *this;
+}
+
+UpsertRequest&
+UpsertRequest::AddFieldOp(FieldPartialUpdateOp field_op) {
+    field_ops_.emplace_back(std::move(field_op));
     return *this;
 }
 

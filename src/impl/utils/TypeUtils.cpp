@@ -142,6 +142,20 @@ FunctionTypeCast(proto::schema::FunctionType type) {
     }
 }
 
+proto::schema::FieldPartialUpdateOp::OpType
+FieldPartialUpdateOpTypeCast(FieldPartialUpdateOp::OpType type) {
+    switch (type) {
+        case FieldPartialUpdateOp::OpType::REPLACE:
+            return proto::schema::FieldPartialUpdateOp::REPLACE;
+        case FieldPartialUpdateOp::OpType::ARRAY_APPEND:
+            return proto::schema::FieldPartialUpdateOp::ARRAY_APPEND;
+        case FieldPartialUpdateOp::OpType::ARRAY_REMOVE:
+            return proto::schema::FieldPartialUpdateOp::ARRAY_REMOVE;
+        default:
+            return static_cast<proto::schema::FieldPartialUpdateOp::OpType>(static_cast<int>(type));
+    }
+}
+
 MetricType
 MetricTypeCast(const std::string& type) {
     if (type == "L2") {

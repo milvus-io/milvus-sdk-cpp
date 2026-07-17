@@ -30,7 +30,8 @@ bool
 IsInputField(const FieldSchema& field_schema, bool is_upsert);
 
 Status
-CheckInsertInput(const CollectionDescPtr& collection_desc, const std::vector<FieldDataPtr>& fields, bool is_upsert);
+CheckInsertInput(const CollectionDescPtr& collection_desc, const std::vector<FieldDataPtr>& fields, bool is_upsert,
+                 bool partial_upsert);
 
 bool
 IsRealFailure(const proto::common::Status& status);
@@ -81,7 +82,7 @@ Status
 CheckAndSetFieldValue(const nlohmann::json& obj, const FieldSchema& fs, proto::schema::FieldData& fd);
 
 Status
-CheckAndSetRowData(const EntityRows& rows, const CollectionSchema& schema, bool partial_upsert,
+CheckAndSetRowData(const EntityRows& rows, const CollectionSchema& schema, bool is_upsert, bool partial_upsert,
                    std::vector<proto::schema::FieldData>& rpc_fields);
 
 }  // namespace milvus

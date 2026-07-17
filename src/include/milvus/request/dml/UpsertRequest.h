@@ -21,6 +21,7 @@
 
 #include "./InsertRequest.h"
 #include "milvus/Export.h"
+#include "milvus/types/FieldPartialUpdateOp.h"
 
 namespace milvus {
 
@@ -104,8 +105,34 @@ class MILVUS_SDK_API UpsertRequest : public InsertRequest {
     UpsertRequest&
     WithPartialUpdate(bool partial_update);
 
+    /**
+     * @brief Get per-field partial update operations.
+     */
+    const std::vector<FieldPartialUpdateOp>&
+    FieldOps() const;
+
+    /**
+     * @brief Set per-field partial update operations.
+     * ARRAY_APPEND and ARRAY_REMOVE automatically enable partial update semantics.
+     */
+    void
+    SetFieldOps(std::vector<FieldPartialUpdateOp>&& field_ops);
+
+    /**
+     * @brief Set per-field partial update operations with fluent interface.
+     */
+    UpsertRequest&
+    WithFieldOps(std::vector<FieldPartialUpdateOp>&& field_ops);
+
+    /**
+     * @brief Add a per-field partial update operation.
+     */
+    UpsertRequest&
+    AddFieldOp(FieldPartialUpdateOp field_op);
+
  private:
     bool partial_update_{false};
+    std::vector<FieldPartialUpdateOp> field_ops_;
 };
 
 }  // namespace milvus

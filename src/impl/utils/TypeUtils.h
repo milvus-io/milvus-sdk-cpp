@@ -25,6 +25,7 @@
 #include "milvus/types/CollectionSchema.h"
 #include "milvus/types/ConsistencyLevel.h"
 #include "milvus/types/FieldData.h"
+#include "milvus/types/FieldPartialUpdateOp.h"
 #include "milvus/types/FunctionScore.h"
 #include "milvus/types/IDArray.h"
 #include "milvus/types/IndexState.h"
@@ -46,6 +47,9 @@ DataTypeCast(proto::schema::DataType type);
 
 proto::schema::FunctionType
 FunctionTypeCast(FunctionType type);
+
+proto::schema::FieldPartialUpdateOp::OpType
+FieldPartialUpdateOpTypeCast(FieldPartialUpdateOp::OpType type);
 
 FunctionType
 FunctionTypeCast(proto::schema::FunctionType type);
