@@ -78,7 +78,8 @@ AddElement(const T& element, std::vector<T>& array) {
         return StatusCode::VECTOR_IS_EMPTY;
     }
 
-    if (!array.empty() && element.size() != array.at(0).size()) {
+    const auto last_valid = std::find_if(array.rbegin(), array.rend(), [](const T& item) { return !item.empty(); });
+    if (last_valid != array.rend() && element.size() != last_valid->size()) {
         return StatusCode::DIMENSION_NOT_EQUAL;
     }
 
@@ -93,7 +94,8 @@ AddElement(T&& element, std::vector<T>& array) {
         return StatusCode::VECTOR_IS_EMPTY;
     }
 
-    if (!array.empty() && element.size() != array.at(0).size()) {
+    const auto last_valid = std::find_if(array.rbegin(), array.rend(), [](const T& item) { return !item.empty(); });
+    if (last_valid != array.rend() && element.size() != last_valid->size()) {
         return StatusCode::DIMENSION_NOT_EQUAL;
     }
 
@@ -164,8 +166,12 @@ FieldData<T, Dt>::FieldData(std::string name, std::vector<T>&& data, std::vector
 template <typename T, DataType Dt>
 StatusCode
 FieldData<T, Dt>::Add(const T& element) {
+    const auto original_size = data_.size();
     auto code = AddElement<T, Dt>(element, data_);
     if (code == StatusCode::OK) {
+        if (valid_data_.empty() && original_size > 0) {
+            valid_data_.resize(original_size, true);
+        }
         valid_data_.push_back(true);
     }
     return code;
@@ -174,8 +180,12 @@ FieldData<T, Dt>::Add(const T& element) {
 template <typename T, DataType Dt>
 StatusCode
 FieldData<T, Dt>::Add(T&& element) {
+    const auto original_size = data_.size();
     auto code = AddElement<T, Dt>(element, data_);
     if (code == StatusCode::OK) {
+        if (valid_data_.empty() && original_size > 0) {
+            valid_data_.resize(original_size, true);
+        }
         valid_data_.push_back(true);
     }
     return code;
@@ -184,6 +194,9 @@ FieldData<T, Dt>::Add(T&& element) {
 template <typename T, DataType Dt>
 StatusCode
 FieldData<T, Dt>::AddNull() {
+    if (valid_data_.empty() && !data_.empty()) {
+        valid_data_.resize(data_.size(), true);
+    }
     valid_data_.push_back(false);
     data_.push_back(T());
     return StatusCode::OK;
@@ -192,10 +205,37 @@ FieldData<T, Dt>::AddNull() {
 template <typename T, DataType Dt>
 StatusCode
 FieldData<T, Dt>::Append(const std::vector<T>& elements) {
+    const auto original_size = data_.size();
+    if (valid_data_.empty() && original_size > 0) {
+        valid_data_.resize(original_size, true);
+    }
     data_.reserve(data_.size() + elements.size());
     std::copy(elements.begin(), elements.end(), std::back_inserter(data_));
     for (auto i = 0; i < elements.size(); i++) {
         valid_data_.push_back(true);
+    }
+    return StatusCode::OK;
+}
+
+template <typename T, DataType Dt>
+StatusCode
+FieldData<T, Dt>::Append(const std::vector<T>& elements, const std::vector<bool>& valid_data) {
+    if (!valid_data.empty() && elements.size() != valid_data.size()) {
+        return StatusCode::INVALID_ARGUMENT;
+    }
+
+    const auto original_size = data_.size();
+    data_.reserve(original_size + elements.size());
+    std::copy(elements.begin(), elements.end(), std::back_inserter(data_));
+
+    if (!valid_data_.empty() || !valid_data.empty()) {
+        valid_data_.resize(original_size, true);
+        valid_data_.reserve(data_.size());
+        if (valid_data.empty()) {
+            valid_data_.insert(valid_data_.end(), elements.size(), true);
+        } else {
+            std::copy(valid_data.begin(), valid_data.end(), std::back_inserter(valid_data_));
+        }
     }
     return StatusCode::OK;
 }
@@ -345,13 +385,13 @@ BinaryVecFieldData::DataAsString() const {
 StatusCode
 BinaryVecFieldData::AddAsString(const std::string& element) {
     auto bin_data = ToUnsignedChars(element);
-    return AddElement<std::vector<uint8_t>, DataType::BINARY_VECTOR>(bin_data, data_);
+    return Add(std::move(bin_data));
 }
 
 StatusCode
 BinaryVecFieldData::AddAsString(std::string&& element) {
     auto bin_data = ToUnsignedChars(element);
-    return AddElement<std::vector<uint8_t>, DataType::BINARY_VECTOR>(bin_data, data_);
+    return Add(std::move(bin_data));
 }
 
 std::vector<std::string>

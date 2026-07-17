@@ -27,6 +27,8 @@
 #include "milvus/types/QueryArguments.h"
 #include "milvus/types/SearchArguments.h"
 #include "milvus/types/SearchResults.h"
+#include "milvus/utils/FP16.h"
+#include "types/SearchIteratorImpl.h"
 #include "utils/Constants.h"
 #include "utils/DqlUtils.h"
 #include "utils/GtsDict.h"
@@ -263,6 +265,43 @@ TEST_F(DqlUtilsTest, GetRowsFromFieldsDataEmpty) {
     EXPECT_TRUE(rows.empty());
 }
 
+TEST_F(DqlUtilsTest, GetRowsFromNullableVectorFields) {
+    milvus::proto::schema::FieldData float_proto;
+    float_proto.set_field_name("float_vector");
+    float_proto.set_type(milvus::proto::schema::DataType::FloatVector);
+    float_proto.add_valid_data(false);
+    float_proto.add_valid_data(true);
+    float_proto.mutable_vectors()->set_dim(2);
+    float_proto.mutable_vectors()->mutable_float_vector()->add_data(0.1f);
+    float_proto.mutable_vectors()->mutable_float_vector()->add_data(0.2f);
+
+    milvus::proto::schema::FieldData float16_proto;
+    float16_proto.set_field_name("float16_vector");
+    float16_proto.set_type(milvus::proto::schema::DataType::Float16Vector);
+    float16_proto.add_valid_data(false);
+    float16_proto.add_valid_data(true);
+    float16_proto.mutable_vectors()->set_dim(2);
+    auto float16_values = milvus::ArrayF32toF16({0.3f, 0.4f});
+    float16_proto.mutable_vectors()->mutable_float16_vector()->append(
+        reinterpret_cast<const char*>(float16_values.data()), float16_values.size() * sizeof(uint16_t));
+
+    milvus::FieldDataPtr float_field;
+    auto status = milvus::CreateMilvusFieldData(float_proto, float_field);
+    ASSERT_TRUE(status.IsOk()) << status.Message();
+    milvus::FieldDataPtr float16_field;
+    status = milvus::CreateMilvusFieldData(float16_proto, float16_field);
+    ASSERT_TRUE(status.IsOk()) << status.Message();
+
+    milvus::EntityRows rows;
+    status = milvus::GetRowsFromFieldsData({float_field, float16_field}, {"float_vector", "float16_vector"}, rows);
+    ASSERT_TRUE(status.IsOk()) << status.Message();
+    ASSERT_EQ(rows.size(), 2);
+    EXPECT_TRUE(rows[0]["float_vector"].is_null());
+    EXPECT_TRUE(rows[0]["float16_vector"].is_null());
+    EXPECT_EQ(rows[1]["float_vector"].size(), 2);
+    EXPECT_EQ(rows[1]["float16_vector"].size(), 2);
+}
+
 TEST_F(DqlUtilsTest, GetRowsFromStructBinaryVectorFieldData) {
     std::vector<std::vector<nlohmann::json>> structs = {
         {nlohmann::json{{"st_bin", std::vector<uint8_t>{0x01, 0x02}}}},
@@ -409,6 +448,46 @@ TEST_F(DqlUtilsTest, AppendSearchResultEmptyTarget) {
     auto status = milvus::AppendSearchResult(from, to);
     EXPECT_TRUE(status.IsOk());
     EXPECT_EQ(to.GetRowCount(), 2u);
+}
+
+TEST_F(DqlUtilsTest, SearchIteratorPagingPreservesNullableVectorValidity) {
+    const std::set<std::string> output_fields{"vector"};
+    auto make_result = [&output_fields](std::vector<int64_t> ids, std::vector<float> scores,
+                                        std::vector<std::vector<float>> vectors,
+                                        std::vector<bool> valid_data) -> milvus::SingleResultPtr {
+        std::vector<milvus::FieldDataPtr> fields;
+        fields.emplace_back(std::make_shared<milvus::Int64FieldData>("id", std::move(ids)));
+        fields.emplace_back(std::make_shared<milvus::FloatFieldData>("score", std::move(scores)));
+        fields.emplace_back(
+            std::make_shared<milvus::FloatVecFieldData>("vector", std::move(vectors), std::move(valid_data)));
+        return std::make_shared<milvus::SingleResult>("id", "score", std::move(fields), output_fields);
+    };
+
+    std::list<milvus::SingleResultPtr> cache;
+    cache.emplace_back(make_result({1}, {0.9f}, {{1.0f, 2.0f}}, {true}));
+    cache.emplace_back(make_result({2, 3, 4}, {0.8f, 0.7f, 0.6f}, {{}, {3.0f, 4.0f}, {}}, {false, true, false}));
+
+    milvus::SingleResult page;
+    auto status =
+        milvus::SearchIteratorImpl<milvus::SearchIteratorRequest>::FetchPageFromCache(cache, output_fields, 3, page);
+    ASSERT_TRUE(status.IsOk()) << status.Message();
+    ASSERT_EQ(page.GetRowCount(), 3);
+    auto page_vectors = page.OutputField<milvus::FloatVecFieldData>("vector");
+    ASSERT_NE(page_vectors, nullptr);
+    EXPECT_THAT(page_vectors->ValidData(), ElementsAre(true, false, true));
+    EXPECT_THAT(page_vectors->Value(0), ElementsAre(1.0f, 2.0f));
+    EXPECT_TRUE(page_vectors->IsNull(1));
+    EXPECT_THAT(page_vectors->Value(2), ElementsAre(3.0f, 4.0f));
+
+    ASSERT_EQ(cache.size(), 1);
+    milvus::SingleResult next_page;
+    status = milvus::SearchIteratorImpl<milvus::SearchIteratorRequest>::FetchPageFromCache(cache, output_fields, 1,
+                                                                                           next_page);
+    ASSERT_TRUE(status.IsOk()) << status.Message();
+    auto next_vectors = next_page.OutputField<milvus::FloatVecFieldData>("vector");
+    ASSERT_NE(next_vectors, nullptr);
+    ASSERT_EQ(next_vectors->Count(), 1);
+    EXPECT_TRUE(next_vectors->IsNull(0));
 }
 
 TEST_F(DqlUtilsTest, IsAmbiguousParamTest) {
@@ -774,6 +853,52 @@ TEST_F(DqlUtilsTest, ConvertSearchResultsWithHighlightResultsForMultipleQueries)
     EXPECT_EQ(query1row0.at("text").fragments, std::vector<std::string>({"q1r0"}));
     ASSERT_EQ(query1row0.at("text").scores.size(), 1u);
     EXPECT_FLOAT_EQ(query1row0.at("text").scores.at(0), 0.73f);
+}
+
+TEST_F(DqlUtilsTest, ConvertSearchResultsWithNullableVectorsForMultipleQueries) {
+    milvus::proto::milvus::SearchResults rpc_results;
+    auto* result_data = rpc_results.mutable_results();
+    result_data->set_num_queries(3);
+    result_data->add_topks(2);
+    result_data->add_topks(2);
+    result_data->add_topks(2);
+    result_data->set_primary_field_name("id");
+    result_data->add_output_fields("vector");
+    for (int64_t id = 0; id < 6; ++id) {
+        result_data->mutable_ids()->mutable_int_id()->add_data(id);
+        result_data->add_scores(static_cast<float>(id));
+    }
+
+    auto* vector_field = result_data->add_fields_data();
+    vector_field->set_field_name("vector");
+    vector_field->set_type(milvus::proto::schema::DataType::FloatVector);
+    vector_field->mutable_vectors()->set_dim(2);
+    for (const auto valid : {false, true, true, false, true, true}) {
+        vector_field->add_valid_data(valid);
+    }
+    for (const auto value : {1.0f, 2.0f, 3.0f, 4.0f, 5.0f, 6.0f, 7.0f, 8.0f}) {
+        vector_field->mutable_vectors()->mutable_float_vector()->add_data(value);
+    }
+
+    milvus::SearchResults results;
+    auto status = milvus::ConvertSearchResults(rpc_results, "id", results);
+    ASSERT_TRUE(status.IsOk()) << status.Message();
+    ASSERT_EQ(results.Results().size(), 3);
+
+    auto query0 = results.Results()[0].OutputField<milvus::FloatVecFieldData>("vector");
+    ASSERT_NE(query0, nullptr);
+    EXPECT_TRUE(query0->IsNull(0));
+    EXPECT_THAT(query0->Value(1), ElementsAre(1.0f, 2.0f));
+
+    auto query1 = results.Results()[1].OutputField<milvus::FloatVecFieldData>("vector");
+    ASSERT_NE(query1, nullptr);
+    EXPECT_THAT(query1->Value(0), ElementsAre(3.0f, 4.0f));
+    EXPECT_TRUE(query1->IsNull(1));
+
+    auto query2 = results.Results()[2].OutputField<milvus::FloatVecFieldData>("vector");
+    ASSERT_NE(query2, nullptr);
+    EXPECT_THAT(query2->Value(0), ElementsAre(5.0f, 6.0f));
+    EXPECT_THAT(query2->Value(1), ElementsAre(7.0f, 8.0f));
 }
 
 TEST_F(DqlUtilsTest, ConvertQueryRequestV2) {

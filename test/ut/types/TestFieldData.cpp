@@ -493,6 +493,16 @@ TEST_F(FieldDataTest, IsNullAndAddNull) {
     EXPECT_TRUE(data.IsNull(2));
 }
 
+TEST_F(FieldDataTest, AddNullNormalizesImplicitValidData) {
+    milvus::FloatVecFieldData data{"vector", std::vector<std::vector<float>>{{1.0f, 2.0f}}};
+    auto status = data.AddNull();
+    EXPECT_EQ(status, milvus::StatusCode::OK);
+    EXPECT_EQ(data.Count(), 2);
+    EXPECT_EQ(data.ValidData(), std::vector<bool>({true, false}));
+    EXPECT_FALSE(data.IsNull(0));
+    EXPECT_TRUE(data.IsNull(1));
+}
+
 TEST_F(FieldDataTest, Append) {
     milvus::Int64FieldData data{"test"};
     data.Add(1);
@@ -504,6 +514,18 @@ TEST_F(FieldDataTest, Append) {
     EXPECT_EQ(data.Value(1), 2);
     EXPECT_EQ(data.Value(2), 3);
     EXPECT_EQ(data.Value(3), 4);
+}
+
+TEST_F(FieldDataTest, AppendWithValidData) {
+    milvus::Int64FieldData data{"test", std::vector<int64_t>{1, 2}};
+    auto status = data.Append({3, 4}, {false, true});
+    EXPECT_EQ(status, milvus::StatusCode::OK);
+    EXPECT_EQ(data.Data(), std::vector<int64_t>({1, 2, 3, 4}));
+    EXPECT_EQ(data.ValidData(), std::vector<bool>({true, true, false, true}));
+
+    status = data.Append({5, 6}, {true});
+    EXPECT_EQ(status, milvus::StatusCode::INVALID_ARGUMENT);
+    EXPECT_EQ(data.Count(), 4);
 }
 
 TEST_F(FieldDataTest, ValidData) {
@@ -668,10 +690,12 @@ TEST_F(FieldDataTest, BinaryVecFieldDataStringConstructors) {
     // Test AddAsString rvalue
     {
         milvus::BinaryVecFieldData data{"bin_add_rval"};
+        data.AddNull();
         std::string s{'\x01', '\x02'};
         auto status = data.AddAsString(std::move(s));
         EXPECT_EQ(status, milvus::StatusCode::OK);
-        EXPECT_EQ(data.Count(), 1);
+        EXPECT_EQ(data.Count(), 2);
+        EXPECT_EQ(data.ValidData(), std::vector<bool>({false, true}));
     }
 }
 
