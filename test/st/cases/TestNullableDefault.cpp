@@ -14,6 +14,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include <set>
+
 #include "MilvusServerTest.h"
 
 using milvus::test::MilvusServerTest;
@@ -246,6 +248,135 @@ TEST_F(MilvusServerTestNullable, SearchWithNullFilter) {
     for (const auto& row : rows) {
         EXPECT_FALSE(row["name"].is_null());
         EXPECT_FALSE(row["age"].is_null());
+    }
+}
+
+class MilvusServerTestNullableVector : public MilvusServerTest {
+ protected:
+    std::string collection_name;
+    static constexpr uint32_t dimension = 4;
+
+    void
+    SetUp() override {
+        MilvusServerTest::SetUp();
+        collection_name = milvus::test::RanName("NullableVector_");
+
+        auto schema = std::make_shared<milvus::CollectionSchema>(collection_name);
+        schema->AddField(milvus::FieldSchema("id", milvus::DataType::INT64, "id", true, false));
+        schema->AddField(milvus::FieldSchema("vec", milvus::DataType::FLOAT_VECTOR, "vector")
+                             .WithDimension(dimension)
+                             .WithNullable(true));
+
+        auto status = client_->CreateCollection(
+            milvus::CreateCollectionRequest().WithCollectionName(collection_name).WithCollectionSchema(schema));
+        milvus::test::ExpectStatusOK(status);
+
+        milvus::IndexDesc index("vec", "", milvus::IndexType::FLAT, milvus::MetricType::L2);
+        status = client_->CreateIndex(
+            milvus::CreateIndexRequest().WithCollectionName(collection_name).AddIndex(std::move(index)));
+        milvus::test::ExpectStatusOK(status);
+
+        status = client_->LoadCollection(milvus::LoadCollectionRequest().WithCollectionName(collection_name));
+        milvus::test::ExpectStatusOK(status);
+    }
+
+    void
+    TearDown() override {
+        client_->DropCollection(milvus::DropCollectionRequest().WithCollectionName(collection_name));
+        MilvusServerTest::TearDown();
+    }
+};
+
+TEST_F(MilvusServerTestNullableVector, InsertQueryAndSearch) {
+    auto ids = std::make_shared<milvus::Int64FieldData>("id");
+    auto vectors = std::make_shared<milvus::FloatVecFieldData>("vec");
+    ids->Add(0);
+    vectors->Add({0.1f, 0.2f, 0.3f, 0.4f});
+    ids->Add(1);
+    vectors->AddNull();
+    ids->Add(2);
+    vectors->Add({0.5f, 0.6f, 0.7f, 0.8f});
+    ids->Add(3);
+    vectors->AddNull();
+
+    milvus::InsertResponse insert_response;
+    auto status = client_->Insert(
+        milvus::InsertRequest().WithCollectionName(collection_name).WithColumnsData({ids, vectors}), insert_response);
+    milvus::test::ExpectStatusOK(status);
+    EXPECT_EQ(insert_response.Results().InsertCount(), 4);
+
+    auto all_null_ids = std::make_shared<milvus::Int64FieldData>("id");
+    auto all_null_vectors = std::make_shared<milvus::FloatVecFieldData>("vec");
+    all_null_ids->Add(4);
+    all_null_vectors->AddNull();
+    all_null_ids->Add(5);
+    all_null_vectors->AddNull();
+
+    status = client_->Insert(
+        milvus::InsertRequest().WithCollectionName(collection_name).WithColumnsData({all_null_ids, all_null_vectors}),
+        insert_response);
+    milvus::test::ExpectStatusOK(status);
+    EXPECT_EQ(insert_response.Results().InsertCount(), 2);
+
+    milvus::QueryResponse query_response;
+    status = client_->Query(milvus::QueryRequest()
+                                .WithCollectionName(collection_name)
+                                .WithFilter("id >= 0")
+                                .AddOutputField("id")
+                                .AddOutputField("vec")
+                                .WithConsistencyLevel(milvus::ConsistencyLevel::STRONG),
+                            query_response);
+    milvus::test::ExpectStatusOK(status);
+
+    auto query_ids = query_response.Results().OutputField<milvus::Int64FieldData>("id");
+    auto query_vectors = query_response.Results().OutputField<milvus::FloatVecFieldData>("vec");
+    ASSERT_NE(query_ids, nullptr);
+    ASSERT_NE(query_vectors, nullptr);
+    ASSERT_EQ(query_ids->Count(), 6);
+    ASSERT_EQ(query_vectors->Count(), 6);
+    std::set<int64_t> returned_ids;
+    for (size_t i = 0; i < query_ids->Count(); ++i) {
+        const auto id = query_ids->Value(i);
+        returned_ids.insert(id);
+        if (id == 0) {
+            EXPECT_FALSE(query_vectors->IsNull(i));
+            EXPECT_THAT(query_vectors->Value(i), testing::ElementsAre(0.1f, 0.2f, 0.3f, 0.4f));
+        } else if (id == 2) {
+            EXPECT_FALSE(query_vectors->IsNull(i));
+            EXPECT_THAT(query_vectors->Value(i), testing::ElementsAre(0.5f, 0.6f, 0.7f, 0.8f));
+        } else {
+            EXPECT_TRUE(query_vectors->IsNull(i));
+        }
+    }
+    EXPECT_THAT(returned_ids, testing::ElementsAre(0, 1, 2, 3, 4, 5));
+
+    milvus::SearchResponse search_response;
+    status = client_->Search(milvus::SearchRequest()
+                                 .WithCollectionName(collection_name)
+                                 .WithAnnsField("vec")
+                                 .WithLimit(10)
+                                 .AddOutputField("vec")
+                                 .AddFloatVector({0.1f, 0.2f, 0.3f, 0.4f})
+                                 .WithConsistencyLevel(milvus::ConsistencyLevel::STRONG),
+                             search_response);
+    milvus::test::ExpectStatusOK(status);
+
+    const auto& search_results = search_response.Results().Results();
+    ASSERT_EQ(search_results.size(), 1);
+    EXPECT_THAT(search_results[0].Ids().IntIDArray(), testing::UnorderedElementsAre(0, 2));
+    auto search_vectors = search_results[0].OutputField<milvus::FloatVecFieldData>("vec");
+    ASSERT_NE(search_vectors, nullptr);
+    ASSERT_EQ(search_vectors->Count(), 2);
+    const auto result_ids_holder = search_results[0].Ids();
+    const auto& result_ids = result_ids_holder.IntIDArray();
+    for (size_t i = 0; i < result_ids.size(); ++i) {
+        EXPECT_FALSE(search_vectors->IsNull(i));
+        if (result_ids[i] == 0) {
+            EXPECT_THAT(search_vectors->Value(i), testing::ElementsAre(0.1f, 0.2f, 0.3f, 0.4f));
+        } else {
+            ASSERT_EQ(result_ids[i], 2);
+            EXPECT_THAT(search_vectors->Value(i), testing::ElementsAre(0.5f, 0.6f, 0.7f, 0.8f));
+        }
     }
 }
 

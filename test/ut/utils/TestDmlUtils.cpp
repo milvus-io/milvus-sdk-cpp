@@ -16,6 +16,7 @@
 
 #include <gmock/gmock.h>
 
+#include <algorithm>
 #include <cstring>
 
 #include "milvus/types/Constants.h"
@@ -656,4 +657,187 @@ TEST_F(DmlUtilsTest, CreateProtoFieldDataWithNullableInt) {
     milvus::FieldDataPtr result;
     status = milvus::CreateMilvusFieldData(proto_data, result);
     EXPECT_TRUE(status.IsOk());
+}
+
+TEST_F(DmlUtilsTest, CheckAndSetRowDataNullableVector) {
+    milvus::CollectionSchema schema("nullable_vector_coll");
+    schema.AddField(milvus::FieldSchema("pk", milvus::DataType::INT64, "pk", true, true));
+    schema.AddField(milvus::FieldSchema("vec", milvus::DataType::FLOAT_VECTOR).WithDimension(2).WithNullable(true));
+
+    milvus::EntityRows rows;
+    rows.push_back(nlohmann::json{{"vec", {0.1, 0.2}}});
+    rows.push_back(nlohmann::json{{"vec", nullptr}});
+    rows.push_back(nlohmann::json::object());
+    rows.push_back(nlohmann::json{{"vec", {0.3, 0.4}}});
+
+    std::vector<milvus::proto::schema::FieldData> rpc_fields;
+    auto status = milvus::CheckAndSetRowData(rows, schema, false, rpc_fields);
+    ASSERT_TRUE(status.IsOk()) << status.Message();
+
+    auto it = std::find_if(rpc_fields.begin(), rpc_fields.end(),
+                           [](const auto& field) { return field.field_name() == "vec"; });
+    ASSERT_NE(it, rpc_fields.end());
+    EXPECT_THAT(it->valid_data(), ElementsAre(true, false, false, true));
+    EXPECT_EQ(it->vectors().dim(), 2);
+    EXPECT_THAT(it->vectors().float_vector().data(), ElementsAre(0.1f, 0.2f, 0.3f, 0.4f));
+}
+
+TEST_F(DmlUtilsTest, CheckAndSetRowDataAllNullVectorPreservesDimension) {
+    milvus::CollectionSchema schema("nullable_vector_coll");
+    schema.AddField(milvus::FieldSchema("pk", milvus::DataType::INT64, "pk", true, true));
+    schema.AddField(milvus::FieldSchema("vec", milvus::DataType::FLOAT_VECTOR).WithDimension(2).WithNullable(true));
+
+    milvus::EntityRows rows;
+    rows.push_back(nlohmann::json{{"vec", nullptr}});
+    rows.push_back(nlohmann::json::object());
+
+    std::vector<milvus::proto::schema::FieldData> rpc_fields;
+    auto status = milvus::CheckAndSetRowData(rows, schema, false, rpc_fields);
+    ASSERT_TRUE(status.IsOk()) << status.Message();
+
+    auto it = std::find_if(rpc_fields.begin(), rpc_fields.end(),
+                           [](const auto& field) { return field.field_name() == "vec"; });
+    ASSERT_NE(it, rpc_fields.end());
+    EXPECT_THAT(it->valid_data(), ElementsAre(false, false));
+    EXPECT_EQ(it->vectors().dim(), 2);
+    EXPECT_TRUE(it->vectors().float_vector().data().empty());
+}
+
+TEST_F(DmlUtilsTest, NullableVectorColumnRoundTrip) {
+    milvus::CollectionSchema schema("nullable_vector_coll");
+    schema.AddField(milvus::FieldSchema("binary", milvus::DataType::BINARY_VECTOR).WithDimension(8).WithNullable(true));
+    schema.AddField(milvus::FieldSchema("float", milvus::DataType::FLOAT_VECTOR).WithDimension(2).WithNullable(true));
+    schema.AddField(milvus::FieldSchema("sparse", milvus::DataType::SPARSE_FLOAT_VECTOR).WithNullable(true));
+    schema.AddField(
+        milvus::FieldSchema("float16", milvus::DataType::FLOAT16_VECTOR).WithDimension(2).WithNullable(true));
+    schema.AddField(
+        milvus::FieldSchema("bfloat16", milvus::DataType::BFLOAT16_VECTOR).WithDimension(2).WithNullable(true));
+    schema.AddField(milvus::FieldSchema("int8", milvus::DataType::INT8_VECTOR).WithDimension(2).WithNullable(true));
+
+    auto binary = std::make_shared<milvus::BinaryVecFieldData>("binary");
+    binary->AddNull();
+    EXPECT_EQ(binary->Add({1}), milvus::StatusCode::OK);
+    binary->AddNull();
+    EXPECT_EQ(binary->Add({2}), milvus::StatusCode::OK);
+    auto floats = std::make_shared<milvus::FloatVecFieldData>("float");
+    floats->AddNull();
+    EXPECT_EQ(floats->Add({0.1f, 0.2f}), milvus::StatusCode::OK);
+    floats->AddNull();
+    EXPECT_EQ(floats->Add({0.3f, 0.4f}), milvus::StatusCode::OK);
+    auto sparse = std::make_shared<milvus::SparseFloatVecFieldData>("sparse");
+    sparse->AddNull();
+    EXPECT_EQ(sparse->Add({{1, 0.1f}}), milvus::StatusCode::OK);
+    sparse->AddNull();
+    EXPECT_EQ(sparse->Add({{2, 0.2f}}), milvus::StatusCode::OK);
+    auto float16 = std::make_shared<milvus::Float16VecFieldData>("float16");
+    float16->AddNull();
+    EXPECT_EQ(float16->Add({1, 2}), milvus::StatusCode::OK);
+    float16->AddNull();
+    EXPECT_EQ(float16->Add({3, 4}), milvus::StatusCode::OK);
+    auto bfloat16 = std::make_shared<milvus::BFloat16VecFieldData>("bfloat16");
+    bfloat16->AddNull();
+    EXPECT_EQ(bfloat16->Add({1, 2}), milvus::StatusCode::OK);
+    bfloat16->AddNull();
+    EXPECT_EQ(bfloat16->Add({3, 4}), milvus::StatusCode::OK);
+    auto int8 = std::make_shared<milvus::Int8VecFieldData>("int8");
+    int8->AddNull();
+    EXPECT_EQ(int8->Add({1, 2}), milvus::StatusCode::OK);
+    int8->AddNull();
+    EXPECT_EQ(int8->Add({3, 4}), milvus::StatusCode::OK);
+
+    std::vector<milvus::FieldDataPtr> columns{binary, floats, sparse, float16, bfloat16, int8};
+    std::vector<milvus::proto::schema::FieldData> rpc_fields;
+    auto status = milvus::CreateProtoFieldDatas(schema, columns, rpc_fields);
+    ASSERT_TRUE(status.IsOk()) << status.Message();
+    ASSERT_EQ(rpc_fields.size(), columns.size());
+
+    for (const auto& proto_field : rpc_fields) {
+        EXPECT_THAT(proto_field.valid_data(), ElementsAre(false, true, false, true));
+        milvus::FieldDataPtr result;
+        status = milvus::CreateMilvusFieldData(proto_field, result);
+        ASSERT_TRUE(status.IsOk()) << status.Message();
+        ASSERT_NE(result, nullptr);
+        EXPECT_EQ(result->Count(), 4);
+    }
+
+    auto float_proto = std::find_if(rpc_fields.begin(), rpc_fields.end(),
+                                    [](const auto& field) { return field.field_name() == "float"; });
+    ASSERT_NE(float_proto, rpc_fields.end());
+    EXPECT_EQ(float_proto->vectors().dim(), 2);
+    EXPECT_THAT(float_proto->vectors().float_vector().data(), ElementsAre(0.1f, 0.2f, 0.3f, 0.4f));
+
+    milvus::FieldDataPtr sliced;
+    status = milvus::CreateMilvusFieldData(*float_proto, 1, 2, sliced);
+    ASSERT_TRUE(status.IsOk()) << status.Message();
+    auto sliced_float = std::dynamic_pointer_cast<milvus::FloatVecFieldData>(sliced);
+    ASSERT_NE(sliced_float, nullptr);
+    ASSERT_EQ(sliced_float->Count(), 2);
+    EXPECT_FALSE(sliced_float->IsNull(0));
+    EXPECT_THAT(sliced_float->Value(0), ElementsAre(0.1f, 0.2f));
+    EXPECT_TRUE(sliced_float->IsNull(1));
+}
+
+TEST_F(DmlUtilsTest, NullableVectorColumnAllNullPreservesDimension) {
+    auto field = std::make_shared<milvus::FloatVecFieldData>("float");
+    field->AddNull();
+    field->AddNull();
+    auto schema = std::make_shared<milvus::FieldSchema>(
+        milvus::FieldSchema("float", milvus::DataType::FLOAT_VECTOR).WithDimension(4).WithNullable(true));
+
+    milvus::FieldDataSchema bridge(field, schema);
+    milvus::proto::schema::FieldData proto_data;
+    auto status = milvus::CreateProtoFieldData(bridge, proto_data);
+    ASSERT_TRUE(status.IsOk()) << status.Message();
+    EXPECT_THAT(proto_data.valid_data(), ElementsAre(false, false));
+    EXPECT_EQ(proto_data.vectors().dim(), 4);
+    EXPECT_TRUE(proto_data.vectors().float_vector().data().empty());
+    EXPECT_EQ(proto_data.vectors().float_vector().data().Capacity(), 0);
+
+    milvus::FieldDataPtr result;
+    status = milvus::CreateMilvusFieldData(proto_data, result);
+    ASSERT_TRUE(status.IsOk()) << status.Message();
+    auto result_float = std::dynamic_pointer_cast<milvus::FloatVecFieldData>(result);
+    ASSERT_NE(result_float, nullptr);
+    ASSERT_EQ(result_float->Count(), 2);
+    EXPECT_TRUE(result_float->IsNull(0));
+    EXPECT_TRUE(result_float->IsNull(1));
+}
+
+TEST_F(DmlUtilsTest, NullableVectorColumnRejectsMismatchedValidData) {
+    auto field = std::make_shared<milvus::FloatVecFieldData>(
+        "float", std::vector<std::vector<float>>{{0.1f, 0.2f}, {0.3f, 0.4f}}, std::vector<bool>{true});
+    auto schema = std::make_shared<milvus::FieldSchema>(
+        milvus::FieldSchema("float", milvus::DataType::FLOAT_VECTOR).WithDimension(2).WithNullable(true));
+
+    milvus::FieldDataSchema bridge(field, schema);
+    milvus::proto::schema::FieldData proto_data;
+    auto status = milvus::CreateProtoFieldData(bridge, proto_data);
+    EXPECT_FALSE(status.IsOk());
+    EXPECT_EQ(status.Code(), milvus::StatusCode::INVALID_ARGUMENT);
+    EXPECT_EQ(status.Message(), "The valid data count does not match the row count for field: float");
+}
+
+TEST_F(DmlUtilsTest, DenseVectorColumnsRejectRaggedRows) {
+    auto verify = [](const milvus::FieldDataPtr& field, milvus::DataType type, int64_t dimension) {
+        auto schema =
+            std::make_shared<milvus::FieldSchema>(milvus::FieldSchema(field->Name(), type).WithDimension(dimension));
+        milvus::FieldDataSchema bridge(field, schema);
+        milvus::proto::schema::FieldData proto_data;
+        auto status = milvus::CreateProtoFieldData(bridge, proto_data);
+        EXPECT_FALSE(status.IsOk());
+        EXPECT_EQ(status.Code(), milvus::StatusCode::DIMENSION_NOT_EQUAL);
+    };
+
+    verify(std::make_shared<milvus::BinaryVecFieldData>("binary", std::vector<std::vector<uint8_t>>{{1}, {2, 3, 4}}),
+           milvus::DataType::BINARY_VECTOR, 16);
+    verify(std::make_shared<milvus::FloatVecFieldData>("float",
+                                                       std::vector<std::vector<float>>{{1.0f}, {2.0f, 3.0f, 4.0f}}),
+           milvus::DataType::FLOAT_VECTOR, 2);
+    verify(std::make_shared<milvus::Float16VecFieldData>("float16", std::vector<std::vector<uint16_t>>{{1}, {2, 3, 4}}),
+           milvus::DataType::FLOAT16_VECTOR, 2);
+    verify(
+        std::make_shared<milvus::BFloat16VecFieldData>("bfloat16", std::vector<std::vector<uint16_t>>{{1}, {2, 3, 4}}),
+        milvus::DataType::BFLOAT16_VECTOR, 2);
+    verify(std::make_shared<milvus::Int8VecFieldData>("int8", std::vector<std::vector<int8_t>>{{1}, {2, 3, 4}}),
+           milvus::DataType::INT8_VECTOR, 2);
 }
