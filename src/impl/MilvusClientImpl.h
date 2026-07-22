@@ -354,6 +354,22 @@ class MilvusClientImpl : public MilvusClient {
     RemovePrivilegesFromGroup(const std::string& group_name, const std::vector<std::string>& privileges) final;
 
  private:
+    Status
+    insert(const std::string& collection_name, const std::string& partition_name,
+           const std::vector<FieldDataPtr>& fields, DmlResults& results, bool allow_retry);
+
+    Status
+    insert(const std::string& collection_name, const std::string& partition_name, const EntityRows& rows,
+           DmlResults& results, bool allow_retry);
+
+    Status
+    upsert(const std::string& collection_name, const std::string& partition_name,
+           const std::vector<FieldDataPtr>& fields, DmlResults& results, bool allow_retry);
+
+    Status
+    upsert(const std::string& collection_name, const std::string& partition_name, const EntityRows& rows,
+           DmlResults& results, bool allow_retry);
+
     /**
      * @brief return desc if it is existing, else call describeCollection() and cache it
      */

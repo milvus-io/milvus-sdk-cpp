@@ -355,6 +355,12 @@ class MilvusClientV2Impl : public MilvusClientV2, public std::enable_shared_from
 
  private:
     Status
+    insert(const InsertRequest& request, InsertResponse& response, bool allow_retry);
+
+    Status
+    upsert(const UpsertRequest& request, UpsertResponse& response, bool allow_retry);
+
+    Status
     createIndex(const std::string& db_name, const std::string& collection_name, const IndexDesc& desc, bool sync,
                 int64_t timeout_ms);
 

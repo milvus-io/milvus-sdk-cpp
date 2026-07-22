@@ -89,6 +89,16 @@ TEST_F(UpsertRequestTest, GettersAndSetters) {
     EXPECT_TRUE(req.PartialUpdate());
     req.WithPartialUpdate(false);
     EXPECT_FALSE(req.PartialUpdate());
+
+    // FieldOps
+    req.AddFieldOp(milvus::FieldPartialUpdateOp("tags"));
+    ASSERT_EQ(req.FieldOps().size(), 1);
+    EXPECT_EQ(req.FieldOps()[0].FieldName(), "tags");
+    EXPECT_EQ(req.FieldOps()[0].GetOpType(), milvus::FieldPartialUpdateOp::OpType::REPLACE);
+    EXPECT_FALSE(req.PartialUpdate());
+
+    req.AddFieldOp(milvus::FieldPartialUpdateOp("tags", milvus::FieldPartialUpdateOp::OpType::ARRAY_APPEND));
+    EXPECT_TRUE(req.PartialUpdate());
 }
 
 class DeleteRequestTest : public ::testing::Test {};
@@ -197,6 +207,28 @@ TEST_F(UpsertRequestTest, AllMethods) {
     row["name"] = "test";
     req2.AddRowData(std::move(row));
     EXPECT_EQ(req2.RowsData().size(), 1);
+
+    milvus::FieldPartialUpdateOp field_op;
+    field_op.WithFieldName("tags").WithOpType(milvus::FieldPartialUpdateOp::OpType::ARRAY_REMOVE);
+    EXPECT_EQ(field_op.FieldName(), "tags");
+    EXPECT_EQ(field_op.GetOpType(), milvus::FieldPartialUpdateOp::OpType::ARRAY_REMOVE);
+
+    field_op.SetFieldName("labels");
+    field_op.SetOpType(milvus::FieldPartialUpdateOp::OpType::REPLACE);
+    EXPECT_EQ(field_op.FieldName(), "labels");
+    EXPECT_EQ(field_op.GetOpType(), milvus::FieldPartialUpdateOp::OpType::REPLACE);
+
+    std::vector<milvus::FieldPartialUpdateOp> field_ops;
+    field_ops.emplace_back("tags", milvus::FieldPartialUpdateOp::OpType::ARRAY_APPEND);
+    req2.SetFieldOps(std::move(field_ops));
+    ASSERT_EQ(req2.FieldOps().size(), 1);
+    EXPECT_TRUE(req2.PartialUpdate());
+
+    milvus::UpsertRequest req3;
+    std::vector<milvus::FieldPartialUpdateOp> replacement_ops;
+    replacement_ops.emplace_back("name");
+    req3.WithFieldOps(std::move(replacement_ops));
+    EXPECT_FALSE(req3.PartialUpdate());
 }
 
 TEST_F(InsertRequestTest, DMLRequestBaseMethods) {

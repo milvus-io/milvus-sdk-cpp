@@ -53,3 +53,12 @@ TEST_F(GtsDictTest, GeneralTest) {
     ret = instance.GetCollectionTs("db", "bbb", ts);
     EXPECT_FALSE(ret);
 }
+
+TEST_F(GtsDictTest, MakeMktsFromNowMs) {
+    const auto before = milvus::GetNowMs();
+    const auto ts = milvus::MakeMktsFromNowMs();
+    const auto after = milvus::GetNowMs();
+
+    EXPECT_GE(ts, (before + 1000) << 18);
+    EXPECT_LE(ts, (after + 1000) << 18);
+}

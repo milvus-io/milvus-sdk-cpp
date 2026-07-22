@@ -203,40 +203,60 @@ TEST_F(DmlUtilsTest, CheckInsertInputTest) {
 
     {
         // auto-id is true, primary key field is not provided, insert is ok, upsert is wrong
-        auto status = milvus::CheckInsertInput(desc, fields, false);
+        auto status = milvus::CheckInsertInput(desc, fields, false, false);
         EXPECT_EQ(status.Code(), milvus::StatusCode::OK);
 
-        status = milvus::CheckInsertInput(desc, fields, true);
+        status = milvus::CheckInsertInput(desc, fields, true, false);
         EXPECT_EQ(status.Code(), milvus::StatusCode::DATA_UNMATCH_SCHEMA);
 
-        // auto-id is true, primary key field is provided, insert is wrong, upsert is ok
+        status = milvus::CheckInsertInput(desc, fields, true, true);
+        EXPECT_EQ(status.Code(), milvus::StatusCode::DATA_UNMATCH_SCHEMA);
+        EXPECT_EQ(status.Message(), "Data is missed for field: pk");
+
+        // explicit auto-id input is accepted for both insert and upsert
         std::vector<milvus::FieldDataPtr> temp_fields = fields;
         temp_fields.emplace_back(std::move(std::make_shared<milvus::Int64FieldData>("pk", std::vector<int64_t>{1, 2})));
 
-        status = milvus::CheckInsertInput(desc, temp_fields, false);
-        EXPECT_EQ(status.Code(), milvus::StatusCode::DATA_UNMATCH_SCHEMA);
-
-        status = milvus::CheckInsertInput(desc, temp_fields, true);
+        status = milvus::CheckInsertInput(desc, temp_fields, false, false);
         EXPECT_EQ(status.Code(), milvus::StatusCode::OK);
+
+        status = milvus::CheckInsertInput(desc, temp_fields, true, false);
+        EXPECT_EQ(status.Code(), milvus::StatusCode::OK);
+
+        temp_fields.back() = std::make_shared<milvus::Int64FieldData>("pk", std::vector<int64_t>{1});
+        status = milvus::CheckInsertInput(desc, temp_fields, true, true);
+        EXPECT_EQ(status.Code(), milvus::StatusCode::INVALID_ARGUMENT);
     }
 
     desc->SetSchema(std::move(createSchemaFunc(false, false)));
     {
         // auto-id is false, primary key field is not provided, insert is wrong, upsert is wrong
-        auto status = milvus::CheckInsertInput(desc, fields, false);
+        auto status = milvus::CheckInsertInput(desc, fields, false, false);
         EXPECT_EQ(status.Code(), milvus::StatusCode::DATA_UNMATCH_SCHEMA);
 
-        status = milvus::CheckInsertInput(desc, fields, true);
+        status = milvus::CheckInsertInput(desc, fields, true, false);
         EXPECT_EQ(status.Code(), milvus::StatusCode::DATA_UNMATCH_SCHEMA);
+
+        // partial upsert still requires the primary key
+        status = milvus::CheckInsertInput(desc, fields, true, true);
+        EXPECT_EQ(status.Code(), milvus::StatusCode::DATA_UNMATCH_SCHEMA);
+        EXPECT_EQ(status.Message(), "Data is missed for field: pk");
+
+        // partial upsert allows non-primary fields to be omitted
+        std::vector<milvus::FieldDataPtr> partial_fields{
+            std::make_shared<milvus::Int64FieldData>("pk", std::vector<int64_t>{1, 2}),
+        };
+        status = milvus::CheckInsertInput(desc, partial_fields, true, true);
+        EXPECT_EQ(status.Code(), milvus::StatusCode::OK);
 
         // auto-id is false, primary key field is provided, insert is ok, upsert is ok
         std::vector<milvus::FieldDataPtr> temp_fields = fields;
         temp_fields.emplace_back(std::move(std::make_shared<milvus::Int64FieldData>("pk", std::vector<int64_t>{1, 2})));
 
-        status = milvus::CheckInsertInput(desc, temp_fields, false);
+        status = milvus::CheckInsertInput(desc, temp_fields, false, false);
         EXPECT_EQ(status.Code(), milvus::StatusCode::OK);
 
-        status = milvus::CheckInsertInput(desc, temp_fields, true);
+        status = milvus::CheckInsertInput(desc, temp_fields, true, false);
         EXPECT_EQ(status.Code(), milvus::StatusCode::OK);
     }
 
@@ -246,10 +266,10 @@ TEST_F(DmlUtilsTest, CheckInsertInputTest) {
         std::vector<milvus::FieldDataPtr> temp_fields = fields;
         temp_fields.emplace_back(std::move(dynamic_data));
 
-        auto status = milvus::CheckInsertInput(desc, temp_fields, false);
+        auto status = milvus::CheckInsertInput(desc, temp_fields, false, false);
         EXPECT_EQ(status.Code(), milvus::StatusCode::INVALID_ARGUMENT);
 
-        status = milvus::CheckInsertInput(desc, temp_fields, true);
+        status = milvus::CheckInsertInput(desc, temp_fields, true, false);
         EXPECT_EQ(status.Code(), milvus::StatusCode::INVALID_ARGUMENT);
     }
 
@@ -260,10 +280,10 @@ TEST_F(DmlUtilsTest, CheckInsertInputTest) {
         std::vector<milvus::FieldDataPtr> temp_fields = fields;
         temp_fields.emplace_back(std::move(dynamic_data));
 
-        auto status = milvus::CheckInsertInput(desc, temp_fields, false);
+        auto status = milvus::CheckInsertInput(desc, temp_fields, false, false);
         EXPECT_EQ(status.Code(), milvus::StatusCode::DATA_UNMATCH_SCHEMA);
 
-        status = milvus::CheckInsertInput(desc, temp_fields, true);
+        status = milvus::CheckInsertInput(desc, temp_fields, true, false);
         EXPECT_EQ(status.Code(), milvus::StatusCode::DATA_UNMATCH_SCHEMA);
     }
 
@@ -274,10 +294,10 @@ TEST_F(DmlUtilsTest, CheckInsertInputTest) {
         std::vector<milvus::FieldDataPtr> temp_fields = fields;
         temp_fields.emplace_back(std::move(dummy_data));
 
-        auto status = milvus::CheckInsertInput(desc, temp_fields, false);
+        auto status = milvus::CheckInsertInput(desc, temp_fields, false, false);
         EXPECT_EQ(status.Code(), milvus::StatusCode::INVALID_ARGUMENT);
 
-        status = milvus::CheckInsertInput(desc, temp_fields, true);
+        status = milvus::CheckInsertInput(desc, temp_fields, true, false);
         EXPECT_EQ(status.Code(), milvus::StatusCode::INVALID_ARGUMENT);
     }
 
@@ -289,10 +309,10 @@ TEST_F(DmlUtilsTest, CheckInsertInputTest) {
         temp_fields.emplace_back(std::move(std::make_shared<milvus::Int64FieldData>("pk", std::vector<int64_t>{1, 2})));
         temp_fields.emplace_back(std::move(dummy_data));
 
-        auto status = milvus::CheckInsertInput(desc, temp_fields, false);
+        auto status = milvus::CheckInsertInput(desc, temp_fields, false, false);
         EXPECT_EQ(status.Code(), milvus::StatusCode::OK);
 
-        status = milvus::CheckInsertInput(desc, temp_fields, true);
+        status = milvus::CheckInsertInput(desc, temp_fields, true, false);
         EXPECT_EQ(status.Code(), milvus::StatusCode::OK);
     }
 
@@ -303,12 +323,68 @@ TEST_F(DmlUtilsTest, CheckInsertInputTest) {
         std::vector<milvus::FieldDataPtr> temp_fields = fields;
         temp_fields.pop_back();
 
-        auto status = milvus::CheckInsertInput(desc, temp_fields, false);
+        auto status = milvus::CheckInsertInput(desc, temp_fields, false, false);
         EXPECT_EQ(status.Code(), milvus::StatusCode::DATA_UNMATCH_SCHEMA);
 
-        status = milvus::CheckInsertInput(desc, temp_fields, true);
+        status = milvus::CheckInsertInput(desc, temp_fields, true, false);
         EXPECT_EQ(status.Code(), milvus::StatusCode::DATA_UNMATCH_SCHEMA);
     }
+}
+
+TEST_F(DmlUtilsTest, CheckInsertInputFunctionOutputAndUnknownColumns) {
+    milvus::CollectionSchema schema("test_coll");
+    schema.AddField(milvus::FieldSchema("pk", milvus::DataType::INT64, "pk", true, false));
+    schema.AddField(milvus::FieldSchema("text", milvus::DataType::VARCHAR).WithMaxLength(64));
+    schema.AddField(milvus::FieldSchema("embedding", milvus::DataType::FLOAT_VECTOR).WithDimension(2));
+    auto function = std::make_shared<milvus::Function>("embedding_func", milvus::FunctionType::TEXTEMBEDDING);
+    function->AddInputFieldName("text");
+    function->AddOutputFieldName("embedding");
+    schema.AddFunction(std::move(function));
+
+    auto desc = std::make_shared<milvus::CollectionDesc>();
+    desc->SetSchema(std::move(schema));
+
+    std::vector<milvus::FieldDataPtr> columns{
+        std::make_shared<milvus::Int64FieldData>("pk", std::vector<int64_t>{1}),
+        std::make_shared<milvus::VarCharFieldData>("text", std::vector<std::string>{"hello"}),
+    };
+    auto status = milvus::CheckInsertInput(desc, columns, false, false);
+    EXPECT_TRUE(status.IsOk());
+    status = milvus::CheckInsertInput(desc, columns, true, false);
+    EXPECT_TRUE(status.IsOk());
+
+    auto with_output = columns;
+    with_output.emplace_back(
+        std::make_shared<milvus::FloatVecFieldData>("embedding", std::vector<std::vector<float>>{{0.1f, 0.2f}}));
+    status = milvus::CheckInsertInput(desc, with_output, false, false);
+    EXPECT_EQ(status.Code(), milvus::StatusCode::DATA_UNMATCH_SCHEMA);
+    status = milvus::CheckInsertInput(desc, with_output, true, false);
+    EXPECT_EQ(status.Code(), milvus::StatusCode::DATA_UNMATCH_SCHEMA);
+
+    auto with_unknown = columns;
+    with_unknown.emplace_back(std::make_shared<milvus::Int64FieldData>("unknown", std::vector<int64_t>{1}));
+    status = milvus::CheckInsertInput(desc, with_unknown, false, false);
+    EXPECT_EQ(status.Code(), milvus::StatusCode::DATA_UNMATCH_SCHEMA);
+    status = milvus::CheckInsertInput(desc, with_unknown, true, false);
+    EXPECT_EQ(status.Code(), milvus::StatusCode::DATA_UNMATCH_SCHEMA);
+}
+
+TEST_F(DmlUtilsTest, CheckInsertInputAllowsOmittedNullableAndDefaultColumns) {
+    milvus::CollectionSchema schema("test_coll");
+    schema.AddField(milvus::FieldSchema("pk", milvus::DataType::INT64, "pk", true, false));
+    schema.AddField(milvus::FieldSchema("vector", milvus::DataType::FLOAT_VECTOR).WithDimension(2));
+    schema.AddField(milvus::FieldSchema("name", milvus::DataType::VARCHAR).WithMaxLength(64).WithNullable(true));
+    schema.AddField(milvus::FieldSchema("score", milvus::DataType::FLOAT).WithDefaultValue(1.0f));
+
+    auto desc = std::make_shared<milvus::CollectionDesc>();
+    desc->SetSchema(std::move(schema));
+    std::vector<milvus::FieldDataPtr> columns{
+        std::make_shared<milvus::Int64FieldData>("pk", std::vector<int64_t>{1}),
+        std::make_shared<milvus::FloatVecFieldData>("vector", std::vector<std::vector<float>>{{0.1f, 0.2f}}),
+    };
+
+    EXPECT_TRUE(milvus::CheckInsertInput(desc, columns, false, false).IsOk());
+    EXPECT_TRUE(milvus::CheckInsertInput(desc, columns, true, false).IsOk());
 }
 
 TEST_F(DmlUtilsTest, EncodeSparseFloatVectorTest) {
@@ -438,10 +514,234 @@ TEST_F(DmlUtilsTest, CheckAndSetRowDataSimple) {
     rows.push_back(nlohmann::json::parse(R"({"vector": [3.0, 4.0], "name": "bob"})"));
 
     std::vector<milvus::proto::schema::FieldData> rpc_fields;
-    auto status = milvus::CheckAndSetRowData(rows, schema, false, rpc_fields);
+    auto status = milvus::CheckAndSetRowData(rows, schema, false, false, rpc_fields);
     EXPECT_TRUE(status.IsOk());
     // Should have at least the vector and name fields
     EXPECT_GE(rpc_fields.size(), 2u);
+}
+
+TEST_F(DmlUtilsTest, CheckAndSetRowDataDistinguishesInsertAndUpsert) {
+    milvus::CollectionSchema schema("test_coll");
+    schema.AddField(milvus::FieldSchema("pk", milvus::DataType::INT64, "pk", true, true));
+    schema.AddField(milvus::FieldSchema("vector", milvus::DataType::FLOAT_VECTOR).WithDimension(2));
+
+    milvus::EntityRows rows{nlohmann::json{{"vector", {1.0, 2.0}}}};
+
+    std::vector<milvus::proto::schema::FieldData> rpc_fields;
+    auto status = milvus::CheckAndSetRowData(rows, schema, false, false, rpc_fields);
+    EXPECT_TRUE(status.IsOk());
+
+    rpc_fields.clear();
+    status = milvus::CheckAndSetRowData(rows, schema, true, false, rpc_fields);
+    EXPECT_EQ(status.Code(), milvus::StatusCode::INVALID_ARGUMENT);
+
+    rpc_fields.clear();
+    status = milvus::CheckAndSetRowData(rows, schema, true, true, rpc_fields);
+    EXPECT_EQ(status.Code(), milvus::StatusCode::INVALID_ARGUMENT);
+    EXPECT_EQ(status.Message(), "The field: pk is not provided.");
+}
+
+TEST_F(DmlUtilsTest, CheckAndSetRowDataExplicitAutoIDInsert) {
+    milvus::CollectionSchema schema("test_coll");
+    schema.AddField(milvus::FieldSchema("pk", milvus::DataType::INT64, "pk", true, true));
+    schema.AddField(milvus::FieldSchema("vector", milvus::DataType::FLOAT_VECTOR).WithDimension(2));
+
+    std::vector<milvus::proto::schema::FieldData> rpc_fields;
+    milvus::EntityRows rows{
+        nlohmann::json{{"pk", 1}, {"vector", {0.1f, 0.2f}}},
+        nlohmann::json{{"pk", 2}, {"vector", {0.3f, 0.4f}}},
+    };
+    auto status = milvus::CheckAndSetRowData(rows, schema, false, false, rpc_fields);
+    EXPECT_TRUE(status.IsOk());
+
+    rpc_fields.clear();
+    rows = {
+        nlohmann::json{{"pk", 1}, {"vector", {0.1f, 0.2f}}},
+        nlohmann::json{{"vector", {0.3f, 0.4f}}},
+    };
+    status = milvus::CheckAndSetRowData(rows, schema, false, false, rpc_fields);
+    EXPECT_EQ(status.Code(), milvus::StatusCode::INVALID_ARGUMENT);
+    EXPECT_EQ(status.Message(), "The row count of input fields is inconsistent");
+
+    rpc_fields.clear();
+    rows = {
+        nlohmann::json{{"vector", {0.1f, 0.2f}}},
+        nlohmann::json{{"pk", 2}, {"vector", {0.3f, 0.4f}}},
+    };
+    status = milvus::CheckAndSetRowData(rows, schema, false, false, rpc_fields);
+    EXPECT_EQ(status.Code(), milvus::StatusCode::INVALID_ARGUMENT);
+    EXPECT_EQ(status.Message(), "The row count of input fields is inconsistent");
+}
+
+TEST_F(DmlUtilsTest, CheckAndSetRowDataRejectsUnexpectedFields) {
+    milvus::CollectionSchema schema("test_coll");
+    schema.SetEnableDynamicField(false);
+    schema.AddField(milvus::FieldSchema("pk", milvus::DataType::INT64, "pk", true, true));
+    schema.AddField(milvus::FieldSchema("vector", milvus::DataType::FLOAT_VECTOR).WithDimension(2));
+    schema.AddField(milvus::FieldSchema("embedding", milvus::DataType::FLOAT_VECTOR).WithDimension(2));
+    auto function = std::make_shared<milvus::Function>("embedding_func", milvus::FunctionType::TEXTEMBEDDING);
+    function->AddInputFieldName("text");
+    function->AddOutputFieldName("embedding");
+    schema.AddFunction(function);
+
+    std::vector<milvus::proto::schema::FieldData> rpc_fields;
+    milvus::EntityRows rows{nlohmann::json{{"vector", {1.0, 2.0}}, {"embedding", {3.0, 4.0}}}};
+    auto status = milvus::CheckAndSetRowData(rows, schema, false, false, rpc_fields);
+    EXPECT_EQ(status.Code(), milvus::StatusCode::DATA_UNMATCH_SCHEMA);
+
+    rpc_fields.clear();
+    status = milvus::CheckAndSetRowData(rows, schema, true, false, rpc_fields);
+    EXPECT_EQ(status.Code(), milvus::StatusCode::DATA_UNMATCH_SCHEMA);
+
+    rpc_fields.clear();
+    rows = {nlohmann::json{{"vector", {1.0, 2.0}}, {"unknown", 10}}};
+    status = milvus::CheckAndSetRowData(rows, schema, false, false, rpc_fields);
+    EXPECT_EQ(status.Code(), milvus::StatusCode::DATA_UNMATCH_SCHEMA);
+
+    rpc_fields.clear();
+    status = milvus::CheckAndSetRowData(rows, schema, true, false, rpc_fields);
+    EXPECT_EQ(status.Code(), milvus::StatusCode::DATA_UNMATCH_SCHEMA);
+}
+
+TEST_F(DmlUtilsTest, CheckAndSetRowDataSignalsStaleFunctionOutputSchema) {
+    milvus::CollectionSchema stale_schema("test_coll");
+    stale_schema.AddField(milvus::FieldSchema("pk", milvus::DataType::INT64, "pk", true, false));
+    stale_schema.AddField(milvus::FieldSchema("text", milvus::DataType::VARCHAR).WithMaxLength(64));
+    stale_schema.AddField(milvus::FieldSchema("embedding", milvus::DataType::FLOAT_VECTOR).WithDimension(2));
+    auto function = std::make_shared<milvus::Function>("embedding_func", milvus::FunctionType::TEXTEMBEDDING);
+    function->AddInputFieldName("text");
+    function->AddOutputFieldName("embedding");
+    stale_schema.AddFunction(function);
+
+    milvus::EntityRows rows{
+        nlohmann::json{{"pk", 1}, {"text", "hello"}, {"embedding", {0.1f, 0.2f}}},
+    };
+    std::vector<milvus::proto::schema::FieldData> rpc_fields;
+    auto status = milvus::CheckAndSetRowData(rows, stale_schema, false, false, rpc_fields);
+    EXPECT_EQ(status.Code(), milvus::StatusCode::DATA_UNMATCH_SCHEMA);
+    status = milvus::CheckAndSetRowData(rows, stale_schema, true, false, rpc_fields);
+    EXPECT_EQ(status.Code(), milvus::StatusCode::DATA_UNMATCH_SCHEMA);
+
+    milvus::CollectionSchema refreshed_schema("test_coll");
+    refreshed_schema.AddField(milvus::FieldSchema("pk", milvus::DataType::INT64, "pk", true, false));
+    refreshed_schema.AddField(milvus::FieldSchema("text", milvus::DataType::VARCHAR).WithMaxLength(64));
+    refreshed_schema.AddField(milvus::FieldSchema("embedding", milvus::DataType::FLOAT_VECTOR).WithDimension(2));
+
+    rpc_fields.clear();
+    status = milvus::CheckAndSetRowData(rows, refreshed_schema, false, false, rpc_fields);
+    EXPECT_TRUE(status.IsOk());
+    rpc_fields.clear();
+    status = milvus::CheckAndSetRowData(rows, refreshed_schema, true, false, rpc_fields);
+    EXPECT_TRUE(status.IsOk());
+}
+
+TEST_F(DmlUtilsTest, CheckAndSetRowDataDynamicFields) {
+    milvus::CollectionSchema schema("test_coll");
+    schema.SetEnableDynamicField(true);
+    schema.AddField(milvus::FieldSchema("pk", milvus::DataType::INT64, "pk", true, false));
+    schema.AddField(milvus::FieldSchema("vector", milvus::DataType::FLOAT_VECTOR).WithDimension(2));
+
+    milvus::EntityRows rows{
+        nlohmann::json{{"pk", 1}, {"vector", {0.1f, 0.2f}}, {"color", "red"}},
+    };
+    auto expect_dynamic = [&schema, &rows](bool is_upsert) {
+        std::vector<milvus::proto::schema::FieldData> rpc_fields;
+        auto status = milvus::CheckAndSetRowData(rows, schema, is_upsert, false, rpc_fields);
+        EXPECT_TRUE(status.IsOk());
+        auto it = std::find_if(rpc_fields.begin(), rpc_fields.end(), [](const auto& field) {
+            return field.is_dynamic() && field.field_name() == milvus::DYNAMIC_FIELD;
+        });
+        ASSERT_NE(it, rpc_fields.end());
+        ASSERT_EQ(it->scalars().json_data().data_size(), 1);
+        const nlohmann::json expected{{"color", "red"}};
+        EXPECT_EQ(nlohmann::json::parse(it->scalars().json_data().data(0)), expected);
+    };
+
+    expect_dynamic(false);
+    expect_dynamic(true);
+}
+
+TEST_F(DmlUtilsTest, CheckAndSetRowDataStructValidation) {
+    milvus::CollectionSchema schema("test_coll");
+    schema.AddField(milvus::FieldSchema("pk", milvus::DataType::INT64, "pk", true, false));
+    schema.AddField(milvus::FieldSchema("tags", milvus::DataType::ARRAY)
+                        .WithElementType(milvus::DataType::INT32)
+                        .WithMaxCapacity(10));
+    milvus::StructFieldSchema struct_field("structs");
+    struct_field.SetMaxCapacity(10);
+    struct_field.AddField(milvus::FieldSchema("values", milvus::DataType::ARRAY)
+                              .WithElementType(milvus::DataType::INT32)
+                              .WithMaxCapacity(10));
+    schema.AddStructField(std::move(struct_field));
+
+    std::vector<milvus::proto::schema::FieldData> rpc_fields;
+    milvus::EntityRows rows{nlohmann::json{{"pk", 1}, {"tags", {1, 2}}}};
+    auto status = milvus::CheckAndSetRowData(rows, schema, false, false, rpc_fields);
+    EXPECT_EQ(status.Code(), milvus::StatusCode::INVALID_ARGUMENT);
+    EXPECT_EQ(status.Message(), "The struct field: structs is not provided.");
+
+    rpc_fields.clear();
+    status = milvus::CheckAndSetRowData(rows, schema, true, false, rpc_fields);
+    EXPECT_EQ(status.Code(), milvus::StatusCode::INVALID_ARGUMENT);
+    EXPECT_EQ(status.Message(), "The struct field: structs is not provided.");
+
+    rows = {nlohmann::json{{"pk", 1}, {"tags", {1, 2}}}};
+    rpc_fields.clear();
+    status = milvus::CheckAndSetRowData(rows, schema, true, true, rpc_fields);
+    EXPECT_TRUE(status.IsOk());
+    EXPECT_EQ(std::count_if(rpc_fields.begin(), rpc_fields.end(),
+                            [](const auto& field) { return field.field_name() == "structs"; }),
+              0);
+
+    rows = {nlohmann::json{{"pk", 1}, {"tags", {1, 2}}, {"structs", {{{"values", {3, 4}}}}}}};
+    rpc_fields.clear();
+    status = milvus::CheckAndSetRowData(rows, schema, false, false, rpc_fields);
+    EXPECT_TRUE(status.IsOk());
+    EXPECT_EQ(std::count_if(rpc_fields.begin(), rpc_fields.end(),
+                            [](const auto& field) { return field.field_name() == "structs"; }),
+              1);
+
+    rpc_fields.clear();
+    status = milvus::CheckAndSetRowData(rows, schema, true, false, rpc_fields);
+    EXPECT_TRUE(status.IsOk());
+
+    rpc_fields.clear();
+    status = milvus::CheckAndSetRowData(rows, schema, true, true, rpc_fields);
+    EXPECT_TRUE(status.IsOk());
+    EXPECT_EQ(std::count_if(rpc_fields.begin(), rpc_fields.end(),
+                            [](const auto& field) { return field.field_name() == "structs"; }),
+              1);
+
+    rows = {nlohmann::json{{"pk", 1}, {"structs[values]", {3, 4}}}};
+    rpc_fields.clear();
+    status = milvus::CheckAndSetRowData(rows, schema, true, true, rpc_fields);
+    EXPECT_EQ(status.Code(), milvus::StatusCode::INVALID_ARGUMENT);
+    EXPECT_EQ(status.Message(), "Partial struct update is not supported for struct sub-field: structs[values]");
+}
+
+TEST_F(DmlUtilsTest, CheckAndSetRowDataRejectsInconsistentPartialUpsertRows) {
+    milvus::CollectionSchema schema("test_coll");
+    schema.AddField(milvus::FieldSchema("pk", milvus::DataType::INT64, "pk", true, false));
+    schema.AddField(milvus::FieldSchema("tags", milvus::DataType::ARRAY)
+                        .WithElementType(milvus::DataType::INT32)
+                        .WithMaxCapacity(10));
+    schema.AddField(milvus::FieldSchema("score", milvus::DataType::INT32));
+
+    auto expect_inconsistent = [&schema](milvus::EntityRows rows) {
+        std::vector<milvus::proto::schema::FieldData> rpc_fields;
+        auto status = milvus::CheckAndSetRowData(rows, schema, true, true, rpc_fields);
+        EXPECT_EQ(status.Code(), milvus::StatusCode::INVALID_ARGUMENT);
+        EXPECT_EQ(status.Message(), "The row count of partial update fields is inconsistent");
+    };
+
+    expect_inconsistent({
+        nlohmann::json{{"pk", 1}, {"tags", {1, 2}}},
+        nlohmann::json{{"pk", 2}},
+    });
+    expect_inconsistent({
+        nlohmann::json{{"pk", 1}, {"tags", {1, 2}}},
+        nlohmann::json{{"pk", 2}, {"score", 10}},
+    });
 }
 
 TEST_F(DmlUtilsTest, CheckAndSetRowDataInvalidRow) {
@@ -454,7 +754,7 @@ TEST_F(DmlUtilsTest, CheckAndSetRowDataInvalidRow) {
     rows.push_back(nlohmann::json::parse(R"([1, 2])"));
 
     std::vector<milvus::proto::schema::FieldData> rpc_fields;
-    auto status = milvus::CheckAndSetRowData(rows, schema, false, rpc_fields);
+    auto status = milvus::CheckAndSetRowData(rows, schema, false, false, rpc_fields);
     EXPECT_FALSE(status.IsOk());
 }
 
@@ -488,7 +788,7 @@ TEST_F(DmlUtilsTest, CheckAndSetRowDataAllScalarTypes) {
     });
 
     std::vector<milvus::proto::schema::FieldData> rpc_fields;
-    auto status = milvus::CheckAndSetRowData(rows, schema, false, rpc_fields);
+    auto status = milvus::CheckAndSetRowData(rows, schema, false, false, rpc_fields);
     EXPECT_TRUE(status.IsOk());
     EXPECT_GE(rpc_fields.size(), 10u);
 }
@@ -505,7 +805,7 @@ TEST_F(DmlUtilsTest, CheckAndSetRowDataVectorTypes) {
         rows.push_back(nlohmann::json{{"bin_vec", {255, 0, 171, 205}}});
 
         std::vector<milvus::proto::schema::FieldData> rpc_fields;
-        auto status = milvus::CheckAndSetRowData(rows, schema, false, rpc_fields);
+        auto status = milvus::CheckAndSetRowData(rows, schema, false, false, rpc_fields);
         EXPECT_TRUE(status.IsOk());
     }
 
@@ -518,7 +818,7 @@ TEST_F(DmlUtilsTest, CheckAndSetRowDataVectorTypes) {
         rows.push_back(nlohmann::json{{"sp_vec", nlohmann::json{{"1", 0.5}, {"3", 0.8}}}});
 
         std::vector<milvus::proto::schema::FieldData> rpc_fields;
-        auto status = milvus::CheckAndSetRowData(rows, schema, false, rpc_fields);
+        auto status = milvus::CheckAndSetRowData(rows, schema, false, false, rpc_fields);
         EXPECT_TRUE(status.IsOk());
     }
 
@@ -531,7 +831,7 @@ TEST_F(DmlUtilsTest, CheckAndSetRowDataVectorTypes) {
         rows.push_back(nlohmann::json{{"fp16_vec", {1.0, 2.0}}});
 
         std::vector<milvus::proto::schema::FieldData> rpc_fields;
-        auto status = milvus::CheckAndSetRowData(rows, schema, false, rpc_fields);
+        auto status = milvus::CheckAndSetRowData(rows, schema, false, false, rpc_fields);
         EXPECT_TRUE(status.IsOk());
     }
 
@@ -544,7 +844,7 @@ TEST_F(DmlUtilsTest, CheckAndSetRowDataVectorTypes) {
         rows.push_back(nlohmann::json{{"i8_vec", {1, -2, 3}}});
 
         std::vector<milvus::proto::schema::FieldData> rpc_fields;
-        auto status = milvus::CheckAndSetRowData(rows, schema, false, rpc_fields);
+        auto status = milvus::CheckAndSetRowData(rows, schema, false, false, rpc_fields);
         EXPECT_TRUE(status.IsOk());
     }
 }
@@ -562,7 +862,7 @@ TEST_F(DmlUtilsTest, CheckAndSetRowDataArrayField) {
     rows.push_back(nlohmann::json{{"arr", {40}}, {"vec", {0.3, 0.4}}});
 
     std::vector<milvus::proto::schema::FieldData> rpc_fields;
-    auto status = milvus::CheckAndSetRowData(rows, schema, false, rpc_fields);
+    auto status = milvus::CheckAndSetRowData(rows, schema, false, false, rpc_fields);
     EXPECT_TRUE(status.IsOk());
 }
 
@@ -582,7 +882,14 @@ TEST_F(DmlUtilsTest, CheckAndSetRowDataNullableField) {
     rows.push_back(nlohmann::json{{"vec", {0.5, 0.6}}});
 
     std::vector<milvus::proto::schema::FieldData> rpc_fields;
-    auto status = milvus::CheckAndSetRowData(rows, schema, false, rpc_fields);
+    auto status = milvus::CheckAndSetRowData(rows, schema, false, false, rpc_fields);
+    EXPECT_TRUE(status.IsOk());
+
+    milvus::EntityRows upsert_rows{
+        nlohmann::json{{"pk", 1}, {"vec", {0.5, 0.6}}},
+    };
+    rpc_fields.clear();
+    status = milvus::CheckAndSetRowData(upsert_rows, schema, true, false, rpc_fields);
     EXPECT_TRUE(status.IsOk());
 }
 
@@ -600,7 +907,14 @@ TEST_F(DmlUtilsTest, CheckAndSetRowDataDefaultValue) {
     rows.push_back(nlohmann::json{{"vec", {0.3, 0.4}}});
 
     std::vector<milvus::proto::schema::FieldData> rpc_fields;
-    auto status = milvus::CheckAndSetRowData(rows, schema, false, rpc_fields);
+    auto status = milvus::CheckAndSetRowData(rows, schema, false, false, rpc_fields);
+    EXPECT_TRUE(status.IsOk());
+
+    milvus::EntityRows upsert_rows{
+        nlohmann::json{{"pk", 1}, {"vec", {0.3, 0.4}}},
+    };
+    rpc_fields.clear();
+    status = milvus::CheckAndSetRowData(upsert_rows, schema, true, false, rpc_fields);
     EXPECT_TRUE(status.IsOk());
 }
 
@@ -615,7 +929,7 @@ TEST_F(DmlUtilsTest, CheckAndSetRowDataGeometryAndTimestamptz) {
     rows.push_back(nlohmann::json{{"geo", "POINT (1 1)"}, {"tsz", "2025-01-01T00:00:00+00:00"}, {"vec", {0.1, 0.2}}});
 
     std::vector<milvus::proto::schema::FieldData> rpc_fields;
-    auto status = milvus::CheckAndSetRowData(rows, schema, false, rpc_fields);
+    auto status = milvus::CheckAndSetRowData(rows, schema, false, false, rpc_fields);
     EXPECT_TRUE(status.IsOk());
 }
 
@@ -671,7 +985,7 @@ TEST_F(DmlUtilsTest, CheckAndSetRowDataNullableVector) {
     rows.push_back(nlohmann::json{{"vec", {0.3, 0.4}}});
 
     std::vector<milvus::proto::schema::FieldData> rpc_fields;
-    auto status = milvus::CheckAndSetRowData(rows, schema, false, rpc_fields);
+    auto status = milvus::CheckAndSetRowData(rows, schema, false, false, rpc_fields);
     ASSERT_TRUE(status.IsOk()) << status.Message();
 
     auto it = std::find_if(rpc_fields.begin(), rpc_fields.end(),
@@ -692,7 +1006,7 @@ TEST_F(DmlUtilsTest, CheckAndSetRowDataAllNullVectorPreservesDimension) {
     rows.push_back(nlohmann::json::object());
 
     std::vector<milvus::proto::schema::FieldData> rpc_fields;
-    auto status = milvus::CheckAndSetRowData(rows, schema, false, rpc_fields);
+    auto status = milvus::CheckAndSetRowData(rows, schema, false, false, rpc_fields);
     ASSERT_TRUE(status.IsOk()) << status.Message();
 
     auto it = std::find_if(rpc_fields.begin(), rpc_fields.end(),
