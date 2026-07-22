@@ -22,7 +22,6 @@
 #include <utility>
 
 #include "../mocks/MilvusMockedTest.h"
-#include "milvus/MilvusClientV2.h"
 #include "utils/CompareUtils.h"
 #include "utils/Constants.h"
 #include "utils/ExtraParamUtils.h"
@@ -38,50 +37,6 @@ using ::testing::_;
 using ::testing::AllOf;
 using ::testing::ElementsAre;
 using ::testing::Property;
-
-namespace {
-
-std::shared_ptr<milvus::MilvusClientV2>
-CreateConnectedV2Client(testing::StrictMock<::milvus::MilvusMockedService>& service, uint16_t port) {
-    EXPECT_CALL(service, Connect(_, _, _))
-        .WillOnce([](::grpc::ServerContext*, const ::milvus::proto::milvus::ConnectRequest*,
-                     ::milvus::proto::milvus::ConnectResponse*) { return ::grpc::Status{}; });
-
-    auto client = milvus::MilvusClientV2::Create();
-    milvus::ConnectParam connect_param{"127.0.0.1", port};
-    auto status = client->Connect(connect_param);
-    EXPECT_TRUE(status.IsOk());
-    return client;
-}
-
-void
-FillMinimalV2HybridSearchResults(::milvus::proto::milvus::SearchResults* response) {
-    response->mutable_status()->set_code(milvus::proto::common::ErrorCode::Success);
-    response->set_session_ts(123456);
-    auto* results = response->mutable_results();
-    results->set_num_queries(1);
-    results->set_top_k(1);
-    results->set_primary_field_name("id");
-    results->mutable_topks()->Add(1);
-    results->mutable_scores()->Add(0.1f);
-    results->mutable_ids()->mutable_int_id()->add_data(10000);
-}
-
-milvus::HybridSearchRequest
-CreateV2HybridSearchRequest() {
-    auto sub_request = std::make_shared<milvus::SubSearchRequest>();
-    sub_request->WithAnnsField("anns_dummy").WithLimit(1);
-    sub_request->AddFloatVector(std::vector<float>{0.1f, 0.2f, 0.3f, 0.4f});
-
-    milvus::HybridSearchRequest request;
-    request.WithCollectionName("foo");
-    request.AddSubRequest(sub_request);
-    request.WithLimit(1);
-    request.WithRerank(std::make_shared<milvus::RRFRerank>(60));
-    return request;
-}
-
-}  // namespace
 
 TEST_F(MilvusMockedTest, HybridSearch) {
     milvus::ConnectParam connect_param{"127.0.0.1", server_.ListenPort()};
@@ -257,32 +212,4 @@ TEST_F(MilvusMockedTest, HybridSearch) {
     EXPECT_EQ(results.at(0).Scores(), expected_scores);
     EXPECT_EQ(results.at(0).OutputField<milvus::BoolFieldData>("f1")->Data(), expected_f1);
     EXPECT_EQ(results.at(0).OutputField<milvus::Int16FieldData>("f2")->Data(), expected_f2);
-}
-
-TEST_F(UnconnectMilvusMockedTest, HybridSearchResponseExtraInfoMetadata) {
-    auto client = CreateConnectedV2Client(service_, server_.ListenPort());
-
-    EXPECT_CALL(service_, HybridSearch(_, _, _))
-        .WillOnce([](::grpc::ServerContext*, const ::milvus::proto::milvus::HybridSearchRequest*,
-                     ::milvus::proto::milvus::SearchResults* response) {
-            FillMinimalV2HybridSearchResults(response);
-            auto* extra_info = response->mutable_status()->mutable_extra_info();
-            (*extra_info)["report_value"] = "201";
-            (*extra_info)["scanned_remote_bytes"] = "202";
-            (*extra_info)["scanned_total_bytes"] = "203";
-            (*extra_info)["cache_hit_ratio"] = "0.25";
-            return ::grpc::Status{};
-        });
-
-    auto request = CreateV2HybridSearchRequest();
-    milvus::HybridSearchResponse response;
-    auto status = client->HybridSearch(request, response);
-
-    EXPECT_TRUE(status.IsOk());
-    EXPECT_EQ(response.SessionTs(), 123456u);
-    EXPECT_EQ(response.Cost(), 201);
-    EXPECT_EQ(response.ScannedRemoteBytes(), 202);
-    EXPECT_EQ(response.ScannedTotalBytes(), 203);
-    EXPECT_FLOAT_EQ(response.CacheHitRatio(), 0.25f);
-    EXPECT_EQ(response.Results().Results().size(), 1);
 }

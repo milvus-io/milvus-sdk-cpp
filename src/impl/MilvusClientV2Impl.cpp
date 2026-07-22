@@ -1498,6 +1498,11 @@ MilvusClientV2Impl::DropIndexProperties(const DropIndexPropertiesRequest& reques
 
 Status
 MilvusClientV2Impl::Insert(const InsertRequest& request, InsertResponse& response) {
+    return insert(request, response, true);
+}
+
+Status
+MilvusClientV2Impl::insert(const InsertRequest& request, InsertResponse& response, bool allow_retry) {
     CollectionDescPtr collection_desc;
     std::vector<proto::schema::FieldData> rpc_fields;
     auto validate = [this, &request, &collection_desc, &rpc_fields]() {
@@ -1514,7 +1519,16 @@ MilvusClientV2Impl::Insert(const InsertRequest& request, InsertResponse& respons
 
         if (!rows.empty()) {
             // verify and convert row-based data to rpc fields
-            status = CheckAndSetRowData(rows, collection_desc->Schema(), false, rpc_fields);
+            status = CheckAndSetRowData(rows, collection_desc->Schema(), false, false, rpc_fields);
+            if (status.Code() == milvus::StatusCode::DATA_UNMATCH_SCHEMA) {
+                status = getCollectionDesc(request.DatabaseName(), request.CollectionName(), true, collection_desc);
+                if (!status.IsOk()) {
+                    return status;
+                }
+
+                rpc_fields.clear();
+                status = CheckAndSetRowData(rows, collection_desc->Schema(), false, false, rpc_fields);
+            }
             if (!status.IsOk()) {
                 return status;
             }
@@ -1522,14 +1536,17 @@ MilvusClientV2Impl::Insert(const InsertRequest& request, InsertResponse& respons
             // verify column-based data
             // if the collection is already recreated, some schema might be changed, we need to update the
             // collectionDesc cache and call CheckInsertInput() again.
-            status = CheckInsertInput(collection_desc, fields, false);
+            status = CheckInsertInput(collection_desc, fields, false, false);
             if (status.Code() == milvus::StatusCode::DATA_UNMATCH_SCHEMA) {
                 status = getCollectionDesc(request.DatabaseName(), request.CollectionName(), true, collection_desc);
                 if (!status.IsOk()) {
                     return status;
                 }
 
-                status = CheckInsertInput(collection_desc, fields, false);
+                status = CheckInsertInput(collection_desc, fields, false, false);
+            }
+            if (!status.IsOk()) {
+                return status;
             }
 
             // convert column-based data to rpc fields
@@ -1588,15 +1605,20 @@ MilvusClientV2Impl::Insert(const InsertRequest& request, InsertResponse& respons
     // the collection schema. The server might return a special error code "SchemaMismatch".
     // If the client_A gets this special error code, it needs to update the collectionDesc cache and
     // call Insert() again.
-    if (status.LegacyServerCode() == static_cast<int32_t>(proto::common::ErrorCode::SchemaMismatch)) {
+    if (allow_retry && status.LegacyServerCode() == static_cast<int32_t>(proto::common::ErrorCode::SchemaMismatch)) {
         removeCollectionDesc(request.DatabaseName(), request.CollectionName());
-        return Insert(request, response);
+        return insert(request, response, false);
     }
     return status;
 }
 
 Status
 MilvusClientV2Impl::Upsert(const UpsertRequest& request, UpsertResponse& response) {
+    return upsert(request, response, true);
+}
+
+Status
+MilvusClientV2Impl::upsert(const UpsertRequest& request, UpsertResponse& response, bool allow_retry) {
     std::vector<proto::schema::FieldData> rpc_fields;
     CollectionDescPtr collection_desc;
     auto validate = [this, &request, &collection_desc, &rpc_fields]() {
@@ -1613,7 +1635,16 @@ MilvusClientV2Impl::Upsert(const UpsertRequest& request, UpsertResponse& respons
 
         if (!rows.empty()) {
             // verify and convert row-based data to rpc fields
-            status = CheckAndSetRowData(rows, collection_desc->Schema(), request.PartialUpdate(), rpc_fields);
+            status = CheckAndSetRowData(rows, collection_desc->Schema(), true, request.PartialUpdate(), rpc_fields);
+            if (status.Code() == milvus::StatusCode::DATA_UNMATCH_SCHEMA) {
+                status = getCollectionDesc(request.DatabaseName(), request.CollectionName(), true, collection_desc);
+                if (!status.IsOk()) {
+                    return status;
+                }
+
+                rpc_fields.clear();
+                status = CheckAndSetRowData(rows, collection_desc->Schema(), true, request.PartialUpdate(), rpc_fields);
+            }
             if (!status.IsOk()) {
                 return status;
             }
@@ -1621,14 +1652,17 @@ MilvusClientV2Impl::Upsert(const UpsertRequest& request, UpsertResponse& respons
             // verify column-based data
             // if the collection is already recreated, some schema might be changed, we need to update the
             // collectionDesc cache and call CheckInsertInput() again.
-            status = CheckInsertInput(collection_desc, fields, true);
+            status = CheckInsertInput(collection_desc, fields, true, request.PartialUpdate());
             if (status.Code() == milvus::StatusCode::DATA_UNMATCH_SCHEMA) {
                 status = getCollectionDesc(request.DatabaseName(), request.CollectionName(), true, collection_desc);
                 if (!status.IsOk()) {
                     return status;
                 }
 
-                status = CheckInsertInput(collection_desc, fields, true);
+                status = CheckInsertInput(collection_desc, fields, true, request.PartialUpdate());
+            }
+            if (!status.IsOk()) {
+                return status;
             }
 
             // convert column-based data to rpc fields
@@ -1656,6 +1690,11 @@ MilvusClientV2Impl::Upsert(const UpsertRequest& request, UpsertResponse& respons
         rpc_request.set_num_rows(static_cast<uint32_t>(row_count));
         rpc_request.set_schema_timestamp(collection_desc->UpdateTime());
         rpc_request.set_partial_update(request.PartialUpdate());
+        for (const auto& field_op : request.FieldOps()) {
+            auto* rpc_field_op = rpc_request.add_field_ops();
+            rpc_field_op->set_field_name(field_op.FieldName());
+            rpc_field_op->set_op(FieldPartialUpdateOpTypeCast(field_op.GetOpType()));
+        }
         for (auto& field : rpc_fields) {
             mutable_fields->Add(std::move(field));
         }
@@ -1687,9 +1726,9 @@ MilvusClientV2Impl::Upsert(const UpsertRequest& request, UpsertResponse& respons
     // the collection schema. The server might return a special error code "SchemaMismatch".
     // If the client_A gets this special error code, it needs to update the collectionDesc cache and
     // call Upsert() again.
-    if (status.LegacyServerCode() == static_cast<int32_t>(proto::common::ErrorCode::SchemaMismatch)) {
+    if (allow_retry && status.LegacyServerCode() == static_cast<int32_t>(proto::common::ErrorCode::SchemaMismatch)) {
         removeCollectionDesc(request.DatabaseName(), request.CollectionName());
-        return Upsert(request, response);
+        return upsert(request, response, false);
     }
     return status;
 }

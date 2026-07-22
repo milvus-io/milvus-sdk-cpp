@@ -424,6 +424,12 @@ class MilvusClientV2Impl : public MilvusClientV2, public std::enable_shared_from
     friend class MilvusClientV2SessionImpl;
 
     Status
+    insert(const InsertRequest& request, InsertResponse& response, bool allow_retry);
+
+    Status
+    upsert(const UpsertRequest& request, UpsertResponse& response, bool allow_retry);
+
+    Status
     search(const SearchRequest& request, SearchResponse& response, const std::string& cluster_id);
 
     Status

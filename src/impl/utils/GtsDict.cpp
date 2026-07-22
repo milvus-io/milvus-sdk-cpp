@@ -79,7 +79,7 @@ GetNowMs() {
 int64_t
 MakeMktsFromNowMs() {
     auto ms = GetNowMs();
-    return ms << 18;
+    return (ms + 1000) << 18;
 }
 
 }  // namespace milvus

@@ -28,6 +28,16 @@ using ::testing::ElementsAre;
 
 class TypeUtilsTest : public ::testing::Test {};
 
+TEST_F(TypeUtilsTest, FieldPartialUpdateOpTypeCast) {
+    using OpType = milvus::FieldPartialUpdateOp::OpType;
+    using ProtoOp = milvus::proto::schema::FieldPartialUpdateOp;
+
+    EXPECT_EQ(milvus::FieldPartialUpdateOpTypeCast(OpType::REPLACE), ProtoOp::REPLACE);
+    EXPECT_EQ(milvus::FieldPartialUpdateOpTypeCast(OpType::ARRAY_APPEND), ProtoOp::ARRAY_APPEND);
+    EXPECT_EQ(milvus::FieldPartialUpdateOpTypeCast(OpType::ARRAY_REMOVE), ProtoOp::ARRAY_REMOVE);
+    EXPECT_EQ(static_cast<int>(milvus::FieldPartialUpdateOpTypeCast(static_cast<OpType>(99))), 99);
+}
+
 TEST_F(TypeUtilsTest, BoolFieldCompare) {
     const std::string field_name = "foo";
     milvus::BoolFieldData bool_field{field_name, std::vector<bool>{false, true}};
