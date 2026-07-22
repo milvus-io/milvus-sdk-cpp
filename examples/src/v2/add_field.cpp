@@ -166,11 +166,13 @@ main(int argc, char* argv[]) {
         milvus::FunctionPtr function = std::make_shared<milvus::Function>(function_name, milvus::FunctionType::BM25);
         function->AddInputFieldName(field_text);
         function->AddOutputFieldName(field_sparse);
+        milvus::IndexDesc index(field_sparse, "", milvus::IndexType::SPARSE_INVERTED_INDEX, milvus::MetricType::BM25);
 
         status = client->AddFunctionField(milvus::AddFunctionFieldRequest()
                                               .WithCollectionName(collection_name)
                                               .WithField(std::move(sparse_field))
-                                              .WithFunction(function));
+                                              .WithFunction(function)
+                                              .WithIndex(std::move(index)));
         util::CheckStatus("add function-backed field 'sparse'", status);
         std::cout << "Function-backed field 'sparse' added" << std::endl;
         DescribeCollection(client);

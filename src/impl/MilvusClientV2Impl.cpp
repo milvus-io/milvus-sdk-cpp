@@ -704,7 +704,24 @@ MilvusClientV2Impl::DropCollectionFieldProperties(const DropCollectionFieldPrope
 
 Status
 MilvusClientV2Impl::AddCollectionField(const AddCollectionFieldRequest& request) {
-    auto pre = [&request](proto::milvus::AddCollectionFieldRequest& rpc_request) {
+    auto alter_pre = [&request](proto::milvus::AlterCollectionSchemaRequest& rpc_request) {
+        rpc_request.set_db_name(request.DatabaseName());
+        rpc_request.set_collection_name(request.CollectionName());
+
+        auto* field_info = rpc_request.mutable_action()->mutable_add_request()->add_field_infos();
+        ConvertFieldSchema(request.Field(), *field_info->mutable_field_schema());
+        return Status::OK();
+    };
+
+    auto status =
+        connection_.Invoke<proto::milvus::AlterCollectionSchemaRequest, proto::milvus::AlterCollectionSchemaResponse>(
+            alter_pre, &MilvusConnection::AlterCollectionSchema);
+    // An older coordinator reports an internal gRPC UNIMPLEMENTED as Milvus ErrServiceUnimplemented (code 10).
+    if (status.RpcErrCode() != static_cast<int32_t>(::grpc::StatusCode::UNIMPLEMENTED) && status.ServerCode() != 10) {
+        return status;
+    }
+
+    auto legacy_pre = [&request](proto::milvus::AddCollectionFieldRequest& rpc_request) {
         rpc_request.set_db_name(request.DatabaseName());
         rpc_request.set_collection_name(request.CollectionName());
 
@@ -718,7 +735,7 @@ MilvusClientV2Impl::AddCollectionField(const AddCollectionFieldRequest& request)
     };
 
     return connection_.Invoke<proto::milvus::AddCollectionFieldRequest, proto::common::Status>(
-        pre, &MilvusConnection::AddCollectionField);
+        legacy_pre, &MilvusConnection::AddCollectionField);
 }
 
 Status
@@ -857,6 +874,27 @@ MilvusClientV2Impl::AddFunctionField(const AddFunctionFieldRequest& request) {
         if (request.Function()->OutputFieldNames()[0] != request.Field().Name()) {
             return Status{StatusCode::INVALID_ARGUMENT, "Function output field name must match the field being added."};
         }
+
+        const auto& index = request.Index();
+        if (index.IndexType() == IndexType::INVALID) {
+            return Status{StatusCode::INVALID_ARGUMENT,
+                          "An explicit index type is required for the function output field."};
+        }
+        if (index.IndexType() == IndexType::AUTOINDEX) {
+            return Status{StatusCode::INVALID_ARGUMENT, "AUTOINDEX is not supported for the function output field."};
+        }
+        if (!index.FieldName().empty() && index.FieldName() != request.Field().Name()) {
+            return Status{StatusCode::INVALID_ARGUMENT, "Index field name must match the function output field name."};
+        }
+        // FieldInfo.extra_params uses the canonical flat representation. Reject the
+        // legacy params envelope because it can overwrite the typed index fields
+        // when the server expands it.
+        for (const auto* reserved_key : {INDEX_TYPE, METRIC_TYPE, PARAMS}) {
+            if (index.ExtraParams().find(reserved_key) != index.ExtraParams().end()) {
+                return Status{StatusCode::INVALID_ARGUMENT,
+                              std::string("Index extra params must not contain reserved key: ") + reserved_key};
+            }
+        }
         return Status::OK();
     };
 
@@ -868,6 +906,23 @@ MilvusClientV2Impl::AddFunctionField(const AddFunctionFieldRequest& request) {
         auto* field_info = add_request->add_field_infos();
         ConvertFieldSchema(request.Field(), *field_info->mutable_field_schema());
         field_info->mutable_field_schema()->set_is_function_output(true);
+        const auto& index = request.Index();
+        field_info->set_index_name(index.IndexName());
+
+        auto* index_type = field_info->add_extra_params();
+        index_type->set_key(INDEX_TYPE);
+        index_type->set_value(std::to_string(index.IndexType()));
+        if (index.MetricType() != MetricType::DEFAULT) {
+            auto* metric_type = field_info->add_extra_params();
+            metric_type->set_key(METRIC_TYPE);
+            metric_type->set_value(std::to_string(index.MetricType()));
+        }
+        for (const auto& pair : index.ExtraParams()) {
+            auto* param = field_info->add_extra_params();
+            param->set_key(pair.first);
+            param->set_value(pair.second);
+        }
+
         ConvertFunctionSchema(request.Function(), *add_request->add_func_schema());
         return Status::OK();
     };
