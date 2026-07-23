@@ -1,4 +1,4 @@
-name: Create draft release
+name: Create release
 
 on:
   push:
@@ -7,17 +7,18 @@ on:
 
 permissions:
   contents: write
+  actions: write
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref_name }}
   cancel-in-progress: true
 
 jobs:
-  # create a draft release for an exact release tag (vX.Y.Z).
+  # Create and publish a release for an exact release tag (vX.Y.Z).
   # Tags that do not match this format are ignored, which allows pushing other tags (e.g. vX.Y)
   # without triggering the release workflow.
-  draft-release:
-    name: Create draft release
+  release:
+    name: Create release
     runs-on: ubuntu-latest
     steps:
       - name: Prepare release metadata
@@ -26,7 +27,7 @@ jobs:
           RELEASE_TAG: ${{ github.ref_name }}
         run: |
           if ! echo "$RELEASE_TAG" | grep -Eq '^v[0-9]+\.[0-9]+\.[0-9]+$'; then
-            echo "Tag $RELEASE_TAG is not an exact release tag in vX.Y.Z format. Skipping draft release."
+            echo "Tag $RELEASE_TAG is not an exact release tag in vX.Y.Z format. Skipping release."
             echo "is_release_tag=false" >> "$GITHUB_OUTPUT"
             exit 0
           fi
@@ -38,7 +39,7 @@ jobs:
           echo "version=${version}" >> "$GITHUB_OUTPUT"
           echo "release_date=${release_date}" >> "$GITHUB_OUTPUT"
           echo "milvus_minor=${milvus_minor}" >> "$GITHUB_OUTPUT"
-      - name: Create draft release
+      - name: Create release
         if: steps.release-info.outputs.is_release_tag == 'true'
         uses: ncipollo/release-action@v1
         with:
@@ -47,8 +48,27 @@ jobs:
           body: |
             Release date: ${{ steps.release-info.outputs.release_date }}
             Compatible with Milvus v${{ steps.release-info.outputs.milvus_minor }}.x
-          draft: true
+          draft: false
           allowUpdates: true
           omitNameDuringUpdate: true
           omitBodyDuringUpdate: true
           token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Trigger release package builds
+        if: steps.release-info.outputs.is_release_tag == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: |
+          gh workflow run release.yaml \
+            --ref "$RELEASE_TAG" \
+            -f tag="$RELEASE_TAG" \
+            -f ubuntu_20_04=true \
+            -f ubuntu_22_04=true \
+            -f ubuntu_24_04=true \
+            -f ubuntu_24_04_arm=true \
+            -f fedora_39=true \
+            -f macos_15=true \
+            -f macos_26=true \
+            -f macos_26_intel=true \
+            -f windows_2022=true
