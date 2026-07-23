@@ -366,14 +366,22 @@ TEST_F(AddFunctionFieldRequestTest, GettersAndSetters) {
     auto function = std::make_shared<milvus::Function>("bm25_fn", milvus::FunctionType::BM25, "tokenize");
     function->AddInputFieldName("text");
     function->AddOutputFieldName("sparse_vec");
+    milvus::IndexDesc index("sparse_vec", "sparse_idx", milvus::IndexType::SPARSE_INVERTED_INDEX,
+                            milvus::MetricType::BM25);
+    index.AddExtraParam("drop_ratio_build", "0.2");
 
-    auto& ref = req.WithField(std::move(field)).WithFunction(function);
+    auto& ref = req.WithField(std::move(field)).WithFunction(function).WithIndex(std::move(index));
     EXPECT_EQ(&ref, &req);
     EXPECT_EQ(req.Field().Name(), "sparse_vec");
     ASSERT_NE(req.Function(), nullptr);
     EXPECT_EQ(req.Function()->Name(), "bm25_fn");
     EXPECT_EQ(req.Function()->OutputFieldNames().size(), 1);
     EXPECT_EQ(req.Function()->OutputFieldNames()[0], "sparse_vec");
+    EXPECT_EQ(req.Index().FieldName(), "sparse_vec");
+    EXPECT_EQ(req.Index().IndexName(), "sparse_idx");
+    EXPECT_EQ(req.Index().IndexType(), milvus::IndexType::SPARSE_INVERTED_INDEX);
+    EXPECT_EQ(req.Index().MetricType(), milvus::MetricType::BM25);
+    EXPECT_EQ(req.Index().ExtraParams().at("drop_ratio_build"), "0.2");
 }
 
 TEST_F(AddFunctionFieldRequestTest, SetFunction) {
@@ -382,6 +390,15 @@ TEST_F(AddFunctionFieldRequestTest, SetFunction) {
     req.SetFunction(function);
     ASSERT_NE(req.Function(), nullptr);
     EXPECT_EQ(req.Function()->Name(), "bm25_fn");
+}
+
+TEST_F(AddFunctionFieldRequestTest, SetIndex) {
+    milvus::AddFunctionFieldRequest req;
+    milvus::IndexDesc index("sparse_vec", "sparse_idx", milvus::IndexType::SPARSE_WAND, milvus::MetricType::BM25);
+    req.SetIndex(std::move(index));
+    EXPECT_EQ(req.Index().FieldName(), "sparse_vec");
+    EXPECT_EQ(req.Index().IndexName(), "sparse_idx");
+    EXPECT_EQ(req.Index().IndexType(), milvus::IndexType::SPARSE_WAND);
 }
 
 class DropFunctionFieldRequestTest : public ::testing::Test {};

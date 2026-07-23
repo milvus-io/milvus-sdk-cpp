@@ -20,6 +20,7 @@
 
 #include "../../types/FieldSchema.h"
 #include "../../types/Function.h"
+#include "../../types/IndexDesc.h"
 #include "./CollectionRequestBase.h"
 #include "milvus/Export.h"
 
@@ -71,9 +72,34 @@ class MILVUS_SDK_API AddFunctionFieldRequest : public CollectionRequestBase<AddF
     AddFunctionFieldRequest&
     WithFunction(const FunctionPtr& function);
 
+    /**
+     * @brief Get the index bound to the function output field.
+     *
+     * The bound index is required and must use an explicit index type. AUTOINDEX is not supported.
+     */
+    const IndexDesc&
+    Index() const;
+
+    /**
+     * @brief Set the index bound to the function output field.
+     *
+     * The bound index is required and must use an explicit index type. AUTOINDEX is not supported.
+     */
+    void
+    SetIndex(IndexDesc&& index);
+
+    /**
+     * @brief Set the index bound to the function output field.
+     *
+     * The bound index is required and must use an explicit index type. AUTOINDEX is not supported.
+     */
+    AddFunctionFieldRequest&
+    WithIndex(IndexDesc&& index);
+
  private:
     FieldSchema field_;
     FunctionPtr function_;
+    IndexDesc index_;
 };
 
 }  // namespace milvus

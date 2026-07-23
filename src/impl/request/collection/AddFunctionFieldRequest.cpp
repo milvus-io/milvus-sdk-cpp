@@ -52,4 +52,20 @@ AddFunctionFieldRequest::WithFunction(const FunctionPtr& function) {
     return *this;
 }
 
+const IndexDesc&
+AddFunctionFieldRequest::Index() const {
+    return index_;
+}
+
+void
+AddFunctionFieldRequest::SetIndex(IndexDesc&& index) {
+    index_ = std::move(index);
+}
+
+AddFunctionFieldRequest&
+AddFunctionFieldRequest::WithIndex(IndexDesc&& index) {
+    SetIndex(std::move(index));
+    return *this;
+}
+
 }  // namespace milvus

@@ -478,10 +478,12 @@ class MILVUS_SDK_API MilvusClientV2 {
 
     /**
      * @brief Add a function to an existing collection.
+     * @deprecated Use AddFunctionField() to add the function together with a new output field and bound index.
      *
      * @param [in] request input parameters
      * @return Status operation successfully or not
      */
+    [[deprecated("Use AddFunctionField() instead")]]
     virtual Status
     AddCollectionFunction(const AddCollectionFunctionRequest& request) = 0;
 
@@ -506,10 +508,12 @@ class MILVUS_SDK_API MilvusClientV2 {
 
     /**
      * @brief Drop a function of an existing collection.
+     * @deprecated Use DropFunctionField() to drop the function together with its output field and bound index.
      *
      * @param [in] request input parameters
      * @return Status operation successfully or not
      */
+    [[deprecated("Use DropFunctionField() instead; it also drops the output field and bound index")]]
     virtual Status
     DropCollectionFunction(const DropCollectionFunctionRequest& request) = 0;
 
