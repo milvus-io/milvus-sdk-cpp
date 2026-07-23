@@ -36,27 +36,38 @@ if [[ ! -d "${EXAMPLE_DIR}" ]]; then
     exit 1
 fi
 
-readonly CDC_EXAMPLE="${EXAMPLE_DIR}/sdk_cdc_v2"
-if [[ -x "${CDC_EXAMPLE}" ]]; then
-    echo "Skipping sdk_cdc_v2 because it requires two Milvus servers."
-fi
-
-readonly EXTERNAL_TABLE_EXAMPLE="${EXAMPLE_DIR}/sdk_external_table_v2"
-if [[ -x "${EXTERNAL_TABLE_EXAMPLE}" ]]; then
-    echo "Skipping sdk_external_table_v2 because it requires pre-populated external object storage."
-fi
-
-readonly OPTIMIZE_EXAMPLE="${EXAMPLE_DIR}/sdk_optimize_v2"
-if [[ -x "${OPTIMIZE_EXAMPLE}" ]]; then
-    echo "Skipping sdk_optimize_v2."
-fi
-
-mapfile -d '' examples < <(find "${EXAMPLE_DIR}" -maxdepth 1 -type f -name "sdk_*_${version}" \
-    ! -name "sdk_cdc_v2" ! -name "sdk_external_table_v2" ! -name "sdk_optimize_v2" \
+mapfile -d '' all_examples < <(find "${EXAMPLE_DIR}" -maxdepth 1 -type f -name "sdk_*_${version}" \
     -perm -u+x -print0 | sort -z)
-if [[ ${#examples[@]} -eq 0 ]]; then
+if [[ ${#all_examples[@]} -eq 0 ]]; then
     echo "No executable ${version} examples found in: ${EXAMPLE_DIR}" >&2
     echo "Build the examples first, for example with: make test" >&2
+    exit 1
+fi
+
+examples=()
+for example in "${all_examples[@]}"; do
+    example_name="$(basename "${example}")"
+    case "${example_name}" in
+        sdk_cdc_v2)
+            echo "Skipping ${example_name} because it requires two Milvus servers."
+            ;;
+        sdk_external_table_v2)
+            echo "Skipping ${example_name} because it requires pre-populated external object storage."
+            ;;
+        sdk_optimize_v2)
+            echo "Skipping ${example_name} because it is excluded from the batch run."
+            ;;
+        sdk_add_field_v2)
+            echo "Skipping ${example_name} because its function-backed field demo requires additional server settings."
+            ;;
+        *)
+            examples+=("${example}")
+            ;;
+    esac
+done
+
+if [[ ${#examples[@]} -eq 0 ]]; then
+    echo "No runnable ${version} examples remain after applying the skip list." >&2
     exit 1
 fi
 
@@ -76,4 +87,4 @@ for example in "${examples[@]}"; do
 done
 
 echo
-echo "All ${version} examples passed."
+echo "All runnable ${version} examples passed."

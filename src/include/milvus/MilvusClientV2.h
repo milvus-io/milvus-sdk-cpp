@@ -483,8 +483,7 @@ class MILVUS_SDK_API MilvusClientV2 {
      * @param [in] request input parameters
      * @return Status operation successfully or not
      */
-    [[deprecated("Use AddFunctionField() instead")]]
-    virtual Status
+    [[deprecated("Use AddFunctionField() instead")]] virtual Status
     AddCollectionFunction(const AddCollectionFunctionRequest& request) = 0;
 
     /**
@@ -513,8 +512,7 @@ class MILVUS_SDK_API MilvusClientV2 {
      * @param [in] request input parameters
      * @return Status operation successfully or not
      */
-    [[deprecated("Use DropFunctionField() instead; it also drops the output field and bound index")]]
-    virtual Status
+    [[deprecated("Use DropFunctionField() instead; it also drops the output field and bound index")]] virtual Status
     DropCollectionFunction(const DropCollectionFunctionRequest& request) = 0;
 
     /**
