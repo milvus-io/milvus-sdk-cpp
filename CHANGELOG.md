@@ -1,5 +1,25 @@
 # Changelog
 
+## milvus-sdk-cpp 3.0.1 (2026-07-24)
+### Feature
+- Support highlighting for search results
+- Support DumpMessages(), AlterRole(), and UpdateUser() interfaces
+- Support AddFunctionField(), DropCollectionField(), and DropFunctionField() interfaces
+- Add MilvusClientV2Session
+- Support aggregation for Search()
+- Support MinHash functions
+- Support CommitImport()/AbortImport() interfaces for bulk import
+- Support ORDER BY for search and query
+- Support search by primary-key IDs
+- Support nullable vector fields
+- Support field-level partial-update operations for upsert
+
+### Improvement
+- Align CreateRoleRequest/CreateUserRequest/SearchResponse/QueryResponse with other SDKs
+- Route collection schema evolution through AlterCollectionSchema with compatibility fallback for older Milvus servers
+- Avoid conflicts with a system-installed nlohmann/json library
+
+
 ## milvus-sdk-cpp 3.0.0 (2026-06-18)
 ### Feature
 - Support snapshot interfaces
