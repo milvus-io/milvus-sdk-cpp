@@ -35,6 +35,31 @@
 #include "utils/TypeUtils.h"
 
 namespace milvus {
+namespace {
+
+// A gRPC deadline or ambiguous transport failure can be reported after Milvus has committed a metadata mutation.
+// Invalidate cached collection descriptions in that case, but retain them for definitive local or server rejections,
+// including retry exhaustion caused by server-side rate limiting.
+bool
+isAmbiguousMutationFailure(const Status& status) {
+    switch (status.RpcErrCode()) {
+        case ::grpc::StatusCode::OK:
+        case ::grpc::StatusCode::INVALID_ARGUMENT:
+        case ::grpc::StatusCode::NOT_FOUND:
+        case ::grpc::StatusCode::ALREADY_EXISTS:
+        case ::grpc::StatusCode::PERMISSION_DENIED:
+        case ::grpc::StatusCode::UNAUTHENTICATED:
+        case ::grpc::StatusCode::RESOURCE_EXHAUSTED:
+        case ::grpc::StatusCode::FAILED_PRECONDITION:
+        case ::grpc::StatusCode::OUT_OF_RANGE:
+        case ::grpc::StatusCode::UNIMPLEMENTED:
+            return false;
+        default:
+            return true;
+    }
+}
+
+}  // namespace
 
 std::shared_ptr<MilvusClient>
 MilvusClient::Create() {
@@ -116,8 +141,17 @@ MilvusClientImpl::CreateCollection(const CollectionSchema& schema, int64_t num_p
         return Status::OK();
     };
 
-    return connection_.Invoke<proto::milvus::CreateCollectionRequest, proto::common::Status>(
-        validate, pre, &MilvusConnection::CreateCollection, nullptr);
+    auto post = [this, &schema](const proto::common::Status&) {
+        removeCollectionDesc(schema.Name());
+        return Status::OK();
+    };
+
+    auto status = connection_.Invoke<proto::milvus::CreateCollectionRequest, proto::common::Status>(
+        validate, pre, &MilvusConnection::CreateCollection, post);
+    if (isAmbiguousMutationFailure(status)) {
+        removeCollectionDesc(schema.Name());
+    }
+    return status;
 }
 
 Status
@@ -155,8 +189,12 @@ MilvusClientImpl::DropCollection(const std::string& collection_name) {
         return Status::OK();
     };
 
-    return connection_.Invoke<proto::milvus::DropCollectionRequest, proto::common::Status>(
+    auto status = connection_.Invoke<proto::milvus::DropCollectionRequest, proto::common::Status>(
         pre, &MilvusConnection::DropCollection, post);
+    if (isAmbiguousMutationFailure(status)) {
+        removeCollectionDesc(collection_name);
+    }
+    return status;
 }
 
 Status
@@ -231,8 +269,13 @@ MilvusClientImpl::RenameCollection(const std::string& collection_name, const std
         return Status::OK();
     };
 
-    return connection_.Invoke<proto::milvus::RenameCollectionRequest, proto::common::Status>(
+    auto status = connection_.Invoke<proto::milvus::RenameCollectionRequest, proto::common::Status>(
         pre, &MilvusConnection::RenameCollection);
+    if (status.IsOk() || isAmbiguousMutationFailure(status)) {
+        removeCollectionDesc(collection_name);
+        removeCollectionDesc(new_collection_name);
+    }
+    return status;
 }
 
 Status
@@ -499,8 +542,12 @@ MilvusClientImpl::CreateAlias(const std::string& collection_name, const std::str
         return Status::OK();
     };
 
-    return connection_.Invoke<proto::milvus::CreateAliasRequest, proto::common::Status>(pre,
-                                                                                        &MilvusConnection::CreateAlias);
+    auto status = connection_.Invoke<proto::milvus::CreateAliasRequest, proto::common::Status>(
+        pre, &MilvusConnection::CreateAlias);
+    if (status.IsOk() || isAmbiguousMutationFailure(status)) {
+        removeCollectionDesc(alias);
+    }
+    return status;
 }
 
 Status
@@ -510,8 +557,12 @@ MilvusClientImpl::DropAlias(const std::string& alias) {
         return Status::OK();
     };
 
-    return connection_.Invoke<proto::milvus::DropAliasRequest, proto::common::Status>(pre,
-                                                                                      &MilvusConnection::DropAlias);
+    auto status =
+        connection_.Invoke<proto::milvus::DropAliasRequest, proto::common::Status>(pre, &MilvusConnection::DropAlias);
+    if (status.IsOk() || isAmbiguousMutationFailure(status)) {
+        removeCollectionDesc(alias);
+    }
+    return status;
 }
 
 Status
@@ -522,8 +573,12 @@ MilvusClientImpl::AlterAlias(const std::string& collection_name, const std::stri
         return Status::OK();
     };
 
-    return connection_.Invoke<proto::milvus::AlterAliasRequest, proto::common::Status>(pre,
-                                                                                       &MilvusConnection::AlterAlias);
+    auto status =
+        connection_.Invoke<proto::milvus::AlterAliasRequest, proto::common::Status>(pre, &MilvusConnection::AlterAlias);
+    if (status.IsOk() || isAmbiguousMutationFailure(status)) {
+        removeCollectionDesc(alias);
+    }
+    return status;
 }
 
 Status

@@ -37,6 +37,31 @@
 #include "utils/TypeUtils.h"
 
 namespace milvus {
+namespace {
+
+// A gRPC deadline or ambiguous transport failure can be reported after Milvus has committed a metadata mutation.
+// Invalidate cached collection descriptions in that case, but retain them for definitive local or server rejections,
+// including retry exhaustion caused by server-side rate limiting.
+bool
+isAmbiguousMutationFailure(const Status& status) {
+    switch (status.RpcErrCode()) {
+        case ::grpc::StatusCode::OK:
+        case ::grpc::StatusCode::INVALID_ARGUMENT:
+        case ::grpc::StatusCode::NOT_FOUND:
+        case ::grpc::StatusCode::ALREADY_EXISTS:
+        case ::grpc::StatusCode::PERMISSION_DENIED:
+        case ::grpc::StatusCode::UNAUTHENTICATED:
+        case ::grpc::StatusCode::RESOURCE_EXHAUSTED:
+        case ::grpc::StatusCode::FAILED_PRECONDITION:
+        case ::grpc::StatusCode::OUT_OF_RANGE:
+        case ::grpc::StatusCode::UNIMPLEMENTED:
+            return false;
+        default:
+            return true;
+    }
+}
+
+}  // namespace
 
 std::shared_ptr<MilvusClientV2>
 MilvusClientV2::Create() {
@@ -156,6 +181,8 @@ MilvusClientV2Impl::CreateCollection(const CreateCollectionRequest& request) {
     };
 
     auto post = [this, &request, &schema](const proto::common::Status& rpc_response) {
+        removeCollectionDesc(request.DatabaseName(), request.CollectionName());
+
         if (request.Indexes().empty()) {
             return Status::OK();
         }
@@ -180,8 +207,12 @@ MilvusClientV2Impl::CreateCollection(const CreateCollectionRequest& request) {
         return LoadCollection(load_req);
     };
 
-    return connection_.Invoke<proto::milvus::CreateCollectionRequest, proto::common::Status>(
+    auto status = connection_.Invoke<proto::milvus::CreateCollectionRequest, proto::common::Status>(
         validate, pre, &MilvusConnection::CreateCollection, post);
+    if (isAmbiguousMutationFailure(status)) {
+        removeCollectionDesc(request.DatabaseName(), request.CollectionName());
+    }
+    return status;
 }
 
 Status
@@ -251,8 +282,12 @@ MilvusClientV2Impl::DropCollection(const DropCollectionRequest& request) {
         return Status::OK();
     };
 
-    return connection_.Invoke<proto::milvus::DropCollectionRequest, proto::common::Status>(
+    auto status = connection_.Invoke<proto::milvus::DropCollectionRequest, proto::common::Status>(
         pre, &MilvusConnection::DropCollection, post);
+    if (isAmbiguousMutationFailure(status)) {
+        removeCollectionDesc(request.DatabaseName(), request.CollectionName());
+    }
+    return status;
 }
 
 Status
@@ -526,8 +561,13 @@ MilvusClientV2Impl::RenameCollection(const RenameCollectionRequest& request) {
         return Status::OK();
     };
 
-    return connection_.Invoke<proto::milvus::RenameCollectionRequest, proto::common::Status>(
+    auto status = connection_.Invoke<proto::milvus::RenameCollectionRequest, proto::common::Status>(
         pre, &MilvusConnection::RenameCollection);
+    if (status.IsOk() || isAmbiguousMutationFailure(status)) {
+        removeCollectionDesc(request.DatabaseName(), request.CollectionName());
+        removeCollectionDesc(request.DatabaseName(), request.NewCollectionName());
+    }
+    return status;
 }
 
 Status
@@ -942,8 +982,12 @@ MilvusClientV2Impl::CreateAlias(const CreateAliasRequest& request) {
         return Status::OK();
     };
 
-    return connection_.Invoke<proto::milvus::CreateAliasRequest, proto::common::Status>(pre,
-                                                                                        &MilvusConnection::CreateAlias);
+    auto status = connection_.Invoke<proto::milvus::CreateAliasRequest, proto::common::Status>(
+        pre, &MilvusConnection::CreateAlias);
+    if (status.IsOk() || isAmbiguousMutationFailure(status)) {
+        removeCollectionDesc(request.DatabaseName(), request.Alias());
+    }
+    return status;
 }
 
 Status
@@ -954,8 +998,12 @@ MilvusClientV2Impl::DropAlias(const DropAliasRequest& request) {
         return Status::OK();
     };
 
-    return connection_.Invoke<proto::milvus::DropAliasRequest, proto::common::Status>(pre,
-                                                                                      &MilvusConnection::DropAlias);
+    auto status =
+        connection_.Invoke<proto::milvus::DropAliasRequest, proto::common::Status>(pre, &MilvusConnection::DropAlias);
+    if (status.IsOk() || isAmbiguousMutationFailure(status)) {
+        removeCollectionDesc(request.DatabaseName(), request.Alias());
+    }
+    return status;
 }
 
 Status
@@ -967,8 +1015,12 @@ MilvusClientV2Impl::AlterAlias(const AlterAliasRequest& request) {
         return Status::OK();
     };
 
-    return connection_.Invoke<proto::milvus::AlterAliasRequest, proto::common::Status>(pre,
-                                                                                       &MilvusConnection::AlterAlias);
+    auto status =
+        connection_.Invoke<proto::milvus::AlterAliasRequest, proto::common::Status>(pre, &MilvusConnection::AlterAlias);
+    if (status.IsOk() || isAmbiguousMutationFailure(status)) {
+        removeCollectionDesc(request.DatabaseName(), request.Alias());
+    }
+    return status;
 }
 
 Status
@@ -3167,7 +3219,8 @@ MilvusClientV2Impl::getCollectionDesc(const std::string& db_name, const std::str
     // the reason is: describeCollection() could be limited by server-side(DDL request throttling is enabled)
     // we don't intend to allow too many threads run into describeCollection() in this method
     std::lock_guard<std::mutex> lock(collection_desc_cache_mtx_);
-    auto it = collection_desc_cache_.find(collection_name);
+    auto name = combineDbCollectionName(actual_db, collection_name);
+    auto it = collection_desc_cache_.find(name);
     if (it != collection_desc_cache_.end()) {
         if (it->second != nullptr && !force_update) {
             desc_ptr = it->second;
@@ -3181,7 +3234,6 @@ MilvusClientV2Impl::getCollectionDesc(const std::string& db_name, const std::str
     auto status = describeCollection(rquest, response, rpc_timeout_ms);
     if (status.IsOk()) {
         desc_ptr = std::make_shared<CollectionDesc>(response.Desc());
-        auto name = combineDbCollectionName(actual_db, collection_name);
         collection_desc_cache_[name] = desc_ptr;
         return status;
     }

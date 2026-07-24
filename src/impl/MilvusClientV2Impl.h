@@ -415,9 +415,7 @@ class MilvusClientV2Impl : public MilvusClientV2, public std::enable_shared_from
  private:
     ConnectionHandler connection_;
 
-    // cache of collection schemas
-    // this cache is db level, once useDatabase() is called, this cache will be cleaned
-    // so, it is fine to use collection name as key, no need to involve db name
+    // Cache of collection schemas, keyed by database name and collection name.
     std::map<std::string, CollectionDescPtr> collection_desc_cache_;
     std::mutex collection_desc_cache_mtx_;
 };

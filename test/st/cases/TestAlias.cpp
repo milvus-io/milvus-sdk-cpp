@@ -14,6 +14,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include <algorithm>
+
 #include "MilvusServerTest.h"
 
 using milvus::test::MilvusServerTest;
@@ -102,5 +104,65 @@ TEST_F(MilvusServerTestAlias, AlterAlias) {
 
     // cleanup
     client_->DropAlias(milvus::DropAliasRequest().WithAlias(alias_name));
+    client_->DropCollection(milvus::DropCollectionRequest().WithCollectionName(collection_name2));
+}
+
+TEST_F(MilvusServerTestAlias, DescribeCollectionAfterAliasSwitchAndDrop) {
+    const std::string alias_name = milvus::test::RanName("alias_");
+    const std::string collection_name2 = milvus::test::RanName("AliasTest2_");
+
+    auto schema2 = std::make_shared<milvus::CollectionSchema>(collection_name2, "second collection");
+    schema2->AddField(milvus::FieldSchema("key", milvus::DataType::VARCHAR, "key", true).WithMaxLength(64));
+    schema2->AddField(milvus::FieldSchema("embedding", milvus::DataType::FLOAT_VECTOR, "vector").WithDimension(8));
+    auto status = client_->CreateCollection(
+        milvus::CreateCollectionRequest().WithCollectionName(collection_name2).WithCollectionSchema(schema2));
+    milvus::test::ExpectStatusOK(status);
+
+    status =
+        client_->CreateAlias(milvus::CreateAliasRequest().WithCollectionName(collection_name).WithAlias(alias_name));
+    milvus::test::ExpectStatusOK(status);
+
+    milvus::DescribeCollectionResponse first_desc;
+    status =
+        client_->DescribeCollection(milvus::DescribeCollectionRequest().WithCollectionName(alias_name), first_desc);
+    milvus::test::ExpectStatusOK(status);
+    EXPECT_EQ(collection_name, first_desc.Desc().CollectionName());
+    EXPECT_EQ("id", first_desc.Desc().Schema().PrimaryFieldName());
+    const auto& first_schema = first_desc.Desc().Schema();
+    const auto first_pk = std::find_if(first_schema.Fields().begin(), first_schema.Fields().end(),
+                                       [&first_schema](const auto& field) {
+                                           return field.Name() == first_schema.PrimaryFieldName();
+                                       });
+    ASSERT_NE(first_schema.Fields().end(), first_pk);
+    EXPECT_EQ(milvus::DataType::INT64, first_pk->FieldDataType());
+
+    status =
+        client_->AlterAlias(milvus::AlterAliasRequest().WithCollectionName(collection_name2).WithAlias(alias_name));
+    milvus::test::ExpectStatusOK(status);
+
+    milvus::DescribeCollectionResponse second_desc;
+    status =
+        client_->DescribeCollection(milvus::DescribeCollectionRequest().WithCollectionName(alias_name), second_desc);
+    milvus::test::ExpectStatusOK(status);
+    EXPECT_EQ(collection_name2, second_desc.Desc().CollectionName());
+    EXPECT_EQ("second collection", second_desc.Desc().Description());
+    EXPECT_EQ("key", second_desc.Desc().Schema().PrimaryFieldName());
+    const auto& second_schema = second_desc.Desc().Schema();
+    const auto second_pk = std::find_if(second_schema.Fields().begin(), second_schema.Fields().end(),
+                                        [&second_schema](const auto& field) {
+                                            return field.Name() == second_schema.PrimaryFieldName();
+                                        });
+    ASSERT_NE(second_schema.Fields().end(), second_pk);
+    EXPECT_EQ(milvus::DataType::VARCHAR, second_pk->FieldDataType());
+    EXPECT_NE(first_desc.Desc().ID(), second_desc.Desc().ID());
+
+    status = client_->DropAlias(milvus::DropAliasRequest().WithAlias(alias_name));
+    milvus::test::ExpectStatusOK(status);
+
+    milvus::DescribeCollectionResponse dropped_alias_desc;
+    status = client_->DescribeCollection(milvus::DescribeCollectionRequest().WithCollectionName(alias_name),
+                                         dropped_alias_desc);
+    EXPECT_FALSE(status.IsOk());
+
     client_->DropCollection(milvus::DropCollectionRequest().WithCollectionName(collection_name2));
 }

@@ -1,6 +1,6 @@
 # Changelog
 
-## milvus-sdk-cpp 2.6.5 (2026-07-24)
+## milvus-sdk-cpp 2.6.5 (2026-07-27)
 ### Feature
 - Support highlighting for search results
 - Support DumpMessages(), AlterRole(), and UpdateUser() interfaces
@@ -11,6 +11,9 @@
 ### Improvement
 - Align CreateRoleRequest/CreateUserRequest/SearchResponse/QueryResponse with other SDKs
 - Avoid conflicts with a system-installed nlohmann/json library
+
+### Bug
+- Invalidate cached collection schemas after successful or transport-ambiguous alias and collection identity mutations
 
 
 ## milvus-sdk-cpp 2.6.4 (2026-06-17)
