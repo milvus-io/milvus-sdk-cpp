@@ -60,7 +60,7 @@ $ make clean              # remove build directories
 You can pass environment variables through `make` to control `scripts/build.sh` and CMake:
 
 ```shell
-$ MILVUS_SDK_VERSION=v2.6.4 make all-release
+$ MILVUS_SDK_VERSION=v2.6.5 make all-release
 $ CMAKE_INSTALL_PREFIX=/opt/milvus make install
 $ BUILD_SHARED_LIBS=OFF make all-release
 $ CPPSTD=17 make test
@@ -76,7 +76,8 @@ $ bash scripts/build.sh -l                  # run cpplint, clang-format, and cla
 $ bash scripts/build.sh -r                  # clean before build
 $ bash scripts/build.sh -z                  # build without Conan-managed dependencies
 $ bash scripts/build.sh -f -t Release       # release build without in-place clang-format
-$ bash scripts/build.sh -v v2.6.4 -t Release
+$ bash scripts/build.sh -v v2.6.5 -t Release
+```
 
 `MILVUS_SDK_VERSION` is embedded into the SDK version string generated from `src/impl/version.h.in`. If you do not pass `MILVUS_SDK_VERSION` or `scripts/build.sh -v`, CMake derives the version from the latest reachable git tag. For release builds, pass the intended version explicitly or build from the release tag.
 
