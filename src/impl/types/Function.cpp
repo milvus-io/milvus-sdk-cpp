@@ -248,7 +248,7 @@ DecayRerank::SetDecay(float val) {
 ////////////////////////////////////////////////////////////////////////////////////////////
 // ModelRerank
 ModelRerank::ModelRerank(std::string name) : Function(name, FunctionType::RERANK) {
-    params_[RERANKER] = "decay";
+    params_[RERANKER] = "model";
 }
 
 // Override SetFunctionType method
