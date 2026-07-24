@@ -1,5 +1,18 @@
 # Changelog
 
+## milvus-sdk-cpp 2.6.5 (2026-07-24)
+### Feature
+- Support highlighting for search results
+- Support DumpMessages(), AlterRole(), and UpdateUser() interfaces
+- Support search by primary-key IDs
+- Support nullable vector fields
+- Support field-level partial-update operations for upsert
+
+### Improvement
+- Align CreateRoleRequest/CreateUserRequest/SearchResponse/QueryResponse with other SDKs
+- Avoid conflicts with a system-installed nlohmann/json library
+
+
 ## milvus-sdk-cpp 2.6.4 (2026-06-17)
 ### Feature
 - Support GetReplicateInfo() interface
