@@ -5,6 +5,13 @@ $ make test
 ```
 ## Try the examples
 Once the `make test` is done, you will see some executable examples under the path `./cmake_build/examples`.
+
+To suppress verbose gRPC internal logs when running the examples, set:
+
+```shell
+export GRPC_VERBOSITY=ERROR
+```
+
 Examples for MilvusClient:
 - `./cmake_build/examples/v1/sdk_array_v1`: example to show the usage of Array field.
 - `./cmake_build/examples/v1/sdk_db_v1`: example to show the usage of databases.
