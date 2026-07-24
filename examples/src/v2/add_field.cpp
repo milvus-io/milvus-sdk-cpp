@@ -153,6 +153,9 @@ main(int argc, char* argv[]) {
     }
 
     {
+        // This function-backed field demo requires these Milvus server settings:
+        // common.storage.useLoonFFI=true and dataCoord.compaction.bumpSchemaVersion.enabled=true.
+        // dataCoord.compaction.storageVersion.enabled must also remain enabled (the default).
         milvus::FieldSchema text_field = milvus::FieldSchema(field_text, milvus::DataType::VARCHAR)
                                              .WithMaxLength(100)
                                              .EnableAnalyzer(true)
