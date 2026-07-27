@@ -64,7 +64,7 @@ main(int argc, char* argv[]) {
     milvus::EntityRows rows;
     for (auto i = 0; i < row_count; ++i) {
         milvus::EntityRow row;
-        row[field_json] = {{"age", util::RandomeValue<int>(1, 100)}, {"name", "user_" + std::to_string(i)}};
+        row[field_json] = {{"age", util::RandomValue<int>(1, 100)}, {"name", "user_" + std::to_string(i)}};
         row[field_vector] = util::GenerateFloatVector(dimension);
         rows.emplace_back(std::move(row));
     }
@@ -103,8 +103,8 @@ main(int argc, char* argv[]) {
 
     {
         // do search
-        auto q_number_1 = util::RandomeValue<int64_t>(0, row_count - 1);
-        auto q_number_2 = util::RandomeValue<int64_t>(0, row_count - 1);
+        auto q_number_1 = util::RandomValue<int64_t>(0, row_count - 1);
+        auto q_number_2 = util::RandomValue<int64_t>(0, row_count - 1);
         auto request = milvus::SearchRequest()
                            .WithCollectionName(collection_name)
                            .WithLimit(3)
