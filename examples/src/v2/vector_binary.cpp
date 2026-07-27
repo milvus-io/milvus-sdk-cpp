@@ -123,7 +123,7 @@ main(int argc, char* argv[]) {
     std::vector<std::vector<bool>> bools_array;
     bools_array.reserve(row_count);
     for (auto i = 0; i < row_count; ++i) {
-        bools_array.emplace_back(util::RansomBools(dimension));
+        bools_array.emplace_back(util::RandomBools(dimension));
     }
 
     milvus::EntityRows rows;
@@ -148,8 +148,8 @@ main(int argc, char* argv[]) {
         std::cout << resp_insert.Results().InsertCount() << " rows inserted by row-based." << std::endl;
     }
 
-    auto q_number_1 = util::RandomeValue<int64_t>(0, row_count - 1);
-    auto q_number_2 = util::RandomeValue<int64_t>(0, row_count - 1);
+    auto q_number_1 = util::RandomValue<int64_t>(0, row_count - 1);
+    auto q_number_2 = util::RandomValue<int64_t>(0, row_count - 1);
     {
         // query some items from the row-based insert data
         auto q_id_1 = rows[q_number_1][field_id].get<int64_t>();
