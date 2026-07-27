@@ -132,6 +132,23 @@ TEST_F(UnconnectMilvusMockedTest, V2SearchIteratorRejectsIDs) {
     EXPECT_EQ(iterator, nullptr);
 }
 
+TEST_F(UnconnectMilvusMockedTest, V2QueryIteratorRejectsIDs) {
+    auto client = CreateConnectedClient(service_, server_.ListenPort());
+
+    EXPECT_CALL(service_, DescribeCollection(_, _, _)).Times(0);
+    EXPECT_CALL(service_, Query(_, _, _)).Times(0);
+
+    milvus::QueryIteratorRequest request;
+    static_cast<milvus::QueryRequest&>(request).WithIDs(std::vector<int64_t>{1});
+    milvus::QueryIteratorPtr iterator;
+
+    auto status = client->QueryIterator(request, iterator);
+    EXPECT_FALSE(status.IsOk());
+    EXPECT_EQ(status.Code(), milvus::StatusCode::INVALID_ARGUMENT);
+    EXPECT_EQ(status.Message(), "Query iterator does not support IDs");
+    EXPECT_EQ(iterator, nullptr);
+}
+
 TEST_F(UnconnectMilvusMockedTest, V2SessionUnaryRoutingAndIsolation) {
     auto client = CreateConnectedClient(service_, server_.ListenPort());
     milvus::MilvusClientV2SessionPtr session_a;
@@ -189,6 +206,90 @@ TEST_F(UnconnectMilvusMockedTest, V2SessionUnaryRoutingAndIsolation) {
             return ::grpc::Status{};
         });
     EXPECT_TRUE(client->Query(query_request, query_response).IsOk());
+}
+
+TEST_F(UnconnectMilvusMockedTest, V2QueryByIDsAndRejectsFilterCombination) {
+    auto client = CreateConnectedClient(service_, server_.ListenPort());
+
+    const std::string collection_name = "query_by_ids";
+    milvus::CollectionSchema schema(collection_name);
+    schema.AddField(milvus::FieldSchema("id", milvus::DataType::INT64, "", true, false));
+    EXPECT_CALL(
+        service_,
+        DescribeCollection(
+            _, Property(&milvus::proto::milvus::DescribeCollectionRequest::collection_name, collection_name), _))
+        .WillOnce([&](::grpc::ServerContext*, const milvus::proto::milvus::DescribeCollectionRequest*,
+                      milvus::proto::milvus::DescribeCollectionResponse* response) {
+            response->set_collectionid(100);
+            milvus::ConvertCollectionSchema(schema, *response->mutable_schema());
+            return ::grpc::Status{};
+        });
+    EXPECT_CALL(service_, Query(_, _, _))
+        .WillOnce([](::grpc::ServerContext*, const milvus::proto::milvus::QueryRequest* request,
+                     milvus::proto::milvus::QueryResults*) {
+            EXPECT_EQ(request->expr(), "id in {pks_to_query}");
+            const auto& templates = request->expr_template_values();
+            const auto ids = templates.find("pks_to_query");
+            EXPECT_NE(ids, templates.end());
+            if (ids == templates.end()) {
+                return ::grpc::Status{};
+            }
+            EXPECT_TRUE(ids->second.has_array_val());
+            const auto& values = ids->second.array_val().long_data().data();
+            EXPECT_EQ(values.size(), 3);
+            EXPECT_EQ(values.Get(0), 1);
+            EXPECT_EQ(values.Get(1), 2);
+            EXPECT_EQ(values.Get(2), 3);
+            return ::grpc::Status{};
+        });
+
+    milvus::QueryRequest request;
+    request.WithCollectionName(collection_name).WithIDs({1, 2, 3});
+    milvus::QueryResponse response;
+    EXPECT_TRUE(client->Query(request, response).IsOk());
+    EXPECT_TRUE(request.Filter().empty());
+
+    const std::string string_collection_name = "query_by_string_ids";
+    milvus::CollectionSchema string_schema(string_collection_name);
+    string_schema.AddField(milvus::FieldSchema("key", milvus::DataType::VARCHAR, "", true, false).WithMaxLength(64));
+    EXPECT_CALL(
+        service_,
+        DescribeCollection(
+            _, Property(&milvus::proto::milvus::DescribeCollectionRequest::collection_name, string_collection_name), _))
+        .WillOnce([&](::grpc::ServerContext*, const milvus::proto::milvus::DescribeCollectionRequest*,
+                      milvus::proto::milvus::DescribeCollectionResponse* describe_response) {
+            describe_response->set_collectionid(101);
+            milvus::ConvertCollectionSchema(string_schema, *describe_response->mutable_schema());
+            return ::grpc::Status{};
+        });
+    EXPECT_CALL(service_, Query(_, _, _))
+        .WillOnce([](::grpc::ServerContext*, const milvus::proto::milvus::QueryRequest* query_request,
+                     milvus::proto::milvus::QueryResults*) {
+            EXPECT_EQ(query_request->expr(), "key in {pks_to_query}");
+            const auto& templates = query_request->expr_template_values();
+            const auto ids = templates.find("pks_to_query");
+            EXPECT_NE(ids, templates.end());
+            if (ids == templates.end()) {
+                return ::grpc::Status{};
+            }
+            const auto& values = ids->second.array_val().string_data().data();
+            EXPECT_EQ(values.size(), 2);
+            EXPECT_EQ(values.Get(0), "a");
+            EXPECT_EQ(values.Get(1), "b");
+            return ::grpc::Status{};
+        });
+
+    milvus::QueryRequest string_request;
+    string_request.WithCollectionName(string_collection_name).WithIDs(std::vector<std::string>{"a", "b"});
+    EXPECT_TRUE(client->Query(string_request, response).IsOk());
+
+    EXPECT_CALL(service_, DescribeCollection(_, _, _)).Times(0);
+    EXPECT_CALL(service_, Query(_, _, _)).Times(0);
+    request.WithFilter("id > 0");
+    auto status = client->Query(request, response);
+    EXPECT_FALSE(status.IsOk());
+    EXPECT_EQ(status.Code(), milvus::StatusCode::INVALID_ARGUMENT);
+    EXPECT_EQ(status.Message(), "Filter and IDs cannot be set at the same time");
 }
 
 TEST_F(UnconnectMilvusMockedTest, V2SessionIteratorsRouteEveryRequestWithoutMutatingInput) {

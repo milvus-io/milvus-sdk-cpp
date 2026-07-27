@@ -54,11 +54,11 @@ TEST_F(QueryIteratorArgumentsTest, SetPkSchema) {
 
 TEST_F(QueryIteratorArgumentsTest, ReduceStopForBest) {
     milvus::QueryIteratorArguments args;
-    EXPECT_FALSE(args.ReduceStopForBest());
-
-    auto status = args.SetReduceStopForBest(true);
-    EXPECT_TRUE(status.IsOk());
     EXPECT_TRUE(args.ReduceStopForBest());
+
+    auto status = args.SetReduceStopForBest(false);
+    EXPECT_TRUE(status.IsOk());
+    EXPECT_FALSE(args.ReduceStopForBest());
 }
 
 class SearchIteratorArgumentsTest : public ::testing::Test {};

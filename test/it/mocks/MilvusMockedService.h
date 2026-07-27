@@ -108,6 +108,22 @@ class MilvusMockedService : public ::milvus::proto::milvus::MilvusService::Servi
                  ::grpc::Status(::grpc::ServerContext*, const ::milvus::proto::milvus::AddCollectionFieldRequest*,
                                 ::milvus::proto::common::Status*));
 
+    MOCK_METHOD3(AddCollectionStructField,
+                 ::grpc::Status(::grpc::ServerContext*, const ::milvus::proto::milvus::AddCollectionStructFieldRequest*,
+                                ::milvus::proto::common::Status*));
+
+    MOCK_METHOD3(AddCollectionFunction,
+                 ::grpc::Status(::grpc::ServerContext*, const ::milvus::proto::milvus::AddCollectionFunctionRequest*,
+                                ::milvus::proto::common::Status*));
+
+    MOCK_METHOD3(AlterCollectionFunction,
+                 ::grpc::Status(::grpc::ServerContext*, const ::milvus::proto::milvus::AlterCollectionFunctionRequest*,
+                                ::milvus::proto::common::Status*));
+
+    MOCK_METHOD3(DropCollectionFunction,
+                 ::grpc::Status(::grpc::ServerContext*, const ::milvus::proto::milvus::DropCollectionFunctionRequest*,
+                                ::milvus::proto::common::Status*));
+
     MOCK_METHOD3(CreatePartition,
                  ::grpc::Status(::grpc::ServerContext*, const ::milvus::proto::milvus::CreatePartitionRequest*,
                                 ::milvus::proto::common::Status*));

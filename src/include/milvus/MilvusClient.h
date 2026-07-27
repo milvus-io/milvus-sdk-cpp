@@ -61,6 +61,17 @@ namespace milvus {
 
 /**
  * @brief Milvus client abstract class, provide Create() method to create an implementation instance.
+ *
+ * @par Thread safety
+ * After Connect() succeeds, RPC methods may be called concurrently on the same client, subject to the following
+ * restrictions:
+ * - Concurrent DML and DQL calls are supported when their input, output, and iterator objects are not modified by
+ *   another thread. Visibility between concurrent operations follows the requested consistency level; wait for a DML
+ *   call to complete before requiring a later DQL call to observe it.
+ * - DDL operations that change a database, collection identity, schema, or alias must be serialized with DML and DQL
+ *   calls targeting the affected objects. Results are not guaranteed when these operations overlap.
+ * - Connection lifecycle methods, including Connect(), Disconnect(), and UseDatabase(), must be serialized with all
+ *   other operations. Do not call them, or destroy the client, while RPCs are in flight.
  */
 class MILVUS_SDK_API MilvusClient {
  public:

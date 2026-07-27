@@ -23,9 +23,9 @@
 
 #include "./Constants.h"
 #include "./DmlUtils.h"
-#include "./GtsDict.h"
 #include "./MiscUtils.h"
 #include "./TypeUtils.h"
+#include "./cache/CollectionTsCache.h"
 #include "milvus/response/dql/SearchResponse.h"
 #include "milvus/types/Constants.h"
 #include "milvus/utils/FP16.h"
@@ -1386,19 +1386,19 @@ GetRowFromFieldsData(const std::vector<FieldDataPtr>& fields, size_t i, const st
 }
 
 uint64_t
-DeduceGuaranteeTimestamp(const ConsistencyLevel& level, const std::string& db_name,
+DeduceGuaranteeTimestamp(const ConsistencyLevel& level, const std::string& endpoint, const std::string& db_name,
                          const std::string& collection_name) {
     if (level == ConsistencyLevel::NONE) {
-        uint64_t ts = 1;
-        return GtsDict::GetInstance().GetCollectionTs(db_name, collection_name, ts) ? ts : 1;
+        auto ts = CollectionTsCache::GetInstance().Get(endpoint, db_name, collection_name);
+        return ts == 0 ? 1 : ts;
     }
 
     switch (level) {
         case ConsistencyLevel::STRONG:
             return 0;
         case ConsistencyLevel::SESSION: {
-            uint64_t ts = 1;
-            return GtsDict::GetInstance().GetCollectionTs(db_name, collection_name, ts) ? ts : 1;
+            auto ts = CollectionTsCache::GetInstance().Get(endpoint, db_name, collection_name);
+            return ts == 0 ? 1 : ts;
         }
         case ConsistencyLevel::BOUNDED:
             return 2;  // let server side to determine the bounded time
@@ -1517,7 +1517,7 @@ ConvertFilterTemplates(const std::unordered_map<std::string, nlohmann::json>& te
 template <typename T>
 Status
 ConvertQueryRequest(const T& request, const std::string& current_db, proto::milvus::QueryRequest& rpc_request,
-                    const std::string& cluster_id) {
+                    const std::string& cluster_id, const std::string& endpoint) {
     auto db_name = request.DatabaseName();
     if (!db_name.empty()) {
         rpc_request.set_db_name(db_name);
@@ -1566,7 +1566,7 @@ ConvertQueryRequest(const T& request, const std::string& current_db, proto::milv
     }
 
     ConsistencyLevel level = request.GetConsistencyLevel();
-    uint64_t guarantee_ts = DeduceGuaranteeTimestamp(level, current_db, request.CollectionName());
+    uint64_t guarantee_ts = DeduceGuaranteeTimestamp(level, endpoint, current_db, request.CollectionName());
     rpc_request.set_guarantee_timestamp(guarantee_ts);
 
     if (level == ConsistencyLevel::NONE) {
@@ -1609,7 +1609,7 @@ ConvertQueryResults(const proto::milvus::QueryResults& rpc_results, QueryResults
 template <typename T>
 Status
 ConvertSearchRequest(const T& request, const std::string& current_db, proto::milvus::SearchRequest& rpc_request,
-                     const std::string& cluster_id) {
+                     const std::string& cluster_id, const std::string& endpoint) {
     if (!current_db.empty()) {
         rpc_request.set_db_name(current_db);
     }
@@ -1686,7 +1686,7 @@ ConvertSearchRequest(const T& request, const std::string& current_db, proto::mil
 
     // consistency level
     ConsistencyLevel level = request.GetConsistencyLevel();
-    uint64_t guarantee_ts = DeduceGuaranteeTimestamp(level, current_db, request.CollectionName());
+    uint64_t guarantee_ts = DeduceGuaranteeTimestamp(level, endpoint, current_db, request.CollectionName());
     rpc_request.set_guarantee_timestamp(guarantee_ts);
 
     if (level == ConsistencyLevel::NONE) {
@@ -2029,7 +2029,8 @@ ConvertAggregationBuckets(const proto::milvus::SearchResults& rpc_results, Aggre
 template <typename T>
 Status
 ConvertHybridSearchRequest(const T& request, const std::string& current_db,
-                           proto::milvus::HybridSearchRequest& rpc_request, const std::string& cluster_id) {
+                           proto::milvus::HybridSearchRequest& rpc_request, const std::string& cluster_id,
+                           const std::string& endpoint) {
     auto db_name = request.DatabaseName();
     if (!db_name.empty()) {
         rpc_request.set_db_name(db_name);
@@ -2131,7 +2132,7 @@ ConvertHybridSearchRequest(const T& request, const std::string& current_db,
 
     // consistancy level
     ConsistencyLevel level = request.GetConsistencyLevel();
-    uint64_t guarantee_ts = DeduceGuaranteeTimestamp(level, current_db, request.CollectionName());
+    uint64_t guarantee_ts = DeduceGuaranteeTimestamp(level, endpoint, current_db, request.CollectionName());
     rpc_request.set_guarantee_timestamp(guarantee_ts);
 
     if (level == ConsistencyLevel::NONE) {
@@ -2441,44 +2442,46 @@ IsAmbiguousParam(const std::string& key) {
 // query
 template Status
 ConvertQueryRequest<QueryIteratorArguments>(const QueryIteratorArguments&, const std::string&,
-                                            proto::milvus::QueryRequest&, const std::string&);
+                                            proto::milvus::QueryRequest&, const std::string&, const std::string&);
 
 template Status
 ConvertQueryRequest<QueryArguments>(const QueryArguments&, const std::string&, proto::milvus::QueryRequest&,
-                                    const std::string&);
+                                    const std::string&, const std::string&);
 
 template Status
 ConvertQueryRequest<QueryIteratorRequest>(const QueryIteratorRequest&, const std::string&, proto::milvus::QueryRequest&,
-                                          const std::string&);
+                                          const std::string&, const std::string&);
 
 template Status
 ConvertQueryRequest<QueryRequest>(const QueryRequest&, const std::string&, proto::milvus::QueryRequest&,
-                                  const std::string&);
+                                  const std::string&, const std::string&);
 
 // search
 template Status
 ConvertSearchRequest<SearchIteratorArguments>(const SearchIteratorArguments&, const std::string&,
-                                              proto::milvus::SearchRequest&, const std::string&);
+                                              proto::milvus::SearchRequest&, const std::string&, const std::string&);
 
 template Status
 ConvertSearchRequest<SearchArguments>(const SearchArguments&, const std::string&, proto::milvus::SearchRequest&,
-                                      const std::string&);
+                                      const std::string&, const std::string&);
 
 template Status
 ConvertSearchRequest<SearchIteratorRequest>(const SearchIteratorRequest&, const std::string&,
-                                            proto::milvus::SearchRequest&, const std::string&);
+                                            proto::milvus::SearchRequest&, const std::string&, const std::string&);
 
 template Status
 ConvertSearchRequest<SearchRequest>(const SearchRequest&, const std::string&, proto::milvus::SearchRequest&,
-                                    const std::string&);
+                                    const std::string&, const std::string&);
 
 // hybrid search
 template Status
 ConvertHybridSearchRequest<HybridSearchArguments>(const HybridSearchArguments&, const std::string&,
-                                                  proto::milvus::HybridSearchRequest&, const std::string&);
+                                                  proto::milvus::HybridSearchRequest&, const std::string&,
+                                                  const std::string&);
 
 template Status
 ConvertHybridSearchRequest<HybridSearchRequest>(const HybridSearchRequest&, const std::string&,
-                                                proto::milvus::HybridSearchRequest&, const std::string&);
+                                                proto::milvus::HybridSearchRequest&, const std::string&,
+                                                const std::string&);
 
 }  // namespace milvus

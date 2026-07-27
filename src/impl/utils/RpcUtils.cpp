@@ -20,7 +20,7 @@
 
 #include <thread>
 
-#include "GtsDict.h"
+#include "TimeUtils.h"
 #include "common.pb.h"
 
 namespace milvus {

@@ -18,6 +18,7 @@
 
 #include "MilvusServerTest.h"
 
+using milvus::test::MilvusServerTest;
 using milvus::test::MilvusServerTestWithParam;
 using MilvusServerTestCollection = MilvusServerTestWithParam<bool>;
 
@@ -103,6 +104,84 @@ TEST_P(MilvusServerTestCollection, CreateAndDeleteCollection) {
 }
 
 INSTANTIATE_TEST_SUITE_P(SystemTest, MilvusServerTestCollection, ::testing::Values(false, true));
+
+class MilvusServerTestCrossDatabaseRename : public MilvusServerTest {
+ protected:
+    void
+    SetUp() override {
+        MilvusServerTest::SetUp();
+        source_db_ = milvus::test::RanName("RenameSourceDb_");
+        target_db_ = milvus::test::RanName("RenameTargetDb_");
+        source_collection_ = milvus::test::RanName("RenameSourceCollection_");
+        target_collection_ = milvus::test::RanName("RenameTargetCollection_");
+    }
+
+    void
+    TearDown() override {
+        client_->DropCollection(
+            milvus::DropCollectionRequest().WithDatabaseName(target_db_).WithCollectionName(target_collection_));
+        client_->DropCollection(
+            milvus::DropCollectionRequest().WithDatabaseName(source_db_).WithCollectionName(source_collection_));
+        client_->DropDatabase(milvus::DropDatabaseRequest().WithDatabaseName(target_db_));
+        client_->DropDatabase(milvus::DropDatabaseRequest().WithDatabaseName(source_db_));
+        MilvusServerTest::TearDown();
+    }
+
+    std::string source_db_;
+    std::string target_db_;
+    std::string source_collection_;
+    std::string target_collection_;
+};
+
+TEST_F(MilvusServerTestCrossDatabaseRename, RenameCollectionAcrossDatabases) {
+    auto status = client_->CreateDatabase(milvus::CreateDatabaseRequest().WithDatabaseName(source_db_));
+    milvus::test::ExpectStatusOK(status);
+    status = client_->CreateDatabase(milvus::CreateDatabaseRequest().WithDatabaseName(target_db_));
+    milvus::test::ExpectStatusOK(status);
+
+    auto schema = std::make_shared<milvus::CollectionSchema>(source_collection_);
+    schema->AddField(milvus::FieldSchema("id", milvus::DataType::INT64, "id", true, true));
+    schema->AddField(milvus::FieldSchema("vector", milvus::DataType::FLOAT_VECTOR).WithDimension(4));
+    status = client_->CreateCollection(milvus::CreateCollectionRequest()
+                                           .WithDatabaseName(source_db_)
+                                           .WithCollectionName(source_collection_)
+                                           .WithCollectionSchema(schema));
+    milvus::test::ExpectStatusOK(status);
+
+    milvus::HasCollectionResponse has_response;
+    status = client_->HasCollection(
+        milvus::HasCollectionRequest().WithDatabaseName(source_db_).WithCollectionName(source_collection_),
+        has_response);
+    milvus::test::ExpectStatusOK(status);
+    EXPECT_TRUE(has_response.Has());
+
+    status = client_->RenameCollection(milvus::RenameCollectionRequest()
+                                           .WithDatabaseName(source_db_)
+                                           .WithCollectionName(source_collection_)
+                                           .WithTargetDatabaseName(target_db_)
+                                           .WithNewCollectionName(target_collection_));
+    milvus::test::ExpectStatusOK(status);
+
+    status = client_->HasCollection(
+        milvus::HasCollectionRequest().WithDatabaseName(source_db_).WithCollectionName(source_collection_),
+        has_response);
+    milvus::test::ExpectStatusOK(status);
+    EXPECT_FALSE(has_response.Has());
+
+    status = client_->HasCollection(
+        milvus::HasCollectionRequest().WithDatabaseName(target_db_).WithCollectionName(target_collection_),
+        has_response);
+    milvus::test::ExpectStatusOK(status);
+    EXPECT_TRUE(has_response.Has());
+
+    milvus::DescribeCollectionResponse describe_response;
+    status = client_->DescribeCollection(
+        milvus::DescribeCollectionRequest().WithDatabaseName(target_db_).WithCollectionName(target_collection_),
+        describe_response);
+    milvus::test::ExpectStatusOK(status);
+    EXPECT_EQ(describe_response.Desc().CollectionName(), target_collection_);
+    EXPECT_EQ(describe_response.Desc().Schema().Fields().size(), 2);
+}
 
 class MilvusServerTestCollectionOps : public milvus::test::MilvusServerTest {
  protected:

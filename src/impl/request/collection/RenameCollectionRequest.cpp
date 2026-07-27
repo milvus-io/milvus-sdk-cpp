@@ -34,4 +34,20 @@ RenameCollectionRequest::WithNewCollectionName(const std::string& collection_nam
     return *this;
 }
 
+const std::string&
+RenameCollectionRequest::TargetDatabaseName() const {
+    return target_db_name_;
+}
+
+void
+RenameCollectionRequest::SetTargetDatabaseName(const std::string& db_name) {
+    target_db_name_ = db_name;
+}
+
+RenameCollectionRequest&
+RenameCollectionRequest::WithTargetDatabaseName(const std::string& db_name) {
+    SetTargetDatabaseName(db_name);
+    return *this;
+}
+
 }  // namespace milvus

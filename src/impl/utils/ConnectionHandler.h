@@ -62,6 +62,9 @@ class ConnectionHandler {
     std::string
     CurrentDbName(const std::string& overwrite_db_name) const;
 
+    std::string
+    CurrentEndpoint() const;
+
     // This interface is not exposed to users
     Status
     GetLoadingProgress(const std::string& db_name, const std::string& collection_name,
@@ -179,6 +182,9 @@ class ConnectionHandler {
             connection = connection_;
             retry_param = retry_param_;
             timeout = connection_->GetConnectParam().RpcDeadlineMs();
+        }
+        if (connection == nullptr) {
+            return {StatusCode::NOT_CONNECTED, "Connection is not created!"};
         }
 
         // validate input

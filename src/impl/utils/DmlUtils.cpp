@@ -21,7 +21,6 @@
 #include <set>
 
 #include "./Constants.h"
-#include "./GtsDict.h"
 #include "./TypeUtils.h"
 #include "milvus/types/Constants.h"
 #include "milvus/utils/FP16.h"

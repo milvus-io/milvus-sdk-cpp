@@ -60,7 +60,12 @@ Status
 MilvusClientV2SessionImpl::Query(const QueryRequest& request, QueryResponse& response) {
     std::shared_ptr<MilvusClientV2Impl> parent;
     auto status = getParent(parent);
-    return status.IsOk() ? parent->query(request, response, cluster_id_) : status;
+    if (!status.IsOk()) {
+        return status;
+    }
+    const auto endpoint = parent->connection_.CurrentEndpoint();
+    const auto database_name = parent->connection_.CurrentDbName(request.DatabaseName());
+    return parent->query(endpoint, database_name, request, response, cluster_id_);
 }
 
 Status

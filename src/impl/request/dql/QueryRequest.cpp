@@ -22,6 +22,33 @@
 
 namespace milvus {
 
+const IDArray&
+QueryRequest::IDs() const {
+    return ids_;
+}
+
+void
+QueryRequest::SetIDs(std::vector<int64_t>&& id_array) {
+    ids_ = IDArray(std::move(id_array));
+}
+
+void
+QueryRequest::SetIDs(std::vector<std::string>&& id_array) {
+    ids_ = IDArray(std::move(id_array));
+}
+
+QueryRequest&
+QueryRequest::WithIDs(std::vector<int64_t>&& id_array) {
+    SetIDs(std::move(id_array));
+    return *this;
+}
+
+QueryRequest&
+QueryRequest::WithIDs(std::vector<std::string>&& id_array) {
+    SetIDs(std::move(id_array));
+    return *this;
+}
+
 const std::string&
 QueryRequest::Filter() const {
     return filter_;
