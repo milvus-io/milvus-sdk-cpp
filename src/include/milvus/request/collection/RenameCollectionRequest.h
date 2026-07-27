@@ -51,8 +51,27 @@ class MILVUS_SDK_API RenameCollectionRequest : public CollectionRequestBase<Rena
     RenameCollectionRequest&
     WithNewCollectionName(const std::string& collection_name);
 
+    /**
+     * @brief Target database name. An empty value renames the collection within the source database.
+     */
+    const std::string&
+    TargetDatabaseName() const;
+
+    /**
+     * @brief Set the target database name.
+     */
+    void
+    SetTargetDatabaseName(const std::string& db_name);
+
+    /**
+     * @brief Set the target database name.
+     */
+    RenameCollectionRequest&
+    WithTargetDatabaseName(const std::string& db_name);
+
  private:
     std::string new_collection_name_;
+    std::string target_db_name_;
 };
 
 }  // namespace milvus

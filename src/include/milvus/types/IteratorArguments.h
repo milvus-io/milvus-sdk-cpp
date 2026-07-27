@@ -95,7 +95,7 @@ class MILVUS_SDK_API QueryIteratorArguments : public IteratorArguments, public Q
     SetReduceStopForBest(bool reduce_stop_for_best);
 
  private:
-    bool reduce_stop_for_best_{false};
+    bool reduce_stop_for_best_{true};
 };
 
 /**

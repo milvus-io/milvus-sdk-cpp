@@ -19,7 +19,7 @@
 #include <memory>
 
 #include "../mocks/MilvusMockedTest.h"
-#include "utils/GtsDict.h"
+#include "utils/TimeUtils.h"
 
 using ::milvus::StatusCode;
 using ::milvus::proto::common::ErrorCode;

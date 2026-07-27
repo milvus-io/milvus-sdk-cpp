@@ -21,6 +21,7 @@
 
 #include "./DQLRequestBase.h"
 #include "milvus/Export.h"
+#include "milvus/types/IDArray.h"
 
 namespace milvus {
 
@@ -33,6 +34,40 @@ class MILVUS_SDK_API QueryRequest : public DQLRequestBase<QueryRequest> {
      * @brief Constructor
      */
     QueryRequest() = default;
+
+    /**
+     * @brief Get id array.
+     */
+    const IDArray&
+    IDs() const;
+
+    /**
+     * @brief Set integer IDs to query.
+     * Note: IDs and filter cannot be set at the same time.
+     */
+    void
+    SetIDs(std::vector<int64_t>&& id_array);
+
+    /**
+     * @brief Set string IDs to query.
+     * Note: IDs and filter cannot be set at the same time.
+     */
+    void
+    SetIDs(std::vector<std::string>&& id_array);
+
+    /**
+     * @brief Set integer IDs to query.
+     * Note: IDs and filter cannot be set at the same time.
+     */
+    QueryRequest&
+    WithIDs(std::vector<int64_t>&& id_array);
+
+    /**
+     * @brief Set string IDs to query.
+     * Note: IDs and filter cannot be set at the same time.
+     */
+    QueryRequest&
+    WithIDs(std::vector<std::string>&& id_array);
 
     /**
      * @brief Get filter expression.
@@ -181,6 +216,7 @@ class MILVUS_SDK_API QueryRequest : public DQLRequestBase<QueryRequest> {
     WithTimezone(const std::string& timezone);
 
  private:
+    IDArray ids_;
     std::string filter_;
     std::unordered_map<std::string, nlohmann::json> filter_templates_;
     std::unordered_map<std::string, std::string> extra_params_;
