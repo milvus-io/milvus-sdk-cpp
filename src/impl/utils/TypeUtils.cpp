@@ -282,6 +282,9 @@ IndexTypeCast(const std::string& type) {
     if (type == "NGRAM") {
         return IndexType::NGRAM;
     }
+    if (type == "FMINDEX") {
+        return IndexType::FMINDEX;
+    }
     if (type == "RTREE") {
         return IndexType::RTREE;
     }
@@ -1146,6 +1149,8 @@ to_string(milvus::IndexType index_type) {
             return "BITMAP";
         case milvus::IndexType::NGRAM:
             return "NGRAM";
+        case milvus::IndexType::FMINDEX:
+            return "FMINDEX";
         case milvus::IndexType::RTREE:
             return "RTREE";
         case milvus::IndexType::SPARSE_INVERTED_INDEX:

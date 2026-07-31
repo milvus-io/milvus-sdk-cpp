@@ -67,12 +67,17 @@ enum class IndexType {
     // Only for varchar type field and json_path of JSON field
     NGRAM = 1105,
 
+    // Only for varchar type field. Exact byte-level substring index that answers
+    // anchored LIKE (prefix/infix/suffix) with no candidate recheck.
+    FMINDEX = 1106,
+
     // Only for sparse vectors
     SPARSE_INVERTED_INDEX = 1201,
     SPARSE_WAND = 1202,
 
     // Only for geometry type field
     RTREE = 1301,
+
 };
 }  // namespace milvus
 
