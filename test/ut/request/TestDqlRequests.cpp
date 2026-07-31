@@ -38,6 +38,15 @@ TEST_F(QueryRequestTest, GettersAndSetters) {
     req.WithFilter("id > 10");
     EXPECT_EQ(req.Filter(), "id > 10");
 
+    req.WithIDs({1, 2, 3});
+    EXPECT_TRUE(req.IDs().IsIntegerID());
+    EXPECT_EQ(req.IDs().IntIDArray(), (std::vector<int64_t>{1, 2, 3}));
+
+    milvus::QueryRequest string_id_req;
+    string_id_req.WithIDs(std::vector<std::string>{"a", "b"});
+    EXPECT_FALSE(string_id_req.IDs().IsIntegerID());
+    EXPECT_EQ(string_id_req.IDs().StrIDArray(), (std::vector<std::string>{"a", "b"}));
+
     req.WithLimit(100);
     EXPECT_EQ(req.Limit(), 100);
 
@@ -524,12 +533,12 @@ class QueryIteratorRequestTest : public ::testing::Test {};
 
 TEST_F(QueryIteratorRequestTest, SetReduceStopForBest) {
     milvus::QueryIteratorRequest req;
-    EXPECT_FALSE(req.ReduceStopForBest());
-
-    req.SetReduceStopForBest(true);
     EXPECT_TRUE(req.ReduceStopForBest());
 
-    auto& ref = req.WithReduceStopForBest(false);
+    req.SetReduceStopForBest(false);
     EXPECT_FALSE(req.ReduceStopForBest());
+
+    auto& ref = req.WithReduceStopForBest(true);
+    EXPECT_TRUE(req.ReduceStopForBest());
     EXPECT_EQ(&ref, &req);
 }

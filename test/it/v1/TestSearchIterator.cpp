@@ -26,6 +26,7 @@
 #include "utils/DqlUtils.h"
 #include "utils/FieldDataSchema.h"
 #include "utils/TypeUtils.h"
+#include "utils/cache/CollectionTsCache.h"
 
 using ::milvus::proto::milvus::DescribeCollectionRequest;
 using ::milvus::proto::milvus::DescribeCollectionResponse;
@@ -37,7 +38,8 @@ using ::testing::Property;
 using ::testing::UnorderedElementsAreArray;
 
 milvus::Status
-DoSearchIterator(testing::StrictMock<milvus::MilvusMockedService>& service, milvus::MilvusClientPtr& client, bool v1) {
+DoSearchIterator(testing::StrictMock<milvus::MilvusMockedService>& service, milvus::MilvusClientPtr& client, bool v1,
+                 milvus::ConsistencyLevel level) {
     const std::string collection_name = "Foo";
     milvus::CollectionSchema collection_schema(collection_name);
     milvus::BuildCollectionSchema(collection_schema);
@@ -63,17 +65,20 @@ DoSearchIterator(testing::StrictMock<milvus::MilvusMockedService>& service, milv
         });
 
     const milvus::MetricType metric = milvus::MetricType::COSINE;
-    const milvus::ConsistencyLevel level = milvus::ConsistencyLevel::STRONG;
     const uint64_t batch_size = 3000;
     const int64_t limit = row_count;
     uint64_t current_poz = 0;
     bool probe_compability = true;
+    constexpr uint64_t probe_session_ts = 123456;
     EXPECT_CALL(service, Search(_, _, _))
         .WillRepeatedly([&](::grpc::ServerContext*, const SearchRequest* request, SearchResults* response) {
             auto token = v1 ? "" : "dummy";
             response->mutable_results()->mutable_search_iterator_v2_results()->set_token(token);
             if (probe_compability) {
                 probe_compability = false;
+                if (!v1) {
+                    response->set_session_ts(probe_session_ts);
+                }
                 return ::grpc::Status{};
             }
 
@@ -95,7 +100,9 @@ DoSearchIterator(testing::StrictMock<milvus::MilvusMockedService>& service, milv
             EXPECT_THAT(request->output_fields(), UnorderedElementsAreArray(field_names));
             EXPECT_EQ(request->collection_name(), collection_name);
             EXPECT_EQ(request->consistency_level(), milvus::ConsistencyLevelCast(level));
-
+            if (!v1) {
+                EXPECT_EQ(request->guarantee_timestamp(), probe_session_ts);
+            }
             response->mutable_status()->set_code(milvus::proto::common::ErrorCode::Success);
             auto* results = response->mutable_results();
             auto topk = batch_size;
@@ -197,7 +204,7 @@ TEST_F(MilvusMockedTest, SearchIteratorV1) {
     auto status = client_->Connect(connect_param);
     EXPECT_TRUE(status.IsOk());
 
-    DoSearchIterator(service_, client_, true);
+    DoSearchIterator(service_, client_, true, milvus::ConsistencyLevel::STRONG);
 }
 
 TEST_F(MilvusMockedTest, SearchIteratorV2) {
@@ -205,5 +212,93 @@ TEST_F(MilvusMockedTest, SearchIteratorV2) {
     auto status = client_->Connect(connect_param);
     EXPECT_TRUE(status.IsOk());
 
-    DoSearchIterator(service_, client_, false);
+    DoSearchIterator(service_, client_, false, milvus::ConsistencyLevel::STRONG);
+}
+
+TEST_F(MilvusMockedTest, SearchIteratorV2BoundedFirstPageUsesServerSelectedSnapshot) {
+    milvus::ConnectParam connect_param{"127.0.0.1", server_.ListenPort()};
+    auto status = client_->Connect(connect_param);
+    EXPECT_TRUE(status.IsOk());
+
+    DoSearchIterator(service_, client_, false, milvus::ConsistencyLevel::BOUNDED);
+}
+
+TEST_F(MilvusMockedTest, SearchIteratorV2PinsProbeTimestampForSessionConsistency) {
+    const std::string collection_name = "Foo";
+    milvus::CollectionSchema collection_schema(collection_name);
+    milvus::BuildCollectionSchema(collection_schema);
+
+    EXPECT_CALL(service_,
+                DescribeCollection(_, Property(&DescribeCollectionRequest::collection_name, collection_name), _))
+        .WillOnce([&](::grpc::ServerContext*, const DescribeCollectionRequest*, DescribeCollectionResponse* response) {
+            response->set_collectionid(100);
+            auto proto_schema = response->mutable_schema();
+            milvus::ConvertCollectionSchema(collection_schema, *proto_schema);
+            return ::grpc::Status{};
+        });
+
+    const auto endpoint = "127.0.0.1:" + std::to_string(server_.ListenPort());
+    constexpr uint64_t cached_dml_ts = 123456;
+    constexpr uint64_t iterator_session_ts = 654321;
+    milvus::CollectionTsCache::GetInstance().Set(endpoint, "default", collection_name, cached_dml_ts);
+
+    EXPECT_CALL(service_, Search(_, _, _))
+        .WillOnce([iterator_session_ts](::grpc::ServerContext*, const SearchRequest* request, SearchResults* response) {
+            EXPECT_EQ(request->guarantee_timestamp(), 0);
+            response->set_session_ts(iterator_session_ts);
+            response->mutable_results()->mutable_search_iterator_v2_results()->set_token("dummy");
+            return ::grpc::Status{};
+        })
+        .WillOnce([iterator_session_ts](::grpc::ServerContext*, const SearchRequest* request, SearchResults* response) {
+            EXPECT_EQ(request->guarantee_timestamp(), iterator_session_ts);
+            auto* results = response->mutable_results();
+            results->set_num_queries(1);
+            results->set_top_k(1);
+            results->set_primary_field_name(milvus::T_PK_NAME);
+            results->mutable_topks()->Add(1);
+            results->mutable_ids()->mutable_int_id()->add_data(1);
+            results->mutable_scores()->Add(0.1f);
+            results->mutable_search_iterator_v2_results()->set_token("dummy");
+            return ::grpc::Status{};
+        })
+        .WillOnce([iterator_session_ts](::grpc::ServerContext*, const SearchRequest* request, SearchResults* response) {
+            EXPECT_EQ(request->guarantee_timestamp(), iterator_session_ts);
+            auto* results = response->mutable_results();
+            results->set_num_queries(1);
+            results->set_top_k(0);
+            results->set_primary_field_name(milvus::T_PK_NAME);
+            results->mutable_topks()->Add(0);
+            results->mutable_search_iterator_v2_results()->set_token("dummy");
+            return ::grpc::Status{};
+        });
+
+    milvus::ConnectParam connect_param{"127.0.0.1", server_.ListenPort()};
+    auto status = client_->Connect(connect_param);
+    EXPECT_TRUE(status.IsOk());
+
+    milvus::SearchIteratorArguments arguments;
+    arguments.SetBatchSize(1);
+    arguments.SetLimit(2);
+    arguments.SetCollectionName(collection_name);
+    arguments.SetConsistencyLevel(milvus::ConsistencyLevel::SESSION);
+    arguments.SetMetricType(milvus::MetricType::COSINE);
+    std::vector<float> vector(milvus::T_DIMENSION, 1.0f);
+    status = arguments.AddFloat16Vector("f16_vector", vector);
+    EXPECT_TRUE(status.IsOk());
+
+    milvus::SearchIteratorPtr iterator;
+    status = client_->SearchIterator(arguments, iterator);
+    EXPECT_TRUE(status.IsOk());
+
+    milvus::SingleResult first_page;
+    status = iterator->Next(first_page);
+    EXPECT_TRUE(status.IsOk());
+    EXPECT_EQ(first_page.GetRowCount(), 1);
+
+    milvus::SingleResult second_page;
+    status = iterator->Next(second_page);
+    EXPECT_TRUE(status.IsOk());
+    EXPECT_EQ(second_page.GetRowCount(), 0);
+
+    milvus::CollectionTsCache::GetInstance().Invalidate(endpoint, "default", collection_name);
 }

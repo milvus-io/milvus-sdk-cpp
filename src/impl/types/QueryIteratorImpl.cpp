@@ -20,8 +20,8 @@
 
 #include "../utils/Constants.h"
 #include "../utils/DqlUtils.h"
-#include "../utils/GtsDict.h"
 #include "../utils/RpcUtils.h"
+#include "../utils/TimeUtils.h"
 
 namespace milvus {
 template class MILVUS_SDK_API Iterator<QueryResults>;
@@ -50,11 +50,11 @@ QueryIteratorImpl<T>::Next(QueryResults& results) {
         if (cache_.GetRowCount() >= 2 * args_.BatchSize()) {
             // cut the cache if the cache is big enough for the next batch
             QueryResults new_cache;
-            auto status = copyResults(cache_, args_.BatchSize(), cache_.GetRowCount(), temp_results);
+            auto status = copyResults(cache_, args_.BatchSize(), cache_.GetRowCount(), new_cache);
             if (!status.IsOk()) {
                 return status;
             }
-            cache_ = new_cache;
+            cache_ = std::move(new_cache);
         } else {
             cache_ = QueryResults();
         }
@@ -225,7 +225,7 @@ QueryIteratorImpl<T>::executeQuery(const std::string& filter, int64_t limit, boo
     // reset the limit value since the iterator fetches data batch by batch
     args_.SetLimit(limit);
 
-    auto status = ConvertQueryRequest<T>(args_, current_db, rpc_request);
+    auto status = ConvertQueryRequest<T>(args_, current_db, rpc_request, connection_->GetConnectParam().Uri());
     if (!status.IsOk()) {
         return status;
     }

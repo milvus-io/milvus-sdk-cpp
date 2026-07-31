@@ -194,6 +194,9 @@ TEST_F(RenameCollectionRequestTest, GettersAndSetters) {
 
     req.WithNewCollectionName("new_name");
     EXPECT_EQ(req.NewCollectionName(), "new_name");
+
+    req.WithTargetDatabaseName("target_db");
+    EXPECT_EQ(req.TargetDatabaseName(), "target_db");
 }
 
 class TruncateCollectionRequestTest : public ::testing::Test {};

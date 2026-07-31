@@ -26,6 +26,7 @@
 #include "utils/DqlUtils.h"
 #include "utils/FieldDataSchema.h"
 #include "utils/TypeUtils.h"
+#include "utils/cache/SchemaCache.h"
 
 using ::milvus::proto::milvus::DescribeCollectionRequest;
 using ::milvus::proto::milvus::DescribeCollectionResponse;
@@ -113,9 +114,9 @@ TEST_F(MilvusMockedTest, QueryIterator) {
             auto from = current_poz;
             auto to = from + batch_size;
             if (current_poz > offset + 2 * batch_size) {
-                // let the iterator run into the cache logic
-                to = from + 2 * batch_size + 5;
-                current_poz += 2 * batch_size;
+                // Return enough rows to keep two full batches in the iterator cache.
+                to = from + 3 * batch_size + 5;
+                current_poz += 3 * batch_size;
             } else {
                 current_poz += batch_size;
             }
@@ -186,4 +187,45 @@ TEST_F(MilvusMockedTest, QueryIterator) {
             break;
         }
     }
+}
+
+TEST_F(MilvusMockedTest, QueryIteratorUsesExplicitDatabaseForSchemaAndQuery) {
+    milvus::ConnectParam connect_param{"127.0.0.1", server_.ListenPort()};
+    ASSERT_TRUE(client_->Connect(connect_param).IsOk());
+
+    const std::string database_name = "target_db";
+    const std::string collection_name = "explicit_db_collection";
+    milvus::CollectionSchema collection_schema(collection_name);
+    milvus::BuildCollectionSchema(collection_schema);
+
+    EXPECT_CALL(service_, DescribeCollection(_, _, _))
+        .WillOnce([&](::grpc::ServerContext*, const DescribeCollectionRequest* request,
+                      DescribeCollectionResponse* response) {
+            EXPECT_EQ(request->db_name(), database_name);
+            EXPECT_EQ(request->collection_name(), collection_name);
+            response->set_collectionid(100);
+            milvus::ConvertCollectionSchema(collection_schema, *response->mutable_schema());
+            return ::grpc::Status{};
+        });
+
+    EXPECT_CALL(service_, Query(_, _, _))
+        .WillOnce([&](::grpc::ServerContext*, const QueryRequest* request, QueryResults* response) {
+            EXPECT_EQ(request->db_name(), database_name);
+            EXPECT_EQ(request->collection_name(), collection_name);
+            response->set_session_ts(1000);
+            return ::grpc::Status{};
+        });
+
+    milvus::QueryIteratorArguments arguments;
+    ASSERT_TRUE(arguments.SetDatabaseName(database_name).IsOk());
+    ASSERT_TRUE(arguments.SetCollectionName(collection_name).IsOk());
+
+    milvus::QueryIteratorPtr iterator;
+    EXPECT_TRUE(client_->QueryIterator(arguments, iterator).IsOk());
+    ASSERT_NE(iterator, nullptr);
+
+    const auto endpoint = "127.0.0.1:" + std::to_string(server_.ListenPort());
+    milvus::CollectionDescPtr desc;
+    EXPECT_TRUE(milvus::SchemaCache::GetInstance().Get(endpoint, database_name, collection_name, desc));
+    EXPECT_FALSE(milvus::SchemaCache::GetInstance().Get(endpoint, "default", collection_name, desc));
 }

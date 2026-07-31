@@ -32,6 +32,18 @@ class MILVUS_SDK_API QueryIteratorRequest : public IteratorArguments, public Que
      */
     QueryIteratorRequest();
 
+    void
+    SetIDs(std::vector<int64_t>&& id_array) = delete;
+
+    void
+    SetIDs(std::vector<std::string>&& id_array) = delete;
+
+    QueryIteratorRequest&
+    WithIDs(std::vector<int64_t>&& id_array) = delete;
+
+    QueryIteratorRequest&
+    WithIDs(std::vector<std::string>&& id_array) = delete;
+
     /**
      * @brief Get the flag of internal retrieve strategy.
      */
@@ -51,7 +63,7 @@ class MILVUS_SDK_API QueryIteratorRequest : public IteratorArguments, public Que
     WithReduceStopForBest(bool reduce_stop_for_best);
 
  private:
-    bool reduce_stop_for_best_{false};
+    bool reduce_stop_for_best_{true};
 };
 
 }  // namespace milvus

@@ -22,8 +22,8 @@
 #include "../utils/Constants.h"
 #include "../utils/DqlUtils.h"
 #include "../utils/ExtraParamUtils.h"
-#include "../utils/GtsDict.h"
 #include "../utils/RpcUtils.h"
+#include "../utils/TimeUtils.h"
 #include "../utils/TypeUtils.h"
 
 namespace milvus {
@@ -372,7 +372,7 @@ SearchIteratorImpl<T>::executeSearch(const std::string& filter, bool extend_batc
     // reset the limit value since the iterator fetches data batch by batch
     args_.SetLimit(extendLimit(extend_batch_size));
 
-    auto status = ConvertSearchRequest<T>(args_, current_db, rpc_request);
+    auto status = ConvertSearchRequest<T>(args_, current_db, rpc_request, connection_->GetConnectParam().Uri());
     if (!status.IsOk()) {
         return status;
     }

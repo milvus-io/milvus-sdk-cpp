@@ -22,8 +22,8 @@
 #include "../utils/Constants.h"
 #include "../utils/DqlUtils.h"
 #include "../utils/ExtraParamUtils.h"
-#include "../utils/GtsDict.h"
 #include "../utils/RpcUtils.h"
+#include "../utils/TimeUtils.h"
 #include "../utils/TypeUtils.h"
 #include "SearchIteratorImpl.h"
 
@@ -148,17 +148,16 @@ SearchIteratorV2Impl<T>::executeSearch(const T& args, proto::milvus::SearchResul
         args.DatabaseName().empty() ? connection_->GetConnectParam().DbName() : args.DatabaseName();
 
     proto::milvus::SearchRequest rpc_request;
-    auto status = ConvertSearchRequest<T>(args, current_db, rpc_request);
+    auto status = ConvertSearchRequest<T>(args, current_db, rpc_request, connection_->GetConnectParam().Uri());
     if (!status.IsOk()) {
         return status;
     }
 
-    if (is_probe || session_ts_ == 0) {
-        // probe method and the first time search no need to set guarantee_timestamp
+    if (is_probe) {
+        // The compatibility probe does not participate in the real iterator snapshot.
         rpc_request.set_guarantee_timestamp(0);
     } else {
-        // session_ts_ value is set at the first time to search
-        // from the second time search, guarantee_timestamp is assigned by session_ts_
+        // Real searches use the snapshot selected by the compatibility probe.
         rpc_request.set_guarantee_timestamp(session_ts_);
     }
 
@@ -169,9 +168,9 @@ SearchIteratorV2Impl<T>::executeSearch(const T& args, proto::milvus::SearchResul
         return status;
     }
 
-    if (!is_probe && session_ts_ == 0) {
-        // for old milvus versions < 2.5.0, the SearchResults has no session_ts
-        // use client-side ts instead, else use the ts returned by SearchResults
+    if (session_ts_ == 0) {
+        // Pin the snapshot selected by the compatibility probe. This matches the Java SDK's
+        // SearchIteratorV2 behavior for every consistency level.
         auto ts = rpc_response.session_ts();
         session_ts_ = (ts == 0) ? static_cast<uint64_t>(MakeMktsFromNowMs()) : ts;
     }

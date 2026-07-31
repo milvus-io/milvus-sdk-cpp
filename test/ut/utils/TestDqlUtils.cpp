@@ -30,7 +30,7 @@
 #include "types/SearchIteratorImpl.h"
 #include "utils/Constants.h"
 #include "utils/DqlUtils.h"
-#include "utils/GtsDict.h"
+#include "utils/cache/CollectionTsCache.h"
 
 namespace {
 class UnknownHighlighter : public milvus::Highlighter {
@@ -113,27 +113,32 @@ TEST_F(DqlUtilsTest, FillSearchResponseExtraInfoResetsStaleMetadataTest) {
 }
 
 TEST_F(DqlUtilsTest, DeduceGuaranteeTimestampTest) {
-    auto ts = milvus::DeduceGuaranteeTimestamp(milvus::ConsistencyLevel::NONE, "db", "coll");
+    auto& cache = milvus::CollectionTsCache::GetInstance();
+    cache.Clear();
+
+    auto ts = milvus::DeduceGuaranteeTimestamp(milvus::ConsistencyLevel::NONE, "endpoint", "db", "coll");
     EXPECT_EQ(ts, 1);
 
-    ts = milvus::DeduceGuaranteeTimestamp(milvus::ConsistencyLevel::SESSION, "db", "coll");
+    ts = milvus::DeduceGuaranteeTimestamp(milvus::ConsistencyLevel::SESSION, "endpoint", "db", "coll");
     EXPECT_EQ(ts, 1);
 
-    milvus::GtsDict::GetInstance().UpdateCollectionTs("db", "coll", 999);
-    ts = milvus::DeduceGuaranteeTimestamp(milvus::ConsistencyLevel::NONE, "db", "coll");
+    cache.Set("endpoint", "db", "coll", 999);
+    ts = milvus::DeduceGuaranteeTimestamp(milvus::ConsistencyLevel::NONE, "endpoint", "db", "coll");
     EXPECT_EQ(ts, 999);
 
-    ts = milvus::DeduceGuaranteeTimestamp(milvus::ConsistencyLevel::SESSION, "db", "coll");
+    ts = milvus::DeduceGuaranteeTimestamp(milvus::ConsistencyLevel::SESSION, "endpoint", "db", "coll");
     EXPECT_EQ(ts, 999);
 
-    ts = milvus::DeduceGuaranteeTimestamp(milvus::ConsistencyLevel::STRONG, "db", "coll");
+    ts = milvus::DeduceGuaranteeTimestamp(milvus::ConsistencyLevel::STRONG, "endpoint", "db", "coll");
     EXPECT_EQ(ts, milvus::GuaranteeStrongTs());
 
-    ts = milvus::DeduceGuaranteeTimestamp(milvus::ConsistencyLevel::BOUNDED, "db", "coll");
+    ts = milvus::DeduceGuaranteeTimestamp(milvus::ConsistencyLevel::BOUNDED, "endpoint", "db", "coll");
     EXPECT_EQ(ts, 2);
 
-    ts = milvus::DeduceGuaranteeTimestamp(milvus::ConsistencyLevel::EVENTUALLY, "db", "coll");
+    ts = milvus::DeduceGuaranteeTimestamp(milvus::ConsistencyLevel::EVENTUALLY, "endpoint", "db", "coll");
     EXPECT_EQ(ts, 1);
+
+    cache.Clear();
 }
 
 template <typename T, typename V>

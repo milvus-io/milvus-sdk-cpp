@@ -17,9 +17,7 @@
 #pragma once
 
 #include <cstdint>
-#include <map>
 #include <memory>
-#include <mutex>
 
 #include "milvus/MilvusClientV2.h"
 #include "utils/ConnectionHandler.h"
@@ -361,6 +359,10 @@ class MilvusClientV2Impl : public MilvusClientV2, public std::enable_shared_from
     upsert(const UpsertRequest& request, UpsertResponse& response, bool allow_retry);
 
     Status
+    query(const std::string& endpoint, const std::string& database_name, const QueryRequest& request,
+          QueryResponse& response);
+
+    Status
     createIndex(const std::string& db_name, const std::string& collection_name, const IndexDesc& desc, bool sync,
                 int64_t timeout_ms);
 
@@ -382,8 +384,8 @@ class MilvusClientV2Impl : public MilvusClientV2, public std::enable_shared_from
     listIndexes(const ListIndexesRequest& request, ListIndexesResponse& response, uint64_t rpc_timeout_ms = 0);
 
     Status
-    compact(const CompactRequest& request, CompactResponse& response, uint64_t rpc_timeout_ms = 0,
-            CollectionDescPtr collection_desc = nullptr);
+    compact(const std::string& database_name, const CompactRequest& request, CompactResponse& response,
+            uint64_t rpc_timeout_ms = 0);
 
     Status
     getCompactionState(const GetCompactionStateRequest& request, GetCompactionStateResponse& response,
@@ -396,30 +398,19 @@ class MilvusClientV2Impl : public MilvusClientV2, public std::enable_shared_from
     refreshLoad(const RefreshLoadRequest& request, uint64_t rpc_timeout_ms = 0);
 
     Status
-    getCollectionDesc(const std::string& db_name, const std::string& collection_name, bool force_update,
-                      CollectionDescPtr& desc_ptr, uint64_t rpc_timeout_ms = 0);
+    getCollectionDesc(const std::string& endpoint, const std::string& database_name, const std::string& collection_name,
+                      bool force_update, CollectionDescPtr& desc_ptr, uint64_t rpc_timeout_ms = 0);
 
     Status
     runOptimize(const OptimizeRequest& request, OptimizeTask& task, OptimizeResponse& response);
 
-    void
-    cleanCollectionDescCache();
-
-    void
-    removeCollectionDesc(const std::string& db_name, const std::string& collection_name);
-
     template <typename RequestClass>
     Status
-    iteratorPrepare(RequestClass& request);
+    iteratorPrepare(const std::string& endpoint, const std::string& database_name, RequestClass& request,
+                    bool use_cache = true, CollectionDescPtr* prepared_desc = nullptr);
 
  private:
     ConnectionHandler connection_;
-
-    // cache of collection schemas
-    // this cache is db level, once useDatabase() is called, this cache will be cleaned
-    // so, it is fine to use collection name as key, no need to involve db name
-    std::map<std::string, CollectionDescPtr> collection_desc_cache_;
-    std::mutex collection_desc_cache_mtx_;
 };
 
 }  // namespace milvus

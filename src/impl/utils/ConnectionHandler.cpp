@@ -102,9 +102,18 @@ ConnectionHandler::CurrentDbName(const std::string& overwrite_db_name) const {
     std::lock_guard<std::mutex> lock(mtx_);
     if (connection_ != nullptr) {
         const ConnectParam& param = connection_->GetConnectParam();
-        return param.DbName();
+        return param.DbName().empty() ? "default" : param.DbName();
     }
-    return "";
+    return "default";
+}
+
+std::string
+ConnectionHandler::CurrentEndpoint() const {
+    std::lock_guard<std::mutex> lock(mtx_);
+    if (connection_ == nullptr) {
+        return "";
+    }
+    return connection_->GetConnectParam().Uri();
 }
 
 Status

@@ -31,8 +31,9 @@
 #include "utils/DmlUtils.h"
 #include "utils/DqlUtils.h"
 #include "utils/FieldDataSchema.h"
-#include "utils/GtsDict.h"
 #include "utils/TypeUtils.h"
+#include "utils/cache/CollectionTsCache.h"
+#include "utils/cache/SchemaCache.h"
 
 namespace milvus {
 
@@ -89,6 +90,9 @@ MilvusClientImpl::GetSDKVersion(std::string& version) {
 
 Status
 MilvusClientImpl::CreateCollection(const CollectionSchema& schema, int64_t num_partitions) {
+    const auto endpoint = connection_.CurrentEndpoint();
+    const auto database_name = connection_.CurrentDbName("");
+
     auto validate = [&schema]() {
         for (const auto& field : schema.Fields()) {
             auto status = CheckDefaultValue(field);
@@ -116,8 +120,16 @@ MilvusClientImpl::CreateCollection(const CollectionSchema& schema, int64_t num_p
         return Status::OK();
     };
 
+    auto post = [&endpoint, &database_name, &schema](const proto::common::Status&) {
+        // Milvus treats creating an existing collection with an identical schema as success.
+        // Preserve its session timestamp because the response does not indicate whether a new
+        // collection was created or the existing collection was kept.
+        SchemaCache::GetInstance().Invalidate(endpoint, database_name, schema.Name());
+        return Status::OK();
+    };
+
     return connection_.Invoke<proto::milvus::CreateCollectionRequest, proto::common::Status>(
-        validate, pre, &MilvusConnection::CreateCollection, nullptr);
+        validate, pre, &MilvusConnection::CreateCollection, post);
 }
 
 Status
@@ -139,18 +151,18 @@ MilvusClientImpl::HasCollection(const std::string& collection_name, bool& has) {
 
 Status
 MilvusClientImpl::DropCollection(const std::string& collection_name) {
+    const auto endpoint = connection_.CurrentEndpoint();
+    const auto database_name = connection_.CurrentDbName("");
     auto pre = [&collection_name](proto::milvus::DropCollectionRequest& rpc_request) {
         rpc_request.set_collection_name(collection_name);
         return Status::OK();
     };
 
-    auto post = [this, &collection_name](const proto::common::Status& status) {
+    auto post = [&endpoint, &database_name, &collection_name](const proto::common::Status& status) {
         if (status.error_code() == proto::common::ErrorCode::Success && status.code() == 0) {
             // compile warning at this line since proto deprecates this method error_code()
-            // TODO: if the parameters provides db_name in future, we need to set the correct
-            // db_name to RemoveCollectionTs()
-            GtsDict::GetInstance().RemoveCollectionTs(connection_.CurrentDbName(""), collection_name);
-            removeCollectionDesc(collection_name);
+            CollectionTsCache::GetInstance().Invalidate(endpoint, database_name, collection_name);
+            SchemaCache::GetInstance().Invalidate(endpoint, database_name, collection_name);
         }
         return Status::OK();
     };
@@ -225,14 +237,24 @@ MilvusClientImpl::DescribeCollection(const std::string& collection_name, Collect
 
 Status
 MilvusClientImpl::RenameCollection(const std::string& collection_name, const std::string& new_collection_name) {
+    const auto endpoint = connection_.CurrentEndpoint();
+    const auto database_name = connection_.CurrentDbName("");
     auto pre = [&collection_name, &new_collection_name](proto::milvus::RenameCollectionRequest& rpc_request) {
         rpc_request.set_oldname(collection_name);
         rpc_request.set_newname(new_collection_name);
         return Status::OK();
     };
 
+    auto post = [&endpoint, &database_name, &collection_name, &new_collection_name](const proto::common::Status&) {
+        CollectionTsCache::GetInstance().Move(endpoint, database_name, collection_name, database_name,
+                                              new_collection_name);
+        SchemaCache::GetInstance().Invalidate(endpoint, database_name, collection_name);
+        SchemaCache::GetInstance().Invalidate(endpoint, database_name, new_collection_name);
+        return Status::OK();
+    };
+
     return connection_.Invoke<proto::milvus::RenameCollectionRequest, proto::common::Status>(
-        pre, &MilvusConnection::RenameCollection);
+        pre, &MilvusConnection::RenameCollection, post);
 }
 
 Status
@@ -336,6 +358,8 @@ MilvusClientImpl::DropCollectionProperties(const std::string& collection_name,
 Status
 MilvusClientImpl::AlterCollectionField(const std::string& collection_name, const std::string& field_name,
                                        const std::unordered_map<std::string, std::string>& properties) {
+    const auto endpoint = connection_.CurrentEndpoint();
+    const auto database_name = connection_.CurrentDbName("");
     auto pre = [&collection_name, &field_name, &properties](proto::milvus::AlterCollectionFieldRequest& rpc_request) {
         rpc_request.set_collection_name(collection_name);
         rpc_request.set_field_name(field_name);
@@ -347,8 +371,13 @@ MilvusClientImpl::AlterCollectionField(const std::string& collection_name, const
         return Status::OK();
     };
 
+    auto post = [&endpoint, &database_name, &collection_name](const proto::common::Status&) {
+        SchemaCache::GetInstance().Invalidate(endpoint, database_name, collection_name);
+        return Status::OK();
+    };
+
     return connection_.Invoke<proto::milvus::AlterCollectionFieldRequest, proto::common::Status>(
-        pre, &MilvusConnection::AlterCollectionField);
+        pre, &MilvusConnection::AlterCollectionField, post);
 }
 
 Status
@@ -493,37 +522,61 @@ MilvusClientImpl::ListPartitions(const std::string& collection_name, PartitionsI
 
 Status
 MilvusClientImpl::CreateAlias(const std::string& collection_name, const std::string& alias) {
+    const auto endpoint = connection_.CurrentEndpoint();
+    const auto database_name = connection_.CurrentDbName("");
     auto pre = [&collection_name, &alias](proto::milvus::CreateAliasRequest& rpc_request) {
         rpc_request.set_collection_name(collection_name);
         rpc_request.set_alias(alias);
         return Status::OK();
     };
 
-    return connection_.Invoke<proto::milvus::CreateAliasRequest, proto::common::Status>(pre,
-                                                                                        &MilvusConnection::CreateAlias);
+    auto post = [&endpoint, &database_name, &collection_name, &alias](const proto::common::Status&) {
+        CollectionTsCache::GetInstance().Copy(endpoint, database_name, collection_name, database_name, alias);
+        SchemaCache::GetInstance().Invalidate(endpoint, database_name, alias);
+        return Status::OK();
+    };
+
+    return connection_.Invoke<proto::milvus::CreateAliasRequest, proto::common::Status>(
+        pre, &MilvusConnection::CreateAlias, post);
 }
 
 Status
 MilvusClientImpl::DropAlias(const std::string& alias) {
+    const auto endpoint = connection_.CurrentEndpoint();
+    const auto database_name = connection_.CurrentDbName("");
     auto pre = [&alias](proto::milvus::DropAliasRequest& rpc_request) {
         rpc_request.set_alias(alias);
         return Status::OK();
     };
 
-    return connection_.Invoke<proto::milvus::DropAliasRequest, proto::common::Status>(pre,
-                                                                                      &MilvusConnection::DropAlias);
+    auto post = [&endpoint, &database_name, &alias](const proto::common::Status&) {
+        CollectionTsCache::GetInstance().Invalidate(endpoint, database_name, alias);
+        SchemaCache::GetInstance().Invalidate(endpoint, database_name, alias);
+        return Status::OK();
+    };
+
+    return connection_.Invoke<proto::milvus::DropAliasRequest, proto::common::Status>(pre, &MilvusConnection::DropAlias,
+                                                                                      post);
 }
 
 Status
 MilvusClientImpl::AlterAlias(const std::string& collection_name, const std::string& alias) {
+    const auto endpoint = connection_.CurrentEndpoint();
+    const auto database_name = connection_.CurrentDbName("");
     auto pre = [&collection_name, &alias](proto::milvus::AlterAliasRequest& rpc_request) {
         rpc_request.set_collection_name(collection_name);
         rpc_request.set_alias(alias);
         return Status::OK();
     };
 
-    return connection_.Invoke<proto::milvus::AlterAliasRequest, proto::common::Status>(pre,
-                                                                                       &MilvusConnection::AlterAlias);
+    auto post = [&endpoint, &database_name, &collection_name, &alias](const proto::common::Status&) {
+        CollectionTsCache::GetInstance().Copy(endpoint, database_name, collection_name, database_name, alias);
+        SchemaCache::GetInstance().Invalidate(endpoint, database_name, alias);
+        return Status::OK();
+    };
+
+    return connection_.Invoke<proto::milvus::AlterAliasRequest, proto::common::Status>(
+        pre, &MilvusConnection::AlterAlias, post);
 }
 
 Status
@@ -564,7 +617,6 @@ MilvusClientImpl::ListAliases(const std::string& collection_name, std::vector<Al
 
 Status
 MilvusClientImpl::UseDatabase(const std::string& db_name) {
-    cleanCollectionDescCache();
     return connection_.UseDatabase(db_name);
 }
 
@@ -597,13 +649,21 @@ MilvusClientImpl::CreateDatabase(const std::string& db_name,
 
 Status
 MilvusClientImpl::DropDatabase(const std::string& db_name) {
+    const auto endpoint = connection_.CurrentEndpoint();
+    const auto database_name = connection_.CurrentDbName(db_name);
     auto pre = [&db_name](proto::milvus::DropDatabaseRequest& rpc_request) {
         rpc_request.set_db_name(db_name);
         return Status::OK();
     };
 
+    auto post = [&endpoint, &database_name](const proto::common::Status&) {
+        SchemaCache::GetInstance().InvalidateDb(endpoint, database_name);
+        CollectionTsCache::GetInstance().InvalidateDb(endpoint, database_name);
+        return Status::OK();
+    };
+
     return connection_.Invoke<proto::milvus::DropDatabaseRequest, proto::common::Status>(
-        pre, &MilvusConnection::DropDatabase);
+        pre, &MilvusConnection::DropDatabase, post);
 }
 
 Status
@@ -904,10 +964,12 @@ MilvusClientImpl::Insert(const std::string& collection_name, const std::string& 
 Status
 MilvusClientImpl::insert(const std::string& collection_name, const std::string& partition_name,
                          const std::vector<FieldDataPtr>& fields, DmlResults& results, bool allow_retry) {
+    const auto endpoint = connection_.CurrentEndpoint();
+    const auto database_name = connection_.CurrentDbName("");
     std::vector<proto::schema::FieldData> rpc_fields;
     CollectionDescPtr collection_desc;
-    auto validate = [this, &collection_name, &fields, &collection_desc, &rpc_fields]() {
-        auto status = getCollectionDesc(collection_name, false, collection_desc);
+    auto validate = [this, &endpoint, &database_name, &collection_name, &fields, &collection_desc, &rpc_fields]() {
+        auto status = getCollectionDesc(endpoint, database_name, collection_name, false, collection_desc);
         if (!status.IsOk()) {
             return status;
         }
@@ -916,7 +978,7 @@ MilvusClientImpl::insert(const std::string& collection_name, const std::string& 
         // collectionDesc cache and call CheckInsertInput() again.
         status = CheckInsertInput(collection_desc, fields, false, false);
         if (status.Code() == milvus::StatusCode::DATA_UNMATCH_SCHEMA) {
-            status = getCollectionDesc(collection_name, true, collection_desc);
+            status = getCollectionDesc(endpoint, database_name, collection_name, true, collection_desc);
             if (!status.IsOk()) {
                 return status;
             }
@@ -944,7 +1006,7 @@ MilvusClientImpl::insert(const std::string& collection_name, const std::string& 
         return Status::OK();
     };
 
-    auto post = [this, &collection_name, &results](const proto::milvus::MutationResult& response) {
+    auto post = [&endpoint, &database_name, &collection_name, &results](const proto::milvus::MutationResult& response) {
         auto id_array = CreateIDArray(response.ids());
         results.SetIdArray(std::move(id_array));
         results.SetTimestamp(response.timestamp());
@@ -952,12 +1014,9 @@ MilvusClientImpl::insert(const std::string& collection_name, const std::string& 
 
         // special for dml api: if the api failed, remove the schema cache of this collection
         if (IsRealFailure(response.status())) {
-            removeCollectionDesc(collection_name);
+            SchemaCache::GetInstance().Invalidate(endpoint, database_name, collection_name);
         } else {
-            // TODO: if the parameters provides db_name in future, we need to set the correct
-            // db_name to UpdateCollectionTs()
-            auto db_name = connection_.CurrentDbName("");
-            GtsDict::GetInstance().UpdateCollectionTs(db_name, collection_name, response.timestamp());
+            CollectionTsCache::GetInstance().Set(endpoint, database_name, collection_name, response.timestamp());
         }
         return Status::OK();
     };
@@ -969,7 +1028,7 @@ MilvusClientImpl::insert(const std::string& collection_name, const std::string& 
     // If the client_A gets this special error code, it needs to update the collectionDesc cache and
     // call Insert() again.
     if (allow_retry && status.LegacyServerCode() == static_cast<int32_t>(proto::common::ErrorCode::SchemaMismatch)) {
-        removeCollectionDesc(collection_name);
+        SchemaCache::GetInstance().Invalidate(endpoint, database_name, collection_name);
         return insert(collection_name, partition_name, fields, results, false);
     }
     return status;
@@ -984,16 +1043,18 @@ MilvusClientImpl::Insert(const std::string& collection_name, const std::string& 
 Status
 MilvusClientImpl::insert(const std::string& collection_name, const std::string& partition_name, const EntityRows& rows,
                          DmlResults& results, bool allow_retry) {
+    const auto endpoint = connection_.CurrentEndpoint();
+    const auto database_name = connection_.CurrentDbName("");
     std::vector<proto::schema::FieldData> rpc_fields;
     CollectionDescPtr collection_desc;
-    auto validate = [this, &collection_name, &rows, &rpc_fields, &collection_desc]() {
-        auto status = getCollectionDesc(collection_name, false, collection_desc);
+    auto validate = [this, &endpoint, &database_name, &collection_name, &rows, &rpc_fields, &collection_desc]() {
+        auto status = getCollectionDesc(endpoint, database_name, collection_name, false, collection_desc);
         if (!status.IsOk()) {
             return status;
         }
         status = CheckAndSetRowData(rows, collection_desc->Schema(), false, false, rpc_fields);
         if (status.Code() == milvus::StatusCode::DATA_UNMATCH_SCHEMA) {
-            status = getCollectionDesc(collection_name, true, collection_desc);
+            status = getCollectionDesc(endpoint, database_name, collection_name, true, collection_desc);
             if (!status.IsOk()) {
                 return status;
             }
@@ -1018,7 +1079,7 @@ MilvusClientImpl::insert(const std::string& collection_name, const std::string& 
         return Status::OK();
     };
 
-    auto post = [this, &collection_name, &results](const proto::milvus::MutationResult& response) {
+    auto post = [&endpoint, &database_name, &collection_name, &results](const proto::milvus::MutationResult& response) {
         auto id_array = CreateIDArray(response.ids());
         results.SetIdArray(std::move(id_array));
         results.SetTimestamp(response.timestamp());
@@ -1026,12 +1087,9 @@ MilvusClientImpl::insert(const std::string& collection_name, const std::string& 
 
         // special for dml api: if the api failed, remove the schema cache of this collection
         if (IsRealFailure(response.status())) {
-            removeCollectionDesc(collection_name);
+            SchemaCache::GetInstance().Invalidate(endpoint, database_name, collection_name);
         } else {
-            // TODO: if the parameters provides db_name in future, we need to set the correct
-            // db_name to UpdateCollectionTs()
-            auto db_name = connection_.CurrentDbName("");
-            GtsDict::GetInstance().UpdateCollectionTs(db_name, collection_name, response.timestamp());
+            CollectionTsCache::GetInstance().Set(endpoint, database_name, collection_name, response.timestamp());
         }
         return Status::OK();
     };
@@ -1043,7 +1101,7 @@ MilvusClientImpl::insert(const std::string& collection_name, const std::string& 
     // If the client_A gets this special error code, it needs to update the collectionDesc cache and
     // call Insert() again.
     if (allow_retry && status.LegacyServerCode() == static_cast<int32_t>(proto::common::ErrorCode::SchemaMismatch)) {
-        removeCollectionDesc(collection_name);
+        SchemaCache::GetInstance().Invalidate(endpoint, database_name, collection_name);
         return insert(collection_name, partition_name, rows, results, false);
     }
     return status;
@@ -1058,10 +1116,13 @@ MilvusClientImpl::Upsert(const std::string& collection_name, const std::string& 
 Status
 MilvusClientImpl::upsert(const std::string& collection_name, const std::string& partition_name,
                          const std::vector<FieldDataPtr>& fields, DmlResults& results, bool allow_retry) {
+    const auto endpoint = connection_.CurrentEndpoint();
+    const auto database_name = connection_.CurrentDbName("");
     bool enable_dynamic_field;
     CollectionDescPtr collection_desc;
-    auto validate = [this, &collection_name, &fields, &enable_dynamic_field, &collection_desc]() {
-        auto status = getCollectionDesc(collection_name, false, collection_desc);
+    auto validate = [this, &endpoint, &database_name, &collection_name, &fields, &enable_dynamic_field,
+                     &collection_desc]() {
+        auto status = getCollectionDesc(endpoint, database_name, collection_name, false, collection_desc);
         if (!status.IsOk()) {
             return status;
         }
@@ -1070,7 +1131,7 @@ MilvusClientImpl::upsert(const std::string& collection_name, const std::string& 
         // collectionDesc cache and call CheckInsertInput() again.
         status = CheckInsertInput(collection_desc, fields, true, false);
         if (status.Code() == milvus::StatusCode::DATA_UNMATCH_SCHEMA) {
-            status = getCollectionDesc(collection_name, true, collection_desc);
+            status = getCollectionDesc(endpoint, database_name, collection_name, true, collection_desc);
             if (!status.IsOk()) {
                 return status;
             }
@@ -1114,7 +1175,7 @@ MilvusClientImpl::upsert(const std::string& collection_name, const std::string& 
         return Status::OK();
     };
 
-    auto post = [this, &collection_name, &results](const proto::milvus::MutationResult& response) {
+    auto post = [&endpoint, &database_name, &collection_name, &results](const proto::milvus::MutationResult& response) {
         auto id_array = CreateIDArray(response.ids());
         results.SetIdArray(std::move(id_array));
         results.SetTimestamp(response.timestamp());
@@ -1122,12 +1183,9 @@ MilvusClientImpl::upsert(const std::string& collection_name, const std::string& 
 
         // special for dml api: if the api failed, remove the schema cache of this collection
         if (IsRealFailure(response.status())) {
-            removeCollectionDesc(collection_name);
+            SchemaCache::GetInstance().Invalidate(endpoint, database_name, collection_name);
         } else {
-            // TODO: if the parameters provides db_name in future, we need to set the correct
-            // db_name to UpdateCollectionTs()
-            auto db_name = connection_.CurrentDbName("");
-            GtsDict::GetInstance().UpdateCollectionTs(db_name, collection_name, response.timestamp());
+            CollectionTsCache::GetInstance().Set(endpoint, database_name, collection_name, response.timestamp());
         }
         return Status::OK();
     };
@@ -1139,7 +1197,7 @@ MilvusClientImpl::upsert(const std::string& collection_name, const std::string& 
     // If the client_A gets this special error code, it needs to update the collectionDesc cache and
     // call Upsert() again.
     if (allow_retry && status.LegacyServerCode() == static_cast<int32_t>(proto::common::ErrorCode::SchemaMismatch)) {
-        removeCollectionDesc(collection_name);
+        SchemaCache::GetInstance().Invalidate(endpoint, database_name, collection_name);
         return upsert(collection_name, partition_name, fields, results, false);
     }
     return status;
@@ -1154,16 +1212,18 @@ MilvusClientImpl::Upsert(const std::string& collection_name, const std::string& 
 Status
 MilvusClientImpl::upsert(const std::string& collection_name, const std::string& partition_name, const EntityRows& rows,
                          DmlResults& results, bool allow_retry) {
+    const auto endpoint = connection_.CurrentEndpoint();
+    const auto database_name = connection_.CurrentDbName("");
     std::vector<proto::schema::FieldData> rpc_fields;
     CollectionDescPtr collection_desc;
-    auto validate = [this, &collection_name, &rows, &rpc_fields, &collection_desc]() {
-        auto status = getCollectionDesc(collection_name, false, collection_desc);
+    auto validate = [this, &endpoint, &database_name, &collection_name, &rows, &rpc_fields, &collection_desc]() {
+        auto status = getCollectionDesc(endpoint, database_name, collection_name, false, collection_desc);
         if (!status.IsOk()) {
             return status;
         }
         status = CheckAndSetRowData(rows, collection_desc->Schema(), true, false, rpc_fields);
         if (status.Code() == milvus::StatusCode::DATA_UNMATCH_SCHEMA) {
-            status = getCollectionDesc(collection_name, true, collection_desc);
+            status = getCollectionDesc(endpoint, database_name, collection_name, true, collection_desc);
             if (!status.IsOk()) {
                 return status;
             }
@@ -1187,7 +1247,7 @@ MilvusClientImpl::upsert(const std::string& collection_name, const std::string& 
         return Status::OK();
     };
 
-    auto post = [this, &collection_name, &results](const proto::milvus::MutationResult& response) {
+    auto post = [&endpoint, &database_name, &collection_name, &results](const proto::milvus::MutationResult& response) {
         auto id_array = CreateIDArray(response.ids());
         results.SetIdArray(std::move(id_array));
         results.SetTimestamp(response.timestamp());
@@ -1195,12 +1255,9 @@ MilvusClientImpl::upsert(const std::string& collection_name, const std::string& 
 
         // special for dml api: if the api failed, remove the schema cache of this collection
         if (IsRealFailure(response.status())) {
-            removeCollectionDesc(collection_name);
+            SchemaCache::GetInstance().Invalidate(endpoint, database_name, collection_name);
         } else {
-            // TODO: if the parameters provides db_name in future, we need to set the correct
-            // db_name to UpdateCollectionTs()
-            auto db_name = connection_.CurrentDbName("");
-            GtsDict::GetInstance().UpdateCollectionTs(db_name, collection_name, response.timestamp());
+            CollectionTsCache::GetInstance().Set(endpoint, database_name, collection_name, response.timestamp());
         }
         return Status::OK();
     };
@@ -1212,7 +1269,7 @@ MilvusClientImpl::upsert(const std::string& collection_name, const std::string& 
     // If the client_A gets this special error code, it needs to update the collectionDesc cache and
     // call Upsert() again.
     if (allow_retry && status.LegacyServerCode() == static_cast<int32_t>(proto::common::ErrorCode::SchemaMismatch)) {
-        removeCollectionDesc(collection_name);
+        SchemaCache::GetInstance().Invalidate(endpoint, database_name, collection_name);
         return upsert(collection_name, partition_name, rows, results, false);
     }
     return status;
@@ -1221,6 +1278,8 @@ MilvusClientImpl::upsert(const std::string& collection_name, const std::string& 
 Status
 MilvusClientImpl::Delete(const std::string& collection_name, const std::string& partition_name,
                          const std::string& expression, DmlResults& results) {
+    const auto endpoint = connection_.CurrentEndpoint();
+    const auto database_name = connection_.CurrentDbName("");
     auto pre = [&collection_name, &partition_name, &expression](proto::milvus::DeleteRequest& rpc_request) {
         rpc_request.set_collection_name(collection_name);
         rpc_request.set_partition_name(partition_name);
@@ -1228,7 +1287,7 @@ MilvusClientImpl::Delete(const std::string& collection_name, const std::string& 
         return Status::OK();
     };
 
-    auto post = [this, &results, &collection_name](const proto::milvus::MutationResult& response) {
+    auto post = [&endpoint, &database_name, &results, &collection_name](const proto::milvus::MutationResult& response) {
         auto id_array = CreateIDArray(response.ids());
         results.SetIdArray(std::move(id_array));
         results.SetTimestamp(response.timestamp());
@@ -1237,8 +1296,7 @@ MilvusClientImpl::Delete(const std::string& collection_name, const std::string& 
         if (!IsRealFailure(response.status())) {
             // TODO: if the parameters provides db_name in future, we need to set the correct
             // db_name to UpdateCollectionTs()
-            auto db_name = connection_.CurrentDbName("");
-            GtsDict::GetInstance().UpdateCollectionTs(db_name, collection_name, response.timestamp());
+            CollectionTsCache::GetInstance().Set(endpoint, database_name, collection_name, response.timestamp());
         }
         return Status::OK();
     };
@@ -1249,21 +1307,22 @@ MilvusClientImpl::Delete(const std::string& collection_name, const std::string& 
 
 Status
 MilvusClientImpl::Search(const SearchArguments& arguments, SearchResults& results) {
+    const auto endpoint = connection_.CurrentEndpoint();
+    const auto database_name = connection_.CurrentDbName(arguments.DatabaseName());
     auto validate = [&arguments]() { return arguments.Validate(); };
 
-    auto pre = [this, &arguments](proto::milvus::SearchRequest& rpc_request) {
-        auto current_name = connection_.CurrentDbName(arguments.DatabaseName());
-        return ConvertSearchRequest<SearchArguments>(arguments, current_name, rpc_request);
+    auto pre = [&endpoint, &database_name, &arguments](proto::milvus::SearchRequest& rpc_request) {
+        return ConvertSearchRequest<SearchArguments>(arguments, database_name, rpc_request, endpoint);
     };
 
-    auto post = [this, &arguments, &results](const proto::milvus::SearchResults& response) {
+    auto post = [this, &endpoint, &database_name, &arguments, &results](const proto::milvus::SearchResults& response) {
         // in milvus version older than v2.4.20, the primary_field_name() is empty, we need to
         // get the primary key field name from collection schema
         const auto& result_data = response.results();
         auto pk_name = result_data.primary_field_name();
         if (result_data.primary_field_name().empty()) {
             CollectionDescPtr collection_desc;
-            getCollectionDesc(arguments.CollectionName(), false, collection_desc);
+            getCollectionDesc(endpoint, database_name, arguments.CollectionName(), false, collection_desc);
             if (collection_desc != nullptr) {
                 pk_name = collection_desc->Schema().PrimaryFieldName();
             }
@@ -1277,7 +1336,9 @@ MilvusClientImpl::Search(const SearchArguments& arguments, SearchResults& result
 
 Status
 MilvusClientImpl::SearchIterator(SearchIteratorArguments& arguments, SearchIteratorPtr& iterator) {
-    auto status = iteratorPrepare(arguments);
+    const auto endpoint = connection_.CurrentEndpoint();
+    const auto database_name = connection_.CurrentDbName(arguments.DatabaseName());
+    auto status = iteratorPrepare(endpoint, database_name, arguments);
     if (!status.IsOk()) {
         return status;
     }
@@ -1290,7 +1351,8 @@ MilvusClientImpl::SearchIterator(SearchIteratorArguments& arguments, SearchItera
         std::string anns_field = arguments.AnnsField();
         if (anns_field.empty()) {
             CollectionDescPtr collection_desc;
-            auto status = getCollectionDesc(arguments.CollectionName(), false, collection_desc);
+            auto status =
+                getCollectionDesc(endpoint, database_name, arguments.CollectionName(), false, collection_desc);
             if (!status.IsOk()) {
                 return status;
             }
@@ -1323,13 +1385,13 @@ MilvusClientImpl::SearchIterator(SearchIteratorArguments& arguments, SearchItera
     // From SDK v2.5.6, milvus provide a new search iterator implementation in server-side.
     // SearchIteratorV2 is faster than V1 by 20~30 percent, and the recall is a little better than V1.
     // sdk attempts to use SearchIteratorV2 if supported by the server, otherwise falls back to V1.
-    auto ptrV2 = std::make_shared<SearchIteratorV2Impl<SearchIteratorArguments>>(connection_.GetConnection(), arguments,
-                                                                                 connection_.GetRetryParam());
+    auto connection = connection_.GetConnection();
+    auto retry_param = connection_.GetRetryParam();
+    auto ptrV2 = std::make_shared<SearchIteratorV2Impl<SearchIteratorArguments>>(connection, arguments, retry_param);
     status = ptrV2->Init();
     iterator = ptrV2;
     if (!status.IsOk() && status.Code() == StatusCode::NOT_SUPPORTED) {
-        auto ptrV1 = std::make_shared<SearchIteratorImpl<SearchIteratorArguments>>(
-            connection_.GetConnection(), arguments, connection_.GetRetryParam());
+        auto ptrV1 = std::make_shared<SearchIteratorImpl<SearchIteratorArguments>>(connection, arguments, retry_param);
         status = ptrV1->Init();
         if (!status.IsOk()) {
             return {status.Code(), "Unable to create search iterator, error: " + status.Message()};
@@ -1341,21 +1403,22 @@ MilvusClientImpl::SearchIterator(SearchIteratorArguments& arguments, SearchItera
 
 Status
 MilvusClientImpl::HybridSearch(const HybridSearchArguments& arguments, SearchResults& results) {
+    const auto endpoint = connection_.CurrentEndpoint();
+    const auto database_name = connection_.CurrentDbName(arguments.DatabaseName());
     auto validate = [&arguments]() { return arguments.Validate(); };
 
-    auto pre = [this, &arguments](proto::milvus::HybridSearchRequest& rpc_request) {
-        auto current_name = connection_.CurrentDbName(arguments.DatabaseName());
-        return ConvertHybridSearchRequest<HybridSearchArguments>(arguments, current_name, rpc_request);
+    auto pre = [&endpoint, &database_name, &arguments](proto::milvus::HybridSearchRequest& rpc_request) {
+        return ConvertHybridSearchRequest<HybridSearchArguments>(arguments, database_name, rpc_request, endpoint);
     };
 
-    auto post = [this, &arguments, &results](const proto::milvus::SearchResults& response) {
+    auto post = [this, &endpoint, &database_name, &arguments, &results](const proto::milvus::SearchResults& response) {
         // in milvus version older than v2.4.20, the primary_field_name() is empty, we need to
         // get the primary key field name from collection schema
         const auto& result_data = response.results();
         auto pk_name = result_data.primary_field_name();
         if (result_data.primary_field_name().empty()) {
             CollectionDescPtr collection_desc;
-            getCollectionDesc(arguments.CollectionName(), false, collection_desc);
+            getCollectionDesc(endpoint, database_name, arguments.CollectionName(), false, collection_desc);
             if (collection_desc != nullptr) {
                 pk_name = collection_desc->Schema().PrimaryFieldName();
             }
@@ -1369,9 +1432,10 @@ MilvusClientImpl::HybridSearch(const HybridSearchArguments& arguments, SearchRes
 
 Status
 MilvusClientImpl::Query(const QueryArguments& arguments, QueryResults& results) {
-    auto pre = [this, &arguments](proto::milvus::QueryRequest& rpc_request) {
-        auto current_name = connection_.CurrentDbName(arguments.DatabaseName());
-        return ConvertQueryRequest<QueryArguments>(arguments, current_name, rpc_request);
+    const auto endpoint = connection_.CurrentEndpoint();
+    const auto database_name = connection_.CurrentDbName(arguments.DatabaseName());
+    auto pre = [&endpoint, &database_name, &arguments](proto::milvus::QueryRequest& rpc_request) {
+        return ConvertQueryRequest<QueryArguments>(arguments, database_name, rpc_request, endpoint);
     };
 
     auto post = [&results](const proto::milvus::QueryResults& response) {
@@ -1383,7 +1447,9 @@ MilvusClientImpl::Query(const QueryArguments& arguments, QueryResults& results) 
 
 Status
 MilvusClientImpl::QueryIterator(QueryIteratorArguments& arguments, QueryIteratorPtr& iterator) {
-    auto status = iteratorPrepare(arguments);
+    const auto endpoint = connection_.CurrentEndpoint();
+    const auto database_name = connection_.CurrentDbName(arguments.DatabaseName());
+    auto status = iteratorPrepare(endpoint, database_name, arguments);
     if (!status.IsOk()) {
         return status;
     }
@@ -2092,47 +2158,43 @@ MilvusClientImpl::RemovePrivilegesFromGroup(const std::string& group_name, const
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // internal used methods
 Status
-MilvusClientImpl::getCollectionDesc(const std::string& collection_name, bool force_update,
+MilvusClientImpl::getCollectionDesc(const std::string& endpoint, const std::string& database_name,
+                                    const std::string& collection_name, bool force_update,
                                     CollectionDescPtr& desc_ptr) {
-    // this lock locks the entire section, including the call of DescribeCollection()
-    // the reason is: describeCollection() could be limited by server-side(DDL request throttling is enabled)
-    // we don't intend to allow too many threads run into describeCollection() in this method
-    std::lock_guard<std::mutex> lock(collection_desc_cache_mtx_);
-    auto it = collection_desc_cache_.find(collection_name);
-    if (it != collection_desc_cache_.end()) {
-        if (it->second != nullptr && !force_update) {
-            desc_ptr = it->second;
-            return Status::OK();
-        }
-    }
-
-    CollectionDesc desc;
-    auto status = DescribeCollection(collection_name, desc);
-    if (status.IsOk()) {
-        desc_ptr = std::make_shared<CollectionDesc>(desc);
-        collection_desc_cache_[collection_name] = desc_ptr;
-        return status;
-    }
-    return status;
-}
-
-void
-MilvusClientImpl::cleanCollectionDescCache() {
-    std::lock_guard<std::mutex> lock(collection_desc_cache_mtx_);
-    collection_desc_cache_.clear();
-}
-
-void
-MilvusClientImpl::removeCollectionDesc(const std::string& collection_name) {
-    std::lock_guard<std::mutex> lock(collection_desc_cache_mtx_);
-    collection_desc_cache_.erase(collection_name);
+    return SchemaCache::GetInstance().GetOrLoad(
+        endpoint, database_name, collection_name, force_update, this,
+        [this, &database_name, &collection_name](CollectionDescPtr& loaded) {
+            auto pre = [&database_name, &collection_name](proto::milvus::DescribeCollectionRequest& rpc_request) {
+                rpc_request.set_db_name(database_name);
+                rpc_request.set_collection_name(collection_name);
+                return Status::OK();
+            };
+            CollectionDesc desc;
+            auto post = [&desc](const proto::milvus::DescribeCollectionResponse& response) {
+                CollectionSchema schema;
+                ConvertCollectionSchema(response.schema(), schema);
+                schema.SetShardsNum(response.shards_num());
+                desc.SetSchema(std::move(schema));
+                desc.SetID(response.collectionid());
+                desc.SetCreatedTime(response.created_timestamp());
+                return Status::OK();
+            };
+            auto status =
+                connection_.Invoke<proto::milvus::DescribeCollectionRequest, proto::milvus::DescribeCollectionResponse>(
+                    pre, &MilvusConnection::DescribeCollection, post);
+            if (status.IsOk()) {
+                loaded = std::make_shared<CollectionDesc>(std::move(desc));
+            }
+            return status;
+        },
+        desc_ptr);
 }
 
 template <typename ArgClass>
 Status
-MilvusClientImpl::iteratorPrepare(ArgClass& arguments) {
+MilvusClientImpl::iteratorPrepare(const std::string& endpoint, const std::string& database_name, ArgClass& arguments) {
     CollectionDescPtr collection_desc;
-    auto status = getCollectionDesc(arguments.CollectionName(), false, collection_desc);
+    auto status = getCollectionDesc(endpoint, database_name, arguments.CollectionName(), false, collection_desc);
     if (!status.IsOk()) {
         return status;
     }
