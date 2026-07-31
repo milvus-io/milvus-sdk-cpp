@@ -16,9 +16,7 @@
 
 #pragma once
 
-#include <map>
 #include <memory>
-#include <mutex>
 
 #include "milvus/MilvusClient.h"
 #include "utils/ConnectionHandler.h"
@@ -374,32 +372,15 @@ class MilvusClientImpl : public MilvusClient {
      * @brief return desc if it is existing, else call describeCollection() and cache it
      */
     Status
-    getCollectionDesc(const std::string& collection_name, bool force_update, CollectionDescPtr& desc_ptr);
-
-    /**
-     * @brief clean desc of all the collections in the cache
-     */
-    void
-    cleanCollectionDescCache();
-
-    /**
-     * @brief remove a collections's desc from the cache
-     */
-    void
-    removeCollectionDesc(const std::string& collection_name);
+    getCollectionDesc(const std::string& endpoint, const std::string& database_name, const std::string& collection_name,
+                      bool force_update, CollectionDescPtr& desc_ptr);
 
     template <typename ArgClass>
     Status
-    iteratorPrepare(ArgClass& arguments);
+    iteratorPrepare(const std::string& endpoint, const std::string& database_name, ArgClass& arguments);
 
  private:
     ConnectionHandler connection_;
-
-    // cache of collection schemas
-    // this cache is db level, once useDatabase() is called, this cache will be cleaned
-    // so, it is fine to use collection name as key, no need to involve db name
-    std::map<std::string, CollectionDescPtr> collection_desc_cache_;
-    std::mutex collection_desc_cache_mtx_;
 };
 
 }  // namespace milvus

@@ -21,6 +21,7 @@
 
 #include "../mocks/MilvusMockedTest.h"
 #include "milvus/MilvusClientV2.h"
+#include "utils/cache/SchemaCache.h"
 
 using ::milvus::StatusCode;
 using ::milvus::proto::milvus::AddCollectionFieldRequest;
@@ -43,9 +44,28 @@ CreateConnectedV2Client(testing::StrictMock<::milvus::MilvusMockedService>& serv
     return client;
 }
 
+std::string
+Endpoint(uint16_t port) {
+    return "127.0.0.1:" + std::to_string(port);
+}
+
+milvus::CollectionDescPtr
+MakeCollectionDesc() {
+    return std::make_shared<milvus::CollectionDesc>();
+}
+
+void
+ExpectSchemaCached(const std::string& endpoint, const std::string& db_name, const std::string& collection_name,
+                   bool expected) {
+    milvus::CollectionDescPtr desc;
+    EXPECT_EQ(milvus::SchemaCache::GetInstance().Get(endpoint, db_name, collection_name, desc), expected);
+}
+
 }  // namespace
 
 TEST_F(UnconnectMilvusMockedTest, AddCollectionFieldUsesAlterCollectionSchema) {
+    const auto endpoint = Endpoint(server_.ListenPort());
+    milvus::SchemaCache::GetInstance().Set(endpoint, "db", "coll", MakeCollectionDesc());
     auto client = CreateConnectedV2Client(service_, server_.ListenPort());
     milvus::FieldSchema field("new_field", milvus::DataType::INT64);
     field.SetNullable(true);
@@ -70,9 +90,12 @@ TEST_F(UnconnectMilvusMockedTest, AddCollectionFieldUsesAlterCollectionSchema) {
         milvus::AddCollectionFieldRequest().WithDatabaseName("db").WithCollectionName("coll").WithField(
             std::move(field)));
     EXPECT_TRUE(status.IsOk());
+    ExpectSchemaCached(endpoint, "db", "coll", false);
 }
 
 TEST_F(UnconnectMilvusMockedTest, AddCollectionFieldFallsBackOnUnimplemented) {
+    const auto endpoint = Endpoint(server_.ListenPort());
+    milvus::SchemaCache::GetInstance().Set(endpoint, "db", "coll", MakeCollectionDesc());
     auto client = CreateConnectedV2Client(service_, server_.ListenPort());
     milvus::FieldSchema field("new_field", milvus::DataType::INT64);
     field.SetNullable(true);
@@ -100,6 +123,7 @@ TEST_F(UnconnectMilvusMockedTest, AddCollectionFieldFallsBackOnUnimplemented) {
         milvus::AddCollectionFieldRequest().WithDatabaseName("db").WithCollectionName("coll").WithField(
             std::move(field)));
     EXPECT_TRUE(status.IsOk());
+    ExpectSchemaCached(endpoint, "db", "coll", false);
 }
 
 TEST_F(UnconnectMilvusMockedTest, AddCollectionFieldFallsBackOnServiceUnimplemented) {
@@ -128,6 +152,8 @@ TEST_F(UnconnectMilvusMockedTest, AddCollectionFieldFallsBackOnServiceUnimplemen
 }
 
 TEST_F(UnconnectMilvusMockedTest, AddCollectionFieldDoesNotFallbackOnServerError) {
+    const auto endpoint = Endpoint(server_.ListenPort());
+    milvus::SchemaCache::GetInstance().Set(endpoint, "default", "coll", MakeCollectionDesc());
     auto client = CreateConnectedV2Client(service_, server_.ListenPort());
     milvus::FieldSchema field("new_field", milvus::DataType::INT64);
     field.SetNullable(true);
@@ -143,6 +169,8 @@ TEST_F(UnconnectMilvusMockedTest, AddCollectionFieldDoesNotFallbackOnServerError
     auto status = client->AddCollectionField(
         milvus::AddCollectionFieldRequest().WithCollectionName("coll").WithField(std::move(field)));
     EXPECT_EQ(status.Code(), StatusCode::SERVER_FAILED);
+    ExpectSchemaCached(endpoint, "default", "coll", true);
+    milvus::SchemaCache::GetInstance().Invalidate(endpoint, "default", "coll");
 }
 
 TEST_F(UnconnectMilvusMockedTest, AddCollectionFieldDoesNotFallbackOnServerCodeMatchingGrpcUnimplemented) {
@@ -246,6 +274,8 @@ TEST_F(UnconnectMilvusMockedTest, DropCollectionFieldServerFailed) {
 }
 
 TEST_F(UnconnectMilvusMockedTest, DropCollectionFieldByName) {
+    const auto endpoint = Endpoint(server_.ListenPort());
+    milvus::SchemaCache::GetInstance().Set(endpoint, "default", "coll", MakeCollectionDesc());
     auto client = CreateConnectedV2Client(service_, server_.ListenPort());
     EXPECT_CALL(service_, AlterCollectionSchema(_, _, _))
         .WillOnce([](::grpc::ServerContext*, const AlterCollectionSchemaRequest* request,
@@ -261,6 +291,7 @@ TEST_F(UnconnectMilvusMockedTest, DropCollectionFieldByName) {
     auto status = client->DropCollectionField(
         milvus::DropCollectionFieldRequest().WithCollectionName("coll").WithFieldName("f1"));
     EXPECT_TRUE(status.IsOk());
+    ExpectSchemaCached(endpoint, "default", "coll", false);
 }
 
 TEST_F(UnconnectMilvusMockedTest, DropCollectionFieldById) {
@@ -369,6 +400,8 @@ TEST_F(UnconnectMilvusMockedTest, AddFunctionFieldRejectsMismatchedOutputName) {
 }
 
 TEST_F(UnconnectMilvusMockedTest, AddFunctionField) {
+    const auto endpoint = Endpoint(server_.ListenPort());
+    milvus::SchemaCache::GetInstance().Set(endpoint, "default", "coll", MakeCollectionDesc());
     auto client = CreateConnectedV2Client(service_, server_.ListenPort());
     milvus::FieldSchema field;
     field.SetName("sparse_vec");
@@ -415,6 +448,7 @@ TEST_F(UnconnectMilvusMockedTest, AddFunctionField) {
                                                .WithFunction(function)
                                                .WithIndex(std::move(index)));
     EXPECT_TRUE(status.IsOk());
+    ExpectSchemaCached(endpoint, "default", "coll", false);
 }
 
 TEST_F(UnconnectMilvusMockedTest, AddFunctionFieldWithMinHash) {
@@ -550,6 +584,8 @@ TEST_F(UnconnectMilvusMockedTest, DropFunctionFieldServerFailed) {
 }
 
 TEST_F(UnconnectMilvusMockedTest, DropFunctionField) {
+    const auto endpoint = Endpoint(server_.ListenPort());
+    milvus::SchemaCache::GetInstance().Set(endpoint, "default", "coll", MakeCollectionDesc());
     auto client = CreateConnectedV2Client(service_, server_.ListenPort());
     EXPECT_CALL(service_, AlterCollectionSchema(_, _, _))
         .WillOnce([](::grpc::ServerContext*, const AlterCollectionSchemaRequest* request,
@@ -565,4 +601,5 @@ TEST_F(UnconnectMilvusMockedTest, DropFunctionField) {
     auto status = client->DropFunctionField(
         milvus::DropFunctionFieldRequest().WithCollectionName("coll").WithFunctionName("bm25_fn"));
     EXPECT_TRUE(status.IsOk());
+    ExpectSchemaCached(endpoint, "default", "coll", false);
 }

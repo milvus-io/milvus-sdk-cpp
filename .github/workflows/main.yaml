@@ -229,10 +229,22 @@ jobs:
       - name: Install dependencies on windows
         shell: cmd
         run: |
-          choco install cmake ninja ccache --no-progress
+          choco install cmake ninja --no-progress
+          if errorlevel 1 exit /b 1
+          choco install ccache --no-progress
+          if errorlevel 1 echo WARNING: ccache installation failed - build will proceed without caching
           cmake --version
+          if errorlevel 1 exit /b 1
           ninja --version
-          where ccache >nul 2>&1 && (ccache --version) || (echo ccache not installed - build will proceed without caching)
+          if errorlevel 1 exit /b 1
+          where ccache >nul 2>&1
+          if errorlevel 1 (
+            echo ccache not installed - build will proceed without caching
+          ) else (
+            ccache --version
+            if errorlevel 1 exit /b 1
+          )
+          exit /b 0
       - name: Build
         shell: cmd
         run: |
