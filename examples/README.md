@@ -6,13 +6,16 @@ $ make test
 ## Try the examples
 Once the `make test` is done, you will see some executable examples under the path `./cmake_build/examples`.
 
+New applications should follow the `MilvusClientV2` examples. The original `MilvusClient` examples are retained for
+compatibility with existing applications and demonstrate the legacy API, which is in maintenance mode.
+
 To suppress verbose gRPC internal logs when running the examples, set:
 
 ```shell
 export GRPC_VERBOSITY=ERROR
 ```
 
-Examples for MilvusClient:
+Legacy examples for MilvusClient (maintenance mode):
 - `./cmake_build/examples/v1/sdk_array_v1`: example to show the usage of Array field.
 - `./cmake_build/examples/v1/sdk_db_v1`: example to show the usage of databases.
 - `./cmake_build/examples/v1/sdk_default_value_v1`: example to show the usage of default value.
@@ -35,7 +38,7 @@ Examples for MilvusClient:
 - `./cmake_build/examples/v1/sdk_vector_fp16_v1`: example to show the usage of Float16Vector/BFloat16Vector field.
 - `./cmake_build/examples/v1/sdk_vector_sparse_v1`: example to show the usage of SparseVector field.
 
-Examples for MilvusClientV2:
+Recommended examples for MilvusClientV2:
 - `./cmake_build/examples/v2/sdk_array_v2`: example to show the usage of Array field.
 - `./cmake_build/examples/v2/sdk_cdc_v2`: example to show the usage of CDC interfaces including DumpMessages().
 - `./cmake_build/examples/v2/sdk_db_v2`: example to show the usage of databases.
