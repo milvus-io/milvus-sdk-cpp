@@ -43,21 +43,21 @@ class MILVUS_SDK_API InsertRequest : public DMLRequestBase<InsertRequest> {
 
     /**
      * @brief Set fields data.
-     * Not allow to set ColumnsData and RowsData both.
+     * ColumnsData and RowsData cannot both be set.
      */
     void
     SetColumnsData(std::vector<FieldDataPtr>&& columns_data);
 
     /**
      * @brief Set fields data with fluent interface.
-     * Not allow to set ColumnsData and RowsData both.
+     * ColumnsData and RowsData cannot both be set.
      */
     InsertRequest&
     WithColumnsData(std::vector<FieldDataPtr>&& columns_data);
 
     /**
      * @brief Set a field data with fluent interface.
-     * Not allow to set ColumnsData and RowsData both.
+     * ColumnsData and RowsData cannot both be set.
      */
     InsertRequest&
     AddColumnData(const FieldDataPtr& column_data);
@@ -70,21 +70,21 @@ class MILVUS_SDK_API InsertRequest : public DMLRequestBase<InsertRequest> {
 
     /**
      * @brief Set entity rows.
-     * Not allow to set ColumnsData and RowsData both.
+     * ColumnsData and RowsData cannot both be set.
      */
     void
     SetRowsData(EntityRows&& rows_data);
 
     /**
      * @brief Set entity rows with fluent interface.
-     * Not allow to set ColumnsData and RowsData both.
+     * ColumnsData and RowsData cannot both be set.
      */
     InsertRequest&
     WithRowsData(EntityRows&& rows_data);
 
     /**
-     * @brief Add en entity rows with fluent interface.
-     * Not allow to set ColumnsData and RowsData both.
+     * @brief Add an entity row with the fluent interface.
+     * ColumnsData and RowsData cannot both be set.
      */
     InsertRequest&
     AddRowData(EntityRow&& row_data);

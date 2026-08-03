@@ -81,7 +81,7 @@ struct MILVUS_SDK_API SingleResult {
     /**
      * @brief Score field name in search result.
      * Note: the default score name is "score", but if your collection schema already has a "score" field,
-     * and the "score" field is an output field, the score name will be changed to "_score". If "_socre" is
+     * and the "score" field is an output field, the score name will be changed to "_score". If "_score" is
      * also duplicated, then the score name will be changed to "__score", etc.
      */
     const std::string&
@@ -153,7 +153,7 @@ struct MILVUS_SDK_API SingleResult {
 
  private:
     std::string pk_name_;     // the server tells primary key name so that you don't need to describe the collection
-    std::string score_name_;  // name of score field, default is "score". if duplicated, the name could be "_socre"
+    std::string score_name_;  // name of score field, default is "score". if duplicated, the name could be "_score"
     std::vector<FieldDataPtr> output_fields_;
     std::set<std::string> output_names_;  // output_fields list specified by search()
     std::vector<HighlightResults> highlight_results_;
