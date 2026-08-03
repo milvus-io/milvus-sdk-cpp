@@ -221,7 +221,7 @@ main(int argc, char* argv[]) {
     for (auto i = 0; i < row_count; ++i) {
         insert_ids.push_back(i);
         insert_names.push_back("user_" + std::to_string(i));
-        insert_ages.push_back(static_cast<int8_t>(util::RandomeValue<int>(1, 100)));
+        insert_ages.push_back(static_cast<int8_t>(util::RandomValue<int>(1, 100)));
         insert_vectors.emplace_back(std::move(util::GenerateFloatVector(dimension)));
     }
 
@@ -344,8 +344,8 @@ main(int argc, char* argv[]) {
         // do search
         // the AnnsField name is passed by AddFloatVector()
         std::string filter_expr = field_age + " > 40";
-        auto q_number_1 = util::RandomeValue<int64_t>(0, row_count - 1);
-        auto q_number_2 = util::RandomeValue<int64_t>(0, row_count - 1);
+        auto q_number_1 = util::RandomValue<int64_t>(0, row_count - 1);
+        auto q_number_2 = util::RandomValue<int64_t>(0, row_count - 1);
 
         std::vector<std::vector<float>> query_vectors = {
             insert_vectors[q_number_1],

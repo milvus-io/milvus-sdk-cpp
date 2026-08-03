@@ -212,7 +212,7 @@ GenerateInt8Vector(int dimension) {
 
 template <typename T>
 std::vector<T>
-RandomeValues(T min, T max, int count) {
+RandomValues(T min, T max, int count) {
     std::random_device rd;
     std::mt19937 ran(rd());
     const auto is_float = std::is_floating_point<T>::value;
@@ -228,14 +228,14 @@ RandomeValues(T min, T max, int count) {
 
 template <typename T>
 T
-RandomeValue(T min, T max) {
-    std::vector<T> values = RandomeValues(min, max, 1);
+RandomValue(T min, T max) {
+    std::vector<T> values = RandomValues(min, max, 1);
     return values[0];
 }
 
 std::vector<bool>
-RansomBools(int count) {
-    auto values = RandomeValues<int>(0, 100, count);
+RandomBools(int count) {
+    auto values = RandomValues<int>(0, 100, count);
     std::vector<bool> bools(count);
     std::transform(values.begin(), values.end(), bools.begin(), [](int x) { return x % 2 == 1; });
     return bools;

@@ -106,7 +106,7 @@ main(int argc, char* argv[]) {
             milvus::EntityRow row;
             row[field_vector] = util::GenerateFloatVector(dimension);
             row["new_1"] = "inserted value " + std::to_string(i);
-            row["new_2"] = util::RandomeValues<int16_t>(0, 10, i % 10 + 1);
+            row["new_2"] = util::RandomValues<int16_t>(0, 10, i % 10 + 1);
             rows.emplace_back(std::move(row));
         }
 
