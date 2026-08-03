@@ -19,6 +19,7 @@
 #include <memory>
 
 #include "Status.h"
+#include "ClientTelemetry.h"
 #include "milvus/Export.h"
 #include "types/AliasDesc.h"
 #include "types/AnalyzerResults.h"
@@ -101,6 +102,10 @@ class MILVUS_SDK_API MilvusClient {
      */
     virtual Status
     Disconnect() = 0;
+
+    /** Returns the telemetry manager for diagnostics and custom command handlers. */
+    virtual ClientTelemetryManagerPtr
+    GetTelemetry() const = 0;
 
     /**
      * @brief Change timeout value in milliseconds for each RPC call.

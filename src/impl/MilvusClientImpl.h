@@ -37,6 +37,9 @@ class MilvusClientImpl : public MilvusClient {
     Status
     Disconnect() final;
 
+    ClientTelemetryManagerPtr
+    GetTelemetry() const final;
+
     Status
     SetRpcDeadlineMs(uint64_t timeout_ms) final;
 

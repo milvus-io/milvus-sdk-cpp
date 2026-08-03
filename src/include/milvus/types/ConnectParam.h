@@ -20,6 +20,7 @@
 #include <string>
 
 #include "milvus/Export.h"
+#include "milvus/types/TelemetryConfig.h"
 
 namespace milvus {
 
@@ -338,6 +339,16 @@ class MILVUS_SDK_API ConnectParam {
     ConnectParam&
     WithDbName(const std::string& db_name);
 
+    /** Client telemetry and command configuration. */
+    const TelemetryConfig&
+    Telemetry() const;
+
+    void
+    SetTelemetryConfig(const TelemetryConfig& config);
+
+    ConnectParam&
+    WithTelemetryConfig(const TelemetryConfig& config);
+
  private:
     std::string uri_ = "http://localhost:19530";
 
@@ -357,6 +368,7 @@ class MILVUS_SDK_API ConnectParam {
     std::string username_;
     std::string token_;
     std::string db_name_;
+    TelemetryConfig telemetry_config_;
 };
 
 }  // namespace milvus

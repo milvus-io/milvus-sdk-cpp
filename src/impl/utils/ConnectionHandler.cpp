@@ -102,10 +102,14 @@ ConnectionHandler::Connect(const ConnectParam& connect_param) {
         global_endpoint_.clear();
 
         new_connection = std::make_shared<MilvusConnection>();
-        status = new_connection->Connect(primary_param);
+        status = new_connection->Connect(primary_param, telemetry_client_id_);
         if (!status.IsOk()) {
             // fall through to restore the prior global state after releasing the lock
         } else {
+            auto telemetry = new_connection->GetTelemetry();
+            if (telemetry != nullptr) {
+                telemetry_client_id_ = telemetry->ClientId();
+            }
             if (connection_ != nullptr) {
                 connection_->Disconnect();
             }
@@ -211,7 +215,7 @@ ConnectionHandler::reconnectToPrimary(const GlobalTopology& topology, const std:
     // WaitForConnected() and the Connect RPC for up to ~2x ConnectTimeout, and holding mtx_ that
     // long would stall every other SDK operation that snapshots the connection.
     auto new_connection = std::make_shared<MilvusConnection>();
-    auto status = new_connection->Connect(primary_param);
+    auto status = new_connection->Connect(primary_param, telemetry_client_id_);
     if (!status.IsOk()) {
         // keep the existing connection; report failure so the refresher retries the same version
         return false;
@@ -248,6 +252,12 @@ MilvusConnectionPtr
 ConnectionHandler::GetConnection() const {
     std::lock_guard<std::mutex> lock(mtx_);
     return connection_;
+}
+
+ClientTelemetryManagerPtr
+ConnectionHandler::GetTelemetry() const {
+    std::lock_guard<std::mutex> lock(mtx_);
+    return connection_ == nullptr ? nullptr : connection_->GetTelemetry();
 }
 
 Status

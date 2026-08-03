@@ -49,6 +49,9 @@ class ConnectionHandler {
     MilvusConnectionPtr
     GetConnection() const;
 
+    ClientTelemetryManagerPtr
+    GetTelemetry() const;
+
     Status
     SetRpcDeadlineMs(uint64_t timeout_ms);
 
@@ -280,6 +283,7 @@ class ConnectionHandler {
     mutable std::mutex mtx_;
     MilvusConnectionPtr connection_;
     RetryParam retry_param_;
+    std::string telemetry_client_id_;
 
     // global-cluster state
     bool global_mode_{false};

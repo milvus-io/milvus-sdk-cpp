@@ -74,6 +74,11 @@ MilvusClientV2Impl::Disconnect() {
     return connection_.Disconnect();
 }
 
+ClientTelemetryManagerPtr
+MilvusClientV2Impl::GetTelemetry() const {
+    return connection_.GetTelemetry();
+}
+
 Status
 MilvusClientV2Impl::SetRpcDeadlineMs(uint64_t timeout_ms) {
     return connection_.SetRpcDeadlineMs(timeout_ms);

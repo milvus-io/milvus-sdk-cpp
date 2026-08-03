@@ -76,6 +76,11 @@ add_executable(testing-it ${it_files})
 target_compile_options(testing-it PRIVATE $<$<CXX_COMPILER_ID:MSVC>:/bigobj>)
 link_milvus_test(testing-it)
 
+if (CMAKE_SYSTEM_NAME MATCHES "(Linux|Darwin)")
+    add_executable(testing-telemetry-e2e e2e/ClientTelemetryE2E.cpp)
+    target_link_libraries(testing-telemetry-e2e PRIVATE milvus_sdk)
+endif()
+
 # st only available under linux/macos
 if (CMAKE_SYSTEM_NAME MATCHES "(Linux|Darwin)")
 set(ST_DIR "${CMAKE_CURRENT_SOURCE_DIR}/st")

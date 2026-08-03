@@ -70,6 +70,7 @@ ConnectParam::operator=(const ConnectParam& other) {
         username_ = other.username_;
         token_ = other.token_;
         db_name_ = other.db_name_;
+        telemetry_config_ = other.telemetry_config_;
     }
     return *this;
 }
@@ -311,6 +312,22 @@ ConnectParam::SetDbName(const std::string& db_name) {
 ConnectParam&
 ConnectParam::WithDbName(const std::string& db_name) {
     SetDbName(db_name);
+    return *this;
+}
+
+const TelemetryConfig&
+ConnectParam::Telemetry() const {
+    return telemetry_config_;
+}
+
+void
+ConnectParam::SetTelemetryConfig(const TelemetryConfig& config) {
+    telemetry_config_ = config;
+}
+
+ConnectParam&
+ConnectParam::WithTelemetryConfig(const TelemetryConfig& config) {
+    SetTelemetryConfig(config);
     return *this;
 }
 
