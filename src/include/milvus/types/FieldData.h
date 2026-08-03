@@ -43,7 +43,7 @@ class MILVUS_SDK_API Field {
     Type() const;
 
     /**
-     * @brief Get elelemnt type for array field.
+     * @brief Get the element type for an array field.
      */
     DataType
     ElementType() const;
@@ -74,14 +74,14 @@ using FieldDataPtr = std::shared_ptr<Field>;
 /**
  * @brief Template class represents column-based data of a field. Available inheritance classes: \n
  *  BoolFieldData for boolean scalar field \n
- *  Int8FieldData for 8-bits integer scalar field \n
+ *  Int8FieldData for 8-bit integer scalar field \n
  *  Int16FieldData for 16-bits integer scalar field \n
  *  Int32FieldData for 32-bits integer scalar field \n
  *  Int64FieldData for 64-bits integer scalar field \n
  *  FloatFieldData for float scalar field \n
  *  DoubleFieldData for double scalar field \n
  *  VarCharFieldData for string scalar field \n
- *  JSONFieldData for json scalar field (supportted in 2.4) \n
+ *  JSONFieldData for JSON scalar field (supported since 2.4) \n
  *  BinaryVecFieldData for float vector field \n
  *  FloatVecFieldData for binary vector field \n
  *  SparseFloatVecFieldData for sparse vector field \n
@@ -200,10 +200,10 @@ class FieldData : public Field {
 };
 
 /**
- * @brief Template class represents column-based data of an array field(supportted in 2.4). \n
+ * @brief Template class representing column-based data for an array field (supported since 2.4). \n
  *  Available inheritance classes: \n
  *  ArrayBoolFieldData for boolean array field \n
- *  ArrayInt8FieldData for 8-bits integer array field \n
+ *  ArrayInt8FieldData for 8-bit integer array field \n
  *  ArrayInt16FieldData for 16-bits integer array field \n
  *  ArrayInt32FieldData for 32-bits integer array field \n
  *  ArrayInt64FieldData for 64-bits integer array field \n

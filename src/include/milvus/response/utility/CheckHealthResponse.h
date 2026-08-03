@@ -34,37 +34,37 @@ class MILVUS_SDK_API CheckHealthResponse {
     CheckHealthResponse() = default;
 
     /**
-     * @brief Get whether the milvus server is healthy or not.
+     * @brief Get whether the Milvus server is healthy.
      */
     bool
     IsHealthy() const;
 
     /**
-     * @brief Set whether the milvus server is healthy or not.
+     * @brief Set whether the Milvus server is healthy.
      */
     void
     SetIsHealthy(bool healthy);
 
     /**
-     * @brief Get the reasons why the milvus server is unhealthy.
+     * @brief Get the reasons why the Milvus server is unhealthy.
      */
     const std::vector<std::string>&
     Reasons() const;
 
     /**
-     * @brief Set the reasons why the milvus server is unhealthy.
+     * @brief Set the reasons why the Milvus server is unhealthy.
      */
     void
     SetReasons(std::vector<std::string>&& reasons);
 
     /**
-     * @brief Get the quota states why the milvus server is unable service.
+     * @brief Get the quota states that prevent the Milvus server from providing service.
      */
     const std::vector<std::string>&
     QuotaStates() const;
 
     /**
-     * @brief Set the quota states why the milvus server is unable service.
+     * @brief Set the quota states that prevent the Milvus server from providing service.
      */
     void
     SetQuotaStates(std::vector<std::string>&& states);

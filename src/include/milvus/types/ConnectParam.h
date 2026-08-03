@@ -35,17 +35,17 @@ class MILVUS_SDK_API ConnectParam {
 
     /**
      * @brief Constructor
-     * @param uri Uri for connecting to the milvus, can be an endpoint of cloud instance or address like
+     * @param uri URI for connecting to Milvus; it can be a cloud instance endpoint or an address such as
      * "http://xx.xx.xx.xx:19530".
      */
     explicit ConnectParam(const std::string& uri);
 
     /**
      * @brief Constructor
-     * @param uri Uri for connecting to the milvus, can be an endpoint of cloud instance or address like
+     * @param uri URI for connecting to Milvus; it can be a cloud instance endpoint or an address such as
      * "http://xx.xx.xx.xx:19530".
-     * @param token Authorizations header value for connecting to the milvus. In the format of "[user]:[password]" or
-     * cloud instance token.
+     * @param token Authorization value for connecting to Milvus, in the format "[user]:[password]" or as a cloud
+     * instance token.
      */
     ConnectParam(const std::string& uri, const std::string& token);
 
@@ -68,72 +68,72 @@ class MILVUS_SDK_API ConnectParam {
     ConnectParam(std::string host, uint16_t port, std::string username, std::string password);
 
     /**
-     * @brief IP of the milvus proxy.
+     * @brief IP address of the Milvus proxy.
      */
     std::string
     Host() const;
 
     /**
-     * @brief Port of the milvus proxy.
+     * @brief Port of the Milvus proxy.
      */
     uint16_t
     Port() const;
 
     /**
-     * @brief Uri for connecting to the milvus.
+     * @brief URI for connecting to Milvus.
      */
     std::string
     Uri() const;
 
     /**
-     * @brief Set Uri for connecting to the milvus.
+     * @brief Set the URI for connecting to Milvus.
      */
     void
     SetUri(const std::string& uri);
 
     /**
-     * @brief Set Uri for connecting to the milvus.
+     * @brief Set the URI for connecting to Milvus.
      */
     ConnectParam&
     WithUri(const std::string& uri);
 
     /**
-     * @brief Token for connecting to the milvus.
+     * @brief Token for connecting to Milvus.
      */
     const std::string&
     Token() const;
 
     /**
-     * @brief Set token for connecting to the milvus.
-     * Note: call this method will reset username/password.
+     * @brief Set the token for connecting to Milvus.
+     * Note: calling this method resets the username and password.
      */
     void
     SetToken(const std::string& token);
 
     /**
-     * @brief Set token for connecting to the milvus.
-     * Note: call this method will reset username/password.
+     * @brief Set the token for connecting to Milvus.
+     * Note: calling this method resets the username and password.
      */
     ConnectParam&
     WithToken(const std::string& token);
 
     /**
-     * @brief Authorizations header value for connecting to the milvus.
+     * @brief Authorization header value for connecting to Milvus.
      * Authorizations() = base64('username:password').
      */
     const std::string&
     Authorizations() const;
 
     /**
-     * @brief SetAuthorizations set username and password for connecting to the milvus.
-     * Note: call this method will reset the token.
+     * @brief Set the username and password used to connect to Milvus.
+     * Note: calling this method resets the token.
      */
     void
     SetAuthorizations(std::string username, std::string password);
 
     /**
-     * @brief SetAuthorizations set username and password for connecting to the milvus.
-     * Note: call this method will reset the token.
+     * @brief Set the username and password used to connect to Milvus.
+     * Note: calling this method resets the token.
      */
     ConnectParam&
     WithAuthorizations(std::string username, std::string password);
@@ -159,10 +159,10 @@ class MILVUS_SDK_API ConnectParam {
     WithConnectTimeout(uint64_t connect_timeout_ms);
 
     /**
-     * @brief Get keepalive time value milliseconds.
+     * @brief Get the keepalive interval in milliseconds.
      *
-     * Note: teke effect when is true
-     * read the grpc doc for more info: https://github.com/grpc/grpc/blob/master/doc/keepalive.md
+     * Read the gRPC documentation for more information:
+     * https://github.com/grpc/grpc/blob/master/doc/keepalive.md
      */
     uint64_t
     KeepaliveTimeMs() const;

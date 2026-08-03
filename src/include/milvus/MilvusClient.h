@@ -78,7 +78,7 @@ class MILVUS_SDK_API MilvusClient {
     virtual ~MilvusClient() = default;
 
     /**
-     * @brief Crate a MilvusClient instance.
+     * @brief Create a MilvusClient instance.
      *
      * @return std::shared_ptr<MilvusClient>
      */
@@ -118,7 +118,7 @@ class MILVUS_SDK_API MilvusClient {
     SetRetryParam(const RetryParam& retry_param) = 0;
 
     /**
-     * @brief Get milvus server version.
+     * @brief Get the Milvus server version.
      * @deprecated replaced by GetServerVersion()
      *
      * @param [out] version version string
@@ -129,7 +129,7 @@ class MILVUS_SDK_API MilvusClient {
     GetVersion(std::string& version) = 0;
 
     /**
-     * @brief Get milvus server version.
+     * @brief Get the Milvus server version.
      *
      * @param [out] version version string
      * @return Status operation successfully or not
@@ -180,8 +180,8 @@ class MILVUS_SDK_API MilvusClient {
 
     /**
      * @brief Load collection data into CPU memory of query node.
-     * This api will check collection's loading progress,
-     * waiting until the collection completely loaded into query node.
+     * This API checks the collection's loading progress and waits until the collection is completely loaded into
+     * query nodes.
      *
      * @param [in] collection_name name of the collection
      * @param [in] replica_number the number of replicas, default 1
@@ -213,7 +213,7 @@ class MILVUS_SDK_API MilvusClient {
     DescribeCollection(const std::string& collection_name, CollectionDesc& collection_desc) = 0;
 
     /**
-     * @brief RenameCollection rename a collection.
+     * @brief Rename a collection.
      *
      * @param [in] collection_name name of the collection
      * @param [in] new_collection_name new name of the collection
@@ -223,8 +223,8 @@ class MILVUS_SDK_API MilvusClient {
     RenameCollection(const std::string& collection_name, const std::string& new_collection_name) = 0;
 
     /**
-     * @brief Get collection statistics, currently only return row count.
-     * If the timeout is specified, this api will call Flush() and wait all segments persisted into storage.
+     * @brief Get collection statistics. Currently, only the row count is returned.
+     * If a timeout is specified, this API calls Flush() and waits until all segments are persisted to storage.
      *
      * @param [in] collection_name name of the collection
      * @param [in] progress_monitor set timeout to wait flush progress complete, set to ProgressMonitor::NoWait() to
@@ -237,21 +237,21 @@ class MILVUS_SDK_API MilvusClient {
                             const ProgressMonitor& progress_monitor = ProgressMonitor::Forever()) = 0;
 
     /**
-     * @brief If the collection_names is empty, list all collections brief information's.
+     * @brief List brief information about the specified collections, or all collections if collection_names is empty.
      * If the collection_names is specified, return the specified collection's loading process state.
      * @deprecated In v2.4, the parameter collection_names is no longer work, use the ListCollections() instead.
      *
      * @param [in] collection_names name array of collections
-     * @param [out] collections_info brief information's of the collections
+     * @param [out] collections_info brief information about the collections
      * @return Status operation successfully or not
      */
     virtual Status
     ShowCollections(const std::vector<std::string>& collection_names, CollectionsInfo& collections_info) = 0;
 
     /**
-     * @brief List all collections brief information's.
+     * @brief List brief information about all collections.
      *
-     * @param [out] collections_info brief information's of the collections
+     * @param [out] collections_info brief information about the collections
      * @param [in] only_show_loaded set to true only show in-memory collections, otherwise show all collections.
      * @return Status operation successfully or not
      */
@@ -335,9 +335,9 @@ class MILVUS_SDK_API MilvusClient {
     HasPartition(const std::string& collection_name, const std::string& partition_name, bool& has) = 0;
 
     /**
-     * @brief Load specific partitions data of one collection into query nodes.
-     * This api will check partition's loading progress,
-     * waiting until all the partitions completely loaded into query node.
+     * @brief Load specific partitions of a collection into query nodes.
+     * This API checks the partitions' loading progress and waits until all partitions are completely loaded into
+     * query nodes.
      *
      * @param [in] collection_name name of the collection
      * @param [in] partition_names name array of the partitions
@@ -351,7 +351,7 @@ class MILVUS_SDK_API MilvusClient {
                    int replica_number = 1, const ProgressMonitor& progress_monitor = ProgressMonitor::Forever()) = 0;
 
     /**
-     * @brief Release specific partitions data of one collection into query nodes.
+     * @brief Release specific partitions of a collection from query nodes.
      *
      * @param [in] collection_name name of the collection
      * @param [in] partition_names name array of the partitions
@@ -361,8 +361,8 @@ class MILVUS_SDK_API MilvusClient {
     ReleasePartitions(const std::string& collection_name, const std::vector<std::string>& partition_names) = 0;
 
     /**
-     * @brief Get partition statistics, currently only return row count.
-     * If the timeout is specified, this api will call Flush() and wait all segments persisted into storage.
+     * @brief Get partition statistics. Currently, only the row count is returned.
+     * If a timeout is specified, this API calls Flush() and waits until all segments are persisted to storage.
      *
      * @param [in] collection_name name of the collection
      * @param [in] partition_name name of the partition
@@ -377,13 +377,13 @@ class MILVUS_SDK_API MilvusClient {
                            const ProgressMonitor& progress_monitor = ProgressMonitor::Forever()) = 0;
 
     /**
-     * @brief If the partition_names is empty, list all partitions brief information's.
+     * @brief List brief information about the specified partitions, or all partitions if partition_names is empty.
      * If the partition_names is specified, return the specified partition's loading process state.
      * @deprecated In v2.4, the parameter partition_names is no longer work, use the ListPartitions() instead.
      *
      * @param [in] collection_name name of the collection
      * @param [in] partition_names name array of the partitions
-     * @param [out] partitions_info brief information's of the partitions
+     * @param [out] partitions_info brief information about the partitions
      * @return Status operation successfully or not
      */
     virtual Status
@@ -391,10 +391,10 @@ class MILVUS_SDK_API MilvusClient {
                    PartitionsInfo& partitions_info) = 0;
 
     /**
-     * @brief If the partition_names is empty, list all partitions brief information's.
+     * @brief List brief information about all partitions.
      *
      * @param [in] collection_name name of the collection
-     * @param [out] partitions_info brief information's of the partitions
+     * @param [out] partitions_info brief information about the partitions
      * @param [in] only_show_loaded set to ture only show in-memory partitions, otherwise show all partitions.
      * @return Status operation successfully or not
      */
@@ -580,11 +580,11 @@ class MILVUS_SDK_API MilvusClient {
     GetIndexState(const std::string& collection_name, const std::string& field_name, IndexState& state) = 0;
 
     /**
-     * @brief Get progress of an index. From the progress client can how many rows have been indexed.
+     * @brief Get index-building progress, including how many rows have been indexed.
      *
      * @param [in] collection_name name of the collection
      * @param [in] field_name name of the field
-     * @param [out] progress progress array of field, currently only return one index progress
+     * @param [out] progress index progress for the field; currently only one index progress value is returned
      * @return Status operation successfully or not
      */
     virtual Status
