@@ -1480,7 +1480,8 @@ ConvertFilterTemplates(const std::unordered_map<std::string, nlohmann::json>& te
             if (!status.IsOk()) {
                 return status;
             }
-        } else if (!temp.is_boolean() && !temp.is_number_integer() && !temp.is_number_float() && !temp.is_string()) {
+        } else if (!temp.is_boolean() && !temp.is_number_integer() && !temp.is_number_float() && !temp.is_string() &&
+                   !temp.is_binary()) {
             return {StatusCode::INVALID_ARGUMENT, "Unsupported template type"};
         }
 
@@ -1499,6 +1500,12 @@ ConvertFilterTemplates(const std::unordered_map<std::string, nlohmann::json>& te
             value.set_int64_val(temp.get<int64_t>());
         } else if (temp.is_number_float()) {
             value.set_float_val(temp.get<double>());
+        } else if (temp.is_binary()) {
+            // A client pre-built filter blob (see BloomFilterBuilder) travels as raw bytes:
+            // the body is not valid UTF-8, and proto3 bytes carries no UTF-8 constraint, so a
+            // multi-MB blob rides the wire with neither corruption nor base64 inflation.
+            const auto& binary = temp.get_binary();
+            value.set_bytes_val(binary.data(), binary.size());
         } else {
             value.set_string_val(temp.get<std::string>());
         }
