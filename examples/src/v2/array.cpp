@@ -96,19 +96,19 @@ main(int argc, char* argv[]) {
     const int64_t row_count = 10;
     milvus::EntityRows rows;
     for (auto i = 0; i < row_count; ++i) {
-        auto cap = util::RandomeValue<int>(1, 5);
+        auto cap = util::RandomValue<int>(1, 5);
         milvus::EntityRow row;
         row[field_id] = "user_" + std::to_string(i);
         row[field_vector] = util::GenerateFloatVector(dimension);
-        row[field_array_bool] = util::RansomBools(cap);
-        row[field_array_int8] = util::RandomeValues<int8_t>(0, 100, cap);
-        row[field_array_int16] = util::RandomeValues<int16_t>(0, 1000, cap);
-        row[field_array_int32] = util::RandomeValues<int32_t>(0, 10000, cap);
-        row[field_array_int64] = util::RandomeValues<int64_t>(0, 100000, cap);
-        row[field_array_float] = util::RandomeValues<float>(0.0, 1.0, cap);
-        row[field_array_double] = util::RandomeValues<double>(0.0, 10.0, cap);
+        row[field_array_bool] = util::RandomBools(cap);
+        row[field_array_int8] = util::RandomValues<int8_t>(0, 100, cap);
+        row[field_array_int16] = util::RandomValues<int16_t>(0, 1000, cap);
+        row[field_array_int32] = util::RandomValues<int32_t>(0, 10000, cap);
+        row[field_array_int64] = util::RandomValues<int64_t>(0, 100000, cap);
+        row[field_array_float] = util::RandomValues<float>(0.0, 1.0, cap);
+        row[field_array_double] = util::RandomValues<double>(0.0, 10.0, cap);
         std::vector<std::string> varchars(cap);
-        auto values = util::RandomeValues<int>(0, 100, cap);
+        auto values = util::RandomValues<int>(0, 100, cap);
         std::transform(values.begin(), values.end(), varchars.begin(),
                        [i](int x) { return "varchar_" + std::to_string(i * 10000 + x); });
         row[field_array_varchar] = varchars;
@@ -155,8 +155,8 @@ main(int argc, char* argv[]) {
 
     {
         // do search
-        auto q_number_1 = util::RandomeValue<int64_t>(0, row_count - 1);
-        auto q_number_2 = util::RandomeValue<int64_t>(0, row_count - 1);
+        auto q_number_1 = util::RandomValue<int64_t>(0, row_count - 1);
+        auto q_number_2 = util::RandomValue<int64_t>(0, row_count - 1);
         auto request = milvus::SearchRequest()
                            .WithCollectionName(collection_name)
                            .WithLimit(3)

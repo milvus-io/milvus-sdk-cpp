@@ -113,7 +113,7 @@ main(int argc, char* argv[]) {
     for (auto i = 0; i < row_count; ++i) {
         insert_ids.push_back(i);
         insert_names.push_back("user_" + std::to_string(i));
-        insert_ages.push_back(static_cast<int8_t>(util::RandomeValue<int>(1, 100)));
+        insert_ages.push_back(static_cast<int8_t>(util::RandomValue<int>(1, 100)));
     }
 
     std::vector<milvus::FieldDataPtr> fields_data{
@@ -190,8 +190,8 @@ main(int argc, char* argv[]) {
         // set to BOUNDED level to accept data inconsistence within a time window(default is 5 seconds)
         s_arguments.SetConsistencyLevel(milvus::ConsistencyLevel::BOUNDED);
 
-        auto q_number_1 = util::RandomeValue<int64_t>(0, row_count - 1);
-        auto q_number_2 = util::RandomeValue<int64_t>(0, row_count - 1);
+        auto q_number_1 = util::RandomValue<int64_t>(0, row_count - 1);
+        auto q_number_2 = util::RandomValue<int64_t>(0, row_count - 1);
         s_arguments.AddFloatVector(field_face, insert_vectors[q_number_1]);
         s_arguments.AddFloatVector(field_face, insert_vectors[q_number_2]);
         std::cout << "Searching the No." << q_number_1 << " and No." << q_number_2
