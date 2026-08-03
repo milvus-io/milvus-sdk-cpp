@@ -37,6 +37,9 @@ class MilvusClientV2Impl : public MilvusClientV2, public std::enable_shared_from
     Status
     Disconnect() final;
 
+    ClientTelemetryManagerPtr
+    GetTelemetry() const final;
+
     Status
     SetRpcDeadlineMs(uint64_t timeout_ms) final;
 

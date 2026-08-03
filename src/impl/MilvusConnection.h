@@ -27,11 +27,14 @@
 #include <memory>
 #include <mutex>
 #include <string>
+#include <utility>
 
 #include "common.pb.h"
 #include "milvus.grpc.pb.h"
 #include "milvus.pb.h"
 #include "milvus/Status.h"
+#include "milvus/ClientRequestContext.h"
+#include "milvus/ClientTelemetry.h"
 #include "milvus/types/ConnectParam.h"
 #include "schema.pb.h"
 
@@ -45,10 +48,15 @@ class MilvusConnection {
     struct GrpcContextOptions {
         /** timeout in milliseconds */
         uint64_t timeout{0};
+        /** Optional per-call request ID. Falls back to ClientRequestContext. */
+        std::string request_id;
 
         // constructors
         GrpcContextOptions() = default;
         explicit GrpcContextOptions(uint64_t timeout_) : timeout{timeout_} {
+        }
+        GrpcContextOptions(uint64_t timeout_, std::string request_id_)
+            : timeout{timeout_}, request_id{std::move(request_id_)} {
         }
     };
 
@@ -57,10 +65,13 @@ class MilvusConnection {
     virtual ~MilvusConnection();
 
     Status
-    Connect(const ConnectParam& param);
+    Connect(const ConnectParam& param, const std::string& runtime_telemetry_client_id = "");
 
     ConnectParam&
     GetConnectParam();
+
+    ClientTelemetryManagerPtr
+    GetTelemetry() const;
 
     Status
     Disconnect();
@@ -503,10 +514,12 @@ class MilvusConnection {
                           const GrpcContextOptions& options);
 
  private:
-    std::mutex stub_mtx_;
+    mutable std::mutex stub_mtx_;
     std::shared_ptr<proto::milvus::MilvusService::Stub> stub_;
     std::shared_ptr<grpc::Channel> channel_;
     ConnectParam param_;
+    ClientTelemetryManagerPtr telemetry_;
+    std::string telemetry_client_id_;
 
     static Status
     StatusByProtoResponse(const proto::common::Status& status);
@@ -530,20 +543,28 @@ class MilvusConnection {
              grpc::Status (proto::milvus::MilvusService::Stub::*func)(grpc::ClientContext*, const Request&, Response*),
              const Request& request, Response& response, const GrpcContextOptions& options) {
         std::shared_ptr<proto::milvus::MilvusService::Stub> stub;
+        ClientTelemetryManagerPtr telemetry;
         {
             std::lock_guard<std::mutex> lock(stub_mtx_);
             stub = stub_;
+            telemetry = telemetry_;
         }
         if (stub == nullptr) {
             return {StatusCode::NOT_CONNECTED, "Connection is not ready!"};
         }
 
         ::grpc::ClientContext context;
+        const std::string& contextual_request_id = ClientRequestContext::Get();
+        const std::string request_id = options.request_id.empty() ? contextual_request_id : options.request_id;
+        if (!request_id.empty()) {
+            context.AddMetadata("client_request_id", request_id);
+        }
         if (options.timeout > 0) {
             auto deadline = std::chrono::system_clock::now() + std::chrono::milliseconds{options.timeout};
             context.set_deadline(deadline);
         }
 
+        auto started = std::chrono::steady_clock::now();
         ::grpc::Status grpc_status = (stub.get()->*func)(&context, request, &response);
 
         // TODO: check the error codes and do retry here
@@ -556,13 +577,22 @@ class MilvusConnection {
         //   grpc::StatusCode::RESOURCE_EXHAUSTED
         //   grpc::StatusCode::UNIMPLEMENTED
         if (!grpc_status.ok()) {
-            return StatusCodeFromGrpcStatus(grpc_status);
+            auto status = StatusCodeFromGrpcStatus(grpc_status);
+            if (telemetry != nullptr) {
+                telemetry->RecordOperation(name, request, started, false, status.Message(), request_id);
+            }
+            return status;
         }
 
         // Some milvus error codes can be retried:
         //   response.status().error_code() == io.milvus.grpc.ErrorCode.RateLimit
         //   or response.status()code() == 8 can be retried
-        return StatusByProtoResponse(response);
+        auto status = StatusByProtoResponse(response);
+        if (telemetry != nullptr) {
+            telemetry->RecordOperation(name, request, started, status.IsOk(), status.IsOk() ? "" : status.Message(),
+                                       request_id);
+        }
+        return status;
     }
 };
 

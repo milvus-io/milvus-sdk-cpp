@@ -27,11 +27,15 @@ ConnectionHandler::Connect(const ConnectParam& connect_param) {
     // successful swap below.
     std::lock_guard<std::mutex> lock(mtx_);
     auto connection = std::make_shared<MilvusConnection>();
-    auto status = connection->Connect(connect_param);
+    auto status = connection->Connect(connect_param, telemetry_client_id_);
     if (!status.IsOk()) {
         return status;
     }
 
+    auto telemetry = connection->GetTelemetry();
+    if (telemetry != nullptr) {
+        telemetry_client_id_ = telemetry->ClientId();
+    }
     if (connection_ != nullptr) {
         connection_->Disconnect();
     }
@@ -52,6 +56,12 @@ MilvusConnectionPtr
 ConnectionHandler::GetConnection() const {
     std::lock_guard<std::mutex> lock(mtx_);
     return connection_;
+}
+
+ClientTelemetryManagerPtr
+ConnectionHandler::GetTelemetry() const {
+    std::lock_guard<std::mutex> lock(mtx_);
+    return connection_ == nullptr ? nullptr : connection_->GetTelemetry();
 }
 
 Status
