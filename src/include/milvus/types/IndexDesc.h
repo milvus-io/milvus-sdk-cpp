@@ -112,14 +112,14 @@ class MILVUS_SDK_API IndexDesc {
 
     /**
      * @brief Add extra param.
-     * Note: int v2.4, we redefine this method, old client code might be affected.
+     * Note: this method was redefined in v2.4, which may affect older client code.
      */
     Status
     AddExtraParam(const std::string& key, const std::string& value);
 
     /**
      * @brief Get extra param.
-     * Note: int v2.4, we redefine this method, old client code might be affected.
+     * Note: this method was redefined in v2.4, which may affect older client code.
      */
     const std::unordered_map<std::string, std::string>&
     ExtraParams() const;

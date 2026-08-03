@@ -41,14 +41,14 @@ class MILVUS_SDK_API AlterIndexPropertiesRequest : public IndexRequestBase<Alter
 
     /**
      * @brief Set name of the index.
-     * Currently this api only supports index_name.
+     * Currently, this API only supports index_name.
      */
     void
     SetIndexName(const std::string& index_name);
 
     /**
      * @brief Set name of the index.
-     * Currently this api only supports index_name.
+     * Currently, this API only supports index_name.
      */
     AlterIndexPropertiesRequest&
     WithIndexName(const std::string& index_name);

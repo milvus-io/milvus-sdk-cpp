@@ -206,7 +206,7 @@ class MILVUS_SDK_API MilvusClientV2 {
     virtual ~MilvusClientV2() = default;
 
     /**
-     * @brief Crate a MilvusClientV2 instance.
+     * @brief Create a MilvusClientV2 instance.
      *
      * @return std::shared_ptr<MilvusClientV2>
      */
@@ -246,7 +246,7 @@ class MILVUS_SDK_API MilvusClientV2 {
     SetRetryParam(const RetryParam& retry_param) = 0;
 
     /**
-     * @brief Get milvus server version.
+     * @brief Get the Milvus server version.
      *
      * @param [out] version version string
      * @return Status operation successfully or not
@@ -266,7 +266,7 @@ class MILVUS_SDK_API MilvusClientV2 {
     GetSDKVersion(std::string& version) = 0;
 
     /**
-     * @brief Check healthy of the server.
+     * @brief Check the health of the server.
      *
      * @param [in] request input parameters
      * @param [out] response output results
@@ -322,9 +322,8 @@ class MILVUS_SDK_API MilvusClientV2 {
 
     /**
      * @brief Load collection data into CPU memory of query node.
-     * If the request is sync mode, this api will check collection's loading progress,
-     * waiting until the collection completely loaded into query node. Otherwise, it will
-     * return immediately.
+     * In synchronous mode, this API checks the collection's loading progress and waits until the collection is
+     * completely loaded into query nodes. Otherwise, it returns immediately.
      *
      * @param [in] request input parameters
      * @return Status operation successfully or not
@@ -384,7 +383,7 @@ class MILVUS_SDK_API MilvusClientV2 {
     DescribeReplicas(const DescribeReplicasRequest& request, DescribeReplicasResponse& response) = 0;
 
     /**
-     * @brief RenameCollection rename a collection.
+     * @brief Rename a collection.
      *
      * @param [in] request input parameters
      * @return Status operation successfully or not
@@ -393,7 +392,7 @@ class MILVUS_SDK_API MilvusClientV2 {
     RenameCollection(const RenameCollectionRequest& request) = 0;
 
     /**
-     * @brief Get collection statistics, currently only return row count.
+     * @brief Get collection statistics. Currently, only the row count is returned.
      *
      * @param [in] request input parameters
      * @param [out] response output results
@@ -564,9 +563,9 @@ class MILVUS_SDK_API MilvusClientV2 {
     HasPartition(const HasPartitionRequest& request, HasPartitionResponse& response) = 0;
 
     /**
-     * @brief Load specific partitions data of one collection into query nodes.
-     * If the request is sync mode, this api will check partition's loading progress,
-     * waiting until all the partitions completely loaded into query node. Otherwise,
+     * @brief Load specific partitions of a collection into query nodes.
+     * In synchronous mode, this API checks the partitions' loading progress and waits until all partitions are
+     * completely loaded into query nodes. Otherwise,
      * it will return immediately.
      *
      * @param [in] request input parameters
@@ -576,7 +575,7 @@ class MILVUS_SDK_API MilvusClientV2 {
     LoadPartitions(const LoadPartitionsRequest& request) = 0;
 
     /**
-     * @brief Release specific partitions data of one collection into query nodes.
+     * @brief Release specific partitions of a collection from query nodes.
      *
      * @param [in] request input parameters
      * @return Status operation successfully or not
@@ -585,7 +584,7 @@ class MILVUS_SDK_API MilvusClientV2 {
     ReleasePartitions(const ReleasePartitionsRequest& request) = 0;
 
     /**
-     * @brief Get partition statistics, currently only return row count.
+     * @brief Get partition statistics. Currently, only the row count is returned.
      *
      * @param [in] request input parameters
      * @param [out] response output results
@@ -732,7 +731,7 @@ class MILVUS_SDK_API MilvusClientV2 {
     DescribeDatabase(const DescribeDatabaseRequest& request, DescribeDatabaseResponse& response) = 0;
 
     /**
-     * @brief Create indexes on vectir fields or scalar fields. You can specify multiple indexes in one call.
+     * @brief Create indexes on vector or scalar fields. You can specify multiple indexes in one call.
      * Read the doc for more info: https://milvus.io/docs/index-explained.md
      *
      * @param [in] request input parameters
@@ -903,9 +902,9 @@ class MILVUS_SDK_API MilvusClientV2 {
      * @brief Flush insert buffer data into storage.
      * If the FlushRequest.WaitFlushedMs is larger than zero, it will check related segments state in a loop,
      * to make sure the data persisted successfully.
-     * Flush is a heavy operation, it is not recommended to call it frequently. Just let the milvus server
-     * automatically triggers flush action.
-     * By default, the call frequency of Flush() is limited by milvus server-side rate-limit configuration.
+     * Flush is a heavy operation, so it is not recommended to call it frequently. Allow the Milvus server to trigger
+     * flush operations automatically.
+     * By default, the call frequency of Flush() is limited by the Milvus server-side rate-limit configuration.
      *
      * @param [in] request input parameters
      * @return Status operation successfully or not

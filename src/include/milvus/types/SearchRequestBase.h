@@ -203,14 +203,14 @@ class MILVUS_SDK_API SearchRequestBase {
 
     /**
      * @brief Add extra param.
-     * Note: int v2.4, we redefine this method, old client code might be affected.
+     * Note: this method was redefined in v2.4, which may affect older client code.
      */
     Status
     AddExtraParam(const std::string& key, const std::string& value);
 
     /**
      * @brief Get extra param.
-     * Note: int v2.4, we redefine this method, old client code might be affected.
+     * Note: this method was redefined in v2.4, which may affect older client code.
      */
     const std::unordered_map<std::string, std::string>&
     ExtraParams() const;
@@ -270,13 +270,13 @@ class MILVUS_SDK_API SearchRequestBase {
     SetTimezone(const std::string& timezone);
 
     /**
-     * @brief Validate for search arguments and get name of the target anns field
+     * @brief Validate the search arguments and get the name of the target ANN field.
      * Note: in v2.4+, a collection can have one or more vector fields. If a collection has
-     * only one vector field, users can set an empty name in the AddTargetVector(),
+     * only one vector field, users can leave the vector field name empty when adding target vectors,
      * the server can know the vector field name.
      * But if the collection has multiple vector fields, users need to provide a non-empty name
-     * in the AddTargetVector() method, and if users call AddTargetVector() mutiple times, he must
-     * ensure that the name is the same, otherwise the Validate() method will return an error.
+     * when adding a target vector. If target vectors are added multiple times, the caller must ensure that the field
+     * name is the same; otherwise, Validate() returns an error.
      * The Validate() method is called before Search().
      */
     Status
@@ -286,7 +286,8 @@ class MILVUS_SDK_API SearchRequestBase {
     // deprecated methods
     /**
      * @brief Add a binary vector to search.
-     * @deprecated replaced by same name method without field_name parameter, use SetAnnField() to set ann field name.
+     * @deprecated Replaced by the same method without the field_name parameter. Use SetAnnsField() to set the ANN
+     * field name.
      */
     Status
     AddBinaryVector(std::string field_name, const std::string& vector);
@@ -300,14 +301,16 @@ class MILVUS_SDK_API SearchRequestBase {
 
     /**
      * @brief Add a float vector to search.
-     * @deprecated replaced by same name method without field_name parameter, use SetAnnField() to set ann field name.
+     * @deprecated Replaced by the same method without the field_name parameter. Use SetAnnsField() to set the ANN
+     * field name.
      */
     Status
     AddFloatVector(std::string field_name, const FloatVecFieldData::ElementT& vector);
 
     /**
      * @brief Add a sparse vector to search.
-     * @deprecated replaced by same name method without field_name parameter, use SetAnnField() to set ann field name.
+     * @deprecated Replaced by the same method without the field_name parameter. Use SetAnnsField() to set the ANN
+     * field name.
      */
     Status
     AddSparseVector(std::string field_name, const SparseFloatVecFieldData::ElementT& vector);
@@ -317,14 +320,16 @@ class MILVUS_SDK_API SearchRequestBase {
      * We support two patterns of sparse vector:
      *  1. a json dict like {"1": 0.1, "5": 0.2, "8": 0.15}.
      *  2. a json dict like {"indices": [1, 5, 8], "values": [0.1, 0.2, 0.15]}.
-     * @deprecated replaced by same name method without field_name parameter, use SetAnnField() to set ann field name.
+     * @deprecated Replaced by the same method without the field_name parameter. Use SetAnnsField() to set the ANN
+     * field name.
      */
     Status
     AddSparseVector(std::string field_name, const nlohmann::json& vector);
 
     /**
      * @brief Add a float16 vector to search.
-     * @deprecated replaced by same name method without field_name parameter, use SetAnnField() to set ann field name.
+     * @deprecated Replaced by the same method without the field_name parameter. Use SetAnnsField() to set the ANN
+     * field name.
      */
     Status
     AddFloat16Vector(std::string field_name, const Float16VecFieldData::ElementT& vector);
@@ -332,14 +337,16 @@ class MILVUS_SDK_API SearchRequestBase {
     /**
      * @brief Add a float16 vector to search.
      * This method automatically converts the float array to float16 binary.
-     * @deprecated replaced by same name method without field_name parameter, use SetAnnField() to set ann field name.
+     * @deprecated Replaced by the same method without the field_name parameter. Use SetAnnsField() to set the ANN
+     * field name.
      */
     Status
     AddFloat16Vector(std::string field_name, const std::vector<float>& vector);
 
     /**
      * @brief Add a bfloat16 vector to search.
-     * @deprecated replaced by same name method without field_name parameter, use SetAnnField() to set ann field name.
+     * @deprecated Replaced by the same method without the field_name parameter. Use SetAnnsField() to set the ANN
+     * field name.
      */
     Status
     AddBFloat16Vector(std::string field_name, const BFloat16VecFieldData::ElementT& vector);
@@ -347,21 +354,24 @@ class MILVUS_SDK_API SearchRequestBase {
     /**
      * @brief Add a bfloat16 vector to search.
      * This method automatically converts the float array to bfloat16 binary.
-     * @deprecated replaced by same name method without field_name parameter, use SetAnnField() to set ann field name.
+     * @deprecated Replaced by the same method without the field_name parameter. Use SetAnnsField() to set the ANN
+     * field name.
      */
     Status
     AddBFloat16Vector(std::string field_name, const std::vector<float>& vector);
 
     /**
      * @brief Add a text to search. Only works for BM25 function.
-     * @deprecated replaced by same name method without field_name parameter, use SetAnnField() to set ann field name.
+     * @deprecated Replaced by the same method without the field_name parameter. Use SetAnnsField() to set the ANN
+     * field name.
      */
     Status
     AddEmbeddedText(std::string field_name, const std::string& text);
 
     /**
      * @brief Add an int8 vector to search.
-     * @deprecated replaced by same name method without field_name parameter, use SetAnnField() to set ann field name.
+     * @deprecated Replaced by the same method without the field_name parameter. Use SetAnnsField() to set the ANN
+     * field name.
      */
     Status
     AddInt8Vector(std::string field_name, const Int8VecFieldData::ElementT& vector);
