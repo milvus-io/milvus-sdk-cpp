@@ -92,7 +92,7 @@ class DQLRequestBase {
 
     /**
      * @brief Set the partition names.
-     * If partition nemes are empty, will query in the entire collection.
+     * If partition names are empty, the entire collection is queried.
      */
     void
     SetPartitionNames(std::set<std::string>&& partition_names) {
@@ -101,7 +101,7 @@ class DQLRequestBase {
 
     /**
      * @brief Set the partition names.
-     * If partition nemes are empty, will query in the entire collection.
+     * If partition names are empty, the entire collection is queried.
      */
     T&
     WithPartitionNames(std::set<std::string>&& partition_names) {

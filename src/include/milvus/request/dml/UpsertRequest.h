@@ -57,28 +57,28 @@ class MILVUS_SDK_API UpsertRequest : public InsertRequest {
 
     /**
      * @brief Set fields data with fluent interface.
-     * Not allow to set ColumnsData and RowsData both.
+     * ColumnsData and RowsData cannot both be set.
      */
     UpsertRequest&
     WithColumnsData(std::vector<FieldDataPtr>&& columns_data);
 
     /**
      * @brief Set a field data with fluent interface.
-     * Not allow to set ColumnsData and RowsData both.
+     * ColumnsData and RowsData cannot both be set.
      */
     UpsertRequest&
     AddColumnData(const FieldDataPtr& column_data);
 
     /**
      * @brief Set entity rows with fluent interface.
-     * Not allow to set ColumnsData and RowsData both.
+     * ColumnsData and RowsData cannot both be set.
      */
     UpsertRequest&
     WithRowsData(EntityRows&& rows_data);
 
     /**
-     * @brief Add en entity rows with fluent interface.
-     * Not allow to set ColumnsData and RowsData both.
+     * @brief Add an entity row with the fluent interface.
+     * ColumnsData and RowsData cannot both be set.
      */
     UpsertRequest&
     AddRowData(EntityRow&& row_data);
