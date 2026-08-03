@@ -23,6 +23,9 @@
 #include <vector>
 
 #include "milvus/types/BloomFilter.h"
+#include "milvus/types/QueryArguments.h"
+#include "milvus/types/SearchArguments.h"
+#include "utils/DqlUtils.h"
 
 namespace {
 
@@ -183,5 +186,55 @@ TEST(BloomFilterTest, RejectsAnOutOfRangeRate) {
     for (double fpr : {milvus::BloomFilterMinFPR, milvus::BloomFilterMaxFPR}) {
         nlohmann::json value;
         EXPECT_TRUE(milvus::BloomFilterTemplate(std::vector<int64_t>{1}, fpr, value).IsOk()) << "fpr " << fpr;
+    }
+}
+
+// The blob has to survive the path a caller actually uses. AddFilterTemplate validates through
+// IsValidTemplate before it stores anything, so a value the validator rejects never reaches
+// ConvertFilterTemplates at all -- testing the conversion alone passed while the public API
+// silently refused the blob, which is exactly what this missed the first time round.
+TEST(BloomFilterTest, ReachesTheWireThroughThePublicApi) {
+    nlohmann::json bf;
+    ASSERT_TRUE(milvus::BloomFilterTemplate(std::vector<int64_t>{1, 2, 3}, 0.01, bf).IsOk());
+
+    milvus::QueryArguments query;
+    auto status = query.AddFilterTemplate("bf", bf);
+    ASSERT_TRUE(status.IsOk()) << "QueryArguments rejected the blob: " << status.Message();
+
+    milvus::SearchArguments search;
+    status = search.AddFilterTemplate("bf", bf);
+    ASSERT_TRUE(status.IsOk()) << "SearchArguments rejected the blob: " << status.Message();
+
+    ::google::protobuf::Map<std::string, milvus::proto::schema::TemplateValue> rpc_templates;
+    status = milvus::ConvertFilterTemplates(query.FilterTemplates(), &rpc_templates);
+    ASSERT_TRUE(status.IsOk()) << status.Message();
+
+    ASSERT_EQ(1, rpc_templates.count("bf"));
+    const auto& binary = bf.get_binary();
+    // bytes_val, not string_val: an empty bytes_val here would mean the blob took the string
+    // branch, where the body is not valid UTF-8 and would be corrupted as well as inflated.
+    EXPECT_EQ(std::string(binary.begin(), binary.end()), rpc_templates.at("bf").bytes_val());
+}
+
+// The golden vectors above top out at 11-byte strings, so they never reach XXH64's 32-byte
+// stripe and merge rounds -- the branch realistic VARCHAR members take. These three straddle
+// that boundary and are the same blobs the Go and Python SDKs check themselves against.
+TEST(BloomFilterTest, MatchesTheStripeBoundaryGoldenVectors) {
+    const std::pair<size_t, const char*> cases[] = {
+        {31,
+         "4d424631010001000100000000000000fca9f1d24d62503f0100000002000000"
+         "0000000200100000000080000004000000000200000008002000000000000200"},
+        {32,
+         "4d424631010001000100000000000000fca9f1d24d62503f0100000002000000"
+         "0000800020000000020000000000020002000000000080000000800000000080"},
+        {33,
+         "4d424631010001000100000000000000fca9f1d24d62503f0100000002000000"
+         "0000800000000001000000040001000020000000000020000800000040000000"},
+    };
+
+    for (const auto& one : cases) {
+        milvus::BloomFilterBuilder builder(1, 0.001);
+        builder.AddString(std::string(one.first, 'a'));
+        EXPECT_EQ(one.second, ToHex(builder.Build())) << "length " << one.first;
     }
 }

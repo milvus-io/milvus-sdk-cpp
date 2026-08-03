@@ -52,8 +52,8 @@ constexpr double BloomFilterDefaultFPR = 0.005;
  * Building the filter on the client and shipping the compact blob lets large membership sets
  * pass the proxy gRPC receive limit, which a raw value list would exceed for the same set.
  * The proxy embeds the blob verbatim after validating the envelope and never rebuilds the
- * filter, so the bytes are a wire contract: they are identical to what the Go, Python, Java
- * and Node SDKs produce for the same members.
+ * filter, so the bytes are a wire contract. They match the Go and Python SDKs, which have
+ * shipped; the Java, Node and Rust ports target the same format and are still in flight.
  *
  * Prefer BloomFilterTemplate() unless the membership set is too large to materialise as a
  * vector. The filter is a fixed-size bit array sized from @a n and the false-positive rate

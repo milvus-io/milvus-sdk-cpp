@@ -42,12 +42,13 @@ SearchRequestBase::AddFilterTemplate(std::string key, const nlohmann::json& filt
     if (filter_template.is_array()) {
         for (const auto& ele : filter_template) {
             if (!IsValidTemplate(ele)) {
-                return {milvus::StatusCode::INVALID_ARGUMENT, "Filter template element must be boolean/number/string"};
+                return {milvus::StatusCode::INVALID_ARGUMENT,
+                        "Filter template element must be boolean/number/string/binary"};
             }
         }
     } else {
         if (!IsValidTemplate(filter_template)) {
-            return {milvus::StatusCode::INVALID_ARGUMENT, "Filter template must be boolean/number/string/array"};
+            return {milvus::StatusCode::INVALID_ARGUMENT, "Filter template must be boolean/number/string/binary/array"};
         }
     }
 

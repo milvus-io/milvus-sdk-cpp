@@ -1056,7 +1056,12 @@ ConvertImmutableMessage(const proto::common::ImmutableMessage& rpc_message, Dump
 
 bool
 IsValidTemplate(const nlohmann::json& filter_template) {
-    return filter_template.is_boolean() || filter_template.is_number() || filter_template.is_string();
+    // is_binary() covers a client pre-built filter blob (see BloomFilterBuilder). It has to be
+    // accepted here and not only in ConvertFilterTemplates: AddFilterTemplate validates through
+    // this before it ever stores the value, so rejecting binary here drops the blob at the
+    // setter and the conversion never sees it.
+    return filter_template.is_boolean() || filter_template.is_number() || filter_template.is_string() ||
+           filter_template.is_binary();
 }
 
 }  // namespace milvus
