@@ -299,9 +299,9 @@ TEST_F(UnconnectMilvusMockedTest, V2CollectionPropertiesInvalidateCacheForAllowI
     ExpectCached(endpoint, "db", "collection");
 
     status = client->AlterCollectionProperties(milvus::AlterCollectionPropertiesRequest()
-                                                    .WithDatabaseName("db")
-                                                    .WithCollectionName("collection")
-                                                    .AddProperty("allow_insert_auto_id", "true"));
+                                                   .WithDatabaseName("db")
+                                                   .WithCollectionName("collection")
+                                                   .AddProperty("allow_insert_auto_id", "true"));
     EXPECT_TRUE(status.IsOk());
     ExpectNotCached(endpoint, "db", "collection");
 
