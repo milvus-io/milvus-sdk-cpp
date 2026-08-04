@@ -22,14 +22,21 @@ namespace milvus {
 
 Status
 ConnectionHandler::Connect(const ConnectParam& connect_param) {
+    // Serialize the full handshake with lifecycle and configuration mutations. The candidate connection remains
+    // private until it succeeds, but setters must not update the current connection and then be overwritten by the
+    // successful swap below.
     std::lock_guard<std::mutex> lock(mtx_);
+    auto connection = std::make_shared<MilvusConnection>();
+    auto status = connection->Connect(connect_param);
+    if (!status.IsOk()) {
+        return status;
+    }
+
     if (connection_ != nullptr) {
         connection_->Disconnect();
     }
-
-    // TODO: check connect parameter
-    connection_ = std::make_shared<MilvusConnection>();
-    return connection_->Connect(connect_param);
+    connection_ = std::move(connection);
+    return Status::OK();
 }
 
 Status

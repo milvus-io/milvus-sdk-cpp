@@ -16,9 +16,12 @@
 
 #include <gtest/gtest.h>
 
+#include <condition_variable>
+#include <mutex>
 #include <thread>
 
 #include "../mocks/MilvusMockedTest.h"
+#include "utils/ConnectionHandler.h"
 
 using ::milvus::StatusCode;
 using ::milvus::proto::milvus::ConnectRequest;
@@ -52,6 +55,24 @@ TEST_F(UnconnectMilvusMockedTest, ConnectSuccessful) {
     EXPECT_TRUE(status.IsOk());
 }
 
+TEST_F(UnconnectMilvusMockedTest, ConnectServerRejected) {
+    EXPECT_CALL(service_, Connect(_, _, _))
+        .WillOnce([](::grpc::ServerContext*, const ConnectRequest*, ConnectResponse* response) {
+            response->mutable_status()->set_code(1);
+            response->mutable_status()->set_reason("server rejected connection");
+            return ::grpc::Status{};
+        });
+
+    milvus::ConnectParam connect_param{"127.0.0.1", server_.ListenPort()};
+    auto status = client_->Connect(connect_param);
+    EXPECT_EQ(status.Code(), StatusCode::SERVER_FAILED);
+    EXPECT_EQ(status.Message(), "server rejected connection");
+
+    bool has_collection = false;
+    status = client_->HasCollection("collection", has_collection);
+    EXPECT_EQ(status.Code(), StatusCode::NOT_CONNECTED);
+}
+
 TEST_F(UnconnectMilvusMockedTest, ConnectFailed) {
     auto port = server_.ListenPort();
     milvus::ConnectParam connect_param{"127.0.0.1", ++port};
@@ -65,6 +86,110 @@ TEST_F(UnconnectMilvusMockedTest, ConnectTimeout) {
     connect_param.SetConnectTimeout(10);
     auto status = DoConnect(service_, client_, connect_param, 100);
     EXPECT_FALSE(status.IsOk());
+}
+
+TEST_F(UnconnectMilvusMockedTest, FailedReconnectPreservesExistingConnection) {
+    milvus::ConnectParam initial_connect_param{"127.0.0.1", server_.ListenPort(), "token-a"};
+    auto status = DoConnect(service_, client_, initial_connect_param);
+    ASSERT_TRUE(status.IsOk());
+
+    milvus::ConnectParam reconnect_param{"127.0.0.1", server_.ListenPort(), "token-b"};
+    const auto reconnect_authorization = reconnect_param.Authorizations();
+    EXPECT_CALL(service_, Connect(_, _, _))
+        .WillOnce([reconnect_authorization](::grpc::ServerContext* context, const ConnectRequest*,
+                                            ConnectResponse* response) {
+            const auto& metadata = context->client_metadata();
+            auto authorization = metadata.find("authorization");
+            EXPECT_NE(authorization, metadata.end());
+            EXPECT_EQ(authorization->second, reconnect_authorization);
+            response->mutable_status()->set_code(1);
+            response->mutable_status()->set_reason("server rejected reconnection");
+            return ::grpc::Status{};
+        });
+    status = client_->Connect(reconnect_param);
+    EXPECT_EQ(status.Code(), StatusCode::SERVER_FAILED);
+
+    const auto initial_authorization = initial_connect_param.Authorizations();
+    EXPECT_CALL(service_, HasCollection(_, Property(&HasCollectionRequest::collection_name, "collection"), _))
+        .WillOnce([initial_authorization](::grpc::ServerContext* context, const HasCollectionRequest*,
+                                          ::milvus::proto::milvus::BoolResponse* response) {
+            const auto& metadata = context->client_metadata();
+            auto authorization = metadata.find("authorization");
+            EXPECT_NE(authorization, metadata.end());
+            EXPECT_EQ(authorization->second, initial_authorization);
+            response->set_value(true);
+            return ::grpc::Status{};
+        });
+    bool has_collection = false;
+    status = client_->HasCollection("collection", has_collection);
+    EXPECT_TRUE(status.IsOk());
+    EXPECT_TRUE(has_collection);
+}
+
+TEST_F(UnconnectMilvusMockedTest, ConnectionMutationWaitsForConnectAndAppliesToNewConnection) {
+    milvus::ConnectionHandler handler;
+    milvus::ConnectParam connect_param{"127.0.0.1", server_.ListenPort()};
+
+    EXPECT_CALL(service_, Connect(_, _, _))
+        .WillOnce([](::grpc::ServerContext*, const ConnectRequest*, ConnectResponse*) { return ::grpc::Status{}; });
+    ASSERT_TRUE(handler.Connect(connect_param).IsOk());
+
+    std::mutex handshake_mutex;
+    std::condition_variable handshake_cv;
+    bool handshake_started = false;
+    bool finish_handshake = false;
+    EXPECT_CALL(service_, Connect(_, _, _))
+        .WillOnce([&](::grpc::ServerContext*, const ConnectRequest*, ConnectResponse*) {
+            std::unique_lock<std::mutex> lock(handshake_mutex);
+            handshake_started = true;
+            handshake_cv.notify_all();
+            handshake_cv.wait(lock, [&] { return finish_handshake; });
+            return ::grpc::Status{};
+        });
+
+    milvus::Status connect_status;
+    std::thread connect_thread([&] { connect_status = handler.Connect(connect_param); });
+    {
+        std::unique_lock<std::mutex> lock(handshake_mutex);
+        handshake_cv.wait(lock, [&] { return handshake_started; });
+    }
+
+    std::mutex setter_mutex;
+    std::condition_variable setter_cv;
+    bool setter_started = false;
+    bool setter_finished = false;
+    milvus::Status setter_status;
+    std::thread setter_thread([&] {
+        {
+            std::lock_guard<std::mutex> lock(setter_mutex);
+            setter_started = true;
+        }
+        setter_cv.notify_all();
+        setter_status = handler.SetRpcDeadlineMs(1234);
+        {
+            std::lock_guard<std::mutex> lock(setter_mutex);
+            setter_finished = true;
+        }
+        setter_cv.notify_all();
+    });
+
+    {
+        std::unique_lock<std::mutex> lock(setter_mutex);
+        setter_cv.wait(lock, [&] { return setter_started; });
+        EXPECT_FALSE(setter_cv.wait_for(lock, std::chrono::milliseconds(50), [&] { return setter_finished; }));
+    }
+
+    {
+        std::lock_guard<std::mutex> lock(handshake_mutex);
+        finish_handshake = true;
+    }
+    handshake_cv.notify_all();
+
+    connect_thread.join();
+    setter_thread.join();
+    EXPECT_TRUE(connect_status.IsOk());
+    EXPECT_TRUE(setter_status.IsOk());
+    EXPECT_EQ(handler.GetRpcDeadlineMs(), 1234);
 }
 
 TEST_F(UnconnectMilvusMockedTest, ConnectWithUsername) {
