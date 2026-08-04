@@ -39,12 +39,20 @@ ConnectionHandler::Connect(const ConnectParam& connect_param) {
     std::string prior_endpoint;
     ConnectParam prior_connect_param;
     std::unique_ptr<TopologyRefresher> prior_refresher;
+    ClientTelemetryManagerPtr reusable_telemetry;
     {
         std::lock_guard<std::mutex> lock(mtx_);
         was_global = global_mode_;
         prior_endpoint = global_endpoint_;
         prior_connect_param = global_connect_param_;
         prior_refresher = std::move(global_refresher_);
+        reusable_telemetry = telemetry_;
+        if (connection_ != nullptr) {
+            auto current_telemetry = connection_->GetTelemetry();
+            if (current_telemetry != nullptr) {
+                reusable_telemetry = std::move(current_telemetry);
+            }
+        }
         // mark global mode off first so an in-flight callback cannot reconnect during teardown
         global_mode_ = false;
     }
@@ -102,16 +110,18 @@ ConnectionHandler::Connect(const ConnectParam& connect_param) {
         global_endpoint_.clear();
 
         new_connection = std::make_shared<MilvusConnection>();
-        status = new_connection->Connect(primary_param, telemetry_client_id_);
+        status = new_connection->Connect(primary_param, telemetry_client_id_, reusable_telemetry);
         if (!status.IsOk()) {
             // fall through to restore the prior global state after releasing the lock
         } else {
             auto telemetry = new_connection->GetTelemetry();
             if (telemetry != nullptr) {
+                telemetry_ = telemetry;
                 telemetry_client_id_ = telemetry->ClientId();
             }
             if (connection_ != nullptr) {
-                connection_->Disconnect();
+                const bool shares_telemetry = telemetry != nullptr && connection_->GetTelemetry() == telemetry;
+                connection_->Disconnect(!shares_telemetry);
             }
             connection_ = std::move(new_connection);
 
@@ -145,6 +155,10 @@ ConnectionHandler::Disconnect() {
 
     std::lock_guard<std::mutex> lock(mtx_);
     if (connection_ != nullptr) {
+        auto telemetry = connection_->GetTelemetry();
+        if (telemetry != nullptr) {
+            telemetry_ = std::move(telemetry);
+        }
         return connection_->Disconnect();
     }
     return Status::OK();
@@ -183,6 +197,8 @@ ConnectionHandler::reconnectToPrimary(const GlobalTopology& topology, const std:
     }
 
     ConnectParam primary_param;
+    ClientTelemetryManagerPtr reusable_telemetry;
+    std::string telemetry_client_id;
     {
         std::lock_guard<std::mutex> lock(mtx_);
         if (!global_mode_) {
@@ -203,7 +219,12 @@ ConnectionHandler::reconnectToPrimary(const GlobalTopology& topology, const std:
         if (connection_ != nullptr) {
             primary_param.SetDbName(connection_->GetConnectParam().DbName());
             primary_param.SetRpcDeadlineMs(connection_->GetConnectParam().RpcDeadlineMs());
+            reusable_telemetry = connection_->GetTelemetry();
         }
+        if (reusable_telemetry == nullptr) {
+            reusable_telemetry = telemetry_;
+        }
+        telemetry_client_id = telemetry_client_id_;
     }
 
     // abort promptly when the refresher is stopping rather than starting a fresh gRPC connect
@@ -215,17 +236,19 @@ ConnectionHandler::reconnectToPrimary(const GlobalTopology& topology, const std:
     // WaitForConnected() and the Connect RPC for up to ~2x ConnectTimeout, and holding mtx_ that
     // long would stall every other SDK operation that snapshots the connection.
     auto new_connection = std::make_shared<MilvusConnection>();
-    auto status = new_connection->Connect(primary_param, telemetry_client_id_);
+    auto status = new_connection->Connect(primary_param, telemetry_client_id, reusable_telemetry);
     if (!status.IsOk()) {
         // keep the existing connection; report failure so the refresher retries the same version
         return false;
     }
 
+    auto new_telemetry = new_connection->GetTelemetry();
     {
         std::lock_guard<std::mutex> lock(mtx_);
         if (!global_mode_) {
             // disconnected while reconnecting; discard the unused candidate connection
-            new_connection->Disconnect();
+            const bool shares_telemetry = new_telemetry != nullptr && telemetry_ == new_telemetry;
+            new_connection->Disconnect(!shares_telemetry);
             return true;
         }
         // re-read live configuration in case SetRpcDeadlineMs()/UseDatabase() ran while the
@@ -235,14 +258,21 @@ ConnectionHandler::reconnectToPrimary(const GlobalTopology& topology, const std:
             new_connection->GetConnectParam().SetRpcDeadlineMs(live.RpcDeadlineMs());
             if (new_connection->GetConnectParam().DbName() != live.DbName()) {
                 // the database changed while reconnecting; drop the stale candidate and retry
-                new_connection->Disconnect();
+                const bool shares_telemetry =
+                    new_telemetry != nullptr && connection_->GetTelemetry() == new_telemetry;
+                new_connection->Disconnect(!shares_telemetry);
                 return false;
             }
         }
         auto old_connection = connection_;
         connection_ = std::move(new_connection);
+        if (new_telemetry != nullptr) {
+            telemetry_ = new_telemetry;
+            telemetry_client_id_ = new_telemetry->ClientId();
+        }
         if (old_connection != nullptr) {
-            old_connection->Disconnect();
+            const bool shares_telemetry = new_telemetry != nullptr && old_connection->GetTelemetry() == new_telemetry;
+            old_connection->Disconnect(!shares_telemetry);
         }
     }
     return true;

@@ -41,9 +41,12 @@ TEST_F(UnconnectMilvusMockedTest, UseDatabase) {
     status = client_->CurrentUsedDatabase(db_name);
     EXPECT_TRUE(status.IsOk());
     EXPECT_EQ(db_name, "AAA");
+    auto telemetry = client_->GetTelemetry();
+    ASSERT_NE(telemetry, nullptr);
 
     status = client_->UseDatabase("BBB");
     EXPECT_TRUE(status.IsOk());
+    EXPECT_EQ(client_->GetTelemetry(), telemetry);
 
     status = client_->CurrentUsedDatabase(db_name);
     EXPECT_TRUE(status.IsOk());

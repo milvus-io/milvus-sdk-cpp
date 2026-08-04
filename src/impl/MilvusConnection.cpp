@@ -103,7 +103,8 @@ MilvusConnection::StatusCodeFromGrpcStatus(const ::grpc::Status& grpc_status) {
 }
 
 Status
-MilvusConnection::Connect(const ConnectParam& param, const std::string& runtime_telemetry_client_id) {
+MilvusConnection::Connect(const ConnectParam& param, const std::string& runtime_telemetry_client_id,
+                          ClientTelemetryManagerPtr reusable_telemetry) {
     std::shared_ptr<grpc::Channel> channel;
     try {
         // ParseURI() might throw exceptions when the uri/port is invalid
@@ -154,7 +155,13 @@ MilvusConnection::Connect(const ConnectParam& param, const std::string& runtime_
     auto stub = std::shared_ptr<Stub>(std::move(stub_holder));
     auto reusable_client_id =
         runtime_telemetry_client_id.empty() ? telemetry_client_id_ : runtime_telemetry_client_id;
-    auto telemetry = std::make_shared<ClientTelemetryManager>(param.Telemetry(), reusable_client_id);
+    const auto& configured_client_id = param.Telemetry().client_id;
+    const bool can_reuse_telemetry = reusable_telemetry != nullptr &&
+                                     (configured_client_id.empty() ||
+                                      configured_client_id == reusable_telemetry->ClientId());
+    auto telemetry = can_reuse_telemetry
+                         ? std::move(reusable_telemetry)
+                         : std::make_shared<ClientTelemetryManager>(param.Telemetry(), reusable_client_id);
 
     // grpc channel has been create, now we call the proto::milvus::MilvusClient::Connect() interface
     // to send some basic information of client to the server, including the sdk type, version, etc.
@@ -219,13 +226,13 @@ MilvusConnection::GetTelemetry() const {
 }
 
 Status
-MilvusConnection::Disconnect() {
+MilvusConnection::Disconnect(bool stop_telemetry) {
     ClientTelemetryManagerPtr telemetry;
     {
         std::lock_guard<std::mutex> lock(stub_mtx_);
         telemetry = telemetry_;
     }
-    if (telemetry != nullptr) {
+    if (stop_telemetry && telemetry != nullptr) {
         telemetry->Stop();
     }
     std::lock_guard<std::mutex> lock(stub_mtx_);
@@ -237,9 +244,10 @@ MilvusConnection::Disconnect() {
 
 Status
 MilvusConnection::UseDatabase(const std::string& db_name) {
+    auto telemetry = GetTelemetry();
     Disconnect();
     param_.SetDbName(db_name);
-    return Connect(param_, telemetry_client_id_);
+    return Connect(param_, telemetry_client_id_, std::move(telemetry));
 }
 
 Status

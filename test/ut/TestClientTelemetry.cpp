@@ -52,6 +52,31 @@ TEST(ClientTelemetryTest, AppliesCommandsAndDeduplicatesIds) {
     EXPECT_EQ(calls, 1);
 }
 
+TEST(ClientTelemetryTest, StopAndRestartPreserveCommandState) {
+    milvus::TelemetryConfig config;
+    config.enabled = false;
+    milvus::ClientTelemetryManager manager(config);
+    int calls = 0;
+    manager.RegisterCommandHandler("custom", [&calls](const milvus::TelemetryCommand& command) {
+        ++calls;
+        return milvus::TelemetryCommandReply{command.command_id, true, "", ""};
+    });
+    const milvus::TelemetryCommand command{"custom", "custom", "", 2, false, ""};
+
+    manager.ProcessCommands({command});
+    manager.Start();
+    EXPECT_TRUE(manager.IsReady());
+    manager.Stop();
+    EXPECT_FALSE(manager.IsReady());
+    manager.Start();
+    EXPECT_TRUE(manager.IsReady());
+    manager.ProcessCommands({command});
+
+    EXPECT_EQ(calls, 1);
+    EXPECT_EQ(manager.LastCommandTimestamp(), 2);
+    manager.Stop();
+}
+
 TEST(ClientRequestContextTest, GeneratesAndScopesTraceIds) {
     auto request_id = milvus::ClientRequestContext::NewRequestId();
     EXPECT_EQ(request_id.size(), 32U);

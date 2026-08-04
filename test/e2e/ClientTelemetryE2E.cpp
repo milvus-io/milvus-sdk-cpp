@@ -265,7 +265,7 @@ Run() {
 
         status = default_client->UseDatabase("default");
         Require(status.IsOk(), "Default telemetry reconnect failed: " + status.Message());
-        default_manager = default_client->GetTelemetry();
+        Require(default_client->GetTelemetry() == default_manager, "Reconnect replaced the telemetry manager");
         Require(default_manager->ClientId() == default_client_id, "Reconnect changed the runtime client ID");
         Require(default_manager->Config().client_id.empty(), "Reconnect marked the runtime client ID as stable");
         WaitFor("default client reconnect", default_client_id,

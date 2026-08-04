@@ -380,10 +380,10 @@ class ClientTelemetryManager::Impl {
             return;
         }
         ready = true;
+        stopped = false;
         if (!config.enabled) {
             return;
         }
-        stopped = false;
         worker = std::thread([this]() { HeartbeatLoop(); });
     }
 
@@ -391,7 +391,7 @@ class ClientTelemetryManager::Impl {
     Stop() {
         {
             std::lock_guard<std::mutex> lock(mutex);
-            if (stopped) {
+            if (!ready && stopped) {
                 return;
             }
             stopped = true;
@@ -400,6 +400,8 @@ class ClientTelemetryManager::Impl {
         if (worker.joinable() && worker.get_id() != std::this_thread::get_id()) {
             worker.join();
         }
+        std::lock_guard<std::mutex> lock(mutex);
+        ready = false;
     }
 
     void
