@@ -65,7 +65,8 @@ class MilvusConnection {
     virtual ~MilvusConnection();
 
     Status
-    Connect(const ConnectParam& param, const std::string& runtime_telemetry_client_id = "");
+    Connect(const ConnectParam& param, const std::string& runtime_telemetry_client_id = "",
+            ClientTelemetryManagerPtr reusable_telemetry = nullptr);
 
     ConnectParam&
     GetConnectParam();
@@ -74,7 +75,7 @@ class MilvusConnection {
     GetTelemetry() const;
 
     Status
-    Disconnect();
+    Disconnect(bool stop_telemetry = true);
 
     Status
     UseDatabase(const std::string& db_name);

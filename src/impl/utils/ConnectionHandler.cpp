@@ -26,18 +26,29 @@ ConnectionHandler::Connect(const ConnectParam& connect_param) {
     // private until it succeeds, but setters must not update the current connection and then be overwritten by the
     // successful swap below.
     std::lock_guard<std::mutex> lock(mtx_);
+    auto reusable_telemetry = telemetry_;
+    auto old_connection = connection_;
+    if (old_connection != nullptr) {
+        auto current_telemetry = old_connection->GetTelemetry();
+        if (current_telemetry != nullptr) {
+            reusable_telemetry = current_telemetry;
+        }
+    }
+
     auto connection = std::make_shared<MilvusConnection>();
-    auto status = connection->Connect(connect_param, telemetry_client_id_);
+    auto status = connection->Connect(connect_param, telemetry_client_id_, reusable_telemetry);
     if (!status.IsOk()) {
         return status;
     }
 
     auto telemetry = connection->GetTelemetry();
     if (telemetry != nullptr) {
+        telemetry_ = telemetry;
         telemetry_client_id_ = telemetry->ClientId();
     }
-    if (connection_ != nullptr) {
-        connection_->Disconnect();
+    if (old_connection != nullptr) {
+        const bool shares_telemetry = telemetry != nullptr && old_connection->GetTelemetry() == telemetry;
+        old_connection->Disconnect(!shares_telemetry);
     }
     connection_ = std::move(connection);
     return Status::OK();
@@ -47,6 +58,10 @@ Status
 ConnectionHandler::Disconnect() {
     std::lock_guard<std::mutex> lock(mtx_);
     if (connection_ != nullptr) {
+        auto telemetry = connection_->GetTelemetry();
+        if (telemetry != nullptr) {
+            telemetry_ = std::move(telemetry);
+        }
         return connection_->Disconnect();
     }
     return Status::OK();

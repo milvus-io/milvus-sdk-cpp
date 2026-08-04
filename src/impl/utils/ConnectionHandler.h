@@ -242,6 +242,7 @@ class ConnectionHandler {
  private:
     mutable std::mutex mtx_;
     MilvusConnectionPtr connection_;
+    ClientTelemetryManagerPtr telemetry_;
     RetryParam retry_param_;
     std::string telemetry_client_id_;
 };
