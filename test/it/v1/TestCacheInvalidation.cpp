@@ -180,12 +180,12 @@ TEST_F(MilvusMockedTest, V1DropDatabaseInvalidatesDatabaseCaches) {
     milvus::CollectionTsCache::GetInstance().InvalidateDb(endpoint, "other");
 }
 
-TEST_F(MilvusMockedTest, V1CollectionPropertiesPreserveCacheAndFieldMutationInvalidates) {
+TEST_F(MilvusMockedTest, V1CollectionPropertiesInvalidateCacheForAllowInsertAutoId) {
     const auto endpoint = Endpoint(server_.ListenPort());
     ConnectClient(client_, server_.ListenPort());
 
     EXPECT_CALL(service_, AlterCollection(_, _, _))
-        .Times(2)
+        .Times(4)
         .WillRepeatedly([](::grpc::ServerContext*, const milvus::proto::milvus::AlterCollectionRequest*,
                            milvus::proto::common::Status*) { return ::grpc::Status{}; });
     EXPECT_CALL(service_, AlterCollectionField(_, _, _))
@@ -201,6 +201,16 @@ TEST_F(MilvusMockedTest, V1CollectionPropertiesPreserveCacheAndFieldMutationInva
     EXPECT_TRUE(status.IsOk());
     ExpectSchemaCached(endpoint, "default", "collection");
 
+    status = client_->AlterCollectionProperties("collection", {{"allow_insert_auto_id", "true"}});
+    EXPECT_TRUE(status.IsOk());
+    ExpectSchemaNotCached(endpoint, "default", "collection");
+
+    milvus::SchemaCache::GetInstance().Set(endpoint, "default", "collection", MakeCollectionDesc(1));
+    status = client_->DropCollectionProperties("collection", {"allow_insert_auto_id"});
+    EXPECT_TRUE(status.IsOk());
+    ExpectSchemaNotCached(endpoint, "default", "collection");
+
+    milvus::SchemaCache::GetInstance().Set(endpoint, "default", "collection", MakeCollectionDesc(1));
     status = client_->AlterCollectionField("collection", "field", {{"key", "value"}});
     EXPECT_TRUE(status.IsOk());
     ExpectSchemaNotCached(endpoint, "default", "collection");

@@ -270,12 +270,12 @@ TEST_F(UnconnectMilvusMockedTest, V2DropDatabaseInvalidatesDatabaseCaches) {
     milvus::CollectionTsCache::GetInstance().InvalidateDb(endpoint, "other");
 }
 
-TEST_F(UnconnectMilvusMockedTest, V2CollectionPropertiesPreserveCacheAndFieldMutationsInvalidate) {
+TEST_F(UnconnectMilvusMockedTest, V2CollectionPropertiesInvalidateCacheForAllowInsertAutoId) {
     const auto endpoint = Endpoint(server_.ListenPort());
     auto client = CreateConnectedClient(service_, server_.ListenPort());
 
     EXPECT_CALL(service_, AlterCollection(_, _, _))
-        .Times(2)
+        .Times(4)
         .WillRepeatedly([](::grpc::ServerContext*, const milvus::proto::milvus::AlterCollectionRequest*,
                            milvus::proto::common::Status*) { return ::grpc::Status{}; });
     EXPECT_CALL(service_, AlterCollectionField(_, _, _))
@@ -298,6 +298,22 @@ TEST_F(UnconnectMilvusMockedTest, V2CollectionPropertiesPreserveCacheAndFieldMut
     EXPECT_TRUE(status.IsOk());
     ExpectCached(endpoint, "db", "collection");
 
+    status = client->AlterCollectionProperties(milvus::AlterCollectionPropertiesRequest()
+                                                    .WithDatabaseName("db")
+                                                    .WithCollectionName("collection")
+                                                    .AddProperty("allow_insert_auto_id", "true"));
+    EXPECT_TRUE(status.IsOk());
+    ExpectNotCached(endpoint, "db", "collection");
+
+    milvus::SchemaCache::GetInstance().Set(endpoint, "db", "collection", MakeCollectionDesc(1));
+    status = client->DropCollectionProperties(milvus::DropCollectionPropertiesRequest()
+                                                  .WithDatabaseName("db")
+                                                  .WithCollectionName("collection")
+                                                  .AddPropertyKey("allow_insert_auto_id"));
+    EXPECT_TRUE(status.IsOk());
+    ExpectNotCached(endpoint, "db", "collection");
+
+    milvus::SchemaCache::GetInstance().Set(endpoint, "db", "collection", MakeCollectionDesc(1));
     status = client->AlterCollectionFieldProperties(milvus::AlterCollectionFieldPropertiesRequest()
                                                         .WithDatabaseName("db")
                                                         .WithCollectionName("collection")

@@ -326,6 +326,9 @@ MilvusClientImpl::GetLoadState(const std::string& collection_name, bool& is_load
 Status
 MilvusClientImpl::AlterCollectionProperties(const std::string& collection_name,
                                             const std::unordered_map<std::string, std::string>& properties) {
+    const auto endpoint = connection_.CurrentEndpoint();
+    const auto database_name = connection_.CurrentDbName("");
+    const bool invalidates_schema = properties.count(ALLOW_INSERT_AUTO_ID) > 0;
     auto pre = [&collection_name, &properties](proto::milvus::AlterCollectionRequest& rpc_request) {
         rpc_request.set_collection_name(collection_name);
         for (const auto& pair : properties) {
@@ -336,13 +339,23 @@ MilvusClientImpl::AlterCollectionProperties(const std::string& collection_name,
         return Status::OK();
     };
 
+    auto post = [&endpoint, &database_name, &collection_name, invalidates_schema](const proto::common::Status&) {
+        if (invalidates_schema) {
+            SchemaCache::GetInstance().Invalidate(endpoint, database_name, collection_name);
+        }
+        return Status::OK();
+    };
+
     return connection_.Invoke<proto::milvus::AlterCollectionRequest, proto::common::Status>(
-        pre, &MilvusConnection::AlterCollection);
+        pre, &MilvusConnection::AlterCollection, post);
 }
 
 Status
 MilvusClientImpl::DropCollectionProperties(const std::string& collection_name,
                                            const std::set<std::string>& property_keys) {
+    const auto endpoint = connection_.CurrentEndpoint();
+    const auto database_name = connection_.CurrentDbName("");
+    const bool invalidates_schema = property_keys.count(ALLOW_INSERT_AUTO_ID) > 0;
     auto pre = [&collection_name, &property_keys](proto::milvus::AlterCollectionRequest& rpc_request) {
         rpc_request.set_collection_name(collection_name);
         for (const auto& key : property_keys) {
@@ -351,8 +364,15 @@ MilvusClientImpl::DropCollectionProperties(const std::string& collection_name,
         return Status::OK();
     };
 
+    auto post = [&endpoint, &database_name, &collection_name, invalidates_schema](const proto::common::Status&) {
+        if (invalidates_schema) {
+            SchemaCache::GetInstance().Invalidate(endpoint, database_name, collection_name);
+        }
+        return Status::OK();
+    };
+
     return connection_.Invoke<proto::milvus::AlterCollectionRequest, proto::common::Status>(
-        pre, &MilvusConnection::AlterCollection);
+        pre, &MilvusConnection::AlterCollection, post);
 }
 
 Status
