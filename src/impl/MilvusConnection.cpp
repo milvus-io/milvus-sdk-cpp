@@ -104,8 +104,6 @@ MilvusConnection::StatusCodeFromGrpcStatus(const ::grpc::Status& grpc_status) {
 
 Status
 MilvusConnection::Connect(const ConnectParam& param) {
-    param_ = param;
-
     std::shared_ptr<grpc::Channel> channel;
     try {
         // ParseURI() might throw exceptions when the uri/port is invalid
@@ -154,11 +152,6 @@ MilvusConnection::Connect(const ConnectParam& param) {
 
     auto stub_holder = proto::milvus::MilvusService::NewStub(channel);
     auto stub = std::shared_ptr<Stub>(std::move(stub_holder));
-    {
-        std::lock_guard<std::mutex> lock(stub_mtx_);
-        channel_ = channel;
-        stub_ = stub;
-    }
 
     // grpc channel has been create, now we call the proto::milvus::MilvusClient::Connect() interface
     // to send some basic information of client to the server, including the sdk type, version, etc.
@@ -186,7 +179,23 @@ MilvusConnection::Connect(const ConnectParam& param) {
 
     proto::milvus::ConnectResponse rpc_response;
     auto grpc_status = stub->Connect(&context, rpc_request, &rpc_response);
-    return StatusCodeFromGrpcStatus(grpc_status);
+    auto status = StatusCodeFromGrpcStatus(grpc_status);
+    if (!status.IsOk()) {
+        return status;
+    }
+
+    status = StatusByProtoResponse(rpc_response);
+    if (!status.IsOk()) {
+        return status;
+    }
+
+    {
+        std::lock_guard<std::mutex> lock(stub_mtx_);
+        param_ = param;
+        channel_ = std::move(channel);
+        stub_ = std::move(stub);
+    }
+    return Status::OK();
 }
 
 ConnectParam&
