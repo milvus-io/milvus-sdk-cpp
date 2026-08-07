@@ -1,5 +1,18 @@
 # Changelog
 
+## milvus-sdk-cpp 2.6.6 (2026-08-07)
+### Feature
+- Support query by integer or string primary-key IDs
+- Support renaming collections across databases
+
+### Improvement
+- Refine collection schema and session timestamp caching for concurrent DML and DQL workloads
+
+### Bug
+- Fix iterator pagination and session timestamp handling that could skip or return stale results
+- Preserve the active connection when a reconnect attempt is rejected
+
+
 ## milvus-sdk-cpp 2.6.5 (2026-07-24)
 ### Feature
 - Support highlighting for search results
