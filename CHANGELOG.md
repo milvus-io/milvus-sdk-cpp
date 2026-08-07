@@ -1,5 +1,22 @@
 # Changelog
 
+## milvus-sdk-cpp 3.0.2 (2026-08-07)
+### Feature
+- Support query by integer or string primary-key IDs
+- Support renaming collections across databases
+- Support client-side bloom filter blobs for `bloom_match`
+- Add the FMINDEX index type
+
+### Improvement
+- Refine collection schema and session timestamp caching for concurrent DML and DQL workloads
+- Align AddFunctionField validation and bound-index parameter handling with PyMilvus
+
+### Bug
+- Fix iterator pagination and session timestamp handling that could skip or return stale results
+- Preserve the active connection when a reconnect attempt is rejected
+- Refresh cached schemas when `allow_insert_auto_id` changes
+
+
 ## milvus-sdk-cpp 3.0.1 (2026-07-24)
 ### Feature
 - Support highlighting for search results
