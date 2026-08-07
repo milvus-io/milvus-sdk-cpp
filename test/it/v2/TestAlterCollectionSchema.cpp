@@ -380,7 +380,7 @@ TEST_F(UnconnectMilvusMockedTest, AddFunctionFieldServerFailed) {
     EXPECT_EQ(status.Code(), StatusCode::SERVER_FAILED);
 }
 
-TEST_F(UnconnectMilvusMockedTest, AddFunctionFieldRejectsMismatchedOutputName) {
+TEST_F(UnconnectMilvusMockedTest, AddFunctionFieldLetsServerValidateFunctionOutputFields) {
     auto client = CreateConnectedV2Client(service_, server_.ListenPort());
     milvus::FieldSchema field;
     field.SetName("sparse_vec");
@@ -388,15 +388,27 @@ TEST_F(UnconnectMilvusMockedTest, AddFunctionFieldRejectsMismatchedOutputName) {
     auto function = std::make_shared<milvus::Function>("bm25_fn", milvus::FunctionType::BM25);
     function->AddInputFieldName("text");
     function->AddOutputFieldName("other_vec");
+    function->AddOutputFieldName("second_vec");
     milvus::IndexDesc index("sparse_vec", "sparse_idx", milvus::IndexType::SPARSE_INVERTED_INDEX,
                             milvus::MetricType::BM25);
+
+    EXPECT_CALL(service_, AlterCollectionSchema(_, _, _))
+        .WillOnce([](::grpc::ServerContext*, const AlterCollectionSchemaRequest* request,
+                     AlterCollectionSchemaResponse* response) {
+            const auto& function_schema = request->action().add_request().func_schema(0);
+            EXPECT_EQ(function_schema.output_field_names_size(), 2);
+            EXPECT_EQ(function_schema.output_field_names(0), "other_vec");
+            EXPECT_EQ(function_schema.output_field_names(1), "second_vec");
+            response->mutable_alter_status()->set_code(0);
+            return ::grpc::Status{};
+        });
 
     auto status = client->AddFunctionField(milvus::AddFunctionFieldRequest()
                                                .WithCollectionName("coll")
                                                .WithField(std::move(field))
                                                .WithFunction(function)
                                                .WithIndex(std::move(index)));
-    EXPECT_EQ(status.Code(), StatusCode::INVALID_ARGUMENT);
+    EXPECT_TRUE(status.IsOk());
 }
 
 TEST_F(UnconnectMilvusMockedTest, AddFunctionField) {
@@ -507,13 +519,14 @@ TEST_F(UnconnectMilvusMockedTest, AddFunctionFieldRejectsMissingBoundIndex) {
     EXPECT_EQ(status.Code(), StatusCode::INVALID_ARGUMENT);
 }
 
-TEST_F(UnconnectMilvusMockedTest, AddFunctionFieldRejectsAutoIndex) {
+TEST_F(UnconnectMilvusMockedTest, AddFunctionFieldRejectsUnsupportedFunctionType) {
     auto client = CreateConnectedV2Client(service_, server_.ListenPort());
     milvus::FieldSchema field("sparse_vec", milvus::DataType::SPARSE_FLOAT_VECTOR);
-    auto function = std::make_shared<milvus::Function>("bm25_fn", milvus::FunctionType::BM25);
+    auto function = std::make_shared<milvus::Function>("embedding_fn", milvus::FunctionType::TEXTEMBEDDING);
     function->AddInputFieldName("text");
     function->AddOutputFieldName("sparse_vec");
-    milvus::IndexDesc index("sparse_vec", "sparse_idx", milvus::IndexType::AUTOINDEX, milvus::MetricType::BM25);
+    milvus::IndexDesc index("sparse_vec", "sparse_idx", milvus::IndexType::SPARSE_INVERTED_INDEX,
+                            milvus::MetricType::BM25);
 
     auto status = client->AddFunctionField(milvus::AddFunctionFieldRequest()
                                                .WithCollectionName("coll")
@@ -521,6 +534,65 @@ TEST_F(UnconnectMilvusMockedTest, AddFunctionFieldRejectsAutoIndex) {
                                                .WithFunction(function)
                                                .WithIndex(std::move(index)));
     EXPECT_EQ(status.Code(), StatusCode::INVALID_ARGUMENT);
+}
+
+TEST_F(UnconnectMilvusMockedTest, AddFunctionFieldRejectsInvalidOutputType) {
+    auto client = CreateConnectedV2Client(service_, server_.ListenPort());
+
+    {
+        milvus::FieldSchema field("dense_vec", milvus::DataType::FLOAT_VECTOR);
+        auto function = std::make_shared<milvus::Function>("bm25_fn", milvus::FunctionType::BM25);
+        milvus::IndexDesc index("dense_vec", "dense_idx", milvus::IndexType::FLAT, milvus::MetricType::COSINE);
+        auto status = client->AddFunctionField(milvus::AddFunctionFieldRequest()
+                                                   .WithCollectionName("coll")
+                                                   .WithField(std::move(field))
+                                                   .WithFunction(function)
+                                                   .WithIndex(std::move(index)));
+        EXPECT_EQ(status.Code(), StatusCode::INVALID_ARGUMENT);
+    }
+
+    {
+        milvus::FieldSchema field("sparse_vec", milvus::DataType::SPARSE_FLOAT_VECTOR);
+        auto function = std::make_shared<milvus::Function>("minhash_fn", milvus::FunctionType::MINHASH);
+        milvus::IndexDesc index("sparse_vec", "sparse_idx", milvus::IndexType::SPARSE_INVERTED_INDEX,
+                                milvus::MetricType::BM25);
+        auto status = client->AddFunctionField(milvus::AddFunctionFieldRequest()
+                                                   .WithCollectionName("coll")
+                                                   .WithField(std::move(field))
+                                                   .WithFunction(function)
+                                                   .WithIndex(std::move(index)));
+        EXPECT_EQ(status.Code(), StatusCode::INVALID_ARGUMENT);
+    }
+}
+
+TEST_F(UnconnectMilvusMockedTest, AddFunctionFieldAllowsAutoIndex) {
+    auto client = CreateConnectedV2Client(service_, server_.ListenPort());
+    milvus::FieldSchema field("sparse_vec", milvus::DataType::SPARSE_FLOAT_VECTOR);
+    auto function = std::make_shared<milvus::Function>("bm25_fn", milvus::FunctionType::BM25);
+    function->AddInputFieldName("text");
+    function->AddOutputFieldName("sparse_vec");
+    milvus::IndexDesc index("sparse_vec", "sparse_idx", milvus::IndexType::AUTOINDEX, milvus::MetricType::BM25);
+
+    EXPECT_CALL(service_, AlterCollectionSchema(_, _, _))
+        .WillOnce([](::grpc::ServerContext*, const AlterCollectionSchemaRequest* request,
+                     AlterCollectionSchemaResponse* response) {
+            std::unordered_map<std::string, std::string> index_params;
+            for (const auto& param : request->action().add_request().field_infos(0).extra_params()) {
+                index_params.emplace(param.key(), param.value());
+            }
+            EXPECT_EQ(index_params.size(), 2);
+            EXPECT_EQ(index_params.at("index_type"), "AUTOINDEX");
+            EXPECT_EQ(index_params.at("metric_type"), "BM25");
+            response->mutable_alter_status()->set_code(0);
+            return ::grpc::Status{};
+        });
+
+    auto status = client->AddFunctionField(milvus::AddFunctionFieldRequest()
+                                               .WithCollectionName("coll")
+                                               .WithField(std::move(field))
+                                               .WithFunction(function)
+                                               .WithIndex(std::move(index)));
+    EXPECT_TRUE(status.IsOk());
 }
 
 TEST_F(UnconnectMilvusMockedTest, AddFunctionFieldRejectsMismatchedIndexField) {
@@ -540,17 +612,54 @@ TEST_F(UnconnectMilvusMockedTest, AddFunctionFieldRejectsMismatchedIndexField) {
     EXPECT_EQ(status.Code(), StatusCode::INVALID_ARGUMENT);
 }
 
-TEST_F(UnconnectMilvusMockedTest, AddFunctionFieldRejectsReservedIndexParam) {
+TEST_F(UnconnectMilvusMockedTest, AddFunctionFieldFlattensIndexParamsAndUsesTypedValues) {
     auto client = CreateConnectedV2Client(service_, server_.ListenPort());
-    for (const auto* reserved_key : {"index_type", "metric_type", "params"}) {
-        SCOPED_TRACE(reserved_key);
+    milvus::FieldSchema field("sparse_vec", milvus::DataType::SPARSE_FLOAT_VECTOR);
+    auto function = std::make_shared<milvus::Function>("bm25_fn", milvus::FunctionType::BM25);
+    function->AddInputFieldName("text");
+    function->AddOutputFieldName("sparse_vec");
+    milvus::IndexDesc index("sparse_vec", "sparse_idx", milvus::IndexType::SPARSE_INVERTED_INDEX,
+                            milvus::MetricType::BM25);
+    index.AddExtraParam("index_type", "reserved");
+    index.AddExtraParam("metric_type", "reserved");
+    index.AddExtraParam("params", R"({"index_type":"nested","metric_type":"nested","drop_ratio_build":0.2})");
+
+    EXPECT_CALL(service_, AlterCollectionSchema(_, _, _))
+        .WillOnce([](::grpc::ServerContext*, const AlterCollectionSchemaRequest* request,
+                     AlterCollectionSchemaResponse* response) {
+            std::unordered_map<std::string, std::string> index_params;
+            for (const auto& param : request->action().add_request().field_infos(0).extra_params()) {
+                index_params.emplace(param.key(), param.value());
+            }
+            EXPECT_EQ(index_params.size(), 3);
+            EXPECT_EQ(index_params.at("index_type"), "SPARSE_INVERTED_INDEX");
+            EXPECT_EQ(index_params.at("metric_type"), "BM25");
+            EXPECT_EQ(index_params.at("drop_ratio_build"), "0.2");
+            response->mutable_alter_status()->set_code(0);
+            return ::grpc::Status{};
+        });
+
+    auto status = client->AddFunctionField(milvus::AddFunctionFieldRequest()
+                                               .WithCollectionName("coll")
+                                               .WithField(std::move(field))
+                                               .WithFunction(function)
+                                               .WithIndex(std::move(index)));
+    EXPECT_TRUE(status.IsOk());
+}
+
+TEST_F(UnconnectMilvusMockedTest, AddFunctionFieldRejectsInvalidLegacyIndexParams) {
+    auto client = CreateConnectedV2Client(service_, server_.ListenPort());
+    EXPECT_CALL(service_, AlterCollectionSchema(_, _, _)).Times(0);
+
+    for (const auto* params : {"{", "[]"}) {
+        SCOPED_TRACE(params);
         milvus::FieldSchema field("sparse_vec", milvus::DataType::SPARSE_FLOAT_VECTOR);
         auto function = std::make_shared<milvus::Function>("bm25_fn", milvus::FunctionType::BM25);
         function->AddInputFieldName("text");
         function->AddOutputFieldName("sparse_vec");
         milvus::IndexDesc index("sparse_vec", "sparse_idx", milvus::IndexType::SPARSE_INVERTED_INDEX,
                                 milvus::MetricType::BM25);
-        index.AddExtraParam(reserved_key, "reserved");
+        index.AddExtraParam("params", params);
 
         auto status = client->AddFunctionField(milvus::AddFunctionFieldRequest()
                                                    .WithCollectionName("coll")

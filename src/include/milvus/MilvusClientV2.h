@@ -497,7 +497,7 @@ class MILVUS_SDK_API MilvusClientV2 {
     AddCollectionFunction(const AddCollectionFunctionRequest& request) = 0;
 
     /**
-     * @brief Add a function-backed output field to an existing collection.
+     * @brief Add a BM25 sparse-vector or MinHash binary-vector function-backed field to an existing collection.
      *
      * @param [in] request input parameters
      * @return Status operation successfully or not
