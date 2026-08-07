@@ -949,17 +949,24 @@ MilvusClientV2Impl::AddFunctionField(const AddFunctionFieldRequest& request) {
         if (request.Function() == nullptr) {
             return Status{StatusCode::INVALID_ARGUMENT, "Function cannot be null."};
         }
-        if (request.Function()->Name().empty()) {
-            return Status{StatusCode::INVALID_ARGUMENT, "Function name cannot be empty."};
+
+        DataType expected_type;
+        switch (request.Function()->GetFunctionType()) {
+            case FunctionType::BM25:
+                expected_type = DataType::SPARSE_FLOAT_VECTOR;
+                break;
+            case FunctionType::MINHASH:
+                expected_type = DataType::BINARY_VECTOR;
+                break;
+            default:
+                return Status{
+                    StatusCode::INVALID_ARGUMENT,
+                    "AddFunctionField only supports BM25 with SPARSE_FLOAT_VECTOR or MINHASH with BINARY_VECTOR."};
         }
-        if (request.Field().Name().empty()) {
-            return Status{StatusCode::INVALID_ARGUMENT, "Field name cannot be empty."};
-        }
-        if (request.Function()->OutputFieldNames().size() != 1) {
-            return Status{StatusCode::INVALID_ARGUMENT, "Function must have exactly one output field."};
-        }
-        if (request.Function()->OutputFieldNames()[0] != request.Field().Name()) {
-            return Status{StatusCode::INVALID_ARGUMENT, "Function output field name must match the field being added."};
+        if (request.Field().FieldDataType() != expected_type) {
+            return Status{StatusCode::INVALID_ARGUMENT,
+                          "AddFunctionField requires " + std::to_string(expected_type) + " output field for " +
+                              std::to_string(request.Function()->GetFunctionType()) + "."};
         }
 
         const auto& index = request.Index();
@@ -967,20 +974,8 @@ MilvusClientV2Impl::AddFunctionField(const AddFunctionFieldRequest& request) {
             return Status{StatusCode::INVALID_ARGUMENT,
                           "An explicit index type is required for the function output field."};
         }
-        if (index.IndexType() == IndexType::AUTOINDEX) {
-            return Status{StatusCode::INVALID_ARGUMENT, "AUTOINDEX is not supported for the function output field."};
-        }
         if (!index.FieldName().empty() && index.FieldName() != request.Field().Name()) {
             return Status{StatusCode::INVALID_ARGUMENT, "Index field name must match the function output field name."};
-        }
-        // FieldInfo.extra_params uses the canonical flat representation. Reject the
-        // legacy params envelope because it can overwrite the typed index fields
-        // when the server expands it.
-        for (const auto* reserved_key : {INDEX_TYPE, METRIC_TYPE, PARAMS}) {
-            if (index.ExtraParams().find(reserved_key) != index.ExtraParams().end()) {
-                return Status{StatusCode::INVALID_ARGUMENT,
-                              std::string("Index extra params must not contain reserved key: ") + reserved_key};
-            }
         }
         return Status::OK();
     };
@@ -996,15 +991,33 @@ MilvusClientV2Impl::AddFunctionField(const AddFunctionFieldRequest& request) {
         const auto& index = request.Index();
         field_info->set_index_name(index.IndexName());
 
-        auto* index_type = field_info->add_extra_params();
-        index_type->set_key(INDEX_TYPE);
-        index_type->set_value(std::to_string(index.IndexType()));
-        if (index.MetricType() != MetricType::DEFAULT) {
-            auto* metric_type = field_info->add_extra_params();
-            metric_type->set_key(METRIC_TYPE);
-            metric_type->set_value(std::to_string(index.MetricType()));
+        std::unordered_map<std::string, std::string> index_params;
+        const auto& extra_params = index.ExtraParams();
+        auto legacy_params = extra_params.find(PARAMS);
+        if (legacy_params != extra_params.end()) {
+            try {
+                auto params = nlohmann::json::parse(legacy_params->second);
+                if (!params.is_object()) {
+                    return Status{StatusCode::INVALID_ARGUMENT, "Index params must be a JSON object."};
+                }
+                for (const auto& pair : params.items()) {
+                    index_params[pair.key()] =
+                        pair.value().is_string() ? pair.value().get<std::string>() : pair.value().dump();
+                }
+            } catch (const nlohmann::json::exception& e) {
+                return Status{StatusCode::INVALID_ARGUMENT, "Invalid index params: " + std::string(e.what())};
+            }
         }
-        for (const auto& pair : index.ExtraParams()) {
+        for (const auto& pair : extra_params) {
+            if (pair.first != PARAMS) {
+                index_params[pair.first] = pair.second;
+            }
+        }
+        index_params[INDEX_TYPE] = std::to_string(index.IndexType());
+        if (index.MetricType() != MetricType::DEFAULT) {
+            index_params[METRIC_TYPE] = std::to_string(index.MetricType());
+        }
+        for (const auto& pair : index_params) {
             auto* param = field_info->add_extra_params();
             param->set_key(pair.first);
             param->set_value(pair.second);

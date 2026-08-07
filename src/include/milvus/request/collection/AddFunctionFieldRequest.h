@@ -37,37 +37,49 @@ class MILVUS_SDK_API AddFunctionFieldRequest : public CollectionRequestBase<AddF
     AddFunctionFieldRequest() = default;
 
     /**
-     * @brief Get the field schema.
+     * @brief Get the function output field schema.
+     *
+     * BM25 requires SPARSE_FLOAT_VECTOR and MinHash requires BINARY_VECTOR.
      */
     const FieldSchema&
     Field() const;
 
     /**
-     * @brief Set the field schema.
+     * @brief Set the function output field schema.
+     *
+     * BM25 requires SPARSE_FLOAT_VECTOR and MinHash requires BINARY_VECTOR.
      */
     void
     SetField(FieldSchema&& field_schema);
 
     /**
-     * @brief Set the field schema.
+     * @brief Set the function output field schema.
+     *
+     * BM25 requires SPARSE_FLOAT_VECTOR and MinHash requires BINARY_VECTOR.
      */
     AddFunctionFieldRequest&
     WithField(FieldSchema&& field_schema);
 
     /**
      * @brief Get the function to be added.
+     *
+     * AddFunctionField currently supports BM25 and MinHash functions.
      */
     const FunctionPtr&
     Function() const;
 
     /**
      * @brief Set the function to be added.
+     *
+     * AddFunctionField currently supports BM25 and MinHash functions.
      */
     void
     SetFunction(const FunctionPtr& function);
 
     /**
      * @brief Set the function to be added.
+     *
+     * AddFunctionField currently supports BM25 and MinHash functions.
      */
     AddFunctionFieldRequest&
     WithFunction(const FunctionPtr& function);
@@ -75,7 +87,7 @@ class MILVUS_SDK_API AddFunctionFieldRequest : public CollectionRequestBase<AddF
     /**
      * @brief Get the index bound to the function output field.
      *
-     * The bound index is required and must use an explicit index type. AUTOINDEX is not supported.
+     * The bound index is required and must use an explicit index type.
      */
     const IndexDesc&
     Index() const;
@@ -83,7 +95,7 @@ class MILVUS_SDK_API AddFunctionFieldRequest : public CollectionRequestBase<AddF
     /**
      * @brief Set the index bound to the function output field.
      *
-     * The bound index is required and must use an explicit index type. AUTOINDEX is not supported.
+     * The bound index is required and must use an explicit index type.
      */
     void
     SetIndex(IndexDesc&& index);
@@ -91,7 +103,7 @@ class MILVUS_SDK_API AddFunctionFieldRequest : public CollectionRequestBase<AddF
     /**
      * @brief Set the index bound to the function output field.
      *
-     * The bound index is required and must use an explicit index type. AUTOINDEX is not supported.
+     * The bound index is required and must use an explicit index type.
      */
     AddFunctionFieldRequest&
     WithIndex(IndexDesc&& index);
