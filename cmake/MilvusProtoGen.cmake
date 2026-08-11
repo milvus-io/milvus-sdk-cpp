@@ -65,9 +65,79 @@ if (NOT TARGET gRPC::grpc_cpp_plugin)
     message(FATAL_ERROR "gRPC::grpc_cpp_plugin target not found. Please provide gRPC via find_package(gRPC CONFIG REQUIRED).")
 endif()
 
-set(Protobuf_PROTOC_EXECUTABLE $<TARGET_FILE:protobuf::protoc>)
+function(_milvus_get_conan_protoc out_var)
+    set(_protobuf_include_dirs)
+
+    # The imported target is the source of truth for the protobuf library that this build links.
+    # Check its package root before loose variables, which can retain paths from an earlier
+    # module-mode find_package(Protobuf) call.
+    if (TARGET protobuf::libprotobuf)
+        get_target_property(_target_includes protobuf::libprotobuf INTERFACE_INCLUDE_DIRECTORIES)
+        if (_target_includes)
+            list(APPEND _protobuf_include_dirs ${_target_includes})
+        endif()
+    endif()
+
+    # Fallback only for package/module configurations that do not expose target include directories.
+    if (NOT _protobuf_include_dirs)
+        list(APPEND _protobuf_include_dirs ${protobuf_INCLUDE_DIRS} ${Protobuf_INCLUDE_DIRS})
+    endif()
+    list(REMOVE_DUPLICATES _protobuf_include_dirs)
+
+    foreach(_inc IN LISTS _protobuf_include_dirs)
+        if (NOT _inc)
+            continue()
+        endif()
+        # Conan CMakeDeps may expose config-specific include directories as generator expressions.
+        if (_inc MATCHES "^\\$<\\$<CONFIG:[^>]+>:(.*)>$")
+            set(_inc "${CMAKE_MATCH_1}")
+        endif()
+        if (NOT IS_DIRECTORY "${_inc}")
+            continue()
+        endif()
+
+        get_filename_component(_protobuf_root "${_inc}" DIRECTORY)
+        set(_exact_protoc "${_protobuf_root}/bin/protoc${CMAKE_EXECUTABLE_SUFFIX}")
+        if (EXISTS "${_exact_protoc}")
+            set(${out_var} "${_exact_protoc}" PARENT_SCOPE)
+            return()
+        endif()
+
+        file(GLOB _versioned_protoc
+            LIST_DIRECTORIES FALSE
+            "${_protobuf_root}/bin/protoc-*${CMAKE_EXECUTABLE_SUFFIX}")
+        if (_versioned_protoc)
+            list(SORT _versioned_protoc)
+            list(GET _versioned_protoc 0 _protoc)
+            set(${out_var} "${_protoc}" PARENT_SCOPE)
+            return()
+        endif()
+    endforeach()
+endfunction()
+
+if (BUILD_FROM_CONAN AND NOT CMAKE_CROSSCOMPILING)
+    _milvus_get_conan_protoc(_MILVUS_CONAN_PROTOC)
+endif()
+
+if (_MILVUS_CONAN_PROTOC)
+    set(Protobuf_PROTOC_EXECUTABLE "${_MILVUS_CONAN_PROTOC}" CACHE FILEPATH "The protoc compiler" FORCE)
+    set(PROTOC_PROGRAM "${_MILVUS_CONAN_PROTOC}" CACHE FILEPATH "The protoc compiler" FORCE)
+    set_property(TARGET protobuf::protoc PROPERTY IMPORTED_LOCATION "${_MILVUS_CONAN_PROTOC}")
+    set(_MILVUS_PROTOC_DISPLAY "${_MILVUS_CONAN_PROTOC}")
+else()
+    get_target_property(_MILVUS_PROTOC_DISPLAY protobuf::protoc IMPORTED_LOCATION)
+    if (NOT _MILVUS_PROTOC_DISPLAY)
+        set(_MILVUS_PROTOC_DISPLAY "protobuf::protoc target")
+    endif()
+    if (BUILD_FROM_CONAN AND NOT CMAKE_CROSSCOMPILING)
+        message(WARNING
+            "Could not locate protoc beside the linked Conan Protobuf package. "
+            "Falling back to ${_MILVUS_PROTOC_DISPLAY}, which may be a system-installed compiler.")
+    endif()
+    set(Protobuf_PROTOC_EXECUTABLE $<TARGET_FILE:protobuf::protoc>)
+endif()
 set(GRPC_CPP_PLUGIN $<TARGET_FILE:gRPC::grpc_cpp_plugin>)
-message(STATUS "using protoc: ${Protobuf_PROTOC_EXECUTABLE}")
+message(STATUS "using protoc: ${_MILVUS_PROTOC_DISPLAY}")
 message(STATUS "using grpc_cpp_plugin: ${GRPC_CPP_PLUGIN}")
 
 
@@ -115,4 +185,3 @@ function(add_milvus_protos target)
     add_proto_service(${target} "milvus")
     target_include_directories(${target} PRIVATE ${milvus_proto_BINARY_DIR})
 endfunction(add_milvus_protos target)
-

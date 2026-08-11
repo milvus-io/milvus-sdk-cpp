@@ -58,7 +58,7 @@ while getopts "t:v:ulrcsphizf" arg; do
     ;;
   r)
     if [[ -d ${BUILD_OUTPUT_DIR} ]]; then
-      rm ./${BUILD_OUTPUT_DIR} -rf
+      rm -rf ./${BUILD_OUTPUT_DIR}
       MAKE_CLEAN="ON"
     fi
     ;;
