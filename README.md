@@ -150,6 +150,21 @@ main() {
 
 This example expects a Milvus server at `http://localhost:19530`.
 
+### More examples
+
+This repository includes additional runnable examples under [`./examples`](examples/README.md). New applications
+should start with the `MilvusClientV2` examples in `examples/src/v2`.
+
+After building the examples, run one from the repository root using its source basename:
+
+```shell
+make run simple
+```
+
+For example, this command runs `cmake_build/examples/v2/sdk_simple_v2`. Replace `simple` with another V2 example name
+such as `general`, `dml`, or `hybrid_search`. Examples connect to Milvus and may create, modify, or remove data; review
+the selected example and its connection settings before running it.
+
 ### Link with CMake
 
 After installing the SDK, consume its exported CMake package and target:

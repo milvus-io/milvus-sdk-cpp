@@ -20,6 +20,8 @@
 
 #include "../mocks/MilvusMockedTest.h"
 #include "milvus/MilvusClientV2.h"
+#include "utils/cache/CollectionTsCache.h"
+#include "utils/cache/SchemaCache.h"
 
 using ::testing::_;
 
@@ -118,6 +120,57 @@ TEST_F(UnconnectMilvusMockedTest, UpsertFieldPartialUpdateOps) {
     auto status = client->Upsert(request, response);
     EXPECT_TRUE(status.IsOk()) << status.Message();
     EXPECT_EQ(response.Results().UpsertCount(), 1);
+}
+
+TEST_F(UnconnectMilvusMockedTest, UpsertPreservesEmptyRpcDatabaseAndNormalizesCacheKey) {
+    const std::string collection_name = "serverless_upsert_coll";
+    const std::string endpoint = "127.0.0.1:" + std::to_string(server_.ListenPort());
+    auto client = CreateConnectedV2Client(service_, server_.ListenPort());
+
+    EXPECT_CALL(service_, DescribeCollection(_, _, _))
+        .WillOnce([&collection_name](::grpc::ServerContext*,
+                                     const milvus::proto::milvus::DescribeCollectionRequest* request,
+                                     milvus::proto::milvus::DescribeCollectionResponse* response) {
+            EXPECT_EQ(request->db_name(), "");
+            EXPECT_EQ(request->collection_name(), collection_name);
+            FillPartialUpdateSchema(response);
+            return ::grpc::Status{};
+        });
+
+    EXPECT_CALL(service_, Upsert(_, _, _))
+        .WillOnce([&collection_name](::grpc::ServerContext*, const milvus::proto::milvus::UpsertRequest* request,
+                                     milvus::proto::milvus::MutationResult* response) {
+            EXPECT_EQ(request->db_name(), "");
+            EXPECT_EQ(request->collection_name(), collection_name);
+            response->mutable_status()->set_code(0);
+            response->set_upsert_cnt(1);
+            response->set_timestamp(100);
+            return ::grpc::Status{};
+        });
+
+    milvus::EntityRow row;
+    row["id"] = 1;
+    row["tags"] = nlohmann::json::array({"new_tag"});
+
+    milvus::UpsertResponse response;
+    auto status = client->Upsert(
+        milvus::UpsertRequest()
+            .WithCollectionName(collection_name)
+            .AddRowData(std::move(row))
+            .AddFieldOp(milvus::FieldPartialUpdateOp("id"))
+            .AddFieldOp(milvus::FieldPartialUpdateOp("tags", milvus::FieldPartialUpdateOp::OpType::ARRAY_APPEND)),
+        response);
+    ASSERT_TRUE(status.IsOk()) << status.Message();
+
+    milvus::CollectionDescPtr empty_db_desc;
+    milvus::CollectionDescPtr default_db_desc;
+    EXPECT_TRUE(milvus::SchemaCache::GetInstance().Get(endpoint, "", collection_name, empty_db_desc));
+    EXPECT_TRUE(milvus::SchemaCache::GetInstance().Get(endpoint, "default", collection_name, default_db_desc));
+    EXPECT_EQ(empty_db_desc, default_db_desc);
+    EXPECT_EQ(milvus::CollectionTsCache::GetInstance().Get(endpoint, "default", collection_name), 100);
+
+    milvus::SchemaCache::GetInstance().Invalidate(endpoint, "", collection_name);
+    milvus::CollectionTsCache::GetInstance().Invalidate(endpoint, "", collection_name);
 }
 
 TEST_F(UnconnectMilvusMockedTest, UpsertColumnsWithImplicitPartialUpdate) {
