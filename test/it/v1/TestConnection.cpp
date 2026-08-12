@@ -55,6 +55,25 @@ TEST_F(UnconnectMilvusMockedTest, ConnectSuccessful) {
     EXPECT_TRUE(status.IsOk());
 }
 
+TEST_F(UnconnectMilvusMockedTest, ResolveDatabaseNamePreservesEmptyForRpc) {
+    EXPECT_CALL(service_, Connect(_, _, _))
+        .Times(2)
+        .WillRepeatedly(
+            [](::grpc::ServerContext*, const ConnectRequest*, ConnectResponse*) { return ::grpc::Status{}; });
+
+    milvus::ConnectionHandler empty_db_handler;
+    ASSERT_TRUE(empty_db_handler.Connect(milvus::ConnectParam{"127.0.0.1", server_.ListenPort()}).IsOk());
+    EXPECT_EQ(empty_db_handler.CurrentDbName(""), "");
+    EXPECT_EQ(empty_db_handler.CurrentDbName("request_db"), "request_db");
+
+    milvus::ConnectParam explicit_db_param{"127.0.0.1", server_.ListenPort()};
+    explicit_db_param.SetDbName("connected_db");
+    milvus::ConnectionHandler explicit_db_handler;
+    ASSERT_TRUE(explicit_db_handler.Connect(explicit_db_param).IsOk());
+    EXPECT_EQ(explicit_db_handler.CurrentDbName(""), "connected_db");
+    EXPECT_EQ(explicit_db_handler.CurrentDbName("request_db"), "request_db");
+}
+
 TEST_F(UnconnectMilvusMockedTest, ConnectServerRejected) {
     EXPECT_CALL(service_, Connect(_, _, _))
         .WillOnce([](::grpc::ServerContext*, const ConnectRequest*, ConnectResponse* response) {
