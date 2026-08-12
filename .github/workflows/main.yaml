@@ -108,6 +108,10 @@ jobs:
       - name: Unit Testing
         run: |
           make test
+      - name: Build standalone tutorials
+        if: ${{ matrix.os.distro == 'Ubuntu' }}
+        run: |
+          JOBS=4 make tutorials
       - name: Verify package
         run: |
           cmake --build cmake_build --target package --parallel 4

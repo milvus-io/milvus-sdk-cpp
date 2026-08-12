@@ -2291,7 +2291,7 @@ MilvusClientV2Impl::Optimize(const OptimizeRequest& request, OptimizeTaskPtr& ta
     if (!request.Async()) {
         OptimizeResponse response;
         auto status = runOptimize(request, *task, response);
-        task->Complete(status, std::move(response));
+        task->complete(status, std::move(response));
         return status;
     }
 
@@ -2303,7 +2303,7 @@ MilvusClientV2Impl::Optimize(const OptimizeRequest& request, OptimizeTaskPtr& ta
     }
 
     auto task_copy = task;
-    auto status = task->Start([self, request, task_copy](OptimizeResponse& response) {
+    auto status = task->start([self, request, task_copy](OptimizeResponse& response) {
         return self->runOptimize(request, *task_copy, response);
     });
     if (!status.IsOk()) {
@@ -2321,14 +2321,14 @@ MilvusClientV2Impl::runOptimize(const OptimizeRequest& request, OptimizeTask& ta
 
     auto finish = [&task, &response](const Status& status) {
         if (response.StatusText().empty()) {
-            response.SetStatusText(task.ShouldCancel() ? "cancelled" : (status.IsOk() ? "success" : "failed"));
+            response.SetStatusText(task.shouldCancel() ? "cancelled" : (status.IsOk() ? "success" : "failed"));
         }
         return status;
     };
 
     auto check_cancelled = [&task]() {
-        if (task.ShouldCancel()) {
-            return task.CancelledStatus();
+        if (task.shouldCancel()) {
+            return task.cancelledStatus();
         }
         return Status::OK();
     };
@@ -2406,7 +2406,7 @@ MilvusClientV2Impl::runOptimize(const OptimizeRequest& request, OptimizeTask& ta
     response.SetTargetSize(normalized_target_size);
 
     uint64_t rpc_timeout_ms = 0;
-    task.AddProgress("initializing");
+    task.addProgress("initializing");
     status = remaining_rpc_timeout_ms(rpc_timeout_ms);
     if (!status.IsOk()) {
         return finish(status);
@@ -2452,7 +2452,7 @@ MilvusClientV2Impl::runOptimize(const OptimizeRequest& request, OptimizeTask& ta
         if (indexes.empty()) {
             return Status::OK();
         }
-        task.AddProgress(progress);
+        task.addProgress(progress);
 
         for (;;) {
             auto all_finished = true;
@@ -2505,7 +2505,7 @@ MilvusClientV2Impl::runOptimize(const OptimizeRequest& request, OptimizeTask& ta
         return finish(status);
     }
 
-    task.AddProgress("compacting");
+    task.addProgress("compacting");
     CompactRequest compact_request = CompactRequest()
                                          .WithDatabaseName(request.DatabaseName())
                                          .WithCollectionName(request.CollectionName())
@@ -2521,7 +2521,7 @@ MilvusClientV2Impl::runOptimize(const OptimizeRequest& request, OptimizeTask& ta
     }
     response.SetCompactionID(compact_response.CompactionID());
 
-    task.AddProgress("waiting for compaction");
+    task.addProgress("waiting for compaction");
     for (;;) {
         GetCompactionStateRequest state_request =
             GetCompactionStateRequest().WithCompactionID(compact_response.CompactionID());
@@ -2554,7 +2554,7 @@ MilvusClientV2Impl::runOptimize(const OptimizeRequest& request, OptimizeTask& ta
         return finish(status);
     }
 
-    task.AddProgress("checking load state");
+    task.addProgress("checking load state");
     GetLoadStateRequest load_state_request =
         GetLoadStateRequest().WithDatabaseName(request.DatabaseName()).WithCollectionName(request.CollectionName());
     GetLoadStateResponse load_state_response;
@@ -2571,7 +2571,7 @@ MilvusClientV2Impl::runOptimize(const OptimizeRequest& request, OptimizeTask& ta
         if (!status.IsOk()) {
             return finish(status);
         }
-        task.AddProgress("refreshing load");
+        task.addProgress("refreshing load");
         int64_t refresh_timeout_ms = 0;
         status = remaining_timeout_ms(refresh_timeout_ms);
         if (!status.IsOk()) {
@@ -2591,7 +2591,7 @@ MilvusClientV2Impl::runOptimize(const OptimizeRequest& request, OptimizeTask& ta
             return finish(status);
         }
     } else {
-        task.AddProgress("collection not loaded; skip refreshLoad");
+        task.addProgress("collection not loaded; skip refreshLoad");
     }
 
     response.SetStatusText("success");

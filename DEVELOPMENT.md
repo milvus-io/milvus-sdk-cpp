@@ -1,24 +1,31 @@
-# Development Guide Milvus C++ SDK
-This document helps you set up your development environment and run tests for Milvus C++ SDK.
+# Milvus C++ SDK Development Guide
+
+This document explains how to set up a development environment and run tests for the Milvus C++ SDK.
 Please file an [issue](https://github.com/milvus-io/milvus-sdk-cpp/issues/new) if you have any questions.
 
-# Supported Platforms
+## Supported platforms
+
 - Linux
 - macOS
 - Windows
 
-# Build C++ SDK with your Linux
+## Tested development environments
 
-## Setup development environment
-Currently, we tested the below platform and compilers for developing Milvus C++ SDK.
+The following environments are currently exercised by CI. Compiler patch versions may change when
+runner images or distribution packages are updated.
 
-| Platform | Version      | Compiler Tested      | Support                       |
-| -------- | ------------ | -------------------- | ----------------------------- |
-| Linux    | Ubuntu 20.04 | GCC 9.3.0            | Full (Compile, Lint, Testing) |
-| Linux    | Ubuntu 22.04 | GCC 11.4             | Full (Compile, Lint, Testing) |
-| Linux    | Fedora 38/39 | GCC 11.2+            | Compile, Testing              |
-| macOS    | macOS 15     | Apple Clang           | Compile, Testing              |
-| Windows  | Windows 2022 | MSVC 2022            | Compile, Testing              |
+| Platform | Environment | Compiler | CI coverage |
+|---|---|---|---|
+| Linux | Ubuntu 20.04, AMD64 | GCC 9.4.0 | Lint, unit and mocked tests, package verification |
+| Linux | Ubuntu 22.04, AMD64 | GCC 11.4 | Unit, mocked, and system tests; coverage |
+| Linux | Fedora 39, AMD64 | GCC 13.3.1 | Unit and mocked tests, package verification |
+| macOS | macOS 15, ARM64 | Apple Clang 17 | Unit and mocked tests, package verification |
+| Windows | Windows Server 2022, AMD64 | MSVC 2022 | Build, unit tests, install and package verification |
+
+Windows CI does not run mocked integration tests because the in-process mocked gRPC server is
+unstable across the Windows executable/DLL boundary.
+
+## Set up a development environment
 
 ### Clone the code
 
@@ -37,7 +44,7 @@ $ cd milvus-sdk-cpp
 $ bash scripts/install_deps.sh
 ```
 
-This script could help you set a developing environment from a minimal installation.
+This script installs the development dependencies on supported platforms.
 
 ## Building from source
 
@@ -157,7 +164,7 @@ After the command, open **doc/html/index.html** in a web browser to view the doc
 Typically, we only publish documentation before releasing a new sdk version.
 Since the **doxygen** is not included in the `install_deps.sh`, you need to manually install it if you want to generate the documentation by yourself.
 
-# Build C++ SDK with your macOS
+## Build the C++ SDK on macOS
 
 ## Prerequisites
 - [Homebrew](https://brew.sh/)
@@ -194,11 +201,11 @@ $ make build-no-conan-debug    # debug build without Conan
 $ make build-no-conan-release  # release build without Conan
 ```
 
-# Build C++ SDK with your Windows
+## Build the C++ SDK on Windows
 
 ## Prerequisites
 - Visual Studio 2022 with C++ workload
-- [CMake](https://cmake.org/) 3.14+
+- [CMake](https://cmake.org/) 3.16+
 - [Ninja](https://ninja-build.org/) build system
 - [ccache](https://ccache.dev/) (optional, for faster rebuilds)
 
