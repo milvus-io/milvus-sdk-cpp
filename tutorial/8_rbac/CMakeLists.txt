@@ -1,0 +1,6 @@
+cmake_minimum_required(VERSION 3.16)
+project(tutorial_rbac LANGUAGES CXX)
+set(CMAKE_CXX_STANDARD 14)
+find_package(milvus_sdk CONFIG REQUIRED)
+add_executable(tutorial_rbac src/main.cpp)
+target_link_libraries(tutorial_rbac PRIVATE milvus_sdk::milvus_sdk)

@@ -33,6 +33,7 @@
 
 #include "milvus/types/BloomFilter.h"
 
+#include <array>
 #include <cmath>
 #include <cstring>
 #include <limits>
@@ -52,8 +53,8 @@ constexpr uint32_t kMinFilterBytes = 32;
 constexpr uint32_t kMaxFilterBytes = 128 * 1024 * 1024;
 
 // Fixed by the parquet-format spec, mirrored from Arrow C++'s BlockSplitBloomFilter::SALT.
-constexpr uint32_t kSalt[kWordsPerBlock] = {0x47b6137b, 0x44974d91, 0x8824ad5b, 0xa2b7289d,
-                                            0x705495c7, 0x2df1424b, 0x9efc4947, 0x5c6bfb31};
+constexpr std::array<uint32_t, kWordsPerBlock> kSalt = {0x47b6137b, 0x44974d91, 0x8824ad5b, 0xa2b7289d,
+                                                        0x705495c7, 0x2df1424b, 0x9efc4947, 0x5c6bfb31};
 
 constexpr uint64_t kPrime64_1 = 11400714785074694791ULL;
 constexpr uint64_t kPrime64_2 = 14029467366897019727ULL;
@@ -259,12 +260,12 @@ BloomFilterBuilder::BloomFilterBuilder(uint64_t n, double fpr) {
 }
 
 void
-BloomFilterBuilder::AddHash(uint64_t hash) {
+BloomFilterBuilder::addHash(uint64_t hash) {
     // Multiply-shift block reduction, as Arrow does. num_blocks_ is at most 2^22, so the
     // product cannot overflow.
-    const uint32_t block = static_cast<uint32_t>(((hash >> 32) * num_blocks_) >> 32);
+    const auto block = static_cast<uint32_t>(((hash >> 32) * num_blocks_) >> 32);
     uint8_t* blk = buf_.data() + kHeaderSize + static_cast<size_t>(block) * kBytesPerBlock;
-    const uint32_t key = static_cast<uint32_t>(hash);
+    const auto key = static_cast<uint32_t>(hash);
 
 #if defined(__BYTE_ORDER__) && __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
     // The stored words are already in host order, so the whole 32-byte block can be loaded,
@@ -272,12 +273,12 @@ BloomFilterBuilder::AddHash(uint64_t hash) {
     // turn it into a pair-load / vector-OR / pair-store: on arm64 the loop below becomes one
     // ldp + two orr.16b + stp. Doing the same work through byte-wise accessors defeats the
     // vectoriser and costs about 4x on a 10M-member build, which is why this path exists.
-    uint32_t words[kWordsPerBlock];
-    std::memcpy(words, blk, kBytesPerBlock);
+    std::array<uint32_t, kWordsPerBlock> words;
+    std::memcpy(words.data(), blk, kBytesPerBlock);
     for (uint32_t i = 0; i < kWordsPerBlock; i++) {
         words[i] |= 1u << ((key * kSalt[i]) >> 27);
     }
-    std::memcpy(blk, words, kBytesPerBlock);
+    std::memcpy(blk, words.data(), kBytesPerBlock);
 #else
     // Big-endian or unknown byte order: go through the explicit little-endian accessors so
     // the body keeps the layout the spec mandates. Correctness first; these hosts are rare.
@@ -291,14 +292,14 @@ BloomFilterBuilder::AddHash(uint64_t hash) {
 BloomFilterBuilder&
 BloomFilterBuilder::AddInt64(int64_t value) {
     domains_ |= kDomainInt64;
-    AddHash(XXH64Int64(value));
+    addHash(XXH64Int64(value));
     return *this;
 }
 
 BloomFilterBuilder&
 BloomFilterBuilder::AddString(const std::string& value) {
     domains_ |= kDomainUTF8;
-    AddHash(XXH64(reinterpret_cast<const uint8_t*>(value.data()), value.size()));
+    addHash(XXH64(reinterpret_cast<const uint8_t*>(value.data()), value.size()));
     return *this;
 }
 
@@ -309,7 +310,7 @@ BloomFilterBuilder::AddInt64s(const std::vector<int64_t>& values) {
     }
     domains_ |= kDomainInt64;
     for (const auto value : values) {
-        AddHash(XXH64Int64(value));
+        addHash(XXH64Int64(value));
     }
     return *this;
 }
@@ -321,7 +322,7 @@ BloomFilterBuilder::AddStrings(const std::vector<std::string>& values) {
     }
     domains_ |= kDomainUTF8;
     for (const auto& value : values) {
-        AddHash(XXH64(reinterpret_cast<const uint8_t*>(value.data()), value.size()));
+        addHash(XXH64(reinterpret_cast<const uint8_t*>(value.data()), value.size()));
     }
     return *this;
 }

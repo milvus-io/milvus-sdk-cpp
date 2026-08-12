@@ -14,9 +14,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-cmake_minimum_required(VERSION 3.5)
+cmake_minimum_required(VERSION 3.16)
 project(milvus_sdk LANGUAGES CXX)
 
+# Allow dependencies with older cmake_minimum_required() declarations to configure with
+# modern CMake versions (notably CMake 4.x).
 set(CMAKE_POLICY_VERSION_MINIMUM 3.5)
 set(CMAKE_VERBOSE_MAKEFILE OFF)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
@@ -60,6 +62,7 @@ set_option_category("Build")
 define_option(MILVUS_BUILD_TEST "Build with testing" OFF)
 define_option(MILVUS_BUILD_COVERAGE "Build with coverage" OFF)
 define_option(MILVUS_BUILD_EXAMPLES "Build examples" ON)
+define_option(MILVUS_ENABLE_PCH "Use precompiled headers when building the SDK" ON)
 
 if (DEFINED MILVUS_SDK_VERSION)
     message("MILVUS_SDK_VERSION = ${MILVUS_SDK_VERSION}")

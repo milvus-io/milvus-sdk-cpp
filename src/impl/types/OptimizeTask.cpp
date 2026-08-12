@@ -53,7 +53,7 @@ OptimizeTask::Cancel() {
     }
 
     cancelled_ = true;
-    progress_history_.push_back("cancelling");
+    progress_history_.emplace_back("cancelling");
     return true;
 }
 
@@ -91,40 +91,40 @@ OptimizeTask::TaskStatus() const {
 }
 
 Status
-OptimizeTask::Start(Worker worker) {
+OptimizeTask::start(Worker worker) {
     auto self = shared_from_this();
     try {
         worker_ = std::thread([self, worker]() {
             OptimizeResponse response;
             try {
                 auto status = worker(response);
-                self->Complete(status, std::move(response));
+                self->complete(status, std::move(response));
             } catch (const std::exception& e) {
                 auto status = Status{StatusCode::UNKNOWN_ERROR, "Optimization task failed: " + std::string(e.what())};
-                self->Complete(status, std::move(response));
+                self->complete(status, std::move(response));
             } catch (...) {
                 auto status = Status{StatusCode::UNKNOWN_ERROR, "Optimization task failed with unknown exception"};
-                self->Complete(status, std::move(response));
+                self->complete(status, std::move(response));
             }
         });
         worker_.detach();
     } catch (const std::system_error& e) {
         OptimizeResponse response;
         auto status = Status{StatusCode::UNKNOWN_ERROR, "Failed to start optimization task: " + std::string(e.what())};
-        Complete(status, std::move(response));
+        complete(status, std::move(response));
         return status;
     }
     return Status::OK();
 }
 
 bool
-OptimizeTask::ShouldCancel() const {
+OptimizeTask::shouldCancel() const {
     std::lock_guard<std::mutex> lock(mutex_);
     return cancelled_;
 }
 
 void
-OptimizeTask::AddProgress(const std::string& progress) {
+OptimizeTask::addProgress(const std::string& progress) {
     std::lock_guard<std::mutex> lock(mutex_);
     if (!done_ && !cancelled_) {
         progress_history_.push_back(progress);
@@ -132,7 +132,7 @@ OptimizeTask::AddProgress(const std::string& progress) {
 }
 
 void
-OptimizeTask::Complete(const Status& status, OptimizeResponse&& response) {
+OptimizeTask::complete(const Status& status, OptimizeResponse&& response) {
     std::lock_guard<std::mutex> lock(mutex_);
     if (done_) {
         return;
@@ -150,7 +150,7 @@ OptimizeTask::Complete(const Status& status, OptimizeResponse&& response) {
 }
 
 Status
-OptimizeTask::CancelledStatus() const {
+OptimizeTask::cancelledStatus() const {
     return {StatusCode::UNKNOWN_ERROR, "Optimization task was cancelled"};
 }
 

@@ -34,10 +34,10 @@ namespace milvus {
 
 class SchemaCache {
  public:
-    static constexpr size_t DEFAULT_CAPACITY = 4096;
+    static constexpr size_t default_capacity = 4096;
     using Loader = std::function<Status(CollectionDescPtr&)>;
 
-    explicit SchemaCache(size_t capacity = DEFAULT_CAPACITY);
+    explicit SchemaCache(size_t capacity = default_capacity);
 
     static SchemaCache&
     GetInstance();

@@ -88,6 +88,8 @@ class MILVUS_SDK_API BloomFilterBuilder {
      * Note: this constructor throws std::runtime_error when @a fpr is NaN or out of range.
      * Use EstimateBloomFilterSize() first if the rate comes from untrusted input.
      */
+    // Keep implicit construction for source compatibility with existing SDK users.
+    // NOLINTNEXTLINE(google-explicit-constructor)
     BloomFilterBuilder(uint64_t n, double fpr = BloomFilterDefaultFPR);
 
     /**
@@ -145,7 +147,7 @@ class MILVUS_SDK_API BloomFilterBuilder {
 
  private:
     void
-    AddHash(uint64_t hash);
+    addHash(uint64_t hash);
 
     std::vector<uint8_t> buf_;
     uint32_t num_blocks_{0};

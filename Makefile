@@ -17,11 +17,22 @@
 PWD 	:= $(shell pwd)
 V2_EXAMPLES := $(basename $(notdir $(wildcard examples/src/v2/*.cpp)))
 RUN_EXAMPLE := $(word 2,$(MAKECMDGOALS))
+TUTORIAL_DIRS := $(sort $(wildcard tutorial/[0-9]_*))
+TUTORIAL_NAMES := $(notdir $(TUTORIAL_DIRS))
+RUN_TUTORIAL := $(word 2,$(MAKECMDGOALS))
 
 ifeq ($(firstword $(MAKECMDGOALS)),run)
 ifneq ($(RUN_EXAMPLE),)
 .PHONY: $(RUN_EXAMPLE)
 $(RUN_EXAMPLE):
+	@:
+endif
+endif
+
+ifeq ($(firstword $(MAKECMDGOALS)),run-tutorial)
+ifneq ($(RUN_TUTORIAL),)
+.PHONY: $(RUN_TUTORIAL)
+$(RUN_TUTORIAL):
 	@:
 endif
 endif
@@ -73,6 +84,36 @@ test-no-conan:
 	@echo "Testing with Milvus SDK"
 	@(env bash $(PWD)/scripts/build.sh -z -u)
 
+# Configure and compile every standalone tutorial project.
+tutorials:
+	@(env JOBS=$(JOBS) bash $(PWD)/scripts/build_tutorials.sh)
+
+# Run one built tutorial from the repository root, e.g. `make run-tutorial quickstart`.
+run-tutorial:
+	@set -eu; \
+	tutorial="$(RUN_TUTORIAL)"; \
+	if [ -z "$$tutorial" ] || [ "$(words $(MAKECMDGOALS))" -ne 2 ]; then \
+		echo "Usage: make run-tutorial <tutorial>" >&2; \
+		echo "Available tutorials: $(TUTORIAL_NAMES)" >&2; \
+		exit 2; \
+	fi; \
+	dir="tutorial/$$tutorial"; \
+	if [ ! -d "$$dir" ]; then \
+		set -- tutorial/[0-9]_"$$tutorial"; \
+		if [ ! -d "$$1" ]; then \
+			echo "Unknown tutorial: $$tutorial" >&2; \
+			echo "Available tutorials: $(TUTORIAL_NAMES)" >&2; \
+			exit 2; \
+		fi; \
+		dir="$$1"; \
+	fi; \
+	if [ ! -d "$$dir/cmake_build" ]; then \
+		echo "Tutorial is not built: $$dir" >&2; \
+		echo "Build all tutorials first with: make tutorials" >&2; \
+		exit 1; \
+	fi; \
+	$(MAKE) -C "$$dir" run
+
 # Run one built V2 example by its source basename, e.g. `make run simple`.
 run:
 	@set -eu; \
@@ -122,4 +163,4 @@ clean:
 	@echo "Cleaning"
 	rm -fr cmake_build/ build/
 
-.PHONY: test clean doc package run
+.PHONY: test tutorials run-tutorial clean doc package run

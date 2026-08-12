@@ -1,0 +1,7 @@
+cmake_minimum_required(VERSION 3.16)
+project(tutorial_database LANGUAGES CXX)
+set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+find_package(milvus_sdk CONFIG REQUIRED)
+add_executable(tutorial_database src/main.cpp)
+target_link_libraries(tutorial_database PRIVATE milvus_sdk::milvus_sdk)
