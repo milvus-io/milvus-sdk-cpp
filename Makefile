@@ -15,6 +15,16 @@
 # limitations under the License.
 
 PWD 	:= $(shell pwd)
+V2_EXAMPLES := $(basename $(notdir $(wildcard examples/src/v2/*.cpp)))
+RUN_EXAMPLE := $(word 2,$(MAKECMDGOALS))
+
+ifeq ($(firstword $(MAKECMDGOALS)),run)
+ifneq ($(RUN_EXAMPLE),)
+.PHONY: $(RUN_EXAMPLE)
+$(RUN_EXAMPLE):
+	@:
+endif
+endif
 
 all-debug: build-sdk-debug
 all-release: build-sdk-release
@@ -63,6 +73,29 @@ test-no-conan:
 	@echo "Testing with Milvus SDK"
 	@(env bash $(PWD)/scripts/build.sh -z -u)
 
+# Run one built V2 example by its source basename, e.g. `make run simple`.
+run:
+	@set -eu; \
+	example="$(RUN_EXAMPLE)"; \
+	if [ -z "$$example" ] || [ "$(words $(MAKECMDGOALS))" -ne 2 ]; then \
+		echo "Usage: make run <v2-example>" >&2; \
+		echo "Available V2 examples: $(V2_EXAMPLES)" >&2; \
+		exit 2; \
+	fi; \
+	case " $(V2_EXAMPLES) " in \
+		*" $$example "*) ;; \
+		*) echo "Unknown V2 example: $$example" >&2; \
+		   echo "Available V2 examples: $(V2_EXAMPLES)" >&2; \
+		   exit 2 ;; \
+	esac; \
+	binary="$(PWD)/cmake_build/examples/v2/sdk_$${example}_v2"; \
+	if [ ! -x "$$binary" ]; then \
+		echo "Example is not built: $$binary" >&2; \
+		echo "Build it first with: cmake --build cmake_build --target sdk_$${example}_v2" >&2; \
+		exit 1; \
+	fi; \
+	GRPC_VERBOSITY=$${GRPC_VERBOSITY:-ERROR} "$$binary"
+
 st:
 	@echo "System Testing with Milvus SDK"
 	@(env bash $(PWD)/scripts/build.sh -s)
@@ -89,4 +122,4 @@ clean:
 	@echo "Cleaning"
 	rm -fr cmake_build/ build/
 
-.PHONY: test clean doc package
+.PHONY: test clean doc package run

@@ -109,9 +109,10 @@ ConnectionHandler::CurrentDbName(const std::string& overwrite_db_name) const {
     std::lock_guard<std::mutex> lock(mtx_);
     if (connection_ != nullptr) {
         const ConnectParam& param = connection_->GetConnectParam();
-        return param.DbName().empty() ? "default" : param.DbName();
+        // Preserve an empty database for the RPC. Cache keys normalize it to "default" separately.
+        return param.DbName();
     }
-    return "default";
+    return "";
 }
 
 std::string
