@@ -101,7 +101,7 @@ Trim(const std::string& value) {
         --last;
     }
 
-    return std::string(first, last);
+    return {first, last};
 }
 
 std::string

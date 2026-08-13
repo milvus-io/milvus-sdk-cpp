@@ -95,19 +95,19 @@ class MILVUS_SDK_API OptimizeTask : public std::enable_shared_from_this<Optimize
     using Worker = std::function<Status(OptimizeResponse&)>;
 
     Status
-    Start(Worker worker);
+    start(Worker worker);
 
     bool
-    ShouldCancel() const;
+    shouldCancel() const;
 
     void
-    AddProgress(const std::string& progress);
+    addProgress(const std::string& progress);
 
     void
-    Complete(const Status& status, OptimizeResponse&& response);
+    complete(const Status& status, OptimizeResponse&& response);
 
     Status
-    CancelledStatus() const;
+    cancelledStatus() const;
 
  private:
     mutable std::mutex mutex_;

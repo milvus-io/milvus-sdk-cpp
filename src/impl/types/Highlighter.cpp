@@ -40,21 +40,21 @@ LexicalHighlighter::HighlightType() const {
 LexicalHighlighter&
 LexicalHighlighter::WithHighlightQueries(const std::vector<HighlightQuery>& queries) {
     highlight_queries_ = queries;
-    SyncHighlightQueries();
+    syncHighlightQueries();
     return *this;
 }
 
 LexicalHighlighter&
 LexicalHighlighter::AddHighlightQuery(HighlightQuery query) {
     highlight_queries_.emplace_back(std::move(query));
-    SyncHighlightQueries();
+    syncHighlightQueries();
     return *this;
 }
 
 LexicalHighlighter&
 LexicalHighlighter::AddHighlightQuery(std::string type, std::string field, std::string text) {
     highlight_queries_.push_back({std::move(type), std::move(field), std::move(text)});
-    SyncHighlightQueries();
+    syncHighlightQueries();
     return *this;
 }
 
@@ -67,28 +67,28 @@ LexicalHighlighter::WithHighlightSearchText(bool value) {
 LexicalHighlighter&
 LexicalHighlighter::WithPreTags(const std::vector<std::string>& tags) {
     pre_tags_ = tags;
-    SyncPreTags();
+    syncPreTags();
     return *this;
 }
 
 LexicalHighlighter&
 LexicalHighlighter::AddPreTag(std::string tag) {
     pre_tags_.emplace_back(std::move(tag));
-    SyncPreTags();
+    syncPreTags();
     return *this;
 }
 
 LexicalHighlighter&
 LexicalHighlighter::WithPostTags(const std::vector<std::string>& tags) {
     post_tags_ = tags;
-    SyncPostTags();
+    syncPostTags();
     return *this;
 }
 
 LexicalHighlighter&
 LexicalHighlighter::AddPostTag(std::string tag) {
     post_tags_.emplace_back(std::move(tag));
-    SyncPostTags();
+    syncPostTags();
     return *this;
 }
 
@@ -111,7 +111,7 @@ LexicalHighlighter::WithNumOfFragments(int64_t value) {
 }
 
 void
-LexicalHighlighter::SyncHighlightQueries() {
+LexicalHighlighter::syncHighlightQueries() {
     nlohmann::json queries = nlohmann::json::array();
     for (const auto& query : highlight_queries_) {
         queries.push_back({{"type", query.type}, {"field", query.field}, {"text", query.text}});
@@ -120,12 +120,12 @@ LexicalHighlighter::SyncHighlightQueries() {
 }
 
 void
-LexicalHighlighter::SyncPreTags() {
+LexicalHighlighter::syncPreTags() {
     SetParam("pre_tags", nlohmann::json(pre_tags_).dump());
 }
 
 void
-LexicalHighlighter::SyncPostTags() {
+LexicalHighlighter::syncPostTags() {
     SetParam("post_tags", nlohmann::json(post_tags_).dump());
 }
 
@@ -138,56 +138,56 @@ SemanticHighlighter::HighlightType() const {
 SemanticHighlighter&
 SemanticHighlighter::WithQueries(const std::vector<std::string>& queries) {
     queries_ = queries;
-    SyncQueries();
+    syncQueries();
     return *this;
 }
 
 SemanticHighlighter&
 SemanticHighlighter::AddQuery(std::string query) {
     queries_.emplace_back(std::move(query));
-    SyncQueries();
+    syncQueries();
     return *this;
 }
 
 SemanticHighlighter&
 SemanticHighlighter::WithInputFields(const std::vector<std::string>& input_fields) {
     input_fields_ = input_fields;
-    SyncInputFields();
+    syncInputFields();
     return *this;
 }
 
 SemanticHighlighter&
 SemanticHighlighter::AddInputField(std::string input_field) {
     input_fields_.emplace_back(std::move(input_field));
-    SyncInputFields();
+    syncInputFields();
     return *this;
 }
 
 SemanticHighlighter&
 SemanticHighlighter::WithPreTags(const std::vector<std::string>& tags) {
     pre_tags_ = tags;
-    SyncPreTags();
+    syncPreTags();
     return *this;
 }
 
 SemanticHighlighter&
 SemanticHighlighter::AddPreTag(std::string tag) {
     pre_tags_.emplace_back(std::move(tag));
-    SyncPreTags();
+    syncPreTags();
     return *this;
 }
 
 SemanticHighlighter&
 SemanticHighlighter::WithPostTags(const std::vector<std::string>& tags) {
     post_tags_ = tags;
-    SyncPostTags();
+    syncPostTags();
     return *this;
 }
 
 SemanticHighlighter&
 SemanticHighlighter::AddPostTag(std::string tag) {
     post_tags_.emplace_back(std::move(tag));
-    SyncPostTags();
+    syncPostTags();
     return *this;
 }
 
@@ -216,22 +216,22 @@ SemanticHighlighter::WithMaxClientBatchSize(int64_t value) {
 }
 
 void
-SemanticHighlighter::SyncQueries() {
+SemanticHighlighter::syncQueries() {
     SetParam("queries", nlohmann::json(queries_).dump());
 }
 
 void
-SemanticHighlighter::SyncInputFields() {
+SemanticHighlighter::syncInputFields() {
     SetParam("input_fields", nlohmann::json(input_fields_).dump());
 }
 
 void
-SemanticHighlighter::SyncPreTags() {
+SemanticHighlighter::syncPreTags() {
     SetParam("pre_tags", nlohmann::json(pre_tags_).dump());
 }
 
 void
-SemanticHighlighter::SyncPostTags() {
+SemanticHighlighter::syncPostTags() {
     SetParam("post_tags", nlohmann::json(post_tags_).dump());
 }
 
