@@ -36,19 +36,22 @@ target_include_directories(milvus_sdk_objects PUBLIC
         $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)
 target_include_directories(milvus_sdk_objects PRIVATE ${PROJECT_SOURCE_DIR}/thirdparty)
 
-# precompile heavy headers to speed up compilation
-target_precompile_headers(milvus_sdk_objects PRIVATE
-    <string>
-    <vector>
-    <map>
-    <memory>
-    <unordered_map>
-    <milvus/thirdparty/nlohmann/json.hpp>
-    "${PROTO_BINARY_DIR}/common.pb.h"
-    "${PROTO_BINARY_DIR}/schema.pb.h"
-    "${PROTO_BINARY_DIR}/milvus.pb.h"
-    "${PROTO_BINARY_DIR}/milvus.grpc.pb.h"
-)
+# Precompile heavy headers to speed up normal builds. Lint builds disable this because clang-tidy
+# cannot consume a GCC-generated precompiled header.
+if (MILVUS_ENABLE_PCH)
+    target_precompile_headers(milvus_sdk_objects PRIVATE
+        <string>
+        <vector>
+        <map>
+        <memory>
+        <unordered_map>
+        <milvus/thirdparty/nlohmann/json.hpp>
+        "${PROTO_BINARY_DIR}/common.pb.h"
+        "${PROTO_BINARY_DIR}/schema.pb.h"
+        "${PROTO_BINARY_DIR}/milvus.pb.h"
+        "${PROTO_BINARY_DIR}/milvus.grpc.pb.h"
+    )
+endif ()
 
 add_library(milvus_sdk $<TARGET_OBJECTS:milvus_sdk_objects>)
 if (WIN32 AND BUILD_SHARED_LIBS)

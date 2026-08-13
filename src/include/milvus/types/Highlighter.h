@@ -38,7 +38,7 @@ class MILVUS_SDK_API Highlighter {
 
  protected:
     void
-    SetParam(const std::string& key, std::string value);
+    SetParam(const std::string& key, std::string value);  // NOLINT(readability-identifier-naming)
 
     std::unordered_map<std::string, std::string> params_;
 };
@@ -91,13 +91,13 @@ class MILVUS_SDK_API LexicalHighlighter : public Highlighter {
 
  private:
     void
-    SyncHighlightQueries();
+    syncHighlightQueries();
 
     void
-    SyncPreTags();
+    syncPreTags();
 
     void
-    SyncPostTags();
+    syncPostTags();
 
     std::vector<HighlightQuery> highlight_queries_;
     std::vector<std::string> pre_tags_;
@@ -147,16 +147,16 @@ class MILVUS_SDK_API SemanticHighlighter : public Highlighter {
 
  private:
     void
-    SyncQueries();
+    syncQueries();
 
     void
-    SyncInputFields();
+    syncInputFields();
 
     void
-    SyncPreTags();
+    syncPreTags();
 
     void
-    SyncPostTags();
+    syncPostTags();
 
     std::vector<std::string> queries_;
     std::vector<std::string> input_fields_;

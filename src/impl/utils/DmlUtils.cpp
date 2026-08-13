@@ -432,7 +432,7 @@ CreateProtoVectorField(const SparseFloatVecFieldData& field, bool nullable, int6
     auto& data = field.Data();
     auto& vectors_data = *(ret->mutable_sparse_float_vector()->mutable_contents());
     vectors_data.Reserve(static_cast<int>(data.size()));
-    size_t max_dim = static_cast<size_t>(schema_dim);
+    auto max_dim = static_cast<size_t>(schema_dim);
     for (size_t i = 0; i < data.size(); ++i) {
         if (nullable && field.IsNull(i)) {
             continue;

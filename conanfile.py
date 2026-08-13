@@ -69,6 +69,7 @@ class MilvusSdkCppConan(ConanFile):
 
         # Map upstream options
         tc.variables["MILVUS_BUILD_TEST"] = bool(self.options.with_tests)
+        tc.variables["MILVUS_BUILD_EXAMPLES"] = False
         tc.variables["BUILD_FROM_CONAN"] = "ON"
 
         # Disable the legacy thirdparty switches. We'll use Conan targets.

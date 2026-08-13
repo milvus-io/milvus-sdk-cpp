@@ -14,7 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-cmake_minimum_required(VERSION 3.5)
+cmake_minimum_required(VERSION 3.16)
 project(milvus_sdk_example LANGUAGES CXX C)
 
 message(STATUS "  CMAKE_SOURCE_DIR: ${CMAKE_SOURCE_DIR}")
