@@ -99,8 +99,9 @@ jobs:
           key: linux-${{ matrix.os.key }}-ccache-${{ github.sha }}
           restore-keys: linux-${{ matrix.os.key }}-ccache-
       - name: Prepare
+        timeout-minutes: 30
         run: |
-          sh scripts/install_deps.sh
+          timeout -k 10 1800 sh scripts/install_deps.sh
       - name: Lint
         if: ${{ matrix.os.distro == 'Ubuntu' }}
         run: |
@@ -153,8 +154,10 @@ jobs:
         with:
           python-version: '3.8'
       - name: Prepare
+        timeout-minutes: 30
         run: |
-          sh scripts/install_deps.sh
+          printf 'Acquire::http::Timeout "15";\nAcquire::https::Timeout "15";\nAcquire::Retries "1";\n' | sudo tee /etc/apt/apt.conf.d/99network-timeouts >/dev/null
+          timeout -k 10 1800 sh scripts/install_deps.sh
       - name: Testing With Coverage
         run: |
           JOBS=4 CMAKE_BUILD_EXAMPLES=OFF make coverage
@@ -192,10 +195,12 @@ jobs:
           key: macos-15-ccache-${{ github.sha }}
           restore-keys: macos-15-ccache-
       - name: Prepare
+        timeout-minutes: 30
         run: |
           mkdir ~/.venv
           python3 -m venv ~/.venv
           source ~/.venv/bin/activate
+          # GNU timeout is not available on macOS; the step's timeout-minutes covers the limit
           sh scripts/install_deps.sh
       - name: Unit Testing
         run: |
@@ -232,6 +237,7 @@ jobs:
           restore-keys: windows-ccache-
       - name: Install dependencies on windows
         shell: cmd
+        timeout-minutes: 30
         run: |
           choco install cmake ninja --no-progress
           if errorlevel 1 exit /b 1

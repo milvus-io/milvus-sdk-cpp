@@ -81,6 +81,7 @@ using FieldDataPtr = std::shared_ptr<Field>;
  *  FloatFieldData for float scalar field \n
  *  DoubleFieldData for double scalar field \n
  *  VarCharFieldData for string scalar field \n
+ *  TextFieldData for text scalar field \n
  *  JSONFieldData for JSON scalar field (supported since 2.4) \n
  *  BinaryVecFieldData for float vector field \n
  *  FloatVecFieldData for binary vector field \n
@@ -210,6 +211,7 @@ class FieldData : public Field {
  *  ArrayFloatFieldDataPtr for float array field \n
  *  ArrayDoubleFieldData for double array field \n
  *  ArrayVarCharFieldData for string array field \n
+ *  ArrayTextFieldData for text array field \n
  */
 template <typename T, DataType Et>
 class ArrayFieldData : public FieldData<std::vector<T>, DataType::ARRAY> {
@@ -371,6 +373,7 @@ using FloatFieldData = FieldData<float, DataType::FLOAT>;
 using DoubleFieldData = FieldData<double, DataType::DOUBLE>;
 using VarCharFieldData = FieldData<std::string, DataType::VARCHAR>;
 using GeometryFieldData = VarCharFieldData;     // geometry field data is passed as string
+using TextFieldData = VarCharFieldData;         // text field data is passed as string
 using TimestamptzFieldData = VarCharFieldData;  // timestamptz field data is passed as string
 using JSONFieldData = FieldData<nlohmann::json, DataType::JSON>;
 using FloatVecFieldData = FieldData<std::vector<float>, DataType::FLOAT_VECTOR>;
@@ -387,6 +390,7 @@ using ArrayInt64FieldData = ArrayFieldData<int64_t, DataType::INT64>;
 using ArrayFloatFieldData = ArrayFieldData<float, DataType::FLOAT>;
 using ArrayDoubleFieldData = ArrayFieldData<double, DataType::DOUBLE>;
 using ArrayVarCharFieldData = ArrayFieldData<std::string, DataType::VARCHAR>;
+using ArrayTextFieldData = ArrayVarCharFieldData;  // text array element data is passed as string
 
 using StructFieldData = ArrayFieldData<nlohmann::json, DataType::STRUCT>;
 
@@ -399,6 +403,7 @@ using FloatFieldDataPtr = std::shared_ptr<FloatFieldData>;
 using DoubleFieldDataPtr = std::shared_ptr<DoubleFieldData>;
 using VarCharFieldDataPtr = std::shared_ptr<VarCharFieldData>;
 using GeometryFieldDataPtr = VarCharFieldDataPtr;     // geometry field data is passed as string
+using TextFieldDataPtr = VarCharFieldDataPtr;         // text field data is passed as string
 using TimestamptzFieldDataPtr = VarCharFieldDataPtr;  // timestamptz field data is passed as string
 using JSONFieldDataPtr = std::shared_ptr<JSONFieldData>;
 using BinaryVecFieldDataPtr = std::shared_ptr<BinaryVecFieldData>;
@@ -416,6 +421,7 @@ using ArrayInt64FieldDataPtr = std::shared_ptr<ArrayInt64FieldData>;
 using ArrayFloatFieldDataPtr = std::shared_ptr<ArrayFloatFieldData>;
 using ArrayDoubleFieldDataPtr = std::shared_ptr<ArrayDoubleFieldData>;
 using ArrayVarCharFieldDataPtr = std::shared_ptr<ArrayVarCharFieldData>;
+using ArrayTextFieldDataPtr = std::shared_ptr<ArrayTextFieldData>;
 
 using StructFieldDataPtr = std::shared_ptr<StructFieldData>;
 

@@ -68,6 +68,33 @@ insertData(milvus::MilvusClientV2Ptr& client) {
 }
 
 void
+insertDataColumnBased(milvus::MilvusClientV2Ptr& client) {
+    // column-based insert: the timestamptz field data is carried as string (VarCharFieldData)
+    std::vector<int64_t> ids;
+    std::vector<std::string> timestamps;
+    std::vector<std::vector<float>> vectors;
+    std::cout << "\nInsert timezones by column-based" << std::endl;
+    for (auto i = 0; i < 5; i++) {
+        ids.push_back(i + 100);
+        vectors.push_back(util::GenerateFloatVector(dimension));
+        std::string ts = formatDateWithTimezone(2026, 01, i + 1, 0, 0, 0);
+        timestamps.emplace_back(ts);
+        std::cout << "\t" << ts << std::endl;
+    }
+
+    milvus::InsertResponse resp_insert;
+    auto status = client->Insert(
+        milvus::InsertRequest()
+            .WithCollectionName(collection_name)
+            .AddColumnData(std::make_shared<milvus::Int64FieldData>(field_id, std::move(ids)))
+            .AddColumnData(std::make_shared<milvus::TimestamptzFieldData>(field_timestamp, std::move(timestamps)))
+            .AddColumnData(std::make_shared<milvus::FloatVecFieldData>(field_vector, std::move(vectors))),
+        resp_insert);
+    util::CheckStatus("insert column-based", status);
+    std::cout << resp_insert.Results().InsertCount() << " rows inserted by column-based." << std::endl;
+}
+
+void
 query(milvus::MilvusClientV2Ptr& client, const std::string& timezone) {
     auto request = milvus::QueryRequest()
                        .WithCollectionName(collection_name)
@@ -178,6 +205,7 @@ main(int argc, char* argv[]) {
 
     // insert some rows
     insertData(client);
+    insertDataColumnBased(client);
 
     {
         // get row count

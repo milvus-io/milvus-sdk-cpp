@@ -73,6 +73,8 @@ def start_milvus_container(port: int = milvus_port, image: str = milvus_image, t
             "ETCD_USE_EMBED": "true",
             "ETCD_DATA_DIR": "/var/lib/milvus/etcd",
             "COMMON_STORAGETYPE": "local",
+            # Storage V3 is required to create collections containing TEXT fields
+            "COMMON_STORAGE_USELOONFFI": "true",
             "DEPLOY_MODE": "STANDALONE",
         },
         ports={"19530/tcp": port},

@@ -289,6 +289,8 @@ operator==(const proto::schema::FieldData& lhs, const Field& rhs) {
             return lhs == dynamic_cast<const DoubleFieldData&>(rhs);
         case DataType::VARCHAR:
             return lhs == dynamic_cast<const VarCharFieldData&>(rhs);
+        case DataType::TEXT:
+            return lhs == dynamic_cast<const TextFieldData&>(rhs);
         case DataType::JSON:
             return lhs == dynamic_cast<const JSONFieldData&>(rhs);
         case DataType::BINARY_VECTOR:

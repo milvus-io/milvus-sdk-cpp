@@ -307,6 +307,54 @@ TEST_F(DqlUtilsTest, GetRowsFromNullableVectorFields) {
     EXPECT_EQ(rows[1]["float16_vector"].size(), 2);
 }
 
+TEST_F(DqlUtilsTest, DecodeTextFieldData) {
+    milvus::proto::schema::FieldData text_proto;
+    text_proto.set_field_name("body");
+    text_proto.set_type(milvus::proto::schema::DataType::Text);
+    auto& string_data = *text_proto.mutable_scalars()->mutable_string_data()->mutable_data();
+    string_data.Add("first");
+    string_data.Add("second");
+
+    milvus::FieldDataPtr text_field;
+    auto status = milvus::CreateMilvusFieldData(text_proto, text_field);
+    ASSERT_TRUE(status.IsOk()) << status.Message();
+    EXPECT_EQ(text_field->Count(), 2);
+
+    milvus::EntityRows rows;
+    status = milvus::GetRowsFromFieldsData({text_field}, {"body"}, rows);
+    ASSERT_TRUE(status.IsOk()) << status.Message();
+    ASSERT_EQ(rows.size(), 2);
+    EXPECT_EQ(rows[0]["body"], "first");
+    EXPECT_EQ(rows[1]["body"], "second");
+}
+
+TEST_F(DqlUtilsTest, DecodeArrayOfTextFieldData) {
+    milvus::proto::schema::FieldData array_proto;
+    array_proto.set_field_name("paragraphs");
+    array_proto.set_type(milvus::proto::schema::DataType::Array);
+    auto* array_data = array_proto.mutable_scalars()->mutable_array_data();
+    array_data->set_element_type(milvus::proto::schema::DataType::Text);
+    {
+        auto* row = array_data->add_data();
+        row->mutable_string_data()->add_data("first");
+        row->mutable_string_data()->add_data("second");
+    }
+    {
+        auto* row = array_data->add_data();
+        row->mutable_string_data()->add_data("third");
+    }
+
+    milvus::FieldDataPtr array_field;
+    auto status = milvus::CreateMilvusFieldData(array_proto, array_field);
+    ASSERT_TRUE(status.IsOk()) << status.Message();
+    EXPECT_EQ(array_field->Count(), 2);
+
+    auto typed = std::dynamic_pointer_cast<milvus::ArrayVarCharFieldData>(array_field);
+    ASSERT_NE(typed, nullptr);
+    EXPECT_EQ(typed->Value(0), (std::vector<std::string>{"first", "second"}));
+    EXPECT_EQ(typed->Value(1), (std::vector<std::string>{"third"}));
+}
+
 TEST_F(DqlUtilsTest, GetRowsFromStructBinaryVectorFieldData) {
     std::vector<std::vector<nlohmann::json>> structs = {
         {nlohmann::json{{"st_bin", std::vector<uint8_t>{0x01, 0x02}}}},

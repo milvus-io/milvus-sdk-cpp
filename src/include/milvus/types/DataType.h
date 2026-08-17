@@ -24,6 +24,12 @@ namespace milvus {
 
 /**
  * @brief Data type of field
+ *
+ * The numeric values MUST match the corresponding values of
+ * proto::schema::DataType in milvus-proto (see schema.proto), so that
+ * DataTypeCast() can map between them. Do not renumber existing values or
+ * reuse a slot that is already taken; add new types with the matching proto
+ * value. Existing values are part of the public API and must stay stable.
  */
 enum class DataType {
     UNKNOWN = 0,
@@ -44,6 +50,7 @@ enum class DataType {
     ARRAY = 22,
     JSON = 23,
     GEOMETRY = 24,
+    TEXT = 25,
     TIMESTAMPTZ = 26,
 
     BINARY_VECTOR = 100,

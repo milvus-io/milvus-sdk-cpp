@@ -146,6 +146,36 @@ BuildFieldsData(const milvus::CollectionSchema& schema, std::vector<milvus::Fiel
                 fields_data.emplace_back(std::move(ptr));
                 break;
             }
+            case milvus::DataType::GEOMETRY: {
+                std::vector<std::string> data;
+                data.reserve(row_count);
+                for (int i = 0; i < row_count; i++) {
+                    data.push_back("POINT (" + std::to_string(i) + " " + std::to_string(i) + ")");
+                }
+                auto ptr = std::make_shared<milvus::GeometryFieldData>(field_name, std::move(data));
+                fields_data.emplace_back(std::move(ptr));
+                break;
+            }
+            case milvus::DataType::TEXT: {
+                std::vector<std::string> data;
+                data.reserve(row_count);
+                for (int i = 0; i < row_count; i++) {
+                    data.push_back("text_" + std::to_string(i));
+                }
+                auto ptr = std::make_shared<milvus::TextFieldData>(field_name, std::move(data));
+                fields_data.emplace_back(std::move(ptr));
+                break;
+            }
+            case milvus::DataType::TIMESTAMPTZ: {
+                std::vector<std::string> data;
+                data.reserve(row_count);
+                for (int i = 0; i < row_count; i++) {
+                    data.push_back("2025-01-01T00:00:0" + std::to_string(i % 10) + "+00:00");
+                }
+                auto ptr = std::make_shared<milvus::TimestamptzFieldData>(field_name, std::move(data));
+                fields_data.emplace_back(std::move(ptr));
+                break;
+            }
             case milvus::DataType::JSON: {
                 std::vector<nlohmann::json> data;
                 data.reserve(row_count);
@@ -235,6 +265,16 @@ BuildFieldsData(const milvus::CollectionSchema& schema, std::vector<milvus::Fiel
                             data.push_back({std::to_string(i % 128), std::to_string(i % 25)});
                         }
                         auto ptr = std::make_shared<milvus::ArrayVarCharFieldData>(field_name, std::move(data));
+                        fields_data.emplace_back(std::move(ptr));
+                        break;
+                    }
+                    case milvus::DataType::TEXT: {
+                        std::vector<std::vector<std::string>> data;
+                        data.reserve(row_count);
+                        for (int i = 0; i < row_count; i++) {
+                            data.push_back({std::to_string(i % 128), std::to_string(i % 25)});
+                        }
+                        auto ptr = std::make_shared<milvus::ArrayTextFieldData>(field_name, std::move(data));
                         fields_data.emplace_back(std::move(ptr));
                         break;
                     }

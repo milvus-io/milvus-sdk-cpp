@@ -152,8 +152,9 @@ jobs:
         with:
           ref: ${{ needs.select-targets.outputs.tag }}
       - name: Prepare
+        timeout-minutes: 30
         run: |
-          sh scripts/install_deps.sh
+          timeout -k 10 1800 sh scripts/install_deps.sh
       - name: Build
         run: |
           . ~/.venv/bin/activate
@@ -190,10 +191,12 @@ jobs:
         with:
           ref: ${{ needs.select-targets.outputs.tag }}
       - name: Prepare
+        timeout-minutes: 30
         run: |
           mkdir ~/.venv
           python3 -m venv ~/.venv
           source ~/.venv/bin/activate
+          # GNU timeout is not available on macOS; the step's timeout-minutes covers the limit
           sh scripts/install_deps.sh
       - name: Build
         run: |

@@ -60,6 +60,9 @@ for example in "${all_examples[@]}"; do
         sdk_add_field_v2)
             echo "Skipping ${example_name} because its function-backed field demo requires additional server settings."
             ;;
+        sdk_text_field_v2)
+            echo "Skipping ${example_name} because it requires the Milvus server to enable common.storage.useLoonFFI (Storage V3)."
+            ;;
         *)
             examples+=("${example}")
             ;;
