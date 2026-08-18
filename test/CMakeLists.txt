@@ -48,6 +48,11 @@ file(GLOB_RECURSE ut_files
 add_executable(testing-ut ${ut_files})
 target_compile_options(testing-ut PRIVATE $<$<CXX_COMPILER_ID:MSVC>:/bigobj>)
 target_include_directories(testing-ut PRIVATE ${PROJECT_SOURCE_DIR}/thirdparty)
+# Golden vectors that are too large to inline in a test source, e.g. the 90 KB roaring bitmap
+# set the other Milvus SDKs carry verbatim: MSVC caps a single string literal at 16380 bytes.
+# The path is absolute so the binary finds them from any working directory, as the Windows CI
+# job needs.
+target_compile_definitions(testing-ut PRIVATE MILVUS_UT_TESTDATA_DIR="${UT_DIR}/testdata")
 link_milvus_test(testing-ut)
 
 set(IT_DIR "${CMAKE_CURRENT_SOURCE_DIR}/it")
