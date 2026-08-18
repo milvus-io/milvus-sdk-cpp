@@ -353,7 +353,7 @@ class ClientTelemetryManager::Impl {
           client_id(stable_client_id ? value.client_id
                                      : (runtime_client_id.empty() ? RandomUuid() : runtime_client_id)) {
         if (config.heartbeat_interval_ms == 0) {
-            config.heartbeat_interval_ms = 30000;
+            config.heartbeat_interval_ms = 10000;
         }
         config.sampling_rate = std::max(0.0, std::min(1.0, config.sampling_rate));
         if (config.error_max_count == 0) {

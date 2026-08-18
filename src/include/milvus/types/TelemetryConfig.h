@@ -21,7 +21,11 @@ namespace milvus {
 /** Client metrics, heartbeat, and server-pushed command configuration. */
 struct MILVUS_SDK_API TelemetryConfig {
     bool enabled{true};
-    uint64_t heartbeat_interval_ms{30000};
+    // Milliseconds between heartbeats, and therefore the metrics window: each heartbeat
+    // carries the operations since the last one. The coordinator answers a telemetry query
+    // from the window before the newest, so what a caller reads is between one and two
+    // intervals old.
+    uint64_t heartbeat_interval_ms{10000};
     double sampling_rate{1.0};
     size_t error_max_count{100};
 
