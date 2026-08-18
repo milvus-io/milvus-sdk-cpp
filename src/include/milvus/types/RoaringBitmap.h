@@ -131,6 +131,20 @@ class MILVUS_SDK_API RoaringBitmapBuilder {
     AddInt64(T value) = delete;
 
     /**
+     * @brief Reject 64-bit unsigned members at compile time rather than wrapping them.
+     *
+     * A uint64_t above INT64_MAX converts to a negative int64_t, so UINT64_MAX would be inserted
+     * as the member -1 and roaring_match would report an exact match on a value the caller never
+     * supplied. Narrower unsigned types are not deleted: they all widen to int64_t losslessly.
+     * A caller who really holds uint64_t ids must say which signed value it means.
+     */
+    template <typename T,
+              typename = typename std::enable_if<std::is_unsigned<T>::value && (sizeof(T) > sizeof(uint32_t))>::type,
+              typename = void>
+    RoaringBitmapBuilder&
+    AddInt64(T value) = delete;
+
+    /**
      * @brief The number of distinct members inserted so far.
      */
     uint64_t

@@ -330,8 +330,9 @@ TEST(RoaringBitmapTest, RejectsAnOversizedDecodedBitmap) {
 
 // C++ types the members for us, so the input-type rejection the other SDKs do at run time is a
 // compile-time matter here: a string or a null cannot reach AddInt64 at all, and every value in
-// [-2^63, 2^63) is a legal member. The one hole the type system leaves open is a float, which
-// would convert silently and shift the member, so that overload is deleted.
+// [-2^63, 2^63) is a legal member. The type system leaves two holes, and both overloads are
+// deleted: a float would convert silently and shift the member, and a uint64_t above INT64_MAX
+// would wrap, so UINT64_MAX would silently become the member -1.
 TEST(RoaringBitmapTest, RejectsFloatingPointMembers) {
     static_assert(AcceptsMember<int64_t>::value, "int64 members must be accepted");
     static_assert(AcceptsMember<int8_t>::value, "narrow signed members must be accepted");
@@ -339,6 +340,15 @@ TEST(RoaringBitmapTest, RejectsFloatingPointMembers) {
     static_assert(!AcceptsMember<double>::value, "a double member must not compile");
     static_assert(!AcceptsMember<float>::value, "a float member must not compile");
     static_assert(!AcceptsMember<const char*>::value, "a string member must not compile");
+
+    // Unsigned types that widen losslessly stay usable; only the 64-bit ones, which are the only
+    // ones that can carry a value int64_t cannot represent, are rejected.
+    static_assert(AcceptsMember<uint8_t>::value, "narrow unsigned members must be accepted");
+    static_assert(AcceptsMember<uint16_t>::value, "narrow unsigned members must be accepted");
+    static_assert(AcceptsMember<uint32_t>::value, "narrow unsigned members must be accepted");
+    static_assert(!AcceptsMember<uint64_t>::value, "a uint64 member must not compile");
+    static_assert(!AcceptsMember<unsigned long long>::value,  // NOLINT(runtime/int)
+                  "a uint64 member must not compile");
 
     // The whole int64 range is legal, including both ends.
     milvus::RoaringBitmapBuilder builder;
