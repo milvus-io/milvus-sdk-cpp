@@ -47,7 +47,11 @@ namespace {
 
 constexpr size_t kSampleBufferSize = 1000;
 constexpr size_t kSnapshotLimit = 120;
-constexpr uint64_t kSamplingDenominator = 10000;
+// Fixed-point unit for accumulating a fractional sampling rate. A rate becomes an integer
+// step of this many units, so the smallest rate that still samples is 1e-9 -- far below
+// anything an operator would set, which is the point: a configured rate must never round
+// down to "off".
+constexpr uint64_t kSamplingScale = 1000000000ULL;
 constexpr size_t kMaxReplyBytes = 1024 * 1024;
 constexpr uint64_t kMaxUnsupportedBackoffMs = 30 * 60 * 1000;
 
@@ -797,7 +801,10 @@ class ClientTelemetryManager::Impl {
     bool ready{false};
     bool stopped{true};
     int unsupported_streak{0};
-    uint64_t sampling_counter{0};
+    // Carries the fractional sampling rate between operations, in kSamplingScale units:
+    // each operation adds the rate and the one that pushes it past a whole unit is the one
+    // sampled.
+    uint64_t sampling_accum{0};
     int64_t last_command_timestamp{0};
     int64_t last_snapshot_end{0};
     std::string config_hash;
@@ -899,8 +906,19 @@ ClientTelemetryManager::RecordOperation(const std::string& operation, const goog
     auto rate = impl_->config.sampling_rate;
     bool sampled = rate >= 1.0;
     if (rate > 0.0 && rate < 1.0) {
-        auto threshold = static_cast<uint64_t>(rate * kSamplingDenominator);
-        sampled = threshold > 0 && ++impl_->sampling_counter % kSamplingDenominator < threshold;
+        // Sample on the operation that carries the accumulator across a whole unit, so the
+        // sampled operations are spread evenly: at 0.25 that is every fourth one. The
+        // ratio has to hold over any stretch of operations, not only over a long one --
+        // metrics are reported per heartbeat window, and a window is tens or hundreds of
+        // operations, so sampling a contiguous run would make each window either complete
+        // or empty. A rate too small to represent still samples rarely rather than never.
+        auto step = static_cast<uint64_t>(rate * kSamplingScale);
+        if (step == 0) {
+            step = 1;
+        }
+        auto before = impl_->sampling_accum;
+        impl_->sampling_accum = before + step;
+        sampled = impl_->sampling_accum / kSamplingScale != before / kSamplingScale;
     }
     if (!sampled) {
         return;
