@@ -412,14 +412,12 @@ TEST(RoaringBitmapTest, ReachesTheWireThroughThePublicApi) {
     status = search.AddFilterTemplate("ids", ids);
     ASSERT_TRUE(status.IsOk()) << "SearchArguments rejected the blob: " << status.Message();
 
-    // Delete goes through the same converter. Its templates are set as a map rather than with
-    // DeleteRequest::AddFilterTemplate because that name carries two overloads --
-    // (std::string, json&&) and (const std::string&, json&&) -- whose calls are ambiguous for
-    // every argument, so it cannot be called at all. That is a pre-existing wart unrelated to
-    // this feature.
+    // Delete goes through the same converter, and it is the reason roaring_match exists as
+    // something distinct from bloom_match: an exact filter is safe to delete through, while a
+    // bloom filter's false positives would delete rows outside the intended set, so the server
+    // permits roaring_match in a delete expression and rejects bloom_match.
     milvus::DeleteRequest remove;
-    remove.WithFilter("roaring_match(user_id, {ids})")
-        .WithFilterTemplates(std::unordered_map<std::string, nlohmann::json>{{"ids", ids}});
+    remove.WithFilter("roaring_match(user_id, {ids})").AddFilterTemplate("ids", nlohmann::json(ids));
 
     for (const auto& templates : {query.FilterTemplates(), search.FilterTemplates(), remove.FilterTemplates()}) {
         ::google::protobuf::Map<std::string, milvus::proto::schema::TemplateValue> rpc_templates;

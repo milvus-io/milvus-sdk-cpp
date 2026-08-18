@@ -86,12 +86,6 @@ class MILVUS_SDK_API DeleteRequest : public DMLRequestBase<DeleteRequest> {
     WithFilterTemplates(std::unordered_map<std::string, nlohmann::json>&& filter_templates);
 
     /**
-     * @brief Add a filter template. Only take effect when filter is not empty.
-     */
-    DeleteRequest&
-    AddFilterTemplate(const std::string& key, nlohmann::json&& filter_template);
-
-    /**
      * @brief Get primary keys to be deleted. Only take effect when filter is empty.
      */
     const IDArray&
