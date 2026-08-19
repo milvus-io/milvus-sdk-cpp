@@ -340,6 +340,40 @@ TEST(RoaringBitmapTest, RejectsAnOversizedDecodedBitmap) {
 
     nlohmann::json value;
     EXPECT_FALSE(milvus::RoaringBitmapTemplate(members_for(14), value).IsOk());
+
+    // This set is decided by the exact check, not the counting pass: its per-container overhead
+    // alone is under the cap and only the body pushes it over, which is why the message above
+    // carries the real estimate. The next test covers the other side of that split.
+    EXPECT_LE(128 * stats.high_container_count + 64 * stats.low_container_count, milvus::RoaringBitmapMaxDecodedSize);
+}
+
+// A wide set -- many 16-bit containers spread under the high-container cap -- whose fixed
+// per-container overhead already exceeds the decoded-size limit before a single body byte is
+// counted. It can never fit, and the counting pass alone proves it, so it must be refused without
+// laying out a plan per container: 200K groups of 4 containers is 800K container plans.
+TEST(RoaringBitmapTest, RejectsAnOverwideBitmapFromTheCountsAlone) {
+    std::vector<int64_t> members;
+    members.reserve(200000 * 4);
+    for (int64_t group = 0; group < 200000; group++) {
+        for (int64_t container = 0; container < 4; container++) {
+            members.push_back((group << 32) | (container << 16));
+        }
+    }
+
+    milvus::RoaringBitmapBuilder builder;
+    builder.AddInt64s(members);
+
+    // Under the high-container cap, so the other early check cannot be what refuses it.
+    EXPECT_LE(200000u, milvus::RoaringBitmapMaxHighContainers);
+
+    const auto status = builder.Validate();
+    EXPECT_FALSE(status.IsOk());
+    // "at least": the overhead is a lower bound on the estimate, not the estimate. Quoting it as
+    // the size would understate what a caller has to shrink, and they would come back with a set
+    // that still does not fit.
+    EXPECT_NE(std::string::npos, status.Message().find("at least 76800000")) << status.Message();
+    EXPECT_NE(std::string::npos, status.Message().find("67108864")) << status.Message();
+    EXPECT_THROW(builder.Build(), std::runtime_error);
 }
 
 // C++ types the members for us, so the input-type rejection the other SDKs do at run time is a

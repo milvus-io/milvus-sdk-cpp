@@ -227,19 +227,29 @@ StatsOf(size_t cardinality, const Layout& layout) {
     return stats;
 }
 
-// Distinct high-32 buckets, counted in one pass over the sorted keys without allocating.
-uint64_t
-CountHighContainers(const std::vector<uint64_t>& keys) {
+// The two container counts, taken in one pass over the sorted keys without allocating anything.
+struct BucketCounts {
+    uint64_t high_container_count{0};
+    uint64_t low_container_count{0};
+};
+
+BucketCounts
+CountBuckets(const std::vector<uint64_t>& keys) {
+    BucketCounts counts;
     if (keys.empty()) {
-        return 0;
+        return counts;
     }
-    uint64_t count = 1;
+    counts.high_container_count = 1;
+    counts.low_container_count = 1;
     for (size_t i = 1; i < keys.size(); i++) {
         if ((keys[i] >> 32) != (keys[i - 1] >> 32)) {
-            count++;
+            counts.high_container_count++;
+        }
+        if ((keys[i] >> 16) != (keys[i - 1] >> 16)) {
+            counts.low_container_count++;
         }
     }
-    return count;
+    return counts;
 }
 
 Status
@@ -248,6 +258,33 @@ CheckHighContainerLimit(uint64_t high_container_count) {
         return {StatusCode::INVALID_ARGUMENT, "Roaring bitmap high-container count " +
                                                   std::to_string(high_container_count) + " exceeds maximum " +
                                                   std::to_string(RoaringBitmapMaxHighContainers)};
+    }
+    return Status::OK();
+}
+
+// Both limits, decided from the counts alone, before PlanLayout() allocates a plan per container.
+//
+// The high-container count is exact, so that limit is compared as-is. The decoded-size estimate is
+// not yet exact -- it also includes the body length, which does not exist until the layout does --
+// but the per-container overhead alone is a lower bound on it, so a set whose overhead already
+// exceeds the cap cannot fit however small its body turns out to be. Rejecting on that is sound.
+//
+// The message says the size is "at least" the overhead rather than quoting the overhead as the
+// size. The distinction matters: a caller reading this error has to know what to shrink, and an
+// understated figure would send them back with a set that still does not fit. Borderline sets,
+// where the body is what tips the estimate over, fall through to CheckLimits() and get the exact
+// number there.
+Status
+CheckBucketLimits(const BucketCounts& counts) {
+    const auto high_container_status = CheckHighContainerLimit(counts.high_container_count);
+    if (!high_container_status.IsOk()) {
+        return high_container_status;
+    }
+    const uint64_t overhead = counts.high_container_count * 128 + counts.low_container_count * 64;
+    if (overhead > RoaringBitmapMaxDecodedSize) {
+        return {StatusCode::INVALID_ARGUMENT, "Roaring bitmap estimated decoded size is at least " +
+                                                  std::to_string(overhead) + ", exceeding maximum " +
+                                                  std::to_string(RoaringBitmapMaxDecodedSize)};
     }
     return Status::OK();
 }
@@ -416,12 +453,12 @@ RoaringBitmapBuilder::Stats() const {
 Status
 RoaringBitmapBuilder::Validate() const {
     normalize();
-    // The high-container limit is checked first, straight from a counting pass over the keys.
-    // It is the limit a pathologically sparse set blows -- shuffled full-range int64 ids land in
-    // nearly one high container each -- and PlanLayout() would otherwise spend tens of bytes per
-    // container laying out a set that was never going to be accepted. The count is exact, so
-    // this cannot disagree with the check inside CheckLimits() that it pre-empts.
-    const auto status = CheckHighContainerLimit(CountHighContainers(keys_));
+    // Both limits are decided from the counting pass first. PlanLayout() would otherwise spend
+    // tens of bytes per container laying out a set that was never going to be accepted -- either
+    // a pathologically sparse one, where shuffled full-range int64 ids land in nearly one high
+    // container each, or a wide one, where the per-container overhead alone already exceeds the
+    // decoded-size cap.
+    const auto status = CheckBucketLimits(CountBuckets(keys_));
     if (!status.IsOk()) {
         return status;
     }
@@ -431,9 +468,9 @@ RoaringBitmapBuilder::Validate() const {
 std::vector<uint8_t>
 RoaringBitmapBuilder::Build() const {
     normalize();
-    const auto high_container_status = CheckHighContainerLimit(CountHighContainers(keys_));
-    if (!high_container_status.IsOk()) {
-        throw std::runtime_error(high_container_status.Message());
+    const auto bucket_status = CheckBucketLimits(CountBuckets(keys_));
+    if (!bucket_status.IsOk()) {
+        throw std::runtime_error(bucket_status.Message());
     }
 
     const auto layout = PlanLayout(keys_);
