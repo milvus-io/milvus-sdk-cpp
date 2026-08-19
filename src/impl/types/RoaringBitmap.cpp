@@ -276,7 +276,7 @@ CheckHighContainerLimit(uint64_t high_container_count) {
 // number there.
 Status
 CheckBucketLimits(const BucketCounts& counts) {
-    const auto high_container_status = CheckHighContainerLimit(counts.high_container_count);
+    auto high_container_status = CheckHighContainerLimit(counts.high_container_count);
     if (!high_container_status.IsOk()) {
         return high_container_status;
     }
@@ -291,7 +291,7 @@ CheckBucketLimits(const BucketCounts& counts) {
 
 Status
 CheckLimits(const RoaringBitmapStats& stats) {
-    const auto high_container_status = CheckHighContainerLimit(stats.high_container_count);
+    auto high_container_status = CheckHighContainerLimit(stats.high_container_count);
     if (!high_container_status.IsOk()) {
         return high_container_status;
     }
@@ -458,7 +458,7 @@ RoaringBitmapBuilder::Validate() const {
     // a pathologically sparse one, where shuffled full-range int64 ids land in nearly one high
     // container each, or a wide one, where the per-container overhead alone already exceeds the
     // decoded-size cap.
-    const auto status = CheckBucketLimits(CountBuckets(keys_));
+    auto status = CheckBucketLimits(CountBuckets(keys_));
     if (!status.IsOk()) {
         return status;
     }
