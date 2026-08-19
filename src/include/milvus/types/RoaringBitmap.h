@@ -152,6 +152,10 @@ class MILVUS_SDK_API RoaringBitmapBuilder {
 
     /**
      * @brief What Build() would produce, computed without allocating the body.
+     *
+     * The per-container histogram it reports cannot be known without laying the containers out,
+     * so this does that work even for a member set the server would reject. Call Validate()
+     * first if the set is untrusted; it refuses a hopeless one from the bucket counts alone.
      */
     RoaringBitmapStats
     Stats() const;
@@ -160,7 +164,9 @@ class MILVUS_SDK_API RoaringBitmapBuilder {
      * @brief Whether the current member set fits the limits the server enforces.
      *
      * Checked before the body is allocated, so an oversized set fails fast rather than after
-     * materialising tens of megabytes.
+     * materialising tens of megabytes. A set far past the limits -- shuffled full-range int64
+     * ids land in nearly one high container each -- is refused from the bucket counts alone,
+     * without laying out a container plan per bucket first.
      */
     Status
     Validate() const;
@@ -176,7 +182,10 @@ class MILVUS_SDK_API RoaringBitmapBuilder {
 
     /**
      * @brief Same blob as Build(), wrapped as a JSON binary value so it can be handed to
-     * QueryArguments::AddFilterTemplate() / SearchArguments::AddFilterTemplate() directly.
+     * QueryArguments::AddFilterTemplate(), SearchArguments::AddFilterTemplate() or
+     * DeleteRequest::AddFilterTemplate() directly. Delete is worth calling out: an exact filter
+     * is safe to delete through, which is why the server permits roaring_match in a delete
+     * expression and rejects bloom_match there.
      *
      * Binary rather than a JSON string: a roaring body is not valid UTF-8, and proto3 bytes has
      * no UTF-8 constraint, so the blob travels raw with no base64 inflation.

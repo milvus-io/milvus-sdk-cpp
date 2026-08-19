@@ -287,8 +287,23 @@ TEST(RoaringBitmapTest, RejectsTooManyHighContainers) {
     EXPECT_NE(std::string::npos, status.Message().find("high-container count 262145")) << status.Message();
     EXPECT_NE(std::string::npos, status.Message().find("262144")) << status.Message();
     // The limits are enforced by Build() too, so a caller that skips Validate() cannot ship a
-    // blob the proxy would reject.
-    EXPECT_THROW(over_limit.Build(), std::runtime_error);
+    // blob the proxy would reject. The message has to be the one Validate() gave: this set is
+    // refused by the cheap bucket-count gate that runs before the container layout exists, and
+    // that gate reporting differently from the exact one would make which gate fired -- an
+    // implementation detail -- visible to callers.
+    try {
+        over_limit.Build();
+        ADD_FAILURE() << "Build() accepted a member set over the high-container limit";
+    } catch (const std::runtime_error& error) {
+        EXPECT_EQ(status.Message(), error.what());
+    }
+
+    // The cheap gate must not over-reject: it estimates with body_length = 0, so it can only
+    // refuse sets the exact check would refuse anyway. A set at the limit still has to pass, and
+    // one whose lower-bound estimate fits but whose real estimate does not must survive to the
+    // exact check rather than being turned away early -- RejectsAnOversizedDecodedBitmap covers
+    // that second case with its fourteen-group set.
+    EXPECT_TRUE(at_limit.Validate().IsOk()) << at_limit.Validate().Message();
 }
 
 TEST(RoaringBitmapTest, RejectsAnOversizedDecodedBitmap) {

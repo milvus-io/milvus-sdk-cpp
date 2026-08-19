@@ -68,7 +68,10 @@ class MILVUS_SDK_API DeleteRequest : public DMLRequestBase<DeleteRequest> {
      *     filter = "pk > {age} and city in {city}"
      *     filterTemplate = {"age": 3, "city": ["beijing", "shanghai", ......]}
      * Valid value of a template can be:
-     *     boolean, numeric, string, array
+     *     boolean, numeric, string, array, binary
+     * A binary value (nlohmann::json::binary) is a client-built membership blob -- see
+     * RoaringBitmapBuilder::BuildTemplate() for roaring_match, which is exact and therefore
+     * permitted in a delete expression.
      */
     DeleteRequest&
     AddFilterTemplate(std::string key, nlohmann::json&& filter_template);
