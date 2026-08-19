@@ -298,11 +298,10 @@ TEST(RoaringBitmapTest, RejectsTooManyHighContainers) {
         EXPECT_EQ(status.Message(), error.what());
     }
 
-    // The cheap gate must not over-reject: it estimates with body_length = 0, so it can only
-    // refuse sets the exact check would refuse anyway. A set at the limit still has to pass, and
-    // one whose lower-bound estimate fits but whose real estimate does not must survive to the
-    // exact check rather than being turned away early -- RejectsAnOversizedDecodedBitmap covers
-    // that second case with its fourteen-group set.
+    // The early gate must not over-reject. It counts high containers exactly, so a set at the
+    // limit still has to pass, and a set that blows only the decoded-size limit must survive to
+    // the exact check rather than being turned away here -- RejectsAnOversizedDecodedBitmap
+    // covers that second case, and its message carries the real estimate rather than a bound.
     EXPECT_TRUE(at_limit.Validate().IsOk()) << at_limit.Validate().Message();
 }
 

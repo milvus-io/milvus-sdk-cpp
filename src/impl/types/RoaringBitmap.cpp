@@ -227,37 +227,36 @@ StatsOf(size_t cardinality, const Layout& layout) {
     return stats;
 }
 
-// The two bucket counts, obtained in one pass over the sorted keys without allocating anything.
-struct BucketCounts {
-    uint64_t high_container_count{0};
-    uint64_t low_container_count{0};
-};
-
-BucketCounts
-CountBuckets(const std::vector<uint64_t>& keys) {
-    BucketCounts counts;
+// Distinct high-32 buckets, counted in one pass over the sorted keys without allocating.
+uint64_t
+CountHighContainers(const std::vector<uint64_t>& keys) {
     if (keys.empty()) {
-        return counts;
+        return 0;
     }
-    counts.high_container_count = 1;
-    counts.low_container_count = 1;
+    uint64_t count = 1;
     for (size_t i = 1; i < keys.size(); i++) {
         if ((keys[i] >> 32) != (keys[i - 1] >> 32)) {
-            counts.high_container_count++;
-        }
-        if ((keys[i] >> 16) != (keys[i - 1] >> 16)) {
-            counts.low_container_count++;
+            count++;
         }
     }
-    return counts;
+    return count;
+}
+
+Status
+CheckHighContainerLimit(uint64_t high_container_count) {
+    if (high_container_count > RoaringBitmapMaxHighContainers) {
+        return {StatusCode::INVALID_ARGUMENT, "Roaring bitmap high-container count " +
+                                                  std::to_string(high_container_count) + " exceeds maximum " +
+                                                  std::to_string(RoaringBitmapMaxHighContainers)};
+    }
+    return Status::OK();
 }
 
 Status
 CheckLimits(const RoaringBitmapStats& stats) {
-    if (stats.high_container_count > RoaringBitmapMaxHighContainers) {
-        return {StatusCode::INVALID_ARGUMENT, "Roaring bitmap high-container count " +
-                                                  std::to_string(stats.high_container_count) + " exceeds maximum " +
-                                                  std::to_string(RoaringBitmapMaxHighContainers)};
+    const auto high_container_status = CheckHighContainerLimit(stats.high_container_count);
+    if (!high_container_status.IsOk()) {
+        return high_container_status;
     }
     if (stats.estimated_decoded_size > RoaringBitmapMaxDecodedSize) {
         return {StatusCode::INVALID_ARGUMENT, "Roaring bitmap estimated decoded size " +
@@ -273,25 +272,6 @@ CheckLimits(const RoaringBitmapStats& stats) {
                                                   std::to_string(RoaringBitmapMaxBodySize)};
     }
     return Status::OK();
-}
-
-// A lower-bound gate, run before PlanLayout() materialises one plan per container.
-//
-// The layout costs tens of bytes per container, so a sparse set the server would reject anyway --
-// shuffled full-range int64 ids land in nearly one high container per member -- would otherwise be
-// materialised in full and only then refused. The bucket counts are all the limits need, and the
-// estimate below sets body_length to 0, which can only understate the real estimate. So this gate
-// rejects a strict subset of what the exact CheckLimits() rejects: it never changes which inputs
-// are accepted, it just refuses the hopeless ones earlier and far more cheaply. The messages are
-// CheckLimits()'s own, so which gate fired is not observable.
-Status
-CheckBucketLimits(const BucketCounts& counts) {
-    RoaringBitmapStats lower_bound;
-    lower_bound.high_container_count = counts.high_container_count;
-    lower_bound.low_container_count = counts.low_container_count;
-    lower_bound.body_length = 0;
-    lower_bound.estimated_decoded_size = 128 * counts.high_container_count + 64 * counts.low_container_count;
-    return CheckLimits(lower_bound);
 }
 
 void
@@ -436,9 +416,12 @@ RoaringBitmapBuilder::Stats() const {
 Status
 RoaringBitmapBuilder::Validate() const {
     normalize();
-    // Cheap gate first: a set far over the limits is refused from the bucket counts alone, so
-    // Validate() stays O(n) with no allocation on exactly the sets it exists to warn about.
-    const auto status = CheckBucketLimits(CountBuckets(keys_));
+    // The high-container limit is checked first, straight from a counting pass over the keys.
+    // It is the limit a pathologically sparse set blows -- shuffled full-range int64 ids land in
+    // nearly one high container each -- and PlanLayout() would otherwise spend tens of bytes per
+    // container laying out a set that was never going to be accepted. The count is exact, so
+    // this cannot disagree with the check inside CheckLimits() that it pre-empts.
+    const auto status = CheckHighContainerLimit(CountHighContainers(keys_));
     if (!status.IsOk()) {
         return status;
     }
@@ -448,9 +431,9 @@ RoaringBitmapBuilder::Validate() const {
 std::vector<uint8_t>
 RoaringBitmapBuilder::Build() const {
     normalize();
-    const auto bucket_status = CheckBucketLimits(CountBuckets(keys_));
-    if (!bucket_status.IsOk()) {
-        throw std::runtime_error(bucket_status.Message());
+    const auto high_container_status = CheckHighContainerLimit(CountHighContainers(keys_));
+    if (!high_container_status.IsOk()) {
+        throw std::runtime_error(high_container_status.Message());
     }
 
     const auto layout = PlanLayout(keys_);
