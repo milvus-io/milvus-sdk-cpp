@@ -22,6 +22,7 @@
 #include <string>
 
 #include "../MilvusConnection.h"
+#include "../types/GlobalCluster.h"
 #include "./RpcUtils.h"
 #include "common.pb.h"
 #include "milvus/Status.h"
@@ -31,9 +32,13 @@
 
 namespace milvus {
 
+class TopologyRefresher;
+
 class ConnectionHandler {
  public:
-    ConnectionHandler() = default;
+    ConnectionHandler();
+
+    ~ConnectionHandler();
 
     Status
     Connect(const ConnectParam& connect_param);
@@ -70,6 +75,13 @@ class ConnectionHandler {
     GetLoadingProgress(const std::string& db_name, const std::string& collection_name,
                        const std::set<std::string>& partition_names, uint32_t& progress, uint32_t& refresh_progress,
                        uint64_t rpc_timeout_ms = 0);
+
+    /**
+     * @brief Trigger an immediate global-cluster topology refresh (debounced). No-op for
+     * non-global-cluster connections. Called when an RPC hits UNAVAILABLE.
+     */
+    void
+    TriggerGlobalRefresh();
 
     /**
      * Internal wait for status query done.
@@ -162,6 +174,24 @@ class ConnectionHandler {
 
  private:
     /**
+     * @brief Reconnect to a new primary endpoint after a topology change.
+     * Builds the new connection outside the mutex and only swaps it under the lock.
+     * @return true when the topology change was handled (the version can be committed), false
+     * when the reconnect failed or no writable primary exists (so the refresher retries the
+     * same version next interval).
+     */
+    bool
+    reconnectToPrimary(const GlobalTopology& topology);
+
+    /**
+     * @brief Stop the global-cluster refresher without holding the connection mutex, so an
+     * in-flight callback waiting on the mutex cannot deadlock the join. Marks global mode off
+     * first so any in-flight callback becomes a no-op.
+     */
+    void
+    stopGlobalRefresher();
+
+    /**
      * @brief template for public api call
      *        validate -> pre -> rpc -> wait_for_status -> post
      */
@@ -214,6 +244,10 @@ class ConnectionHandler {
         auto caller = [&func, &rpc_response]() { return func(rpc_response); };
         auto status = Retry(caller, retry_param);
         if (!status.IsOk()) {
+            // a global-cluster primary may have become unreachable; trigger a topology refresh
+            if (status.RpcErrCode() == ::grpc::StatusCode::UNAVAILABLE) {
+                TriggerGlobalRefresh();
+            }
             // response's status already checked in connection class
             return status;
         }
@@ -240,6 +274,12 @@ class ConnectionHandler {
     mutable std::mutex mtx_;
     MilvusConnectionPtr connection_;
     RetryParam retry_param_;
+
+    // global-cluster state
+    bool global_mode_{false};
+    std::string global_endpoint_;
+    ConnectParam global_connect_param_;
+    std::unique_ptr<TopologyRefresher> global_refresher_;
 };
 
 }  // namespace milvus
