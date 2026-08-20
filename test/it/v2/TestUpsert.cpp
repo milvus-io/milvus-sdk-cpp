@@ -19,6 +19,7 @@
 #include <memory>
 
 #include "../mocks/MilvusMockedTest.h"
+#include "../mocks/Utils.h"
 #include "milvus/MilvusClientV2.h"
 #include "utils/cache/CollectionTsCache.h"
 #include "utils/cache/SchemaCache.h"
@@ -73,6 +74,46 @@ void
 SetSchemaMismatch(milvus::proto::milvus::MutationResult* response) {
     response->mutable_status()->set_error_code(milvus::proto::common::ErrorCode::SchemaMismatch);
     response->mutable_status()->set_reason("schema mismatch");
+}
+
+void
+FillStringBackedSchema(milvus::proto::milvus::DescribeCollectionResponse* response) {
+    auto* schema = response->mutable_schema();
+    schema->set_name("string_backed_coll");
+    response->set_collectionid(300);
+
+    auto* id = schema->add_fields();
+    id->set_name("id");
+    id->set_data_type(milvus::proto::schema::DataType::Int64);
+    id->set_is_primary_key(true);
+    id->set_autoid(true);
+
+    auto* body = schema->add_fields();
+    body->set_name("body");
+    body->set_data_type(milvus::proto::schema::DataType::Text);
+
+    auto* geo = schema->add_fields();
+    geo->set_name("geo");
+    geo->set_data_type(milvus::proto::schema::DataType::Geometry);
+
+    auto* tsz = schema->add_fields();
+    tsz->set_name("tsz");
+    tsz->set_data_type(milvus::proto::schema::DataType::Timestamptz);
+
+    auto* arr_text = schema->add_fields();
+    arr_text->set_name("arr_text");
+    arr_text->set_data_type(milvus::proto::schema::DataType::Array);
+    arr_text->set_element_type(milvus::proto::schema::DataType::Text);
+    auto* max_capacity = arr_text->add_type_params();
+    max_capacity->set_key("max_capacity");
+    max_capacity->set_value("16");
+
+    auto* vector = schema->add_fields();
+    vector->set_name("vector");
+    vector->set_data_type(milvus::proto::schema::DataType::FloatVector);
+    auto* dim = vector->add_type_params();
+    dim->set_key("dim");
+    dim->set_value("2");
 }
 
 }  // namespace
@@ -468,4 +509,164 @@ TEST_F(UnconnectMilvusMockedTest, UpsertRetriesSchemaMismatchOnlyOnce) {
                                      .AddRowData(std::move(row)),
                                  response);
     EXPECT_EQ(status.LegacyServerCode(), static_cast<int32_t>(milvus::proto::common::ErrorCode::SchemaMismatch));
+}
+
+TEST_F(UnconnectMilvusMockedTest, InsertStringBackedColumns) {
+    // column-based insert of TEXT/GEOMETRY/TIMESTAMPTZ: the wire type is derived from the schema
+    auto client = CreateConnectedV2Client(service_, server_.ListenPort());
+
+    EXPECT_CALL(service_, DescribeCollection(_, _, _))
+        .WillOnce([](::grpc::ServerContext*, const milvus::proto::milvus::DescribeCollectionRequest*,
+                     milvus::proto::milvus::DescribeCollectionResponse* response) {
+            FillStringBackedSchema(response);
+            return ::grpc::Status{};
+        });
+
+    EXPECT_CALL(service_, Insert(_, _, _))
+        .WillOnce([](::grpc::ServerContext*, const milvus::proto::milvus::InsertRequest* request,
+                     milvus::proto::milvus::MutationResult* response) {
+            EXPECT_EQ(request->collection_name(), "string_backed_coll");
+            if (request->fields_data_size() != 5) {
+                ADD_FAILURE() << "Expected 5 field data columns, got " << request->fields_data_size();
+                return ::grpc::Status{};
+            }
+            EXPECT_EQ(request->fields_data(0).field_name(), "body");
+            EXPECT_EQ(request->fields_data(0).type(), milvus::proto::schema::DataType::Text);
+            if (request->fields_data(0).scalars().string_data().data_size() != 2) {
+                ADD_FAILURE() << "Expected 2 string data rows for body";
+                return ::grpc::Status{};
+            }
+            EXPECT_EQ(request->fields_data(0).scalars().string_data().data(0), "alpha");
+
+            EXPECT_EQ(request->fields_data(1).field_name(), "geo");
+            EXPECT_EQ(request->fields_data(1).type(), milvus::proto::schema::DataType::Geometry);
+            if (request->fields_data(1).scalars().geometry_wkt_data().data_size() != 2) {
+                ADD_FAILURE() << "Expected 2 geometry wkt rows for geo";
+                return ::grpc::Status{};
+            }
+            EXPECT_EQ(request->fields_data(1).scalars().geometry_wkt_data().data(0), "POINT (1 1)");
+
+            EXPECT_EQ(request->fields_data(2).field_name(), "tsz");
+            EXPECT_EQ(request->fields_data(2).type(), milvus::proto::schema::DataType::Timestamptz);
+            if (request->fields_data(2).scalars().string_data().data_size() != 2) {
+                ADD_FAILURE() << "Expected 2 string data rows for tsz";
+                return ::grpc::Status{};
+            }
+
+            EXPECT_EQ(request->fields_data(3).field_name(), "arr_text");
+            EXPECT_EQ(request->fields_data(3).scalars().array_data().element_type(),
+                      milvus::proto::schema::DataType::Text);
+            if (request->fields_data(3).scalars().array_data().data_size() != 2) {
+                ADD_FAILURE() << "Expected 2 array data rows for arr_text";
+                return ::grpc::Status{};
+            }
+            EXPECT_EQ(request->fields_data(3).scalars().array_data().data(0).string_data().data(0), "a");
+
+            EXPECT_EQ(request->fields_data(4).field_name(), "vector");
+            response->mutable_status()->set_code(0);
+            response->set_insert_cnt(2);
+            return ::grpc::Status{};
+        });
+
+    auto body = std::make_shared<milvus::VarCharFieldData>("body", std::vector<std::string>{"alpha", "beta"});
+    auto geo =
+        std::make_shared<milvus::VarCharFieldData>("geo", std::vector<std::string>{"POINT (1 1)", "POINT (2 2)"});
+    auto tsz = std::make_shared<milvus::VarCharFieldData>(
+        "tsz", std::vector<std::string>{"2025-01-01T00:00:00+00:00", "2025-01-02T00:00:00+00:00"});
+    auto arr_text = std::make_shared<milvus::ArrayVarCharFieldData>(
+        "arr_text", std::vector<std::vector<std::string>>{{"a", "b"}, {"c"}});
+    auto vector = std::make_shared<milvus::FloatVecFieldData>(
+        "vector", std::vector<std::vector<float>>{{0.1f, 0.2f}, {0.3f, 0.4f}});
+
+    milvus::InsertResponse response;
+    auto status = client->Insert(milvus::InsertRequest()
+                                     .WithCollectionName("string_backed_coll")
+                                     .WithColumnsData({body, geo, tsz, arr_text, vector}),
+                                 response);
+    EXPECT_TRUE(status.IsOk()) << status.Message();
+    EXPECT_EQ(response.Results().InsertCount(), 2);
+}
+
+TEST_F(UnconnectMilvusMockedTest, UpsertStringBackedColumns) {
+    // column-based upsert of a TEXT field: the wire type is derived from the schema
+    auto client = CreateConnectedV2Client(service_, server_.ListenPort());
+
+    EXPECT_CALL(service_, DescribeCollection(_, _, _))
+        .WillOnce([](::grpc::ServerContext*, const milvus::proto::milvus::DescribeCollectionRequest*,
+                     milvus::proto::milvus::DescribeCollectionResponse* response) {
+            FillStringBackedSchema(response);
+            return ::grpc::Status{};
+        });
+
+    EXPECT_CALL(service_, Upsert(_, _, _))
+        .WillOnce([](::grpc::ServerContext*, const milvus::proto::milvus::UpsertRequest* request,
+                     milvus::proto::milvus::MutationResult* response) {
+            EXPECT_EQ(request->collection_name(), "string_backed_coll");
+            if (request->fields_data_size() != 6) {
+                ADD_FAILURE() << "Expected 6 field data columns, got " << request->fields_data_size();
+                return ::grpc::Status{};
+            }
+            EXPECT_EQ(request->fields_data(1).field_name(), "body");
+            EXPECT_EQ(request->fields_data(1).type(), milvus::proto::schema::DataType::Text);
+            if (request->fields_data(1).scalars().string_data().data_size() != 1) {
+                ADD_FAILURE() << "Expected 1 string data row for body";
+                return ::grpc::Status{};
+            }
+            EXPECT_EQ(request->fields_data(1).scalars().string_data().data(0), "alpha");
+
+            response->mutable_status()->set_code(0);
+            response->set_upsert_cnt(1);
+            return ::grpc::Status{};
+        });
+
+    auto id = std::make_shared<milvus::Int64FieldData>("id", std::vector<int64_t>{1});
+    auto body = std::make_shared<milvus::VarCharFieldData>("body", std::vector<std::string>{"alpha"});
+    auto geo = std::make_shared<milvus::VarCharFieldData>("geo", std::vector<std::string>{"POINT (1 1)"});
+    auto tsz = std::make_shared<milvus::VarCharFieldData>("tsz", std::vector<std::string>{"2025-01-01T00:00:00+00:00"});
+    auto arr_text =
+        std::make_shared<milvus::ArrayVarCharFieldData>("arr_text", std::vector<std::vector<std::string>>{{"a"}});
+    auto vector = std::make_shared<milvus::FloatVecFieldData>("vector", std::vector<std::vector<float>>{{0.1f, 0.2f}});
+
+    milvus::UpsertResponse response;
+    auto status = client->Upsert(milvus::UpsertRequest()
+                                     .WithCollectionName("string_backed_coll")
+                                     .WithColumnsData({id, body, geo, tsz, arr_text, vector}),
+                                 response);
+    EXPECT_TRUE(status.IsOk()) << status.Message();
+    EXPECT_EQ(response.Results().UpsertCount(), 1);
+}
+
+TEST_F(UnconnectMilvusMockedTest, BuildFieldsDataStringBacked) {
+    // exercises the TEXT/array-of-TEXT (and geometry/timestamptz) branches of BuildFieldsData
+    milvus::CollectionSchema schema("string_backed_coll");
+    schema.AddField(milvus::FieldSchema("id", milvus::DataType::INT64, "", true, true));
+    schema.AddField(milvus::FieldSchema("body", milvus::DataType::TEXT));
+    schema.AddField(milvus::FieldSchema("geo", milvus::DataType::GEOMETRY));
+    schema.AddField(milvus::FieldSchema("tsz", milvus::DataType::TIMESTAMPTZ));
+    schema.AddField(milvus::FieldSchema("arr_text", milvus::DataType::ARRAY)
+                        .WithElementType(milvus::DataType::TEXT)
+                        .WithMaxCapacity(16));
+    schema.AddField(milvus::FieldSchema("vector", milvus::DataType::FLOAT_VECTOR).WithDimension(2));
+
+    std::vector<milvus::FieldDataPtr> fields_data;
+    milvus::BuildFieldsData(schema, fields_data, 4);
+    ASSERT_EQ(fields_data.size(), 6u);
+
+    auto body = std::dynamic_pointer_cast<milvus::VarCharFieldData>(fields_data[1]);
+    ASSERT_NE(body, nullptr);
+    ASSERT_EQ(body->Data().size(), 4u);
+    EXPECT_EQ(body->Value(0), "text_0");
+
+    auto geo = std::dynamic_pointer_cast<milvus::VarCharFieldData>(fields_data[2]);
+    ASSERT_NE(geo, nullptr);
+    EXPECT_EQ(geo->Data().size(), 4u);
+
+    auto tsz = std::dynamic_pointer_cast<milvus::VarCharFieldData>(fields_data[3]);
+    ASSERT_NE(tsz, nullptr);
+    EXPECT_EQ(tsz->Data().size(), 4u);
+
+    auto arr_text = std::dynamic_pointer_cast<milvus::ArrayVarCharFieldData>(fields_data[4]);
+    ASSERT_NE(arr_text, nullptr);
+    ASSERT_EQ(arr_text->Data().size(), 4u);
+    EXPECT_EQ(arr_text->Value(0).size(), 2u);
 }

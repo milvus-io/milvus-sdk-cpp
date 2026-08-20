@@ -80,6 +80,7 @@ class MilvusServerTestDml : public MilvusServerTest {
                              .WithMaxCapacity(10));
         schema->AddField(milvus::FieldSchema("f_geo", milvus::DataType::GEOMETRY, "geometry field"));
         schema->AddField(milvus::FieldSchema("f_tsz", milvus::DataType::TIMESTAMPTZ, "timestamptz field"));
+        schema->AddField(milvus::FieldSchema("f_text", milvus::DataType::TEXT, "text field"));
 
         // vector fields (max 4 per collection)
         schema->AddField(
@@ -208,6 +209,13 @@ TEST_F(MilvusServerTestDml, UpsertValidation) {
 TEST_F(MilvusServerTestDml, InsertAndQuery) {
     // define test data once, used for both insert and verification
     milvus::EntityRows rows_data;
+    // TEXT has no max_length limit: this value exceeds the VARCHAR 65535-byte cap and the
+    // Storage V3 inline threshold (65,536), exercising LOB storage through a real round-trip
+    std::string long_text;
+    long_text.reserve(70000);
+    for (auto i = 0; i < 7000; i++) {
+        long_text.append("0123456789");
+    }
     rows_data.push_back(nlohmann::json{
         {"id", 1},
         {"f_bool", true},
@@ -222,6 +230,7 @@ TEST_F(MilvusServerTestDml, InsertAndQuery) {
         {"f_array", {10, 20, 30}},
         {"f_geo", "POINT (1 1)"},
         {"f_tsz", "2025-01-01T00:00:00+00:00"},
+        {"f_text", long_text},
         {"v_float", {0.1f, 0.2f, 0.3f, 0.4f}},
         {"v_binary", {255, 0, 171, 205}},
         {"v_fp16", {0.1f, 0.2f, 0.3f, 0.4f}},
@@ -241,6 +250,7 @@ TEST_F(MilvusServerTestDml, InsertAndQuery) {
         {"f_array", {40, 50}},
         {"f_geo", "POINT (2 2)"},
         {"f_tsz", "2025-06-15T12:30:00+08:00"},
+        {"f_text", "Bob body text"},
         {"v_float", {0.5f, 0.6f, 0.7f, 0.8f}},
         {"v_binary", {128, 64, 32, 16}},
         {"v_fp16", {0.5f, 0.6f, 0.7f, 0.8f}},
@@ -260,6 +270,7 @@ TEST_F(MilvusServerTestDml, InsertAndQuery) {
         {"f_array", {60, 70, 80, 90}},
         {"f_geo", "LINESTRING (0 0, 1 1, 2 2)"},
         {"f_tsz", "2025-12-31T23:59:59-05:00"},
+        {"f_text", "Charlie body text"},
         {"v_float", {0.9f, 1.0f, 1.1f, 1.2f}},
         {"v_binary", {1, 2, 3, 4}},
         {"v_fp16", {0.9f, 1.0f, 1.1f, 1.2f}},
@@ -298,6 +309,7 @@ TEST_F(MilvusServerTestDml, InsertAndQuery) {
     query_req.AddOutputField("f_array");
     query_req.AddOutputField("f_geo");
     query_req.AddOutputField("f_tsz");
+    query_req.AddOutputField("f_text");
     query_req.WithConsistencyLevel(milvus::ConsistencyLevel::BOUNDED);
 
     milvus::QueryResponse query_resp;
@@ -326,6 +338,7 @@ TEST_F(MilvusServerTestDml, InsertAndQuery) {
         EXPECT_EQ(row["f_array"].get<std::vector<int32_t>>(), exp["f_array"].get<std::vector<int32_t>>());
         EXPECT_EQ(row["f_geo"].get<std::string>(), exp["f_geo"].get<std::string>());
         EXPECT_TRUE(row.contains("f_tsz"));
+        EXPECT_EQ(row["f_text"].get<std::string>(), exp["f_text"].get<std::string>());
     }
 }
 
@@ -345,6 +358,7 @@ TEST_F(MilvusServerTestDml, DeleteByFilter) {
         {"f_array", {1, 2}},
         {"f_geo", "POINT (1 1)"},
         {"f_tsz", "2025-01-01T00:00:00+00:00"},
+        {"f_text", "Alice body text"},
         {"v_float", {0.1f, 0.2f, 0.3f, 0.4f}},
         {"v_binary", {255, 0, 171, 205}},
         {"v_fp16", {0.1f, 0.2f, 0.3f, 0.4f}},
@@ -364,6 +378,7 @@ TEST_F(MilvusServerTestDml, DeleteByFilter) {
         {"f_array", {3, 4}},
         {"f_geo", "POINT (2 2)"},
         {"f_tsz", "2025-06-15T12:30:00+08:00"},
+        {"f_text", "Bob body text"},
         {"v_float", {0.5f, 0.6f, 0.7f, 0.8f}},
         {"v_binary", {128, 64, 32, 16}},
         {"v_fp16", {0.5f, 0.6f, 0.7f, 0.8f}},
@@ -417,6 +432,7 @@ TEST_F(MilvusServerTestDml, Upsert) {
         {"f_array", {1, 2}},
         {"f_geo", "POINT (1 1)"},
         {"f_tsz", "2025-01-01T00:00:00+00:00"},
+        {"f_text", "Alice body text"},
         {"v_float", {0.1f, 0.2f, 0.3f, 0.4f}},
         {"v_binary", {255, 0, 171, 205}},
         {"v_fp16", {0.1f, 0.2f, 0.3f, 0.4f}},
@@ -436,6 +452,7 @@ TEST_F(MilvusServerTestDml, Upsert) {
         {"f_array", {3, 4}},
         {"f_geo", "POINT (2 2)"},
         {"f_tsz", "2025-06-15T12:30:00+08:00"},
+        {"f_text", "Bob body text"},
         {"v_float", {0.5f, 0.6f, 0.7f, 0.8f}},
         {"v_binary", {128, 64, 32, 16}},
         {"v_fp16", {0.5f, 0.6f, 0.7f, 0.8f}},
@@ -464,6 +481,7 @@ TEST_F(MilvusServerTestDml, Upsert) {
         {"f_array", {10, 20}},
         {"f_geo", "POINT (3 3)"},
         {"f_tsz", "2025-02-01T00:00:00+00:00"},
+        {"f_text", "Alice_v2 body text"},
         {"v_float", {0.2f, 0.3f, 0.4f, 0.5f}},
         {"v_binary", {1, 2, 3, 4}},
         {"v_fp16", {0.2f, 0.3f, 0.4f, 0.5f}},
@@ -494,6 +512,7 @@ TEST_F(MilvusServerTestDml, ListPersistentSegments) {
         {"f_array", {1}},
         {"f_geo", "POINT (1 1)"},
         {"f_tsz", "2025-01-01T00:00:00+00:00"},
+        {"f_text", "Alice body text"},
         {"v_float", {0.1f, 0.2f, 0.3f, 0.4f}},
         {"v_binary", {255, 0, 171, 205}},
         {"v_fp16", {0.1f, 0.2f, 0.3f, 0.4f}},

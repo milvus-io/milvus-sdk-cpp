@@ -43,6 +43,25 @@ insertGeometry(milvus::MilvusClientV2Ptr& client, std::string geometry) {
 }
 
 void
+insertGeometryColumnBased(milvus::MilvusClientV2Ptr& client) {
+    // column-based insert: the geometry field data is carried as string (VarCharFieldData)
+    auto geo_field = std::make_shared<milvus::VarCharFieldData>(
+        field_geo, std::vector<std::string>{"POINT (3 3)", "LINESTRING (1 1, 2 2, 3 3)"});
+    auto vector_field = std::make_shared<milvus::FloatVecFieldData>(
+        field_vector,
+        std::vector<std::vector<float>>{util::GenerateFloatVector(dimension), util::GenerateFloatVector(dimension)});
+
+    milvus::InsertResponse resp_insert;
+    auto status = client->Insert(milvus::InsertRequest()
+                                     .WithCollectionName(collection_name)
+                                     .AddColumnData(geo_field)
+                                     .AddColumnData(vector_field),
+                                 resp_insert);
+    util::CheckStatus("insert column-based", status);
+    std::cout << resp_insert.Results().InsertCount() << " rows inserted by column-based." << std::endl;
+}
+
+void
 query(milvus::MilvusClientV2Ptr& client, std::string filter) {
     auto request = milvus::QueryRequest().WithCollectionName(collection_name).AddOutputField("*").WithFilter(filter);
 
@@ -124,6 +143,7 @@ main(int argc, char* argv[]) {
     insertGeometry(client, "POINT (1 1)");
     insertGeometry(client, "LINESTRING (10 10, 10 30, 40 40)");
     insertGeometry(client, "POLYGON ((0 100, 100 100, 100 50, 0 50, 0 100))");
+    insertGeometryColumnBased(client);
 
     {
         // get row count

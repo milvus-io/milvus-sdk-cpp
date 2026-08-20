@@ -719,6 +719,40 @@ TEST_F(DmlUtilsTest, CheckAndSetRowDataStructValidation) {
     EXPECT_EQ(status.Message(), "Partial struct update is not supported for struct sub-field: structs[values]");
 }
 
+TEST_F(DmlUtilsTest, CheckAndSetRowDataRejectsUnsupportedStructSubFieldTypes) {
+    // JSON/GEOMETRY/TIMESTAMPTZ are not supported as struct sub-fields (they are serialized as
+    // array elements, which pymilvus and the server reject)
+    milvus::CollectionSchema schema("test_coll");
+    schema.AddField(milvus::FieldSchema("pk", milvus::DataType::INT64, "pk", true, true));
+    schema.AddField(milvus::FieldSchema("vec", milvus::DataType::FLOAT_VECTOR).WithDimension(2));
+    milvus::StructFieldSchema struct_field("structs");
+    struct_field.SetMaxCapacity(10);
+    struct_field.AddField(milvus::FieldSchema("st_json", milvus::DataType::JSON));
+    schema.AddStructField(std::move(struct_field));
+
+    std::vector<milvus::proto::schema::FieldData> rpc_fields;
+    milvus::EntityRows rows{
+        nlohmann::json{{"vec", {0.1, 0.2}}, {"structs", {{{"st_json", nlohmann::json{{"k", 1}}}}}}}};
+    auto status = milvus::CheckAndSetRowData(rows, schema, false, false, rpc_fields);
+    EXPECT_EQ(status.Code(), milvus::StatusCode::NOT_SUPPORTED);
+    EXPECT_EQ(status.Message(), "Unsupported struct sub-field type: JSON");
+
+    // GEOMETRY and TIMESTAMPTZ sub-fields are rejected the same way
+    milvus::CollectionSchema geo_schema("test_coll");
+    geo_schema.AddField(milvus::FieldSchema("pk", milvus::DataType::INT64, "pk", true, true));
+    geo_schema.AddField(milvus::FieldSchema("vec", milvus::DataType::FLOAT_VECTOR).WithDimension(2));
+    milvus::StructFieldSchema geo_struct("structs");
+    geo_struct.SetMaxCapacity(10);
+    geo_struct.AddField(milvus::FieldSchema("st_geo", milvus::DataType::GEOMETRY));
+    geo_schema.AddStructField(std::move(geo_struct));
+
+    rpc_fields.clear();
+    rows = {nlohmann::json{{"vec", {0.1, 0.2}}, {"structs", {{{"st_geo", "POINT (1 1)"}}}}}};
+    status = milvus::CheckAndSetRowData(rows, geo_schema, false, false, rpc_fields);
+    EXPECT_EQ(status.Code(), milvus::StatusCode::NOT_SUPPORTED);
+    EXPECT_EQ(status.Message(), "Unsupported struct sub-field type: GEOMETRY");
+}
+
 TEST_F(DmlUtilsTest, CheckAndSetRowDataRejectsOmittedNullableStruct) {
     milvus::CollectionSchema schema("test_coll");
     schema.AddField(milvus::FieldSchema("pk", milvus::DataType::INT64, "pk", true, false));
@@ -893,6 +927,72 @@ TEST_F(DmlUtilsTest, CheckAndSetRowDataArrayField) {
     EXPECT_TRUE(status.IsOk());
 }
 
+TEST_F(DmlUtilsTest, CheckAndSetRowDataArrayOfText) {
+    milvus::CollectionSchema schema("arr_coll");
+    schema.AddField(milvus::FieldSchema("pk", milvus::DataType::INT64, "pk", true, true));
+    schema.AddField(milvus::FieldSchema("arr", milvus::DataType::ARRAY)
+                        .WithElementType(milvus::DataType::TEXT)
+                        .WithMaxCapacity(10));
+    schema.AddField(milvus::FieldSchema("vec", milvus::DataType::FLOAT_VECTOR).WithDimension(2));
+
+    milvus::EntityRows rows;
+    rows.push_back(nlohmann::json{{"arr", {"first", "second"}}, {"vec", {0.1, 0.2}}});
+    rows.push_back(nlohmann::json{{"arr", {"third"}}, {"vec", {0.3, 0.4}}});
+
+    std::vector<milvus::proto::schema::FieldData> rpc_fields;
+    auto status = milvus::CheckAndSetRowData(rows, schema, false, false, rpc_fields);
+    ASSERT_TRUE(status.IsOk());
+
+    bool arr_found = false;
+    for (const auto& field : rpc_fields) {
+        if (field.field_name() == "arr") {
+            arr_found = true;
+            EXPECT_EQ(field.scalars().array_data().element_type(), milvus::proto::schema::DataType::Text);
+            ASSERT_EQ(field.scalars().array_data().data_size(), 2);
+            EXPECT_EQ(field.scalars().array_data().data(0).string_data().data_size(), 2);
+            EXPECT_EQ(field.scalars().array_data().data(0).string_data().data(0), "first");
+            EXPECT_EQ(field.scalars().array_data().data(1).string_data().data_size(), 1);
+            EXPECT_EQ(field.scalars().array_data().data(1).string_data().data(0), "third");
+        }
+    }
+    EXPECT_TRUE(arr_found);
+}
+
+TEST_F(DmlUtilsTest, CheckAndSetRowDataRejectsUnsupportedArrayElementTypes) {
+    // GEOMETRY/TIMESTAMPTZ are not supported as ARRAY element types (matching pymilvus and the
+    // server's proxy validation), so row-based insert is rejected with NOT_SUPPORTED
+    milvus::CollectionSchema schema("arr_coll");
+    schema.AddField(milvus::FieldSchema("pk", milvus::DataType::INT64, "pk", true, true));
+    schema.AddField(milvus::FieldSchema("arr", milvus::DataType::ARRAY)
+                        .WithElementType(milvus::DataType::GEOMETRY)
+                        .WithMaxCapacity(10));
+    schema.AddField(milvus::FieldSchema("vec", milvus::DataType::FLOAT_VECTOR).WithDimension(2));
+
+    milvus::EntityRows rows;
+    rows.push_back(nlohmann::json{{"arr", {"POINT (1 1)"}}, {"vec", {0.1, 0.2}}});
+
+    std::vector<milvus::proto::schema::FieldData> rpc_fields;
+    auto status = milvus::CheckAndSetRowData(rows, schema, false, false, rpc_fields);
+    EXPECT_EQ(status.Code(), milvus::StatusCode::NOT_SUPPORTED);
+    EXPECT_EQ(status.Message(), "GEOMETRY is not supported as an array element");
+
+    // TIMESTAMPTZ array elements are rejected the same way
+    milvus::CollectionSchema tsz_schema("arr_coll");
+    tsz_schema.AddField(milvus::FieldSchema("pk", milvus::DataType::INT64, "pk", true, true));
+    tsz_schema.AddField(milvus::FieldSchema("arr", milvus::DataType::ARRAY)
+                            .WithElementType(milvus::DataType::TIMESTAMPTZ)
+                            .WithMaxCapacity(10));
+    tsz_schema.AddField(milvus::FieldSchema("vec", milvus::DataType::FLOAT_VECTOR).WithDimension(2));
+
+    milvus::EntityRows tsz_rows;
+    tsz_rows.push_back(nlohmann::json{{"arr", {"2025-01-01T00:00:00+00:00"}}, {"vec", {0.1, 0.2}}});
+
+    rpc_fields.clear();
+    status = milvus::CheckAndSetRowData(tsz_rows, tsz_schema, false, false, rpc_fields);
+    EXPECT_EQ(status.Code(), milvus::StatusCode::NOT_SUPPORTED);
+    EXPECT_EQ(status.Message(), "TIMESTAMPTZ is not supported as an array element");
+}
+
 TEST_F(DmlUtilsTest, CheckAndSetRowDataNullableField) {
     milvus::CollectionSchema schema("nullable_coll");
     schema.AddField(milvus::FieldSchema("pk", milvus::DataType::INT64, "pk", true, true));
@@ -958,6 +1058,195 @@ TEST_F(DmlUtilsTest, CheckAndSetRowDataGeometryAndTimestamptz) {
     std::vector<milvus::proto::schema::FieldData> rpc_fields;
     auto status = milvus::CheckAndSetRowData(rows, schema, false, false, rpc_fields);
     EXPECT_TRUE(status.IsOk());
+}
+
+TEST_F(DmlUtilsTest, CheckAndSetRowDataText) {
+    milvus::CollectionSchema schema("text_coll");
+    schema.AddField(milvus::FieldSchema("pk", milvus::DataType::INT64, "pk", true, true));
+    schema.AddField(milvus::FieldSchema("body", milvus::DataType::TEXT));
+    schema.AddField(milvus::FieldSchema("vec", milvus::DataType::FLOAT_VECTOR).WithDimension(2));
+
+    // text is not restricted by max_length
+    std::string long_text;
+    long_text.reserve(70000);
+    for (auto i = 0; i < 7000; i++) {
+        long_text.append("0123456789");
+    }
+
+    milvus::EntityRows rows;
+    rows.push_back(nlohmann::json{{"body", long_text}, {"vec", {0.1, 0.2}}});
+
+    std::vector<milvus::proto::schema::FieldData> rpc_fields;
+    auto status = milvus::CheckAndSetRowData(rows, schema, false, false, rpc_fields);
+    ASSERT_TRUE(status.IsOk());
+
+    bool body_found = false;
+    for (const auto& field : rpc_fields) {
+        if (field.field_name() == "body") {
+            body_found = true;
+            EXPECT_EQ(field.type(), milvus::proto::schema::DataType::Text);
+            ASSERT_EQ(field.scalars().string_data().data_size(), 1);
+            EXPECT_EQ(field.scalars().string_data().data(0), long_text);
+        }
+    }
+    EXPECT_TRUE(body_found);
+}
+
+TEST_F(DmlUtilsTest, CheckAndSetRowDataTextErrors) {
+    milvus::CollectionSchema schema("text_coll");
+    schema.AddField(milvus::FieldSchema("pk", milvus::DataType::INT64, "pk", true, true));
+    schema.AddField(milvus::FieldSchema("body", milvus::DataType::TEXT));
+    schema.AddField(milvus::FieldSchema("vec", milvus::DataType::FLOAT_VECTOR).WithDimension(2));
+
+    milvus::EntityRows rows;
+    rows.push_back(nlohmann::json{{"body", 10}, {"vec", {0.1, 0.2}}});
+
+    std::vector<milvus::proto::schema::FieldData> rpc_fields;
+    auto status = milvus::CheckAndSetRowData(rows, schema, false, false, rpc_fields);
+    EXPECT_FALSE(status.IsOk());
+}
+
+TEST_F(DmlUtilsTest, CreateMilvusFieldDataText) {
+    // decode a proto FieldData of Text type into VarCharFieldData
+    milvus::proto::schema::FieldData proto_data;
+    proto_data.set_field_name("body");
+    proto_data.set_type(milvus::proto::schema::DataType::Text);
+    auto& data = *proto_data.mutable_scalars()->mutable_string_data()->mutable_data();
+    data.Add("first");
+    data.Add("second");
+
+    milvus::FieldDataPtr result;
+    auto status = milvus::CreateMilvusFieldData(proto_data, result);
+    ASSERT_TRUE(status.IsOk());
+    EXPECT_EQ(result->Count(), 2);
+
+    auto typed = std::dynamic_pointer_cast<milvus::VarCharFieldData>(result);
+    ASSERT_NE(typed, nullptr);
+    EXPECT_EQ(typed->Value(0), "first");
+    EXPECT_EQ(typed->Value(1), "second");
+}
+
+TEST_F(DmlUtilsTest, CheckInsertInputStringBackedColumns) {
+    // a VARCHAR (or array-of-VARCHAR) column is accepted for string-backed schema fields;
+    // only TEXT is supported as an ARRAY element type (GEOMETRY/TIMESTAMPTZ arrays are rejected)
+    milvus::CollectionSchema schema("coll");
+    schema.AddField(milvus::FieldSchema("pk", milvus::DataType::INT64, "pk", true, false));
+    schema.AddField(milvus::FieldSchema("text", milvus::DataType::TEXT));
+    schema.AddField(milvus::FieldSchema("geo", milvus::DataType::GEOMETRY));
+    schema.AddField(milvus::FieldSchema("tsz", milvus::DataType::TIMESTAMPTZ));
+    schema.AddField(milvus::FieldSchema("arr_text", milvus::DataType::ARRAY)
+                        .WithElementType(milvus::DataType::TEXT)
+                        .WithMaxCapacity(10));
+    schema.AddField(milvus::FieldSchema("vec", milvus::DataType::FLOAT_VECTOR).WithDimension(2));
+
+    milvus::CollectionDescPtr desc = std::make_shared<milvus::CollectionDesc>();
+    desc->SetSchema(schema);
+
+    std::vector<milvus::FieldDataPtr> columns{
+        std::make_shared<milvus::Int64FieldData>("pk", std::vector<int64_t>{1, 2}),
+        std::make_shared<milvus::VarCharFieldData>("text", std::vector<std::string>{"alpha", "beta"}),
+        std::make_shared<milvus::VarCharFieldData>("geo", std::vector<std::string>{"POINT (1 1)", "POINT (2 2)"}),
+        std::make_shared<milvus::VarCharFieldData>(
+            "tsz", std::vector<std::string>{"2025-01-01T00:00:00+00:00", "2025-01-02T00:00:00+00:00"}),
+        std::make_shared<milvus::ArrayVarCharFieldData>("arr_text",
+                                                        std::vector<std::vector<std::string>>{{"a", "b"}, {"c"}}),
+        std::make_shared<milvus::FloatVecFieldData>("vec", std::vector<std::vector<float>>{{0.1f, 0.2f}, {0.3f, 0.4f}}),
+    };
+
+    for (bool is_upsert : {false, true}) {
+        auto status = milvus::CheckInsertInput(desc, columns, is_upsert, false);
+        ASSERT_TRUE(status.IsOk()) << status.Message();
+    }
+}
+
+TEST_F(DmlUtilsTest, CheckInsertInputRejectsUnsupportedArrayElementTypes) {
+    // GEOMETRY/TIMESTAMPTZ are not supported as ARRAY element types (matching pymilvus)
+    milvus::CollectionSchema schema("coll");
+    schema.AddField(milvus::FieldSchema("pk", milvus::DataType::INT64, "pk", true, false));
+    schema.AddField(milvus::FieldSchema("arr_geo", milvus::DataType::ARRAY)
+                        .WithElementType(milvus::DataType::GEOMETRY)
+                        .WithMaxCapacity(10));
+    schema.AddField(milvus::FieldSchema("vec", milvus::DataType::FLOAT_VECTOR).WithDimension(2));
+
+    milvus::CollectionDescPtr desc = std::make_shared<milvus::CollectionDesc>();
+    desc->SetSchema(schema);
+
+    std::vector<milvus::FieldDataPtr> columns{
+        std::make_shared<milvus::Int64FieldData>("pk", std::vector<int64_t>{1}),
+        std::make_shared<milvus::ArrayVarCharFieldData>("arr_geo",
+                                                        std::vector<std::vector<std::string>>{{"POINT (1 1)"}}),
+        std::make_shared<milvus::FloatVecFieldData>("vec", std::vector<std::vector<float>>{{0.1f, 0.2f}}),
+    };
+    auto status = milvus::CheckInsertInput(desc, columns, false, false);
+    EXPECT_EQ(status.Code(), milvus::StatusCode::DATA_UNMATCH_SCHEMA);
+}
+
+TEST_F(DmlUtilsTest, CreateProtoFieldDataStringBackedColumns) {
+    // column-based conversion derives the wire type from the schema for string-backed fields
+    milvus::CollectionSchema schema("coll");
+    schema.AddField(milvus::FieldSchema("pk", milvus::DataType::INT64, "pk", true, true));
+    schema.AddField(milvus::FieldSchema("text", milvus::DataType::TEXT));
+    schema.AddField(milvus::FieldSchema("geo", milvus::DataType::GEOMETRY));
+    schema.AddField(milvus::FieldSchema("tsz", milvus::DataType::TIMESTAMPTZ));
+    schema.AddField(milvus::FieldSchema("arr_text", milvus::DataType::ARRAY)
+                        .WithElementType(milvus::DataType::TEXT)
+                        .WithMaxCapacity(10));
+    schema.AddField(milvus::FieldSchema("vec", milvus::DataType::FLOAT_VECTOR).WithDimension(2));
+
+    std::vector<milvus::FieldDataPtr> columns{
+        std::make_shared<milvus::VarCharFieldData>("text", std::vector<std::string>{"alpha", "beta"}),
+        std::make_shared<milvus::VarCharFieldData>("geo", std::vector<std::string>{"POINT (1 1)", "POINT (2 2)"}),
+        std::make_shared<milvus::VarCharFieldData>(
+            "tsz", std::vector<std::string>{"2025-01-01T00:00:00+00:00", "2025-01-02T00:00:00+00:00"}),
+        std::make_shared<milvus::ArrayVarCharFieldData>(
+            "arr_text", std::vector<std::vector<std::string>>{{"first", "second"}, {"third"}}),
+        std::make_shared<milvus::FloatVecFieldData>("vec", std::vector<std::vector<float>>{{0.1f, 0.2f}, {0.3f, 0.4f}}),
+    };
+
+    std::vector<milvus::proto::schema::FieldData> rpc_fields;
+    auto status = milvus::CreateProtoFieldDatas(schema, columns, rpc_fields);
+    ASSERT_TRUE(status.IsOk()) << status.Message();
+
+    std::map<std::string, const milvus::proto::schema::FieldData*> by_name;
+    for (const auto& field : rpc_fields) {
+        by_name[field.field_name()] = &field;
+    }
+
+    // text -> proto Text + string_data
+    ASSERT_TRUE(by_name.count("text"));
+    EXPECT_EQ(by_name["text"]->type(), milvus::proto::schema::DataType::Text);
+    EXPECT_EQ(by_name["text"]->scalars().string_data().data_size(), 2);
+    EXPECT_EQ(by_name["text"]->scalars().string_data().data(0), "alpha");
+
+    // geo -> proto Geometry + geometry_wkt_data
+    ASSERT_TRUE(by_name.count("geo"));
+    EXPECT_EQ(by_name["geo"]->type(), milvus::proto::schema::DataType::Geometry);
+    EXPECT_EQ(by_name["geo"]->scalars().geometry_wkt_data().data_size(), 2);
+    EXPECT_EQ(by_name["geo"]->scalars().geometry_wkt_data().data(0), "POINT (1 1)");
+
+    // tsz -> proto Timestamptz + string_data
+    ASSERT_TRUE(by_name.count("tsz"));
+    EXPECT_EQ(by_name["tsz"]->type(), milvus::proto::schema::DataType::Timestamptz);
+    EXPECT_EQ(by_name["tsz"]->scalars().string_data().data_size(), 2);
+
+    // arr_text -> element type Text + string_data per row
+    ASSERT_TRUE(by_name.count("arr_text"));
+    EXPECT_EQ(by_name["arr_text"]->scalars().array_data().element_type(), milvus::proto::schema::DataType::Text);
+    ASSERT_EQ(by_name["arr_text"]->scalars().array_data().data_size(), 2);
+    EXPECT_EQ(by_name["arr_text"]->scalars().array_data().data(0).string_data().data_size(), 2);
+    EXPECT_EQ(by_name["arr_text"]->scalars().array_data().data(0).string_data().data(0), "first");
+}
+
+TEST_F(DmlUtilsTest, CreateProtoFieldDataStringBackedColumnNullSchema) {
+    // without a schema, the VARCHAR column keeps its own type (string_data)
+    auto column = std::make_shared<milvus::VarCharFieldData>("text", std::vector<std::string>{"a"});
+    milvus::FieldDataSchema bridge(column, nullptr);
+
+    milvus::proto::schema::FieldData proto_data;
+    auto status = milvus::CreateProtoFieldData(bridge, proto_data);
+    ASSERT_TRUE(status.IsOk()) << status.Message();
+    EXPECT_EQ(proto_data.type(), milvus::proto::schema::DataType::VarChar);
+    EXPECT_EQ(proto_data.scalars().string_data().data_size(), 1);
 }
 
 TEST_F(DmlUtilsTest, CreateProtoFieldDataWithNullable) {

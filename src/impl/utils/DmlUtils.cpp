@@ -62,6 +62,40 @@ CombineStructFieldName(const std::string& struct_name, const std::string& sub_fi
     return struct_name + "[" + sub_field_name + "]";
 }
 
+// Scalar string-backed types are carried as std::string FieldData (VarCharFieldData and its
+// aliases GeometryFieldData/TextFieldData/TimestamptzFieldData). A VARCHAR column is therefore
+// compatible with any of these schema field types, and the wire type is derived from the schema.
+bool
+IsStringBackedType(milvus::DataType type) {
+    return type == milvus::DataType::VARCHAR || type == milvus::DataType::GEOMETRY || type == milvus::DataType::TEXT ||
+           type == milvus::DataType::TIMESTAMPTZ;
+}
+
+// Array element types that are carried as strings. TEXT is supported as an ARRAY element
+// (matching pymilvus and the Java SDK); GEOMETRY/TIMESTAMPTZ array elements are not supported.
+bool
+IsArrayStringBackedElementType(milvus::DataType type) {
+    return type == milvus::DataType::VARCHAR || type == milvus::DataType::TEXT;
+}
+
+// Shared validation for string-backed scalar values (VARCHAR/TEXT/TIMESTAMPTZ/GEOMETRY):
+// the value must be a string and optionally fit within the field's max_length, then it is
+// appended to the target repeated-string container (string_data or geometry_wkt_data).
+milvus::Status
+CheckAndSetStringScalarValue(const nlohmann::json& obj, const milvus::FieldSchema& fs,
+                             google::protobuf::RepeatedPtrField<std::string>* data, const std::string& msg_prefix,
+                             bool check_max_length) {
+    if (!obj.is_string()) {
+        return {milvus::StatusCode::INVALID_ARGUMENT, msg_prefix + "string"};
+    }
+    auto ss = obj.get<std::string>();
+    if (check_max_length && ss.size() > fs.MaxLength()) {
+        return {milvus::StatusCode::INVALID_ARGUMENT, "Exceeds max length of field: " + fs.Name()};
+    }
+    data->Add(std::move(ss));
+    return milvus::Status::OK();
+}
+
 }  // namespace
 
 namespace milvus {
@@ -138,9 +172,17 @@ CheckInsertInput(const CollectionDescPtr& collection_desc, const std::vector<Fie
 
             // the provided field is not consistent with the schema
             if (column_type != it_normal->FieldDataType()) {
-                return {StatusCode::DATA_UNMATCH_SCHEMA, "Field data type mismatch for field: " + column_name};
+                // a VARCHAR column is compatible with any string-backed schema field type
+                if (!(IsStringBackedType(column_type) && IsStringBackedType(it_normal->FieldDataType()))) {
+                    return {StatusCode::DATA_UNMATCH_SCHEMA, "Field data type mismatch for field: " + column_name};
+                }
             } else if (column_type == DataType::ARRAY && column->ElementType() != it_normal->ElementType()) {
-                return {StatusCode::DATA_UNMATCH_SCHEMA, "Element data type mismatch for array field: " + column_name};
+                // a VARCHAR-typed array column is compatible with VARCHAR/TEXT array element types
+                if (!(IsArrayStringBackedElementType(column->ElementType()) &&
+                      IsArrayStringBackedElementType(it_normal->ElementType()))) {
+                    return {StatusCode::DATA_UNMATCH_SCHEMA,
+                            "Element data type mismatch for array field: " + column_name};
+                }
             }
             // accept it
             continue;
@@ -566,6 +608,13 @@ CreateProtoArrayField(const FieldDataSchema& data_schema, proto::schema::FieldDa
     auto ret = proto_field.mutable_scalars();
     auto& array_data = *(ret->mutable_array_data());
     auto element_type = field.ElementType();
+    // derive the wire element type from the schema for string-backed elements: a VARCHAR-typed
+    // array column may target an array of VARCHAR/TEXT (GEOMETRY/TIMESTAMPTZ are not supported
+    // as array element types, matching pymilvus)
+    if (schema != nullptr && IsArrayStringBackedElementType(element_type) &&
+        IsArrayStringBackedElementType(schema->ElementType())) {
+        element_type = schema->ElementType();
+    }
     array_data.set_element_type(DataTypeCast(element_type));
 
     switch (element_type) {
@@ -674,9 +723,12 @@ CreateProtoArrayField(const FieldDataSchema& data_schema, proto::schema::FieldDa
             }
             break;
         }
+        // TEXT array elements are carried as strings (matching the scalar TEXT field and the
+        // pymilvus/Java SDKs). NOTE: the current Milvus server rejects TEXT array elements at
+        // insert (proxy verifyCapacityPerRow: "array element type: X is not supported"), so this
+        // branch is forward-looking.
         case DataType::VARCHAR:
-        case DataType::GEOMETRY:
-        case DataType::TIMESTAMPTZ: {
+        case DataType::TEXT: {
             if (nullable_default) {
                 CopyValidData<ArrayVarCharFieldData>(field, proto_field);
             }
@@ -774,7 +826,13 @@ CreateProtoFieldData(const FieldDataSchema& data_schema, proto::schema::FieldDat
     bool nullable_default = schema ? (schema->IsNullable() || !schema->DefaultValue().is_null()) : false;
 
     auto scalar = field_data.mutable_scalars();
-    const auto field_type = field.Type();
+    auto field_type = field.Type();
+    // derive the wire type from the schema for string-backed fields: a string-backed column may
+    // target any string-backed schema field type (VARCHAR/GEOMETRY/TEXT/TIMESTAMPTZ), so the proto
+    // type must follow the schema
+    if (schema != nullptr && IsStringBackedType(field_type) && IsStringBackedType(schema->FieldDataType())) {
+        field_type = schema->FieldDataType();
+    }
     field_data.set_field_name(field.Name());
     field_data.set_type(DataTypeCast(field_type));
     auto schema_dim = schema ? schema->Dimension() : 0;
@@ -901,10 +959,17 @@ CreateProtoFieldData(const FieldDataSchema& data_schema, proto::schema::FieldDat
                 CreateProtoScalars<DoubleFieldData, proto::schema::DoubleArray>(field, field_data, nullable_default));
             break;
         case DataType::VARCHAR:
-        case DataType::GEOMETRY:
+        case DataType::TEXT:
         case DataType::TIMESTAMPTZ:
             scalar->set_allocated_string_data(
                 CreateProtoScalars<VarCharFieldData, proto::schema::StringArray>(field, field_data, nullable_default));
+            break;
+        case DataType::GEOMETRY:
+            // geometry is serialized as geometry_wkt_data, matching the row-based path and the
+            // server expectation (the decode side reads geometry_wkt_data as well)
+            scalar->set_allocated_geometry_wkt_data(
+                CreateProtoScalars<VarCharFieldData, proto::schema::GeometryWktArray>(field, field_data,
+                                                                                      nullable_default));
             break;
         case DataType::JSON:
             scalar->set_allocated_json_data(
@@ -960,6 +1025,18 @@ FillStructProtoFields(const std::vector<nlohmann::json>& dict_list, const Struct
         std::string combine_name = CombineStructFieldName(struct_schema.Name(), sub_name);
         if (output_fields.find(combine_name) != output_fields.end()) {
             continue;
+        }
+
+        // Struct sub-fields are serialized as ARRAY elements; JSON/GEOMETRY/TIMESTAMPTZ are not
+        // supported array element types (matching pymilvus and the server), so reject them here.
+        switch (sub_schema.FieldDataType()) {
+            case DataType::JSON:
+            case DataType::GEOMETRY:
+            case DataType::TIMESTAMPTZ:
+                return {StatusCode::NOT_SUPPORTED,
+                        "Unsupported struct sub-field type: " + std::to_string(sub_schema.FieldDataType())};
+            default:
+                break;
         }
 
         bool isVectorType = IsVectorType(sub_schema.FieldDataType());
@@ -1386,30 +1463,23 @@ CheckAndSetScalar(const nlohmann::json& obj, const FieldSchema& fs, proto::schem
             break;
         }
         case DataType::VARCHAR:
-        case DataType::TIMESTAMPTZ: {
-            if (!obj.is_string()) {
-                return {StatusCode::INVALID_ARGUMENT, msg_prefix + "string"};
+            return CheckAndSetStringScalarValue(obj, fs, sf->mutable_string_data()->mutable_data(), msg_prefix, true);
+        case DataType::TIMESTAMPTZ:
+            // TIMESTAMPTZ is a scalar string-backed type but is not supported as an ARRAY element
+            if (is_array) {
+                return {StatusCode::NOT_SUPPORTED, "TIMESTAMPTZ is not supported as an array element"};
             }
-            auto ss = obj.get<std::string>();
-            if (ss.size() > fs.MaxLength()) {
-                return {StatusCode::INVALID_ARGUMENT, "Exceeds max length of field: " + fs.Name()};
+            return CheckAndSetStringScalarValue(obj, fs, sf->mutable_string_data()->mutable_data(), msg_prefix, true);
+        case DataType::GEOMETRY:
+            // GEOMETRY is a scalar string-backed type but is not supported as an ARRAY element
+            if (is_array) {
+                return {StatusCode::NOT_SUPPORTED, "GEOMETRY is not supported as an array element"};
             }
-            auto scalars = sf->mutable_string_data()->mutable_data();
-            scalars->Add(std::move(ss));
-            break;
-        }
-        case DataType::GEOMETRY: {
-            if (!obj.is_string()) {
-                return {StatusCode::INVALID_ARGUMENT, msg_prefix + "string"};
-            }
-            auto ss = obj.get<std::string>();
-            if (ss.size() > fs.MaxLength()) {
-                return {StatusCode::INVALID_ARGUMENT, "Exceeds max length of field: " + fs.Name()};
-            }
-            auto scalars = sf->mutable_geometry_wkt_data()->mutable_data();
-            scalars->Add(std::move(ss));
-            break;
-        }
+            return CheckAndSetStringScalarValue(obj, fs, sf->mutable_geometry_wkt_data()->mutable_data(), msg_prefix,
+                                                true);
+        case DataType::TEXT:
+            // Text field value type must be String, without max_length restriction
+            return CheckAndSetStringScalarValue(obj, fs, sf->mutable_string_data()->mutable_data(), msg_prefix, false);
         case DataType::JSON: {
             if (!obj.is_object() && !obj.is_array() && !obj.is_primitive()) {
                 return {StatusCode::INVALID_ARGUMENT, msg_prefix + "JSON"};
