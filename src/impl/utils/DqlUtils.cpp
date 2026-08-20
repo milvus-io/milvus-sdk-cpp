@@ -1501,9 +1501,10 @@ ConvertFilterTemplates(const std::unordered_map<std::string, nlohmann::json>& te
         } else if (temp.is_number_float()) {
             value.set_float_val(temp.get<double>());
         } else if (temp.is_binary()) {
-            // A client pre-built filter blob (see BloomFilterBuilder) travels as raw bytes:
-            // the body is not valid UTF-8, and proto3 bytes carries no UTF-8 constraint, so a
-            // multi-MB blob rides the wire with neither corruption nor base64 inflation.
+            // A client pre-built filter blob (see BloomFilterBuilder and RoaringBitmapBuilder)
+            // travels as raw bytes: the body is not valid UTF-8, and proto3 bytes carries no
+            // UTF-8 constraint, so a multi-MB blob rides the wire with neither corruption nor
+            // base64 inflation.
             const auto& binary = temp.get_binary();
             value.set_bytes_val(binary.data(), binary.size());
         } else {

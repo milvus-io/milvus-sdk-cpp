@@ -58,12 +58,6 @@ DeleteRequest::WithFilterTemplates(std::unordered_map<std::string, nlohmann::jso
     return *this;
 }
 
-DeleteRequest&
-DeleteRequest::AddFilterTemplate(const std::string& key, nlohmann::json&& filter_template) {
-    filter_templates_[key] = std::move(filter_template);
-    return *this;
-}
-
 const IDArray&
 DeleteRequest::IDs() const {
     return ids_;

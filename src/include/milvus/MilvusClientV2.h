@@ -181,6 +181,7 @@
 #include "types/Iterator.h"
 #include "types/OptimizeTask.h"
 #include "types/RetryParam.h"
+#include "types/RoaringBitmap.h"
 
 /**
  *  @brief namespace milvus

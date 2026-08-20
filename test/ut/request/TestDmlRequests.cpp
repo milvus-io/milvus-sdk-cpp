@@ -116,8 +116,14 @@ TEST_F(DeleteRequestTest, GettersAndSetters) {
     req.WithFilter("id > 100");
     EXPECT_EQ(req.Filter(), "id > 100");
 
-    // Note: DeleteRequest::AddFilterTemplate has ambiguous overloads (std::string vs const std::string&),
-    // skip testing it here. The method is tested via integration tests.
+    // Filter templates. This call is the regression test for the duplicate overload that used to
+    // make every call to it ambiguous: the method could not be called at all, from here or from
+    // anywhere else, which is why nothing caught it.
+    const std::string key = "ids";
+    req.AddFilterTemplate(key, nlohmann::json{1, 2, 3});
+    req.AddFilterTemplate("threshold", nlohmann::json(100));
+    EXPECT_EQ(req.FilterTemplates().size(), 2);
+    EXPECT_EQ(req.FilterTemplates().at("threshold"), nlohmann::json(100));
 
     // IDs (int64)
     milvus::DeleteRequest req2;
