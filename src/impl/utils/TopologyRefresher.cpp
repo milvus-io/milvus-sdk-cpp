@@ -109,7 +109,7 @@ TopologyRefresher::refreshOnce() {
     // on the next refresh instead of being skipped forever
     bool handled = true;
     if (on_change_) {
-        handled = on_change_(topology);
+        handled = on_change_(topology, [this]() { return stop_.load(); });
     }
     if (handled) {
         std::lock_guard<std::mutex> lock(mtx_);

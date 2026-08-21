@@ -147,6 +147,87 @@ TEST(GlobalClusterUtilsTest, FetchTopology) {
     srv.join();
 }
 
+TEST(GlobalClusterUtilsTest, FetchTopologyRetriesOnMalformedBody) {
+    httplib::Server server;
+    std::atomic<int> requests{0};
+    const std::string bad_body = R"({"code":0,"data":{"version":7,"clusters":[)";
+    const std::string good_body = TopologyBody(7);
+    server.Get("/global-cluster/topology", [&](const httplib::Request&, httplib::Response& res) {
+        // first response is truncated/malformed, subsequent responses are valid
+        res.set_content(requests.fetch_add(1) == 0 ? bad_body : good_body, "application/json");
+    });
+    auto port = server.bind_to_any_port("127.0.0.1");
+    ASSERT_TRUE(server.is_valid());
+    std::thread srv([&server]() { server.listen_after_bind(); });
+    server.wait_until_ready();
+
+    milvus::GlobalTopology topology;
+    auto status =
+        milvus::GlobalClusterUtils::FetchTopology("http://127.0.0.1:" + std::to_string(port), "tok", topology);
+    EXPECT_TRUE(status.IsOk()) << status.Message();
+    if (status.IsOk()) {
+        EXPECT_EQ(topology.Version(), 7);
+    }
+    EXPECT_EQ(requests.load(), 2);
+
+    server.stop();
+    srv.join();
+}
+
+TEST(GlobalClusterUtilsTest, FetchTopologyRetriesOnNon200) {
+    httplib::Server server;
+    std::atomic<int> requests{0};
+    const std::string good_body = TopologyBody(7);
+    server.Get("/global-cluster/topology", [&](const httplib::Request&, httplib::Response& res) {
+        if (requests.fetch_add(1) == 0) {
+            res.status = 503;
+            res.set_content("temporarily unavailable", "text/plain");
+        } else {
+            res.set_content(good_body, "application/json");
+        }
+    });
+    auto port = server.bind_to_any_port("127.0.0.1");
+    ASSERT_TRUE(server.is_valid());
+    std::thread srv([&server]() { server.listen_after_bind(); });
+    server.wait_until_ready();
+
+    milvus::GlobalTopology topology;
+    auto status =
+        milvus::GlobalClusterUtils::FetchTopology("http://127.0.0.1:" + std::to_string(port), "tok", topology);
+    EXPECT_TRUE(status.IsOk()) << status.Message();
+    if (status.IsOk()) {
+        EXPECT_EQ(topology.Version(), 7);
+    }
+    EXPECT_EQ(requests.load(), 2);
+
+    server.stop();
+    srv.join();
+}
+
+TEST(GlobalClusterUtilsTest, FetchTopologyAbortsOnShouldStop) {
+    httplib::Server server;
+    std::atomic<int> requests{0};
+    const std::string good_body = TopologyBody(7);
+    server.Get("/global-cluster/topology", [&](const httplib::Request&, httplib::Response& res) {
+        requests.fetch_add(1);
+        res.set_content(good_body, "application/json");
+    });
+    auto port = server.bind_to_any_port("127.0.0.1");
+    ASSERT_TRUE(server.is_valid());
+    std::thread srv([&server]() { server.listen_after_bind(); });
+    server.wait_until_ready();
+
+    milvus::GlobalTopology topology;
+    // should_stop returns true immediately: the fetch must abort before issuing any request
+    auto status = milvus::GlobalClusterUtils::FetchTopology("http://127.0.0.1:" + std::to_string(port), "tok", topology,
+                                                            []() { return true; });
+    EXPECT_FALSE(status.IsOk());
+    EXPECT_EQ(requests.load(), 0);
+
+    server.stop();
+    srv.join();
+}
+
 TEST(TopologyRefresherTest, CallbackOnVersionChange) {
     httplib::Server server;
     std::atomic<int64_t> served_version{1};
@@ -161,7 +242,8 @@ TEST(TopologyRefresherTest, CallbackOnVersionChange) {
     std::atomic<int> calls{0};
     int64_t last_version = 0;
     milvus::TopologyRefresher refresher("http://127.0.0.1:" + std::to_string(port), "tok", 1,
-                                        std::chrono::milliseconds(50), [&](const milvus::GlobalTopology& t) {
+                                        std::chrono::milliseconds(50),
+                                        [&](const milvus::GlobalTopology& t, const std::function<bool()>&) {
                                             last_version = t.Version();
                                             calls.fetch_add(1);
                                             return true;

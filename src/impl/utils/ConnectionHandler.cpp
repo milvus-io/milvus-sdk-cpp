@@ -36,18 +36,13 @@ ConnectionHandler::Connect(const ConnectParam& connect_param) {
     // waiting on mtx_, so the join must happen without holding the lock to avoid a deadlock)
     stopGlobalRefresher();
 
-    // Serialize the full handshake with lifecycle and configuration mutations. The candidate connection remains
-    // private until it succeeds, but setters must not update the current connection and then be overwritten by the
-    // successful swap below.
-    std::lock_guard<std::mutex> lock(mtx_);
-
-    global_mode_ = false;
-    global_endpoint_.clear();
-
     bool is_global = GlobalClusterUtils::IsGlobalEndpoint(connect_param.Uri());
     ConnectParam primary_param = connect_param;
     GlobalTopology initial_topology;
     if (is_global) {
+        // fetch the topology outside the lock: it can block for tens of seconds (3 attempts with
+        // 10s timeouts plus backoff) and must not stall concurrent RPC operations that snapshot
+        // the connection under mtx_
         auto status = GlobalClusterUtils::FetchTopology(connect_param.Uri(), connect_param.Token(), initial_topology);
         if (!status.IsOk()) {
             return status;
@@ -60,27 +55,37 @@ ConnectionHandler::Connect(const ConnectParam& connect_param) {
             GlobalClusterUtils::BuildPrimaryUri(connect_param.Uri(), connect_param.TlsEnabled(), primary->Endpoint()));
     }
 
+    // build + connect the candidate outside the lock (Connect blocks in WaitForConnected + RPC)
     auto connection = std::make_shared<MilvusConnection>();
     auto status = connection->Connect(primary_param);
     if (!status.IsOk()) {
         return status;
     }
 
-    if (connection_ != nullptr) {
-        connection_->Disconnect();
-    }
-    connection_ = std::move(connection);
+    // briefly take the lock to swap in the new connection and commit/start the global state
+    {
+        std::lock_guard<std::mutex> lock(mtx_);
+        global_mode_ = false;
+        global_endpoint_.clear();
 
-    // commit the global-cluster state only after the primary connect succeeded, so a failed
-    // Connect() leaves the handler in non-global mode (consistent with connection_ == null)
-    if (is_global) {
-        global_mode_ = true;
-        global_endpoint_ = connect_param.Uri();
-        global_connect_param_ = connect_param;
-        global_refresher_ = std::make_unique<TopologyRefresher>(
-            global_endpoint_, global_connect_param_.Token(), initial_topology.Version(), std::chrono::seconds(300),
-            [this](const GlobalTopology& topology) { return reconnectToPrimary(topology); });
-        global_refresher_->Start();
+        if (connection_ != nullptr) {
+            connection_->Disconnect();
+        }
+        connection_ = std::move(connection);
+
+        // commit the global-cluster state only after the primary connect succeeded, so a failed
+        // Connect() leaves the handler in non-global mode (consistent with connection_ == null)
+        if (is_global) {
+            global_mode_ = true;
+            global_endpoint_ = connect_param.Uri();
+            global_connect_param_ = connect_param;
+            global_refresher_ = std::make_unique<TopologyRefresher>(
+                global_endpoint_, global_connect_param_.Token(), initial_topology.Version(), std::chrono::seconds(300),
+                [this](const GlobalTopology& topology, const std::function<bool()>& should_stop) {
+                    return reconnectToPrimary(topology, should_stop);
+                });
+            global_refresher_->Start();
+        }
     }
     return Status::OK();
 }
@@ -121,7 +126,7 @@ ConnectionHandler::TriggerGlobalRefresh() {
 }
 
 bool
-ConnectionHandler::reconnectToPrimary(const GlobalTopology& topology) {
+ConnectionHandler::reconnectToPrimary(const GlobalTopology& topology, const std::function<bool()>& should_stop) {
     const ClusterInfo* primary = topology.Primary();
     if (primary == nullptr) {
         // no writable cluster in this topology; report failure so the refresher retries the
@@ -151,6 +156,11 @@ ConnectionHandler::reconnectToPrimary(const GlobalTopology& topology) {
             primary_param.SetDbName(connection_->GetConnectParam().DbName());
             primary_param.SetRpcDeadlineMs(connection_->GetConnectParam().RpcDeadlineMs());
         }
+    }
+
+    // abort promptly when the refresher is stopping rather than starting a fresh gRPC connect
+    if (should_stop && should_stop()) {
+        return false;
     }
 
     // build + connect the new primary outside the lock: MilvusConnection::Connect() blocks in

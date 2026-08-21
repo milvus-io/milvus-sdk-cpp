@@ -23,6 +23,7 @@
 #include <thread>
 
 // CPPHTTPLIB_OPENSSL_SUPPORT is provided as a compile definition by the build (see src/CMakeLists.txt).
+#include "Uri.h"
 #include "cpp-httplib/httplib.h"
 #include "milvus/thirdparty/nlohmann/json.hpp"
 
@@ -35,42 +36,6 @@ constexpr int MAX_RETRIES = 3;
 constexpr int64_t BASE_BACKOFF_MS = 1000;
 constexpr int64_t MAX_BACKOFF_MS = 10000;
 constexpr int REQUEST_TIMEOUT_SEC = 10;
-
-// Split a URL into scheme/host/port/path. Returns false if the URL is malformed.
-bool
-ParseUrl(const std::string& url, std::string& scheme, std::string& host, int& port, std::string& path) {
-    auto scheme_end = url.find("://");
-    if (scheme_end == std::string::npos) {
-        return false;
-    }
-    scheme = url.substr(0, scheme_end);
-    std::string rest = url.substr(scheme_end + 3);
-
-    auto path_start = rest.find('/');
-    std::string authority = (path_start == std::string::npos) ? rest : rest.substr(0, path_start);
-    path = (path_start == std::string::npos) ? "/" : rest.substr(path_start);
-    if (path.empty()) {
-        path = "/";
-    }
-
-    auto colon = authority.rfind(':');
-    if (colon == std::string::npos) {
-        host = authority;
-        port = (scheme == "https") ? 443 : 80;
-    } else {
-        host = authority.substr(0, colon);
-        try {
-            port = std::stoi(authority.substr(colon + 1));
-        } catch (const std::exception&) {
-            // malformed or out-of-range port
-            return false;
-        }
-        if (port <= 0 || port > 65535) {
-            return false;
-        }
-    }
-    return !host.empty();
-}
 
 // Normalize the endpoint into a full topology URL (default and force https, strip trailing slash).
 std::string
@@ -188,11 +153,28 @@ Status
 GlobalClusterUtils::FetchTopology(const std::string& endpoint, const std::string& token, GlobalTopology& topology,
                                   const std::function<bool()>& should_stop) {
     std::string url = BuildTopologyUrl(endpoint);
-    std::string scheme, host, path;
-    int port = 0;
-    if (!ParseUrl(url, scheme, host, port, path)) {
+    URI uri;
+    try {
+        uri = ParseURI(url);
+    } catch (const std::exception&) {
         return {StatusCode::INVALID_ARGUMENT, "Invalid global cluster endpoint: " + endpoint};
     }
+    if (uri.host.empty()) {
+        return {StatusCode::INVALID_ARGUMENT, "Invalid global cluster endpoint: " + endpoint};
+    }
+    // ParseURI defaults a non-https URI without an explicit port to the Milvus gRPC port (19530);
+    // the topology REST API is plain HTTP(S), so use the scheme defaults instead.
+    int port = uri.port;
+    if (uri.scheme == "https") {
+        if (port == 0) {
+            port = 443;
+        }
+    } else if (port == 0 || port == 19530) {
+        port = 80;
+    }
+    const std::string& scheme = uri.scheme;
+    const std::string& host = uri.host;
+    std::string path = uri.path.empty() ? "/" : uri.path;
 
     httplib::Headers headers;
     if (!token.empty()) {

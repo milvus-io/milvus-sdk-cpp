@@ -36,8 +36,10 @@ namespace milvus {
 class TopologyRefresher {
  public:
     // returns true when the topology change was handled; the new version is only committed
-    // (and the same version re-triggered on the next refresh) when the callback succeeds
-    using Callback = std::function<bool(const GlobalTopology&)>;
+    // (and the same version re-triggered on the next refresh) when the callback succeeds.
+    // should_stop lets the callback abort a long-running action (e.g. the reconnect connect)
+    // promptly when the refresher is being stopped.
+    using Callback = std::function<bool(const GlobalTopology&, const std::function<bool()>& should_stop)>;
 
     /**
      * @param endpoint global-cluster endpoint used to fetch the topology

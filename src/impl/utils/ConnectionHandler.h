@@ -176,12 +176,13 @@ class ConnectionHandler {
     /**
      * @brief Reconnect to a new primary endpoint after a topology change.
      * Builds the new connection outside the mutex and only swaps it under the lock.
+     * @param should_stop aborts the reconnect promptly (e.g. when the refresher is stopping)
      * @return true when the topology change was handled (the version can be committed), false
      * when the reconnect failed or no writable primary exists (so the refresher retries the
      * same version next interval).
      */
     bool
-    reconnectToPrimary(const GlobalTopology& topology);
+    reconnectToPrimary(const GlobalTopology& topology, const std::function<bool()>& should_stop);
 
     /**
      * @brief Stop the global-cluster refresher without holding the connection mutex, so an
