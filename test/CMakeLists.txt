@@ -48,6 +48,17 @@ file(GLOB_RECURSE ut_files
 add_executable(testing-ut ${ut_files})
 target_compile_options(testing-ut PRIVATE $<$<CXX_COMPILER_ID:MSVC>:/bigobj>)
 target_include_directories(testing-ut PRIVATE ${PROJECT_SOURCE_DIR}/thirdparty)
+# cpp-httplib must be compiled with the same configuration as the SDK (which enables OpenSSL)
+# to avoid ODR violations; the unit tests use httplib::Server for the local topology mock.
+target_compile_definitions(testing-ut PRIVATE CPPHTTPLIB_OPENSSL_SUPPORT)
+if (BUILD_FROM_CONAN STREQUAL "ON" OR MILVUS_WITH_GRPC STREQUAL "package")
+    target_link_libraries(testing-ut PRIVATE OpenSSL::SSL OpenSSL::Crypto)
+    if (MILVUS_OPENSSL_INCLUDE_DIRS)
+        target_include_directories(testing-ut PRIVATE ${MILVUS_OPENSSL_INCLUDE_DIRS})
+    endif()
+else()
+    target_link_libraries(testing-ut PRIVATE ssl crypto)
+endif()
 # Golden vectors that are too large to inline in a test source, e.g. the 90 KB roaring bitmap
 # set the other Milvus SDKs carry verbatim: MSVC caps a single string literal at 16380 bytes.
 # The path is absolute so the binary finds them from any working directory, as the Windows CI

@@ -154,6 +154,38 @@ if (MILVUS_BUILD_TEST)
     enable_testing()
 endif ()
 
+# cpp-httplib (vendored) needs an SSL library for the global-cluster topology HTTPS fetch. Link
+# the SAME SSL library gRPC uses to avoid duplicate SSL symbols (e.g. LNK2005 on Windows):
+# - Conan/package builds: gRPC links OpenSSL -> use OpenSSL::SSL/OpenSSL::Crypto.
+# - module builds (FetchContent gRPC): gRPC vendors boringssl -> reuse its "ssl"/"crypto" targets.
+if (BUILD_FROM_CONAN STREQUAL "ON" OR MILVUS_WITH_GRPC STREQUAL "package")
+    find_package(OpenSSL REQUIRED)
+
+    # Conan's CMakeDeps OpenSSL target does not always publish include dirs (its
+    # INTERFACE_INCLUDE_DIRECTORIES evaluates to empty), and macOS brew keeps openssl@3 off the
+    # default include path, so resolve the dir explicitly (Conan package folder -> system search
+    # -> common brew locations).
+    set(MILVUS_OPENSSL_INCLUDE_DIRS "")
+    foreach(_milvus_cfg DEBUG RELEASE RELWITHDEBINFO MINSIZEREL)
+        if (DEFINED openssl_PACKAGE_FOLDER_${_milvus_cfg})
+            set(MILVUS_OPENSSL_INCLUDE_DIRS "${openssl_PACKAGE_FOLDER_${_milvus_cfg}}/include")
+            break()
+        endif()
+    endforeach()
+    if (NOT MILVUS_OPENSSL_INCLUDE_DIRS)
+        find_path(MILVUS_OPENSSL_INCLUDE_DIRS openssl/ssl.h
+            PATHS /usr/include /usr/local/include
+                  /usr/local/opt/openssl@3/include /opt/homebrew/opt/openssl@3/include)
+    endif()
+    if (MILVUS_OPENSSL_INCLUDE_DIRS)
+        message(STATUS "Using OpenSSL include dirs: ${MILVUS_OPENSSL_INCLUDE_DIRS}")
+    endif()
+else()
+    # module build: boringssl's ssl/crypto targets (created by gRPC's FetchContent in
+    # ThirdPartyPackages.cmake) provide both the symbols and the headers.
+    set(MILVUS_OPENSSL_INCLUDE_DIRS "")
+endif()
+
 add_subdirectory(src)
 
 if (MILVUS_BUILD_TEST)

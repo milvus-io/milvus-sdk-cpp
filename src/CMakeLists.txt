@@ -21,6 +21,9 @@ file(GLOB_RECURSE impl_files
     "${IMPL_DIR}/*.cc"
 )
 
+# cpp-httplib (vendored in thirdparty) needs OpenSSL for the HTTPS topology fetch; the OpenSSL
+# targets are created by find_package(OpenSSL REQUIRED) in the top-level CMakeLists.txt.
+
 add_library(milvus_sdk_objects OBJECT ${impl_files})
 set_target_properties(milvus_sdk_objects PROPERTIES POSITION_INDEPENDENT_CODE ON)
 if (WIN32 AND BUILD_SHARED_LIBS)
@@ -30,6 +33,18 @@ endif()
 # add proto gens
 add_milvus_protos(milvus_sdk_objects)
 target_link_libraries(milvus_sdk_objects PRIVATE protobuf::libprotobuf gRPC::grpc++)
+# cpp-httplib is compiled with OpenSSL support SDK-wide (single configuration to avoid ODR
+# mismatches between TUs in the same library). Link the same SSL library gRPC uses: OpenSSL in
+# Conan/package builds, boringssl (ssl/crypto) in module builds, so no duplicate SSL symbols.
+if (BUILD_FROM_CONAN STREQUAL "ON" OR MILVUS_WITH_GRPC STREQUAL "package")
+    target_link_libraries(milvus_sdk_objects PRIVATE OpenSSL::SSL OpenSSL::Crypto)
+    if (MILVUS_OPENSSL_INCLUDE_DIRS)
+        target_include_directories(milvus_sdk_objects PRIVATE ${MILVUS_OPENSSL_INCLUDE_DIRS})
+    endif()
+else()
+    target_link_libraries(milvus_sdk_objects PRIVATE ssl crypto)
+endif()
+target_compile_definitions(milvus_sdk_objects PRIVATE CPPHTTPLIB_OPENSSL_SUPPORT)
 target_compile_options(milvus_sdk_objects PRIVATE $<$<CXX_COMPILER_ID:MSVC>:/bigobj>)
 target_include_directories(milvus_sdk_objects PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
@@ -59,10 +74,20 @@ if (WIN32 AND BUILD_SHARED_LIBS)
 endif()
 set_target_properties(milvus_sdk PROPERTIES OUTPUT_NAME milvus_sdk)
 target_link_libraries(milvus_sdk PRIVATE gRPC::grpc++)
+if (BUILD_FROM_CONAN STREQUAL "ON" OR MILVUS_WITH_GRPC STREQUAL "package")
+    target_link_libraries(milvus_sdk PRIVATE OpenSSL::SSL OpenSSL::Crypto)
+else()
+    target_link_libraries(milvus_sdk PRIVATE ssl crypto)
+endif()
 if (MILVUS_EXPORT_STATIC_DEPS)
     target_link_libraries(milvus_sdk PUBLIC
             $<LINK_ONLY:protobuf::libprotobuf>
             $<LINK_ONLY:gRPC::grpc++>)
+    if (BUILD_FROM_CONAN STREQUAL "ON" OR MILVUS_WITH_GRPC STREQUAL "package")
+        target_link_libraries(milvus_sdk PUBLIC
+                $<LINK_ONLY:OpenSSL::SSL>
+                $<LINK_ONLY:OpenSSL::Crypto>)
+    endif()
 endif()
 target_include_directories(milvus_sdk PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
