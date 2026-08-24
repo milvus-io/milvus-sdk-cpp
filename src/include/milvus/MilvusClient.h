@@ -18,6 +18,7 @@
 
 #include <memory>
 
+#include "ClientRequestContext.h"
 #include "ClientTelemetry.h"
 #include "Status.h"
 #include "milvus/Export.h"
@@ -98,6 +99,7 @@ class MILVUS_SDK_API MilvusClient {
     /**
      * @brief Break connections between client and server.
      *
+     * @retval StatusCode::CLIENT_BUSY another connection lifecycle change is in progress; the operation may be retried
      * @return Status operation successfully or not
      */
     virtual Status
@@ -106,6 +108,7 @@ class MILVUS_SDK_API MilvusClient {
     /**
      * @brief Change timeout value in milliseconds for each RPC call.
      *
+     * @retval StatusCode::CLIENT_BUSY another connection lifecycle change is in progress; the operation may be retried
      */
     virtual Status
     SetRpcDeadlineMs(uint64_t timeout_ms) = 0;
@@ -114,6 +117,7 @@ class MILVUS_SDK_API MilvusClient {
      * @brief Reset retry rules for each RPC call.
      *
      *  @param [in] retry_param retry rules
+     * @retval StatusCode::CLIENT_BUSY another connection lifecycle change is in progress; the operation may be retried
      */
     virtual Status
     SetRetryParam(const RetryParam& retry_param) = 0;
@@ -456,6 +460,7 @@ class MILVUS_SDK_API MilvusClient {
      * @brief Switch connection to another database.
      *
      * @param [in] db_name name of the database
+     * @retval StatusCode::CLIENT_BUSY another connection lifecycle change is in progress; the operation may be retried
      * @return Status operation successfully or not
      */
     virtual Status

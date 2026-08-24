@@ -148,7 +148,7 @@ Status
 ConnectionHandler::Disconnect() {
     std::unique_lock<std::mutex> lifecycle_lock(lifecycle_mtx_, std::try_to_lock);
     if (!lifecycle_lock.owns_lock()) {
-        return {StatusCode::UNKNOWN_ERROR, "Connection lifecycle change is already in progress"};
+        return {StatusCode::CLIENT_BUSY, "Connection lifecycle change is already in progress"};
     }
 
     // stop the refresher without holding the lock; callbacks see global_mode_==false and no-op
@@ -315,7 +315,7 @@ Status
 ConnectionHandler::SetRpcDeadlineMs(uint64_t timeout_ms) {
     std::unique_lock<std::mutex> lifecycle_lock(lifecycle_mtx_, std::try_to_lock);
     if (!lifecycle_lock.owns_lock()) {
-        return {StatusCode::UNKNOWN_ERROR, "Connection lifecycle change is already in progress"};
+        return {StatusCode::CLIENT_BUSY, "Connection lifecycle change is already in progress"};
     }
     std::lock_guard<std::mutex> lock(mtx_);
     if (connection_ == nullptr) {
@@ -338,7 +338,7 @@ Status
 ConnectionHandler::SetRetryParam(const RetryParam& retry_param) {
     std::unique_lock<std::mutex> lifecycle_lock(lifecycle_mtx_, std::try_to_lock);
     if (!lifecycle_lock.owns_lock()) {
-        return {StatusCode::UNKNOWN_ERROR, "Connection lifecycle change is already in progress"};
+        return {StatusCode::CLIENT_BUSY, "Connection lifecycle change is already in progress"};
     }
     std::lock_guard<std::mutex> lock(mtx_);
     if (connection_ == nullptr) {
@@ -358,7 +358,7 @@ Status
 ConnectionHandler::UseDatabase(const std::string& db_name) {
     std::unique_lock<std::mutex> lifecycle_lock(lifecycle_mtx_, std::try_to_lock);
     if (!lifecycle_lock.owns_lock()) {
-        return {StatusCode::UNKNOWN_ERROR, "Connection lifecycle change is already in progress"};
+        return {StatusCode::CLIENT_BUSY, "Connection lifecycle change is already in progress"};
     }
     auto connection = GetConnection();
     return connection == nullptr ? Status::OK() : connection->UseDatabase(db_name);

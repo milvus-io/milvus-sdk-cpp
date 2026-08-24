@@ -199,8 +199,7 @@ MilvusConnection::Connect(const ConnectParam& param, const std::string& runtime_
         return status;
     }
 
-    auto database = param.DbName().empty() ? "default" : param.DbName();
-    telemetry->AttachChannel(channel, param.Username(), database, telemetry_endpoint, GetBuildVersion(),
+    telemetry->AttachChannel(channel, param.Username(), param.DbName(), telemetry_endpoint, GetBuildVersion(),
                              connection_scope);
     {
         std::lock_guard<std::mutex> lock(stub_mtx_);

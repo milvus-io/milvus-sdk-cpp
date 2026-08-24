@@ -8,16 +8,57 @@
 //
 // http://www.apache.org/licenses/LICENSE-2.0
 
+#include <grpcpp/create_channel.h>
+#include <grpcpp/server.h>
+#include <grpcpp/server_builder.h>
 #include <gtest/gtest.h>
 
 #include <atomic>
 #include <chrono>
+#include <future>
+#include <iomanip>
 #include <milvus/thirdparty/nlohmann/json.hpp>
+#include <sstream>
 #include <thread>
 
+#include "milvus.grpc.pb.h"
 #include "milvus.pb.h"
 #include "milvus/ClientRequestContext.h"
 #include "milvus/ClientTelemetry.h"
+
+namespace {
+
+std::string
+Rfc3339(std::chrono::system_clock::time_point value) {
+    auto raw = std::chrono::system_clock::to_time_t(value);
+    std::tm utc{};
+#ifdef _WIN32
+    gmtime_s(&utc, &raw);
+#else
+    gmtime_r(&raw, &utc);
+#endif
+    std::ostringstream stream;
+    stream << std::put_time(&utc, "%Y-%m-%dT%H:%M:%SZ");
+    return stream.str();
+}
+
+class ReconnectTelemetryService final : public milvus::proto::milvus::ClientTelemetryService::Service {
+ public:
+    grpc::Status
+    ClientHeartbeat(grpc::ServerContext*, const milvus::proto::milvus::ClientHeartbeatRequest*,
+                    milvus::proto::milvus::ClientHeartbeatResponse* response) override {
+        ++heartbeats;
+        auto* command = response->add_commands();
+        command->set_command_id("reconnect");
+        command->set_command_type("reconnect");
+        command->set_create_time(1);
+        return grpc::Status::OK;
+    }
+
+    std::atomic<int> heartbeats{0};
+};
+
+}  // namespace
 
 TEST(ClientTelemetryTest, MatchesCrossSdkConfigHashVector) {
     std::vector<milvus::TelemetryCommand> commands = {
@@ -50,12 +91,189 @@ TEST(ClientTelemetryTest, AppliesCommandsAndDeduplicatesIds) {
         {"custom", "custom", "", 2, false, ""},
     });
     manager.ProcessCommands({{"custom", "custom", "", 2, false, ""}});
+    manager.ProcessCommands({{"custom", "custom", "", 2, false, ""}});
 
     EXPECT_EQ(manager.Config().heartbeat_interval_ms, 5000U);
     EXPECT_DOUBLE_EQ(manager.Config().sampling_rate, 0.25);
     EXPECT_EQ(manager.LastCommandTimestamp(), 2);
     EXPECT_FALSE(manager.ConfigHash().empty());
     EXPECT_EQ(calls, 1);
+}
+
+TEST(ClientTelemetryTest, RetainsMoreThanOneHundredTwentySnapshotsWithinOneHour) {
+    milvus::TelemetryConfig config;
+    milvus::ClientTelemetryManager manager(config);
+    milvus::proto::milvus::SearchRequest request;
+
+    constexpr size_t expected_snapshots = 121;
+    for (size_t index = 0; index < expected_snapshots; ++index) {
+        manager.RecordOperation("Search", request, std::chrono::steady_clock::now(), true, "");
+        manager.Start();
+        for (int retry = 0; retry < 1000 && manager.MetricsSnapshots().size() <= index; ++retry) {
+            std::this_thread::sleep_for(std::chrono::milliseconds(1));
+        }
+        manager.Stop();
+        ASSERT_GT(manager.MetricsSnapshots().size(), index);
+    }
+
+    EXPECT_EQ(manager.MetricsSnapshots().size(), expected_snapshots);
+}
+
+TEST(ClientTelemetryTest, BoundsHighFrequencySnapshotHistoryAndSkipsEmptyIntervals) {
+    milvus::TelemetryConfig config;
+    config.heartbeat_interval_ms = 1;
+    milvus::ClientTelemetryManager manager(config);
+    milvus::proto::milvus::SearchRequest request;
+
+    manager.Start();
+    std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    manager.Stop();
+    EXPECT_TRUE(manager.MetricsSnapshots().empty());
+
+    constexpr size_t generated_snapshots = 520;
+    constexpr size_t retained_snapshots = 512;
+    for (size_t index = 0; index < generated_snapshots; ++index) {
+        manager.RecordOperation("Search", request, std::chrono::steady_clock::now(), true, "");
+        manager.Start();
+        manager.Stop();
+    }
+
+    EXPECT_EQ(manager.MetricsSnapshots().size(), retained_snapshots);
+}
+
+TEST(ClientTelemetryTest, AggregatesP99FromRetainedLatencySamples) {
+    milvus::TelemetryConfig config;
+    milvus::ClientTelemetryManager manager(config);
+    milvus::proto::milvus::SearchRequest request;
+
+    for (int index = 0; index < 100; ++index) {
+        manager.RecordOperation("Search", request, std::chrono::steady_clock::now() - std::chrono::milliseconds(1),
+                                true, "");
+    }
+    manager.Start();
+    for (int retry = 0; retry < 1000 && manager.MetricsSnapshots().empty(); ++retry) {
+        std::this_thread::sleep_for(std::chrono::milliseconds(1));
+    }
+    manager.Stop();
+
+    for (int index = 0; index < 100; ++index) {
+        manager.RecordOperation("Search", request, std::chrono::steady_clock::now() - std::chrono::milliseconds(100),
+                                true, "");
+    }
+    manager.Start();
+    for (int retry = 0; retry < 1000 && manager.MetricsSnapshots().size() < 2; ++retry) {
+        std::this_thread::sleep_for(std::chrono::milliseconds(1));
+    }
+    manager.Stop();
+
+    const auto now = std::chrono::system_clock::now();
+    const auto payload = nlohmann::json{
+        {"start_time", Rfc3339(now - std::chrono::minutes(1))},
+        {"end_time", Rfc3339(now + std::chrono::minutes(1))},
+        {"detail", false}}.dump();
+    manager.ProcessCommands({{"history", "show_latency_history", payload, 1, false, ""}});
+
+    const auto replies = manager.PendingCommandReplies();
+    ASSERT_FALSE(replies.empty());
+    ASSERT_TRUE(replies.back().success) << replies.back().error_message;
+    const auto response = nlohmann::json::parse(replies.back().payload);
+    EXPECT_GT(response["aggregated"]["metrics"]["Search"]["p99_latency_ms"].get<double>(), 90.0);
+}
+
+TEST(ClientTelemetryTest, ReusesHeartbeatWorkerWhenReconnectRunsInCommandHandler) {
+    ReconnectTelemetryService service;
+    grpc::ServerBuilder builder;
+    int port = 0;
+    builder.AddListeningPort("127.0.0.1:0", grpc::InsecureServerCredentials(), &port);
+    builder.RegisterService(&service);
+    auto server = builder.BuildAndStart();
+    ASSERT_NE(server, nullptr);
+
+    std::atomic<int> reconnects{0};
+    {
+        milvus::TelemetryConfig config;
+        config.heartbeat_interval_ms = 1;
+        milvus::ClientTelemetryManager manager(config);
+        manager.AttachChannel(
+            grpc::CreateChannel("127.0.0.1:" + std::to_string(port), grpc::InsecureChannelCredentials()), "", "", "",
+            "", "");
+        manager.RegisterCommandHandler("reconnect", [&manager, &reconnects](const milvus::TelemetryCommand& command) {
+            ++reconnects;
+            manager.Stop();
+            manager.Start();
+            return milvus::TelemetryCommandReply{command.command_id, true, "", ""};
+        });
+
+        manager.Start();
+        for (int retry = 0; retry < 2000 && service.heartbeats.load() < 2; ++retry) {
+            std::this_thread::sleep_for(std::chrono::milliseconds(1));
+        }
+        manager.Stop();
+    }
+    server->Shutdown();
+
+    EXPECT_GE(service.heartbeats.load(), 2);
+    EXPECT_EQ(reconnects.load(), 1);
+}
+
+TEST(ClientTelemetryTest, ExternalStopWinsRaceWithHeartbeatSelfRestart) {
+    ReconnectTelemetryService service;
+    grpc::ServerBuilder builder;
+    int port = 0;
+    builder.AddListeningPort("127.0.0.1:0", grpc::InsecureServerCredentials(), &port);
+    builder.RegisterService(&service);
+    auto server = builder.BuildAndStart();
+    ASSERT_NE(server, nullptr);
+
+    milvus::TelemetryConfig config;
+    config.heartbeat_interval_ms = 1;
+    milvus::ClientTelemetryManager manager(config);
+    manager.AttachChannel(grpc::CreateChannel("127.0.0.1:" + std::to_string(port), grpc::InsecureChannelCredentials()),
+                          "", "", "", "", "");
+
+    std::atomic<bool> handler_entered{false};
+    std::atomic<bool> allow_self_restart{false};
+    std::atomic<bool> self_restart_ready{true};
+    manager.RegisterCommandHandler("reconnect", [&](const milvus::TelemetryCommand& command) {
+        handler_entered = true;
+        while (!allow_self_restart.load()) {
+            std::this_thread::yield();
+        }
+        manager.Stop();
+        manager.Start();
+        self_restart_ready = manager.IsReady();
+        return milvus::TelemetryCommandReply{command.command_id, true, "", ""};
+    });
+
+    manager.Start();
+    for (int retry = 0; retry < 2000 && !handler_entered.load(); ++retry) {
+        std::this_thread::sleep_for(std::chrono::milliseconds(1));
+    }
+    ASSERT_TRUE(handler_entered.load());
+    ASSERT_TRUE(manager.IsReady());
+
+    std::promise<void> external_stop_finished;
+    auto external_stop_future = external_stop_finished.get_future();
+    std::thread external_stopper([&]() {
+        manager.Stop();
+        external_stop_finished.set_value();
+    });
+
+    // ready=false is written before Stop() releases the manager mutex to join,
+    // so observing it makes the intended race ordering deterministic.
+    for (int retry = 0; retry < 2000 && manager.IsReady(); ++retry) {
+        std::this_thread::sleep_for(std::chrono::milliseconds(1));
+    }
+    ASSERT_FALSE(manager.IsReady());
+    EXPECT_EQ(external_stop_future.wait_for(std::chrono::milliseconds(10)), std::future_status::timeout);
+
+    allow_self_restart = true;
+    EXPECT_EQ(external_stop_future.wait_for(std::chrono::seconds(2)), std::future_status::ready);
+    external_stopper.join();
+    server->Shutdown();
+
+    EXPECT_FALSE(self_restart_ready.load());
+    EXPECT_FALSE(manager.IsReady());
 }
 
 TEST(ClientTelemetryTest, ReconnectReuseMatchesOriginalUserConfig) {

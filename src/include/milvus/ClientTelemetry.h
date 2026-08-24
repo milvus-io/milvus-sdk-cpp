@@ -97,9 +97,6 @@ class MILVUS_SDK_API ClientTelemetryManager {
                   const std::string& connection_scope = "");
 
     void
-    UpdateDatabase(const std::string& database);
-
-    void
     Start();
 
     void

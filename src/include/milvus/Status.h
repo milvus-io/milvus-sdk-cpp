@@ -35,6 +35,7 @@ enum class StatusCode {
     UNKNOWN_ERROR = 1,
     NOT_SUPPORTED,
     NOT_CONNECTED,
+    CLIENT_BUSY,
 
     // function error section
     INVALID_ARGUMENT = 1000,

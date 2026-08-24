@@ -17,6 +17,7 @@
 #include <gtest/gtest.h>
 
 #include <condition_variable>
+#include <milvus/thirdparty/nlohmann/json.hpp>
 #include <mutex>
 #include <thread>
 
@@ -65,6 +66,11 @@ TEST_F(UnconnectMilvusMockedTest, ResolveDatabaseNamePreservesEmptyForRpc) {
     ASSERT_TRUE(empty_db_handler.Connect(milvus::ConnectParam{"127.0.0.1", server_.ListenPort()}).IsOk());
     EXPECT_EQ(empty_db_handler.CurrentDbName(""), "");
     EXPECT_EQ(empty_db_handler.CurrentDbName("request_db"), "request_db");
+    auto empty_db_telemetry = empty_db_handler.GetTelemetry();
+    empty_db_telemetry->ProcessCommands({{"empty-db", "get_config", "", 1, false, ""}});
+    auto empty_db_replies = empty_db_telemetry->PendingCommandReplies();
+    ASSERT_FALSE(empty_db_replies.empty());
+    EXPECT_EQ(nlohmann::json::parse(empty_db_replies.back().payload)["user_config"]["db_name"], "");
 
     milvus::ConnectParam explicit_db_param{"127.0.0.1", server_.ListenPort()};
     explicit_db_param.SetDbName("connected_db");
@@ -72,6 +78,11 @@ TEST_F(UnconnectMilvusMockedTest, ResolveDatabaseNamePreservesEmptyForRpc) {
     ASSERT_TRUE(explicit_db_handler.Connect(explicit_db_param).IsOk());
     EXPECT_EQ(explicit_db_handler.CurrentDbName(""), "connected_db");
     EXPECT_EQ(explicit_db_handler.CurrentDbName("request_db"), "request_db");
+    auto explicit_db_telemetry = explicit_db_handler.GetTelemetry();
+    explicit_db_telemetry->ProcessCommands({{"explicit-db", "get_config", "", 1, false, ""}});
+    auto explicit_db_replies = explicit_db_telemetry->PendingCommandReplies();
+    ASSERT_FALSE(explicit_db_replies.empty());
+    EXPECT_EQ(nlohmann::json::parse(explicit_db_replies.back().payload)["user_config"]["db_name"], "connected_db");
 }
 
 TEST_F(UnconnectMilvusMockedTest, ConnectServerRejected) {
@@ -145,7 +156,7 @@ TEST_F(UnconnectMilvusMockedTest, FailedReconnectPreservesExistingConnection) {
     EXPECT_TRUE(has_collection);
 }
 
-TEST_F(UnconnectMilvusMockedTest, ConnectionMutationWaitsForConnectAndAppliesToNewConnection) {
+TEST_F(UnconnectMilvusMockedTest, ConnectionMutationFailsFastDuringConnectAndCanBeRetried) {
     milvus::ConnectionHandler handler;
     milvus::ConnectParam connect_param{"127.0.0.1", server_.ListenPort()};
 
@@ -195,7 +206,7 @@ TEST_F(UnconnectMilvusMockedTest, ConnectionMutationWaitsForConnectAndAppliesToN
     {
         std::unique_lock<std::mutex> lock(setter_mutex);
         setter_cv.wait(lock, [&] { return setter_started; });
-        EXPECT_FALSE(setter_cv.wait_for(lock, std::chrono::milliseconds(50), [&] { return setter_finished; }));
+        EXPECT_TRUE(setter_cv.wait_for(lock, std::chrono::seconds(1), [&] { return setter_finished; }));
     }
 
     {
@@ -207,7 +218,8 @@ TEST_F(UnconnectMilvusMockedTest, ConnectionMutationWaitsForConnectAndAppliesToN
     connect_thread.join();
     setter_thread.join();
     EXPECT_TRUE(connect_status.IsOk());
-    EXPECT_TRUE(setter_status.IsOk());
+    EXPECT_EQ(setter_status.Code(), StatusCode::CLIENT_BUSY);
+    EXPECT_TRUE(handler.SetRpcDeadlineMs(1234).IsOk());
     EXPECT_EQ(handler.GetRpcDeadlineMs(), 1234);
 }
 

@@ -49,7 +49,16 @@ namespace milvus {
 namespace {
 
 constexpr size_t kSampleBufferSize = 1000;
-constexpr size_t kSnapshotLimit = 120;
+constexpr int64_t kMaxHistoryRangeMs = 60 * 60 * 1000;
+// The default 10-second heartbeat produces 361 boundary-inclusive snapshots in
+// one hour. Keep enough room for that full protocol window while bounding memory
+// when a server pushes a much shorter heartbeat interval. At sub-seven-second
+// intervals the oldest high-frequency detail is intentionally discarded rather
+// than allowing an unbounded number of StoredSnapshot/sample vectors. With the
+// seven supported operations and 1000 retained global samples per operation,
+// this caps raw history latency storage at 3,584,000 doubles (about 27.4 MiB),
+// plus snapshot/explicitly enabled collection metric metadata.
+constexpr size_t kSnapshotLimit = 512;
 // Fixed-point unit for accumulating a fractional sampling rate. A rate becomes an integer
 // step of this many units, so the smallest rate that still samples is 1e-9 -- far below
 // anything an operator would set, which is the point: a configured rate must never round
@@ -123,7 +132,7 @@ HostName() {
         return "Unknown";
     }
     buffer.back() = '\0';
-    return std::string(buffer.data());
+    return {buffer.data()};
 #endif
 }
 
@@ -149,7 +158,7 @@ class Sha256 {
 
     void
     Update(const std::string& value) {
-        Update(reinterpret_cast<const uint8_t*>(value.data()), value.size());
+        update(reinterpret_cast<const uint8_t*>(value.data()), value.size());
     }
 
     std::string
@@ -160,7 +169,7 @@ class Sha256 {
             while (buffer_size_ < 64) {
                 buffer_[buffer_size_++] = 0;
             }
-            Transform(buffer_.data());
+            transform(buffer_.data());
             buffer_size_ = 0;
         }
         while (buffer_size_ < 56) {
@@ -169,7 +178,7 @@ class Sha256 {
         for (int index = 7; index >= 0; --index) {
             buffer_[buffer_size_++] = static_cast<uint8_t>(bit_length >> (index * 8));
         }
-        Transform(buffer_.data());
+        transform(buffer_.data());
 
         std::ostringstream stream;
         stream << std::hex << std::setfill('0');
@@ -181,20 +190,20 @@ class Sha256 {
 
  private:
     void
-    Update(const uint8_t* data, size_t size) {
+    update(const uint8_t* data, size_t size) {
         total_size_ += size;
         for (size_t index = 0; index < size; ++index) {
             buffer_[buffer_size_++] = data[index];
             if (buffer_size_ == 64) {
-                Transform(buffer_.data());
+                transform(buffer_.data());
                 buffer_size_ = 0;
             }
         }
     }
 
     void
-    Transform(const uint8_t* block) {
-        static const uint32_t constants[64] = {
+    transform(const uint8_t* block) {
+        static const std::array<uint32_t, 64> constants = {
             0x428a2f98, 0x71374491, 0xb5c0fbcf, 0xe9b5dba5, 0x3956c25b, 0x59f111f1, 0x923f82a4, 0xab1c5ed5,
             0xd807aa98, 0x12835b01, 0x243185be, 0x550c7dc3, 0x72be5d74, 0x80deb1fe, 0x9bdc06a7, 0xc19bf174,
             0xe49b69c1, 0xefbe4786, 0x0fc19dc6, 0x240ca1cc, 0x2de92c6f, 0x4a7484aa, 0x5cb0a9dc, 0x76f988da,
@@ -203,7 +212,7 @@ class Sha256 {
             0xa2bfe8a1, 0xa81a664b, 0xc24b8b70, 0xc76c51a3, 0xd192e819, 0xd6990624, 0xf40e3585, 0x106aa070,
             0x19a4c116, 0x1e376c08, 0x2748774c, 0x34b0bcb5, 0x391c0cb3, 0x4ed8aa4a, 0x5b9cca4f, 0x682e6ff3,
             0x748f82ee, 0x78a5636f, 0x84c87814, 0x8cc70208, 0x90befffa, 0xa4506ceb, 0xbef9a3f7, 0xc67178f2};
-        uint32_t schedule[64];
+        std::array<uint32_t, 64> schedule{};
         for (size_t index = 0; index < 16; ++index) {
             schedule[index] =
                 (static_cast<uint32_t>(block[index * 4]) << 24) | (static_cast<uint32_t>(block[index * 4 + 1]) << 16) |
@@ -254,7 +263,7 @@ int64_t
 DaysFromCivil(int year, unsigned month, unsigned day) {
     year -= month <= 2;
     const int era = (year >= 0 ? year : year - 399) / 400;
-    const unsigned year_of_era = static_cast<unsigned>(year - era * 400);
+    const auto year_of_era = static_cast<unsigned>(year - era * 400);
     const unsigned adjusted_month = month > 2 ? month - 3 : month + 9;
     const unsigned day_of_year = (153 * adjusted_month + 2) / 5 + day - 1;
     const unsigned day_of_era = year_of_era * 365 + year_of_era / 4 - year_of_era / 100 + day_of_year;
@@ -377,6 +386,11 @@ struct OperationCollector {
     std::unordered_map<std::string, MetricBucket> collections;
 };
 
+struct StoredSnapshot {
+    TelemetrySnapshot snapshot;
+    std::unordered_map<std::string, std::vector<double>> global_samples;
+};
+
 proto::common::Metrics
 ToProtoMetric(const TelemetryMetric& metric) {
     proto::common::Metrics result;
@@ -440,33 +454,84 @@ class ClientTelemetryManager::Impl {
 
     void
     Start() {
-        std::lock_guard<std::mutex> lock(mutex);
+        std::unique_lock<std::mutex> lock(mutex);
         if (ready) {
             return;
         }
+        const bool called_from_worker = worker_running && worker_id == std::this_thread::get_id();
+        if (called_from_worker) {
+            // Stop()/Start() is used by reconnect handlers. Reuse this worker only
+            // when no external caller has claimed it for joining. An external stop
+            // always wins over a self-restart that races with it.
+            if (join_in_progress || external_stop_requested) {
+                return;
+            }
+            ready = true;
+            stopped = !config.enabled;
+            return;
+        }
+
+        condition.wait(lock, [this]() { return !join_in_progress; });
+        if (ready) {
+            return;
+        }
+        if (worker.joinable()) {
+            join_in_progress = true;
+            auto previous_worker = std::move(worker);
+            lock.unlock();
+            previous_worker.join();
+            lock.lock();
+            worker_id = {};
+            worker_running = false;
+            join_in_progress = false;
+            condition.notify_all();
+            if (ready) {
+                return;
+            }
+        }
+        external_stop_requested = false;
         ready = true;
-        stopped = false;
+        stopped = !config.enabled;
         if (!config.enabled) {
             return;
         }
+        worker_running = true;
         worker = std::thread([this]() { HeartbeatLoop(); });
+        worker_id = worker.get_id();
     }
 
     void
     Stop() {
-        {
-            std::lock_guard<std::mutex> lock(mutex);
-            if (!ready && stopped) {
-                return;
-            }
-            stopped = true;
-            condition.notify_all();
-        }
-        if (worker.joinable() && worker.get_id() != std::this_thread::get_id()) {
-            worker.join();
-        }
-        std::lock_guard<std::mutex> lock(mutex);
+        std::unique_lock<std::mutex> lock(mutex);
+        stopped = true;
         ready = false;
+        condition.notify_all();
+
+        const bool called_from_worker = worker_running && worker_id == std::this_thread::get_id();
+        if (called_from_worker) {
+            return;
+        }
+
+        external_stop_requested = true;
+        condition.wait(lock, [this]() { return !join_in_progress; });
+        if (!worker.joinable()) {
+            worker_id = {};
+            worker_running = false;
+            return;
+        }
+
+        // Move the thread object while holding the state mutex. This gives
+        // exactly one external caller ownership of join(); other Stop()/Start()
+        // calls wait on join_in_progress instead of touching the same std::thread.
+        join_in_progress = true;
+        auto current_worker = std::move(worker);
+        lock.unlock();
+        current_worker.join();
+        lock.lock();
+        worker_id = {};
+        worker_running = false;
+        join_in_progress = false;
+        condition.notify_all();
     }
 
     void
@@ -476,7 +541,7 @@ class ClientTelemetryManager::Impl {
             SendHeartbeat();
             std::unique_lock<std::mutex> lock(mutex);
             if (stopped) {
-                return;
+                break;
             }
             uint64_t delay = config.heartbeat_interval_ms;
             if (unsupported_streak > 0) {
@@ -488,9 +553,12 @@ class ClientTelemetryManager::Impl {
             }
             condition.wait_for(lock, std::chrono::milliseconds(delay), [this]() { return stopped; });
             if (stopped) {
-                return;
+                break;
             }
         }
+        std::lock_guard<std::mutex> lock(mutex);
+        worker_running = false;
+        condition.notify_all();
     }
 
     void
@@ -499,7 +567,8 @@ class ClientTelemetryManager::Impl {
         if (!config.enabled) {
             return;
         }
-        TelemetrySnapshot snapshot;
+        StoredSnapshot stored;
+        auto& snapshot = stored.snapshot;
         snapshot.end_time = NowMillis();
         snapshot.timestamp = last_snapshot_end == 0 || last_snapshot_end > snapshot.end_time
                                  ? snapshot.end_time - config.heartbeat_interval_ms
@@ -512,6 +581,8 @@ class ClientTelemetryManager::Impl {
             TelemetryOperationMetrics operation;
             operation.operation = entry.first;
             operation.global = entry.second.global.Snapshot();
+            stored.global_samples.emplace(entry.first, std::vector<double>(entry.second.global.samples.begin(),
+                                                                           entry.second.global.samples.end()));
             for (const auto& collection : entry.second.collections) {
                 if (all_collections_enabled || enabled_collections.count(collection.first) > 0) {
                     operation.collection_metrics.emplace(collection.first, collection.second.Snapshot());
@@ -520,7 +591,18 @@ class ClientTelemetryManager::Impl {
             snapshot.metrics.emplace_back(std::move(operation));
             entry.second = OperationCollector{};
         }
-        snapshots.push_back(std::move(snapshot));
+        // Heartbeats report exactly the collector interval that just ended.
+        // Keep this separate from retained history so skipping an empty history
+        // entry cannot make the next heartbeat resend an older non-empty sample.
+        latest_snapshot = snapshot;
+        const auto history_start = snapshot.end_time - kMaxHistoryRangeMs;
+        while (!snapshots.empty() && snapshots.front().snapshot.end_time < history_start) {
+            snapshots.pop_front();
+        }
+        if (snapshot.metrics.empty()) {
+            return;
+        }
+        snapshots.push_back(std::move(stored));
         while (snapshots.size() > kSnapshotLimit) {
             snapshots.pop_front();
         }
@@ -549,16 +631,13 @@ class ClientTelemetryManager::Impl {
                 (*info->mutable_reserved())["db_name"] = database;
             }
             request.set_report_timestamp(NowMillis());
-            if (!snapshots.empty()) {
-                for (const auto& operation : snapshots.back().metrics) {
-                    auto* output = request.add_metrics();
-                    output->set_operation(operation.operation);
-                    *output->mutable_global() = ToProtoMetric(operation.global);
-                    for (const auto& collection : operation.collection_metrics) {
-                        if (all_collections_enabled || enabled_collections.count(collection.first) > 0) {
-                            (*output->mutable_collection_metrics())[collection.first] =
-                                ToProtoMetric(collection.second);
-                        }
+            for (const auto& operation : latest_snapshot.metrics) {
+                auto* output = request.add_metrics();
+                output->set_operation(operation.operation);
+                *output->mutable_global() = ToProtoMetric(operation.global);
+                for (const auto& collection : operation.collection_metrics) {
+                    if (all_collections_enabled || enabled_collections.count(collection.first) > 0) {
+                        (*output->mutable_collection_metrics())[collection.first] = ToProtoMetric(collection.second);
                     }
                 }
             }
@@ -674,7 +753,7 @@ class ClientTelemetryManager::Impl {
         }
         std::lock_guard<std::mutex> lock(mutex);
         for (auto iterator = executed_commands.begin(); iterator != executed_commands.end();) {
-            if (iterator->second <= previous_timestamp) {
+            if (iterator->second < max_timestamp) {
                 iterator = executed_commands.erase(iterator);
             } else {
                 ++iterator;
@@ -704,7 +783,7 @@ class ClientTelemetryManager::Impl {
                     throw std::invalid_argument("enabled must be a boolean");
                 }
                 enabled = payload["enabled"].get<bool>();
-                applied.push_back("enabled");
+                applied.emplace_back("enabled");
             }
             if (payload.count("heartbeat_interval_ms")) {
                 if (!payload["heartbeat_interval_ms"].is_number_integer() &&
@@ -715,7 +794,7 @@ class ClientTelemetryManager::Impl {
                 if (interval <= 0) {
                     throw std::invalid_argument("heartbeat_interval_ms must be positive");
                 }
-                applied.push_back("heartbeat_interval_ms");
+                applied.emplace_back("heartbeat_interval_ms");
             }
             if (payload.count("sampling_rate")) {
                 if (!payload["sampling_rate"].is_number()) {
@@ -726,7 +805,7 @@ class ClientTelemetryManager::Impl {
                     throw std::invalid_argument("sampling_rate must be finite");
                 }
                 sampling_rate = std::max(0.0, std::min(1.0, sampling_rate));
-                applied.push_back("sampling_rate");
+                applied.emplace_back("sampling_rate");
             }
             if (payload.count("ttl_seconds")) {
                 if (!payload["ttl_seconds"].is_number_integer() && !payload["ttl_seconds"].is_number_unsigned()) {
@@ -887,21 +966,23 @@ class ClientTelemetryManager::Impl {
             if (end - start > 60 * 60 * 1000) {
                 throw std::invalid_argument("time range cannot exceed 1 hour");
             }
-            std::vector<TelemetrySnapshot> all;
+            std::vector<StoredSnapshot> all;
             {
                 std::lock_guard<std::mutex> lock(mutex);
                 all.assign(snapshots.begin(), snapshots.end());
             }
-            std::vector<TelemetrySnapshot> selected;
-            for (const auto& snapshot : all) {
+            std::vector<StoredSnapshot> selected;
+            for (const auto& stored : all) {
+                const auto& snapshot = stored.snapshot;
                 if (snapshot.end_time >= start && snapshot.timestamp <= end) {
-                    selected.push_back(snapshot);
+                    selected.push_back(stored);
                 }
             }
             nlohmann::json response;
             if (payload.value("detail", false)) {
                 response["snapshots"] = nlohmann::json::array();
-                for (const auto& snapshot : selected) {
+                for (const auto& stored : selected) {
+                    const auto& snapshot = stored.snapshot;
                     nlohmann::json metrics = nlohmann::json::object();
                     for (const auto& operation : snapshot.metrics) {
                         metrics[operation.operation] = MetricJson(operation.global);
@@ -916,30 +997,56 @@ class ClientTelemetryManager::Impl {
                     int64_t successes{0};
                     int64_t errors{0};
                     double average{0};
-                    double p99{0};
                     double maximum{0};
+                    std::vector<std::pair<double, double>> latency_samples;
                 };
                 std::map<std::string, Total> totals;
-                for (const auto& snapshot : selected) {
+                for (const auto& stored : selected) {
+                    const auto& snapshot = stored.snapshot;
                     for (const auto& operation : snapshot.metrics) {
                         auto& total = totals[operation.operation];
                         total.requests += operation.global.request_count;
                         total.successes += operation.global.success_count;
                         total.errors += operation.global.error_count;
                         total.average += operation.global.avg_latency_ms * operation.global.request_count;
-                        total.p99 += operation.global.p99_latency_ms * operation.global.request_count;
                         total.maximum = std::max(total.maximum, operation.global.max_latency_ms);
+                        const auto samples = stored.global_samples.find(operation.operation);
+                        if (samples != stored.global_samples.end() && !samples->second.empty()) {
+                            const auto weight =
+                                static_cast<double>(operation.global.request_count) / samples->second.size();
+                            for (const auto latency : samples->second) {
+                                total.latency_samples.emplace_back(latency, weight);
+                            }
+                        }
                     }
                 }
                 nlohmann::json metrics = nlohmann::json::object();
                 for (const auto& entry : totals) {
+                    auto samples = entry.second.latency_samples;
+                    std::sort(samples.begin(), samples.end(),
+                              [](const std::pair<double, double>& left, const std::pair<double, double>& right) {
+                                  return left.first < right.first;
+                              });
+                    double p99 = 0;
+                    if (!samples.empty()) {
+                        const auto target = static_cast<double>(entry.second.requests) * 0.99;
+                        double cumulative = 0;
+                        p99 = samples.back().first;
+                        for (const auto& sample : samples) {
+                            cumulative += sample.second;
+                            if (cumulative > target) {
+                                p99 = sample.first;
+                                break;
+                            }
+                        }
+                    }
                     metrics[entry.first] = {
                         {"request_count", entry.second.requests},
                         {"success_count", entry.second.successes},
                         {"error_count", entry.second.errors},
                         {"avg_latency_ms",
                          entry.second.requests == 0 ? 0 : entry.second.average / entry.second.requests},
-                        {"p99_latency_ms", entry.second.requests == 0 ? 0 : entry.second.p99 / entry.second.requests},
+                        {"p99_latency_ms", p99},
                         {"max_latency_ms", entry.second.maximum}};
                 }
                 response = {{"aggregated", {{"start_time", start}, {"end_time", end}, {"metrics", metrics}}},
@@ -968,7 +1075,8 @@ class ClientTelemetryManager::Impl {
     std::string connection_scope;
     std::unordered_map<std::string, OperationCollector> collectors;
     std::deque<TelemetryError> errors;
-    std::deque<TelemetrySnapshot> snapshots;
+    TelemetrySnapshot latest_snapshot;
+    std::deque<StoredSnapshot> snapshots;
     std::vector<TelemetryCommandReply> pending_replies;
     std::unordered_map<std::string, int64_t> executed_commands;
     std::unordered_map<std::string, CommandHandler> handlers;
@@ -976,6 +1084,9 @@ class ClientTelemetryManager::Impl {
     bool all_collections_enabled{false};
     bool ready{false};
     bool stopped{true};
+    bool worker_running{false};
+    bool join_in_progress{false};
+    bool external_stop_requested{false};
     int unsupported_streak{0};
     // Carries the fractional sampling rate between operations, in kSamplingScale units:
     // each operation adds the rate and the one that pushes it past a whole unit is the one
@@ -986,6 +1097,7 @@ class ClientTelemetryManager::Impl {
     std::string config_hash;
     std::string last_heartbeat_error;
     std::thread worker;
+    std::thread::id worker_id;
     std::recursive_mutex command_mutex;
 };
 
@@ -1000,12 +1112,6 @@ ClientTelemetryManager::AttachChannel(const std::shared_ptr<grpc::Channel>& chan
                                       const std::string& database, const std::string& uri,
                                       const std::string& sdk_version, const std::string& connection_scope) {
     impl_->AttachChannel(channel, username, database, uri, sdk_version, connection_scope);
-}
-
-void
-ClientTelemetryManager::UpdateDatabase(const std::string& database) {
-    std::lock_guard<std::mutex> lock(impl_->mutex);
-    impl_->database = database;
 }
 
 void
@@ -1145,7 +1251,12 @@ ClientTelemetryManager::RecentErrors(size_t max_count) const {
 std::vector<TelemetrySnapshot>
 ClientTelemetryManager::MetricsSnapshots() const {
     std::lock_guard<std::mutex> lock(impl_->mutex);
-    return {impl_->snapshots.begin(), impl_->snapshots.end()};
+    std::vector<TelemetrySnapshot> result;
+    result.reserve(impl_->snapshots.size());
+    for (const auto& stored : impl_->snapshots) {
+        result.push_back(stored.snapshot);
+    }
+    return result;
 }
 
 std::vector<TelemetryCommandReply>
