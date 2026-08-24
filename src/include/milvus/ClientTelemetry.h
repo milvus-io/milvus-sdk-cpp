@@ -160,7 +160,7 @@ class MILVUS_SDK_API ClientTelemetryManager {
     friend class MilvusClientV2;
 
     bool
-    IsWorkerThread() const;
+    isWorkerThread() const;
 
     class Impl;
     std::shared_ptr<Impl> impl_;

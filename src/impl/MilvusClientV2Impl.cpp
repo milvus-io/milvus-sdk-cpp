@@ -42,11 +42,11 @@ namespace milvus {
 
 std::shared_ptr<MilvusClientV2>
 MilvusClientV2::Create() {
-    return std::shared_ptr<MilvusClientV2>(new MilvusClientV2Impl(), [](MilvusClientV2Impl* client) noexcept {
-        auto telemetry = client->GetTelemetry();
-        const bool called_from_telemetry_worker = telemetry != nullptr && telemetry->IsWorkerThread();
-        DeleteClientWithTelemetryWorkerSafety(client, std::move(telemetry), called_from_telemetry_worker);
-    });
+    return {new MilvusClientV2Impl(), [](MilvusClientV2Impl* client) noexcept {
+                auto telemetry = client->GetTelemetry();
+                const bool called_from_telemetry_worker = telemetry != nullptr && telemetry->isWorkerThread();
+                DeleteClientWithTelemetryWorkerSafety(client, std::move(telemetry), called_from_telemetry_worker);
+            }};
 }
 
 MilvusClientV2Impl::~MilvusClientV2Impl() {

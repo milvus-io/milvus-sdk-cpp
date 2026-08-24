@@ -64,6 +64,28 @@ StartGlobalMilvusServer(GlobalMilvusService& service, int& port) {
     return builder.BuildAndStart();
 }
 
+class ScopedTopologyServerThread {
+ public:
+    explicit ScopedTopologyServerThread(httplib::Server& server)
+        : server_(server), thread_([&server]() { server.listen_after_bind(); }) {
+    }
+
+    ~ScopedTopologyServerThread() {
+        server_.stop();
+        if (thread_.joinable()) {
+            thread_.join();
+        }
+    }
+
+    ScopedTopologyServerThread(const ScopedTopologyServerThread&) = delete;
+    ScopedTopologyServerThread&
+    operator=(const ScopedTopologyServerThread&) = delete;
+
+ private:
+    httplib::Server& server_;
+    std::thread thread_;
+};
+
 }  // namespace
 
 TEST(GlobalClusterUtilsTest, IsGlobalEndpoint) {
@@ -320,7 +342,7 @@ TEST(GlobalClusterTelemetryTest, FailoverAndUseDatabasePreserveLogicalTelemetryS
         });
     const auto topology_port = topology_server.bind_to_any_port("127.0.0.1");
     ASSERT_TRUE(topology_server.is_valid());
-    std::thread topology_thread([&topology_server]() { topology_server.listen_after_bind(); });
+    ScopedTopologyServerThread topology_thread(topology_server);
     topology_server.wait_until_ready();
 
     const auto logical_endpoint = "http://127.0.0.1:" + std::to_string(topology_port) + "/global-cluster-test";
@@ -377,8 +399,6 @@ TEST(GlobalClusterTelemetryTest, FailoverAndUseDatabasePreserveLogicalTelemetryS
     EXPECT_EQ(manager->ConfigHash(), config_hash);
 
     EXPECT_TRUE(handler.Disconnect().IsOk());
-    topology_server.stop();
-    topology_thread.join();
     first_server->Shutdown();
     second_server->Shutdown();
 }

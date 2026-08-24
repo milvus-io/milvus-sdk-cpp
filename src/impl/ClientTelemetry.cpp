@@ -1231,7 +1231,7 @@ ClientTelemetryManager::IsReady() const {
 }
 
 bool
-ClientTelemetryManager::IsWorkerThread() const {
+ClientTelemetryManager::isWorkerThread() const {
     std::lock_guard<std::mutex> lock(impl_->mutex);
     return impl_->worker_running && impl_->worker_id == std::this_thread::get_id();
 }
