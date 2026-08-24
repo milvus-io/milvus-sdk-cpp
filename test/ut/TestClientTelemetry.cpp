@@ -21,6 +21,7 @@
 #include <sstream>
 #include <thread>
 
+#include "MilvusConnection.h"
 #include "milvus.grpc.pb.h"
 #include "milvus.pb.h"
 #include "milvus/ClientRequestContext.h"
@@ -426,6 +427,67 @@ TEST(ClientTelemetryTest, ReconnectReuseMatchesOriginalUserConfig) {
     auto changed = config;
     changed.enabled = true;
     EXPECT_FALSE(manager.MatchesConnection(changed, ""));
+}
+
+TEST(ClientTelemetryTest, GlobalPhysicalHandoffAndUseDatabaseKeepLogicalIdentityAndState) {
+    LifecycleTelemetryService first_service("");
+    LifecycleTelemetryService second_service("");
+    int first_port = 0;
+    int second_port = 0;
+    auto first_server = StartLifecycleServer(first_service, first_port);
+    auto second_server = StartLifecycleServer(second_service, second_port);
+    ASSERT_NE(first_server, nullptr);
+    ASSERT_NE(second_server, nullptr);
+
+    constexpr const char* logical_endpoint = "https://tenant.global-cluster.example.com";
+    milvus::ConnectParam first_param("http://127.0.0.1:" + std::to_string(first_port));
+    first_param.SetDbName("primary_db");
+    milvus::TelemetryConfig telemetry_config;
+    telemetry_config.enabled = false;
+    first_param.SetTelemetryConfig(telemetry_config);
+
+    auto first_connection = std::make_shared<milvus::MilvusConnection>();
+    ASSERT_TRUE(first_connection->Connect(first_param, "", nullptr, logical_endpoint).IsOk());
+    auto manager = first_connection->GetTelemetry();
+    ASSERT_NE(manager, nullptr);
+    const auto client_id = manager->ClientId();
+    manager->ProcessCommands({
+        {"config", "push_config", R"({"sampling_rate":0.25})", 1, true, ""},
+        {"collections", "collection_metrics", R"({"enabled":true,"collections":["before_failover"]})", 2, false, ""},
+    });
+    const auto config_hash = manager->ConfigHash();
+    const auto replies_before_failover = manager->PendingCommandReplies();
+    ASSERT_EQ(replies_before_failover.size(), 2U);
+
+    milvus::ConnectParam second_param = first_param;
+    second_param.SetUri("http://127.0.0.1:" + std::to_string(second_port));
+    auto second_connection = std::make_shared<milvus::MilvusConnection>();
+    ASSERT_TRUE(second_connection->Connect(second_param, client_id, manager, logical_endpoint).IsOk());
+    ASSERT_EQ(second_connection->GetTelemetry(), manager);
+    EXPECT_EQ(manager->ClientId(), client_id);
+    EXPECT_EQ(manager->ConfigHash(), config_hash);
+    EXPECT_EQ(manager->LastCommandTimestamp(), 2);
+    EXPECT_DOUBLE_EQ(manager->Config().sampling_rate, 0.25);
+    EXPECT_EQ(manager->PendingCommandReplies().size(), replies_before_failover.size());
+    EXPECT_TRUE(first_connection->Disconnect(false).IsOk());
+
+    ASSERT_TRUE(second_connection->UseDatabase("secondary_db").IsOk());
+    ASSERT_EQ(second_connection->GetTelemetry(), manager);
+    EXPECT_EQ(manager->ClientId(), client_id);
+    EXPECT_EQ(manager->ConfigHash(), config_hash);
+    EXPECT_EQ(manager->LastCommandTimestamp(), 2);
+
+    manager->ProcessCommands({{"config-after-use-db", "get_config", "", 3, false, ""}});
+    const auto replies = manager->PendingCommandReplies();
+    ASSERT_FALSE(replies.empty());
+    ASSERT_TRUE(replies.back().success) << replies.back().error_message;
+    const auto user_config = nlohmann::json::parse(replies.back().payload).at("user_config");
+    EXPECT_EQ(user_config.at("address"), logical_endpoint);
+    EXPECT_EQ(user_config.at("db_name"), "secondary_db");
+
+    EXPECT_TRUE(second_connection->Disconnect().IsOk());
+    first_server->Shutdown();
+    second_server->Shutdown();
 }
 
 TEST(ClientTelemetryTest, PushConfigIsAtomicAndReportsAppliedAndIgnoredKeys) {

@@ -43,7 +43,24 @@ namespace milvus {
 
 std::shared_ptr<MilvusClientV2>
 MilvusClientV2::Create() {
-    return std::make_shared<MilvusClientV2Impl>();
+    return std::shared_ptr<MilvusClientV2>(new MilvusClientV2Impl(), [](MilvusClientV2Impl* client) noexcept {
+        auto telemetry = client->GetTelemetry();
+        if (telemetry != nullptr && telemetry->IsWorkerThread()) {
+            // See the V1 factory: destruction from a heartbeat command must not join a
+            // global refresher that is waiting for that same command to finish.
+            try {
+                std::thread([client, telemetry = std::move(telemetry)]() {
+                    telemetry->Stop();
+                    delete client;
+                }).detach();
+            } catch (...) {
+                // A deleter must not throw. If cleanup cannot be deferred safely,
+                // retain the client rather than terminate or deadlock here.
+            }
+            return;
+        }
+        delete client;
+    });
 }
 
 MilvusClientV2Impl::~MilvusClientV2Impl() {

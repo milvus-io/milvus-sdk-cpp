@@ -106,7 +106,8 @@ ConnectionHandler::Connect(const ConnectParam& connect_param) {
     }
 
     auto new_connection = std::make_shared<MilvusConnection>();
-    auto status = new_connection->Connect(primary_param, telemetry_client_id_, reusable_telemetry);
+    auto status = new_connection->Connect(primary_param, telemetry_client_id_, reusable_telemetry,
+                                          is_global ? connect_param.Uri() : "");
     if (!status.IsOk()) {
         restore();
         return status;
@@ -211,6 +212,7 @@ ConnectionHandler::reconnectToPrimary(const GlobalTopology& topology, const std:
     ConnectParam primary_param;
     ClientTelemetryManagerPtr reusable_telemetry;
     std::string telemetry_client_id;
+    std::string telemetry_logical_endpoint;
     {
         std::lock_guard<std::mutex> lock(mtx_);
         if (!global_mode_) {
@@ -237,6 +239,7 @@ ConnectionHandler::reconnectToPrimary(const GlobalTopology& topology, const std:
             reusable_telemetry = telemetry_;
         }
         telemetry_client_id = telemetry_client_id_;
+        telemetry_logical_endpoint = global_endpoint_;
     }
 
     // abort promptly when the refresher is stopping rather than starting a fresh gRPC connect
@@ -248,7 +251,8 @@ ConnectionHandler::reconnectToPrimary(const GlobalTopology& topology, const std:
     // WaitForConnected() and the Connect RPC for up to ~2x ConnectTimeout, and holding mtx_ that
     // long would stall every other SDK operation that snapshots the connection.
     auto new_connection = std::make_shared<MilvusConnection>();
-    auto status = new_connection->Connect(primary_param, telemetry_client_id, reusable_telemetry);
+    auto status =
+        new_connection->Connect(primary_param, telemetry_client_id, reusable_telemetry, telemetry_logical_endpoint);
     if (!status.IsOk()) {
         // keep the existing connection; report failure so the refresher retries the same version
         return false;
@@ -272,8 +276,7 @@ ConnectionHandler::reconnectToPrimary(const GlobalTopology& topology, const std:
             if (new_connection->GetConnectParam().DbName() != live.DbName()) {
                 // the database changed while reconnecting; drop the stale candidate and retry
                 discard_candidate = true;
-                stop_candidate_telemetry =
-                    new_telemetry == nullptr || connection_->GetTelemetry() != new_telemetry;
+                stop_candidate_telemetry = new_telemetry == nullptr || connection_->GetTelemetry() != new_telemetry;
                 reconnect_result = false;
             }
         }

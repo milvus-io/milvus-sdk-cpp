@@ -40,7 +40,27 @@ namespace milvus {
 
 std::shared_ptr<MilvusClient>
 MilvusClient::Create() {
-    return std::make_shared<MilvusClientImpl>();
+    return std::shared_ptr<MilvusClient>(new MilvusClientImpl(), [](MilvusClientImpl* client) noexcept {
+        auto telemetry = client->GetTelemetry();
+        if (telemetry != nullptr && telemetry->IsWorkerThread()) {
+            // The global topology refresher may be waiting for this command handler before
+            // it can hand off the telemetry channel. Deleting the embedded ConnectionHandler
+            // here would join that refresher and deadlock. Stop/join the telemetry worker on
+            // another thread, then delete after the handler has returned.
+            try {
+                std::thread([client, telemetry = std::move(telemetry)]() {
+                    telemetry->Stop();
+                    delete client;
+                }).detach();
+            } catch (...) {
+                // A deleter must not throw. If the process cannot create the one-shot
+                // cleanup thread, intentionally retain the client rather than terminate
+                // or re-enter the known refresher/command join cycle.
+            }
+            return;
+        }
+        delete client;
+    });
 }
 
 MilvusClientImpl::~MilvusClientImpl() {

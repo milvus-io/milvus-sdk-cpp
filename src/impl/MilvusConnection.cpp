@@ -104,7 +104,7 @@ MilvusConnection::StatusCodeFromGrpcStatus(const ::grpc::Status& grpc_status) {
 
 Status
 MilvusConnection::Connect(const ConnectParam& param, const std::string& runtime_telemetry_client_id,
-                          ClientTelemetryManagerPtr reusable_telemetry) {
+                          ClientTelemetryManagerPtr reusable_telemetry, const std::string& telemetry_logical_endpoint) {
     std::shared_ptr<grpc::Channel> channel;
     std::string telemetry_endpoint;
     try {
@@ -155,8 +155,9 @@ MilvusConnection::Connect(const ConnectParam& param, const std::string& runtime_
     auto stub_holder = proto::milvus::MilvusService::NewStub(channel);
     auto stub = std::shared_ptr<Stub>(std::move(stub_holder));
     auto reusable_client_id = runtime_telemetry_client_id.empty() ? telemetry_client_id_ : runtime_telemetry_client_id;
+    const auto reported_endpoint = telemetry_logical_endpoint.empty() ? telemetry_endpoint : telemetry_logical_endpoint;
     const auto connection_scope =
-        telemetry_endpoint + "#" + std::to_string(std::hash<std::string>{}(param.Authorizations()));
+        reported_endpoint + "#" + std::to_string(std::hash<std::string>{}(param.Authorizations()));
     const bool can_reuse_telemetry =
         reusable_telemetry != nullptr && reusable_telemetry->MatchesConnection(param.Telemetry(), connection_scope);
     auto telemetry = can_reuse_telemetry
@@ -199,7 +200,7 @@ MilvusConnection::Connect(const ConnectParam& param, const std::string& runtime_
         return status;
     }
 
-    telemetry->AttachChannel(channel, param.Username(), param.DbName(), telemetry_endpoint, GetBuildVersion(),
+    telemetry->AttachChannel(channel, param.Username(), param.DbName(), reported_endpoint, GetBuildVersion(),
                              connection_scope);
     {
         std::lock_guard<std::mutex> lock(stub_mtx_);
@@ -208,6 +209,7 @@ MilvusConnection::Connect(const ConnectParam& param, const std::string& runtime_
         stub_ = std::move(stub);
         telemetry_ = telemetry;
         telemetry_client_id_ = telemetry->ClientId();
+        telemetry_logical_endpoint_ = telemetry_logical_endpoint;
     }
     telemetry->Start();
     return Status::OK();
@@ -244,9 +246,14 @@ MilvusConnection::Disconnect(bool stop_telemetry) {
 Status
 MilvusConnection::UseDatabase(const std::string& db_name) {
     auto telemetry = GetTelemetry();
+    std::string telemetry_logical_endpoint;
+    {
+        std::lock_guard<std::mutex> lock(stub_mtx_);
+        telemetry_logical_endpoint = telemetry_logical_endpoint_;
+    }
     Disconnect();
     param_.SetDbName(db_name);
-    return Connect(param_, telemetry_client_id_, std::move(telemetry));
+    return Connect(param_, telemetry_client_id_, std::move(telemetry), telemetry_logical_endpoint);
 }
 
 Status

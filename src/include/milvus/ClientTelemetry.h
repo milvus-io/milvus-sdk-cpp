@@ -156,6 +156,12 @@ class MILVUS_SDK_API ClientTelemetryManager {
     CalculateConfigHash(const std::vector<TelemetryCommand>& commands);
 
  private:
+    friend class MilvusClient;
+    friend class MilvusClientV2;
+
+    bool
+    IsWorkerThread() const;
+
     class Impl;
     std::shared_ptr<Impl> impl_;
 };

@@ -14,24 +14,54 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include <grpcpp/server.h>
+#include <grpcpp/server_builder.h>
 #include <gtest/gtest.h>
 
 #include <atomic>
 #include <chrono>
+#include <memory>
+#include <mutex>
 #include <string>
 #include <thread>
 
 #include "cpp-httplib/httplib.h"
+#include "milvus.grpc.pb.h"
+#include "milvus.pb.h"
+#include "milvus/ClientTelemetry.h"
+#include "milvus/thirdparty/nlohmann/json.hpp"
+#include "milvus/types/ConnectParam.h"
 #include "types/GlobalCluster.h"
+#include "utils/ConnectionHandler.h"
 #include "utils/GlobalClusterUtils.h"
 #include "utils/TopologyRefresher.h"
 
 namespace {
 
 std::string
-TopologyBody(int64_t version) {
+TopologyBody(int64_t version, const std::string& endpoint = "a:19530") {
     return R"({"code":0,"data":{"version":)" + std::to_string(version) +
-           R"(,"clusters":[{"clusterId":"a","endpoint":"a:19530","capability":3}]}})";
+           R"(,"clusters":[{"clusterId":"a","endpoint":")" + endpoint + R"(","capability":3}]}})";
+}
+
+class GlobalMilvusService final : public milvus::proto::milvus::MilvusService::Service {
+ public:
+    grpc::Status
+    Connect(grpc::ServerContext*, const milvus::proto::milvus::ConnectRequest*,
+            milvus::proto::milvus::ConnectResponse*) override {
+        ++connects;
+        return grpc::Status::OK;
+    }
+
+    std::atomic<int> connects{0};
+};
+
+std::unique_ptr<grpc::Server>
+StartGlobalMilvusServer(GlobalMilvusService& service, int& port) {
+    grpc::ServerBuilder builder;
+    builder.AddListeningPort("127.0.0.1:0", grpc::InsecureServerCredentials(), &port);
+    builder.RegisterService(&service);
+    return builder.BuildAndStart();
 }
 
 }  // namespace
@@ -264,4 +294,87 @@ TEST(TopologyRefresherTest, CallbackOnVersionChange) {
 
     server.stop();
     srv.join();
+}
+
+TEST(GlobalClusterTelemetryTest, FailoverAndUseDatabasePreserveLogicalTelemetryState) {
+    GlobalMilvusService first_service;
+    GlobalMilvusService second_service;
+    int first_port = 0;
+    int second_port = 0;
+    auto first_server = StartGlobalMilvusServer(first_service, first_port);
+    auto second_server = StartGlobalMilvusServer(second_service, second_port);
+    ASSERT_NE(first_server, nullptr);
+    ASSERT_NE(second_server, nullptr);
+
+    httplib::Server topology_server;
+    std::atomic<int64_t> served_version{1};
+    std::atomic<int> served_primary_port{first_port};
+    topology_server.Get("/global-cluster/topology", [&](const httplib::Request&, httplib::Response& response) {
+        response.set_content(
+            TopologyBody(served_version.load(), "127.0.0.1:" + std::to_string(served_primary_port.load())),
+            "application/json");
+    });
+    const auto topology_port = topology_server.bind_to_any_port("127.0.0.1");
+    ASSERT_TRUE(topology_server.is_valid());
+    std::thread topology_thread([&topology_server]() { topology_server.listen_after_bind(); });
+    topology_server.wait_until_ready();
+
+    const auto logical_endpoint = "http://telemetry.global-cluster.localhost:" + std::to_string(topology_port);
+    milvus::ConnectParam connect_param(logical_endpoint);
+    connect_param.SetDbName("primary_db");
+    milvus::TelemetryConfig telemetry_config;
+    telemetry_config.enabled = false;
+    connect_param.SetTelemetryConfig(telemetry_config);
+
+    milvus::ConnectionHandler handler;
+    ASSERT_TRUE(handler.Connect(connect_param).IsOk());
+    auto manager = handler.GetTelemetry();
+    ASSERT_NE(manager, nullptr);
+    const auto client_id = manager->ClientId();
+    manager->ProcessCommands({
+        {"config", "push_config", R"({"sampling_rate":0.25})", 1, true, ""},
+        {"collections", "collection_metrics", R"({"enabled":true,"collections":["before_failover"]})", 2, false, ""},
+    });
+    const auto config_hash = manager->ConfigHash();
+    const auto reply_count = manager->PendingCommandReplies().size();
+    ASSERT_EQ(reply_count, 2U);
+
+    served_primary_port = second_port;
+    served_version = 2;
+    handler.TriggerGlobalRefresh();
+    const auto second_uri = "http://127.0.0.1:" + std::to_string(second_port);
+    for (int retry = 0; retry < 3000; ++retry) {
+        auto connection = handler.GetConnection();
+        if (connection != nullptr && connection->GetConnectParam().Uri() == second_uri) {
+            break;
+        }
+        std::this_thread::sleep_for(std::chrono::milliseconds(1));
+    }
+    ASSERT_NE(handler.GetConnection(), nullptr);
+    EXPECT_EQ(handler.GetConnection()->GetConnectParam().Uri(), second_uri);
+    EXPECT_EQ(handler.CurrentEndpoint(), logical_endpoint);
+    EXPECT_EQ(handler.GetTelemetry(), manager);
+    EXPECT_EQ(manager->ClientId(), client_id);
+    EXPECT_EQ(manager->ConfigHash(), config_hash);
+    EXPECT_EQ(manager->LastCommandTimestamp(), 2);
+    EXPECT_DOUBLE_EQ(manager->Config().sampling_rate, 0.25);
+    EXPECT_EQ(manager->PendingCommandReplies().size(), reply_count);
+
+    ASSERT_TRUE(handler.UseDatabase("secondary_db").IsOk());
+    ASSERT_EQ(handler.GetTelemetry(), manager);
+    manager->ProcessCommands({{"config-after-use-db", "get_config", "", 3, false, ""}});
+    const auto replies = manager->PendingCommandReplies();
+    ASSERT_FALSE(replies.empty());
+    ASSERT_TRUE(replies.back().success) << replies.back().error_message;
+    const auto user_config = nlohmann::json::parse(replies.back().payload).at("user_config");
+    EXPECT_EQ(user_config.at("address"), logical_endpoint);
+    EXPECT_EQ(user_config.at("db_name"), "secondary_db");
+    EXPECT_EQ(manager->ClientId(), client_id);
+    EXPECT_EQ(manager->ConfigHash(), config_hash);
+
+    EXPECT_TRUE(handler.Disconnect().IsOk());
+    topology_server.stop();
+    topology_thread.join();
+    first_server->Shutdown();
+    second_server->Shutdown();
 }

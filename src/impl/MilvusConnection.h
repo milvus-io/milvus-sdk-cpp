@@ -66,7 +66,7 @@ class MilvusConnection {
 
     Status
     Connect(const ConnectParam& param, const std::string& runtime_telemetry_client_id = "",
-            ClientTelemetryManagerPtr reusable_telemetry = nullptr);
+            ClientTelemetryManagerPtr reusable_telemetry = nullptr, const std::string& telemetry_logical_endpoint = "");
 
     ConnectParam&
     GetConnectParam();
@@ -521,6 +521,7 @@ class MilvusConnection {
     ConnectParam param_;
     ClientTelemetryManagerPtr telemetry_;
     std::string telemetry_client_id_;
+    std::string telemetry_logical_endpoint_;
 
     static Status
     StatusByProtoResponse(const proto::common::Status& status);
