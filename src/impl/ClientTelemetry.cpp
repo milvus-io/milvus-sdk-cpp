@@ -21,14 +21,11 @@
 #include <condition_variable>
 #include <cstdlib>
 #include <cstring>
-#include <ctime>
 #include <deque>
-#include <iomanip>
 #include <limits>
 #include <map>
 #include <mutex>
 #include <random>
-#include <sstream>
 #include <stdexcept>
 #include <thread>
 #include <unordered_set>
@@ -254,23 +251,41 @@ class Sha256 {
 };
 
 int64_t
-Timegm(std::tm* value) {
-#ifdef _WIN32
-    return static_cast<int64_t>(_mkgmtime(value));
-#else
-    return static_cast<int64_t>(timegm(value));
-#endif
+DaysFromCivil(int year, unsigned month, unsigned day) {
+    year -= month <= 2;
+    const int era = (year >= 0 ? year : year - 399) / 400;
+    const unsigned year_of_era = static_cast<unsigned>(year - era * 400);
+    const unsigned adjusted_month = month > 2 ? month - 3 : month + 9;
+    const unsigned day_of_year = (153 * adjusted_month + 2) / 5 + day - 1;
+    const unsigned day_of_era = year_of_era * 365 + year_of_era / 4 - year_of_era / 100 + day_of_year;
+    return static_cast<int64_t>(era) * 146097 + static_cast<int64_t>(day_of_era) - 719468;
 }
 
 int64_t
 ParseRfc3339Millis(const std::string& value) {
-    if (value.size() < 19) {
+    if (value.size() < 20 || value[4] != '-' || value[7] != '-' || value[10] != 'T' || value[13] != ':' ||
+        value[16] != ':') {
         throw std::invalid_argument("invalid RFC3339 timestamp");
     }
-    std::tm time{};
-    std::istringstream stream(value.substr(0, 19));
-    stream >> std::get_time(&time, "%Y-%m-%dT%H:%M:%S");
-    if (stream.fail()) {
+    for (size_t index = 0; index < 19; ++index) {
+        if (index == 4 || index == 7 || index == 10 || index == 13 || index == 16) {
+            continue;
+        }
+        if (!std::isdigit(static_cast<unsigned char>(value[index]))) {
+            throw std::invalid_argument("invalid RFC3339 timestamp");
+        }
+    }
+    const int year = std::stoi(value.substr(0, 4));
+    const int month = std::stoi(value.substr(5, 2));
+    const int day = std::stoi(value.substr(8, 2));
+    const int hour = std::stoi(value.substr(11, 2));
+    const int minute = std::stoi(value.substr(14, 2));
+    const int second = std::stoi(value.substr(17, 2));
+    const bool leap_year = year % 4 == 0 && (year % 100 != 0 || year % 400 == 0);
+    constexpr std::array<int, 12> kDaysPerMonth = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
+    if (month < 1 || month > 12 || day < 1 ||
+        day > kDaysPerMonth[static_cast<size_t>(month - 1)] + (month == 2 && leap_year ? 1 : 0) || hour > 23 ||
+        minute > 59 || second > 59) {
         throw std::invalid_argument("invalid RFC3339 timestamp");
     }
     size_t position = 19;
@@ -318,7 +333,9 @@ ParseRfc3339Millis(const std::string& value) {
     if (position != value.size()) {
         throw std::invalid_argument("invalid RFC3339 timestamp");
     }
-    return (Timegm(&time) - offset_seconds) * 1000 + milliseconds;
+    const auto seconds = DaysFromCivil(year, static_cast<unsigned>(month), static_cast<unsigned>(day)) * 86400 +
+                         hour * 3600 + minute * 60 + second - offset_seconds;
+    return seconds * 1000 + milliseconds;
 }
 
 struct MetricBucket {

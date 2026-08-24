@@ -119,6 +119,26 @@ TEST(ClientTelemetryTest, RejectsWrongCommandPayloadTypes) {
     EXPECT_FALSE(manager.Config().enabled);
 }
 
+TEST(ClientTelemetryTest, RejectsInvalidRfc3339CalendarTimes) {
+    milvus::TelemetryConfig config;
+    config.enabled = false;
+    milvus::ClientTelemetryManager manager(config);
+
+    manager.ProcessCommands(
+        {{"invalid-day", "show_latency_history",
+          R"({"start_time":"2026-02-30T00:00:00Z","end_time":"2026-03-01T00:00:00Z","detail":false})", 1, false, ""},
+         {"leap-second", "show_latency_history",
+          R"({"start_time":"2026-02-28T23:59:60Z","end_time":"2026-03-01T00:00:00Z","detail":false})", 2, false, ""},
+         {"missing-seconds", "show_latency_history",
+          R"({"start_time":"2026-02-28T23:59Z","end_time":"2026-03-01T00:00:00Z","detail":false})", 3, false, ""}});
+
+    const auto replies = manager.PendingCommandReplies();
+    ASSERT_EQ(replies.size(), 3U);
+    EXPECT_FALSE(replies[0].success);
+    EXPECT_FALSE(replies[1].success);
+    EXPECT_FALSE(replies[2].success);
+}
+
 TEST(ClientTelemetryTest, SerializesConcurrentCommandBatches) {
     milvus::TelemetryConfig config;
     config.enabled = false;
