@@ -157,7 +157,7 @@ class MILVUS_SDK_API ClientTelemetryManager {
 
  private:
     class Impl;
-    std::unique_ptr<Impl> impl_;
+    std::shared_ptr<Impl> impl_;
 };
 
 using ClientTelemetryManagerPtr = std::shared_ptr<ClientTelemetryManager>;

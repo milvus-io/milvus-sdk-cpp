@@ -422,7 +422,7 @@ FailedReply(const std::string& command_id, const std::string& error) {
 
 }  // namespace
 
-class ClientTelemetryManager::Impl {
+class ClientTelemetryManager::Impl : public std::enable_shared_from_this<ClientTelemetryManager::Impl> {
  public:
     Impl(const TelemetryConfig& value, const std::string& runtime_client_id)
         : config(NormalizedTelemetryConfig(value)),
@@ -496,7 +496,8 @@ class ClientTelemetryManager::Impl {
             return;
         }
         worker_running = true;
-        worker = std::thread([this]() { HeartbeatLoop(); });
+        auto self = shared_from_this();
+        worker = std::thread([self = std::move(self)]() { self->HeartbeatLoop(); });
         worker_id = worker.get_id();
     }
 
@@ -558,6 +559,13 @@ class ClientTelemetryManager::Impl {
         }
         std::lock_guard<std::mutex> lock(mutex);
         worker_running = false;
+        // If Stop() was called by a command handler, no external thread owns
+        // join(). Detach only after the loop has finished using this object;
+        // the worker's shared_ptr keeps Impl alive until this function returns.
+        if (worker.joinable() && worker.get_id() == std::this_thread::get_id()) {
+            worker.detach();
+            worker_id = {};
+        }
         condition.notify_all();
     }
 
@@ -1102,10 +1110,15 @@ class ClientTelemetryManager::Impl {
 };
 
 ClientTelemetryManager::ClientTelemetryManager(const TelemetryConfig& config, const std::string& runtime_client_id)
-    : impl_(new Impl(config, runtime_client_id)) {
+    : impl_(std::make_shared<Impl>(config, runtime_client_id)) {
 }
 
-ClientTelemetryManager::~ClientTelemetryManager() = default;
+ClientTelemetryManager::~ClientTelemetryManager() {
+    // The worker also owns Impl while it is running. Always request shutdown
+    // before releasing the manager's reference so destruction from inside a
+    // command handler cannot free state that HeartbeatLoop is still using.
+    impl_->Stop();
+}
 
 void
 ClientTelemetryManager::AttachChannel(const std::shared_ptr<grpc::Channel>& channel, const std::string& username,

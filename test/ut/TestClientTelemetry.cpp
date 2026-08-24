@@ -25,6 +25,7 @@
 #include "milvus.pb.h"
 #include "milvus/ClientRequestContext.h"
 #include "milvus/ClientTelemetry.h"
+#include "milvus/MilvusClient.h"
 
 namespace {
 
@@ -57,6 +58,82 @@ class ReconnectTelemetryService final : public milvus::proto::milvus::ClientTele
 
     std::atomic<int> heartbeats{0};
 };
+
+class LifecycleTelemetryService final : public milvus::proto::milvus::MilvusService::Service,
+                                        public milvus::proto::milvus::ClientTelemetryService::Service {
+ public:
+    explicit LifecycleTelemetryService(std::string command_type) : command_type_(std::move(command_type)) {
+    }
+
+    grpc::Status
+    Connect(grpc::ServerContext*, const milvus::proto::milvus::ConnectRequest*,
+            milvus::proto::milvus::ConnectResponse*) override {
+        ++connects;
+        return grpc::Status::OK;
+    }
+
+    grpc::Status
+    ClientHeartbeat(grpc::ServerContext*, const milvus::proto::milvus::ClientHeartbeatRequest* request,
+                    milvus::proto::milvus::ClientHeartbeatResponse* response) override {
+        ++heartbeats;
+        const auto database = request->client_info().reserved().find("db_name");
+        if (database != request->client_info().reserved().end() && database->second == "secondary") {
+            saw_secondary_database = true;
+        }
+        if (commands_enabled.load() && !command_sent.exchange(true)) {
+            auto* command = response->add_commands();
+            command->set_command_id(command_type_);
+            command->set_command_type(command_type_);
+            command->set_create_time(1);
+        }
+        return grpc::Status::OK;
+    }
+
+    std::atomic<int> connects{0};
+    std::atomic<int> heartbeats{0};
+    std::atomic<bool> saw_secondary_database{false};
+
+    void
+    EnableCommands() {
+        commands_enabled = true;
+    }
+
+ private:
+    std::string command_type_;
+    std::atomic<bool> commands_enabled{false};
+    std::atomic<bool> command_sent{false};
+};
+
+class DestructionSignal final {
+ public:
+    explicit DestructionSignal(std::shared_ptr<std::promise<void>> signal) : signal_(std::move(signal)) {
+    }
+
+    ~DestructionSignal() {
+        signal_->set_value();
+    }
+
+ private:
+    std::shared_ptr<std::promise<void>> signal_;
+};
+
+std::unique_ptr<grpc::Server>
+StartLifecycleServer(LifecycleTelemetryService& service, int& port) {
+    grpc::ServerBuilder builder;
+    builder.AddListeningPort("127.0.0.1:0", grpc::InsecureServerCredentials(), &port);
+    builder.RegisterService(static_cast<milvus::proto::milvus::MilvusService::Service*>(&service));
+    builder.RegisterService(static_cast<milvus::proto::milvus::ClientTelemetryService::Service*>(&service));
+    return builder.BuildAndStart();
+}
+
+milvus::ConnectParam
+TelemetryConnectParam(int port) {
+    milvus::ConnectParam param("http://127.0.0.1:" + std::to_string(port));
+    milvus::TelemetryConfig config;
+    config.heartbeat_interval_ms = 1;
+    param.SetTelemetryConfig(config);
+    return param;
+}
 
 }  // namespace
 
@@ -274,6 +351,66 @@ TEST(ClientTelemetryTest, ExternalStopWinsRaceWithHeartbeatSelfRestart) {
 
     EXPECT_FALSE(self_restart_ready.load());
     EXPECT_FALSE(manager.IsReady());
+}
+
+TEST(ClientTelemetryTest, UseDatabaseFromHeartbeatCommandReusesWorker) {
+    LifecycleTelemetryService service("use_database");
+    int port = 0;
+    auto server = StartLifecycleServer(service, port);
+    ASSERT_NE(server, nullptr);
+
+    auto client = milvus::MilvusClient::Create();
+    ASSERT_TRUE(client->Connect(TelemetryConnectParam(port)).IsOk());
+    std::atomic<bool> command_finished{false};
+    std::atomic<bool> use_database_succeeded{false};
+    std::weak_ptr<milvus::MilvusClient> weak_client = client;
+    client->GetTelemetry()->RegisterCommandHandler("use_database", [&](const milvus::TelemetryCommand& command) {
+        auto current_client = weak_client.lock();
+        use_database_succeeded = current_client != nullptr && current_client->UseDatabase("secondary").IsOk();
+        command_finished = true;
+        return milvus::TelemetryCommandReply{command.command_id, use_database_succeeded.load(), "", ""};
+    });
+    service.EnableCommands();
+
+    for (int retry = 0; retry < 3000 && (!command_finished.load() || service.heartbeats.load() < 2 ||
+                                         !service.saw_secondary_database.load());
+         ++retry) {
+        std::this_thread::sleep_for(std::chrono::milliseconds(1));
+    }
+
+    EXPECT_TRUE(command_finished.load());
+    EXPECT_TRUE(use_database_succeeded.load());
+    EXPECT_GE(service.connects.load(), 2);
+    EXPECT_GE(service.heartbeats.load(), 2);
+    EXPECT_TRUE(service.saw_secondary_database.load());
+    EXPECT_TRUE(client->Disconnect().IsOk());
+    client.reset();
+    server->Shutdown();
+}
+
+TEST(ClientTelemetryTest, LastManagerReferenceCanBeDestroyedByHeartbeatCommand) {
+    LifecycleTelemetryService service("disconnect_and_destroy");
+    int port = 0;
+    auto server = StartLifecycleServer(service, port);
+    ASSERT_NE(server, nullptr);
+
+    auto client = milvus::MilvusClient::Create();
+    ASSERT_TRUE(client->Connect(TelemetryConnectParam(port)).IsOk());
+    auto destroyed = std::make_shared<std::promise<void>>();
+    auto destroyed_future = destroyed->get_future();
+    auto marker = std::make_shared<DestructionSignal>(destroyed);
+    client->GetTelemetry()->RegisterCommandHandler(
+        "disconnect_and_destroy", [&client, marker](const milvus::TelemetryCommand& command) {
+            auto status = client->Disconnect();
+            client.reset();
+            return milvus::TelemetryCommandReply{command.command_id, status.IsOk(), "", ""};
+        });
+    marker.reset();
+    service.EnableCommands();
+
+    ASSERT_EQ(destroyed_future.wait_for(std::chrono::seconds(3)), std::future_status::ready);
+    EXPECT_EQ(client, nullptr);
+    server->Shutdown();
 }
 
 TEST(ClientTelemetryTest, ReconnectReuseMatchesOriginalUserConfig) {
