@@ -467,7 +467,12 @@ class ClientTelemetryManager::Impl : public std::enable_shared_from_this<ClientT
                 return;
             }
             ready = true;
-            stopped = !config.enabled;
+            control_plane_activated = control_plane_activated || config.enabled;
+            if (!control_plane_activated) {
+                stopped = true;
+                return;
+            }
+            stopped = false;
             return;
         }
 
@@ -491,10 +496,15 @@ class ClientTelemetryManager::Impl : public std::enable_shared_from_this<ClientT
         }
         external_stop_requested = false;
         ready = true;
-        stopped = !config.enabled;
-        if (!config.enabled) {
+        // Initial enabled=false is an explicit opt-out and creates no control-plane traffic.
+        // Once activated, keep the control plane sticky across dynamic disable and
+        // Stop/Start reconnects so the server can later re-enable telemetry.
+        control_plane_activated = control_plane_activated || config.enabled;
+        if (!control_plane_activated) {
+            stopped = true;
             return;
         }
+        stopped = false;
         worker_running = true;
         auto self = shared_from_this();
         worker = std::thread([self = std::move(self)]() { self->HeartbeatLoop(); });
@@ -624,7 +634,7 @@ class ClientTelemetryManager::Impl : public std::enable_shared_from_this<ClientT
         size_t reply_count = 0;
         {
             std::lock_guard<std::mutex> lock(mutex);
-            if (!config.enabled || stub == nullptr) {
+            if (stub == nullptr) {
                 return;
             }
             auto* info = request.mutable_client_info();
@@ -639,13 +649,18 @@ class ClientTelemetryManager::Impl : public std::enable_shared_from_this<ClientT
                 (*info->mutable_reserved())["db_name"] = database;
             }
             request.set_report_timestamp(NowMillis());
-            for (const auto& operation : latest_snapshot.metrics) {
-                auto* output = request.add_metrics();
-                output->set_operation(operation.operation);
-                *output->mutable_global() = ToProtoMetric(operation.global);
-                for (const auto& collection : operation.collection_metrics) {
-                    if (all_collections_enabled || enabled_collections.count(collection.first) > 0) {
-                        (*output->mutable_collection_metrics())[collection.first] = ToProtoMetric(collection.second);
+            // Do not resend the final enabled snapshot after collection is disabled. Replies,
+            // config hash, cursor and incoming commands remain active as the control plane.
+            if (config.enabled) {
+                for (const auto& operation : latest_snapshot.metrics) {
+                    auto* output = request.add_metrics();
+                    output->set_operation(operation.operation);
+                    *output->mutable_global() = ToProtoMetric(operation.global);
+                    for (const auto& collection : operation.collection_metrics) {
+                        if (all_collections_enabled || enabled_collections.count(collection.first) > 0) {
+                            (*output->mutable_collection_metrics())[collection.first] =
+                                ToProtoMetric(collection.second);
+                        }
                     }
                 }
             }
@@ -1092,6 +1107,7 @@ class ClientTelemetryManager::Impl : public std::enable_shared_from_this<ClientT
     bool all_collections_enabled{false};
     bool ready{false};
     bool stopped{true};
+    bool control_plane_activated{false};
     bool worker_running{false};
     bool join_in_progress{false};
     bool external_stop_requested{false};

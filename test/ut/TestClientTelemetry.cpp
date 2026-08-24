@@ -15,6 +15,7 @@
 
 #include <atomic>
 #include <chrono>
+#include <condition_variable>
 #include <future>
 #include <iomanip>
 #include <milvus/thirdparty/nlohmann/json.hpp>
@@ -58,6 +59,69 @@ class ReconnectTelemetryService final : public milvus::proto::milvus::ClientTele
     }
 
     std::atomic<int> heartbeats{0};
+};
+
+class ControlPlaneTelemetryService final : public milvus::proto::milvus::ClientTelemetryService::Service {
+ public:
+    grpc::Status
+    ClientHeartbeat(grpc::ServerContext*, const milvus::proto::milvus::ClientHeartbeatRequest* request,
+                    milvus::proto::milvus::ClientHeartbeatResponse* response) override {
+        std::unique_lock<std::mutex> lock(mutex_);
+        requests_.push_back(*request);
+        const auto heartbeat = requests_.size();
+        condition_.notify_all();
+        if (heartbeat == 1) {
+            auto* command = response->add_commands();
+            command->set_command_id("disable");
+            command->set_command_type("push_config");
+            command->set_payload(R"({"enabled":false})");
+            command->set_create_time(1);
+            command->set_persistent(true);
+        } else if (heartbeat == 2) {
+            condition_.wait(lock, [this]() { return allow_enable_; });
+            auto* command = response->add_commands();
+            command->set_command_id("enable");
+            command->set_command_type("push_config");
+            command->set_payload(R"({"enabled":true})");
+            command->set_create_time(2);
+            command->set_persistent(true);
+        }
+        return grpc::Status::OK;
+    }
+
+    bool
+    WaitForHeartbeats(size_t count) {
+        std::unique_lock<std::mutex> lock(mutex_);
+        return condition_.wait_for(lock, std::chrono::seconds(2),
+                                   [this, count]() { return requests_.size() >= count; });
+    }
+
+    void
+    AllowEnable() {
+        {
+            std::lock_guard<std::mutex> lock(mutex_);
+            allow_enable_ = true;
+        }
+        condition_.notify_all();
+    }
+
+    std::vector<milvus::proto::milvus::ClientHeartbeatRequest>
+    Requests() const {
+        std::lock_guard<std::mutex> lock(mutex_);
+        return requests_;
+    }
+
+    size_t
+    RequestCount() const {
+        std::lock_guard<std::mutex> lock(mutex_);
+        return requests_.size();
+    }
+
+ private:
+    mutable std::mutex mutex_;
+    std::condition_variable condition_;
+    bool allow_enable_{false};
+    std::vector<milvus::proto::milvus::ClientHeartbeatRequest> requests_;
 };
 
 class LifecycleTelemetryService final : public milvus::proto::milvus::MilvusService::Service,
@@ -352,6 +416,85 @@ TEST(ClientTelemetryTest, ExternalStopWinsRaceWithHeartbeatSelfRestart) {
 
     EXPECT_FALSE(self_restart_ready.load());
     EXPECT_FALSE(manager.IsReady());
+}
+
+TEST(ClientTelemetryTest, DisabledTelemetryKeepsControlPlaneHeartbeatAlive) {
+    ControlPlaneTelemetryService service;
+    grpc::ServerBuilder builder;
+    int port = 0;
+    builder.AddListeningPort("127.0.0.1:0", grpc::InsecureServerCredentials(), &port);
+    builder.RegisterService(&service);
+    auto server = builder.BuildAndStart();
+    ASSERT_NE(server, nullptr);
+
+    milvus::TelemetryConfig config;
+    config.heartbeat_interval_ms = 100;
+    milvus::ClientTelemetryManager manager(config);
+    manager.AttachChannel(grpc::CreateChannel("127.0.0.1:" + std::to_string(port), grpc::InsecureChannelCredentials()),
+                          "", "", "", "", "");
+    milvus::proto::milvus::SearchRequest request;
+    manager.RecordOperation("Search", request, std::chrono::steady_clock::now(), true, "");
+
+    manager.Start();
+    for (int retry = 0; retry < 2000 && manager.Config().enabled; ++retry) {
+        std::this_thread::sleep_for(std::chrono::milliseconds(1));
+    }
+    ASSERT_FALSE(manager.Config().enabled);
+    manager.Stop();
+    manager.Start();
+    ASSERT_TRUE(service.WaitForHeartbeats(2));
+    ASSERT_FALSE(manager.Config().enabled);
+    manager.RecordOperation("Search", request, std::chrono::steady_clock::now(), true, "");
+    service.AllowEnable();
+    ASSERT_TRUE(service.WaitForHeartbeats(3));
+    manager.Stop();
+
+    const auto requests = service.Requests();
+    ASSERT_GE(requests.size(), 3U);
+    EXPECT_EQ(requests[0].metrics_size(), 1);
+    EXPECT_EQ(requests[1].metrics_size(), 0);
+    ASSERT_EQ(requests[1].command_replies_size(), 1);
+    EXPECT_EQ(requests[1].command_replies(0).command_id(), "disable");
+    EXPECT_TRUE(requests[1].command_replies(0).success());
+    const milvus::TelemetryCommand disable{"disable", "push_config", R"({"enabled":false})", 1, true, ""};
+    EXPECT_EQ(requests[1].config_hash(), milvus::ClientTelemetryManager::CalculateConfigHash({disable}));
+
+    EXPECT_EQ(requests[2].metrics_size(), 0);
+    ASSERT_EQ(requests[2].command_replies_size(), 1);
+    EXPECT_EQ(requests[2].command_replies(0).command_id(), "enable");
+    EXPECT_TRUE(requests[2].command_replies(0).success());
+    const milvus::TelemetryCommand enable{"enable", "push_config", R"({"enabled":true})", 2, true, ""};
+    EXPECT_EQ(requests[2].config_hash(), milvus::ClientTelemetryManager::CalculateConfigHash({enable}));
+    EXPECT_TRUE(manager.Config().enabled);
+
+    server->Shutdown();
+}
+
+TEST(ClientTelemetryTest, InitialDisabledConfigDoesNotActivateControlPlane) {
+    ControlPlaneTelemetryService service;
+    grpc::ServerBuilder builder;
+    int port = 0;
+    builder.AddListeningPort("127.0.0.1:0", grpc::InsecureServerCredentials(), &port);
+    builder.RegisterService(&service);
+    auto server = builder.BuildAndStart();
+    ASSERT_NE(server, nullptr);
+
+    milvus::TelemetryConfig config;
+    config.enabled = false;
+    config.heartbeat_interval_ms = 1;
+    milvus::ClientTelemetryManager manager(config);
+    manager.AttachChannel(grpc::CreateChannel("127.0.0.1:" + std::to_string(port), grpc::InsecureChannelCredentials()),
+                          "", "", "", "", "");
+
+    manager.Start();
+    std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    manager.Stop();
+    manager.Start();
+    std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    manager.Stop();
+
+    EXPECT_EQ(service.RequestCount(), 0U);
+    server->Shutdown();
 }
 
 TEST(ClientTelemetryTest, UseDatabaseFromHeartbeatCommandReusesWorker) {
