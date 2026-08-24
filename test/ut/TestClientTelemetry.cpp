@@ -333,7 +333,7 @@ TEST(ClientTelemetryTest, RetainsMoreThanOneHundredTwentySnapshotsWithinOneHour)
     EXPECT_EQ(manager.MetricsSnapshots().size(), expected_snapshots);
 }
 
-TEST(ClientTelemetryTest, BoundsHighFrequencySnapshotHistoryAndSkipsEmptyIntervals) {
+TEST(ClientTelemetryTest, RetainsOneSecondHeartbeatWindowAndSkipsEmptyIntervals) {
     milvus::TelemetryConfig config;
     config.heartbeat_interval_ms = 1;
     milvus::ClientTelemetryManager manager(config);
@@ -344,8 +344,8 @@ TEST(ClientTelemetryTest, BoundsHighFrequencySnapshotHistoryAndSkipsEmptyInterva
     manager.Stop();
     EXPECT_TRUE(manager.MetricsSnapshots().empty());
 
-    constexpr size_t generated_snapshots = 520;
-    constexpr size_t retained_snapshots = 512;
+    constexpr size_t generated_snapshots = 4104;
+    constexpr size_t retained_snapshots = 4096;
     for (size_t index = 0; index < generated_snapshots; ++index) {
         manager.RecordOperation("Search", request, std::chrono::steady_clock::now(), true, "");
         manager.Start();
@@ -392,6 +392,50 @@ TEST(ClientTelemetryTest, AggregatesP99FromRetainedLatencySamples) {
     ASSERT_TRUE(replies.back().success) << replies.back().error_message;
     const auto response = nlohmann::json::parse(replies.back().payload);
     EXPECT_GT(response["aggregated"]["metrics"]["Search"]["p99_latency_ms"].get<double>(), 90.0);
+}
+
+TEST(ClientTelemetryTest, CompressedQuantileHistoryPreservesEndpointsAndSlowTail) {
+    milvus::TelemetryConfig config;
+    milvus::ClientTelemetryManager manager(config);
+    milvus::proto::milvus::SearchRequest request;
+
+    // The exact per-window p99 is still in the fast group (indices 0..990), while
+    // the 128-point history compression must include the slow endpoint/tail that
+    // starts at evenly-spaced source index 991.
+    for (int index = 0; index < 991; ++index) {
+        manager.RecordOperation("Search", request, std::chrono::steady_clock::now() - std::chrono::milliseconds(1),
+                                true, "");
+    }
+    for (int index = 0; index < 9; ++index) {
+        manager.RecordOperation("Search", request, std::chrono::steady_clock::now() - std::chrono::milliseconds(250),
+                                true, "");
+    }
+    manager.Start();
+    for (int retry = 0; retry < 1000 && manager.MetricsSnapshots().empty(); ++retry) {
+        std::this_thread::sleep_for(std::chrono::milliseconds(1));
+    }
+    manager.Stop();
+
+    const auto snapshots = manager.MetricsSnapshots();
+    ASSERT_EQ(snapshots.size(), 1U);
+    ASSERT_EQ(snapshots.front().metrics.size(), 1U);
+    EXPECT_LT(snapshots.front().metrics.front().global.p99_latency_ms, 50.0);
+    EXPECT_GT(snapshots.front().metrics.front().global.max_latency_ms, 200.0);
+
+    const auto now = std::chrono::system_clock::now();
+    const auto payload = nlohmann::json{
+        {"start_time", Rfc3339(now - std::chrono::minutes(1))},
+        {"end_time", Rfc3339(now + std::chrono::minutes(1))},
+        {"detail", false}}.dump();
+    manager.ProcessCommands({{"compressed-history", "show_latency_history", payload, 1, false, ""}});
+
+    const auto replies = manager.PendingCommandReplies();
+    ASSERT_FALSE(replies.empty());
+    ASSERT_TRUE(replies.back().success) << replies.back().error_message;
+    const auto response = nlohmann::json::parse(replies.back().payload);
+    const auto metric = response["aggregated"]["metrics"]["Search"];
+    EXPECT_GT(metric["p99_latency_ms"].get<double>(), 200.0);
+    EXPECT_GT(metric["max_latency_ms"].get<double>(), 200.0);
 }
 
 TEST(ClientTelemetryTest, ReusesHeartbeatWorkerWhenReconnectRunsInCommandHandler) {

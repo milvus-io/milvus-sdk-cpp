@@ -26,6 +26,7 @@
 #include <limits>
 #include <map>
 #include <mutex>
+#include <queue>
 #include <random>
 #include <sstream>
 #include <stdexcept>
@@ -51,16 +52,15 @@ namespace milvus {
 namespace {
 
 constexpr size_t kSampleBufferSize = 1000;
+constexpr size_t kStoredQuantileSampleCount = 128;
 constexpr int64_t kMaxHistoryRangeMs = 60 * 60 * 1000;
-// The default 10-second heartbeat produces 361 boundary-inclusive snapshots in
-// one hour. Keep enough room for that full protocol window while bounding memory
-// when a server pushes a much shorter heartbeat interval. At sub-seven-second
-// intervals the oldest high-frequency detail is intentionally discarded rather
-// than allowing an unbounded number of StoredSnapshot/sample vectors. With the
-// seven supported operations and 1000 retained global samples per operation,
-// this caps raw history latency storage at 3,584,000 doubles (about 27.4 MiB),
-// plus snapshot/explicitly enabled collection metric metadata.
-constexpr size_t kSnapshotLimit = 512;
+// A one-second heartbeat produces at most 3,601 boundary-inclusive snapshots in
+// one hour. Keep the complete protocol window plus margin while retaining a hard
+// memory bound for shorter server-pushed intervals. Each operation/window stores
+// at most 128 sorted, evenly spaced quantile samples including its minimum and
+// maximum. Across seven supported operations this caps latency history at
+// 3,670,016 doubles (about 28 MiB), plus snapshot/collection metric metadata.
+constexpr size_t kSnapshotLimit = 4096;
 // Fixed-point unit for accumulating a fractional sampling rate. A rate becomes an integer
 // step of this many units, so the smallest rate that still samples is 1e-9 -- far below
 // anything an operator would set, which is the point: a configured rate must never round
@@ -370,9 +370,25 @@ struct MetricBucket {
     }
 
     TelemetryMetric
-    Snapshot() const {
+    Snapshot(std::vector<double>* quantile_samples = nullptr) const {
         std::vector<double> sorted(samples.begin(), samples.end());
         std::sort(sorted.begin(), sorted.end());
+        if (quantile_samples != nullptr) {
+            quantile_samples->clear();
+            const auto count = std::min(sorted.size(), kStoredQuantileSampleCount);
+            quantile_samples->reserve(count);
+            if (count == 1) {
+                quantile_samples->push_back(sorted.front());
+            } else if (count > 1) {
+                // Index 0 and count-1 map exactly to the minimum and maximum. The
+                // intermediate integer indices are evenly spaced over the sorted
+                // reservoir and keep the output compact and already merge-ready.
+                for (size_t index = 0; index < count; ++index) {
+                    const auto source_index = index * (sorted.size() - 1) / (count - 1);
+                    quantile_samples->push_back(sorted[source_index]);
+                }
+            }
+        }
         auto index = sorted.empty() ? 0 : std::min(sorted.size() - 1, static_cast<size_t>(sorted.size() * 0.99));
         return {requests,
                 successes,
@@ -632,9 +648,9 @@ class ClientTelemetryManager::Impl : public std::enable_shared_from_this<ClientT
             }
             TelemetryOperationMetrics operation;
             operation.operation = entry.first;
-            operation.global = entry.second.global.Snapshot();
-            stored.global_samples.emplace(entry.first, std::vector<double>(entry.second.global.samples.begin(),
-                                                                           entry.second.global.samples.end()));
+            std::vector<double> quantile_samples;
+            operation.global = entry.second.global.Snapshot(&quantile_samples);
+            stored.global_samples.emplace(entry.first, std::move(quantile_samples));
             for (const auto& collection : entry.second.collections) {
                 if (all_collections_enabled || enabled_collections.count(collection.first) > 0) {
                     operation.collection_metrics.emplace(collection.first, collection.second.Snapshot());
@@ -1027,16 +1043,15 @@ class ClientTelemetryManager::Impl : public std::enable_shared_from_this<ClientT
             if (end - start > 60 * 60 * 1000) {
                 throw std::invalid_argument("time range cannot exceed 1 hour");
             }
-            std::vector<StoredSnapshot> all;
+            std::vector<StoredSnapshot> selected;
             {
                 std::lock_guard<std::mutex> lock(mutex);
-                all.assign(snapshots.begin(), snapshots.end());
-            }
-            std::vector<StoredSnapshot> selected;
-            for (const auto& stored : all) {
-                const auto& snapshot = stored.snapshot;
-                if (snapshot.end_time >= start && snapshot.timestamp <= end) {
-                    selected.push_back(stored);
+                selected.reserve(snapshots.size());
+                for (const auto& stored : snapshots) {
+                    const auto& snapshot = stored.snapshot;
+                    if (snapshot.end_time >= start && snapshot.timestamp <= end) {
+                        selected.push_back(stored);
+                    }
                 }
             }
             nlohmann::json response;
@@ -1059,7 +1074,11 @@ class ClientTelemetryManager::Impl : public std::enable_shared_from_this<ClientT
                     int64_t errors{0};
                     double average{0};
                     double maximum{0};
-                    std::vector<std::pair<double, double>> latency_samples;
+                    struct WeightedSamples {
+                        const std::vector<double>* values;
+                        double weight;
+                    };
+                    std::vector<WeightedSamples> latency_windows;
                 };
                 std::map<std::string, Total> totals;
                 for (const auto& stored : selected) {
@@ -1075,29 +1094,43 @@ class ClientTelemetryManager::Impl : public std::enable_shared_from_this<ClientT
                         if (samples != stored.global_samples.end() && !samples->second.empty()) {
                             const auto weight =
                                 static_cast<double>(operation.global.request_count) / samples->second.size();
-                            for (const auto latency : samples->second) {
-                                total.latency_samples.emplace_back(latency, weight);
-                            }
+                            total.latency_windows.push_back({&samples->second, weight});
                         }
                     }
                 }
                 nlohmann::json metrics = nlohmann::json::object();
                 for (const auto& entry : totals) {
-                    auto samples = entry.second.latency_samples;
-                    std::sort(samples.begin(), samples.end(),
-                              [](const std::pair<double, double>& left, const std::pair<double, double>& right) {
-                                  return left.first < right.first;
-                              });
+                    struct Cursor {
+                        double latency;
+                        size_t window;
+                        size_t sample;
+                    };
+                    const auto later = [](const Cursor& left, const Cursor& right) {
+                        return left.latency > right.latency;
+                    };
+                    std::priority_queue<Cursor, std::vector<Cursor>, decltype(later)> samples(later);
+                    for (size_t window = 0; window < entry.second.latency_windows.size(); ++window) {
+                        const auto* values = entry.second.latency_windows[window].values;
+                        if (values != nullptr && !values->empty()) {
+                            samples.push({values->front(), window, 0});
+                        }
+                    }
                     double p99 = 0;
                     if (!samples.empty()) {
                         const auto target = static_cast<double>(entry.second.requests) * 0.99;
                         double cumulative = 0;
-                        p99 = samples.back().first;
-                        for (const auto& sample : samples) {
-                            cumulative += sample.second;
+                        while (!samples.empty()) {
+                            const auto sample = samples.top();
+                            samples.pop();
+                            const auto& window = entry.second.latency_windows[sample.window];
+                            p99 = sample.latency;
+                            cumulative += window.weight;
                             if (cumulative > target) {
-                                p99 = sample.first;
                                 break;
+                            }
+                            const auto next = sample.sample + 1;
+                            if (next < window.values->size()) {
+                                samples.push({(*window.values)[next], sample.window, next});
                             }
                         }
                     }
