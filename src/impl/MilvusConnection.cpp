@@ -152,17 +152,28 @@ MilvusConnection::Connect(const ConnectParam& param, const std::string& runtime_
         return {StatusCode::NOT_CONNECTED, reason};
     }
 
-    auto stub_holder = proto::milvus::MilvusService::NewStub(channel);
-    auto stub = std::shared_ptr<Stub>(std::move(stub_holder));
-    auto reusable_client_id = runtime_telemetry_client_id.empty() ? telemetry_client_id_ : runtime_telemetry_client_id;
-    const auto reported_endpoint = telemetry_logical_endpoint.empty() ? telemetry_endpoint : telemetry_logical_endpoint;
-    const auto connection_scope =
-        reported_endpoint + "#" + std::to_string(std::hash<std::string>{}(param.Authorizations()));
-    const bool can_reuse_telemetry =
-        reusable_telemetry != nullptr && reusable_telemetry->MatchesConnection(param.Telemetry(), connection_scope);
-    auto telemetry = can_reuse_telemetry
-                         ? std::move(reusable_telemetry)
-                         : std::make_shared<ClientTelemetryManager>(param.Telemetry(), reusable_client_id);
+    std::shared_ptr<Stub> stub;
+    ClientTelemetryManagerPtr telemetry;
+    std::string reported_endpoint;
+    std::string connection_scope;
+    try {
+        auto stub_holder = proto::milvus::MilvusService::NewStub(channel);
+        stub = std::shared_ptr<Stub>(std::move(stub_holder));
+        auto reusable_client_id =
+            runtime_telemetry_client_id.empty() ? telemetry_client_id_ : runtime_telemetry_client_id;
+        reported_endpoint = telemetry_logical_endpoint.empty() ? telemetry_endpoint : telemetry_logical_endpoint;
+        connection_scope = reported_endpoint + "#" + std::to_string(std::hash<std::string>{}(param.Authorizations()));
+        const bool can_reuse_telemetry =
+            reusable_telemetry != nullptr && reusable_telemetry->MatchesConnection(param.Telemetry(), connection_scope);
+        telemetry = can_reuse_telemetry
+                        ? std::move(reusable_telemetry)
+                        : std::make_shared<ClientTelemetryManager>(param.Telemetry(), reusable_client_id);
+    } catch (const std::exception& exception) {
+        return {StatusCode::UNKNOWN_ERROR,
+                std::string("Failed to prepare client telemetry transport: ") + exception.what()};
+    } catch (...) {
+        return {StatusCode::UNKNOWN_ERROR, "Failed to prepare client telemetry transport"};
+    }
 
     // grpc channel has been create, now we call the proto::milvus::MilvusClient::Connect() interface
     // to send some basic information of client to the server, including the sdk type, version, etc.
@@ -200,8 +211,15 @@ MilvusConnection::Connect(const ConnectParam& param, const std::string& runtime_
         return status;
     }
 
-    telemetry->AttachChannel(channel, param.Username(), param.DbName(), reported_endpoint, GetBuildVersion(),
-                             connection_scope);
+    try {
+        telemetry->AttachChannel(channel, param.Username(), param.DbName(), reported_endpoint, GetBuildVersion(),
+                                 connection_scope);
+    } catch (const std::exception& exception) {
+        return {StatusCode::UNKNOWN_ERROR,
+                std::string("Failed to attach client telemetry transport: ") + exception.what()};
+    } catch (...) {
+        return {StatusCode::UNKNOWN_ERROR, "Failed to attach client telemetry transport"};
+    }
     {
         std::lock_guard<std::mutex> lock(stub_mtx_);
         param_ = param;
@@ -245,15 +263,23 @@ MilvusConnection::Disconnect(bool stop_telemetry) {
 
 Status
 MilvusConnection::UseDatabase(const std::string& db_name) {
-    auto telemetry = GetTelemetry();
+    ConnectParam candidate_param;
+    ClientTelemetryManagerPtr telemetry;
+    std::string telemetry_client_id;
     std::string telemetry_logical_endpoint;
     {
         std::lock_guard<std::mutex> lock(stub_mtx_);
+        candidate_param = param_;
+        telemetry = telemetry_;
+        telemetry_client_id = telemetry_client_id_;
         telemetry_logical_endpoint = telemetry_logical_endpoint_;
     }
-    Disconnect();
-    param_.SetDbName(db_name);
-    return Connect(param_, telemetry_client_id_, std::move(telemetry), telemetry_logical_endpoint);
+    candidate_param.SetDbName(db_name);
+
+    // Connect builds and validates a private channel/stub, and only replaces this connection's
+    // published transport after the handshake and telemetry handoff both succeed. On failure the
+    // existing database, channel, stub, and telemetry manager remain fully usable.
+    return Connect(candidate_param, telemetry_client_id, std::move(telemetry), telemetry_logical_endpoint);
 }
 
 Status

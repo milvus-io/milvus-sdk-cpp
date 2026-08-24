@@ -22,10 +22,12 @@
 #include <cstdlib>
 #include <cstring>
 #include <deque>
+#include <iomanip>
 #include <limits>
 #include <map>
 #include <mutex>
 #include <random>
+#include <sstream>
 #include <stdexcept>
 #include <thread>
 #include <unordered_set>
@@ -440,16 +442,26 @@ class ClientTelemetryManager::Impl : public std::enable_shared_from_this<ClientT
     void
     AttachChannel(const std::shared_ptr<grpc::Channel>& channel, const std::string& user, const std::string& db,
                   const std::string& endpoint, const std::string& version, const std::string& scope) {
+        // Construct every potentially-throwing part before taking either lock. Once locked, only
+        // noexcept shared_ptr/string moves and scalar updates remain, so a failed candidate cannot
+        // partially replace the live telemetry transport or its identity fields.
+        auto stub_holder = proto::milvus::ClientTelemetryService::NewStub(channel);
+        auto new_stub = std::shared_ptr<proto::milvus::ClientTelemetryService::Stub>(std::move(stub_holder));
+        std::string new_username = user;
+        std::string new_database = db;
+        std::string new_uri = endpoint;
+        std::string new_sdk_version = version;
+        std::string new_connection_scope = scope;
+
         std::lock_guard<std::recursive_mutex> command_lock(command_mutex);
         std::lock_guard<std::mutex> lock(mutex);
-        auto new_stub = proto::milvus::ClientTelemetryService::NewStub(channel);
-        stub = std::shared_ptr<proto::milvus::ClientTelemetryService::Stub>(std::move(new_stub));
+        stub = std::move(new_stub);
         ++channel_generation;
-        username = user;
-        database = db;
-        uri = endpoint;
-        sdk_version = version;
-        connection_scope = scope;
+        username = std::move(new_username);
+        database = std::move(new_database);
+        uri = std::move(new_uri);
+        sdk_version = std::move(new_sdk_version);
+        connection_scope = std::move(new_connection_scope);
     }
 
     void
@@ -506,9 +518,19 @@ class ClientTelemetryManager::Impl : public std::enable_shared_from_this<ClientT
         }
         stopped = false;
         worker_running = true;
-        auto self = shared_from_this();
-        worker = std::thread([self = std::move(self)]() { self->HeartbeatLoop(); });
-        worker_id = worker.get_id();
+        try {
+            auto self = shared_from_this();
+            worker = std::thread([self = std::move(self)]() { self->HeartbeatLoop(); });
+            worker_id = worker.get_id();
+        } catch (...) {
+            // Telemetry startup is best-effort. Restore a clean, retryable stopped state instead
+            // of leaking an exception through Connect() or leaving worker_running without a thread.
+            ready = false;
+            stopped = true;
+            worker_running = false;
+            worker_id = {};
+            condition.notify_all();
+        }
     }
 
     void
@@ -548,8 +570,20 @@ class ClientTelemetryManager::Impl : public std::enable_shared_from_this<ClientT
     void
     HeartbeatLoop() {
         while (true) {
-            CreateSnapshot();
-            SendHeartbeat();
+            try {
+                CreateSnapshot();
+                SendHeartbeat();
+            } catch (...) {
+                // No telemetry collection, serialization, transport, or extension failure may
+                // escape a std::thread entry and terminate the process. Keep the control plane
+                // alive; the next iteration can retry on the same or a reattached transport.
+                try {
+                    std::lock_guard<std::mutex> lock(mutex);
+                    last_heartbeat_error = "unexpected client telemetry heartbeat failure";
+                } catch (...) {
+                    // Even recording a best-effort diagnostic can fail under memory pressure.
+                }
+            }
             std::unique_lock<std::mutex> lock(mutex);
             if (stopped) {
                 break;
@@ -739,6 +773,10 @@ class ClientTelemetryManager::Impl : public std::enable_shared_from_this<ClientT
             return handler(command);
         } catch (const std::exception& exception) {
             return FailedReply(command.command_id, exception.what());
+        } catch (...) {
+            // Command handlers are extensible application code. Telemetry is best-effort and
+            // must never terminate the process when a handler throws a non-standard exception.
+            return FailedReply(command.command_id, "command handler threw a non-standard exception");
         }
     }
 

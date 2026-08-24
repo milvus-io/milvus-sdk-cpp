@@ -28,6 +28,7 @@
 #include "milvus/ClientRequestContext.h"
 #include "milvus/ClientTelemetry.h"
 #include "milvus/MilvusClient.h"
+#include "milvus/MilvusClientV2.h"
 
 namespace {
 
@@ -132,8 +133,24 @@ class LifecycleTelemetryService final : public milvus::proto::milvus::MilvusServ
 
     grpc::Status
     Connect(grpc::ServerContext*, const milvus::proto::milvus::ConnectRequest*,
-            milvus::proto::milvus::ConnectResponse*) override {
-        ++connects;
+            milvus::proto::milvus::ConnectResponse* response) override {
+        {
+            std::lock_guard<std::mutex> lock(connect_mutex_);
+            ++connects;
+            if (fail_next_connect_) {
+                fail_next_connect_ = false;
+                response->mutable_status()->set_code(1);
+                response->mutable_status()->set_reason("rejected connect");
+            }
+        }
+        connect_condition_.notify_all();
+        return grpc::Status::OK;
+    }
+
+    grpc::Status
+    HasCollection(grpc::ServerContext*, const milvus::proto::milvus::HasCollectionRequest*,
+                  milvus::proto::milvus::BoolResponse*) override {
+        ++has_collections;
         return grpc::Status::OK;
     }
 
@@ -144,6 +161,11 @@ class LifecycleTelemetryService final : public milvus::proto::milvus::MilvusServ
         const auto database = request->client_info().reserved().find("db_name");
         if (database != request->client_info().reserved().end() && database->second == "secondary") {
             saw_secondary_database = true;
+        }
+        for (const auto& reply : request->command_replies()) {
+            if (reply.command_id() == command_type_ && !reply.success()) {
+                saw_failed_command_reply = true;
+            }
         }
         if (commands_enabled.load() && !command_sent.exchange(true)) {
             auto* command = response->add_commands();
@@ -156,17 +178,67 @@ class LifecycleTelemetryService final : public milvus::proto::milvus::MilvusServ
 
     std::atomic<int> connects{0};
     std::atomic<int> heartbeats{0};
+    std::atomic<int> has_collections{0};
     std::atomic<bool> saw_secondary_database{false};
+    std::atomic<bool> saw_failed_command_reply{false};
 
     void
     EnableCommands() {
         commands_enabled = true;
     }
 
+    void
+    FailNextConnect() {
+        std::lock_guard<std::mutex> lock(connect_mutex_);
+        fail_next_connect_ = true;
+    }
+
+    bool
+    WaitForConnects(int count) {
+        std::unique_lock<std::mutex> lock(connect_mutex_);
+        return connect_condition_.wait_for(lock, std::chrono::seconds(2),
+                                           [this, count]() { return connects.load() >= count; });
+    }
+
  private:
     std::string command_type_;
     std::atomic<bool> commands_enabled{false};
     std::atomic<bool> command_sent{false};
+    std::mutex connect_mutex_;
+    std::condition_variable connect_condition_;
+    bool fail_next_connect_{false};
+};
+
+class RequestMetadataService final : public milvus::proto::milvus::MilvusService::Service {
+ public:
+    grpc::Status
+    Connect(grpc::ServerContext*, const milvus::proto::milvus::ConnectRequest*,
+            milvus::proto::milvus::ConnectResponse*) override {
+        return grpc::Status::OK;
+    }
+
+    grpc::Status
+    HasCollection(grpc::ServerContext* context, const milvus::proto::milvus::HasCollectionRequest*,
+                  milvus::proto::milvus::BoolResponse*) override {
+        const auto& metadata = context->client_metadata();
+        const auto request_id = metadata.find("client_request_id");
+        std::lock_guard<std::mutex> lock(mutex_);
+        request_ids_.emplace_back(request_id != metadata.end(),
+                                  request_id == metadata.end()
+                                      ? std::string{}
+                                      : std::string(request_id->second.data(), request_id->second.size()));
+        return grpc::Status::OK;
+    }
+
+    std::vector<std::pair<bool, std::string>>
+    RequestIds() const {
+        std::lock_guard<std::mutex> lock(mutex_);
+        return request_ids_;
+    }
+
+ private:
+    mutable std::mutex mutex_;
+    std::vector<std::pair<bool, std::string>> request_ids_;
 };
 
 class DestructionSignal final {
@@ -532,6 +604,172 @@ TEST(ClientTelemetryTest, UseDatabaseFromHeartbeatCommandReusesWorker) {
     server->Shutdown();
 }
 
+TEST(ClientTelemetryTest, AllLifecycleEntriesFailFastWhenConcurrentConnectWaitsForCommandLock) {
+    LifecycleTelemetryService service("connect");
+    int port = 0;
+    auto server = StartLifecycleServer(service, port);
+    ASSERT_NE(server, nullptr);
+
+    const auto connect_param = TelemetryConnectParam(port);
+    auto client = milvus::MilvusClient::Create();
+    ASSERT_TRUE(client->Connect(connect_param).IsOk());
+
+    std::atomic<bool> handler_started{false};
+    auto handler_finished = std::make_shared<std::promise<std::vector<milvus::StatusCode>>>();
+    auto handler_future = handler_finished->get_future();
+    client->GetTelemetry()->RegisterCommandHandler(
+        "connect", [&, handler_finished](const milvus::TelemetryCommand& command) {
+            handler_started = true;
+            if (!service.WaitForConnects(2)) {
+                handler_finished->set_value({milvus::StatusCode::UNKNOWN_ERROR});
+                return milvus::TelemetryCommandReply{command.command_id, false, "concurrent connect did not run", ""};
+            }
+
+            // The external Connect has completed its server handshake and owns lifecycle_mtx_,
+            // but its AttachChannel is blocked on this handler's command_mutex. Every re-entrant
+            // lifecycle entry must fail fast rather than wait and complete the lock cycle.
+            std::vector<milvus::StatusCode> codes;
+            codes.push_back(client->Connect(connect_param).Code());
+            codes.push_back(client->UseDatabase("other").Code());
+            codes.push_back(client->Disconnect().Code());
+            codes.push_back(client->SetRpcDeadlineMs(1234).Code());
+            codes.push_back(client->SetRetryParam(milvus::RetryParam{}).Code());
+            bool all_busy = true;
+            for (auto code : codes) {
+                all_busy = all_busy && code == milvus::StatusCode::CLIENT_BUSY;
+            }
+            handler_finished->set_value(codes);
+            return milvus::TelemetryCommandReply{command.command_id, all_busy, "", ""};
+        });
+
+    service.EnableCommands();
+    for (int retry = 0; retry < 2000 && !handler_started.load(); ++retry) {
+        std::this_thread::sleep_for(std::chrono::milliseconds(1));
+    }
+    ASSERT_TRUE(handler_started.load());
+
+    milvus::Status concurrent_status;
+    std::thread concurrent_connect([&]() { concurrent_status = client->Connect(connect_param); });
+    const bool handler_failed_fast = handler_future.wait_for(std::chrono::seconds(1)) == std::future_status::ready;
+    concurrent_connect.join();
+
+    EXPECT_TRUE(handler_failed_fast);
+    ASSERT_EQ(handler_future.wait_for(std::chrono::seconds(2)), std::future_status::ready);
+    const auto codes = handler_future.get();
+    ASSERT_EQ(codes.size(), 5U);
+    for (auto code : codes) {
+        EXPECT_EQ(code, milvus::StatusCode::CLIENT_BUSY);
+    }
+    EXPECT_TRUE(concurrent_status.IsOk()) << concurrent_status.Message();
+
+    EXPECT_TRUE(client->Disconnect().IsOk());
+    client.reset();
+    server->Shutdown();
+}
+
+TEST(ClientTelemetryTest, FailedUseDatabasePreservesPublishedConnectionAndTelemetry) {
+    LifecycleTelemetryService service("");
+    int port = 0;
+    auto server = StartLifecycleServer(service, port);
+    ASSERT_NE(server, nullptr);
+
+    auto connect_param = TelemetryConnectParam(port);
+    connect_param.SetDbName("primary");
+    auto client = milvus::MilvusClient::Create();
+    ASSERT_TRUE(client->Connect(connect_param).IsOk());
+    auto manager = client->GetTelemetry();
+    ASSERT_NE(manager, nullptr);
+    const auto client_id = manager->ClientId();
+
+    service.FailNextConnect();
+    const auto status = client->UseDatabase("secondary");
+    EXPECT_EQ(status.Code(), milvus::StatusCode::SERVER_FAILED);
+    ASSERT_EQ(client->GetTelemetry(), manager);
+    EXPECT_EQ(manager->ClientId(), client_id);
+
+    bool has_collection = false;
+    EXPECT_TRUE(client->HasCollection("still-connected", has_collection).IsOk());
+    EXPECT_EQ(service.has_collections.load(), 1);
+
+    manager->ProcessCommands({{"config-after-failure", "get_config", "", 10, false, ""}});
+    const auto replies = manager->PendingCommandReplies();
+    ASSERT_FALSE(replies.empty());
+    ASSERT_TRUE(replies.back().success) << replies.back().error_message;
+    const auto user_config = nlohmann::json::parse(replies.back().payload).at("user_config");
+    EXPECT_EQ(user_config.at("db_name"), "primary");
+
+    EXPECT_TRUE(client->Disconnect().IsOk());
+    client.reset();
+    server->Shutdown();
+}
+
+TEST(ClientTelemetryTest, FailedConnectPreservesPublishedConnectionAndTelemetry) {
+    LifecycleTelemetryService first_service("");
+    LifecycleTelemetryService rejected_service("");
+    int first_port = 0;
+    int rejected_port = 0;
+    auto first_server = StartLifecycleServer(first_service, first_port);
+    auto rejected_server = StartLifecycleServer(rejected_service, rejected_port);
+    ASSERT_NE(first_server, nullptr);
+    ASSERT_NE(rejected_server, nullptr);
+
+    auto first_param = TelemetryConnectParam(first_port);
+    first_param.SetDbName("primary");
+    auto client = milvus::MilvusClient::Create();
+    ASSERT_TRUE(client->Connect(first_param).IsOk());
+    auto manager = client->GetTelemetry();
+    ASSERT_NE(manager, nullptr);
+    const auto client_id = manager->ClientId();
+
+    rejected_service.FailNextConnect();
+    const auto status = client->Connect(TelemetryConnectParam(rejected_port));
+    EXPECT_EQ(status.Code(), milvus::StatusCode::SERVER_FAILED);
+    ASSERT_EQ(client->GetTelemetry(), manager);
+    EXPECT_EQ(manager->ClientId(), client_id);
+
+    bool has_collection = false;
+    EXPECT_TRUE(client->HasCollection("still-on-first", has_collection).IsOk());
+    EXPECT_EQ(first_service.has_collections.load(), 1);
+    EXPECT_EQ(rejected_service.has_collections.load(), 0);
+
+    manager->ProcessCommands({{"config-after-rejected-connect", "get_config", "", 10, false, ""}});
+    const auto replies = manager->PendingCommandReplies();
+    ASSERT_FALSE(replies.empty());
+    ASSERT_TRUE(replies.back().success) << replies.back().error_message;
+    const auto user_config = nlohmann::json::parse(replies.back().payload).at("user_config");
+    EXPECT_EQ(user_config.at("address"), "127.0.0.1:" + std::to_string(first_port));
+    EXPECT_EQ(user_config.at("db_name"), "primary");
+
+    EXPECT_TRUE(client->Disconnect().IsOk());
+    client.reset();
+    first_server->Shutdown();
+    rejected_server->Shutdown();
+}
+
+TEST(ClientTelemetryTest, NonStandardCommandExceptionReturnsFailureAndHeartbeatContinues) {
+    LifecycleTelemetryService service("throw_non_standard");
+    int port = 0;
+    auto server = StartLifecycleServer(service, port);
+    ASSERT_NE(server, nullptr);
+
+    auto client = milvus::MilvusClient::Create();
+    ASSERT_TRUE(client->Connect(TelemetryConnectParam(port)).IsOk());
+    client->GetTelemetry()->RegisterCommandHandler(
+        "throw_non_standard", [](const milvus::TelemetryCommand&) -> milvus::TelemetryCommandReply { throw 42; });
+    service.EnableCommands();
+
+    for (int retry = 0; retry < 3000 && (service.heartbeats.load() < 3 || !service.saw_failed_command_reply.load());
+         ++retry) {
+        std::this_thread::sleep_for(std::chrono::milliseconds(1));
+    }
+    EXPECT_GE(service.heartbeats.load(), 3);
+    EXPECT_TRUE(service.saw_failed_command_reply.load());
+
+    EXPECT_TRUE(client->Disconnect().IsOk());
+    client.reset();
+    server->Shutdown();
+}
+
 TEST(ClientTelemetryTest, LastManagerReferenceCanBeDestroyedByHeartbeatCommand) {
     LifecycleTelemetryService service("disconnect_and_destroy");
     int port = 0;
@@ -554,6 +792,74 @@ TEST(ClientTelemetryTest, LastManagerReferenceCanBeDestroyedByHeartbeatCommand) 
 
     ASSERT_EQ(destroyed_future.wait_for(std::chrono::seconds(3)), std::future_status::ready);
     EXPECT_EQ(client, nullptr);
+    server->Shutdown();
+}
+
+TEST(ClientTelemetryTest, V2LastManagerReferenceCanBeDestroyedByHeartbeatCommand) {
+    LifecycleTelemetryService service("disconnect_and_destroy_v2");
+    int port = 0;
+    auto server = StartLifecycleServer(service, port);
+    ASSERT_NE(server, nullptr);
+
+    auto client = milvus::MilvusClientV2::Create();
+    ASSERT_TRUE(client->Connect(TelemetryConnectParam(port)).IsOk());
+    auto destroyed = std::make_shared<std::promise<void>>();
+    auto destroyed_future = destroyed->get_future();
+    auto marker = std::make_shared<DestructionSignal>(destroyed);
+    client->GetTelemetry()->RegisterCommandHandler(
+        "disconnect_and_destroy_v2", [&client, marker](const milvus::TelemetryCommand& command) {
+            auto status = client->Disconnect();
+            client.reset();
+            return milvus::TelemetryCommandReply{command.command_id, status.IsOk(), "", ""};
+        });
+    marker.reset();
+    service.EnableCommands();
+
+    ASSERT_EQ(destroyed_future.wait_for(std::chrono::seconds(3)), std::future_status::ready);
+    EXPECT_EQ(client, nullptr);
+    server->Shutdown();
+}
+
+TEST(ClientRequestContextTest, PropagatesOnlyValidTraceIdMetadataOnWire) {
+    RequestMetadataService service;
+    grpc::ServerBuilder builder;
+    int port = 0;
+    builder.AddListeningPort("127.0.0.1:0", grpc::InsecureServerCredentials(), &port);
+    builder.RegisterService(&service);
+    auto server = builder.BuildAndStart();
+    ASSERT_NE(server, nullptr);
+
+    auto client = milvus::MilvusClient::Create();
+    auto connect_param = TelemetryConnectParam(port);
+    milvus::TelemetryConfig telemetry_config;
+    telemetry_config.enabled = false;
+    connect_param.SetTelemetryConfig(telemetry_config);
+    ASSERT_TRUE(client->Connect(connect_param).IsOk());
+
+    bool has_collection = false;
+    constexpr const char* valid_request_id = "4bf92f3577b34da6a3ce929d0e0e4736";
+    {
+        milvus::ScopedClientRequestId request_id(valid_request_id);
+        EXPECT_TRUE(client->HasCollection("valid", has_collection).IsOk());
+    }
+    {
+        milvus::ScopedClientRequestId request_id("");
+        EXPECT_TRUE(client->HasCollection("empty", has_collection).IsOk());
+    }
+    {
+        milvus::ScopedClientRequestId request_id("ABCDEF0123456789ABCDEF0123456789");
+        EXPECT_TRUE(client->HasCollection("invalid", has_collection).IsOk());
+    }
+
+    const auto request_ids = service.RequestIds();
+    ASSERT_EQ(request_ids.size(), 3U);
+    EXPECT_TRUE(request_ids[0].first);
+    EXPECT_EQ(request_ids[0].second, valid_request_id);
+    EXPECT_FALSE(request_ids[1].first);
+    EXPECT_FALSE(request_ids[2].first);
+
+    EXPECT_TRUE(client->Disconnect().IsOk());
+    client.reset();
     server->Shutdown();
 }
 

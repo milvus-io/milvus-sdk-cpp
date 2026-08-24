@@ -309,17 +309,21 @@ TEST(GlobalClusterTelemetryTest, FailoverAndUseDatabasePreserveLogicalTelemetryS
     httplib::Server topology_server;
     std::atomic<int64_t> served_version{1};
     std::atomic<int> served_primary_port{first_port};
-    topology_server.Get("/global-cluster/topology", [&](const httplib::Request&, httplib::Response& response) {
-        response.set_content(
-            TopologyBody(served_version.load(), "127.0.0.1:" + std::to_string(served_primary_port.load())),
-            "application/json");
-    });
+    // Put the global-cluster marker in the path rather than a localhost subdomain. Windows does
+    // not consistently resolve arbitrary *.localhost names, while a numeric loopback address is
+    // portable across all CI runners.
+    topology_server.Get(
+        "/global-cluster-test/global-cluster/topology", [&](const httplib::Request&, httplib::Response& response) {
+            response.set_content(
+                TopologyBody(served_version.load(), "127.0.0.1:" + std::to_string(served_primary_port.load())),
+                "application/json");
+        });
     const auto topology_port = topology_server.bind_to_any_port("127.0.0.1");
     ASSERT_TRUE(topology_server.is_valid());
     std::thread topology_thread([&topology_server]() { topology_server.listen_after_bind(); });
     topology_server.wait_until_ready();
 
-    const auto logical_endpoint = "http://telemetry.global-cluster.localhost:" + std::to_string(topology_port);
+    const auto logical_endpoint = "http://127.0.0.1:" + std::to_string(topology_port) + "/global-cluster-test";
     milvus::ConnectParam connect_param(logical_endpoint);
     connect_param.SetDbName("primary_db");
     milvus::TelemetryConfig telemetry_config;

@@ -280,6 +280,14 @@ class ConnectionHandler {
     }
 
  private:
+    // Lifecycle lock order and re-entrancy contract:
+    // 1. Every state-mutating lifecycle entry acquires lifecycle_mtx_ with try_to_lock.
+    // 2. While it owns lifecycle_mtx_, it may briefly acquire mtx_ to snapshot or commit state.
+    // 3. mtx_ is never held across network I/O, TopologyRefresher::Stop(), telemetry Stop(),
+    //    AttachChannel(), or ProcessCommands().
+    // A telemetry command handler already owns command_mutex and may re-enter a lifecycle API.
+    // Fail-fast lifecycle acquisition prevents a command_mutex -> lifecycle_mtx_ wait from
+    // forming a cycle with an external lifecycle_mtx_ -> AttachChannel(command_mutex) handoff.
     mutable std::mutex lifecycle_mtx_;
     mutable std::mutex mtx_;
     MilvusConnectionPtr connection_;

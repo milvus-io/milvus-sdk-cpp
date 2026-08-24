@@ -91,6 +91,7 @@ class MILVUS_SDK_API MilvusClient {
      * @brief Connect to Milvus server.
      *
      * @param [in] connect_param server address and port
+     * @retval StatusCode::CLIENT_BUSY another connection lifecycle change is in progress; the operation may be retried
      * @return Status operation successfully or not
      */
     virtual Status
