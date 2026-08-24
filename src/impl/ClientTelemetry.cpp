@@ -10,8 +10,8 @@
 
 #include "milvus/ClientTelemetry.h"
 
-#include <grpcpp/client_context.h>
 #include <grpcpp/channel.h>
+#include <grpcpp/client_context.h>
 
 #include <algorithm>
 #include <array>
@@ -34,13 +34,19 @@
 #include <unordered_set>
 #include <utility>
 
+#ifndef _WIN32
+#include <unistd.h>
+#endif
+
 #include <google/protobuf/descriptor.h>
 #include <google/protobuf/message.h>
+
 #include <milvus/thirdparty/nlohmann/json.hpp>
 
 #include "common.pb.h"
 #include "milvus.grpc.pb.h"
 #include "milvus.pb.h"
+#include "milvus/ClientRequestContext.h"
 
 namespace milvus {
 namespace {
@@ -54,6 +60,25 @@ constexpr size_t kSnapshotLimit = 120;
 constexpr uint64_t kSamplingScale = 1000000000ULL;
 constexpr size_t kMaxReplyBytes = 1024 * 1024;
 constexpr uint64_t kMaxUnsupportedBackoffMs = 30 * 60 * 1000;
+
+TelemetryConfig
+NormalizedTelemetryConfig(TelemetryConfig config) {
+    if (config.heartbeat_interval_ms == 0) {
+        config.heartbeat_interval_ms = 10000;
+    }
+    config.sampling_rate = std::max(0.0, std::min(1.0, config.sampling_rate));
+    if (config.error_max_count == 0) {
+        config.error_max_count = 100;
+    }
+    return config;
+}
+
+bool
+SameTelemetryConfig(const TelemetryConfig& left, const TelemetryConfig& right) {
+    return left.enabled == right.enabled && left.heartbeat_interval_ms == right.heartbeat_interval_ms &&
+           left.sampling_rate == right.sampling_rate && left.error_max_count == right.error_max_count &&
+           left.client_id == right.client_id;
+}
 
 int64_t
 NowMillis() {
@@ -69,10 +94,9 @@ RandomUuid() {
     auto high = distribution(generator);
     auto low = distribution(generator);
     std::ostringstream stream;
-    stream << std::hex << std::setfill('0') << std::setw(8) << static_cast<uint32_t>(high >> 32) << "-"
-           << std::setw(4) << static_cast<uint16_t>(high >> 16) << "-" << std::setw(4)
-           << static_cast<uint16_t>(high) << "-" << std::setw(4) << static_cast<uint16_t>(low >> 48) << "-"
-           << std::setw(12) << (low & 0x0000FFFFFFFFFFFFULL);
+    stream << std::hex << std::setfill('0') << std::setw(8) << static_cast<uint32_t>(high >> 32) << "-" << std::setw(4)
+           << static_cast<uint16_t>(high >> 16) << "-" << std::setw(4) << static_cast<uint16_t>(high) << "-"
+           << std::setw(4) << static_cast<uint16_t>(low >> 48) << "-" << std::setw(12) << (low & 0x0000FFFFFFFFFFFFULL);
     return stream.str();
 }
 
@@ -93,8 +117,17 @@ LocalTimeString() {
 
 std::string
 HostName() {
-    const char* value = std::getenv("HOSTNAME");
+#ifdef _WIN32
+    const char* value = std::getenv("COMPUTERNAME");
     return value == nullptr ? "Unknown" : value;
+#else
+    std::array<char, 256> buffer{};
+    if (gethostname(buffer.data(), buffer.size()) != 0) {
+        return "Unknown";
+    }
+    buffer.back() = '\0';
+    return std::string(buffer.data());
+#endif
 }
 
 std::string
@@ -114,9 +147,7 @@ RotateRight(uint32_t value, uint32_t count) {
 // Small self-contained SHA-256 implementation keeps the SDK independent from a specific TLS provider.
 class Sha256 {
  public:
-    Sha256()
-        : state_{0x6a09e667, 0xbb67ae85, 0x3c6ef372, 0xa54ff53a,
-                 0x510e527f, 0x9b05688c, 0x1f83d9ab, 0x5be0cd19} {
+    Sha256() : state_{0x6a09e667, 0xbb67ae85, 0x3c6ef372, 0xa54ff53a, 0x510e527f, 0x9b05688c, 0x1f83d9ab, 0x5be0cd19} {
     }
 
     void
@@ -167,22 +198,19 @@ class Sha256 {
     void
     Transform(const uint8_t* block) {
         static const uint32_t constants[64] = {
-            0x428a2f98, 0x71374491, 0xb5c0fbcf, 0xe9b5dba5, 0x3956c25b, 0x59f111f1, 0x923f82a4,
-            0xab1c5ed5, 0xd807aa98, 0x12835b01, 0x243185be, 0x550c7dc3, 0x72be5d74, 0x80deb1fe,
-            0x9bdc06a7, 0xc19bf174, 0xe49b69c1, 0xefbe4786, 0x0fc19dc6, 0x240ca1cc, 0x2de92c6f,
-            0x4a7484aa, 0x5cb0a9dc, 0x76f988da, 0x983e5152, 0xa831c66d, 0xb00327c8, 0xbf597fc7,
-            0xc6e00bf3, 0xd5a79147, 0x06ca6351, 0x14292967, 0x27b70a85, 0x2e1b2138, 0x4d2c6dfc,
-            0x53380d13, 0x650a7354, 0x766a0abb, 0x81c2c92e, 0x92722c85, 0xa2bfe8a1, 0xa81a664b,
-            0xc24b8b70, 0xc76c51a3, 0xd192e819, 0xd6990624, 0xf40e3585, 0x106aa070, 0x19a4c116,
-            0x1e376c08, 0x2748774c, 0x34b0bcb5, 0x391c0cb3, 0x4ed8aa4a, 0x5b9cca4f, 0x682e6ff3,
-            0x748f82ee, 0x78a5636f, 0x84c87814, 0x8cc70208, 0x90befffa, 0xa4506ceb, 0xbef9a3f7,
-            0xc67178f2};
+            0x428a2f98, 0x71374491, 0xb5c0fbcf, 0xe9b5dba5, 0x3956c25b, 0x59f111f1, 0x923f82a4, 0xab1c5ed5,
+            0xd807aa98, 0x12835b01, 0x243185be, 0x550c7dc3, 0x72be5d74, 0x80deb1fe, 0x9bdc06a7, 0xc19bf174,
+            0xe49b69c1, 0xefbe4786, 0x0fc19dc6, 0x240ca1cc, 0x2de92c6f, 0x4a7484aa, 0x5cb0a9dc, 0x76f988da,
+            0x983e5152, 0xa831c66d, 0xb00327c8, 0xbf597fc7, 0xc6e00bf3, 0xd5a79147, 0x06ca6351, 0x14292967,
+            0x27b70a85, 0x2e1b2138, 0x4d2c6dfc, 0x53380d13, 0x650a7354, 0x766a0abb, 0x81c2c92e, 0x92722c85,
+            0xa2bfe8a1, 0xa81a664b, 0xc24b8b70, 0xc76c51a3, 0xd192e819, 0xd6990624, 0xf40e3585, 0x106aa070,
+            0x19a4c116, 0x1e376c08, 0x2748774c, 0x34b0bcb5, 0x391c0cb3, 0x4ed8aa4a, 0x5b9cca4f, 0x682e6ff3,
+            0x748f82ee, 0x78a5636f, 0x84c87814, 0x8cc70208, 0x90befffa, 0xa4506ceb, 0xbef9a3f7, 0xc67178f2};
         uint32_t schedule[64];
         for (size_t index = 0; index < 16; ++index) {
-            schedule[index] = (static_cast<uint32_t>(block[index * 4]) << 24) |
-                              (static_cast<uint32_t>(block[index * 4 + 1]) << 16) |
-                              (static_cast<uint32_t>(block[index * 4 + 2]) << 8) |
-                              static_cast<uint32_t>(block[index * 4 + 3]);
+            schedule[index] =
+                (static_cast<uint32_t>(block[index * 4]) << 24) | (static_cast<uint32_t>(block[index * 4 + 1]) << 16) |
+                (static_cast<uint32_t>(block[index * 4 + 2]) << 8) | static_cast<uint32_t>(block[index * 4 + 3]);
         }
         for (size_t index = 16; index < 64; ++index) {
             uint32_t first = RotateRight(schedule[index - 15], 7) ^ RotateRight(schedule[index - 15], 18) ^
@@ -252,6 +280,9 @@ ParseRfc3339Millis(const std::string& value) {
         while (end < value.size() && std::isdigit(static_cast<unsigned char>(value[end]))) {
             ++end;
         }
+        if (end == position + 1) {
+            throw std::invalid_argument("invalid RFC3339 timestamp");
+        }
         auto fraction = value.substr(position + 1, end - position - 1);
         while (fraction.size() < 3) {
             fraction.push_back('0');
@@ -260,14 +291,32 @@ ParseRfc3339Millis(const std::string& value) {
         position = end;
     }
     int offset_seconds = 0;
-    if (position < value.size() && value[position] != 'Z') {
-        if (position + 5 >= value.size() || (value[position] != '+' && value[position] != '-')) {
+    if (position >= value.size()) {
+        throw std::invalid_argument("invalid RFC3339 timezone");
+    }
+    if (value[position] == 'Z') {
+        ++position;
+    } else {
+        if (position + 6 != value.size() || (value[position] != '+' && value[position] != '-') ||
+            value[position + 3] != ':') {
             throw std::invalid_argument("invalid RFC3339 timezone");
+        }
+        for (auto index : {position + 1, position + 2, position + 4, position + 5}) {
+            if (!std::isdigit(static_cast<unsigned char>(value[index]))) {
+                throw std::invalid_argument("invalid RFC3339 timezone");
+            }
         }
         int sign = value[position] == '+' ? 1 : -1;
         int hours = std::stoi(value.substr(position + 1, 2));
         int minutes = std::stoi(value.substr(position + 4, 2));
+        if (hours > 23 || minutes > 59) {
+            throw std::invalid_argument("invalid RFC3339 timezone");
+        }
         offset_seconds = sign * (hours * 3600 + minutes * 60);
+        position += 6;
+    }
+    if (position != value.size()) {
+        throw std::invalid_argument("invalid RFC3339 timestamp");
     }
     return (Timegm(&time) - offset_seconds) * 1000 + milliseconds;
 }
@@ -325,12 +374,9 @@ ToProtoMetric(const TelemetryMetric& metric) {
 
 nlohmann::json
 MetricJson(const TelemetryMetric& metric) {
-    return {{"request_count", metric.request_count},
-            {"success_count", metric.success_count},
-            {"error_count", metric.error_count},
-            {"avg_latency_ms", metric.avg_latency_ms},
-            {"p99_latency_ms", metric.p99_latency_ms},
-            {"max_latency_ms", metric.max_latency_ms}};
+    return {{"request_count", metric.request_count},   {"success_count", metric.success_count},
+            {"error_count", metric.error_count},       {"avg_latency_ms", metric.avg_latency_ms},
+            {"p99_latency_ms", metric.p99_latency_ms}, {"max_latency_ms", metric.max_latency_ms}};
 }
 
 TelemetryCommandReply
@@ -348,17 +394,11 @@ FailedReply(const std::string& command_id, const std::string& error) {
 class ClientTelemetryManager::Impl {
  public:
     Impl(const TelemetryConfig& value, const std::string& runtime_client_id)
-        : config(value),
+        : config(NormalizedTelemetryConfig(value)),
+          connection_config(config),
           stable_client_id(!value.client_id.empty()),
           client_id(stable_client_id ? value.client_id
                                      : (runtime_client_id.empty() ? RandomUuid() : runtime_client_id)) {
-        if (config.heartbeat_interval_ms == 0) {
-            config.heartbeat_interval_ms = 10000;
-        }
-        config.sampling_rate = std::max(0.0, std::min(1.0, config.sampling_rate));
-        if (config.error_max_count == 0) {
-            config.error_max_count = 100;
-        }
         RegisterDefaultHandlers();
     }
 
@@ -368,13 +408,17 @@ class ClientTelemetryManager::Impl {
 
     void
     AttachChannel(const std::shared_ptr<grpc::Channel>& channel, const std::string& user, const std::string& db,
-                  const std::string& endpoint, const std::string& version) {
+                  const std::string& endpoint, const std::string& version, const std::string& scope) {
+        std::lock_guard<std::recursive_mutex> command_lock(command_mutex);
         std::lock_guard<std::mutex> lock(mutex);
-        stub = proto::milvus::ClientTelemetryService::NewStub(channel);
+        auto new_stub = proto::milvus::ClientTelemetryService::NewStub(channel);
+        stub = std::shared_ptr<proto::milvus::ClientTelemetryService::Stub>(std::move(new_stub));
+        ++channel_generation;
         username = user;
         database = db;
         uri = endpoint;
         sdk_version = version;
+        connection_scope = scope;
     }
 
     void
@@ -419,8 +463,11 @@ class ClientTelemetryManager::Impl {
             }
             uint64_t delay = config.heartbeat_interval_ms;
             if (unsupported_streak > 0) {
-                auto exponent = std::min(unsupported_streak, 20);
-                delay = std::min(kMaxUnsupportedBackoffMs, delay * (uint64_t{1} << exponent));
+                uint64_t backed_off = std::min(delay, kMaxUnsupportedBackoffMs);
+                for (int index = 0; index < unsupported_streak && backed_off < kMaxUnsupportedBackoffMs; ++index) {
+                    backed_off = backed_off > kMaxUnsupportedBackoffMs / 2 ? kMaxUnsupportedBackoffMs : backed_off * 2;
+                }
+                delay = std::max(delay, backed_off);
             }
             condition.wait_for(lock, std::chrono::milliseconds(delay), [this]() { return stopped; });
             if (stopped) {
@@ -437,7 +484,9 @@ class ClientTelemetryManager::Impl {
         }
         TelemetrySnapshot snapshot;
         snapshot.end_time = NowMillis();
-        snapshot.timestamp = last_snapshot_end == 0 ? snapshot.end_time - config.heartbeat_interval_ms : last_snapshot_end;
+        snapshot.timestamp = last_snapshot_end == 0 || last_snapshot_end > snapshot.end_time
+                                 ? snapshot.end_time - config.heartbeat_interval_ms
+                                 : last_snapshot_end;
         last_snapshot_end = snapshot.end_time;
         for (auto& entry : collectors) {
             if (entry.second.global.requests == 0) {
@@ -447,7 +496,9 @@ class ClientTelemetryManager::Impl {
             operation.operation = entry.first;
             operation.global = entry.second.global.Snapshot();
             for (const auto& collection : entry.second.collections) {
-                operation.collection_metrics.emplace(collection.first, collection.second.Snapshot());
+                if (all_collections_enabled || enabled_collections.count(collection.first) > 0) {
+                    operation.collection_metrics.emplace(collection.first, collection.second.Snapshot());
+                }
             }
             snapshot.metrics.emplace_back(std::move(operation));
             entry.second = OperationCollector{};
@@ -461,7 +512,8 @@ class ClientTelemetryManager::Impl {
     void
     SendHeartbeat() {
         proto::milvus::ClientHeartbeatRequest request;
-        std::unique_ptr<proto::milvus::ClientTelemetryService::Stub>* stub_pointer = nullptr;
+        std::shared_ptr<proto::milvus::ClientTelemetryService::Stub> heartbeat_stub;
+        uint64_t heartbeat_generation = 0;
         size_t reply_count = 0;
         {
             std::lock_guard<std::mutex> lock(mutex);
@@ -486,7 +538,10 @@ class ClientTelemetryManager::Impl {
                     output->set_operation(operation.operation);
                     *output->mutable_global() = ToProtoMetric(operation.global);
                     for (const auto& collection : operation.collection_metrics) {
-                        (*output->mutable_collection_metrics())[collection.first] = ToProtoMetric(collection.second);
+                        if (all_collections_enabled || enabled_collections.count(collection.first) > 0) {
+                            (*output->mutable_collection_metrics())[collection.first] =
+                                ToProtoMetric(collection.second);
+                        }
                     }
                 }
             }
@@ -500,25 +555,37 @@ class ClientTelemetryManager::Impl {
             reply_count = pending_replies.size();
             request.set_config_hash(config_hash);
             request.set_last_command_timestamp(last_command_timestamp);
-            stub_pointer = &stub;
+            heartbeat_stub = stub;
+            heartbeat_generation = channel_generation;
         }
 
         grpc::ClientContext context;
         context.set_deadline(std::chrono::system_clock::now() + std::chrono::seconds(10));
         proto::milvus::ClientHeartbeatResponse response;
-        auto grpc_status = (*stub_pointer)->ClientHeartbeat(&context, request, &response);
+        auto grpc_status = heartbeat_stub->ClientHeartbeat(&context, request, &response);
         if (!grpc_status.ok()) {
             std::lock_guard<std::mutex> lock(mutex);
+            if (heartbeat_generation != channel_generation) {
+                return;
+            }
             last_heartbeat_error = grpc_status.error_message();
             if (grpc_status.error_code() == grpc::StatusCode::UNIMPLEMENTED) {
                 ++unsupported_streak;
             }
             return;
         }
-        if (response.status().code() != 0 || response.status().error_code() != proto::common::ErrorCode::Success) {
+        {
             std::lock_guard<std::mutex> lock(mutex);
-            last_heartbeat_error = response.status().reason();
-            return;
+            if (heartbeat_generation != channel_generation) {
+                return;
+            }
+            // Reaching any server implementation proves the RPC exists, even when the
+            // response carries a business error.
+            unsupported_streak = 0;
+            if (response.status().code() != 0 || response.status().error_code() != proto::common::ErrorCode::Success) {
+                last_heartbeat_error = response.status().reason();
+                return;
+            }
         }
         std::vector<TelemetryCommand> commands;
         commands.reserve(response.commands_size());
@@ -528,12 +595,14 @@ class ClientTelemetryManager::Impl {
         }
         {
             std::lock_guard<std::mutex> lock(mutex);
+            if (heartbeat_generation != channel_generation) {
+                return;
+            }
             pending_replies.erase(pending_replies.begin(),
                                   pending_replies.begin() + std::min(reply_count, pending_replies.size()));
-            unsupported_streak = 0;
             last_heartbeat_error.clear();
         }
-        ProcessCommands(commands);
+        ProcessCommands(commands, heartbeat_generation);
     }
 
     TelemetryCommandReply
@@ -555,10 +624,14 @@ class ClientTelemetryManager::Impl {
     }
 
     void
-    ProcessCommands(const std::vector<TelemetryCommand>& commands) {
+    ProcessCommands(const std::vector<TelemetryCommand>& commands, uint64_t expected_generation = 0) {
+        std::lock_guard<std::recursive_mutex> command_lock(command_mutex);
         int64_t previous_timestamp;
         {
             std::lock_guard<std::mutex> lock(mutex);
+            if (expected_generation != 0 && expected_generation != channel_generation) {
+                return;
+            }
             previous_timestamp = last_command_timestamp;
         }
         int64_t max_timestamp = previous_timestamp;
@@ -600,22 +673,71 @@ class ClientTelemetryManager::Impl {
     RegisterDefaultHandlers() {
         handlers["push_config"] = [this](const TelemetryCommand& command) {
             auto payload = command.payload.empty() ? nlohmann::json::object() : nlohmann::json::parse(command.payload);
-            std::lock_guard<std::mutex> lock(mutex);
+            if (!payload.is_object()) {
+                throw std::invalid_argument("push_config payload must be a JSON object");
+            }
+
+            std::vector<std::string> applied;
+            std::vector<std::string> ignored;
+            bool enabled = false;
+            int64_t interval = 0;
+            double sampling_rate = 0;
             if (payload.count("enabled")) {
-                config.enabled = payload["enabled"].get<bool>();
+                if (!payload["enabled"].is_boolean()) {
+                    throw std::invalid_argument("enabled must be a boolean");
+                }
+                enabled = payload["enabled"].get<bool>();
+                applied.push_back("enabled");
             }
             if (payload.count("heartbeat_interval_ms")) {
-                auto interval = payload["heartbeat_interval_ms"].get<int64_t>();
+                if (!payload["heartbeat_interval_ms"].is_number_integer() &&
+                    !payload["heartbeat_interval_ms"].is_number_unsigned()) {
+                    throw std::invalid_argument("heartbeat_interval_ms must be an integer");
+                }
+                interval = payload["heartbeat_interval_ms"].get<int64_t>();
                 if (interval <= 0) {
                     throw std::invalid_argument("heartbeat_interval_ms must be positive");
                 }
-                config.heartbeat_interval_ms = static_cast<uint64_t>(interval);
+                applied.push_back("heartbeat_interval_ms");
             }
             if (payload.count("sampling_rate")) {
-                config.sampling_rate = std::max(0.0, std::min(1.0, payload["sampling_rate"].get<double>()));
+                if (!payload["sampling_rate"].is_number()) {
+                    throw std::invalid_argument("sampling_rate must be a number");
+                }
+                sampling_rate = payload["sampling_rate"].get<double>();
+                if (!std::isfinite(sampling_rate)) {
+                    throw std::invalid_argument("sampling_rate must be finite");
+                }
+                sampling_rate = std::max(0.0, std::min(1.0, sampling_rate));
+                applied.push_back("sampling_rate");
             }
-            condition.notify_all();
-            return SuccessReply(command.command_id);
+            if (payload.count("ttl_seconds")) {
+                if (!payload["ttl_seconds"].is_number_integer() && !payload["ttl_seconds"].is_number_unsigned()) {
+                    throw std::invalid_argument("ttl_seconds must be an integer");
+                }
+                (void)payload["ttl_seconds"].get<int64_t>();
+            }
+            for (auto iterator = payload.begin(); iterator != payload.end(); ++iterator) {
+                if (iterator.key() != "enabled" && iterator.key() != "heartbeat_interval_ms" &&
+                    iterator.key() != "sampling_rate") {
+                    ignored.push_back(iterator.key());
+                }
+            }
+            std::sort(ignored.begin(), ignored.end());
+            {
+                std::lock_guard<std::mutex> lock(mutex);
+                if (payload.count("enabled")) {
+                    config.enabled = enabled;
+                }
+                if (payload.count("heartbeat_interval_ms")) {
+                    config.heartbeat_interval_ms = static_cast<uint64_t>(interval);
+                }
+                if (payload.count("sampling_rate")) {
+                    config.sampling_rate = sampling_rate;
+                }
+                condition.notify_all();
+            }
+            return SuccessReply(command.command_id, nlohmann::json{{"applied", applied}, {"ignored", ignored}}.dump());
         };
         handlers["collection_metrics"] = [this](const TelemetryCommand& command) {
             std::lock_guard<std::mutex> lock(mutex);
@@ -627,8 +749,23 @@ class ClientTelemetryManager::Impl {
                 return SuccessReply(command.command_id, result.dump());
             }
             auto payload = nlohmann::json::parse(command.payload);
+            if (!payload.is_object()) {
+                throw std::invalid_argument("collection_metrics payload must be a JSON object");
+            }
+            if (payload.count("enabled") && !payload["enabled"].is_boolean()) {
+                throw std::invalid_argument("enabled must be a boolean");
+            }
+            if (payload.count("collections") && !payload["collections"].is_array()) {
+                throw std::invalid_argument("collections must be an array");
+            }
+            if (payload.count("metrics_types") && !payload["metrics_types"].is_array()) {
+                throw std::invalid_argument("metrics_types must be an array");
+            }
             bool enabled = payload.value("enabled", false);
             auto collections = payload.value("collections", std::vector<std::string>{});
+            if (payload.count("metrics_types")) {
+                (void)payload["metrics_types"].get<std::vector<std::string>>();
+            }
             bool wildcard = std::find(collections.begin(), collections.end(), "*") != collections.end();
             if (enabled) {
                 if (collections.empty()) {
@@ -651,7 +788,15 @@ class ClientTelemetryManager::Impl {
         };
         handlers["show_errors"] = [this](const TelemetryCommand& command) {
             auto payload = command.payload.empty() ? nlohmann::json::object() : nlohmann::json::parse(command.payload);
-            auto max_count = payload.value("max_count", static_cast<size_t>(100));
+            if (!payload.is_object()) {
+                throw std::invalid_argument("show_errors payload must be a JSON object");
+            }
+            if (payload.count("max_count") && !payload["max_count"].is_number_integer() &&
+                !payload["max_count"].is_number_unsigned()) {
+                throw std::invalid_argument("max_count must be an integer");
+            }
+            auto requested = payload.value("max_count", int64_t{100});
+            auto max_count = static_cast<size_t>(requested <= 0 ? 100 : requested);
             std::vector<TelemetryError> values;
             {
                 std::lock_guard<std::mutex> lock(mutex);
@@ -660,13 +805,20 @@ class ClientTelemetryManager::Impl {
                     values.push_back(*iterator);
                 }
             }
+            if (values.empty()) {
+                return SuccessReply(command.command_id);
+            }
             nlohmann::json result = nlohmann::json::array();
             for (const auto& error : values) {
-                result.push_back({{"timestamp", error.timestamp},
-                                  {"operation", error.operation},
-                                  {"error_msg", error.error_message},
-                                  {"collection", error.collection},
-                                  {"request_id", error.request_id}});
+                nlohmann::json detail = {
+                    {"timestamp", error.timestamp}, {"operation", error.operation}, {"error_msg", error.error_message}};
+                if (!error.collection.empty()) {
+                    detail["collection"] = error.collection;
+                }
+                if (!error.request_id.empty()) {
+                    detail["request_id"] = error.request_id;
+                }
+                result.push_back(std::move(detail));
             }
             while (result.dump().size() > kMaxReplyBytes && result.size() > 1) {
                 result.erase(result.begin() + result.size() / 2, result.end());
@@ -675,8 +827,8 @@ class ClientTelemetryManager::Impl {
             while (encoded.size() > kMaxReplyBytes && result.size() == 1 &&
                    result.at(0).value("error_msg", std::string{}).size() > 1) {
                 auto message = result.at(0).at("error_msg").get<std::string>();
-                result.at(0)["error_msg"] = message.substr(0, std::max<size_t>(1, message.size() / 2)) +
-                                               "...(truncated)";
+                result.at(0)["error_msg"] =
+                    message.substr(0, std::max<size_t>(1, message.size() / 2)) + "...(truncated)";
                 encoded = result.dump();
             }
             if (encoded.size() > kMaxReplyBytes) {
@@ -688,15 +840,15 @@ class ClientTelemetryManager::Impl {
             std::lock_guard<std::mutex> lock(mutex);
             std::vector<std::string> collections(enabled_collections.begin(), enabled_collections.end());
             std::sort(collections.begin(), collections.end());
-            nlohmann::json user_config = {{"address", uri},
-                                          {"username", username},
-                                          {"db_name", database},
-                                          {"telemetry_enabled", config.enabled},
-                                          {"telemetry_heartbeat_interval_ms", config.heartbeat_interval_ms},
-                                          {"telemetry_sampling_rate", config.sampling_rate},
-                                          {"enabled_collections",
-                                           all_collections_enabled ? std::vector<std::string>{"*"} : collections},
-                                          {"all_collections_enabled", all_collections_enabled}};
+            nlohmann::json user_config = {
+                {"address", uri},
+                {"username", username},
+                {"db_name", database},
+                {"telemetry_enabled", config.enabled},
+                {"telemetry_heartbeat_interval_ms", config.heartbeat_interval_ms},
+                {"telemetry_sampling_rate", config.sampling_rate},
+                {"enabled_collections", all_collections_enabled ? std::vector<std::string>{"*"} : collections},
+                {"all_collections_enabled", all_collections_enabled}};
             return SuccessReply(command.command_id, nlohmann::json{{"user_config", user_config}}.dump());
         };
         handlers["show_latency_history"] = [this](const TelemetryCommand& command) {
@@ -704,6 +856,12 @@ class ClientTelemetryManager::Impl {
                 throw std::invalid_argument("payload is required with start_time and end_time");
             }
             auto payload = nlohmann::json::parse(command.payload);
+            if (!payload.is_object()) {
+                throw std::invalid_argument("show_latency_history payload must be a JSON object");
+            }
+            if (payload.count("detail") && !payload["detail"].is_boolean()) {
+                throw std::invalid_argument("detail must be a boolean");
+            }
             int64_t start = ParseRfc3339Millis(payload.at("start_time").get<std::string>());
             int64_t end = ParseRfc3339Millis(payload.at("end_time").get<std::string>());
             if (end < start) {
@@ -727,7 +885,7 @@ class ClientTelemetryManager::Impl {
             if (payload.value("detail", false)) {
                 response["snapshots"] = nlohmann::json::array();
                 for (const auto& snapshot : selected) {
-                    nlohmann::json metrics;
+                    nlohmann::json metrics = nlohmann::json::object();
                     for (const auto& operation : snapshot.metrics) {
                         metrics[operation.operation] = MetricJson(operation.global);
                     }
@@ -756,18 +914,16 @@ class ClientTelemetryManager::Impl {
                         total.maximum = std::max(total.maximum, operation.global.max_latency_ms);
                     }
                 }
-                nlohmann::json metrics;
+                nlohmann::json metrics = nlohmann::json::object();
                 for (const auto& entry : totals) {
-                    metrics[entry.first] = {{"request_count", entry.second.requests},
-                                            {"success_count", entry.second.successes},
-                                            {"error_count", entry.second.errors},
-                                            {"avg_latency_ms", entry.second.requests == 0
-                                                                   ? 0
-                                                                   : entry.second.average / entry.second.requests},
-                                            {"p99_latency_ms", entry.second.requests == 0
-                                                                   ? 0
-                                                                   : entry.second.p99 / entry.second.requests},
-                                            {"max_latency_ms", entry.second.maximum}};
+                    metrics[entry.first] = {
+                        {"request_count", entry.second.requests},
+                        {"success_count", entry.second.successes},
+                        {"error_count", entry.second.errors},
+                        {"avg_latency_ms",
+                         entry.second.requests == 0 ? 0 : entry.second.average / entry.second.requests},
+                        {"p99_latency_ms", entry.second.requests == 0 ? 0 : entry.second.p99 / entry.second.requests},
+                        {"max_latency_ms", entry.second.maximum}};
                 }
                 response = {{"aggregated", {{"start_time", start}, {"end_time", end}, {"metrics", metrics}}},
                             {"snapshot_count", selected.size()}};
@@ -783,13 +939,16 @@ class ClientTelemetryManager::Impl {
     mutable std::mutex mutex;
     std::condition_variable condition;
     TelemetryConfig config;
+    const TelemetryConfig connection_config;
     const bool stable_client_id;
     const std::string client_id;
-    std::unique_ptr<proto::milvus::ClientTelemetryService::Stub> stub;
+    std::shared_ptr<proto::milvus::ClientTelemetryService::Stub> stub;
+    uint64_t channel_generation{0};
     std::string username;
     std::string database;
     std::string uri;
     std::string sdk_version;
+    std::string connection_scope;
     std::unordered_map<std::string, OperationCollector> collectors;
     std::deque<TelemetryError> errors;
     std::deque<TelemetrySnapshot> snapshots;
@@ -810,6 +969,7 @@ class ClientTelemetryManager::Impl {
     std::string config_hash;
     std::string last_heartbeat_error;
     std::thread worker;
+    std::recursive_mutex command_mutex;
 };
 
 ClientTelemetryManager::ClientTelemetryManager(const TelemetryConfig& config, const std::string& runtime_client_id)
@@ -821,8 +981,8 @@ ClientTelemetryManager::~ClientTelemetryManager() = default;
 void
 ClientTelemetryManager::AttachChannel(const std::shared_ptr<grpc::Channel>& channel, const std::string& username,
                                       const std::string& database, const std::string& uri,
-                                      const std::string& sdk_version) {
-    impl_->AttachChannel(channel, username, database, uri, sdk_version);
+                                      const std::string& sdk_version, const std::string& connection_scope) {
+    impl_->AttachChannel(channel, username, database, uri, sdk_version, connection_scope);
 }
 
 void
@@ -876,6 +1036,13 @@ ClientTelemetryManager::Config() const {
     return impl_->config;
 }
 
+bool
+ClientTelemetryManager::MatchesConnection(const TelemetryConfig& config, const std::string& connection_scope) const {
+    std::lock_guard<std::mutex> lock(impl_->mutex);
+    return impl_->connection_scope == connection_scope &&
+           SameTelemetryConfig(impl_->connection_config, NormalizedTelemetryConfig(config));
+}
+
 std::string
 ClientTelemetryManager::LastHeartbeatError() const {
     std::lock_guard<std::mutex> lock(impl_->mutex);
@@ -892,13 +1059,22 @@ void
 ClientTelemetryManager::RecordOperation(const std::string& operation, const google::protobuf::Message& request,
                                         std::chrono::steady_clock::time_point started, bool success,
                                         const std::string& error_message, const std::string& request_id) {
-    static const std::unordered_set<std::string> operations = {"Insert", "Delete", "Upsert", "Search",
-                                                                "HybridSearch", "Query", "RunAnalyzer"};
+    RecordOperation(operation, operation == "RunAnalyzer" ? std::string{} : CollectionName(request), started, success,
+                    error_message, request_id);
+}
+
+void
+ClientTelemetryManager::RecordOperation(const std::string& operation, const std::string& collection,
+                                        std::chrono::steady_clock::time_point started, bool success,
+                                        const std::string& error_message, const std::string& request_id) {
+    static const std::unordered_set<std::string> operations = {"Insert",       "Delete", "Upsert",     "Search",
+                                                               "HybridSearch", "Query",  "RunAnalyzer"};
     if (operations.count(operation) == 0) {
         return;
     }
-    auto latency = std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - started).count();
-    auto collection = CollectionName(request);
+    auto latency_us =
+        std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now() - started).count();
+    auto latency = static_cast<double>(latency_us) / 1000.0;
     std::lock_guard<std::mutex> lock(impl_->mutex);
     if (!impl_->config.enabled) {
         return;
@@ -930,7 +1106,8 @@ ClientTelemetryManager::RecordOperation(const std::string& operation, const goog
         collector.collections[collection].Record(latency, success);
     }
     if (!success) {
-        impl_->errors.push_back({NowMillis(), operation, error_message, collection, request_id});
+        impl_->errors.push_back({NowMillis(), operation, error_message, collection,
+                                 ClientRequestContext::IsValid(request_id) ? request_id : std::string{}});
         while (impl_->errors.size() > impl_->config.error_max_count) {
             impl_->errors.pop_front();
         }
@@ -954,6 +1131,12 @@ ClientTelemetryManager::MetricsSnapshots() const {
     return {impl_->snapshots.begin(), impl_->snapshots.end()};
 }
 
+std::vector<TelemetryCommandReply>
+ClientTelemetryManager::PendingCommandReplies() const {
+    std::lock_guard<std::mutex> lock(impl_->mutex);
+    return impl_->pending_replies;
+}
+
 void
 ClientTelemetryManager::ProcessCommands(const std::vector<TelemetryCommand>& commands) {
     impl_->ProcessCommands(commands);
@@ -970,10 +1153,9 @@ ClientTelemetryManager::CalculateConfigHash(const std::vector<TelemetryCommand>&
     if (persistent.empty()) {
         return "";
     }
-    std::sort(persistent.begin(), persistent.end(),
-              [](const TelemetryCommand& left, const TelemetryCommand& right) {
-                  return left.command_id < right.command_id;
-              });
+    std::sort(persistent.begin(), persistent.end(), [](const TelemetryCommand& left, const TelemetryCommand& right) {
+        return left.command_id < right.command_id;
+    });
     Sha256 hash;
     for (const auto& command : persistent) {
         hash.Update(command.command_id);

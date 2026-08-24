@@ -32,9 +32,9 @@
 #include "common.pb.h"
 #include "milvus.grpc.pb.h"
 #include "milvus.pb.h"
-#include "milvus/Status.h"
 #include "milvus/ClientRequestContext.h"
 #include "milvus/ClientTelemetry.h"
+#include "milvus/Status.h"
 #include "milvus/types/ConnectParam.h"
 #include "schema.pb.h"
 
@@ -543,12 +543,11 @@ class MilvusConnection {
     grpcCall(const char* name,
              grpc::Status (proto::milvus::MilvusService::Stub::*func)(grpc::ClientContext*, const Request&, Response*),
              const Request& request, Response& response, const GrpcContextOptions& options) {
+        (void)name;
         std::shared_ptr<proto::milvus::MilvusService::Stub> stub;
-        ClientTelemetryManagerPtr telemetry;
         {
             std::lock_guard<std::mutex> lock(stub_mtx_);
             stub = stub_;
-            telemetry = telemetry_;
         }
         if (stub == nullptr) {
             return {StatusCode::NOT_CONNECTED, "Connection is not ready!"};
@@ -557,7 +556,7 @@ class MilvusConnection {
         ::grpc::ClientContext context;
         const std::string& contextual_request_id = ClientRequestContext::Get();
         const std::string request_id = options.request_id.empty() ? contextual_request_id : options.request_id;
-        if (!request_id.empty()) {
+        if (ClientRequestContext::IsValid(request_id)) {
             context.AddMetadata("client_request_id", request_id);
         }
         if (options.timeout > 0) {
@@ -565,7 +564,6 @@ class MilvusConnection {
             context.set_deadline(deadline);
         }
 
-        auto started = std::chrono::steady_clock::now();
         ::grpc::Status grpc_status = (stub.get()->*func)(&context, request, &response);
 
         // TODO: check the error codes and do retry here
@@ -578,21 +576,13 @@ class MilvusConnection {
         //   grpc::StatusCode::RESOURCE_EXHAUSTED
         //   grpc::StatusCode::UNIMPLEMENTED
         if (!grpc_status.ok()) {
-            auto status = StatusCodeFromGrpcStatus(grpc_status);
-            if (telemetry != nullptr) {
-                telemetry->RecordOperation(name, request, started, false, status.Message(), request_id);
-            }
-            return status;
+            return StatusCodeFromGrpcStatus(grpc_status);
         }
 
         // Some milvus error codes can be retried:
         //   response.status().error_code() == io.milvus.grpc.ErrorCode.RateLimit
         //   or response.status()code() == 8 can be retried
         auto status = StatusByProtoResponse(response);
-        if (telemetry != nullptr) {
-            telemetry->RecordOperation(name, request, started, status.IsOk(), status.IsOk() ? "" : status.Message(),
-                                       request_id);
-        }
         return status;
     }
 };

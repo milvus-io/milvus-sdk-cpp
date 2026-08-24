@@ -18,9 +18,9 @@
 
 #include <functional>
 
+#include "ClientTelemetry.h"
 #include "MilvusClientV2Session.h"
 #include "Status.h"
-#include "ClientTelemetry.h"
 #include "milvus/Export.h"
 #include "request/alias/AlterAliasRequest.h"
 #include "request/alias/CreateAliasRequest.h"
@@ -231,10 +231,6 @@ class MILVUS_SDK_API MilvusClientV2 {
      */
     virtual Status
     Disconnect() = 0;
-
-    /** Returns the telemetry manager for diagnostics and custom command handlers. */
-    virtual ClientTelemetryManagerPtr
-    GetTelemetry() const = 0;
 
     /**
      * @brief Change timeout value in milliseconds for each RPC call.
@@ -1440,6 +1436,12 @@ class MILVUS_SDK_API MilvusClientV2 {
      */
     virtual Status
     Session(const std::string& cluster_id, MilvusClientV2SessionPtr& session) = 0;
+
+    /** Returns the telemetry manager for diagnostics and custom command handlers. */
+    virtual ClientTelemetryManagerPtr
+    GetTelemetry() const {
+        return nullptr;
+    }
 };
 
 using MilvusClientV2Ptr = std::shared_ptr<MilvusClientV2>;

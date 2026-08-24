@@ -93,7 +93,8 @@ class MILVUS_SDK_API ClientTelemetryManager {
 
     void
     AttachChannel(const std::shared_ptr<grpc::Channel>& channel, const std::string& username,
-                  const std::string& database, const std::string& uri, const std::string& sdk_version);
+                  const std::string& database, const std::string& uri, const std::string& sdk_version,
+                  const std::string& connection_scope = "");
 
     void
     UpdateDatabase(const std::string& database);
@@ -122,6 +123,10 @@ class MILVUS_SDK_API ClientTelemetryManager {
     TelemetryConfig
     Config() const;
 
+    /** Whether a reconnect can reuse this manager without changing user-supplied telemetry settings. */
+    bool
+    MatchesConnection(const TelemetryConfig& config, const std::string& connection_scope) const;
+
     std::string
     LastHeartbeatError() const;
 
@@ -133,11 +138,19 @@ class MILVUS_SDK_API ClientTelemetryManager {
                     std::chrono::steady_clock::time_point started, bool success, const std::string& error_message,
                     const std::string& request_id = "");
 
+    void
+    RecordOperation(const std::string& operation, const std::string& collection,
+                    std::chrono::steady_clock::time_point started, bool success, const std::string& error_message,
+                    const std::string& request_id = "");
+
     std::vector<TelemetryError>
     RecentErrors(size_t max_count = 100) const;
 
     std::vector<TelemetrySnapshot>
     MetricsSnapshots() const;
+
+    std::vector<TelemetryCommandReply>
+    PendingCommandReplies() const;
 
     void
     ProcessCommands(const std::vector<TelemetryCommand>& commands);

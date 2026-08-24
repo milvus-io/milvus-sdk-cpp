@@ -34,6 +34,7 @@
 #include "utils/DqlUtils.h"
 #include "utils/FieldDataSchema.h"
 #include "utils/MiscUtils.h"
+#include "utils/TelemetryUtils.h"
 #include "utils/TypeUtils.h"
 #include "utils/cache/CollectionTsCache.h"
 #include "utils/cache/SchemaCache.h"
@@ -1717,7 +1718,8 @@ MilvusClientV2Impl::DropIndexProperties(const DropIndexPropertiesRequest& reques
 
 Status
 MilvusClientV2Impl::Insert(const InsertRequest& request, InsertResponse& response) {
-    return insert(request, response, true);
+    return InvokeWithTelemetry(connection_, "Insert", request.CollectionName(),
+                               [&]() { return insert(request, response, true); });
 }
 
 Status
@@ -1835,7 +1837,8 @@ MilvusClientV2Impl::insert(const InsertRequest& request, InsertResponse& respons
 
 Status
 MilvusClientV2Impl::Upsert(const UpsertRequest& request, UpsertResponse& response) {
-    return upsert(request, response, true);
+    return InvokeWithTelemetry(connection_, "Upsert", request.CollectionName(),
+                               [&]() { return upsert(request, response, true); });
 }
 
 Status
@@ -2027,8 +2030,10 @@ MilvusClientV2Impl::Delete(const DeleteRequest& request, DeleteResponse& respons
         return Status::OK();
     };
 
-    return connection_.Invoke<proto::milvus::DeleteRequest, proto::milvus::MutationResult>(
-        pre, &MilvusConnection::Delete, post);
+    return InvokeWithTelemetry(connection_, "Delete", request.CollectionName(), [&]() {
+        return connection_.Invoke<proto::milvus::DeleteRequest, proto::milvus::MutationResult>(
+            pre, &MilvusConnection::Delete, post);
+    });
 }
 
 Status
@@ -2088,8 +2093,10 @@ MilvusClientV2Impl::search(const SearchRequest& request, SearchResponse& respons
         return status;
     };
 
-    return connection_.Invoke<proto::milvus::SearchRequest, proto::milvus::SearchResults>(
-        validate, pre, &MilvusConnection::Search, nullptr, post);
+    return InvokeWithTelemetry(connection_, "Search", request.CollectionName(), [&]() {
+        return connection_.Invoke<proto::milvus::SearchRequest, proto::milvus::SearchResults>(
+            validate, pre, &MilvusConnection::Search, nullptr, post);
+    });
 }
 
 Status
@@ -2211,8 +2218,10 @@ MilvusClientV2Impl::hybridSearch(const HybridSearchRequest& request, HybridSearc
         return status;
     };
 
-    return connection_.Invoke<proto::milvus::HybridSearchRequest, proto::milvus::SearchResults>(
-        pre, &MilvusConnection::HybridSearch, post);
+    return InvokeWithTelemetry(connection_, "HybridSearch", request.CollectionName(), [&]() {
+        return connection_.Invoke<proto::milvus::HybridSearchRequest, proto::milvus::SearchResults>(
+            pre, &MilvusConnection::HybridSearch, post);
+    });
 }
 
 Status
@@ -2224,7 +2233,7 @@ MilvusClientV2Impl::Query(const QueryRequest& request, QueryResponse& response) 
 
 Status
 MilvusClientV2Impl::query(const std::string& endpoint, const std::string& database_name, const QueryRequest& request,
-                          QueryResponse& response, const std::string& cluster_id) {
+                          QueryResponse& response, const std::string& cluster_id, bool record_telemetry) {
     auto pre = [this, &endpoint, &database_name, &request, &cluster_id](proto::milvus::QueryRequest& rpc_request) {
         const auto id_count = request.IDs().GetRowCount();
         if (!request.Filter().empty() && id_count != 0) {
@@ -2267,8 +2276,11 @@ MilvusClientV2Impl::query(const std::string& endpoint, const std::string& databa
         return status;
     };
 
-    return connection_.Invoke<proto::milvus::QueryRequest, proto::milvus::QueryResults>(pre, &MilvusConnection::Query,
-                                                                                        post);
+    auto invoke = [&]() {
+        return connection_.Invoke<proto::milvus::QueryRequest, proto::milvus::QueryResults>(
+            pre, &MilvusConnection::Query, post);
+    };
+    return record_telemetry ? InvokeWithTelemetry(connection_, "Query", request.CollectionName(), invoke) : invoke();
 }
 
 Status
@@ -2278,6 +2290,13 @@ MilvusClientV2Impl::Get(const GetRequest& request, GetResponse& response) {
 
 Status
 MilvusClientV2Impl::get(const GetRequest& request, GetResponse& response, const std::string& cluster_id) {
+    return InvokeWithTelemetry(connection_, "Query", request.CollectionName(),
+                               [&]() { return getWithoutTelemetry(request, response, cluster_id); });
+}
+
+Status
+MilvusClientV2Impl::getWithoutTelemetry(const GetRequest& request, GetResponse& response,
+                                        const std::string& cluster_id) {
     const auto endpoint = connection_.CurrentEndpoint();
     const auto database_name = connection_.CurrentDbName(request.DatabaseName());
     CollectionDescPtr collection_desc;
@@ -2313,7 +2332,7 @@ MilvusClientV2Impl::get(const GetRequest& request, GetResponse& response, const 
                               .AddFilterTemplate(ids_key, filter_template)
                               .WithOutputFields(std::move(output_fields));
 
-    return query(endpoint, database_name, actual_request, response, cluster_id);
+    return query(endpoint, database_name, actual_request, response, cluster_id, false);
 }
 
 Status
@@ -2390,8 +2409,10 @@ MilvusClientV2Impl::RunAnalyzer(const RunAnalyzerRequest& request, RunAnalyzerRe
         return Status::OK();
     };
 
-    return connection_.Invoke<proto::milvus::RunAnalyzerRequest, proto::milvus::RunAnalyzerResponse>(
-        pre, &MilvusConnection::RunAnalyzer, post);
+    return InvokeWithTelemetry(connection_, "RunAnalyzer", "", [&]() {
+        return connection_.Invoke<proto::milvus::RunAnalyzerRequest, proto::milvus::RunAnalyzerResponse>(
+            pre, &MilvusConnection::RunAnalyzer, post);
+    });
 }
 
 Status

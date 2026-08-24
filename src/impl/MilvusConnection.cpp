@@ -106,11 +106,12 @@ Status
 MilvusConnection::Connect(const ConnectParam& param, const std::string& runtime_telemetry_client_id,
                           ClientTelemetryManagerPtr reusable_telemetry) {
     std::shared_ptr<grpc::Channel> channel;
+    std::string telemetry_endpoint;
     try {
         // ParseURI() might throw exceptions when the uri/port is invalid
         std::shared_ptr<grpc::ChannelCredentials> credentials{nullptr};
         auto uri = ParseURI(param.Uri());
-        auto address = uri.host + ":" + std::to_string(uri.port);
+        telemetry_endpoint = uri.host + ":" + std::to_string(uri.port);
 
         ::grpc::ChannelArguments args;
         args.SetMaxSendMessageSize(-1);     // max send message size: 2GB
@@ -137,7 +138,7 @@ MilvusConnection::Connect(const ConnectParam& param, const std::string& runtime_
             metadata["dbname"] = db_name;
         }
 
-        channel = CreateChannelWithHeaderInterceptor(address, credentials, args, metadata);
+        channel = CreateChannelWithHeaderInterceptor(telemetry_endpoint, credentials, args, metadata);
     } catch (const std::exception& ex) {
         std::string reason = "Exception caught when creating grpc channel: ";
         reason += ex.what();
@@ -153,12 +154,11 @@ MilvusConnection::Connect(const ConnectParam& param, const std::string& runtime_
 
     auto stub_holder = proto::milvus::MilvusService::NewStub(channel);
     auto stub = std::shared_ptr<Stub>(std::move(stub_holder));
-    auto reusable_client_id =
-        runtime_telemetry_client_id.empty() ? telemetry_client_id_ : runtime_telemetry_client_id;
-    const auto& configured_client_id = param.Telemetry().client_id;
-    const bool can_reuse_telemetry = reusable_telemetry != nullptr &&
-                                     (configured_client_id.empty() ||
-                                      configured_client_id == reusable_telemetry->ClientId());
+    auto reusable_client_id = runtime_telemetry_client_id.empty() ? telemetry_client_id_ : runtime_telemetry_client_id;
+    const auto connection_scope =
+        telemetry_endpoint + "#" + std::to_string(std::hash<std::string>{}(param.Authorizations()));
+    const bool can_reuse_telemetry =
+        reusable_telemetry != nullptr && reusable_telemetry->MatchesConnection(param.Telemetry(), connection_scope);
     auto telemetry = can_reuse_telemetry
                          ? std::move(reusable_telemetry)
                          : std::make_shared<ClientTelemetryManager>(param.Telemetry(), reusable_client_id);
@@ -200,8 +200,8 @@ MilvusConnection::Connect(const ConnectParam& param, const std::string& runtime_
     }
 
     auto database = param.DbName().empty() ? "default" : param.DbName();
-    telemetry->AttachChannel(channel, param.Username(), database, param.Host() + ":" + std::to_string(param.Port()),
-                             GetBuildVersion());
+    telemetry->AttachChannel(channel, param.Username(), database, telemetry_endpoint, GetBuildVersion(),
+                             connection_scope);
     {
         std::lock_guard<std::mutex> lock(stub_mtx_);
         param_ = param;

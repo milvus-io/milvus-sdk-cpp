@@ -280,6 +280,7 @@ class ConnectionHandler {
     }
 
  private:
+    mutable std::mutex lifecycle_mtx_;
     mutable std::mutex mtx_;
     MilvusConnectionPtr connection_;
     ClientTelemetryManagerPtr telemetry_;

@@ -31,6 +31,10 @@ class MILVUS_SDK_API ClientRequestContext {
     /** Returns a lowercase 32-character OpenTelemetry-compatible trace ID. */
     static std::string
     NewRequestId();
+
+    /** Returns true for a lowercase, non-zero, 32-character OpenTelemetry trace ID. */
+    static bool
+    IsValid(const std::string& request_id);
 };
 
 /** Restores the previous thread-local request ID when it leaves scope. */

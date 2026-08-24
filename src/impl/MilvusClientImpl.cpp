@@ -31,6 +31,7 @@
 #include "utils/DmlUtils.h"
 #include "utils/DqlUtils.h"
 #include "utils/FieldDataSchema.h"
+#include "utils/TelemetryUtils.h"
 #include "utils/TypeUtils.h"
 #include "utils/cache/CollectionTsCache.h"
 #include "utils/cache/SchemaCache.h"
@@ -983,7 +984,8 @@ MilvusClientImpl::DropIndexProperties(const std::string& collection_name, const 
 Status
 MilvusClientImpl::Insert(const std::string& collection_name, const std::string& partition_name,
                          const std::vector<FieldDataPtr>& fields, DmlResults& results) {
-    return insert(collection_name, partition_name, fields, results, true);
+    return InvokeWithTelemetry(connection_, "Insert", collection_name,
+                               [&]() { return insert(collection_name, partition_name, fields, results, true); });
 }
 
 Status
@@ -1062,7 +1064,8 @@ MilvusClientImpl::insert(const std::string& collection_name, const std::string& 
 Status
 MilvusClientImpl::Insert(const std::string& collection_name, const std::string& partition_name, const EntityRows& rows,
                          DmlResults& results) {
-    return insert(collection_name, partition_name, rows, results, true);
+    return InvokeWithTelemetry(connection_, "Insert", collection_name,
+                               [&]() { return insert(collection_name, partition_name, rows, results, true); });
 }
 
 Status
@@ -1135,7 +1138,8 @@ MilvusClientImpl::insert(const std::string& collection_name, const std::string& 
 Status
 MilvusClientImpl::Upsert(const std::string& collection_name, const std::string& partition_name,
                          const std::vector<FieldDataPtr>& fields, DmlResults& results) {
-    return upsert(collection_name, partition_name, fields, results, true);
+    return InvokeWithTelemetry(connection_, "Upsert", collection_name,
+                               [&]() { return upsert(collection_name, partition_name, fields, results, true); });
 }
 
 Status
@@ -1231,7 +1235,8 @@ MilvusClientImpl::upsert(const std::string& collection_name, const std::string& 
 Status
 MilvusClientImpl::Upsert(const std::string& collection_name, const std::string& partition_name, const EntityRows& rows,
                          DmlResults& results) {
-    return upsert(collection_name, partition_name, rows, results, true);
+    return InvokeWithTelemetry(connection_, "Upsert", collection_name,
+                               [&]() { return upsert(collection_name, partition_name, rows, results, true); });
 }
 
 Status
@@ -1326,8 +1331,10 @@ MilvusClientImpl::Delete(const std::string& collection_name, const std::string& 
         return Status::OK();
     };
 
-    return connection_.Invoke<proto::milvus::DeleteRequest, proto::milvus::MutationResult>(
-        pre, &MilvusConnection::Delete, post);
+    return InvokeWithTelemetry(connection_, "Delete", collection_name, [&]() {
+        return connection_.Invoke<proto::milvus::DeleteRequest, proto::milvus::MutationResult>(
+            pre, &MilvusConnection::Delete, post);
+    });
 }
 
 Status
@@ -1355,8 +1362,10 @@ MilvusClientImpl::Search(const SearchArguments& arguments, SearchResults& result
         return ConvertSearchResults(response, pk_name, results);
     };
 
-    return connection_.Invoke<proto::milvus::SearchRequest, proto::milvus::SearchResults>(
-        validate, pre, &MilvusConnection::Search, nullptr, post);
+    return InvokeWithTelemetry(connection_, "Search", arguments.CollectionName(), [&]() {
+        return connection_.Invoke<proto::milvus::SearchRequest, proto::milvus::SearchResults>(
+            validate, pre, &MilvusConnection::Search, nullptr, post);
+    });
 }
 
 Status
@@ -1451,8 +1460,10 @@ MilvusClientImpl::HybridSearch(const HybridSearchArguments& arguments, SearchRes
         return ConvertSearchResults(response, pk_name, results);
     };
 
-    return connection_.Invoke<proto::milvus::HybridSearchRequest, proto::milvus::SearchResults>(
-        validate, pre, &MilvusConnection::HybridSearch, nullptr, post);
+    return InvokeWithTelemetry(connection_, "HybridSearch", arguments.CollectionName(), [&]() {
+        return connection_.Invoke<proto::milvus::HybridSearchRequest, proto::milvus::SearchResults>(
+            validate, pre, &MilvusConnection::HybridSearch, nullptr, post);
+    });
 }
 
 Status
@@ -1466,8 +1477,10 @@ MilvusClientImpl::Query(const QueryArguments& arguments, QueryResults& results) 
     auto post = [&results](const proto::milvus::QueryResults& response) {
         return ConvertQueryResults(response, results);
     };
-    return connection_.Invoke<proto::milvus::QueryRequest, proto::milvus::QueryResults>(pre, &MilvusConnection::Query,
-                                                                                        post);
+    return InvokeWithTelemetry(connection_, "Query", arguments.CollectionName(), [&]() {
+        return connection_.Invoke<proto::milvus::QueryRequest, proto::milvus::QueryResults>(
+            pre, &MilvusConnection::Query, post);
+    });
 }
 
 Status
@@ -1534,8 +1547,10 @@ MilvusClientImpl::RunAnalyzer(const RunAnalyzerArguments& arguments, AnalyzerRes
         return Status::OK();
     };
 
-    return connection_.Invoke<proto::milvus::RunAnalyzerRequest, proto::milvus::RunAnalyzerResponse>(
-        pre, &MilvusConnection::RunAnalyzer, post);
+    return InvokeWithTelemetry(connection_, "RunAnalyzer", "", [&]() {
+        return connection_.Invoke<proto::milvus::RunAnalyzerRequest, proto::milvus::RunAnalyzerResponse>(
+            pre, &MilvusConnection::RunAnalyzer, post);
+    });
 }
 
 Status

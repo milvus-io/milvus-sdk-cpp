@@ -441,10 +441,13 @@ class MilvusClientV2Impl : public MilvusClientV2, public std::enable_shared_from
 
     Status
     query(const std::string& endpoint, const std::string& database_name, const QueryRequest& request,
-          QueryResponse& response, const std::string& cluster_id);
+          QueryResponse& response, const std::string& cluster_id, bool record_telemetry = true);
 
     Status
     get(const GetRequest& request, GetResponse& response, const std::string& cluster_id);
+
+    Status
+    getWithoutTelemetry(const GetRequest& request, GetResponse& response, const std::string& cluster_id);
 
     Status
     queryIterator(QueryIteratorRequest& request, QueryIteratorPtr& iterator, const std::string& cluster_id);

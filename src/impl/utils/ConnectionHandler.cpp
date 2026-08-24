@@ -32,6 +32,11 @@ ConnectionHandler::~ConnectionHandler() {
 
 Status
 ConnectionHandler::Connect(const ConnectParam& connect_param) {
+    // Keep the candidate private until its handshake succeeds, but do not hold mtx_ while
+    // AttachChannel waits for an in-flight command handler. The lifecycle lock also fences
+    // concurrent explicit connects, disconnects, database switches, and global failovers.
+    std::lock_guard<std::mutex> lifecycle_lock(lifecycle_mtx_);
+
     // Snapshot the previous global-cluster state so a failed handshake can restore it: the old
     // primary connection_ is kept until the new handshake succeeds, and tearing down the refresher
     // before the attempt would otherwise drop global tracking from a still-usable connection.
@@ -40,6 +45,7 @@ ConnectionHandler::Connect(const ConnectParam& connect_param) {
     ConnectParam prior_connect_param;
     std::unique_ptr<TopologyRefresher> prior_refresher;
     ClientTelemetryManagerPtr reusable_telemetry;
+    MilvusConnectionPtr old_connection;
     {
         std::lock_guard<std::mutex> lock(mtx_);
         was_global = global_mode_;
@@ -47,8 +53,9 @@ ConnectionHandler::Connect(const ConnectParam& connect_param) {
         prior_connect_param = global_connect_param_;
         prior_refresher = std::move(global_refresher_);
         reusable_telemetry = telemetry_;
-        if (connection_ != nullptr) {
-            auto current_telemetry = connection_->GetTelemetry();
+        old_connection = connection_;
+        if (old_connection != nullptr) {
+            auto current_telemetry = old_connection->GetTelemetry();
             if (current_telemetry != nullptr) {
                 reusable_telemetry = std::move(current_telemetry);
             }
@@ -98,70 +105,68 @@ ConnectionHandler::Connect(const ConnectParam& connect_param) {
             GlobalClusterUtils::BuildPrimaryUri(connect_param.Uri(), connect_param.TlsEnabled(), primary->Endpoint()));
     }
 
-    // Serialize the connection handshake with lifecycle and configuration mutations. The candidate
-    // connection remains private until it succeeds, but setters must not update the current
-    // connection and then be overwritten by the successful swap below.
-    MilvusConnectionPtr new_connection;
-    Status status;
-    {
-        std::lock_guard<std::mutex> lock(mtx_);
-
-        global_mode_ = false;
-        global_endpoint_.clear();
-
-        new_connection = std::make_shared<MilvusConnection>();
-        status = new_connection->Connect(primary_param, telemetry_client_id_, reusable_telemetry);
-        if (!status.IsOk()) {
-            // fall through to restore the prior global state after releasing the lock
-        } else {
-            auto telemetry = new_connection->GetTelemetry();
-            if (telemetry != nullptr) {
-                telemetry_ = telemetry;
-                telemetry_client_id_ = telemetry->ClientId();
-            }
-            if (connection_ != nullptr) {
-                const bool shares_telemetry = telemetry != nullptr && connection_->GetTelemetry() == telemetry;
-                connection_->Disconnect(!shares_telemetry);
-            }
-            connection_ = std::move(new_connection);
-
-            // commit the global-cluster state only after the primary connect succeeded, so a failed
-            // Connect() leaves the handler in non-global mode (consistent with connection_ == null)
-            if (is_global) {
-                global_mode_ = true;
-                global_endpoint_ = connect_param.Uri();
-                global_connect_param_ = connect_param;
-                global_refresher_ = std::make_unique<TopologyRefresher>(
-                    global_endpoint_, global_connect_param_.Token(), initial_topology.Version(),
-                    std::chrono::seconds(300),
-                    [this](const GlobalTopology& topology, const std::function<bool()>& should_stop) {
-                        return reconnectToPrimary(topology, should_stop);
-                    });
-                global_refresher_->Start();
-            }
-        }
-    }
+    auto new_connection = std::make_shared<MilvusConnection>();
+    auto status = new_connection->Connect(primary_param, telemetry_client_id_, reusable_telemetry);
     if (!status.IsOk()) {
         restore();
         return status;
+    }
+
+    auto telemetry = new_connection->GetTelemetry();
+    {
+        std::lock_guard<std::mutex> lock(mtx_);
+        global_mode_ = false;
+        global_endpoint_.clear();
+        if (telemetry != nullptr) {
+            telemetry_ = telemetry;
+            telemetry_client_id_ = telemetry->ClientId();
+        }
+        connection_ = new_connection;
+
+        // Commit global-cluster state only after the primary connect succeeds.
+        if (is_global) {
+            global_mode_ = true;
+            global_endpoint_ = connect_param.Uri();
+            global_connect_param_ = connect_param;
+            global_refresher_ = std::make_unique<TopologyRefresher>(
+                global_endpoint_, global_connect_param_.Token(), initial_topology.Version(), std::chrono::seconds(300),
+                [this](const GlobalTopology& topology, const std::function<bool()>& should_stop) {
+                    return reconnectToPrimary(topology, should_stop);
+                });
+            global_refresher_->Start();
+        }
+    }
+
+    if (old_connection != nullptr) {
+        const bool shares_telemetry = telemetry != nullptr && old_connection->GetTelemetry() == telemetry;
+        old_connection->Disconnect(!shares_telemetry);
     }
     return Status::OK();
 }
 
 Status
 ConnectionHandler::Disconnect() {
+    std::unique_lock<std::mutex> lifecycle_lock(lifecycle_mtx_, std::try_to_lock);
+    if (!lifecycle_lock.owns_lock()) {
+        return {StatusCode::UNKNOWN_ERROR, "Connection lifecycle change is already in progress"};
+    }
+
     // stop the refresher without holding the lock; callbacks see global_mode_==false and no-op
     stopGlobalRefresher();
 
-    std::lock_guard<std::mutex> lock(mtx_);
-    if (connection_ != nullptr) {
-        auto telemetry = connection_->GetTelemetry();
+    MilvusConnectionPtr connection;
+    {
+        std::lock_guard<std::mutex> lock(mtx_);
+        connection = std::move(connection_);
+        if (connection == nullptr) {
+            return Status::OK();
+        }
+        auto telemetry = connection->GetTelemetry();
         if (telemetry != nullptr) {
             telemetry_ = std::move(telemetry);
         }
-        return connection_->Disconnect();
     }
-    return Status::OK();
+    return connection->Disconnect();
 }
 
 void
@@ -189,6 +194,13 @@ ConnectionHandler::TriggerGlobalRefresh() {
 
 bool
 ConnectionHandler::reconnectToPrimary(const GlobalTopology& topology, const std::function<bool()>& should_stop) {
+    // A refresher callback must never wait behind Connect()/Disconnect() while those methods
+    // are stopping and joining the refresher thread.
+    std::unique_lock<std::mutex> lifecycle_lock(lifecycle_mtx_, std::try_to_lock);
+    if (!lifecycle_lock.owns_lock()) {
+        return false;
+    }
+
     const ClusterInfo* primary = topology.Primary();
     if (primary == nullptr) {
         // no writable cluster in this topology; report failure so the refresher retries the
@@ -243,37 +255,46 @@ ConnectionHandler::reconnectToPrimary(const GlobalTopology& topology, const std:
     }
 
     auto new_telemetry = new_connection->GetTelemetry();
+    MilvusConnectionPtr old_connection;
+    bool discard_candidate = false;
+    bool stop_candidate_telemetry = true;
+    bool reconnect_result = true;
     {
         std::lock_guard<std::mutex> lock(mtx_);
         if (!global_mode_) {
             // disconnected while reconnecting; discard the unused candidate connection
-            const bool shares_telemetry = new_telemetry != nullptr && telemetry_ == new_telemetry;
-            new_connection->Disconnect(!shares_telemetry);
-            return true;
-        }
-        // re-read live configuration in case SetRpcDeadlineMs()/UseDatabase() ran while the
-        // candidate was being built outside the lock, so it is not silently dropped on swap
-        if (connection_ != nullptr) {
+            discard_candidate = true;
+            stop_candidate_telemetry = new_telemetry == nullptr || telemetry_ != new_telemetry;
+        } else if (connection_ != nullptr) {
+            // Re-read live configuration before swapping the candidate.
             const ConnectParam& live = connection_->GetConnectParam();
             new_connection->GetConnectParam().SetRpcDeadlineMs(live.RpcDeadlineMs());
             if (new_connection->GetConnectParam().DbName() != live.DbName()) {
                 // the database changed while reconnecting; drop the stale candidate and retry
-                const bool shares_telemetry =
-                    new_telemetry != nullptr && connection_->GetTelemetry() == new_telemetry;
-                new_connection->Disconnect(!shares_telemetry);
-                return false;
+                discard_candidate = true;
+                stop_candidate_telemetry =
+                    new_telemetry == nullptr || connection_->GetTelemetry() != new_telemetry;
+                reconnect_result = false;
             }
         }
-        auto old_connection = connection_;
-        connection_ = std::move(new_connection);
-        if (new_telemetry != nullptr) {
-            telemetry_ = new_telemetry;
-            telemetry_client_id_ = new_telemetry->ClientId();
+
+        if (!discard_candidate) {
+            old_connection = connection_;
+            connection_ = new_connection;
+            if (new_telemetry != nullptr) {
+                telemetry_ = new_telemetry;
+                telemetry_client_id_ = new_telemetry->ClientId();
+            }
         }
-        if (old_connection != nullptr) {
-            const bool shares_telemetry = new_telemetry != nullptr && old_connection->GetTelemetry() == new_telemetry;
-            old_connection->Disconnect(!shares_telemetry);
-        }
+    }
+
+    if (discard_candidate) {
+        new_connection->Disconnect(stop_candidate_telemetry);
+        return reconnect_result;
+    }
+    if (old_connection != nullptr) {
+        const bool shares_telemetry = new_telemetry != nullptr && old_connection->GetTelemetry() == new_telemetry;
+        old_connection->Disconnect(!shares_telemetry);
     }
     return true;
 }
@@ -287,11 +308,15 @@ ConnectionHandler::GetConnection() const {
 ClientTelemetryManagerPtr
 ConnectionHandler::GetTelemetry() const {
     std::lock_guard<std::mutex> lock(mtx_);
-    return connection_ == nullptr ? nullptr : connection_->GetTelemetry();
+    return connection_ == nullptr ? telemetry_ : connection_->GetTelemetry();
 }
 
 Status
 ConnectionHandler::SetRpcDeadlineMs(uint64_t timeout_ms) {
+    std::unique_lock<std::mutex> lifecycle_lock(lifecycle_mtx_, std::try_to_lock);
+    if (!lifecycle_lock.owns_lock()) {
+        return {StatusCode::UNKNOWN_ERROR, "Connection lifecycle change is already in progress"};
+    }
     std::lock_guard<std::mutex> lock(mtx_);
     if (connection_ == nullptr) {
         return {StatusCode::NOT_CONNECTED, "Connection is not created!"};
@@ -311,6 +336,10 @@ ConnectionHandler::GetRpcDeadlineMs() const {
 
 Status
 ConnectionHandler::SetRetryParam(const RetryParam& retry_param) {
+    std::unique_lock<std::mutex> lifecycle_lock(lifecycle_mtx_, std::try_to_lock);
+    if (!lifecycle_lock.owns_lock()) {
+        return {StatusCode::UNKNOWN_ERROR, "Connection lifecycle change is already in progress"};
+    }
     std::lock_guard<std::mutex> lock(mtx_);
     if (connection_ == nullptr) {
         return {StatusCode::NOT_CONNECTED, "Connection is not created!"};
@@ -327,12 +356,12 @@ ConnectionHandler::GetRetryParam() const {
 
 Status
 ConnectionHandler::UseDatabase(const std::string& db_name) {
-    std::lock_guard<std::mutex> lock(mtx_);
-    if (connection_ != nullptr) {
-        return connection_->UseDatabase(db_name);
+    std::unique_lock<std::mutex> lifecycle_lock(lifecycle_mtx_, std::try_to_lock);
+    if (!lifecycle_lock.owns_lock()) {
+        return {StatusCode::UNKNOWN_ERROR, "Connection lifecycle change is already in progress"};
     }
-
-    return Status::OK();
+    auto connection = GetConnection();
+    return connection == nullptr ? Status::OK() : connection->UseDatabase(db_name);
 }
 
 std::string

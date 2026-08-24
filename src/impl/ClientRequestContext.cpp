@@ -10,6 +10,7 @@
 
 #include "milvus/ClientRequestContext.h"
 
+#include <algorithm>
 #include <iomanip>
 #include <random>
 #include <sstream>
@@ -48,6 +49,14 @@ ClientRequestContext::NewRequestId() {
     std::ostringstream stream;
     stream << std::hex << std::setfill('0') << std::setw(16) << high << std::setw(16) << low;
     return stream.str();
+}
+
+bool
+ClientRequestContext::IsValid(const std::string& value) {
+    return value.size() == 32 && value != std::string(32, '0') &&
+           std::all_of(value.begin(), value.end(), [](char character) {
+               return (character >= '0' && character <= '9') || (character >= 'a' && character <= 'f');
+           });
 }
 
 ScopedClientRequestId::ScopedClientRequestId(const std::string& value) : previous_(ClientRequestContext::Get()) {
