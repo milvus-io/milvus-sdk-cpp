@@ -1019,13 +1019,16 @@ TEST(ClientTelemetryTest, RejectsWrongCommandPayloadTypes) {
     manager.ProcessCommands(
         {{"push", "push_config", R"({"enabled":"false"})", 1, false, ""},
          {"collection", "collection_metrics", R"({"enabled":false,"collections":"books"})", 2, false, ""},
-         {"ttl", "push_config", R"({"enabled":true,"ttl_seconds":"bad"})", 3, false, ""}});
+         {"ttl", "push_config", R"({"ttl_seconds":"bad"})", 3, true, ""}});
 
     auto replies = manager.PendingCommandReplies();
     ASSERT_EQ(replies.size(), 3U);
     EXPECT_FALSE(replies[0].success);
     EXPECT_FALSE(replies[1].success);
-    EXPECT_FALSE(replies[2].success);
+    // ttl_seconds belongs to the server-side push API and never reaches clients by design:
+    // it is reported as ignored, never validated.
+    EXPECT_TRUE(replies[2].success);
+    EXPECT_EQ(nlohmann::json::parse(replies[2].payload)["ignored"], nlohmann::json({"ttl_seconds"}));
     EXPECT_FALSE(manager.Config().enabled);
 }
 
