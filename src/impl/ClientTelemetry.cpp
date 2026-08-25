@@ -884,12 +884,6 @@ class ClientTelemetryManager::Impl : public std::enable_shared_from_this<ClientT
                 sampling_rate = std::max(0.0, std::min(1.0, sampling_rate));
                 applied.emplace_back("sampling_rate");
             }
-            if (payload.count("ttl_seconds")) {
-                if (!payload["ttl_seconds"].is_number_integer() && !payload["ttl_seconds"].is_number_unsigned()) {
-                    throw std::invalid_argument("ttl_seconds must be an integer");
-                }
-                (void)payload["ttl_seconds"].get<int64_t>();
-            }
             for (auto iterator = payload.begin(); iterator != payload.end(); ++iterator) {
                 if (iterator.key() != "enabled" && iterator.key() != "heartbeat_interval_ms" &&
                     iterator.key() != "sampling_rate") {
