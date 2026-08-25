@@ -27,6 +27,7 @@
 #include "milvus/types/FieldData.h"
 #include "milvus/types/FieldPartialUpdateOp.h"
 #include "milvus/types/FileResourceInfo.h"
+#include "milvus/types/FunctionChain.h"
 #include "milvus/types/FunctionScore.h"
 #include "milvus/types/IDArray.h"
 #include "milvus/types/IndexState.h"
@@ -122,6 +123,9 @@ ConvertFunctionSchema(const FunctionPtr& function_schema, proto::schema::Functio
 
 void
 ConvertFunctionScore(const FunctionScorePtr& function_score, proto::schema::FunctionScore& proto_score);
+
+Status
+ConvertFunctionChain(const FunctionChain& function_chain, proto::schema::FunctionChain& proto_chain);
 
 void
 ConvertCollectionSchema(const CollectionSchema& schema, proto::schema::CollectionSchema& proto_schema);

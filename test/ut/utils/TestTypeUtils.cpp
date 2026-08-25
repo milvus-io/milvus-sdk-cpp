@@ -16,6 +16,7 @@
 
 #include <gmock/gmock.h>
 
+#include <cstdint>
 #include <vector>
 
 #include "milvus/types/CompactionState.h"
@@ -894,6 +895,105 @@ TEST_F(TypeUtilsTest, ConvertResourceGroupConfigRoundtrip) {
     milvus::ConvertResourceGroupConfig(proto_config, config2);
     EXPECT_EQ(config2.Requests(), 5);
     EXPECT_EQ(config2.Limits(), 10);
+}
+
+TEST_F(TypeUtilsTest, ConvertFunctionChain) {
+    milvus::FunctionChainExpr expr("round_decimal");
+    expr.AddColumnArg("$score").AddParam("decimal", 2);
+
+    milvus::FunctionChain chain(milvus::FunctionChainStage::L2_RERANK, "chain");
+    chain.Map("$score", expr).Sort("$score", true, "$id").Limit(10, 0);
+
+    milvus::proto::schema::FunctionChain proto_chain;
+    auto status = milvus::ConvertFunctionChain(chain, proto_chain);
+    EXPECT_TRUE(status.IsOk());
+    EXPECT_EQ(proto_chain.name(), "chain");
+    EXPECT_EQ(proto_chain.stage(), milvus::proto::schema::FunctionChainStageL2Rerank);
+    ASSERT_EQ(proto_chain.ops_size(), 3);
+
+    // map op: output field + expression with column arg and decimal param
+    const auto& map_op = proto_chain.ops(0);
+    EXPECT_EQ(map_op.op(), "map");
+    ASSERT_EQ(map_op.outputs_size(), 1);
+    EXPECT_EQ(map_op.outputs(0), "$score");
+    ASSERT_TRUE(map_op.has_expr());
+    EXPECT_EQ(map_op.expr().name(), "round_decimal");
+    ASSERT_EQ(map_op.expr().args_size(), 1);
+    EXPECT_TRUE(map_op.expr().args(0).has_column());
+    EXPECT_EQ(map_op.expr().args(0).column().name(), "$score");
+    ASSERT_EQ(map_op.expr().params_size(), 1);
+    EXPECT_EQ(map_op.expr().params().at("decimal").int64_value(), 2);
+
+    // sort op: column, desc and tie_break_col params
+    const auto& sort_op = proto_chain.ops(1);
+    EXPECT_EQ(sort_op.op(), "sort");
+    ASSERT_EQ(sort_op.params_size(), 3);
+    EXPECT_EQ(sort_op.params().at("column").string_value(), "$score");
+    EXPECT_TRUE(sort_op.params().at("desc").bool_value());
+    EXPECT_EQ(sort_op.params().at("tie_break_col").string_value(), "$id");
+
+    // limit op: limit and offset params
+    const auto& limit_op = proto_chain.ops(2);
+    EXPECT_EQ(limit_op.op(), "limit");
+    ASSERT_EQ(limit_op.params_size(), 2);
+    EXPECT_EQ(limit_op.params().at("limit").int64_value(), 10);
+    EXPECT_EQ(limit_op.params().at("offset").int64_value(), 0);
+}
+
+TEST_F(TypeUtilsTest, ConvertFunctionChainRejectsNullParam) {
+    milvus::FunctionChainExpr expr("round_decimal");
+    expr.AddColumnArg("$score").AddParam("decimal", nlohmann::json(nullptr));
+
+    milvus::FunctionChain chain(milvus::FunctionChainStage::L2_RERANK, "chain");
+    chain.Map("$score", expr);
+
+    milvus::proto::schema::FunctionChain proto_chain;
+    auto status = milvus::ConvertFunctionChain(chain, proto_chain);
+    EXPECT_FALSE(status.IsOk());
+    EXPECT_EQ(status.Code(), milvus::StatusCode::INVALID_ARGUMENT);
+}
+
+TEST_F(TypeUtilsTest, ConvertFunctionChainNestedParams) {
+    milvus::FunctionChainExpr expr("num_combine");
+    expr.AddParam("weight", 0.5);
+    expr.AddParam("tags", nlohmann::json::array({"a", "b"}));
+    expr.AddParam("meta", nlohmann::json::object({{"alpha", 1}, {"beta", 2.5}}));
+    expr.AddParam("flag", true);
+
+    milvus::FunctionChain chain(milvus::FunctionChainStage::L2_RERANK, "chain");
+    chain.Map("$score", expr);
+
+    milvus::proto::schema::FunctionChain proto_chain;
+    auto status = milvus::ConvertFunctionChain(chain, proto_chain);
+    EXPECT_TRUE(status.IsOk());
+
+    const auto& map_op = proto_chain.ops(0);
+    ASSERT_TRUE(map_op.has_expr());
+    const auto& params = map_op.expr().params();
+    EXPECT_DOUBLE_EQ(params.at("weight").double_value(), 0.5);
+    EXPECT_TRUE(params.at("flag").bool_value());
+
+    const auto& tags = params.at("tags").array_value();
+    ASSERT_EQ(tags.values_size(), 2);
+    EXPECT_EQ(tags.values(0).string_value(), "a");
+    EXPECT_EQ(tags.values(1).string_value(), "b");
+
+    const auto& meta = params.at("meta").object_value();
+    EXPECT_EQ(meta.fields().at("alpha").int64_value(), 1);
+    EXPECT_DOUBLE_EQ(meta.fields().at("beta").double_value(), 2.5);
+}
+
+TEST_F(TypeUtilsTest, ConvertFunctionChainRejectsLargeUnsignedParam) {
+    milvus::FunctionChainExpr expr("num_combine");
+    expr.AddParam("ts", nlohmann::json(static_cast<uint64_t>(1) << 63));
+
+    milvus::FunctionChain chain(milvus::FunctionChainStage::L2_RERANK, "chain");
+    chain.Map("$score", expr);
+
+    milvus::proto::schema::FunctionChain proto_chain;
+    auto status = milvus::ConvertFunctionChain(chain, proto_chain);
+    EXPECT_FALSE(status.IsOk());
+    EXPECT_EQ(status.Code(), milvus::StatusCode::INVALID_ARGUMENT);
 }
 
 TEST_F(TypeUtilsTest, EnumToString) {

@@ -29,6 +29,7 @@
 #include "milvus.grpc.pb.h"
 #include "milvus.pb.h"
 #include "milvus/ClientTelemetry.h"
+#include "milvus/Status.h"
 #include "milvus/thirdparty/nlohmann/json.hpp"
 #include "milvus/types/ConnectParam.h"
 #include "types/GlobalCluster.h"
@@ -386,7 +387,18 @@ TEST(GlobalClusterTelemetryTest, FailoverAndUseDatabasePreserveLogicalTelemetryS
     EXPECT_DOUBLE_EQ(manager->Config().sampling_rate, 0.25);
     EXPECT_EQ(manager->PendingCommandReplies().size(), reply_count);
 
-    ASSERT_TRUE(handler.UseDatabase("secondary_db").IsOk());
+    // The failover callback briefly keeps the lifecycle lock while it disconnects the old
+    // connection. UseDatabase() fails fast with CLIENT_BUSY inside that window, so retry until
+    // the failover commit finishes.
+    milvus::Status use_db_status;
+    for (int retry = 0; retry < 3000; ++retry) {
+        use_db_status = handler.UseDatabase("secondary_db");
+        if (use_db_status.Code() != milvus::StatusCode::CLIENT_BUSY) {
+            break;
+        }
+        std::this_thread::sleep_for(std::chrono::milliseconds(1));
+    }
+    ASSERT_TRUE(use_db_status.IsOk()) << use_db_status.Message();
     ASSERT_EQ(handler.GetTelemetry(), manager);
     manager->ProcessCommands({{"config-after-use-db", "get_config", "", 3, false, ""}});
     const auto replies = manager->PendingCommandReplies();

@@ -18,6 +18,7 @@
 
 #include <vector>
 
+#include "../../types/FunctionChain.h"
 #include "../../types/FunctionScore.h"
 #include "../../types/Highlighter.h"
 #include "../../types/IDArray.h"
@@ -282,6 +283,30 @@ class MILVUS_SDK_API SearchRequest : public DQLRequestBase<SearchRequest>,
     WithRerank(const FunctionScorePtr& ranker);
 
     /**
+     * @brief Get function chains.
+     */
+    const std::vector<FunctionChain>&
+    FunctionChains() const;
+
+    /**
+     * @brief Set function chains. Function chains and rerank cannot be used together.
+     */
+    void
+    SetFunctionChains(std::vector<FunctionChain>&& function_chains);
+
+    /**
+     * @brief Set function chains. Function chains and rerank cannot be used together.
+     */
+    SearchRequest&
+    WithFunctionChains(std::vector<FunctionChain>&& function_chains);
+
+    /**
+     * @brief Add a function chain. Function chains and rerank cannot be used together.
+     */
+    SearchRequest&
+    AddFunctionChain(const FunctionChain& function_chain);
+
+    /**
      * @brief Set timezone, takes effect for Timestamptz field.
      * Read the doc for more info:
      * https://milvus.io/docs/single-vector-search.md#Temporarily-set-a-timezone-for-a-search
@@ -358,6 +383,7 @@ class MILVUS_SDK_API SearchRequest : public DQLRequestBase<SearchRequest>,
     HighlighterPtr highlighter_;
     SearchAggregationPtr search_aggregation_;
     std::vector<OrderByField> order_by_fields_;
+    std::vector<FunctionChain> function_chains_;
 };
 
 }  // namespace milvus

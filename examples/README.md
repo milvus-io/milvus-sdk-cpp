@@ -47,6 +47,7 @@ Recommended examples for MilvusClientV2:
 - `./cmake_build/examples/v2/sdk_dynamic_field_v2`: example to show the usage of dynamic fields.
 - `./cmake_build/examples/v2/sdk_external_table_v2`: example to show the usage of external collection refresh interfaces.
 - `./cmake_build/examples/v2/sdk_filter_template_v2`: example to show the usage of filter template.
+- `./cmake_build/examples/v2/sdk_function_chain_v2`: example to show the usage of function chain for search.
 - `./cmake_build/examples/v2/sdk_full_text_match_v2`: example to show the usage of BM25 function.
 - `./cmake_build/examples/v2/sdk_general_v2`: a general example to show the basic usage.
 - `./cmake_build/examples/v2/sdk_highlighter_v2`: example to show the usage of lexical highlighter with BM25 text search.

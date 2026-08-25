@@ -33,9 +33,8 @@ namespace {
 
 using Json = nlohmann::json;
 
-const std::string kTelemetryHost = std::getenv("MILVUS_TELEMETRY_HOST") == nullptr
-                                       ? "127.0.0.1"
-                                       : std::getenv("MILVUS_TELEMETRY_HOST");
+const std::string kTelemetryHost =
+    std::getenv("MILVUS_TELEMETRY_HOST") == nullptr ? "127.0.0.1" : std::getenv("MILVUS_TELEMETRY_HOST");
 const uint16_t kTelemetryPort = static_cast<uint16_t>(
     std::getenv("MILVUS_TELEMETRY_PORT") == nullptr ? 9091 : std::stoi(std::getenv("MILVUS_TELEMETRY_PORT")));
 const std::string kTelemetryBase = "/api/v1/_telemetry";
@@ -111,7 +110,8 @@ HttpRequest(const std::string& method, const std::string& path, const std::strin
             << "Accept: application/json\r\n"
             << "Connection: close\r\n";
     if (!body.empty()) {
-        request << "Content-Type: application/json\r\n" << "Content-Length: " << body.size() << "\r\n";
+        request << "Content-Type: application/json\r\n"
+                << "Content-Length: " << body.size() << "\r\n";
     }
     request << "\r\n" << body;
     auto wire = request.str();
@@ -155,8 +155,8 @@ HttpRequest(const std::string& method, const std::string& path, const std::strin
 
 Json
 ClientState(const std::string& client_id) {
-    auto response = Json::parse(HttpRequest(
-        "GET", kTelemetryBase + "/clients?client_id=" + client_id + "&include_metrics=true"));
+    auto response =
+        Json::parse(HttpRequest("GET", kTelemetryBase + "/clients?client_id=" + client_id + "&include_metrics=true"));
     auto clients = response.value("clients", Json::array());
     return clients.empty() ? Json() : clients.at(0);
 }
@@ -230,8 +230,8 @@ HasMetric(const Json& state, const std::string& operation, const std::string& co
 int
 Run() {
     auto milvus_host = std::getenv("MILVUS_HOST") == nullptr ? "127.0.0.1" : std::getenv("MILVUS_HOST");
-    auto milvus_port = static_cast<uint16_t>(
-        std::getenv("MILVUS_PORT") == nullptr ? 19530 : std::stoi(std::getenv("MILVUS_PORT")));
+    auto milvus_port =
+        static_cast<uint16_t>(std::getenv("MILVUS_PORT") == nullptr ? 19530 : std::stoi(std::getenv("MILVUS_PORT")));
 
     {
         auto legacy_client_id = "e2e-cpp-legacy-" + milvus::ClientRequestContext::NewRequestId();
@@ -243,8 +243,7 @@ Run() {
         auto legacy_client = milvus::MilvusClient::Create();
         auto status = legacy_client->Connect(legacy_param);
         Require(status.IsOk(), "Legacy telemetry connect failed: " + status.Message());
-        Require(legacy_client->GetTelemetry()->ClientId() == legacy_client_id,
-                "Unexpected legacy telemetry client ID");
+        Require(legacy_client->GetTelemetry()->ClientId() == legacy_client_id, "Unexpected legacy telemetry client ID");
         WaitFor("legacy client registration", legacy_client_id,
                 [](const Json& state) { return state.value("status", "") == "active"; });
         status = legacy_client->Disconnect();
@@ -295,9 +294,7 @@ Run() {
                 [](const Json& state) { return state.value("status", "") == "active"; });
 
         milvus::RunAnalyzerRequest analyzer_request;
-        analyzer_request.AddText("hello milvus telemetry")
-            .WithAnalyzerParams({{"type", "standard"}})
-            .WithDetail(true);
+        analyzer_request.AddText("hello milvus telemetry").WithAnalyzerParams({{"type", "standard"}}).WithDetail(true);
         milvus::RunAnalyzerResponse analyzer_response;
         status = client->RunAnalyzer(analyzer_request, analyzer_response);
         Require(status.IsOk(), "RunAnalyzer failed: " + status.Message());
@@ -322,17 +319,16 @@ Run() {
             status = client->Query(query_request, query_response);
         }
         Require(!status.IsOk(), "Query against missing collection unexpectedly succeeded");
-        WaitFor("failed Query collection metric", client_id, [](const Json& state) {
-            return HasMetric(state, "Query", "error_count", 1, "telemetry_e2e_missing");
-        });
+        WaitFor("failed Query collection metric", client_id,
+                [](const Json& state) { return HasMetric(state, "Query", "error_count", 1, "telemetry_e2e_missing"); });
 
         auto errors_reply = WaitForReply(client_id, PushCommand(client_id, "show_errors", {{"max_count", 10}}));
         Require(errors_reply.value("success", false), "show_errors command failed");
         auto errors = Json::parse(errors_reply.at("payload").get<std::string>());
         bool trace_found = false;
         for (const auto& error : errors) {
-            trace_found = trace_found || (error.value("operation", "") == "Query" &&
-                                          error.value("request_id", "") == request_id);
+            trace_found =
+                trace_found || (error.value("operation", "") == "Query" && error.value("request_id", "") == request_id);
         }
         Require(trace_found, "show_errors did not include the request ID");
         std::cout << "PASS request-id in show_errors" << std::endl;
@@ -349,8 +345,7 @@ Run() {
         Require(get_config_reply.value("success", false), "get_config command failed");
         auto user_config = Json::parse(get_config_reply.at("payload").get<std::string>()).at("user_config");
         Require(user_config.value("telemetry_sampling_rate", 0.0) == 0.75, "Sampling rate was not applied");
-        Require(user_config.value("telemetry_heartbeat_interval_ms", 0) == 600,
-                "Heartbeat interval was not applied");
+        Require(user_config.value("telemetry_heartbeat_interval_ms", 0) == 600, "Heartbeat interval was not applied");
         Require(user_config.value("all_collections_enabled", false), "Collection metrics wildcard was not applied");
         std::cout << "CPP_E2E_OK " << client_id << std::endl;
     } catch (...) {

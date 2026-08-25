@@ -16,6 +16,9 @@
 
 #include "TypeUtils.h"
 
+#include <cstdint>
+#include <limits>
+
 #include "./Constants.h"
 #include "milvus/types/CompactionState.h"
 #include "milvus/types/Constants.h"
@@ -750,6 +753,99 @@ ConvertFunctionScore(const FunctionScorePtr& function_score, proto::schema::Func
         kv->set_key(param.first);
         kv->set_value(param.second.dump());
     }
+}
+
+namespace {
+
+Status
+ConvertFunctionParamValue(const nlohmann::json& value, proto::schema::FunctionParamValue& proto_value) {
+    if (value.is_null()) {
+        return {StatusCode::INVALID_ARGUMENT, "Function chain parameters do not support null"};
+    }
+    if (value.is_boolean()) {
+        proto_value.set_bool_value(value.get<bool>());
+    } else if (value.is_number_unsigned()) {
+        auto unsigned_value = value.get<uint64_t>();
+        if (unsigned_value > static_cast<uint64_t>(std::numeric_limits<int64_t>::max())) {
+            return {StatusCode::INVALID_ARGUMENT, "Function chain unsigned parameter exceeds int64 range"};
+        }
+        proto_value.set_int64_value(static_cast<int64_t>(unsigned_value));
+    } else if (value.is_number_integer()) {
+        proto_value.set_int64_value(value.get<int64_t>());
+    } else if (value.is_number_float()) {
+        proto_value.set_double_value(value.get<double>());
+    } else if (value.is_string()) {
+        proto_value.set_string_value(value.get<std::string>());
+    } else if (value.is_array()) {
+        auto array_value = proto_value.mutable_array_value();
+        for (const auto& item : value) {
+            auto status = ConvertFunctionParamValue(item, *array_value->add_values());
+            if (!status.IsOk()) {
+                return status;
+            }
+        }
+    } else if (value.is_object()) {
+        auto object_value = proto_value.mutable_object_value();
+        for (auto it = value.begin(); it != value.end(); ++it) {
+            auto status = ConvertFunctionParamValue(it.value(), (*object_value->mutable_fields())[it.key()]);
+            if (!status.IsOk()) {
+                return status;
+            }
+        }
+    } else {
+        return {StatusCode::INVALID_ARGUMENT, "Unsupported function chain parameter type"};
+    }
+    return Status::OK();
+}
+
+}  // namespace
+
+Status
+ConvertFunctionChain(const FunctionChain& function_chain, proto::schema::FunctionChain& proto_chain) {
+    proto_chain.set_name(function_chain.Name());
+    proto_chain.set_stage(static_cast<proto::schema::FunctionChainStage>(static_cast<int>(function_chain.Stage())));
+
+    for (const auto& op : function_chain.Ops()) {
+        auto proto_op = proto_chain.add_ops();
+        proto_op->set_op(op.Op());
+
+        for (const auto& input : op.Inputs()) {
+            proto_op->add_inputs(input);
+        }
+        for (const auto& output : op.Outputs()) {
+            proto_op->add_outputs(output);
+        }
+        for (const auto& param : op.Params()) {
+            auto status = ConvertFunctionParamValue(param.second, (*proto_op->mutable_params())[param.first]);
+            if (!status.IsOk()) {
+                return status;
+            }
+        }
+
+        if (op.HasExpr()) {
+            const auto& expr = op.Expr();
+            auto proto_expr = proto_op->mutable_expr();
+            proto_expr->set_name(expr.Name());
+            for (const auto& arg : expr.Args()) {
+                auto proto_arg = proto_expr->add_args();
+                if (arg.IsColumn()) {
+                    proto_arg->mutable_column()->set_name(arg.ColumnName());
+                } else {
+                    auto status = ConvertFunctionParamValue(arg.Literal(), *proto_arg->mutable_literal());
+                    if (!status.IsOk()) {
+                        return status;
+                    }
+                }
+            }
+            for (const auto& param : expr.Params()) {
+                auto status = ConvertFunctionParamValue(param.second, (*proto_expr->mutable_params())[param.first]);
+                if (!status.IsOk()) {
+                    return status;
+                }
+            }
+        }
+    }
+    return Status::OK();
 }
 
 void

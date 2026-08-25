@@ -153,14 +153,22 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.8'
+      - name: Free runner disk space
+        run: |
+          sudo rm -rf /usr/local/lib/android /opt/ghc /usr/share/dotnet /opt/hostedtoolcache/CodeQL || true
+          df -h /
       - name: Prepare
         timeout-minutes: 30
         run: |
           printf 'Acquire::http::Timeout "15";\nAcquire::https::Timeout "15";\nAcquire::Retries "1";\n' | sudo tee /etc/apt/apt.conf.d/99network-timeouts >/dev/null
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends lld
           timeout -k 10 1800 sh scripts/install_deps.sh
       - name: Testing With Coverage
         run: |
-          JOBS=4 CMAKE_BUILD_EXAMPLES=OFF make coverage
+          # Static coverage links (testing-ut/it/st) exhaust BFD ld memory on hosted
+          # runners; lld keeps the peak RSS low even with several links in flight.
+          LDFLAGS=-fuse-ld=lld JOBS=4 CMAKE_BUILD_EXAMPLES=OFF make coverage
       - name: Upload coverage
         uses: codecov/codecov-action@v5
         with:

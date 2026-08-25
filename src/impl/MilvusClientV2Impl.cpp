@@ -2060,6 +2060,12 @@ MilvusClientV2Impl::search(const SearchRequest& request, SearchResponse& respons
             auto function_score = rpc_request.mutable_function_score();
             ConvertFunctionScore(request.Rerank(), *function_score);
         }
+        for (const auto& function_chain : request.FunctionChains()) {
+            auto status = ConvertFunctionChain(function_chain, *rpc_request.add_function_chains());
+            if (!status.IsOk()) {
+                return status;
+            }
+        }
         if (request.GetSearchAggregation() != nullptr) {
             ConvertSearchAggregation(*request.GetSearchAggregation(), *rpc_request.mutable_search_aggregation());
         }

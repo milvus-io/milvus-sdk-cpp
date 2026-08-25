@@ -295,6 +295,32 @@ TEST_F(SearchRequestTest, IDsAndVectorsAreMutuallyExclusive) {
     EXPECT_EQ(status.Message(), "Only one of IDs or target vectors can be provided");
 }
 
+TEST_F(SearchRequestTest, FunctionChainRejectsNonPositiveLimit) {
+    milvus::FunctionChain chain(milvus::FunctionChainStage::L2_RERANK, "chain");
+    chain.Limit(0, 0);
+
+    milvus::SearchRequest req;
+    req.WithIDs({1, 2}).WithFunctionChains({chain});
+
+    auto status = req.Validate();
+    EXPECT_FALSE(status.IsOk());
+    EXPECT_EQ(status.Code(), milvus::StatusCode::INVALID_ARGUMENT);
+    EXPECT_EQ(status.Message(), "Function chain limit must be greater than 0");
+}
+
+TEST_F(SearchRequestTest, FunctionChainRejectsNegativeOffset) {
+    milvus::FunctionChain chain(milvus::FunctionChainStage::L2_RERANK, "chain");
+    chain.Limit(10, -1);
+
+    milvus::SearchRequest req;
+    req.WithIDs({1, 2}).WithFunctionChains({chain});
+
+    auto status = req.Validate();
+    EXPECT_FALSE(status.IsOk());
+    EXPECT_EQ(status.Code(), milvus::StatusCode::INVALID_ARGUMENT);
+    EXPECT_EQ(status.Message(), "Function chain offset must be greater than or equal to 0");
+}
+
 TEST_F(SearchRequestTest, WithHighlighter) {
     milvus::SearchRequest req;
     auto highlighter = std::make_shared<milvus::SemanticHighlighter>();
