@@ -68,12 +68,18 @@ constexpr size_t kSnapshotLimit = 4096;
 constexpr uint64_t kSamplingScale = 1000000000ULL;
 constexpr size_t kMaxReplyBytes = 1024 * 1024;
 constexpr uint64_t kMaxUnsupportedBackoffMs = 30 * 60 * 1000;
+constexpr uint64_t kMaxHeartbeatIntervalMs = static_cast<uint64_t>(std::numeric_limits<int64_t>::max());
+// condition_variable implementations commonly form an absolute deadline internally.
+// Keep each addition comfortably inside every supported platform clock and represent
+// longer intervals as stop/rebind-aware chunks.
+constexpr uint64_t kMaxWaitChunkMs = 24ULL * 60 * 60 * 1000;
 
 TelemetryConfig
 NormalizedTelemetryConfig(TelemetryConfig config) {
     if (config.heartbeat_interval_ms == 0) {
         config.heartbeat_interval_ms = 10000;
     }
+    config.heartbeat_interval_ms = std::min(config.heartbeat_interval_ms, kMaxHeartbeatIntervalMs);
     config.sampling_rate = std::max(0.0, std::min(1.0, config.sampling_rate));
     if (config.error_max_count == 0) {
         config.error_max_count = 100;
@@ -92,6 +98,27 @@ int64_t
 NowMillis() {
     return std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch())
         .count();
+}
+
+int64_t
+SaturatingWindowStart(int64_t end_time, uint64_t interval_ms) {
+    const auto signed_interval = static_cast<int64_t>(std::min(interval_ms, kMaxHeartbeatIntervalMs));
+    if (end_time < std::numeric_limits<int64_t>::min() + signed_interval) {
+        return std::numeric_limits<int64_t>::min();
+    }
+    return end_time - signed_interval;
+}
+
+size_t
+Utf8SafePrefixLength(const std::string& value, size_t requested) {
+    auto length = std::min(requested, value.size());
+    if (length == value.size()) {
+        return length;
+    }
+    while (length > 0 && (static_cast<unsigned char>(value[length]) & 0xC0) == 0x80) {
+        --length;
+    }
+    return length;
 }
 
 std::string
@@ -473,11 +500,17 @@ class ClientTelemetryManager::Impl : public std::enable_shared_from_this<ClientT
         std::lock_guard<std::mutex> lock(mutex);
         stub = std::move(new_stub);
         ++channel_generation;
+        // A newly attached transport must be probed immediately. Carrying an
+        // UNIMPLEMENTED backoff from the retired endpoint can otherwise keep a
+        // supporting endpoint silent for up to thirty minutes.
+        unsupported_streak = 0;
+        ++wait_revision;
         username = std::move(new_username);
         database = std::move(new_database);
         uri = std::move(new_uri);
         sdk_version = std::move(new_sdk_version);
         connection_scope = std::move(new_connection_scope);
+        condition.notify_all();
     }
 
     void
@@ -586,6 +619,11 @@ class ClientTelemetryManager::Impl : public std::enable_shared_from_this<ClientT
     void
     HeartbeatLoop() {
         while (true) {
+            uint64_t heartbeat_revision;
+            {
+                std::lock_guard<std::mutex> lock(mutex);
+                heartbeat_revision = wait_revision;
+            }
             try {
                 CreateSnapshot();
                 SendHeartbeat();
@@ -604,6 +642,12 @@ class ClientTelemetryManager::Impl : public std::enable_shared_from_this<ClientT
             if (stopped) {
                 break;
             }
+            if (heartbeat_revision != wait_revision) {
+                // AttachChannel may have replaced the transport while the RPC
+                // was in flight, before there was a waiter to notify. Probe the
+                // replacement immediately instead of sleeping the old interval.
+                continue;
+            }
             uint64_t delay = config.heartbeat_interval_ms;
             if (unsupported_streak > 0) {
                 uint64_t backed_off = std::min(delay, kMaxUnsupportedBackoffMs);
@@ -612,7 +656,16 @@ class ClientTelemetryManager::Impl : public std::enable_shared_from_this<ClientT
                 }
                 delay = std::max(delay, backed_off);
             }
-            condition.wait_for(lock, std::chrono::milliseconds(delay), [this]() { return stopped; });
+            const auto observed_revision = wait_revision;
+            while (!stopped && observed_revision == wait_revision && delay > 0) {
+                const auto chunk = std::min(delay, kMaxWaitChunkMs);
+                if (condition.wait_for(
+                        lock, std::chrono::milliseconds(static_cast<int64_t>(chunk)),
+                        [this, observed_revision]() { return stopped || wait_revision != observed_revision; })) {
+                    break;
+                }
+                delay -= chunk;
+            }
             if (stopped) {
                 break;
             }
@@ -639,7 +692,7 @@ class ClientTelemetryManager::Impl : public std::enable_shared_from_this<ClientT
         auto& snapshot = stored.snapshot;
         snapshot.end_time = NowMillis();
         snapshot.timestamp = last_snapshot_end == 0 || last_snapshot_end > snapshot.end_time
-                                 ? snapshot.end_time - config.heartbeat_interval_ms
+                                 ? SaturatingWindowStart(snapshot.end_time, config.heartbeat_interval_ms)
                                  : last_snapshot_end;
         last_snapshot_end = snapshot.end_time;
         for (auto& entry : collectors) {
@@ -786,7 +839,11 @@ class ClientTelemetryManager::Impl : public std::enable_shared_from_this<ClientT
             handler = iterator->second;
         }
         try {
-            return handler(command);
+            auto reply = handler(command);
+            // The incoming command ID is the protocol correlation key. Extension
+            // handlers control the result, but cannot redirect or drop its ACK.
+            reply.command_id = command.command_id;
+            return reply;
         } catch (const std::exception& exception) {
             return FailedReply(command.command_id, exception.what());
         } catch (...) {
@@ -815,6 +872,9 @@ class ClientTelemetryManager::Impl : public std::enable_shared_from_this<ClientT
             bool skip = false;
             {
                 std::lock_guard<std::mutex> lock(mutex);
+                if (expected_generation != 0 && expected_generation != channel_generation) {
+                    return;
+                }
                 skip = command.create_time < previous_timestamp || executed_commands.count(command.command_id) > 0;
                 if (skip) {
                     pending_replies.push_back(SuccessReply(command.command_id));
@@ -824,9 +884,18 @@ class ClientTelemetryManager::Impl : public std::enable_shared_from_this<ClientT
                 continue;
             }
             auto reply = HandleCommand(command);
-            std::lock_guard<std::mutex> lock(mutex);
-            executed_commands[command.command_id] = command.create_time;
-            pending_replies.push_back(std::move(reply));
+            {
+                std::lock_guard<std::mutex> lock(mutex);
+                executed_commands[command.command_id] = command.create_time;
+                pending_replies.push_back(std::move(reply));
+                if (expected_generation != 0 && expected_generation != channel_generation) {
+                    // Preserve the completed command's ACK/executed marker so a
+                    // redelivery cannot repeat its side effects, but leave the
+                    // cursor/hash unchanged and do not run the retired endpoint's
+                    // remaining commands.
+                    return;
+                }
+            }
         }
         std::lock_guard<std::mutex> lock(mutex);
         for (auto iterator = executed_commands.begin(); iterator != executed_commands.end();) {
@@ -997,12 +1066,52 @@ class ClientTelemetryManager::Impl : public std::enable_shared_from_this<ClientT
                 result.erase(result.begin() + result.size() / 2, result.end());
             }
             auto encoded = result.dump();
-            while (encoded.size() > kMaxReplyBytes && result.size() == 1 &&
-                   result.at(0).value("error_msg", std::string{}).size() > 1) {
-                auto message = result.at(0).at("error_msg").get<std::string>();
-                result.at(0)["error_msg"] =
-                    message.substr(0, std::max<size_t>(1, message.size() / 2)) + "...(truncated)";
+            constexpr const char* kTruncated = "...(truncated)";
+            constexpr std::array<const char*, 4> kTruncatableFields = {"error_msg", "collection", "operation",
+                                                                       "request_id"};
+            while (encoded.size() > kMaxReplyBytes && result.size() == 1) {
+                auto& detail = result.at(0);
+                const char* longest_field = nullptr;
+                size_t longest_size = 0;
+                for (const auto* field : kTruncatableFields) {
+                    if (!detail.contains(field) || !detail.at(field).is_string()) {
+                        continue;
+                    }
+                    const auto size = detail.at(field).get_ref<const std::string&>().size();
+                    if (size > longest_size) {
+                        longest_field = field;
+                        longest_size = size;
+                    }
+                }
+                if (longest_field == nullptr || longest_size == 0) {
+                    break;
+                }
+
+                const auto previous_size = encoded.size();
+                const auto value = detail.at(longest_field).get<std::string>();
+                const auto suffix_size = std::strlen(kTruncated);
+                if (value.size() > suffix_size + 1) {
+                    auto keep = value.size() / 2;
+                    if (keep > suffix_size) {
+                        keep -= suffix_size;
+                    } else {
+                        keep = 0;
+                    }
+                    keep = Utf8SafePrefixLength(value, keep);
+                    detail[longest_field] = value.substr(0, keep) + kTruncated;
+                } else {
+                    detail[longest_field] = "";
+                }
                 encoded = result.dump();
+                if (encoded.size() >= previous_size) {
+                    // Guarantee monotonic progress even for strings whose JSON
+                    // escaping defeats the best-effort prefix truncation.
+                    detail[longest_field] = "";
+                    encoded = result.dump();
+                    if (encoded.size() >= previous_size) {
+                        break;
+                    }
+                }
             }
             if (encoded.size() > kMaxReplyBytes) {
                 throw std::invalid_argument("show_errors response exceeds the 1MB payload limit");
@@ -1183,6 +1292,7 @@ class ClientTelemetryManager::Impl : public std::enable_shared_from_this<ClientT
     bool join_in_progress{false};
     bool external_stop_requested{false};
     int unsupported_streak{0};
+    uint64_t wait_revision{0};
     // Carries the fractional sampling rate between operations, in kSamplingScale units:
     // each operation adds the rate and the one that pushes it past a whole unit is the one
     // sampled.

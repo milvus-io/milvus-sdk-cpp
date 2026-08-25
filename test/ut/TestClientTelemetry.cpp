@@ -18,6 +18,7 @@
 #include <condition_variable>
 #include <future>
 #include <iomanip>
+#include <limits>
 #include <milvus/thirdparty/nlohmann/json.hpp>
 #include <sstream>
 #include <thread>
@@ -60,6 +61,108 @@ class ReconnectTelemetryService final : public milvus::proto::milvus::ClientTele
     }
 
     std::atomic<int> heartbeats{0};
+};
+
+class GenerationSwitchTelemetryService final : public milvus::proto::milvus::ClientTelemetryService::Service {
+ public:
+    grpc::Status
+    ClientHeartbeat(grpc::ServerContext*, const milvus::proto::milvus::ClientHeartbeatRequest*,
+                    milvus::proto::milvus::ClientHeartbeatResponse* response) override {
+        const auto count = ++heartbeats;
+        if (count > 1 && !allow_redelivery_.load()) {
+            return grpc::Status::OK;
+        }
+        auto* reconnect = response->add_commands();
+        reconnect->set_command_id("switch-generation");
+        reconnect->set_command_type("switch-generation");
+        reconnect->set_create_time(1);
+        auto* followup = response->add_commands();
+        followup->set_command_id("followup");
+        followup->set_command_type("followup");
+        followup->set_create_time(2);
+        return grpc::Status::OK;
+    }
+
+    void
+    AllowRedelivery() {
+        allow_redelivery_ = true;
+    }
+
+    std::atomic<int> heartbeats{0};
+
+ private:
+    std::atomic<bool> allow_redelivery_{false};
+};
+
+class UnsupportedTelemetryService final : public milvus::proto::milvus::ClientTelemetryService::Service {
+ public:
+    grpc::Status
+    ClientHeartbeat(grpc::ServerContext*, const milvus::proto::milvus::ClientHeartbeatRequest*,
+                    milvus::proto::milvus::ClientHeartbeatResponse*) override {
+        ++heartbeats;
+        return {grpc::StatusCode::UNIMPLEMENTED, "telemetry is not supported"};
+    }
+
+    std::atomic<int> heartbeats{0};
+};
+
+class CountingTelemetryService final : public milvus::proto::milvus::ClientTelemetryService::Service {
+ public:
+    explicit CountingTelemetryService(bool push_max_interval = false) : push_max_interval_(push_max_interval) {
+    }
+
+    grpc::Status
+    ClientHeartbeat(grpc::ServerContext*, const milvus::proto::milvus::ClientHeartbeatRequest*,
+                    milvus::proto::milvus::ClientHeartbeatResponse* response) override {
+        const auto count = ++heartbeats;
+        if (push_max_interval_ && count == 1) {
+            auto* command = response->add_commands();
+            command->set_command_id("max-interval");
+            command->set_command_type("push_config");
+            command->set_payload(R"({"heartbeat_interval_ms":9223372036854775807})");
+            command->set_create_time(1);
+        }
+        return grpc::Status::OK;
+    }
+
+    std::atomic<int> heartbeats{0};
+
+ private:
+    bool push_max_interval_;
+};
+
+class BlockingTelemetryService final : public milvus::proto::milvus::ClientTelemetryService::Service {
+ public:
+    grpc::Status
+    ClientHeartbeat(grpc::ServerContext*, const milvus::proto::milvus::ClientHeartbeatRequest*,
+                    milvus::proto::milvus::ClientHeartbeatResponse*) override {
+        std::unique_lock<std::mutex> lock(mutex_);
+        heartbeat_entered_ = true;
+        condition_.notify_all();
+        condition_.wait(lock, [this]() { return released_; });
+        return grpc::Status::OK;
+    }
+
+    bool
+    WaitForHeartbeat() {
+        std::unique_lock<std::mutex> lock(mutex_);
+        return condition_.wait_for(lock, std::chrono::seconds(2), [this]() { return heartbeat_entered_; });
+    }
+
+    void
+    Release() {
+        {
+            std::lock_guard<std::mutex> lock(mutex_);
+            released_ = true;
+        }
+        condition_.notify_all();
+    }
+
+ private:
+    std::mutex mutex_;
+    std::condition_variable condition_;
+    bool heartbeat_entered_{false};
+    bool released_{false};
 };
 
 class ControlPlaneTelemetryService final : public milvus::proto::milvus::ClientTelemetryService::Service {
@@ -290,6 +393,38 @@ TEST(ClientTelemetryTest, RuntimeClientIdDoesNotBecomeStableConfiguration) {
     EXPECT_TRUE(manager.Config().client_id.empty());
 }
 
+TEST(ClientTelemetryTest, MaximumHeartbeatIntervalsAreSafeAndDoNotSpin) {
+    CountingTelemetryService service(true);
+    grpc::ServerBuilder builder;
+    int port = 0;
+    builder.AddListeningPort("127.0.0.1:0", grpc::InsecureServerCredentials(), &port);
+    builder.RegisterService(&service);
+    auto server = builder.BuildAndStart();
+    ASSERT_NE(server, nullptr);
+
+    milvus::TelemetryConfig config;
+    config.heartbeat_interval_ms = std::numeric_limits<uint64_t>::max();
+    milvus::ClientTelemetryManager manager(config);
+    manager.AttachChannel(grpc::CreateChannel("127.0.0.1:" + std::to_string(port), grpc::InsecureChannelCredentials()),
+                          "", "", "", "", "");
+
+    manager.Start();
+    for (int retry = 0; retry < 2000 && service.heartbeats.load() == 0; ++retry) {
+        std::this_thread::sleep_for(std::chrono::milliseconds(1));
+    }
+    ASSERT_EQ(service.heartbeats.load(), 1);
+    std::this_thread::sleep_for(std::chrono::milliseconds(20));
+    manager.Stop();
+    server->Shutdown();
+
+    EXPECT_EQ(manager.Config().heartbeat_interval_ms, static_cast<uint64_t>(std::numeric_limits<int64_t>::max()));
+    EXPECT_EQ(service.heartbeats.load(), 1);
+    const auto replies = manager.PendingCommandReplies();
+    ASSERT_EQ(replies.size(), 1U);
+    EXPECT_EQ(replies.front().command_id, "max-interval");
+    EXPECT_TRUE(replies.front().success);
+}
+
 TEST(ClientTelemetryTest, AppliesCommandsAndDeduplicatesIds) {
     milvus::TelemetryConfig config;
     config.enabled = false;
@@ -312,6 +447,30 @@ TEST(ClientTelemetryTest, AppliesCommandsAndDeduplicatesIds) {
     EXPECT_EQ(manager.LastCommandTimestamp(), 2);
     EXPECT_FALSE(manager.ConfigHash().empty());
     EXPECT_EQ(calls, 1);
+}
+
+TEST(ClientTelemetryTest, CustomHandlerRepliesAlwaysUseOriginalCommandId) {
+    milvus::TelemetryConfig config;
+    config.enabled = false;
+    milvus::ClientTelemetryManager manager(config);
+    manager.RegisterCommandHandler("wrong", [](const milvus::TelemetryCommand&) {
+        return milvus::TelemetryCommandReply{"different", true, "", ""};
+    });
+    manager.RegisterCommandHandler("empty", [](const milvus::TelemetryCommand&) {
+        return milvus::TelemetryCommandReply{"", true, "", ""};
+    });
+
+    manager.ProcessCommands({
+        {"wrong-id", "wrong", "", 1, false, ""},
+        {"empty-id", "empty", "", 2, false, ""},
+    });
+
+    const auto replies = manager.PendingCommandReplies();
+    ASSERT_EQ(replies.size(), 2U);
+    EXPECT_EQ(replies[0].command_id, "wrong-id");
+    EXPECT_TRUE(replies[0].success);
+    EXPECT_EQ(replies[1].command_id, "empty-id");
+    EXPECT_TRUE(replies[1].success);
 }
 
 TEST(ClientTelemetryTest, RetainsMoreThanOneHundredTwentySnapshotsWithinOneHour) {
@@ -472,6 +631,142 @@ TEST(ClientTelemetryTest, ReusesHeartbeatWorkerWhenReconnectRunsInCommandHandler
 
     EXPECT_GE(service.heartbeats.load(), 2);
     EXPECT_EQ(reconnects.load(), 1);
+}
+
+TEST(ClientTelemetryTest, GenerationSwitchStopsOldBatchAndResumesOnRedelivery) {
+    GenerationSwitchTelemetryService service;
+    grpc::ServerBuilder builder;
+    int port = 0;
+    builder.AddListeningPort("127.0.0.1:0", grpc::InsecureServerCredentials(), &port);
+    builder.RegisterService(&service);
+    auto server = builder.BuildAndStart();
+    ASSERT_NE(server, nullptr);
+
+    milvus::TelemetryConfig config;
+    config.heartbeat_interval_ms = 60000;
+    milvus::ClientTelemetryManager manager(config);
+    auto channel = grpc::CreateChannel("127.0.0.1:" + std::to_string(port), grpc::InsecureChannelCredentials());
+    manager.AttachChannel(channel, "", "", "", "", "");
+    std::atomic<int> switches{0};
+    std::atomic<int> followups{0};
+    manager.RegisterCommandHandler("switch-generation", [&](const milvus::TelemetryCommand&) {
+        ++switches;
+        manager.AttachChannel(channel, "", "", "", "", "");
+        return milvus::TelemetryCommandReply{"wrong-id", true, "", ""};
+    });
+    manager.RegisterCommandHandler("followup", [&](const milvus::TelemetryCommand& command) {
+        ++followups;
+        return milvus::TelemetryCommandReply{command.command_id, true, "", ""};
+    });
+
+    manager.Start();
+    for (int retry = 0; retry < 2000 && service.heartbeats.load() < 2; ++retry) {
+        std::this_thread::sleep_for(std::chrono::milliseconds(1));
+    }
+    manager.Stop();
+    ASSERT_GE(service.heartbeats.load(), 2);
+    ASSERT_EQ(switches.load(), 1);
+    EXPECT_EQ(followups.load(), 0);
+    EXPECT_EQ(manager.LastCommandTimestamp(), 0);
+
+    service.AllowRedelivery();
+    manager.Start();
+    for (int retry = 0; retry < 2000 && followups.load() == 0; ++retry) {
+        std::this_thread::sleep_for(std::chrono::milliseconds(1));
+    }
+    manager.Stop();
+    EXPECT_EQ(switches.load(), 1);
+    EXPECT_EQ(followups.load(), 1);
+    EXPECT_EQ(manager.LastCommandTimestamp(), 2);
+    server->Shutdown();
+}
+
+TEST(ClientTelemetryTest, AttachChannelInterruptsUnsupportedBackoff) {
+    UnsupportedTelemetryService unsupported_service;
+    CountingTelemetryService supported_service;
+    grpc::ServerBuilder unsupported_builder;
+    grpc::ServerBuilder supported_builder;
+    int unsupported_port = 0;
+    int supported_port = 0;
+    unsupported_builder.AddListeningPort("127.0.0.1:0", grpc::InsecureServerCredentials(), &unsupported_port);
+    unsupported_builder.RegisterService(&unsupported_service);
+    supported_builder.AddListeningPort("127.0.0.1:0", grpc::InsecureServerCredentials(), &supported_port);
+    supported_builder.RegisterService(&supported_service);
+    auto unsupported_server = unsupported_builder.BuildAndStart();
+    auto supported_server = supported_builder.BuildAndStart();
+    ASSERT_NE(unsupported_server, nullptr);
+    ASSERT_NE(supported_server, nullptr);
+
+    milvus::TelemetryConfig config;
+    config.heartbeat_interval_ms = 60000;
+    milvus::ClientTelemetryManager manager(config);
+    manager.AttachChannel(
+        grpc::CreateChannel("127.0.0.1:" + std::to_string(unsupported_port), grpc::InsecureChannelCredentials()), "",
+        "", "", "", "");
+    manager.Start();
+    for (int retry = 0; retry < 2000 && manager.IsSupported(); ++retry) {
+        std::this_thread::sleep_for(std::chrono::milliseconds(1));
+    }
+    ASSERT_FALSE(manager.IsSupported());
+    ASSERT_EQ(unsupported_service.heartbeats.load(), 1);
+
+    manager.AttachChannel(
+        grpc::CreateChannel("127.0.0.1:" + std::to_string(supported_port), grpc::InsecureChannelCredentials()), "", "",
+        "", "", "");
+    for (int retry = 0; retry < 2000 && supported_service.heartbeats.load() == 0; ++retry) {
+        std::this_thread::sleep_for(std::chrono::milliseconds(1));
+    }
+    manager.Stop();
+    unsupported_server->Shutdown();
+    supported_server->Shutdown();
+
+    EXPECT_EQ(supported_service.heartbeats.load(), 1);
+    EXPECT_TRUE(manager.IsSupported());
+}
+
+TEST(ClientTelemetryTest, AttachChannelDuringHeartbeatImmediatelyProbesReplacement) {
+    BlockingTelemetryService old_service;
+    CountingTelemetryService new_service;
+    grpc::ServerBuilder old_builder;
+    grpc::ServerBuilder new_builder;
+    int old_port = 0;
+    int new_port = 0;
+    old_builder.AddListeningPort("127.0.0.1:0", grpc::InsecureServerCredentials(), &old_port);
+    old_builder.RegisterService(&old_service);
+    new_builder.AddListeningPort("127.0.0.1:0", grpc::InsecureServerCredentials(), &new_port);
+    new_builder.RegisterService(&new_service);
+    auto old_server = old_builder.BuildAndStart();
+    auto new_server = new_builder.BuildAndStart();
+    ASSERT_NE(old_server, nullptr);
+    ASSERT_NE(new_server, nullptr);
+
+    milvus::TelemetryConfig config;
+    config.heartbeat_interval_ms = static_cast<uint64_t>(std::numeric_limits<int64_t>::max());
+    milvus::ClientTelemetryManager manager(config);
+    manager.AttachChannel(
+        grpc::CreateChannel("127.0.0.1:" + std::to_string(old_port), grpc::InsecureChannelCredentials()), "", "", "",
+        "", "");
+    manager.Start();
+    if (!old_service.WaitForHeartbeat()) {
+        old_service.Release();
+        manager.Stop();
+        old_server->Shutdown();
+        new_server->Shutdown();
+        FAIL() << "old heartbeat did not enter the in-flight state";
+    }
+
+    manager.AttachChannel(
+        grpc::CreateChannel("127.0.0.1:" + std::to_string(new_port), grpc::InsecureChannelCredentials()), "", "", "",
+        "", "");
+    old_service.Release();
+    for (int retry = 0; retry < 2000 && new_service.heartbeats.load() == 0; ++retry) {
+        std::this_thread::sleep_for(std::chrono::milliseconds(1));
+    }
+    manager.Stop();
+    old_server->Shutdown();
+    new_server->Shutdown();
+
+    EXPECT_EQ(new_service.heartbeats.load(), 1);
 }
 
 TEST(ClientTelemetryTest, ExternalStopWinsRaceWithHeartbeatSelfRestart) {
@@ -1009,6 +1304,45 @@ TEST(ClientTelemetryTest, PushConfigIsAtomicAndReportsAppliedAndIgnoredKeys) {
     auto payload = nlohmann::json::parse(replies.back().payload);
     EXPECT_EQ(payload["applied"], nlohmann::json({"enabled", "heartbeat_interval_ms", "sampling_rate"}));
     EXPECT_EQ(payload["ignored"], nlohmann::json({"ttl_seconds", "unknown_a", "unknown_b"}));
+}
+
+TEST(ClientTelemetryTest, ShowErrorsBoundsOversizedNonMessageFields) {
+    milvus::TelemetryConfig config;
+    milvus::ClientTelemetryManager manager(config);
+    const std::string oversized_collection(1024 * 1024 + 1024, 'c');
+    manager.RecordOperation("Query", oversized_collection, std::chrono::steady_clock::now(), false, "tiny");
+
+    manager.ProcessCommands({{"errors", "show_errors", R"({"max_count":1})", 1, false, ""}});
+
+    const auto replies = manager.PendingCommandReplies();
+    ASSERT_EQ(replies.size(), 1U);
+    ASSERT_TRUE(replies.front().success) << replies.front().error_message;
+    EXPECT_LE(replies.front().payload.size(), 1024U * 1024U);
+    const auto payload = nlohmann::json::parse(replies.front().payload);
+    ASSERT_EQ(payload.size(), 1U);
+    EXPECT_LT(payload.front().at("collection").get<std::string>().size(), oversized_collection.size());
+}
+
+TEST(ClientTelemetryTest, ShowErrorsTruncatesOversizedUtf8FieldsAtCodePointBoundaries) {
+    milvus::TelemetryConfig config;
+    milvus::ClientTelemetryManager manager(config);
+    std::string oversized_utf8;
+    oversized_utf8.reserve(1200000);
+    for (size_t index = 0; index < 400000; ++index) {
+        oversized_utf8 += u8"界";
+    }
+    manager.RecordOperation("Query", oversized_utf8, std::chrono::steady_clock::now(), false, oversized_utf8);
+
+    manager.ProcessCommands({{"utf8-errors", "show_errors", R"({"max_count":1})", 1, false, ""}});
+
+    const auto replies = manager.PendingCommandReplies();
+    ASSERT_EQ(replies.size(), 1U);
+    ASSERT_TRUE(replies.front().success) << replies.front().error_message;
+    EXPECT_LE(replies.front().payload.size(), 1024U * 1024U);
+    const auto payload = nlohmann::json::parse(replies.front().payload);
+    ASSERT_EQ(payload.size(), 1U);
+    EXPECT_LT(payload.front().at("collection").get<std::string>().size(), oversized_utf8.size());
+    EXPECT_LT(payload.front().at("error_msg").get<std::string>().size(), oversized_utf8.size());
 }
 
 TEST(ClientTelemetryTest, RejectsWrongCommandPayloadTypes) {
