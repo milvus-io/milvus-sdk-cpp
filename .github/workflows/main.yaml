@@ -66,6 +66,9 @@ jobs:
     container: ${{ matrix.os.image }}
     # github automatically evicts no-access caches after 7 days, so we set a longer timeout to avoid unnecessary workflow timeout.
     timeout-minutes: 200
+    permissions:
+      contents: read
+      actions: write
     strategy:
       fail-fast: false
       matrix:
@@ -87,11 +90,27 @@ jobs:
       CCACHE_COMPRESSLEVEL: 5
       CCACHE_MAXSIZE: 2G
       BUILD_SHARED_LIBS: ${{ matrix.os.build_shared_libs }}
+      UNITY: ON
+      # LINE is intentionally unset here: this job builds Release, and
+      # MILVUS_DEBUG_INFO only applies to Debug/RelWithDebInfo configurations.
+      # The container home (/github/home) is not a stable mount; keep Conan state in
+      # the workspace so the built-from-source gRPC toolchain can be cached.
+      CONAN_HOME: ${{ github.workspace }}/.conan2
     steps:
       - name: Env
         run: echo "${HOME}/.local/bin" >> $GITHUB_PATH
       - name: Checkout
         uses: actions/checkout@v4
+      - name: Cache Conan
+        # Ubuntu 20.04 (gcc 9) has no prebuilt grpc binaries on conancenter, so the
+        # dependency stack builds from source (~25 min) on every run without this cache.
+        # Fedora 39 source-builds the same stack. The post-build slim step strips
+        # build trees and sources so each cached home stays ~1.5 GB.
+        uses: actions/cache@v4
+        with:
+          path: ${{ github.workspace }}/.conan2
+          key: linux-${{ matrix.os.key }}-conan-${{ github.base_ref || github.ref_name }}-${{ hashFiles('conanfile.*', 'CMakeLists.txt', 'cmake/**', 'scripts/install_deps.sh') }}
+          restore-keys: linux-${{ matrix.os.key }}-conan-
       - name: Cache ccache
         uses: actions/cache@v4
         with:
@@ -105,10 +124,12 @@ jobs:
       - name: Lint
         if: ${{ matrix.os.distro == 'Ubuntu' }}
         run: |
-          make lint
+          # Release matches the dependency stack the tutorials step consumes below,
+          # so one Conan cache serves the whole job.
+          make lint-release
       - name: Unit Testing
         run: |
-          make test
+          make test-release
       - name: Build standalone tutorials
         if: ${{ matrix.os.distro == 'Ubuntu' }}
         run: |
@@ -117,6 +138,22 @@ jobs:
         run: |
           cmake --build cmake_build --target package --parallel 4
           sh scripts/verify_package_linux.sh cmake_build/Pack
+      - name: Slim Conan cache
+        # conan leaves build trees (p/b) and unpacked sources (p/s) behind after
+        # --build=missing; they are dead weight on cache restore (only the final
+        # package folders under p/<pkg-id> are consumed) and roughly double the
+        # cache size. Remove them before the post-job cache save.
+        if: always()
+        run: |
+          export PATH="$HOME/.venv/bin:$PATH"
+          conan cache clean "*" -s -b -d || true
+      - name: Prune old ccache generations
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PRUNE_PREFIXES: "linux-${{ matrix.os.key }}-ccache- linux-${{ matrix.os.key }}-conan-"
+          KEEP_KEYS: "linux-${{ matrix.os.key }}-ccache-${{ github.sha }} linux-${{ matrix.os.key }}-conan-${{ github.base_ref || github.ref_name }}-${{ hashFiles('conanfile.*', 'CMakeLists.txt', 'cmake/**', 'scripts/install_deps.sh') }}"
+        run: python3 scripts/prune_caches.py
 
   coverage-ubuntu:
     name: Test all with coverage
@@ -126,30 +163,46 @@ jobs:
     runs-on: ubuntu-22.04
     # github automatically evicts no-access caches after 7 days, so we set a longer timeout to avoid unnecessary workflow timeout.
     timeout-minutes: 200
+    permissions:
+      contents: read
+      actions: write
     env:
       CCACHE_DIR: ${{ github.workspace }}/.ccache
       CCACHE_COMPILERCHECK: content
       CCACHE_COMPRESS: 1
       CCACHE_COMPRESSLEVEL: 5
-      CCACHE_MAXSIZE: 2G
+      # Coverage objects carry gcov sections plus line-tables debug info here (or
+      # full DWARF when LINE is toggled off); 2G only held a fraction of the 200+
+      # entries, crippling follow-up-commit hit rates. 8G is deliberately conservative
+      # so the budget also covers full-DWARF runs; the disk cleanup step frees ~20G.
+      CCACHE_MAXSIZE: 8G
       BUILD_SHARED_LIBS: OFF
+      # Keep unity off here: unity batches can distort gcov/lcov per-file line
+      # attribution. line-tables is safe: gcov reads .gcno/.gcda notes, not DWARF
+      # (validated: identical hit/miss coverage output with full debug info).
+      UNITY: OFF
+      LINE: ON
+      # codecov consumes lcov_output.info only; skip the genhtml report.
+      COVERAGE_HTML: OFF
     steps:
       - name: Env
         run: echo "${HOME}/.local/bin" >> $GITHUB_PATH
       - name: Checkout
         uses: actions/checkout@v4
-      - name: Cache Conan
-        uses: actions/cache@v4
-        with:
-          path: ~/.conan2
-          key: ubuntu-2204-conan-${{ github.base_ref || github.ref_name }}-${{ hashFiles('conanfile.*', 'CMakeLists.txt', 'cmake/**', 'scripts/install_deps.sh') }}
-          restore-keys: ubuntu-2204-conan-${{ github.base_ref || github.ref_name }}-
       - name: Cache ccache
         uses: actions/cache@v4
         with:
           path: ${{ github.workspace }}/.ccache
           key: ubuntu-2204-coverage-ccache-${{ github.sha }}
           restore-keys: ubuntu-2204-coverage-ccache-
+      - name: Cache Conan
+        # This job also builds the gRPC stack from source (its profile has no
+        # conancenter binaries); the cache stores those built packages.
+        uses: actions/cache@v4
+        with:
+          path: ~/.conan2
+          key: ubuntu-2204-conan-${{ github.base_ref || github.ref_name }}-${{ hashFiles('conanfile.*', 'CMakeLists.txt', 'cmake/**', 'scripts/install_deps.sh') }}
+          restore-keys: ubuntu-2204-conan-${{ github.base_ref || github.ref_name }}-
       - uses: actions/setup-python@v5
         with:
           python-version: '3.8'
@@ -176,6 +229,18 @@ jobs:
           name: ubuntu-22.04-coverage
           disable_safe_directory: true
           verbose: true
+      - name: Slim Conan cache
+        # This job also builds the gRPC stack from source; strip the leftover build
+        # trees and sources before the post-job cache save (see the matrix job).
+        if: always()
+        run: conan cache clean "*" -s -b -d || true
+      - name: Prune old cache generations
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PRUNE_PREFIXES: "ubuntu-2204-coverage-ccache- ubuntu-2204-conan-"
+          KEEP_KEYS: "ubuntu-2204-coverage-ccache-${{ github.sha }} ubuntu-2204-conan-${{ github.base_ref || github.ref_name }}-${{ hashFiles('conanfile.*', 'CMakeLists.txt', 'cmake/**', 'scripts/install_deps.sh') }}"
+        run: python3 scripts/prune_caches.py
 
   macos:
     name: Build and test macOS 15
@@ -185,6 +250,9 @@ jobs:
     runs-on: macos-15
     # github automatically evicts no-access caches after 7 days, so we set a longer timeout to avoid unnecessary workflow timeout.
     timeout-minutes: 200
+    permissions:
+      contents: read
+      actions: write
     env:
       CCACHE_DIR: ${{ github.workspace }}/.ccache
       CCACHE_COMPILERCHECK: content
@@ -192,9 +260,19 @@ jobs:
       CCACHE_CPP2: true
       CCACHE_COMPRESSLEVEL: 5
       CCACHE_MAXSIZE: 2G
+      UNITY: ON
+      LINE: ON
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+      - name: Cache Conan
+        # This job also builds the gRPC stack from source (its profile has no
+        # conancenter binaries), costing ~20 min per run without this cache.
+        uses: actions/cache@v4
+        with:
+          path: ~/.conan2
+          key: macos-15-conan-${{ github.base_ref || github.ref_name }}-${{ hashFiles('conanfile.*', 'CMakeLists.txt', 'cmake/**', 'scripts/install_deps.sh') }}
+          restore-keys: macos-15-conan-
       - name: Cache ccache
         uses: actions/cache@v4
         with:
@@ -219,6 +297,20 @@ jobs:
           source ~/.venv/bin/activate
           cmake --build cmake_build --target package --parallel 4
           sh scripts/verify_package_linux.sh cmake_build/Pack
+      - name: Slim Conan cache
+        # Strip leftover build trees and sources before the post-job cache save
+        # (see the Linux matrix job for details).
+        if: always()
+        run: |
+          export PATH="$HOME/.venv/bin:$PATH"
+          conan cache clean "*" -s -b -d || true
+      - name: Prune old ccache generations
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PRUNE_PREFIXES: "macos-15-ccache- macos-15-conan-"
+          KEEP_KEYS: "macos-15-ccache-${{ github.sha }} macos-15-conan-${{ github.base_ref || github.ref_name }}-${{ hashFiles('conanfile.*', 'CMakeLists.txt', 'cmake/**', 'scripts/install_deps.sh') }}"
+        run: python3 scripts/prune_caches.py
 
   windows:
     name: Build and test windows
@@ -228,6 +320,9 @@ jobs:
     runs-on: windows-2022
     # github automatically evicts no-access caches after 7 days, so we set a longer timeout to avoid unnecessary workflow timeout.
     timeout-minutes: 200
+    permissions:
+      contents: read
+      actions: write
     env:
       CCACHE_DIR: ${{ github.workspace }}/.ccache
       CCACHE_COMPILERCHECK: content
@@ -272,7 +367,10 @@ jobs:
           rem guard every compile would try to spawn a non-existent ccache.exe
           rem and the build would die with "CreateProcess failed".
           where ccache >nul 2>&1 && (set LAUNCHER=-DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache) || (set LAUNCHER=)
-          cmake -S . -B build -DMILVUS_BUILD_TEST=YES -DBUILD_SHARED_LIBS=ON -G Ninja %LAUNCHER%
+          rem MSVC has no line-tables-only mode, so only unity build applies here.
+          rem Test the optimized build configuration (release packaging itself stays
+          rem with the default UNITY=OFF, so the two configurations differ there).
+          cmake -S . -B build -DMILVUS_BUILD_TEST=YES -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=ON -DMILVUS_ENABLE_UNITY=ON -G Ninja %LAUNCHER%
           cmake --build build
       - name: Unit Testing
         shell: cmd
@@ -295,3 +393,11 @@ jobs:
           cmake --build build --target package
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           ./scripts/verify_package_windows.ps1 build/Pack
+      - name: Prune old ccache generations
+        shell: bash
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PRUNE_PREFIXES: "windows-ccache-"
+          KEEP_KEYS: "windows-ccache-${{ github.sha }}"
+        run: python scripts/prune_caches.py

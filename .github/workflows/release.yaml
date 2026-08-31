@@ -138,6 +138,11 @@ jobs:
     timeout-minutes: 100
     env:
       BUILD_SHARED_LIBS: ON
+      # Official release artifacts stay with the default non-unity compilation
+      # mode; the unity speedup mainly benefits cold CI builds. Examples are not
+      # part of the installed package, so they are skipped.
+      UNITY: OFF
+      CMAKE_BUILD_EXAMPLES: OFF
       MILVUS_USE_PYTHON_VENV: ON
       CONAN_LIBCXX: libstdc++11
     strategy:
@@ -185,6 +190,12 @@ jobs:
       fail-fast: false
       matrix:
         os: ${{ fromJSON(needs.select-targets.outputs.macos) }}
+    env:
+      # Official release artifacts stay with the default non-unity compilation
+      # mode; the unity speedup mainly benefits cold CI builds. Examples are not
+      # part of the installed package, so they are skipped.
+      UNITY: OFF
+      CMAKE_BUILD_EXAMPLES: OFF
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -260,7 +271,7 @@ jobs:
           conan install . -of build -s build_type=Release -s compiler.cppstd=14 -s:b build_type=Release -s:b compiler.cppstd=17 -o "&:shared=True" -o "&:with_tests=True" -c tools.cmake.cmaketoolchain:generator=Ninja -c tools.build:jobs=4 --build=missing
           if errorlevel 1 exit /b %errorlevel%
           if not exist build\build\Release\generators\conan_toolchain.cmake exit /b 1
-          cmake -S . -B build -DCMAKE_TOOLCHAIN_FILE=build\build\Release\generators\conan_toolchain.cmake -DCMAKE_POLICY_DEFAULT_CMP0091=NEW -DMILVUS_BUILD_TEST=YES -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=ON -DBUILD_FROM_CONAN=ON -DMILVUS_SDK_VERSION=${{ needs.select-targets.outputs.version }} -G Ninja %LAUNCHER%
+          cmake -S . -B build -DCMAKE_TOOLCHAIN_FILE=build\build\Release\generators\conan_toolchain.cmake -DCMAKE_POLICY_DEFAULT_CMP0091=NEW -DMILVUS_BUILD_TEST=YES -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=ON -DBUILD_FROM_CONAN=ON -DMILVUS_BUILD_EXAMPLES=OFF -DMILVUS_SDK_VERSION=${{ needs.select-targets.outputs.version }} -G Ninja %LAUNCHER%
           if errorlevel 1 exit /b %errorlevel%
           cmake --build build
           if errorlevel 1 exit /b %errorlevel%

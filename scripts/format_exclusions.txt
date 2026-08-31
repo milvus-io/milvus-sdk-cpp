@@ -4,3 +4,4 @@
 */cmake-build*/*
 */thirdparty/*
 */src/include/nlohmann*
+*/.conan2/*

@@ -40,11 +40,13 @@
 #include <stdexcept>
 #include <string>
 
+#include "../utils/LittleEndian.h"
+
 namespace milvus {
 
 namespace {
 
-constexpr uint32_t kHeaderSize = 32;
+constexpr uint32_t kFilterHeaderSize = 32;
 constexpr uint32_t kBytesPerBlock = 32;
 constexpr uint32_t kWordsPerBlock = 8;
 constexpr uint8_t kDomainInt64 = 1;
@@ -91,41 +93,6 @@ Avalanche(uint64_t h) {
 
 // Reads are byte-wise rather than a reinterpret_cast so the body layout stays little-endian
 // on any host and the loads stay free of alignment and strict-aliasing assumptions.
-inline uint64_t
-ReadU64LE(const uint8_t* data) {
-    return static_cast<uint64_t>(data[0]) | static_cast<uint64_t>(data[1]) << 8 | static_cast<uint64_t>(data[2]) << 16 |
-           static_cast<uint64_t>(data[3]) << 24 | static_cast<uint64_t>(data[4]) << 32 |
-           static_cast<uint64_t>(data[5]) << 40 | static_cast<uint64_t>(data[6]) << 48 |
-           static_cast<uint64_t>(data[7]) << 56;
-}
-
-inline uint32_t
-ReadU32LE(const uint8_t* data) {
-    return static_cast<uint32_t>(data[0]) | static_cast<uint32_t>(data[1]) << 8 | static_cast<uint32_t>(data[2]) << 16 |
-           static_cast<uint32_t>(data[3]) << 24;
-}
-
-inline void
-WriteU16LE(uint8_t* data, uint16_t value) {
-    data[0] = static_cast<uint8_t>(value);
-    data[1] = static_cast<uint8_t>(value >> 8);
-}
-
-inline void
-WriteU32LE(uint8_t* data, uint32_t value) {
-    data[0] = static_cast<uint8_t>(value);
-    data[1] = static_cast<uint8_t>(value >> 8);
-    data[2] = static_cast<uint8_t>(value >> 16);
-    data[3] = static_cast<uint8_t>(value >> 24);
-}
-
-inline void
-WriteU64LE(uint8_t* data, uint64_t value) {
-    for (int i = 0; i < 8; i++) {
-        data[i] = static_cast<uint8_t>(value >> (8 * i));
-    }
-}
-
 /**
  * XXH64 with seed 0 -- the hash the SBBF spec mandates. Implemented here rather than pulled
  * in as a dependency: the SDK's conan closure carries no xxhash, and this is the whole of it.
@@ -253,7 +220,7 @@ BloomFilterBuilder::BloomFilterBuilder(uint64_t n, double fpr) {
         throw std::runtime_error(FPRErrorMessage(fpr));
     }
     const uint32_t num_bytes = OptimalNumOfBytes(n, fpr);
-    buf_.assign(kHeaderSize + num_bytes, 0);
+    buf_.assign(kFilterHeaderSize + num_bytes, 0);
     num_blocks_ = num_bytes / kBytesPerBlock;
     n_declared_ = n;
     fpr_ = fpr;
@@ -264,7 +231,7 @@ BloomFilterBuilder::addHash(uint64_t hash) {
     // Multiply-shift block reduction, as Arrow does. num_blocks_ is at most 2^22, so the
     // product cannot overflow.
     const auto block = static_cast<uint32_t>(((hash >> 32) * num_blocks_) >> 32);
-    uint8_t* blk = buf_.data() + kHeaderSize + static_cast<size_t>(block) * kBytesPerBlock;
+    uint8_t* blk = buf_.data() + kFilterHeaderSize + static_cast<size_t>(block) * kBytesPerBlock;
     const auto key = static_cast<uint32_t>(hash);
 
 #if defined(__BYTE_ORDER__) && __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
@@ -385,7 +352,7 @@ EstimateBloomFilterSize(uint64_t n, double fpr, uint64_t& output) {
     if (!IsValidFPR(fpr)) {
         return {StatusCode::INVALID_ARGUMENT, FPRErrorMessage(fpr)};
     }
-    output = kHeaderSize + OptimalNumOfBytes(n, fpr);
+    output = kFilterHeaderSize + OptimalNumOfBytes(n, fpr);
     return Status::OK();
 }
 

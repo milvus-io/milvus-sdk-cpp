@@ -63,6 +63,22 @@ define_option(MILVUS_BUILD_TEST "Build with testing" OFF)
 define_option(MILVUS_BUILD_COVERAGE "Build with coverage" OFF)
 define_option(MILVUS_BUILD_EXAMPLES "Build examples" ON)
 define_option(MILVUS_ENABLE_PCH "Use precompiled headers when building the SDK" ON)
+define_option(MILVUS_ENABLE_UNITY "Use CMake unity builds for the SDK object library" OFF)
+define_option_string(MILVUS_UNITY_BATCH_SIZE "CMake unity build batch size" "8")
+define_option_string(MILVUS_DEBUG_INFO "Debug information level" "full" "full" "line-tables")
+
+if (MILVUS_ENABLE_UNITY AND CMAKE_VERSION VERSION_LESS 3.16.1)
+    # SKIP_UNITY_BUILD_INCLUSION (used to keep generated protobuf sources out of
+    # unity batches) requires this minimum version.
+    message(FATAL_ERROR "MILVUS_ENABLE_UNITY requires CMake >= 3.16.1")
+endif ()
+
+if (NOT MILVUS_DEBUG_INFO MATCHES "^(full|line-tables)$")
+    message(FATAL_ERROR "MILVUS_DEBUG_INFO must be 'full' or 'line-tables' (got '${MILVUS_DEBUG_INFO}')")
+endif ()
+if (NOT MILVUS_UNITY_BATCH_SIZE MATCHES "^[1-9][0-9]*$")
+    message(FATAL_ERROR "MILVUS_UNITY_BATCH_SIZE must be a positive integer (got '${MILVUS_UNITY_BATCH_SIZE}')")
+endif ()
 
 if (DEFINED MILVUS_SDK_VERSION)
     message("MILVUS_SDK_VERSION = ${MILVUS_SDK_VERSION}")
@@ -143,6 +159,22 @@ endif()
 
 # load milvus-proto generator
 include(MilvusProtoGen)
+
+# Line-tables-only debug info keeps stack traces and file:line while skipping
+# variable-level DWARF, which cuts cold-build time and object size. gcov line
+# and function coverage data comes from the .gcno/.gcda notes files (generated
+# by -fprofile-arcs -ftest-coverage), not from DWARF, so this is safe for
+# coverage builds too (validated by identical lcov output).
+if (MILVUS_DEBUG_INFO STREQUAL "line-tables")
+    if (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+        # comma-separated CONFIG matching requires CMake >= 3.19; the repo minimum is 3.16
+        add_compile_options($<$<OR:$<CONFIG:Debug>,$<CONFIG:RelWithDebInfo>>:-gline-tables-only>)
+    elseif (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+        add_compile_options($<$<OR:$<CONFIG:Debug>,$<CONFIG:RelWithDebInfo>>:-g1>)
+    else ()
+        message(STATUS "line-tables debug info is not supported for this compiler; using defaults")
+    endif ()
+endif ()
 
 # add testing
 if (MILVUS_BUILD_TEST)

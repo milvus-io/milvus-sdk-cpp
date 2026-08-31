@@ -62,11 +62,13 @@
 #include <stdexcept>
 #include <string>
 
+#include "../utils/LittleEndian.h"
+
 namespace milvus {
 
 namespace {
 
-constexpr uint32_t kHeaderSize = 32;
+constexpr uint32_t kBitmapHeaderSize = 32;
 constexpr uint16_t kSerialCookie = 12347;
 constexpr uint32_t kSerialCookieNoRunContainer = 12346;
 constexpr uint32_t kMaxArrayCardinality = 4096;
@@ -109,27 +111,6 @@ struct Layout {
     // An empty member set still writes the 8-byte high container count, so the body is never 0.
     uint64_t body_length{8};
 };
-
-inline void
-WriteU16LE(uint8_t* data, uint16_t value) {
-    data[0] = static_cast<uint8_t>(value);
-    data[1] = static_cast<uint8_t>(value >> 8);
-}
-
-inline void
-WriteU32LE(uint8_t* data, uint32_t value) {
-    data[0] = static_cast<uint8_t>(value);
-    data[1] = static_cast<uint8_t>(value >> 8);
-    data[2] = static_cast<uint8_t>(value >> 16);
-    data[3] = static_cast<uint8_t>(value >> 24);
-}
-
-inline void
-WriteU64LE(uint8_t* data, uint64_t value) {
-    for (int i = 0; i < 8; i++) {
-        data[i] = static_cast<uint8_t>(value >> (8 * i));
-    }
-}
 
 /**
  * Groups the normalized keys into high groups and 16-bit containers, picks each container's
@@ -480,14 +461,14 @@ RoaringBitmapBuilder::Build() const {
         throw std::runtime_error(status.Message());
     }
 
-    std::vector<uint8_t> blob(static_cast<size_t>(kHeaderSize + layout.body_length), 0);
+    std::vector<uint8_t> blob(static_cast<size_t>(kBitmapHeaderSize + layout.body_length), 0);
     std::memcpy(blob.data(), "MRB1", 4);
     WriteU16LE(blob.data() + 4, 1);  // version
     WriteU16LE(blob.data() + 6, 1);  // format = portable_roaring64
     WriteU64LE(blob.data() + 8, stats.cardinality);
     WriteU64LE(blob.data() + 16, layout.body_length);
     // blob[24..31] stays zero (reserved).
-    WriteBody(blob.data() + kHeaderSize, keys_, layout);
+    WriteBody(blob.data() + kBitmapHeaderSize, keys_, layout);
     return blob;
 }
 

@@ -71,6 +71,7 @@ $ MILVUS_SDK_VERSION=v3.0.2 make all-release
 $ CMAKE_INSTALL_PREFIX=/opt/milvus make install
 $ BUILD_SHARED_LIBS=OFF make all-release
 $ CPPSTD=17 make test
+$ UNITY=ON LINE=ON JOBS=4 make test
 ```
 `scripts/build.sh` also supports command-line flags. Most users should prefer the make targets above, but the script can be invoked directly for more control:
 
@@ -85,6 +86,33 @@ $ bash scripts/build.sh -f -t Release       # release build without in-place cla
 $ bash scripts/build.sh -v v3.0.2 -t Release
 ```
 `MILVUS_SDK_VERSION` is embedded into the SDK version string generated from `src/impl/version.h.in`. If you do not pass `MILVUS_SDK_VERSION` or `scripts/build.sh -v`, CMake derives the version from the latest reachable git tag. For release builds, pass the intended version explicitly or build from the release tag.
+
+## Speed up local builds
+
+Two make-level switches reduce cold-build wall time without changing runtime behavior. They
+apply to targets that build the SDK through `scripts/build.sh` (for example `make`,
+`make test`, `make coverage`, and `make package`) and have no effect on targets such as
+`doc`, `clean`, `tutorials`, or the `run` wrappers:
+
+- `UNITY=ON` maps to CMake `MILVUS_ENABLE_UNITY=ON` and enables unity builds for the SDK object
+  library. Many request/response translation units are small glue files, and unity batches pay
+  their shared header closure once per batch instead of once per file. Generated protobuf
+  sources are always excluded from the batches. Trade-off: editing one `.cpp` recompiles its
+  whole batch, so this mode mainly helps cold and CI builds rather than incremental edit cycles.
+  Keep it off for coverage runs: unity batches can attribute lines to the generated batch files
+  and distort the lcov report (`build.sh` prints a warning for this combination).
+- `LINE=ON` maps to CMake `MILVUS_DEBUG_INFO=line-tables`, which keeps stack traces and
+  `file:line` debug information but skips variable-level DWARF (`-gline-tables-only` on Clang,
+  `-g1` on GCC). It applies to Debug and RelWithDebInfo builds. Switch back to `LINE=OFF` when
+  you need to inspect variables in a debugger. It is also safe for coverage builds: gcov
+  coverage data comes from the `.gcno`/`.gcda` notes files, not DWARF (validated by identical
+  lcov output between full and line-tables debug info).
+
+Both default to `OFF`, so regular builds are unchanged. Measured cold-build effect for
+`UNITY=ON LINE=ON` versus defaults: about 2.6x faster with roughly half the disk usage. Use
+`bash scripts/build.sh -r` (or remove `cmake_build`) when switching modes, because the flags are
+captured at CMake configure time. `MILVUS_UNITY_BATCH_SIZE` (default 8) tunes the unity batch
+size for finer control.
 
 ## Building without Conan
 
@@ -155,6 +183,11 @@ Milvus C++ SDK using **lcov** tool to generate code coverage report. You could r
 
 After the command, a folder named "code_coverage" will be created under the project.
 You could open the **code_coverage/index.html** by a web browser to review the code coverage report.
+Examples are not built for coverage runs (they are filtered out of the report anyway);
+set `CMAKE_BUILD_EXAMPLES=ON` explicitly if you need them. Set `COVERAGE_HTML=OFF` to
+skip the HTML report and keep only `code_coverage/lcov_output.info`. The lcov capture
+runs across `COVERAGE_JOBS` workers (default: all CPUs) and produces output identical
+to the sequential run.
 
 ## Generate documentation
 Milvus C++ SDK uses **doxygen** tool to generate documentation. Run `make doc` to generate documentation.
