@@ -53,6 +53,85 @@ TEST_F(UpdatePasswordRequestTest, GettersAndSetters) {
 
     req.WithNewPassword("new_pass");
     EXPECT_EQ(req.NewPassword(), "new_pass");
+
+    // description
+    EXPECT_TRUE(req.Description().empty());
+    req.WithDescription("user description");
+    EXPECT_EQ(req.Description(), "user description");
+    req.SetDescription("updated description");
+    EXPECT_EQ(req.Description(), "updated description");
+
+    // reset_connection
+    EXPECT_FALSE(req.ResetConnection());
+    req.WithResetConnection(true);
+    EXPECT_TRUE(req.ResetConnection());
+    req.SetResetConnection(false);
+    EXPECT_FALSE(req.ResetConnection());
+}
+
+class GrantPrivilegeRequestTest : public ::testing::Test {};
+
+TEST_F(GrantPrivilegeRequestTest, GettersAndSetters) {
+    milvus::GrantPrivilegeRequest req;
+
+    req.WithRoleName("admin_role");
+    EXPECT_EQ(req.RoleName(), "admin_role");
+
+    req.WithObjectType("Global");
+    EXPECT_EQ(req.ObjectType(), "Global");
+
+    req.WithObjectName("");
+    EXPECT_EQ(req.ObjectName(), "");
+
+    req.WithPrivilege("CreateCollection");
+    EXPECT_EQ(req.Privilege(), "CreateCollection");
+
+    req.WithDatabaseName("default");
+    EXPECT_EQ(req.DatabaseName(), "default");
+
+    req.SetRoleName("reader_role");
+    req.SetObjectType("Collection");
+    req.SetObjectName("my_coll");
+    req.SetPrivilege("Insert");
+    req.SetDatabaseName("my_db");
+    EXPECT_EQ(req.RoleName(), "reader_role");
+    EXPECT_EQ(req.ObjectType(), "Collection");
+    EXPECT_EQ(req.ObjectName(), "my_coll");
+    EXPECT_EQ(req.Privilege(), "Insert");
+    EXPECT_EQ(req.DatabaseName(), "my_db");
+}
+
+TEST_F(GrantPrivilegeRequestTest, FluentChaining) {
+    milvus::GrantPrivilegeRequest req;
+    auto& ref = req.WithRoleName("r")
+                    .WithObjectType("Database")
+                    .WithObjectName("d")
+                    .WithPrivilege("P")
+                    .WithDatabaseName("default");
+    EXPECT_EQ(&ref, &req);
+    EXPECT_EQ(req.RoleName(), "r");
+    EXPECT_EQ(req.ObjectType(), "Database");
+    EXPECT_EQ(req.ObjectName(), "d");
+    EXPECT_EQ(req.Privilege(), "P");
+    EXPECT_EQ(req.DatabaseName(), "default");
+}
+
+class RevokePrivilegeRequestTest : public ::testing::Test {};
+
+TEST_F(RevokePrivilegeRequestTest, GettersAndSetters) {
+    milvus::RevokePrivilegeRequest req;
+
+    req.WithRoleName("admin_role");
+    EXPECT_EQ(req.RoleName(), "admin_role");
+
+    req.WithObjectType("Global");
+    EXPECT_EQ(req.ObjectType(), "Global");
+
+    req.WithPrivilege("DropCollection");
+    EXPECT_EQ(req.Privilege(), "DropCollection");
+
+    req.SetObjectName("obj");
+    EXPECT_EQ(req.ObjectName(), "obj");
 }
 
 class UpdateUserRequestTest : public ::testing::Test {};

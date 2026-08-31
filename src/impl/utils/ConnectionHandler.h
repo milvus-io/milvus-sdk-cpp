@@ -67,6 +67,13 @@ class ConnectionHandler {
     Status
     UseDatabase(const std::string& db_name);
 
+    /**
+     * @brief Reconnect using the given username/password credentials. Must be serialized with
+     * other operations, matching UseDatabase.
+     */
+    Status
+    ResetUserCredentials(const std::string& username, const std::string& password);
+
     std::string
     CurrentDbName(const std::string& overwrite_db_name) const;
 

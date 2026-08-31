@@ -16,41 +16,40 @@
 
 #pragma once
 
-#include "./IndexRequestBase.h"
 #include "milvus/Export.h"
 
 namespace milvus {
 
 /**
- * @brief Used by MilvusClientV2::ListIndexes()
+ * @brief Used by MilvusClientV2::GetServerVersionV2()
  */
-class MILVUS_SDK_API ListIndexesRequest : public IndexRequestBase<ListIndexesRequest> {
+class MILVUS_SDK_API GetServerVersionRequest {
  public:
     /**
      * @brief Constructor
      */
-    ListIndexesRequest() = default;
+    GetServerVersionRequest() = default;
 
     /**
-     * @brief Get the field name. If empty, indexes of all fields are returned.
+     * @brief Whether to return detailed build information of the Milvus server.
      */
-    const std::string&
-    FieldName() const;
+    bool
+    Detail() const;
 
     /**
-     * @brief Set the field name. If empty, indexes of all fields are returned.
+     * @brief Set whether to return detailed build information of the Milvus server.
      */
     void
-    SetFieldName(const std::string& field_name);
+    SetDetail(bool detail);
 
     /**
-     * @brief Set the field name. If empty, indexes of all fields are returned.
+     * @brief Set whether to return detailed build information of the Milvus server.
      */
-    ListIndexesRequest&
-    WithFieldName(const std::string& field_name);
+    GetServerVersionRequest&
+    WithDetail(bool detail);
 
  private:
-    std::string field_name_;
+    bool detail_{false};
 };
 
 }  // namespace milvus

@@ -142,6 +142,22 @@ TEST_F(CompactRequestTest, AllMethods) {
     EXPECT_TRUE(req.ClusteringCompaction());
     req.SetClusteringCompaction(false);
     EXPECT_FALSE(req.ClusteringCompaction());
+
+    // TargetSizeUnit default is "mb"
+    EXPECT_EQ(req.TargetSizeUnit(), "mb");
+    req.SetTargetSizeUnit("gb");
+    EXPECT_EQ(req.TargetSizeUnit(), "gb");
+    auto& unit_ref = req.WithTargetSizeUnit("kb");
+    EXPECT_EQ(&unit_ref, &req);
+    EXPECT_EQ(req.TargetSizeUnit(), "kb");
+
+    // IsL0 default is false
+    EXPECT_FALSE(req.IsL0());
+    req.SetIsL0(true);
+    EXPECT_TRUE(req.IsL0());
+    auto& l0_ref = req.WithIsL0(false);
+    EXPECT_EQ(&l0_ref, &req);
+    EXPECT_FALSE(req.IsL0());
 }
 
 class OptimizeRequestTest : public ::testing::Test {};
@@ -193,6 +209,21 @@ TEST_F(GetCompactionPlansRequestTest, GettersAndSetters) {
     milvus::GetCompactionPlansRequest req;
     req.WithCompactionID(67890);
     EXPECT_EQ(req.CompactionID(), 67890);
+}
+
+class GetServerVersionRequestTest : public ::testing::Test {};
+
+TEST_F(GetServerVersionRequestTest, GettersAndSetters) {
+    milvus::GetServerVersionRequest req;
+
+    EXPECT_FALSE(req.Detail());
+
+    req.SetDetail(true);
+    EXPECT_TRUE(req.Detail());
+
+    auto& ref = req.WithDetail(false);
+    EXPECT_EQ(&ref, &req);
+    EXPECT_FALSE(req.Detail());
 }
 
 TEST_F(GetCompactionStateRequestTest, SetMethod) {

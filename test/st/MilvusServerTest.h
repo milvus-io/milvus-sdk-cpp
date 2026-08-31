@@ -35,7 +35,7 @@ class MilvusServerTest : public ::testing::Test {
     void
     SetUp() override {
         const char* host = std::getenv("MILVUS_HOST");
-        milvus::ConnectParam connect_param{host ? host : "localhost", 19530};
+        milvus::ConnectParam connect_param{host ? host : "localhost", 29730};
         client_ = milvus::MilvusClientV2::Create();
         auto status = client_->Connect(connect_param);
         if (status.IsOk()) {
@@ -60,7 +60,7 @@ class MilvusServerTestWithParam : public ::testing::TestWithParam<T> {
     void
     SetUp() override {
         const char* host = std::getenv("MILVUS_HOST");
-        milvus::ConnectParam connect_param{host ? host : "localhost", 19530};
+        milvus::ConnectParam connect_param{host ? host : "localhost", 29730};
         client_ = milvus::MilvusClientV2::Create();
         auto status = client_->Connect(connect_param);
         if (status.IsOk()) {

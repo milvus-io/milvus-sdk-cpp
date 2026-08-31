@@ -129,6 +129,14 @@ main(int argc, char* argv[]) {
                                           .WithCollectionName(collection_name));
     util::CheckStatus("grant privilege group to role: " + role_name, status);
 
+    // grant a Global-scoped privilege using the object-scoped (V1) form
+    status = client->GrantPrivilege(milvus::GrantPrivilegeRequest()
+                                        .WithRoleName(role_name)
+                                        .WithObjectType("Global")
+                                        .WithObjectName("")
+                                        .WithPrivilege("CreateDatabase"));
+    util::CheckStatus("grant global privilege to role: " + role_name, status);
+
     milvus::DescribeRoleResponse resp_desc_role;
     status = client->DescribeRole(milvus::DescribeRoleRequest().WithRoleName(role_name), resp_desc_role);
     util::CheckStatus("describe role: " + role_name, status);
@@ -139,8 +147,11 @@ main(int argc, char* argv[]) {
     status = client->CreateUser(milvus::CreateUserRequest().WithUserName(user_name).WithPassword("aaaaaa"));
     util::CheckStatus("create user: " + user_name, status);
 
-    status = client->UpdatePassword(
-        milvus::UpdatePasswordRequest().WithUserName(user_name).WithOldPassword("aaaaaa").WithNewPassword("123456"));
+    status = client->UpdatePassword(milvus::UpdatePasswordRequest()
+                                        .WithUserName(user_name)
+                                        .WithOldPassword("aaaaaa")
+                                        .WithNewPassword("123456")
+                                        .WithDescription("updated user description"));
     util::CheckStatus("update password for user: " + user_name, status);
 
     status = client->GrantRole(milvus::GrantRoleRequest().WithUserName(user_name).WithRoleName(role_name));
@@ -203,6 +214,13 @@ main(int argc, char* argv[]) {
                                            .WithPrivilege(privilege_group_name)
                                            .WithCollectionName(collection_name));
     util::CheckStatus("revoke privilege group from role: " + role_name, status);
+
+    status = client->RevokePrivilege(milvus::RevokePrivilegeRequest()
+                                         .WithRoleName(role_name)
+                                         .WithObjectType("Global")
+                                         .WithObjectName("")
+                                         .WithPrivilege("CreateDatabase"));
+    util::CheckStatus("revoke global privilege from role: " + role_name, status);
 
     status = client->RevokeRole(milvus::RevokeRoleRequest().WithUserName(user_name).WithRoleName(role_name));
     util::CheckStatus("revoke role from user: " + user_name, status);

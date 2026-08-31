@@ -362,6 +362,16 @@ ConnectionHandler::UseDatabase(const std::string& db_name) {
     return connection == nullptr ? Status::OK() : connection->UseDatabase(db_name);
 }
 
+Status
+ConnectionHandler::ResetUserCredentials(const std::string& username, const std::string& password) {
+    std::unique_lock<std::mutex> lifecycle_lock(lifecycle_mtx_, std::try_to_lock);
+    if (!lifecycle_lock.owns_lock()) {
+        return {StatusCode::CLIENT_BUSY, "Connection lifecycle change is already in progress"};
+    }
+    auto connection = GetConnection();
+    return connection == nullptr ? Status::OK() : connection->ResetUserCredentials(username, password);
+}
+
 std::string
 ConnectionHandler::CurrentDbName(const std::string& overwrite_db_name) const {
     // if a db name is specified for rpc interface, use this name

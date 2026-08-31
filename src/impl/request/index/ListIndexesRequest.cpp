@@ -14,43 +14,24 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#pragma once
-
-#include "./IndexRequestBase.h"
-#include "milvus/Export.h"
+#include "milvus/request/index/ListIndexesRequest.h"
 
 namespace milvus {
 
-/**
- * @brief Used by MilvusClientV2::ListIndexes()
- */
-class MILVUS_SDK_API ListIndexesRequest : public IndexRequestBase<ListIndexesRequest> {
- public:
-    /**
-     * @brief Constructor
-     */
-    ListIndexesRequest() = default;
+const std::string&
+ListIndexesRequest::FieldName() const {
+    return field_name_;
+}
 
-    /**
-     * @brief Get the field name. If empty, indexes of all fields are returned.
-     */
-    const std::string&
-    FieldName() const;
+void
+ListIndexesRequest::SetFieldName(const std::string& field_name) {
+    field_name_ = field_name;
+}
 
-    /**
-     * @brief Set the field name. If empty, indexes of all fields are returned.
-     */
-    void
-    SetFieldName(const std::string& field_name);
-
-    /**
-     * @brief Set the field name. If empty, indexes of all fields are returned.
-     */
-    ListIndexesRequest&
-    WithFieldName(const std::string& field_name);
-
- private:
-    std::string field_name_;
-};
+ListIndexesRequest&
+ListIndexesRequest::WithFieldName(const std::string& field_name) {
+    SetFieldName(field_name);
+    return *this;
+}
 
 }  // namespace milvus

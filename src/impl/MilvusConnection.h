@@ -80,9 +80,21 @@ class MilvusConnection {
     Status
     UseDatabase(const std::string& db_name);
 
+    /**
+     * @brief Reconnect using the given username/password credentials.
+     * Follows the UseDatabase pattern: builds and validates a private channel/stub and only
+     * replaces this connection's published transport after the handshake succeeds.
+     */
+    Status
+    ResetUserCredentials(const std::string& username, const std::string& password);
+
     Status
     CheckHealth(const proto::milvus::CheckHealthRequest& request, proto::milvus::CheckHealthResponse& response,
                 const GrpcContextOptions& options);
+
+    Status
+    ConnectRpc(const proto::milvus::ConnectRequest& request, proto::milvus::ConnectResponse& response,
+               const GrpcContextOptions& options);
 
     Status
     CreateDatabase(const proto::milvus::CreateDatabaseRequest& request, proto::common::Status& response,
@@ -493,6 +505,10 @@ class MilvusConnection {
     Status
     OperateUserRole(const proto::milvus::OperateUserRoleRequest& request, proto::common::Status& response,
                     const GrpcContextOptions& options);
+
+    Status
+    OperatePrivilege(const proto::milvus::OperatePrivilegeRequest& request, proto::common::Status& response,
+                     const GrpcContextOptions& options);
 
     Status
     OperatePrivilegeV2(const proto::milvus::OperatePrivilegeV2Request& request, proto::common::Status& response,

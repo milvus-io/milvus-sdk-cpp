@@ -105,6 +105,43 @@ MilvusClientV2Impl::GetServerVersion(std::string& version) {
 }
 
 Status
+MilvusClientV2Impl::GetServerVersionV2(const GetServerVersionRequest& request, GetServerVersionResponse& response) {
+    if (!request.Detail()) {
+        auto post = [&response](const proto::milvus::GetVersionResponse& rpc_response) {
+            response.SetVersion(rpc_response.version());
+            return Status::OK();
+        };
+
+        return connection_.Invoke<proto::milvus::GetVersionRequest, proto::milvus::GetVersionResponse>(
+            nullptr, &MilvusConnection::GetVersion, post);
+    }
+
+    auto pre = [this](proto::milvus::ConnectRequest& rpc_request) {
+        auto* client_info = rpc_request.mutable_client_info();
+        client_info->set_sdk_type("CPP");
+        client_info->set_sdk_version(GetBuildVersion());
+        auto connection = connection_.GetConnection();
+        if (connection != nullptr) {
+            client_info->set_user(connection->GetConnectParam().Username());
+        }
+        return Status::OK();
+    };
+
+    auto post = [&response](const proto::milvus::ConnectResponse& rpc_response) {
+        const auto& info = rpc_response.server_info();
+        response.SetVersion(info.build_tags());
+        response.SetBuildTime(info.build_time());
+        response.SetGitCommit(info.git_commit());
+        response.SetGoVersion(info.go_version());
+        response.SetDeployMode(info.deploy_mode());
+        return Status::OK();
+    };
+
+    return connection_.Invoke<proto::milvus::ConnectRequest, proto::milvus::ConnectResponse>(
+        pre, &MilvusConnection::ConnectRpc, post);
+}
+
+Status
 MilvusClientV2Impl::GetSDKVersion(std::string& version) {
     version = GetBuildVersion();
     return Status::OK();
@@ -1535,6 +1572,9 @@ MilvusClientV2Impl::DescribeDatabase(const DescribeDatabaseRequest& request, Des
 Status
 MilvusClientV2Impl::CreateIndex(const CreateIndexRequest& request) {
     const auto& descs = request.Indexes();
+    if (descs.empty()) {
+        return Status{StatusCode::INVALID_ARGUMENT, "IndexParams is empty, no index can be created"};
+    }
     for (const auto& desc : descs) {
         auto status =
             createIndex(request.DatabaseName(), request.CollectionName(), desc, request.Sync(), request.TimeoutMs());
@@ -1641,11 +1681,14 @@ MilvusClientV2Impl::listIndexes(const ListIndexesRequest& request, ListIndexesRe
     DescribeIndexResponse d_response;
     auto status = describeIndex(d_request, d_response, rpc_timeout_ms);
     if (status.IsOk()) {
-        std::vector<IndexDesc> descs = d_response.Descs();
+        std::vector<IndexDesc> descs;
         std::vector<std::string> index_names;
-        index_names.reserve(descs.size());
-        for (const auto& desc : descs) {
+        for (auto& desc : d_response.Descs()) {
+            if (!request.FieldName().empty() && desc.FieldName() != request.FieldName()) {
+                continue;
+            }
             index_names.push_back(desc.IndexName());
+            descs.push_back(desc);
         }
         response.SetDescs(std::move(descs));
         response.SetIndexNames(std::move(index_names));
@@ -2656,8 +2699,19 @@ MilvusClientV2Impl::compact(const std::string& database_name, const CompactReque
         rpc_request.set_db_name(database_name);
         rpc_request.set_collection_name(request.CollectionName());
         rpc_request.set_majorcompaction(request.ClusteringCompaction());
-        if (request.TargetSize() > 0) {
-            rpc_request.set_target_size(request.TargetSize());
+        rpc_request.set_l0compaction(request.IsL0());
+        if (request.TargetSize() != 0) {
+            if (request.TargetSize() < 0) {
+                return Status{StatusCode::INVALID_ARGUMENT, "target_size must be a positive integer"};
+            }
+            int64_t target_size_mb = 0;
+            std::string normalized;
+            const std::string target_size_text = std::to_string(request.TargetSize()) + request.TargetSizeUnit();
+            auto status = ParseTargetSizeMB(target_size_text, target_size_mb, normalized);
+            if (!status.IsOk()) {
+                return status;
+            }
+            rpc_request.set_target_size(target_size_mb);
         }
         return Status::OK();
     };
@@ -3659,11 +3713,30 @@ MilvusClientV2Impl::UpdatePassword(const UpdatePasswordRequest& request) {
         rpc_request.set_username(request.UserName());
         rpc_request.set_oldpassword(milvus::Base64Encode(request.OldPassword()));
         rpc_request.set_newpassword(milvus::Base64Encode(request.NewPassword()));
+        if (!request.Description().empty()) {
+            rpc_request.set_description(request.Description());
+        }
         return Status::OK();
     };
 
-    return connection_.Invoke<proto::milvus::UpdateCredentialRequest, proto::common::Status>(
+    auto status = connection_.Invoke<proto::milvus::UpdateCredentialRequest, proto::common::Status>(
         pre, &MilvusConnection::UpdateCredential, nullptr);
+    if (!status.IsOk()) {
+        return status;
+    }
+
+    if (request.ResetConnection()) {
+        auto reset_status = connection_.ResetUserCredentials(request.UserName(), request.NewPassword());
+        if (!reset_status.IsOk()) {
+            // The UpdateCredential RPC at the top of this method already succeeded, so the server password is
+            // changed even though the reconnect failed. Surface that partial state explicitly so the caller
+            // does not conclude the update failed or retry with the old password; they must reconnect
+            // manually with the new password.
+            return Status{reset_status.Code(),
+                          "password updated, but reconnect with the new credentials failed: " + reset_status.Message()};
+        }
+    }
+    return Status::OK();
 }
 
 Status
@@ -3856,6 +3929,42 @@ MilvusClientV2Impl::RevokeRole(const RevokeRoleRequest& request) {
 
     return connection_.Invoke<proto::milvus::OperateUserRoleRequest, proto::common::Status>(
         pre, &MilvusConnection::OperateUserRole, nullptr);
+}
+
+Status
+MilvusClientV2Impl::GrantPrivilege(const GrantPrivilegeRequest& request) {
+    auto pre = [&request](proto::milvus::OperatePrivilegeRequest& rpc_request) {
+        rpc_request.mutable_entity()->mutable_role()->set_name(request.RoleName());
+        rpc_request.mutable_entity()->mutable_object()->set_name(request.ObjectType());
+        rpc_request.mutable_entity()->set_object_name(request.ObjectName());
+        rpc_request.mutable_entity()->mutable_grantor()->mutable_privilege()->set_name(request.Privilege());
+        if (!request.DatabaseName().empty()) {
+            rpc_request.mutable_entity()->set_db_name(request.DatabaseName());
+        }
+        rpc_request.set_type(proto::milvus::OperatePrivilegeType::Grant);
+        return Status::OK();
+    };
+
+    return connection_.Invoke<proto::milvus::OperatePrivilegeRequest, proto::common::Status>(
+        pre, &MilvusConnection::OperatePrivilege, nullptr);
+}
+
+Status
+MilvusClientV2Impl::RevokePrivilege(const RevokePrivilegeRequest& request) {
+    auto pre = [&request](proto::milvus::OperatePrivilegeRequest& rpc_request) {
+        rpc_request.mutable_entity()->mutable_role()->set_name(request.RoleName());
+        rpc_request.mutable_entity()->mutable_object()->set_name(request.ObjectType());
+        rpc_request.mutable_entity()->set_object_name(request.ObjectName());
+        rpc_request.mutable_entity()->mutable_grantor()->mutable_privilege()->set_name(request.Privilege());
+        if (!request.DatabaseName().empty()) {
+            rpc_request.mutable_entity()->set_db_name(request.DatabaseName());
+        }
+        rpc_request.set_type(proto::milvus::OperatePrivilegeType::Revoke);
+        return Status::OK();
+    };
+
+    return connection_.Invoke<proto::milvus::OperatePrivilegeRequest, proto::common::Status>(
+        pre, &MilvusConnection::OperatePrivilege, nullptr);
 }
 
 Status

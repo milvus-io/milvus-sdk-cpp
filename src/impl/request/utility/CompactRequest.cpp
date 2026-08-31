@@ -66,6 +66,22 @@ CompactRequest::WithTargetSize(int64_t target_size) {
     return *this;
 }
 
+const std::string&
+CompactRequest::TargetSizeUnit() const {
+    return target_size_unit_;
+}
+
+void
+CompactRequest::SetTargetSizeUnit(const std::string& unit) {
+    target_size_unit_ = unit;
+}
+
+CompactRequest&
+CompactRequest::WithTargetSizeUnit(const std::string& unit) {
+    SetTargetSizeUnit(unit);
+    return *this;
+}
+
 bool
 CompactRequest::ClusteringCompaction() const {
     return is_clustring_compaction_;
@@ -79,6 +95,22 @@ CompactRequest::SetClusteringCompaction(bool clustering_compaction) {
 CompactRequest&
 CompactRequest::WithClusteringCompaction(bool clustering_compaction) {
     SetClusteringCompaction(clustering_compaction);
+    return *this;
+}
+
+bool
+CompactRequest::IsL0() const {
+    return is_l0_;
+}
+
+void
+CompactRequest::SetIsL0(bool is_l0) {
+    is_l0_ = is_l0;
+}
+
+CompactRequest&
+CompactRequest::WithIsL0(bool is_l0) {
+    SetIsL0(is_l0);
     return *this;
 }
 

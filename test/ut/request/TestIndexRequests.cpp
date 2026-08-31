@@ -85,6 +85,14 @@ TEST_F(ListIndexesRequestTest, GettersAndSetters) {
     milvus::ListIndexesRequest req;
     req.WithCollectionName("list_idx_coll");
     EXPECT_EQ(req.CollectionName(), "list_idx_coll");
+
+    EXPECT_TRUE(req.FieldName().empty());
+    req.SetFieldName("vec_field");
+    EXPECT_EQ(req.FieldName(), "vec_field");
+
+    auto& ref = req.WithFieldName("another_field");
+    EXPECT_EQ(&ref, &req);
+    EXPECT_EQ(req.FieldName(), "another_field");
 }
 
 class AlterIndexPropertiesRequestTest : public ::testing::Test {};

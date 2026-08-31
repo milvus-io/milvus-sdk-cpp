@@ -283,9 +283,36 @@ MilvusConnection::UseDatabase(const std::string& db_name) {
 }
 
 Status
+MilvusConnection::ResetUserCredentials(const std::string& username, const std::string& password) {
+    ConnectParam candidate_param;
+    ClientTelemetryManagerPtr telemetry;
+    std::string telemetry_client_id;
+    std::string telemetry_logical_endpoint;
+    {
+        std::lock_guard<std::mutex> lock(stub_mtx_);
+        candidate_param = param_;
+        telemetry = telemetry_;
+        telemetry_client_id = telemetry_client_id_;
+        telemetry_logical_endpoint = telemetry_logical_endpoint_;
+    }
+    candidate_param.SetAuthorizations(username, password);
+
+    // Connect builds and validates a private channel/stub, and only replaces this connection's
+    // published transport after the handshake and telemetry handoff both succeed. On failure the
+    // existing credentials, channel, stub, and telemetry manager remain fully usable.
+    return Connect(candidate_param, telemetry_client_id, std::move(telemetry), telemetry_logical_endpoint);
+}
+
+Status
 MilvusConnection::CheckHealth(const proto::milvus::CheckHealthRequest& request,
                               proto::milvus::CheckHealthResponse& response, const GrpcContextOptions& options) {
     return grpcCall("CheckHealth", &Stub::CheckHealth, request, response, options);
+}
+
+Status
+MilvusConnection::ConnectRpc(const proto::milvus::ConnectRequest& request, proto::milvus::ConnectResponse& response,
+                             const GrpcContextOptions& options) {
+    return grpcCall("Connect", &Stub::Connect, request, response, options);
 }
 
 Status
@@ -962,6 +989,12 @@ Status
 MilvusConnection::OperateUserRole(const proto::milvus::OperateUserRoleRequest& request, proto::common::Status& response,
                                   const GrpcContextOptions& options) {
     return grpcCall("OperateUserRole", &Stub::OperateUserRole, request, response, options);
+}
+
+Status
+MilvusConnection::OperatePrivilege(const proto::milvus::OperatePrivilegeRequest& request,
+                                   proto::common::Status& response, const GrpcContextOptions& options) {
+    return grpcCall("OperatePrivilege", &Stub::OperatePrivilege, request, response, options);
 }
 
 Status

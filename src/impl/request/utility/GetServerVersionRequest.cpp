@@ -14,43 +14,24 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#pragma once
-
-#include "./IndexRequestBase.h"
-#include "milvus/Export.h"
+#include "milvus/request/utility/GetServerVersionRequest.h"
 
 namespace milvus {
 
-/**
- * @brief Used by MilvusClientV2::ListIndexes()
- */
-class MILVUS_SDK_API ListIndexesRequest : public IndexRequestBase<ListIndexesRequest> {
- public:
-    /**
-     * @brief Constructor
-     */
-    ListIndexesRequest() = default;
+bool
+GetServerVersionRequest::Detail() const {
+    return detail_;
+}
 
-    /**
-     * @brief Get the field name. If empty, indexes of all fields are returned.
-     */
-    const std::string&
-    FieldName() const;
+void
+GetServerVersionRequest::SetDetail(bool detail) {
+    detail_ = detail;
+}
 
-    /**
-     * @brief Set the field name. If empty, indexes of all fields are returned.
-     */
-    void
-    SetFieldName(const std::string& field_name);
-
-    /**
-     * @brief Set the field name. If empty, indexes of all fields are returned.
-     */
-    ListIndexesRequest&
-    WithFieldName(const std::string& field_name);
-
- private:
-    std::string field_name_;
-};
+GetServerVersionRequest&
+GetServerVersionRequest::WithDetail(bool detail) {
+    SetDetail(detail);
+    return *this;
+}
 
 }  // namespace milvus

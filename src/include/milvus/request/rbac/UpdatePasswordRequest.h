@@ -86,10 +86,58 @@ class MILVUS_SDK_API UpdatePasswordRequest {
     UpdatePasswordRequest&
     WithNewPassword(const std::string& password);
 
+    /**
+     * @brief Description of the user.
+     */
+    const std::string&
+    Description() const;
+
+    /**
+     * @brief Set description of the user.
+     */
+    void
+    SetDescription(const std::string& description);
+
+    /**
+     * @brief Set description of the user.
+     */
+    UpdatePasswordRequest&
+    WithDescription(const std::string& description);
+
+    /**
+     * @brief Whether to reset the current connection with the new credentials after the password is updated.
+     */
+    bool
+    ResetConnection() const;
+
+    /**
+     * @brief Set whether to reset the current connection with the new credentials after the password is updated.
+     * When true, the client reconnects using the new password so subsequent RPCs keep working.
+     *
+     * Note: the password is updated on the server before the reconnect is attempted. If the reconnect
+     * fails, the returned Status reports that the password was updated but the connection must be
+     * re-established manually with the new credentials.
+     */
+    void
+    SetResetConnection(bool reset_connection);
+
+    /**
+     * @brief Set whether to reset the current connection with the new credentials after the password is updated.
+     * When true, the client reconnects using the new password so subsequent RPCs keep working.
+     *
+     * Note: the password is updated on the server before the reconnect is attempted. If the reconnect
+     * fails, the returned Status reports that the password was updated but the connection must be
+     * re-established manually with the new credentials.
+     */
+    UpdatePasswordRequest&
+    WithResetConnection(bool reset_connection);
+
  protected:
     std::string user_name_;
     std::string old_password_;
     std::string new_password_;
+    std::string description_;
+    bool reset_connection_{false};
 };
 
 }  // namespace milvus

@@ -96,15 +96,9 @@ class MilvusContainerEnv : public ::testing::Environment {
         }
         std::cout << "Milvus container started: " << container_id_ << std::endl;
 
-        // Get container IP for test connections (localhost may not work in CI)
-        std::string inspect_cmd =
-            "docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' " + container_id_ + " 2>&1";
-        std::string container_ip = execCommand(inspect_cmd);
-        container_ip.erase(container_ip.find_last_not_of(" \n\r\t") + 1);
-        container_ip.erase(0, container_ip.find_first_not_of(" \n\r\t"));
-        std::cout << "Milvus container IP: " << container_ip << std::endl;
-
-        setenv("MILVUS_HOST", container_ip.c_str(), 1);
+        // The tests connect to the host-published gRPC port (29730), which is only
+        // reachable through the host loopback, not the container's internal IP.
+        setenv("MILVUS_HOST", "127.0.0.1", 1);
     }
 
     void

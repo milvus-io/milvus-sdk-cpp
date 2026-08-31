@@ -50,6 +50,9 @@ class MilvusClientV2Impl : public MilvusClientV2, public std::enable_shared_from
     GetServerVersion(std::string& version) final;
 
     Status
+    GetServerVersionV2(const GetServerVersionRequest& request, GetServerVersionResponse& response) final;
+
+    Status
     GetSDKVersion(std::string& version) final;
 
     Status
@@ -396,6 +399,12 @@ class MilvusClientV2Impl : public MilvusClientV2, public std::enable_shared_from
 
     Status
     RevokeRole(const RevokeRoleRequest& request) final;
+
+    Status
+    GrantPrivilege(const GrantPrivilegeRequest& request) final;
+
+    Status
+    RevokePrivilege(const RevokePrivilegeRequest& request) final;
 
     Status
     GrantPrivilegeV2(const GrantPrivilegeV2Request& request) final;

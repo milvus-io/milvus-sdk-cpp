@@ -96,6 +96,7 @@
 #include "request/rbac/ListRolesRequest.h"
 #include "request/rbac/ListUsersRequest.h"
 #include "request/rbac/PrivilegeGroupRequest.h"
+#include "request/rbac/PrivilegeRequest.h"
 #include "request/rbac/PrivilegeV2Request.h"
 #include "request/rbac/PrivilegesOfGroupRequest.h"
 #include "request/rbac/RoleUserRequest.h"
@@ -125,6 +126,7 @@
 #include "request/utility/GetCompactionRequest.h"
 #include "request/utility/GetFlushAllStateRequest.h"
 #include "request/utility/GetRefreshExternalCollectionProgressRequest.h"
+#include "request/utility/GetServerVersionRequest.h"
 #include "request/utility/ListRefreshExternalCollectionJobsRequest.h"
 #include "request/utility/ListSegmentsRequest.h"
 #include "request/utility/OptimizeRequest.h"
@@ -172,6 +174,7 @@
 #include "response/utility/GetCompactionStateResponse.h"
 #include "response/utility/GetFlushAllStateResponse.h"
 #include "response/utility/GetRefreshExternalCollectionProgressResponse.h"
+#include "response/utility/GetServerVersionResponse.h"
 #include "response/utility/ListFileResourcesResponse.h"
 #include "response/utility/ListRefreshExternalCollectionJobsResponse.h"
 #include "response/utility/ListSegmentsResponse.h"
@@ -261,6 +264,20 @@ class MILVUS_SDK_API MilvusClientV2 {
      */
     virtual Status
     GetServerVersion(std::string& version) = 0;
+
+    /**
+     * @brief Get the Milvus server version.
+     *
+     * When the request Detail() is true, the response also carries the build time,
+     * git commit, Go version and deploy mode of the server.
+     *
+     * @param [in] request input parameters
+     * @param [out] response output results
+     * @return Status operation successfully or not
+     *
+     */
+    virtual Status
+    GetServerVersionV2(const GetServerVersionRequest& request, GetServerVersionResponse& response) = 0;
 
     /**
      * @brief Get SDK version.
@@ -1363,6 +1380,30 @@ class MILVUS_SDK_API MilvusClientV2 {
      */
     virtual Status
     RevokeRole(const RevokeRoleRequest& request) = 0;
+
+    /**
+     * @brief Grant a privilege to a role on an arbitrary object.
+     * The object is identified by its type and name, e.g. a "Collection" named "my_collection",
+     * a "Database" named "my_db", or the "Global" scope. Read the doc for more info:
+     * https://milvus.io/docs/users_and_roles.md
+     *
+     * @param [in] request input parameters
+     * @return Status operation successfully or not
+     */
+    virtual Status
+    GrantPrivilege(const GrantPrivilegeRequest& request) = 0;
+
+    /**
+     * @brief Revoke a privilege from a role on an arbitrary object.
+     * The object is identified by its type and name, e.g. a "Collection" named "my_collection",
+     * a "Database" named "my_db", or the "Global" scope. Read the doc for more info:
+     * https://milvus.io/docs/users_and_roles.md
+     *
+     * @param [in] request input parameters
+     * @return Status operation successfully or not
+     */
+    virtual Status
+    RevokePrivilege(const RevokePrivilegeRequest& request) = 0;
 
     /**
      * @brief Grant a privilege or a privilege group to a role.

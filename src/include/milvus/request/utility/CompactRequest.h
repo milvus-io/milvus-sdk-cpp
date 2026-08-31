@@ -70,22 +70,46 @@ class MILVUS_SDK_API CompactRequest {
     WithCollectionName(const std::string& collection_name);
 
     /**
-     * @brief Target segment size in MB. Zero means use server default.
+     * @brief Target segment size, expressed in the unit returned by TargetSizeUnit().
+     * Zero means use server default. Must be a positive integer when set.
      */
     int64_t
     TargetSize() const;
 
     /**
-     * @brief Set target segment size in MB. Zero means use server default.
+     * @brief Set target segment size, expressed in the unit returned by TargetSizeUnit().
+     * Zero means use server default.
      */
     void
     SetTargetSize(int64_t target_size);
 
     /**
-     * @brief Set target segment size in MB. Zero means use server default.
+     * @brief Set target segment size, expressed in the unit returned by TargetSizeUnit().
+     * Zero means use server default.
      */
     CompactRequest&
     WithTargetSize(int64_t target_size);
+
+    /**
+     * @brief Unit of the target segment size. Supported values: "b", "kb", "mb", "gb",
+     * "tb", "pb". Default is "mb".
+     */
+    const std::string&
+    TargetSizeUnit() const;
+
+    /**
+     * @brief Set unit of the target segment size. Supported values: "b", "kb", "mb", "gb",
+     * "tb", "pb". Default is "mb".
+     */
+    void
+    SetTargetSizeUnit(const std::string& unit);
+
+    /**
+     * @brief Set unit of the target segment size. Supported values: "b", "kb", "mb", "gb",
+     * "tb", "pb". Default is "mb".
+     */
+    CompactRequest&
+    WithTargetSizeUnit(const std::string& unit);
 
     /**
      * @brief Get the flag whether it is cluserting compaction or not.
@@ -109,11 +133,35 @@ class MILVUS_SDK_API CompactRequest {
     CompactRequest&
     WithClusteringCompaction(bool clustering_compaction);
 
+    /**
+     * @brief Get the flag whether it is L0 compaction or not.
+     */
+    bool
+    IsL0() const;
+
+    /**
+     * @brief Set L0 compaction flag.
+     * True: compact L0 segments only.
+     * False: normal compaction.
+     */
+    void
+    SetIsL0(bool is_l0);
+
+    /**
+     * @brief Set L0 compaction flag.
+     * True: compact L0 segments only.
+     * False: normal compaction.
+     */
+    CompactRequest&
+    WithIsL0(bool is_l0);
+
  private:
     std::string db_name_;
     std::string collection_name_;
     int64_t target_size_{0};
+    std::string target_size_unit_{"mb"};
     bool is_clustring_compaction_{false};
+    bool is_l0_{false};
 };
 
 }  // namespace milvus

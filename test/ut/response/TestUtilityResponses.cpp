@@ -112,6 +112,30 @@ TEST_F(GetCompactionPlansResponseTest, SetterAndGetter) {
     (void)resp.Plans();
 }
 
+class GetServerVersionResponseTest : public ::testing::Test {};
+
+TEST_F(GetServerVersionResponseTest, SetterAndGetter) {
+    milvus::GetServerVersionResponse resp;
+
+    EXPECT_TRUE(resp.Version().empty());
+    EXPECT_TRUE(resp.BuildTime().empty());
+    EXPECT_TRUE(resp.GitCommit().empty());
+    EXPECT_TRUE(resp.GoVersion().empty());
+    EXPECT_TRUE(resp.DeployMode().empty());
+
+    resp.SetVersion("v2.5.0");
+    resp.SetBuildTime("2024-01-01");
+    resp.SetGitCommit("abc123");
+    resp.SetGoVersion("go1.21");
+    resp.SetDeployMode("standalone");
+
+    EXPECT_EQ(resp.Version(), "v2.5.0");
+    EXPECT_EQ(resp.BuildTime(), "2024-01-01");
+    EXPECT_EQ(resp.GitCommit(), "abc123");
+    EXPECT_EQ(resp.GoVersion(), "go1.21");
+    EXPECT_EQ(resp.DeployMode(), "standalone");
+}
+
 class ListPersistentSegmentsResponseTest : public ::testing::Test {};
 
 TEST_F(ListPersistentSegmentsResponseTest, SetterAndGetter) {

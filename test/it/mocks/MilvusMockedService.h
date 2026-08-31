@@ -371,6 +371,10 @@ class MilvusMockedService : public ::milvus::proto::milvus::MilvusService::Servi
                  ::grpc::Status(::grpc::ServerContext*, const ::milvus::proto::milvus::OperateUserRoleRequest*,
                                 ::milvus::proto::common::Status*));
 
+    MOCK_METHOD3(OperatePrivilege,
+                 ::grpc::Status(::grpc::ServerContext*, const ::milvus::proto::milvus::OperatePrivilegeRequest*,
+                                ::milvus::proto::common::Status*));
+
     MOCK_METHOD3(OperatePrivilegeV2,
                  ::grpc::Status(::grpc::ServerContext*, const ::milvus::proto::milvus::OperatePrivilegeV2Request*,
                                 ::milvus::proto::common::Status*));

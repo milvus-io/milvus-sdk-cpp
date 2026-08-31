@@ -59,7 +59,7 @@ class MilvusServerTestCache : public milvus::test::MilvusServerTest {
         milvus::CollectionTsCache::GetInstance().Clear();
 
         const char* host = std::getenv("MILVUS_HOST");
-        endpoint_ = std::string(host ? host : "localhost") + ":19530";
+        endpoint_ = std::string(host ? host : "localhost") + ":29730";
         collection_name_ = milvus::test::RanName("CacheTest_");
         CreateAndLoadCollection(collection_name_);
     }

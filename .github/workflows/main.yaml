@@ -101,6 +101,15 @@ jobs:
         run: echo "${HOME}/.local/bin" >> $GITHUB_PATH
       - name: Checkout
         uses: actions/checkout@v4
+      - name: Install zstd (Fedora)
+        # actions/cache stamps the cache version with the compression method detected
+        # at restore time. Fedora only gains zstd via install_deps.sh (rpm-build pulls
+        # it in as a dependency), so a restore before Prepare would compute a gzip-based
+        # version that never matches the zstd-based version saved at the end of the job.
+        # Install zstd before the cache restore so save/restore both use zstd and the
+        # Fedora conan/ccache caches are actually hit.
+        if: ${{ matrix.os.distro == 'Fedora' }}
+        run: dnf -y install zstd
       - name: Cache Conan
         # Ubuntu 20.04 (gcc 9) has no prebuilt grpc binaries on conancenter, so the
         # dependency stack builds from source (~25 min) on every run without this cache.

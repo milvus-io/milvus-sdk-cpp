@@ -137,7 +137,7 @@ ParseTargetSizeMB(const std::string& target_size, int64_t& target_size_mb, std::
     long double number = 0;
     size_t unit_pos = 0;
     if (!ParsePositiveDecimal(text, number, unit_pos)) {
-        return {StatusCode::INVALID_ARGUMENT, "Invalid optimize target size: " + target_size};
+        return {StatusCode::INVALID_ARGUMENT, "Invalid target size: " + target_size};
     }
 
     auto unit = UpperWithoutSpaces(text.substr(unit_pos));
@@ -155,18 +155,18 @@ ParseTargetSizeMB(const std::string& target_size, int64_t& target_size_mb, std::
     } else if (unit == "PB") {
         multiplier = 1024.0L * 1024.0L * 1024.0L * 1024.0L * 1024.0L;
     } else {
-        return {StatusCode::INVALID_ARGUMENT, "Invalid optimize target size unit: " + target_size};
+        return {StatusCode::INVALID_ARGUMENT, "Invalid target size unit: " + target_size};
     }
 
     const auto bytes = number * multiplier;
     constexpr long double mb_bytes = 1024.0L * 1024.0L;
     if (bytes < mb_bytes || bytes > static_cast<long double>(std::numeric_limits<int64_t>::max())) {
-        return {StatusCode::INVALID_ARGUMENT, "Optimize target size must be at least 1MB"};
+        return {StatusCode::INVALID_ARGUMENT, "Target size must be at least 1MB"};
     }
 
     target_size_mb = static_cast<int64_t>(bytes / mb_bytes);
     if (target_size_mb <= 0) {
-        return {StatusCode::INVALID_ARGUMENT, "Optimize target size must be at least 1MB"};
+        return {StatusCode::INVALID_ARGUMENT, "Target size must be at least 1MB"};
     }
     normalized = std::to_string(target_size_mb) + "MB";
     return Status::OK();
