@@ -175,7 +175,7 @@ capture_coverage() {
 
 # delete old code coverage output files
 rm -rf ${DIR_LCOV_OUTPUT}
-mkdir ${COVERAGE_OUTPUT_DIR}
+mkdir -p ${DIR_LCOV_OUTPUT}
 
 # generate baseline (exclude proto-generated files)
 if ! capture_coverage -i '*.gcno' "${FILE_INFO_BASE}"; then
