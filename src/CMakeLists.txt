@@ -29,6 +29,14 @@ endif()
 
 # add proto gens
 add_milvus_protos(milvus_sdk_objects)
+
+if (MILVUS_ENABLE_UNITY)
+    # Generated protobuf sources stay out of unity batches via SKIP_UNITY_BUILD_INCLUSION
+    # set next to each generated file in cmake/MilvusProtoGen.cmake.
+    set_target_properties(milvus_sdk_objects PROPERTIES
+        UNITY_BUILD ON
+        UNITY_BUILD_BATCH_SIZE "${MILVUS_UNITY_BATCH_SIZE}")
+endif ()
 target_link_libraries(milvus_sdk_objects PRIVATE protobuf::libprotobuf gRPC::grpc++)
 target_compile_options(milvus_sdk_objects PRIVATE $<$<CXX_COMPILER_ID:MSVC>:/bigobj>)
 target_include_directories(milvus_sdk_objects PUBLIC

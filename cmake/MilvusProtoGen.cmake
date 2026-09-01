@@ -155,6 +155,11 @@ function(add_proto_source target name)
     VERBATIM
     )
     target_sources(${target} PRIVATE ${milvus_proto_BINARY_DIR}/${name}.pb.cc)
+    # Generated protobuf sources are huge standalone TUs; batching them with hand-written
+    # code would amplify memory pressure and can slow the build. The property is a no-op
+    # when unity builds are disabled.
+    set_source_files_properties(${milvus_proto_BINARY_DIR}/${name}.pb.cc
+        PROPERTIES SKIP_UNITY_BUILD_INCLUSION TRUE)
 endfunction(add_proto_source target name)
 
 function(add_proto_service target name)
@@ -173,6 +178,8 @@ function(add_proto_service target name)
     VERBATIM
     )
     target_sources(${target} PRIVATE ${milvus_proto_BINARY_DIR}/${name}.grpc.pb.cc)
+    set_source_files_properties(${milvus_proto_BINARY_DIR}/${name}.grpc.pb.cc
+        PROPERTIES SKIP_UNITY_BUILD_INCLUSION TRUE)
 endfunction(add_proto_service target name)
 
 function(add_milvus_protos target)

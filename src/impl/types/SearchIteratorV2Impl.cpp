@@ -28,8 +28,6 @@
 #include "SearchIteratorImpl.h"
 
 namespace milvus {
-template class MILVUS_SDK_API Iterator<SingleResult>;
-
 template <typename T>
 SearchIteratorV2Impl<T>::SearchIteratorV2Impl(const MilvusConnectionPtr& connection, const T& args,
                                               const RetryParam& retry_param) {

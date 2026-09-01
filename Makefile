@@ -45,6 +45,9 @@ all: all-debug
 lint:
 	@(env bash ${PWD}/scripts/build.sh -l)
 
+lint-release:
+	@(env bash ${PWD}/scripts/build.sh -l -t Release)
+
 # Build sdk
 build-sdk-debug:
 	@echo "Building Milvus SDK debug version ..."
@@ -163,4 +166,4 @@ clean:
 	@echo "Cleaning"
 	rm -fr cmake_build/ build/
 
-.PHONY: test tutorials run-tutorial clean doc package run
+.PHONY: lint lint-release test tutorials run-tutorial clean doc package run

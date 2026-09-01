@@ -27,6 +27,10 @@
 #include "../utils/TypeUtils.h"
 
 namespace milvus {
+// Single explicit instantiation of Iterator<SingleResult> for the whole library; the extern
+// template declaration in Iterator.h suppresses implicit instantiation in other TUs. Do not
+// repeat this in other files (e.g. SearchIteratorV2Impl.cpp): unity builds batch them together
+// and duplicate explicit instantiation is a hard error.
 template class MILVUS_SDK_API Iterator<SingleResult>;
 
 template <typename T>

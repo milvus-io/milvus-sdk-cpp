@@ -5,3 +5,4 @@
 */test/*
 */thirdparty/*
 */src/include/nlohmann*
+*/.conan2/*
