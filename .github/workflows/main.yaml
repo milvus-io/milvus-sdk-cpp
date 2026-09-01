@@ -31,11 +31,11 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  # Detect whether the PR touches core SDK files (src, cmake, test,
-  # thirdparty, scripts, workflow, lint configs) or only peripheral files
-  # (examples/**). Changes limited to examples/** skip the heavy CI jobs
-  # (coverage, macOS, Windows) and only run the Linux build,
-  # which is enough to catch regressions in the example code itself.
+  # Detect whether the PR touches files that require a full CI run (SDK sources,
+  # cmake, tests, thirdparty, scripts, workflow, lint configs, examples) or only
+  # peripheral files (markdown docs and repo meta files). Non-documentation
+  # example changes still build the SDK and are exercised by the examples/tutorial
+  # steps, so they count as core_relevant; markdown-only changes skip the heavy jobs.
   changes:
     name: Detect path changes
     if: github.event_name == 'pull_request'
@@ -50,7 +50,6 @@ jobs:
           filters: |
             core_relevant:
               - '**'
-              - '!examples/**'
               - '!**.md'
               - '!doc/**'
               - '!.gitignore'
@@ -61,7 +60,11 @@ jobs:
 
   linux:
     name: Build and test AMD64 ${{ matrix.os.distro }} ${{ matrix.os.version }}
-    if: github.event_name == 'pull_request'
+    # Run on PRs (when core files change) and on pushes to the protected branches.
+    # Push runs restore the conan/ccache caches from the default-branch scope and
+    # re-save them there, so subsequent PRs can reuse the built dependency stack.
+    needs: changes
+    if: always() && (github.event_name == 'push' || needs.changes.outputs.core_relevant == 'true')
     runs-on: ubuntu-latest
     container: ${{ matrix.os.image }}
     # github automatically evicts no-access caches after 7 days, so we set a longer timeout to avoid unnecessary workflow timeout.
@@ -253,9 +256,10 @@ jobs:
 
   macos:
     name: Build and test macOS 15
-    # Skip for examples-only changes; macOS runners are scarce.
+    # Skip for examples-only changes; macOS runners are scarce. Run on pushes so
+    # the macos-15 caches are refreshed in the default-branch scope for PRs.
     needs: changes
-    if: github.event_name == 'pull_request' && needs.changes.outputs.core_relevant == 'true'
+    if: always() && (github.event_name == 'push' || needs.changes.outputs.core_relevant == 'true')
     runs-on: macos-15
     # github automatically evicts no-access caches after 7 days, so we set a longer timeout to avoid unnecessary workflow timeout.
     timeout-minutes: 200
@@ -323,9 +327,10 @@ jobs:
 
   windows:
     name: Build and test windows
-    # Skip for examples-only changes; Windows builds are slow.
+    # Skip for examples-only changes; Windows builds are slow. Run on pushes so
+    # the windows ccache is refreshed in the default-branch scope for PRs.
     needs: changes
-    if: github.event_name == 'pull_request' && needs.changes.outputs.core_relevant == 'true'
+    if: always() && (github.event_name == 'push' || needs.changes.outputs.core_relevant == 'true')
     runs-on: windows-2022
     # github automatically evicts no-access caches after 7 days, so we set a longer timeout to avoid unnecessary workflow timeout.
     timeout-minutes: 200
