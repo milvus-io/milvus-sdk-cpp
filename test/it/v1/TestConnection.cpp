@@ -113,8 +113,8 @@ TEST_F(UnconnectMilvusMockedTest, ConnectFailed) {
 
 TEST_F(UnconnectMilvusMockedTest, ConnectTimeout) {
     milvus::ConnectParam connect_param{"127.0.0.1", server_.ListenPort()};
-    connect_param.SetConnectTimeout(10);
-    auto status = DoConnect(service_, client_, connect_param, 100);
+    connect_param.SetConnectTimeout(500);
+    auto status = DoConnect(service_, client_, connect_param, 1000);
     EXPECT_FALSE(status.IsOk());
 }
 
