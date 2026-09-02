@@ -23,6 +23,7 @@
 #include "./Constants.h"
 #include "./TypeUtils.h"
 #include "milvus/types/Constants.h"
+#include "milvus/types/DmlResults.h"
 #include "milvus/utils/FP16.h"
 
 namespace {
@@ -1712,6 +1713,19 @@ CheckAndSetRowData(const EntityRows& rows, const CollectionSchema& schema, bool 
     }
 
     return Status::OK();
+}
+
+void
+FillDmlCost(const proto::common::Status& status, DmlResults& results) {
+    const auto& extra_info = status.extra_info();
+    const auto cost_it = extra_info.find("report_value");
+    if (cost_it == extra_info.end()) {
+        return;
+    }
+    try {
+        results.SetCost(std::stoll(cost_it->second));
+    } catch (...) {
+    }
 }
 
 }  // namespace milvus

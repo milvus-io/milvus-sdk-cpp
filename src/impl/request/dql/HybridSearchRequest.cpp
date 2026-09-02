@@ -185,4 +185,35 @@ HybridSearchRequest::WithStrictGroupSize(bool strict_group_size) {
     return *this;
 }
 
+Status
+HybridSearchRequest::Validate() const {
+    auto status = ValidateLimit(limit_);
+    if (!status.IsOk()) {
+        return status;
+    }
+
+    status = ValidateRoundDecimal(extra_params_);
+    if (!status.IsOk()) {
+        return status;
+    }
+
+    for (const auto& sub_request : sub_requests_) {
+        if (sub_request == nullptr) {
+            return {StatusCode::INVALID_ARGUMENT, "Sub request can not be null!"};
+        }
+        auto status = sub_request->Validate();
+        if (!status.IsOk()) {
+            return status;
+        }
+    }
+    if (function_ == nullptr) {
+        return {StatusCode::INVALID_ARGUMENT, "Rerank function is undefined!"};
+    }
+    if (function_->GetFunctionType() != FunctionType::RERANK) {
+        return {StatusCode::INVALID_ARGUMENT, "Hybrid search only accepts RERANK function!"};
+    }
+
+    return Status::OK();
+}
+
 }  // namespace milvus

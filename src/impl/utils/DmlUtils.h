@@ -25,6 +25,7 @@
 #include "schema.pb.h"
 
 namespace milvus {
+class DmlResults;
 
 bool
 IsInputField(const FieldSchema& field_schema, bool is_upsert);
@@ -35,6 +36,9 @@ CheckInsertInput(const CollectionDescPtr& collection_desc, const std::vector<Fie
 
 bool
 IsRealFailure(const proto::common::Status& status);
+
+void
+FillDmlCost(const proto::common::Status& status, DmlResults& results);
 
 std::string
 EncodeSparseFloatVector(const SparseFloatVecFieldData::ElementT& sparse);

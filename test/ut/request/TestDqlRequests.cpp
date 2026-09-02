@@ -743,3 +743,98 @@ TEST_F(QueryIteratorRequestTest, SetReduceStopForBest) {
     EXPECT_TRUE(req.ReduceStopForBest());
     EXPECT_EQ(&ref, &req);
 }
+
+TEST_F(SearchRequestTest, ValidateRejectsInvalidRoundDecimal) {
+    milvus::SearchRequest req;
+    req.WithLimit(10).WithRoundDecimal(7);
+
+    auto status = req.Validate();
+    EXPECT_FALSE(status.IsOk());
+    EXPECT_EQ(status.Code(), milvus::StatusCode::INVALID_ARGUMENT);
+}
+
+TEST_F(SearchRequestTest, ValidateHandlesNonNumericRoundDecimalWithoutThrowing) {
+    milvus::SearchRequest req;
+    req.WithLimit(10);
+    req.AddExtraParam("round_decimal", "not-a-number");
+
+    auto status = req.Validate();
+    EXPECT_FALSE(status.IsOk());
+    EXPECT_EQ(status.Code(), milvus::StatusCode::INVALID_ARGUMENT);
+}
+
+TEST_F(HybridSearchRequestTest, ValidateRejectsNonPositiveLimit) {
+    milvus::HybridSearchRequest req;
+    req.WithLimit(0);
+
+    auto status = req.Validate();
+    EXPECT_FALSE(status.IsOk());
+    EXPECT_EQ(status.Code(), milvus::StatusCode::INVALID_ARGUMENT);
+}
+
+TEST_F(HybridSearchRequestTest, ValidateRejectsInvalidRoundDecimal) {
+    milvus::HybridSearchRequest req;
+    req.WithLimit(10).WithRoundDecimal(7);
+
+    auto status = req.Validate();
+    EXPECT_FALSE(status.IsOk());
+    EXPECT_EQ(status.Code(), milvus::StatusCode::INVALID_ARGUMENT);
+}
+
+TEST_F(HybridSearchRequestTest, ValidateHandlesNonNumericRoundDecimalWithoutThrowing) {
+    milvus::HybridSearchRequest req;
+    req.WithLimit(10);
+    req.AddExtraParam("round_decimal", "not-a-number");
+
+    auto status = req.Validate();
+    EXPECT_FALSE(status.IsOk());
+    EXPECT_EQ(status.Code(), milvus::StatusCode::INVALID_ARGUMENT);
+}
+
+TEST_F(HybridSearchRequestTest, ValidateAcceptsFullyValidRequest) {
+    milvus::HybridSearchRequest req;
+    auto sub = std::make_shared<milvus::SubSearchRequest>();
+    sub->WithAnnsField("vec").WithLimit(10);
+    sub->AddFloatVector(std::vector<float>{0.1f, 0.2f, 0.3f, 0.4f});
+    req.WithLimit(10).AddSubRequest(sub);
+    req.WithRerank(std::make_shared<milvus::RRFRerank>(60));
+
+    auto status = req.Validate();
+    EXPECT_TRUE(status.IsOk());
+}
+
+TEST_F(HybridSearchRequestTest, ValidateRejectsNullSubRequest) {
+    milvus::HybridSearchRequest req;
+    req.WithLimit(10);
+    req.AddSubRequest(nullptr);
+    req.WithRerank(std::make_shared<milvus::RRFRerank>(60));
+
+    auto status = req.Validate();
+    EXPECT_FALSE(status.IsOk());
+    EXPECT_EQ(status.Code(), milvus::StatusCode::INVALID_ARGUMENT);
+}
+
+TEST_F(HybridSearchRequestTest, ValidateRejectsMissingRerank) {
+    milvus::HybridSearchRequest req;
+    auto sub = std::make_shared<milvus::SubSearchRequest>();
+    sub->WithAnnsField("vec").WithLimit(10);
+    sub->AddFloatVector(std::vector<float>{0.1f, 0.2f, 0.3f, 0.4f});
+    req.WithLimit(10).AddSubRequest(sub);
+
+    auto status = req.Validate();
+    EXPECT_FALSE(status.IsOk());
+    EXPECT_EQ(status.Code(), milvus::StatusCode::INVALID_ARGUMENT);
+}
+
+TEST_F(HybridSearchRequestTest, ValidateRejectsNonRerankFunction) {
+    milvus::HybridSearchRequest req;
+    auto sub = std::make_shared<milvus::SubSearchRequest>();
+    sub->WithAnnsField("vec").WithLimit(10);
+    sub->AddFloatVector(std::vector<float>{0.1f, 0.2f, 0.3f, 0.4f});
+    req.WithLimit(10).AddSubRequest(sub);
+    req.WithRerank(std::make_shared<milvus::Function>("not_rerank", milvus::FunctionType::UNKNOWN));
+
+    auto status = req.Validate();
+    EXPECT_FALSE(status.IsOk());
+    EXPECT_EQ(status.Code(), milvus::StatusCode::INVALID_ARGUMENT);
+}

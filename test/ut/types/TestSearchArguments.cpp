@@ -235,3 +235,56 @@ TEST_F(SearchArgumentsTest, SetRoundDecimal) {
     EXPECT_TRUE(status.IsOk());
     EXPECT_EQ(arguments.RoundDecimal(), 3);
 }
+
+TEST_F(SearchArgumentsTest, ValidateRejectsNonPositiveLimit) {
+    milvus::SearchArguments arguments;
+    arguments.SetLimit(0);
+    arguments.AddFloatVector(std::vector<float>{1.0f, 2.0f});
+
+    auto status = arguments.Validate();
+    EXPECT_FALSE(status.IsOk());
+    EXPECT_EQ(status.Code(), milvus::StatusCode::INVALID_ARGUMENT);
+}
+
+TEST_F(SearchArgumentsTest, ValidateRejectsInvalidRoundDecimal) {
+    milvus::SearchArguments arguments;
+    arguments.SetLimit(10);
+    arguments.SetRoundDecimal(7);
+    arguments.AddFloatVector(std::vector<float>{1.0f, 2.0f});
+
+    auto status = arguments.Validate();
+    EXPECT_FALSE(status.IsOk());
+    EXPECT_EQ(status.Code(), milvus::StatusCode::INVALID_ARGUMENT);
+}
+
+TEST_F(SearchArgumentsTest, ValidateAcceptsBoundaryRoundDecimal) {
+    for (int round_decimal : {-1, 6}) {
+        milvus::SearchArguments arguments;
+        arguments.SetLimit(10);
+        arguments.SetRoundDecimal(round_decimal);
+        arguments.AddFloatVector(std::vector<float>{1.0f, 2.0f});
+        EXPECT_TRUE(arguments.Validate().IsOk());
+    }
+}
+
+TEST_F(SearchArgumentsTest, ValidateRejectsNegativeLowerBoundRoundDecimal) {
+    milvus::SearchArguments arguments;
+    arguments.SetLimit(10);
+    arguments.SetRoundDecimal(-2);
+    arguments.AddFloatVector(std::vector<float>{1.0f, 2.0f});
+
+    auto status = arguments.Validate();
+    EXPECT_FALSE(status.IsOk());
+    EXPECT_EQ(status.Code(), milvus::StatusCode::INVALID_ARGUMENT);
+}
+
+TEST_F(SearchArgumentsTest, ValidateHandlesNonNumericRoundDecimalWithoutThrowing) {
+    milvus::SearchArguments arguments;
+    arguments.SetLimit(10);
+    arguments.AddExtraParam("round_decimal", "not-a-number");
+    arguments.AddFloatVector(std::vector<float>{1.0f, 2.0f});
+
+    auto status = arguments.Validate();
+    EXPECT_FALSE(status.IsOk());
+    EXPECT_EQ(status.Code(), milvus::StatusCode::INVALID_ARGUMENT);
+}

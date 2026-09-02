@@ -20,6 +20,7 @@
 #include <cstring>
 
 #include "milvus/types/Constants.h"
+#include "milvus/types/DmlResults.h"
 #include "milvus/utils/FP16.h"
 #include "utils/Constants.h"
 #include "utils/DmlUtils.h"
@@ -1470,4 +1471,27 @@ TEST_F(DmlUtilsTest, DenseVectorColumnsRejectRaggedRows) {
         milvus::DataType::BFLOAT16_VECTOR, 2);
     verify(std::make_shared<milvus::Int8VecFieldData>("int8", std::vector<std::vector<int8_t>>{{1}, {2, 3, 4}}),
            milvus::DataType::INT8_VECTOR, 2);
+}
+
+TEST_F(DmlUtilsTest, FillDmlCost) {
+    {
+        milvus::proto::common::Status status;
+        (*status.mutable_extra_info())["report_value"] = "12345";
+        milvus::DmlResults results;
+        milvus::FillDmlCost(status, results);
+        EXPECT_EQ(results.Cost(), 12345);
+    }
+    {
+        milvus::proto::common::Status status;
+        milvus::DmlResults results;
+        milvus::FillDmlCost(status, results);
+        EXPECT_EQ(results.Cost(), -1);
+    }
+    {
+        milvus::proto::common::Status status;
+        (*status.mutable_extra_info())["report_value"] = "not-a-number";
+        milvus::DmlResults results;
+        milvus::FillDmlCost(status, results);
+        EXPECT_EQ(results.Cost(), -1);
+    }
 }

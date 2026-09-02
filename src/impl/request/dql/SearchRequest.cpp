@@ -308,6 +308,16 @@ SearchRequest::AddOrderByField(OrderByField order_by_field) {
 
 Status
 SearchRequest::Validate() const {
+    auto status = ValidateLimit(Limit());
+    if (!status.IsOk()) {
+        return status;
+    }
+
+    status = ValidateRoundDecimal(extra_params_);
+    if (!status.IsOk()) {
+        return status;
+    }
+
     if (IDs().GetRowCount() != 0 && (TargetVectors() != nullptr || !EmbeddingLists().empty())) {
         return {StatusCode::INVALID_ARGUMENT, "Only one of IDs or target vectors can be provided"};
     }

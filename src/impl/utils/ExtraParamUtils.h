@@ -39,6 +39,43 @@ GetExtraInt64(const ExtraParamsMap& params, const std::string& key, int64_t defa
     return default_val;
 }
 
+inline bool
+TryGetExtraInt64(const ExtraParamsMap& params, const std::string& key, int64_t& value) {
+    auto it = params.find(key);
+    if (it == params.end()) {
+        return false;
+    }
+    try {
+        value = std::stoll(it->second);
+        return true;
+    } catch (...) {
+        return false;
+    }
+}
+
+inline Status
+ValidateLimit(int64_t limit) {
+    if (limit <= 0) {
+        return {StatusCode::INVALID_ARGUMENT, "limit must be greater than 0"};
+    }
+    return Status::OK();
+}
+
+inline Status
+ValidateRoundDecimal(const ExtraParamsMap& params) {
+    int64_t round_decimal = -1;
+    if (TryGetExtraInt64(params, "round_decimal", round_decimal)) {
+        if (round_decimal <= -2 || round_decimal >= 7) {
+            return {StatusCode::INVALID_ARGUMENT, "round_decimal must be in range (-2, 7)"};
+        }
+        return Status::OK();
+    }
+    if (params.count("round_decimal") != 0) {
+        return {StatusCode::INVALID_ARGUMENT, "round_decimal must be a valid integer"};
+    }
+    return Status::OK();
+}
+
 inline std::string
 DoubleToString(double val) {
     std::ostringstream stream;

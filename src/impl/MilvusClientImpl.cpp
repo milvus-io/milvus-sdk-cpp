@@ -1041,6 +1041,7 @@ MilvusClientImpl::insert(const std::string& collection_name, const std::string& 
         results.SetIdArray(std::move(id_array));
         results.SetTimestamp(response.timestamp());
         results.SetInsertCount(static_cast<uint64_t>(response.insert_cnt()));
+        FillDmlCost(response.status(), results);
 
         // special for dml api: if the api failed, remove the schema cache of this collection
         if (IsRealFailure(response.status())) {
@@ -1115,6 +1116,7 @@ MilvusClientImpl::insert(const std::string& collection_name, const std::string& 
         results.SetIdArray(std::move(id_array));
         results.SetTimestamp(response.timestamp());
         results.SetInsertCount(static_cast<uint64_t>(response.insert_cnt()));
+        FillDmlCost(response.status(), results);
 
         // special for dml api: if the api failed, remove the schema cache of this collection
         if (IsRealFailure(response.status())) {
@@ -1212,6 +1214,7 @@ MilvusClientImpl::upsert(const std::string& collection_name, const std::string& 
         results.SetIdArray(std::move(id_array));
         results.SetTimestamp(response.timestamp());
         results.SetUpsertCount(static_cast<uint64_t>(response.upsert_cnt()));
+        FillDmlCost(response.status(), results);
 
         // special for dml api: if the api failed, remove the schema cache of this collection
         if (IsRealFailure(response.status())) {
@@ -1285,6 +1288,7 @@ MilvusClientImpl::upsert(const std::string& collection_name, const std::string& 
         results.SetIdArray(std::move(id_array));
         results.SetTimestamp(response.timestamp());
         results.SetUpsertCount(static_cast<uint64_t>(response.upsert_cnt()));
+        FillDmlCost(response.status(), results);
 
         // special for dml api: if the api failed, remove the schema cache of this collection
         if (IsRealFailure(response.status())) {
@@ -1325,6 +1329,7 @@ MilvusClientImpl::Delete(const std::string& collection_name, const std::string& 
         results.SetIdArray(std::move(id_array));
         results.SetTimestamp(response.timestamp());
         results.SetDeleteCount(static_cast<uint64_t>(response.delete_cnt()));
+        FillDmlCost(response.status(), results);
 
         if (!IsRealFailure(response.status())) {
             // TODO: if the parameters provides db_name in future, we need to set the correct

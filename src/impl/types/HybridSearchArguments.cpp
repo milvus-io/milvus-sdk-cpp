@@ -204,6 +204,16 @@ HybridSearchArguments::ExtraParams() const {
 
 Status
 HybridSearchArguments::Validate() const {
+    auto status = ValidateLimit(limit_);
+    if (!status.IsOk()) {
+        return status;
+    }
+
+    status = ValidateRoundDecimal(extra_params_);
+    if (!status.IsOk()) {
+        return status;
+    }
+
     for (auto& it : sub_requests_) {
         if (it == nullptr) {
             return {StatusCode::INVALID_ARGUMENT, "Sub request can not be null!"};

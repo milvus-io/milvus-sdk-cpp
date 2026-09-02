@@ -50,3 +50,10 @@ TEST_F(DmlResultsTest, UpsertCount) {
     dml_results.SetUpsertCount(75);
     EXPECT_EQ(dml_results.UpsertCount(), 75);
 }
+
+TEST_F(DmlResultsTest, Cost) {
+    milvus::DmlResults dml_results;
+    EXPECT_EQ(dml_results.Cost(), -1);
+    dml_results.SetCost(12345);
+    EXPECT_EQ(dml_results.Cost(), 12345);
+}

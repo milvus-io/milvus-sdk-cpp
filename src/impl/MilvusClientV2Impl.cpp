@@ -1855,6 +1855,7 @@ MilvusClientV2Impl::insert(const InsertRequest& request, InsertResponse& respons
         results.SetIdArray(std::move(id_array));
         results.SetTimestamp(rpc_response.timestamp());
         results.SetInsertCount(static_cast<uint64_t>(rpc_response.insert_cnt()));
+        FillDmlCost(rpc_response.status(), results);
         response.SetResults(std::move(results));
 
         // special for dml api: if the api failed, remove the schema cache of this collection
@@ -1980,6 +1981,7 @@ MilvusClientV2Impl::upsert(const UpsertRequest& request, UpsertResponse& respons
         results.SetIdArray(std::move(id_array));
         results.SetTimestamp(rpc_response.timestamp());
         results.SetUpsertCount(static_cast<uint64_t>(rpc_response.upsert_cnt()));
+        FillDmlCost(rpc_response.status(), results);
         response.SetResults(std::move(results));
 
         // special for dml api: if the api failed, remove the schema cache of this collection
@@ -2067,6 +2069,7 @@ MilvusClientV2Impl::Delete(const DeleteRequest& request, DeleteResponse& respons
         results.SetIdArray(std::move(id_array));
         results.SetTimestamp(rpc_response.timestamp());
         results.SetDeleteCount(static_cast<uint64_t>(rpc_response.delete_cnt()));
+        FillDmlCost(rpc_response.status(), results);
         response.SetResults(std::move(results));
 
         if (!IsRealFailure(rpc_response.status())) {
@@ -2244,6 +2247,8 @@ MilvusClientV2Impl::hybridSearch(const HybridSearchRequest& request, HybridSearc
                                  const std::string& cluster_id) {
     const auto endpoint = connection_.CurrentEndpoint();
     const auto database_name = connection_.CurrentDbName(request.DatabaseName());
+    auto validate = [&request]() { return request.Validate(); };
+
     auto pre = [&endpoint, &database_name, &request, &cluster_id](proto::milvus::HybridSearchRequest& rpc_request) {
         return ConvertHybridSearchRequest<HybridSearchRequest>(request, database_name, rpc_request, cluster_id,
                                                                endpoint);
@@ -2272,7 +2277,7 @@ MilvusClientV2Impl::hybridSearch(const HybridSearchRequest& request, HybridSearc
 
     return InvokeWithTelemetry(connection_, "HybridSearch", request.CollectionName(), [&]() {
         return connection_.Invoke<proto::milvus::HybridSearchRequest, proto::milvus::SearchResults>(
-            pre, &MilvusConnection::HybridSearch, post);
+            validate, pre, &MilvusConnection::HybridSearch, post);
     });
 }
 

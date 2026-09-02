@@ -217,6 +217,13 @@ class MILVUS_SDK_API HybridSearchRequest : public DQLRequestBase<HybridSearchReq
     HybridSearchRequest&
     WithStrictGroupSize(bool strict_group_size);
 
+    /**
+     * @brief Validate the hybrid search request before sending it to the server.
+     * @return Status::OK when the request is valid, otherwise an INVALID_ARGUMENT error.
+     */
+    Status
+    Validate() const;
+
  private:
     std::vector<SubSearchRequestPtr> sub_requests_;
     FunctionPtr function_;

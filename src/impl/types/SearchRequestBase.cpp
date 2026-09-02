@@ -259,6 +259,16 @@ SearchRequestBase::SetTimezone(const std::string& timezone) {
 
 Status
 SearchRequestBase::Validate() const {
+    auto status = ValidateLimit(limit_);
+    if (!status.IsOk()) {
+        return status;
+    }
+
+    status = ValidateRoundDecimal(extra_params_);
+    if (!status.IsOk()) {
+        return status;
+    }
+
     if (this->TargetVectors() != nullptr && !embedding_lists_.empty()) {
         return Status{StatusCode::INVALID_ARGUMENT, "Not allow to set both embedding list and target vector"};
     }
