@@ -95,12 +95,25 @@ class MILVUS_SDK_API DmlResults {
     void
     SetUpsertCount(uint64_t count);
 
+    /**
+     * @brief The cost of the operation in vcus, -1 if the server did not report it.
+     */
+    int64_t
+    Cost() const;
+
+    /**
+     * @brief Set the cost of the operation.
+     */
+    void
+    SetCost(int64_t cost);
+
  private:
     IDArray id_array_{std::vector<int64_t>{}};
     uint64_t timestamp_{0};
     uint64_t insert_cnt_{0};
     uint64_t delete_cnt_{0};
     uint64_t upsert_cnt_{0};
+    int64_t cost_{-1};
 };
 
 }  // namespace milvus

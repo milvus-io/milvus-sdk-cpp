@@ -30,6 +30,26 @@ TEST_F(MilvusServerTestGeneric, GetServerVersion) {
     EXPECT_THAT(version, testing::MatchesRegex("v?2.+"));
 }
 
+TEST_F(MilvusServerTestGeneric, GetServerVersionV2) {
+    milvus::GetServerVersionResponse resp;
+    auto status = client_->GetServerVersionV2(milvus::GetServerVersionRequest(), resp);
+    milvus::test::ExpectStatusOK(status);
+    std::cout << "Milvus version: " << resp.Version() << std::endl;
+    EXPECT_THAT(resp.Version(), testing::MatchesRegex("v?2.+"));
+
+    milvus::GetServerVersionResponse detail_resp;
+    status = client_->GetServerVersionV2(milvus::GetServerVersionRequest().WithDetail(true), detail_resp);
+    milvus::test::ExpectStatusOK(status);
+    std::cout << "Milvus version detail: " << detail_resp.Version() << ", build_time: " << detail_resp.BuildTime()
+              << ", git_commit: " << detail_resp.GitCommit() << ", go_version: " << detail_resp.GoVersion()
+              << ", deploy_mode: " << detail_resp.DeployMode() << std::endl;
+    EXPECT_THAT(detail_resp.Version(), testing::MatchesRegex("v?2.+"));
+    EXPECT_FALSE(detail_resp.BuildTime().empty());
+    EXPECT_FALSE(detail_resp.GitCommit().empty());
+    EXPECT_FALSE(detail_resp.GoVersion().empty());
+    EXPECT_FALSE(detail_resp.DeployMode().empty());
+}
+
 TEST_F(MilvusServerTestGeneric, GetSDKVersion) {
     std::string version;
     auto status = client_->GetSDKVersion(version);

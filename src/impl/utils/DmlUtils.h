@@ -21,6 +21,7 @@
 #include "milvus.pb.h"
 #include "milvus/types/CollectionDesc.h"
 #include "milvus/types/ConsistencyLevel.h"
+#include "milvus/types/DmlResults.h"
 #include "milvus/types/IDArray.h"
 #include "schema.pb.h"
 
@@ -35,6 +36,9 @@ CheckInsertInput(const CollectionDescPtr& collection_desc, const std::vector<Fie
 
 bool
 IsRealFailure(const proto::common::Status& status);
+
+void
+SetCostFromProtoStatus(const proto::common::Status& status, DmlResults& results);
 
 std::string
 EncodeSparseFloatVector(const SparseFloatVecFieldData::ElementT& sparse);

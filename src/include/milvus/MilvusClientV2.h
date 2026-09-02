@@ -107,6 +107,7 @@
 #include "request/utility/FlushRequest.h"
 #include "request/utility/GetCompactionRequest.h"
 #include "request/utility/GetFlushAllStateRequest.h"
+#include "request/utility/GetServerVersionRequest.h"
 #include "request/utility/ListSegmentsRequest.h"
 #include "request/utility/OptimizeRequest.h"
 #include "request/utility/RunAnalyzerRequest.h"
@@ -145,6 +146,7 @@
 #include "response/utility/GetCompactionPlansResponse.h"
 #include "response/utility/GetCompactionStateResponse.h"
 #include "response/utility/GetFlushAllStateResponse.h"
+#include "response/utility/GetServerVersionResponse.h"
 #include "response/utility/ListSegmentsResponse.h"
 #include "response/utility/OptimizeResponse.h"
 #include "response/utility/RunAnalyzerResponse.h"
@@ -226,6 +228,20 @@ class MILVUS_SDK_API MilvusClientV2 {
      */
     virtual Status
     GetServerVersion(std::string& version) = 0;
+
+    /**
+     * @brief Get the Milvus server version.
+     *
+     * When the request Detail() is true, the response also carries the build time,
+     * git commit, Go version and deploy mode of the server.
+     *
+     * @param [in] request input parameters
+     * @param [out] response output results
+     * @return Status operation successfully or not
+     *
+     */
+    virtual Status
+    GetServerVersionV2(const GetServerVersionRequest& request, GetServerVersionResponse& response) = 0;
 
     /**
      * @brief Get SDK version.

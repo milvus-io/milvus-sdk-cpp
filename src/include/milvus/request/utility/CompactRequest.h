@@ -109,11 +109,34 @@ class MILVUS_SDK_API CompactRequest {
     CompactRequest&
     WithClusteringCompaction(bool clustering_compaction);
 
+    /**
+     * @brief Get the flag whether it is L0 compaction or not.
+     */
+    bool
+    L0Compaction() const;
+
+    /**
+     * @brief Set L0 compaction flag.
+     * True: do L0 compaction, which merges L0 segments into other segments.
+     * False: do normal compaction.
+     */
+    void
+    SetL0Compaction(bool l0_compaction);
+
+    /**
+     * @brief Set L0 compaction flag.
+     * True: do L0 compaction, which merges L0 segments into other segments.
+     * False: do normal compaction.
+     */
+    CompactRequest&
+    WithL0Compaction(bool l0_compaction);
+
  private:
     std::string db_name_;
     std::string collection_name_;
     int64_t target_size_{0};
     bool is_clustring_compaction_{false};
+    bool is_l0_compaction_{false};
 };
 
 }  // namespace milvus

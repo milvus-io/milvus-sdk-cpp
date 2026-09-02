@@ -86,10 +86,29 @@ class MILVUS_SDK_API UpdatePasswordRequest {
     UpdatePasswordRequest&
     WithNewPassword(const std::string& password);
 
+    /**
+     * @brief Description of the user.
+     */
+    const std::string&
+    Description() const;
+
+    /**
+     * @brief Set description of the user.
+     */
+    void
+    SetDescription(const std::string& description);
+
+    /**
+     * @brief Set description of the user.
+     */
+    UpdatePasswordRequest&
+    WithDescription(const std::string& description);
+
  protected:
     std::string user_name_;
     std::string old_password_;
     std::string new_password_;
+    std::string description_;
 };
 
 }  // namespace milvus

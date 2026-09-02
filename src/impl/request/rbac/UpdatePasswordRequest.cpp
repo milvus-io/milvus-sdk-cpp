@@ -66,4 +66,20 @@ UpdatePasswordRequest::WithNewPassword(const std::string& new_password) {
     return *this;
 }
 
+const std::string&
+UpdatePasswordRequest::Description() const {
+    return description_;
+}
+
+void
+UpdatePasswordRequest::SetDescription(const std::string& description) {
+    description_ = description;
+}
+
+UpdatePasswordRequest&
+UpdatePasswordRequest::WithDescription(const std::string& description) {
+    SetDescription(description);
+    return *this;
+}
+
 }  // namespace milvus

@@ -226,6 +226,19 @@ IsRealFailure(const proto::common::Status& status) {
            (status.code() != 0 && status.code() != 8);
 }
 
+void
+SetCostFromProtoStatus(const proto::common::Status& status, DmlResults& results) {
+    results.SetCost(-1);
+    const auto& extra_info = status.extra_info();
+    const auto cost_it = extra_info.find("report_value");
+    if (cost_it != extra_info.end()) {
+        try {
+            results.SetCost(std::stoll(cost_it->second));
+        } catch (...) {
+        }
+    }
+}
+
 std::string
 EncodeSparseFloatVector(const SparseFloatVecFieldData::ElementT& sparse) {
     // Milvus server requires sparse vector to be transferred in little endian.

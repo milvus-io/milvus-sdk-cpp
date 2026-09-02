@@ -80,6 +80,43 @@ MilvusClientV2Impl::GetServerVersion(std::string& version) {
 }
 
 Status
+MilvusClientV2Impl::GetServerVersionV2(const GetServerVersionRequest& request, GetServerVersionResponse& response) {
+    if (!request.Detail()) {
+        auto post = [&response](const proto::milvus::GetVersionResponse& rpc_response) {
+            response.SetVersion(rpc_response.version());
+            return Status::OK();
+        };
+
+        return connection_.Invoke<proto::milvus::GetVersionRequest, proto::milvus::GetVersionResponse>(
+            nullptr, &MilvusConnection::GetVersion, post);
+    }
+
+    auto pre = [this](proto::milvus::ConnectRequest& rpc_request) {
+        auto* client_info = rpc_request.mutable_client_info();
+        client_info->set_sdk_type("CPP");
+        client_info->set_sdk_version(GetBuildVersion());
+        auto connection = connection_.GetConnection();
+        if (connection != nullptr) {
+            client_info->set_user(connection->GetConnectParam().Username());
+        }
+        return Status::OK();
+    };
+
+    auto post = [&response](const proto::milvus::ConnectResponse& rpc_response) {
+        const auto& info = rpc_response.server_info();
+        response.SetVersion(info.build_tags());
+        response.SetBuildTime(info.build_time());
+        response.SetGitCommit(info.git_commit());
+        response.SetGoVersion(info.go_version());
+        response.SetDeployMode(info.deploy_mode());
+        return Status::OK();
+    };
+
+    return connection_.Invoke<proto::milvus::ConnectRequest, proto::milvus::ConnectResponse>(
+        pre, &MilvusConnection::ConnectRpc, post);
+}
+
+Status
 MilvusClientV2Impl::GetSDKVersion(std::string& version) {
     version = GetBuildVersion();
     return Status::OK();
@@ -1237,6 +1274,9 @@ MilvusClientV2Impl::DescribeDatabase(const DescribeDatabaseRequest& request, Des
 Status
 MilvusClientV2Impl::CreateIndex(const CreateIndexRequest& request) {
     const auto& descs = request.Indexes();
+    if (descs.empty()) {
+        return {StatusCode::INVALID_ARGUMENT, "At least one index must be specified"};
+    }
     for (const auto& desc : descs) {
         auto status =
             createIndex(request.DatabaseName(), request.CollectionName(), desc, request.Sync(), request.TimeoutMs());
@@ -1513,6 +1553,7 @@ MilvusClientV2Impl::insert(const InsertRequest& request, InsertResponse& respons
         results.SetIdArray(std::move(id_array));
         results.SetTimestamp(rpc_response.timestamp());
         results.SetInsertCount(static_cast<uint64_t>(rpc_response.insert_cnt()));
+        SetCostFromProtoStatus(rpc_response.status(), results);
         response.SetResults(std::move(results));
 
         // special for dml api: if the api failed, remove the schema cache of this collection
@@ -1637,6 +1678,7 @@ MilvusClientV2Impl::upsert(const UpsertRequest& request, UpsertResponse& respons
         results.SetIdArray(std::move(id_array));
         results.SetTimestamp(rpc_response.timestamp());
         results.SetUpsertCount(static_cast<uint64_t>(rpc_response.upsert_cnt()));
+        SetCostFromProtoStatus(rpc_response.status(), results);
         response.SetResults(std::move(results));
 
         // special for dml api: if the api failed, remove the schema cache of this collection
@@ -1724,6 +1766,7 @@ MilvusClientV2Impl::Delete(const DeleteRequest& request, DeleteResponse& respons
         results.SetIdArray(std::move(id_array));
         results.SetTimestamp(rpc_response.timestamp());
         results.SetDeleteCount(static_cast<uint64_t>(rpc_response.delete_cnt()));
+        SetCostFromProtoStatus(rpc_response.status(), results);
         response.SetResults(std::move(results));
 
         if (!IsRealFailure(rpc_response.status())) {
@@ -2267,6 +2310,7 @@ MilvusClientV2Impl::compact(const std::string& database_name, const CompactReque
         rpc_request.set_db_name(database_name);
         rpc_request.set_collection_name(request.CollectionName());
         rpc_request.set_majorcompaction(request.ClusteringCompaction());
+        rpc_request.set_l0compaction(request.L0Compaction());
         if (request.TargetSize() > 0) {
             rpc_request.set_target_size(request.TargetSize());
         }
@@ -2893,6 +2937,9 @@ MilvusClientV2Impl::UpdatePassword(const UpdatePasswordRequest& request) {
         rpc_request.set_username(request.UserName());
         rpc_request.set_oldpassword(milvus::Base64Encode(request.OldPassword()));
         rpc_request.set_newpassword(milvus::Base64Encode(request.NewPassword()));
+        if (!request.Description().empty()) {
+            rpc_request.set_description(request.Description());
+        }
         return Status::OK();
     };
 

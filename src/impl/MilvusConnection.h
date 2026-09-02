@@ -73,6 +73,10 @@ class MilvusConnection {
                 const GrpcContextOptions& options);
 
     Status
+    ConnectRpc(const proto::milvus::ConnectRequest& request, proto::milvus::ConnectResponse& response,
+               const GrpcContextOptions& options);
+
+    Status
     CreateDatabase(const proto::milvus::CreateDatabaseRequest& request, proto::common::Status& response,
                    const GrpcContextOptions& options);
 

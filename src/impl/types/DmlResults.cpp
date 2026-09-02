@@ -73,4 +73,14 @@ DmlResults::SetUpsertCount(uint64_t count) {
     upsert_cnt_ = count;
 }
 
+int64_t
+DmlResults::Cost() const {
+    return cost_;
+}
+
+void
+DmlResults::SetCost(int64_t cost) {
+    cost_ = cost;
+}
+
 }  // namespace milvus

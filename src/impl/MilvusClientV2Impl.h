@@ -45,6 +45,9 @@ class MilvusClientV2Impl : public MilvusClientV2, public std::enable_shared_from
     GetServerVersion(std::string& version) final;
 
     Status
+    GetServerVersionV2(const GetServerVersionRequest& request, GetServerVersionResponse& response) final;
+
+    Status
     GetSDKVersion(std::string& version) final;
 
     Status

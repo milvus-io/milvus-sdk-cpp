@@ -82,4 +82,20 @@ CompactRequest::WithClusteringCompaction(bool clustering_compaction) {
     return *this;
 }
 
+bool
+CompactRequest::L0Compaction() const {
+    return is_l0_compaction_;
+}
+
+void
+CompactRequest::SetL0Compaction(bool l0_compaction) {
+    is_l0_compaction_ = l0_compaction;
+}
+
+CompactRequest&
+CompactRequest::WithL0Compaction(bool l0_compaction) {
+    SetL0Compaction(l0_compaction);
+    return *this;
+}
+
 }  // namespace milvus

@@ -220,6 +220,12 @@ MilvusConnection::CheckHealth(const proto::milvus::CheckHealthRequest& request,
 }
 
 Status
+MilvusConnection::ConnectRpc(const proto::milvus::ConnectRequest& request, proto::milvus::ConnectResponse& response,
+                             const GrpcContextOptions& options) {
+    return grpcCall("Connect", &Stub::Connect, request, response, options);
+}
+
+Status
 MilvusConnection::CreateDatabase(const proto::milvus::CreateDatabaseRequest& request, proto::common::Status& response,
                                  const GrpcContextOptions& options) {
     return grpcCall("CreateDatabase", &Stub::CreateDatabase, request, response, options);
