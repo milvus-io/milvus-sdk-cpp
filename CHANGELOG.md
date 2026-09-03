@@ -1,5 +1,22 @@
 # Changelog
 
+## milvus-sdk-cpp 2.6.7 (2026-09-03)
+### Feature
+- Support GetServerVersionV2() with build-time, git-commit, go-version, and deploy-mode detail
+- Report operation cost in DmlResults and support L0 compaction for CompactRequest
+- Support user description for UpdatePasswordRequest
+- Add tutorials covering quickstart, collection, schema, index, DML, DQL, database, and RBAC
+
+### Improvement
+- Align MilvusClientV2 with pymilvus on cost, compact, rbac, and server version APIs
+- Speed up builds with unity build and line-tables debug info
+- Avoid conflicts with a system-installed protoc
+- Reject empty index lists in CreateIndex
+
+### Bug
+- Preserve empty database names for serverless requests
+
+
 ## milvus-sdk-cpp 2.6.6 (2026-08-07)
 ### Feature
 - Support query by integer or string primary-key IDs
