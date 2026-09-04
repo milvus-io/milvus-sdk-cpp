@@ -58,24 +58,63 @@ SearchIteratorImpl<T>::Next(SingleResult& results) {
         output_count = std::min(output_count, left_count);
     }
 
-    if (SearchIteratorImpl::CachedCount(cache_) < output_count) {
-        // if cache is not sufficient, try to fill the result by probing with constant width
-        // until finish filling or exceeding max trial time: 10
-        auto status = trySearchFill(output_count);
+    // Apply the client-side page filter (pymilvus external_filter_func) if set.
+    // A filtered-out page does not grow the cache, so keep filling and fetching
+    // until a non-empty page is produced or the server has no more results.
+    const bool has_filter = static_cast<bool>(args_.ExternalFilterFunc());
+    while (true) {
+        if (SearchIteratorImpl::CachedCount(cache_) < output_count) {
+            // if cache is not sufficient, try to fill the result by probing with constant width
+            // until finish filling or exceeding max trial time: 10
+            auto status = trySearchFill(output_count);
+            if (!status.IsOk()) {
+                return status;
+            }
+        }
+
+        // return batch from the cache if cache is big enough
+        results.Clear();
+        auto status = SearchIteratorImpl::FetchPageFromCache(cache_, args_.OutputFields(), output_count, results);
         if (!status.IsOk()) {
             return status;
         }
+
+        if (results.GetRowCount() == 0) {
+            // no more rows from the server
+            break;
+        }
+
+        // keep width_ derived from the unfiltered page: the external filter below usually
+        // prunes rows below BatchSize, so the old post-loop width update would never fire
+        // and width_ (which drives radius expansion) would stay frozen at the init value.
+        if (results.GetRowCount() == args_.BatchSize()) {
+            updateWidth(results);
+        }
+
+        if (!has_filter) {
+            break;
+        }
+
+        status = args_.ExternalFilterFunc()(results);
+        if (!status.IsOk()) {
+            return status;
+        }
+        if (results.GetRowCount() > 0) {
+            break;
+        }
+
+        // the whole page was filtered out; pull more rows from the server
+        if (SearchIteratorImpl::CachedCount(cache_) < output_count) {
+            auto fill_status = trySearchFill(output_count);
+            if (!fill_status.IsOk()) {
+                return fill_status;
+            }
+        }
+        if (SearchIteratorImpl::CachedCount(cache_) == 0) {
+            break;
+        }
     }
 
-    // return batch from the cache if cache is big enough
-    auto status = SearchIteratorImpl::FetchPageFromCache(cache_, args_.OutputFields(), output_count, results);
-    if (!status.IsOk()) {
-        return status;
-    }
-
-    if (results.GetRowCount() == args_.BatchSize()) {
-        updateWidth(results);
-    }
     returned_count_ += results.GetRowCount();
     return Status::OK();
 }

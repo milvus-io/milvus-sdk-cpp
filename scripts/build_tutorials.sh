@@ -19,17 +19,26 @@ if ! conan remote list | grep -q "^${REMOTE_NAME}:"; then
     conan remote add "${REMOTE_NAME}" "${REMOTE_URL}" --allowed-packages "milvus-sdk-cpp/*"
 fi
 
-echo "Creating milvus-sdk-cpp/${SDK_VERSION}@${SDK_USER}/${SDK_CHANNEL} from the current checkout"
-conan create "${ROOT_DIR}" \
+echo "Exporting milvus-sdk-cpp/${SDK_VERSION}@${SDK_USER}/${SDK_CHANNEL} from the current checkout"
+conan export "${ROOT_DIR}" \
     --version="${SDK_VERSION}" \
     --user="${SDK_USER}" \
-    --channel="${SDK_CHANNEL}" \
+    --channel="${SDK_CHANNEL}"
+
+# Build the SDK package only when the current checkout is not already cached.
+# conan create always forces a rebuild; export + install --build=missing reuses
+# the cached package whenever the recipe revision is unchanged.
+SDK_REF="milvus-sdk-cpp/${SDK_VERSION}@${SDK_USER}/${SDK_CHANNEL}"
+SDK_BUILD_DIR="$(mktemp -d)"
+trap 'rm -rf "${SDK_BUILD_DIR}"' EXIT
+conan install --requires="${SDK_REF}" \
+    --build=missing \
     -s build_type=Release \
     -s compiler.cppstd=14 \
     -s:b build_type=Release \
     -s:b compiler.cppstd=17 \
     -c tools.build:jobs="${JOBS}" \
-    --build=missing
+    --output-folder="${SDK_BUILD_DIR}"
 
 export MILVUS_SDK_VERSION="${SDK_VERSION}"
 export MILVUS_SDK_USER="${SDK_USER}"

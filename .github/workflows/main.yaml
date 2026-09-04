@@ -122,7 +122,13 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ${{ github.workspace }}/.conan2
-          key: linux-${{ matrix.os.key }}-conan-${{ github.base_ref || github.ref_name }}-${{ hashFiles('conanfile.*', 'CMakeLists.txt', 'cmake/**', 'scripts/install_deps.sh') }}
+          # src/** etc. are hashed so the SDK package produced by
+          # build_tutorials.sh (whose recipe revision covers these sources) is
+          # saved under a distinct key whenever the sources change; otherwise
+          # every run would restore the previous snapshot, rebuild the SDK, and
+          # never save the new package (actions/cache skips save on an exact
+          # primary-key hit).
+          key: linux-${{ matrix.os.key }}-conan-${{ github.base_ref || github.ref_name }}-${{ hashFiles('conanfile.*', 'CMakeLists.txt', 'cmake/**', 'scripts/install_deps.sh', 'src/**', 'test/**', 'examples/**', 'thirdparty/**', 'LICENSE', 'README.md', 'DEVELOPMENT.md', 'CHANGELOG.md') }}
           restore-keys: linux-${{ matrix.os.key }}-conan-
       - name: Cache ccache
         uses: actions/cache@v4
@@ -165,7 +171,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           PRUNE_PREFIXES: "linux-${{ matrix.os.key }}-ccache- linux-${{ matrix.os.key }}-conan-"
-          KEEP_KEYS: "linux-${{ matrix.os.key }}-ccache-${{ github.sha }} linux-${{ matrix.os.key }}-conan-${{ github.base_ref || github.ref_name }}-${{ hashFiles('conanfile.*', 'CMakeLists.txt', 'cmake/**', 'scripts/install_deps.sh') }}"
+          KEEP_KEYS: "linux-${{ matrix.os.key }}-ccache-${{ github.sha }} linux-${{ matrix.os.key }}-conan-${{ github.base_ref || github.ref_name }}-${{ hashFiles('conanfile.*', 'CMakeLists.txt', 'cmake/**', 'scripts/install_deps.sh', 'src/**', 'test/**', 'examples/**', 'thirdparty/**', 'LICENSE', 'README.md', 'DEVELOPMENT.md', 'CHANGELOG.md') }}"
         run: python3 scripts/prune_caches.py
 
   coverage-ubuntu:

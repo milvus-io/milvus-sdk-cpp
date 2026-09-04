@@ -302,3 +302,168 @@ TEST_F(MilvusMockedTest, SearchIteratorV2PinsProbeTimestampForSessionConsistency
 
     milvus::CollectionTsCache::GetInstance().Invalidate(endpoint, "default", collection_name);
 }
+
+// Verifies the client-side page filter (pymilvus external_filter_func) is applied
+// on each fetched page: a fully-filtered page is dropped, and only the kept rows
+// from partially-filtered pages are accumulated across pages up to the target length.
+// `use_v1` forces the V1 fallback (empty token) so SearchIteratorImpl::Next runs the
+// filter loop instead of SearchIteratorV2.
+void
+DoSearchIteratorWithExternalFilter(testing::StrictMock<milvus::MilvusMockedService>& service,
+                                   milvus::MilvusClientPtr& client, bool use_v1) {
+    const std::string collection_name = "Foo";
+    milvus::CollectionSchema collection_schema(collection_name);
+    milvus::BuildCollectionSchema(collection_schema);
+    const int row_count = 10000;
+
+    std::vector<milvus::FieldDataPtr> fields_data;
+    milvus::BuildFieldsData(collection_schema, fields_data, row_count);
+
+    std::vector<std::string> field_names;
+    for (const auto& field : collection_schema.Fields()) {
+        field_names.push_back(field.Name());
+    }
+
+    EXPECT_CALL(service,
+                DescribeCollection(_, Property(&DescribeCollectionRequest::collection_name, collection_name), _))
+        .WillOnce([&](::grpc::ServerContext*, const DescribeCollectionRequest*, DescribeCollectionResponse* response) {
+            response->set_collectionid(100);
+            response->set_shards_num(2);
+            response->set_created_timestamp(1111);
+            auto proto_schema = response->mutable_schema();
+            milvus::ConvertCollectionSchema(collection_schema, *proto_schema);
+            return ::grpc::Status{};
+        });
+
+    const uint64_t batch_size = 100;
+    uint64_t current_poz = 0;
+    bool probe_compability = true;
+    EXPECT_CALL(service, Search(_, _, _))
+        .WillRepeatedly([&](::grpc::ServerContext*, const SearchRequest* request, SearchResults* response) {
+            auto token = use_v1 ? "" : "dummy";
+            response->mutable_results()->mutable_search_iterator_v2_results()->set_token(token);
+            if (probe_compability) {
+                probe_compability = false;
+                if (!use_v1) {
+                    response->set_session_ts(123456);
+                }
+                return ::grpc::Status{};
+            }
+
+            response->mutable_status()->set_code(milvus::proto::common::ErrorCode::Success);
+            auto* results = response->mutable_results();
+            auto topk = batch_size;
+            if (current_poz >= static_cast<uint64_t>(row_count)) {
+                topk = 0;
+            } else if (current_poz + batch_size > static_cast<uint64_t>(row_count)) {
+                topk = row_count - current_poz;
+            }
+            if (topk == 0) {
+                results->set_top_k(0);
+                results->set_num_queries(1);
+                results->set_primary_field_name(milvus::T_PK_NAME);
+                results->mutable_topks()->Add(0);
+                results->mutable_search_iterator_v2_results()->set_token(token);
+                return ::grpc::Status{};
+            }
+            auto page_poz = current_poz;
+            current_poz += topk;
+            results->set_top_k(topk);
+            results->set_num_queries(1);
+            results->set_primary_field_name(milvus::T_PK_NAME);
+            auto* mutable_fields = results->mutable_fields_data();
+            for (const auto& field_data : fields_data) {
+                // the primary key is returned via result_data.ids(), not in fields_data
+                if (field_data->Name() == milvus::T_PK_NAME) {
+                    continue;
+                }
+                milvus::FieldDataPtr page_data;
+                auto cstatus = milvus::CopyFieldData(field_data, page_poz, page_poz + topk, page_data);
+                EXPECT_TRUE(cstatus.IsOk());
+                milvus::FieldDataSchema bridge(page_data, nullptr);
+                milvus::proto::schema::FieldData data;
+                cstatus = milvus::CreateProtoFieldData(bridge, data);
+                EXPECT_TRUE(cstatus.IsOk());
+                mutable_fields->Add(std::move(data));
+            }
+            milvus::Int64FieldDataPtr pk_ptr = std::static_pointer_cast<milvus::Int64FieldData>(fields_data.at(0));
+            for (uint64_t i = 0; i < static_cast<uint64_t>(topk); i++) {
+                results->mutable_ids()->mutable_int_id()->add_data(pk_ptr->Value(page_poz + i));
+            }
+            results->mutable_topks()->Add(topk);
+            for (auto i = 0; i < topk; i++) {
+                results->mutable_scores()->Add(static_cast<float>(page_poz) + 100.0 - 0.01f * static_cast<float>(i));
+            }
+            return ::grpc::Status{};
+        });
+
+    milvus::SearchIteratorArguments arguments{};
+    arguments.SetBatchSize(batch_size);
+    arguments.SetLimit(row_count);
+    arguments.SetCollectionName(collection_name);
+    arguments.SetFilter("id >= 0");
+    arguments.SetConsistencyLevel(milvus::ConsistencyLevel::STRONG);
+    arguments.SetMetricType(milvus::MetricType::COSINE);
+    for (const auto& name : field_names) {
+        arguments.AddOutputField(name);
+    }
+    std::vector<float> vector(milvus::T_DIMENSION, 1.0f);
+    auto status = arguments.AddFloat16Vector("f16_vector", vector);
+    EXPECT_TRUE(status.IsOk());
+
+    // keep even primary keys in the first half of the pk range. Pages beyond the
+    // first half are entirely filtered out (exercising the fully-filtered continue),
+    // while pages in the first half are partially filtered (even rows kept).
+    arguments.SetExternalFilterFunc([row_count](milvus::SingleResult& page) {
+        std::vector<uint64_t> keep_indices;
+        auto ids = page.Ids();
+        EXPECT_TRUE(ids.IsIntegerID());
+        for (uint64_t i = 0; i < page.GetRowCount(); i++) {
+            auto pk = ids.IntIDArray().at(i);
+            if (pk % 2 == 0 && pk < row_count / 2) {
+                keep_indices.push_back(i);
+            }
+        }
+        return page.FilterRows(keep_indices);
+    });
+
+    milvus::SearchIteratorPtr iterator;
+    status = client->SearchIterator(arguments, iterator);
+    EXPECT_TRUE(status.IsOk());
+
+    uint64_t returned_count = 0;
+    while (true) {
+        milvus::SingleResult batch_results;
+        status = iterator->Next(batch_results);
+        EXPECT_TRUE(status.IsOk());
+        auto batch_count = batch_results.GetRowCount();
+        if (batch_count == 0) {
+            break;
+        }
+        returned_count += batch_count;
+
+        auto ids = batch_results.Ids();
+        for (uint64_t i = 0; i < static_cast<uint64_t>(batch_count); i++) {
+            auto pk = ids.IntIDArray().at(i);
+            EXPECT_EQ(pk % 2, 0) << "odd row leaked through the external filter";
+            EXPECT_LT(pk, row_count / 2) << "row beyond the kept range leaked through the external filter";
+        }
+    }
+    EXPECT_EQ(returned_count, static_cast<uint64_t>(row_count) / 4);
+}
+
+TEST_F(MilvusMockedTest, SearchIteratorV2AppliesExternalFilterPerPage) {
+    milvus::ConnectParam connect_param{"127.0.0.1", server_.ListenPort()};
+    auto status = client_->Connect(connect_param);
+    EXPECT_TRUE(status.IsOk());
+
+    DoSearchIteratorWithExternalFilter(service_, client_, false);
+}
+
+TEST_F(MilvusMockedTest, SearchIteratorV1AppliesExternalFilterPerPage) {
+    milvus::ConnectParam connect_param{"127.0.0.1", server_.ListenPort()};
+    auto status = client_->Connect(connect_param);
+    EXPECT_TRUE(status.IsOk());
+
+    DoSearchIteratorWithExternalFilter(service_, client_, true);
+}

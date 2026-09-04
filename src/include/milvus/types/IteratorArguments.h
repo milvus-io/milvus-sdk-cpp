@@ -16,12 +16,16 @@
 
 #pragma once
 
+#include <functional>
+
 #include "FieldSchema.h"
 #include "QueryArguments.h"
 #include "SearchArguments.h"
 #include "milvus/Export.h"
 
 namespace milvus {
+
+struct SingleResult;
 
 /**
  * @brief Base class arguments for MilvusClient::QueryIterator() and SearchIterator().
@@ -71,10 +75,29 @@ class MILVUS_SDK_API IteratorArguments {
     Status
     SetPkSchema(const FieldSchema& schema);
 
+    /**
+     * @brief Get the client-side page filter callback.
+     * The callback receives each page of hits fetched by the search iterator and
+     * returns Status::OK after filtering the page in place (e.g. via
+     * SingleResult::FilterRows). Returning a non-OK status aborts iteration.
+     * Only SearchIterator supports this callback.
+     */
+    const std::function<Status(SingleResult&)>&
+    ExternalFilterFunc() const;
+
+    /**
+     * @brief Set a client-side page filter for the search iterator.
+     * Matches pymilvus `external_filter_func`: the callback filters each page of
+     * search hits before they are returned. This is a no-op for query iterators.
+     */
+    void
+    SetExternalFilterFunc(const std::function<Status(SingleResult&)>& func);
+
  private:
     int64_t batch_size_{1000};
     int64_t collection_id_{0};
     FieldSchema pk_schema_;
+    std::function<Status(SingleResult&)> external_filter_func_;
 };
 
 /**

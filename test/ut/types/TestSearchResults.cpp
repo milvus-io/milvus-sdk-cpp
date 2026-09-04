@@ -39,6 +39,38 @@ TEST_F(SearchResultsTest, TestSingleResult) {
     EXPECT_EQ(result.OutputFieldNames().size(), output_names.size());
 }
 
+TEST_F(SearchResultsTest, FilterRowsKeepsSelectedRows) {
+    std::vector<milvus::FieldDataPtr> fields{
+        std::make_shared<milvus::Int64FieldData>("pk", std::vector<int64_t>{1, 2, 3, 4, 5}),
+        std::make_shared<milvus::FloatFieldData>("score", std::vector<float>{0.1f, 0.2f, 0.3f, 0.4f, 0.5f}),
+        std::make_shared<milvus::VarCharFieldData>("tag", std::vector<std::string>{"a", "b", "c", "d", "e"})};
+    std::set<std::string> output_names;
+    output_names.insert("tag");
+    milvus::SingleResult result{"pk", "score", std::move(fields), output_names};
+
+    auto status = result.FilterRows({3, 0, 2});
+    EXPECT_TRUE(status.IsOk());
+    EXPECT_EQ(result.GetRowCount(), 3);
+    EXPECT_EQ(result.Ids().IntIDArray(), (std::vector<int64_t>{4, 1, 3}));
+    EXPECT_EQ(result.Scores(), (std::vector<float>{0.4f, 0.1f, 0.3f}));
+    auto tag = result.OutputField<milvus::VarCharFieldData>("tag");
+    ASSERT_NE(tag, nullptr);
+    EXPECT_EQ(tag->Data(), (std::vector<std::string>{"d", "a", "c"}));
+}
+
+TEST_F(SearchResultsTest, FilterRowsEmptyClears) {
+    std::vector<milvus::FieldDataPtr> fields{
+        std::make_shared<milvus::Int64FieldData>("pk", std::vector<int64_t>{1, 2, 3}),
+        std::make_shared<milvus::FloatFieldData>("score", std::vector<float>{0.1f, 0.2f, 0.3f})};
+    std::set<std::string> output_names;
+    milvus::SingleResult result{"pk", "score", std::move(fields), output_names};
+
+    auto status = result.FilterRows({});
+    EXPECT_TRUE(status.IsOk());
+    EXPECT_EQ(result.GetRowCount(), 0);
+    EXPECT_TRUE(result.OutputFields().empty());
+}
+
 TEST_F(SearchResultsTest, GeneralTesting) {
     std::vector<milvus::FieldDataPtr> fields{};
     std::set<std::string> output_names;

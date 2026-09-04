@@ -670,3 +670,32 @@ TEST_F(UnconnectMilvusMockedTest, BuildFieldsDataStringBacked) {
     ASSERT_EQ(arr_text->Data().size(), 4u);
     EXPECT_EQ(arr_text->Value(0).size(), 2u);
 }
+
+TEST_F(UnconnectMilvusMockedTest, InsertEmptyDataShortCircuitsNoRpc) {
+    auto client = CreateConnectedV2Client(service_, server_.ListenPort());
+
+    milvus::InsertResponse response;
+    auto status = client->Insert(milvus::InsertRequest().WithCollectionName("empty_coll"), response);
+    EXPECT_TRUE(status.IsOk()) << status.Message();
+    EXPECT_EQ(response.Results().InsertCount(), 0);
+    EXPECT_EQ(response.Results().IdArray().GetRowCount(), 0);
+}
+
+TEST_F(UnconnectMilvusMockedTest, UpsertEmptyDataShortCircuitsNoRpc) {
+    auto client = CreateConnectedV2Client(service_, server_.ListenPort());
+
+    milvus::UpsertResponse response;
+    auto status = client->Upsert(milvus::UpsertRequest().WithCollectionName("empty_coll"), response);
+    EXPECT_TRUE(status.IsOk()) << status.Message();
+    EXPECT_EQ(response.Results().UpsertCount(), 0);
+    EXPECT_EQ(response.Results().IdArray().GetRowCount(), 0);
+}
+
+TEST_F(UnconnectMilvusMockedTest, GetEmptyIdsShortCircuitsNoRpc) {
+    auto client = CreateConnectedV2Client(service_, server_.ListenPort());
+
+    milvus::GetResponse response;
+    auto status = client->Get(milvus::GetRequest().WithCollectionName("empty_coll"), response);
+    EXPECT_TRUE(status.IsOk()) << status.Message();
+    EXPECT_EQ(response.Results().GetRowCount(), 0);
+}
