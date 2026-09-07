@@ -111,6 +111,14 @@ ConvertHybridSearchRequest(const T& request, const std::string& current_db,
 Status
 CopyFieldData(const FieldDataPtr& src, uint64_t from, uint64_t to, FieldDataPtr& target);
 
+/**
+ * @brief Copy the rows at the given indices into a new FieldData in one pass.
+ * The kept rows keep the order they appear in `indices`. Reserved ahead of time,
+ * so it avoids the per-row allocation of CopyFieldData + AppendFieldData loops.
+ */
+Status
+CopyFieldDataByIndices(const FieldDataPtr& src, const std::vector<uint64_t>& indices, FieldDataPtr& target);
+
 Status
 CopyFieldsData(const std::vector<FieldDataPtr>& src, uint64_t from, uint64_t to, std::vector<FieldDataPtr>& target);
 

@@ -81,3 +81,19 @@ TEST_F(SearchIteratorArgumentsTest, SetCollectionID) {
     EXPECT_TRUE(status.IsOk());
     EXPECT_EQ(args.CollectionID(), 999);
 }
+
+TEST_F(SearchIteratorArgumentsTest, ExternalFilterFunc) {
+    milvus::SearchIteratorArguments args;
+    EXPECT_FALSE(args.ExternalFilterFunc());
+
+    bool invoked = false;
+    milvus::SingleResult page;
+    args.SetExternalFilterFunc([&invoked](milvus::SingleResult&) {
+        invoked = true;
+        return milvus::Status::OK();
+    });
+    ASSERT_TRUE(args.ExternalFilterFunc());
+    auto status = args.ExternalFilterFunc()(page);
+    EXPECT_TRUE(status.IsOk());
+    EXPECT_TRUE(invoked);
+}

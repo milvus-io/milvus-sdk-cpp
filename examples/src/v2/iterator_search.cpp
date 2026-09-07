@@ -170,6 +170,86 @@ iterateCollection(milvus::MilvusClientV2Ptr& client, int64_t batch, int64_t limi
     std::cout << "=====================================================" << std::endl;
 }
 
+// Demonstrates the client-side page filter (pymilvus external_filter_func).
+// The callback receives each page of hits fetched by the iterator and prunes rows
+// in place via SingleResult::FilterRows. Here we keep only rows whose user_age is even.
+void
+iterateWithExternalFilter(milvus::MilvusClientV2Ptr& client, int64_t batch, int64_t limit,
+                          const std::string& filter) {
+    std::cout << "=====================================================" << std::endl;
+    std::cout << "Iterate with external filter, batch: " + std::to_string(batch)
+              << " limit: " + std::to_string(limit) << " filter: " + filter << std::endl;
+    milvus::SearchIteratorRequest request;
+    request.SetCollectionName(collection_name);
+    request.SetBatchSize(batch);
+    request.SetLimit(limit);
+    request.SetAnnsField(field_face);
+    request.SetFilter(filter);
+    request.AddOutputField(field_name);
+    request.AddOutputField(field_age);
+    request.AddOutputField("b");  // dynamic field
+    std::vector<float> vector(dimension);
+    for (auto d = 0; d < dimension; ++d) {
+        vector[d] = 1.0f;
+    }
+    request.AddFloatVector(vector);
+
+    // Keep only rows where user_age is even. FilterRows keeps the rows whose
+    // indices are listed, in the order they appear in the list. The age column
+    // is read directly via OutputField() to avoid materializing whole rows.
+    request.SetExternalFilterFunc([](milvus::SingleResult& page) {
+        auto age_field = page.OutputField<milvus::Int8FieldData>(field_age);
+        if (age_field == nullptr) {
+            return milvus::Status{milvus::StatusCode::INVALID_ARGUMENT,
+                                  "user_age output field missing in search result"};
+        }
+        const auto& ages = age_field->Data();
+        std::vector<uint64_t> keep_indices;
+        for (uint64_t i = 0; i < ages.size(); ++i) {
+            if (ages[i] % 2 == 0) {
+                keep_indices.push_back(i);
+            }
+        }
+        return page.FilterRows(keep_indices);
+    });
+
+    milvus::SearchIteratorPtr iterator;
+    auto status = client->SearchIterator(request, iterator);
+    util::CheckStatus("get search iterator with external filter", status);
+
+    std::set<int64_t> ids;
+    int pages = 0;
+    uint64_t total_count = 0;
+    while (true) {
+        milvus::SingleResult batch_results;
+        status = iterator->Next(batch_results);
+        util::CheckStatus("iterator next batch", status);
+        auto batch_count = batch_results.GetRowCount();
+        if (batch_count == 0) {
+            std::cout << "search iteration with external filter finished" << std::endl;
+            break;
+        }
+        pages++;
+        total_count += batch_count;
+
+        milvus::EntityRows rows;
+        status = batch_results.OutputRows(rows);
+        util::CheckStatus("get output rows", status);
+        std::cout << "No." << std::to_string(pages) << " page " << std::to_string(rows.size()) << " rows fetched"
+                  << std::endl;
+        for (const auto& row : rows) {
+            if (row[field_age].get<int64_t>() % 2 != 0) {
+                std::cout << "ERROR: a row with odd user_age " << row[field_age].get<int64_t>()
+                          << " slipped through the external filter" << std::endl;
+            }
+            ids.insert(row[field_id].get<int64_t>());
+        }
+    }
+
+    std::cout << "Total fetched rows (external filter): " << std::to_string(total_count) << std::endl;
+    std::cout << "=====================================================" << std::endl;
+}
+
 }  // namespace
 
 int
@@ -198,6 +278,9 @@ main(int argc, char* argv[]) {
         iterateCollection(client, 1000, 2500, std::string(field_age) + " > 30");
         // batch 1000, limit 100000, filter "user_age in [30, 40, 50]"
         iterateCollection(client, 1000, 100000, std::string(field_age) + " in [30, 40, 50]");
+
+        // batch 3000, limit 100000, client-side page filter keeps even user_age rows only
+        iterateWithExternalFilter(client, 3000, 100000, "");
     };
 
     iterationFunc(milvus::MetricType::L2);

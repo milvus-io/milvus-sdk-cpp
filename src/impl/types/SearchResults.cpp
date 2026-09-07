@@ -17,6 +17,7 @@
 #include "milvus/types/SearchResults.h"
 
 #include <stdexcept>
+#include <utility>
 
 #include "../utils/Constants.h"
 #include "../utils/DqlUtils.h"
@@ -165,6 +166,47 @@ SingleResult&
 SingleResult::WithHighlightResults(std::vector<HighlightResults>&& highlight_results) {
     highlight_results_ = std::move(highlight_results);
     return *this;
+}
+
+Status
+SingleResult::FilterRows(const std::vector<uint64_t>& keep_indices) {
+    if (keep_indices.empty()) {
+        output_fields_.clear();
+        output_names_.clear();
+        highlight_results_.clear();
+        return Status::OK();
+    }
+
+    std::vector<FieldDataPtr> filtered_fields;
+    filtered_fields.reserve(output_fields_.size());
+    for (const auto& field : output_fields_) {
+        if (field == nullptr) {
+            filtered_fields.emplace_back(nullptr);
+            continue;
+        }
+
+        FieldDataPtr target;
+        auto status = CopyFieldDataByIndices(field, keep_indices, target);
+        if (!status.IsOk()) {
+            return status;
+        }
+        filtered_fields.emplace_back(std::move(target));
+    }
+    output_fields_ = std::move(filtered_fields);
+
+    if (!highlight_results_.empty()) {
+        std::vector<HighlightResults> filtered_highlights;
+        filtered_highlights.reserve(keep_indices.size());
+        for (uint64_t idx : keep_indices) {
+            if (idx >= highlight_results_.size()) {
+                return {StatusCode::INVALID_ARGUMENT, "Highlight row index is out of bound"};
+            }
+            filtered_highlights.emplace_back(highlight_results_[idx]);
+        }
+        highlight_results_ = std::move(filtered_highlights);
+    }
+
+    return Status::OK();
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////

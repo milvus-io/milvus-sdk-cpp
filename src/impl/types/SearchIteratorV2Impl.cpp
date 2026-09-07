@@ -67,6 +67,19 @@ SearchIteratorV2Impl<T>::Next(SingleResult& results) {
             break;
         }
 
+        // Apply the client-side page filter (pymilvus external_filter_func) if set.
+        // A filtered-out page does not grow the cache, so keep pulling until the
+        // target length is reached or the server has no more results.
+        if (args_.ExternalFilterFunc()) {
+            status = args_.ExternalFilterFunc()(*single_result);
+            if (!status.IsOk()) {
+                return status;
+            }
+            if (single_result->GetRowCount() == 0) {
+                continue;
+            }
+        }
+
         cache_.emplace_back(std::move(single_result));
         auto cache_count = SearchIteratorImpl<T>::CachedCount(cache_);
         if (cache_count >= static_cast<uint64_t>(target_len)) {

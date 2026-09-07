@@ -59,6 +59,16 @@ IteratorArguments::SetPkSchema(const FieldSchema& schema) {
     return Status::OK();
 }
 
+const std::function<Status(SingleResult&)>&
+IteratorArguments::ExternalFilterFunc() const {
+    return external_filter_func_;
+}
+
+void
+IteratorArguments::SetExternalFilterFunc(const std::function<Status(SingleResult&)>& func) {
+    external_filter_func_ = func;
+}
+
 /////////////////////////////////////////////////////////////////////////////////////
 // QueryIteratorArguments
 bool

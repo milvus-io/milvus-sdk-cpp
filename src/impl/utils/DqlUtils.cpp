@@ -2178,6 +2178,133 @@ CopyFieldDataRange(const FieldDataPtr& src, uint64_t from, uint64_t to, FieldDat
     return Status::OK();
 }
 
+template <typename T>
+Status
+CopyFieldDataIndices(const FieldDataPtr& src, const std::vector<uint64_t>& indices, FieldDataPtr& target) {
+    auto src_ptr = std::static_pointer_cast<T>(src);
+    const auto& src_data = src_ptr->Data();
+
+    std::vector<typename T::ElementT> target_data{};
+    target_data.reserve(indices.size());
+    const auto& src_valid_data = src_ptr->ValidData();
+    std::vector<bool> target_valid_data;
+    if (!src_valid_data.empty()) {
+        target_valid_data.reserve(indices.size());
+    }
+    for (uint64_t idx : indices) {
+        if (idx >= src->Count()) {
+            return {StatusCode::INVALID_ARGUMENT, "row index out of bound"};
+        }
+        target_data.push_back(src_data.at(idx));
+        if (!src_valid_data.empty()) {
+            target_valid_data.push_back(!src_ptr->IsNull(idx));
+        }
+    }
+    target = std::make_shared<T>(src->Name(), std::move(target_data), std::move(target_valid_data));
+    return Status::OK();
+}
+
+Status
+CopyFieldDataByIndices(const FieldDataPtr& src, const std::vector<uint64_t>& indices, FieldDataPtr& target) {
+    if (src == nullptr) {
+        return {StatusCode::INVALID_ARGUMENT, "Source field data is null pointer"};
+    }
+
+    switch (src->Type()) {
+        case DataType::BOOL: {
+            return CopyFieldDataIndices<BoolFieldData>(src, indices, target);
+        }
+        case DataType::INT8: {
+            return CopyFieldDataIndices<Int8FieldData>(src, indices, target);
+        }
+        case DataType::INT16: {
+            return CopyFieldDataIndices<Int16FieldData>(src, indices, target);
+        }
+        case DataType::INT32: {
+            return CopyFieldDataIndices<Int32FieldData>(src, indices, target);
+        }
+        case DataType::INT64: {
+            return CopyFieldDataIndices<Int64FieldData>(src, indices, target);
+        }
+        case DataType::FLOAT: {
+            return CopyFieldDataIndices<FloatFieldData>(src, indices, target);
+        }
+        case DataType::DOUBLE: {
+            return CopyFieldDataIndices<DoubleFieldData>(src, indices, target);
+        }
+        case DataType::VARCHAR:
+        case DataType::GEOMETRY:
+        case DataType::TEXT:
+        case DataType::TIMESTAMPTZ: {
+            return CopyFieldDataIndices<VarCharFieldData>(src, indices, target);
+        }
+        case DataType::JSON: {
+            return CopyFieldDataIndices<JSONFieldData>(src, indices, target);
+        }
+        case DataType::ARRAY: {
+            switch (src->ElementType()) {
+                case DataType::BOOL: {
+                    return CopyFieldDataIndices<ArrayBoolFieldData>(src, indices, target);
+                }
+                case DataType::INT8: {
+                    return CopyFieldDataIndices<ArrayInt8FieldData>(src, indices, target);
+                }
+                case DataType::INT16: {
+                    return CopyFieldDataIndices<ArrayInt16FieldData>(src, indices, target);
+                }
+                case DataType::INT32: {
+                    return CopyFieldDataIndices<ArrayInt32FieldData>(src, indices, target);
+                }
+                case DataType::INT64: {
+                    return CopyFieldDataIndices<ArrayInt64FieldData>(src, indices, target);
+                }
+                case DataType::FLOAT: {
+                    return CopyFieldDataIndices<ArrayFloatFieldData>(src, indices, target);
+                }
+                case DataType::DOUBLE: {
+                    return CopyFieldDataIndices<ArrayDoubleFieldData>(src, indices, target);
+                }
+                case DataType::VARCHAR:
+                case DataType::GEOMETRY:
+                case DataType::TEXT:
+                case DataType::TIMESTAMPTZ: {
+                    return CopyFieldDataIndices<ArrayVarCharFieldData>(src, indices, target);
+                }
+                case DataType::STRUCT: {
+                    return CopyFieldDataIndices<StructFieldData>(src, indices, target);
+                }
+                default: {
+                    std::string msg = "Unsupported element type: " + std::to_string(src->ElementType());
+                    return {StatusCode::NOT_SUPPORTED, msg};
+                }
+            }
+        }
+        case DataType::BINARY_VECTOR: {
+            return CopyFieldDataIndices<BinaryVecFieldData>(src, indices, target);
+        }
+        case DataType::FLOAT_VECTOR: {
+            return CopyFieldDataIndices<FloatVecFieldData>(src, indices, target);
+        }
+        case DataType::FLOAT16_VECTOR: {
+            return CopyFieldDataIndices<Float16VecFieldData>(src, indices, target);
+        }
+        case DataType::BFLOAT16_VECTOR: {
+            return CopyFieldDataIndices<BFloat16VecFieldData>(src, indices, target);
+        }
+        case DataType::SPARSE_FLOAT_VECTOR: {
+            return CopyFieldDataIndices<SparseFloatVecFieldData>(src, indices, target);
+        }
+        case DataType::INT8_VECTOR: {
+            return CopyFieldDataIndices<Int8VecFieldData>(src, indices, target);
+        }
+        default: {
+            return {StatusCode::NOT_SUPPORTED, "Unsupported field type: " + std::to_string(src->Type())};
+        }
+    }
+
+    return Status::OK();
+}
+
 Status
 CopyFieldData(const FieldDataPtr& src, uint64_t from, uint64_t to, FieldDataPtr& target) {
     if (src == nullptr) {
