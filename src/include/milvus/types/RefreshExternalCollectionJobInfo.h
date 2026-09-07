@@ -17,6 +17,7 @@
 #pragma once
 
 #include <cstdint>
+#include <milvus/thirdparty/nlohmann/json.hpp>
 #include <string>
 
 #include "milvus/Export.h"
@@ -77,6 +78,12 @@ class MILVUS_SDK_API RefreshExternalCollectionJobInfo {
     void
     SetEndTime(uint64_t end_time);
 
+    const nlohmann::json&
+    ExternalSpec() const;
+
+    void
+    SetExternalSpec(const nlohmann::json& external_spec);
+
  private:
     int64_t job_id_{0};
     std::string collection_name_;
@@ -86,6 +93,7 @@ class MILVUS_SDK_API RefreshExternalCollectionJobInfo {
     std::string external_source_;
     uint64_t start_time_{0};
     uint64_t end_time_{0};
+    nlohmann::json external_spec_;
 };
 
 }  // namespace milvus

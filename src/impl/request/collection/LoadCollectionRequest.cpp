@@ -136,4 +136,20 @@ LoadCollectionRequest::WithTargetResourceGroups(const std::set<std::string>& tar
     return *this;
 }
 
+const std::string&
+LoadCollectionRequest::LoadPriority() const {
+    return load_priority_;
+}
+
+void
+LoadCollectionRequest::SetLoadPriority(const std::string& load_priority) {
+    load_priority_ = load_priority;
+}
+
+LoadCollectionRequest&
+LoadCollectionRequest::WithLoadPriority(const std::string& load_priority) {
+    SetLoadPriority(load_priority);
+    return *this;
+}
+
 }  // namespace milvus

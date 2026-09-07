@@ -133,4 +133,24 @@ CollectionDesc::SetExternalSpec(const nlohmann::json& external_spec) {
     external_spec_ = external_spec;
 }
 
+ConsistencyLevel
+CollectionDesc::GetConsistencyLevel() const {
+    return consistency_level_;
+}
+
+void
+CollectionDesc::SetConsistencyLevel(ConsistencyLevel level) {
+    consistency_level_ = level;
+}
+
+int64_t
+CollectionDesc::NumPartitions() const {
+    return num_partitions_;
+}
+
+void
+CollectionDesc::SetNumPartitions(int64_t num_partitions) {
+    num_partitions_ = num_partitions;
+}
+
 }  // namespace milvus

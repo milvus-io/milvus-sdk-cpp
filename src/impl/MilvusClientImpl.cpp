@@ -226,17 +226,23 @@ MilvusClientImpl::DescribeCollection(const std::string& collection_name, Collect
 
     auto post = [&collection_desc](const proto::milvus::DescribeCollectionResponse& response) {
         CollectionSchema schema;
-        ConvertCollectionSchema(response.schema(), schema);
+        auto status = ConvertCollectionSchema(response.schema(), schema);
+        if (!status.IsOk()) {
+            return status;
+        }
         schema.SetShardsNum(response.shards_num());
         collection_desc.SetSchema(std::move(schema));
         collection_desc.SetID(response.collectionid());
+        collection_desc.SetCreatedTime(response.created_timestamp());
+        collection_desc.SetUpdateTime(response.update_timestamp());
+        collection_desc.SetConsistencyLevel(ConsistencyLevelCast(response.consistency_level()));
+        collection_desc.SetNumPartitions(response.num_partitions());
 
         std::vector<std::string> aliases;
         aliases.reserve(response.aliases_size());
         aliases.insert(aliases.end(), response.aliases().begin(), response.aliases().end());
 
         collection_desc.SetAlias(std::move(aliases));
-        collection_desc.SetCreatedTime(response.created_timestamp());
         return Status::OK();
     };
 
@@ -2220,11 +2226,17 @@ MilvusClientImpl::getCollectionDesc(const std::string& endpoint, const std::stri
             CollectionDesc desc;
             auto post = [&desc](const proto::milvus::DescribeCollectionResponse& response) {
                 CollectionSchema schema;
-                ConvertCollectionSchema(response.schema(), schema);
+                auto status = ConvertCollectionSchema(response.schema(), schema);
+                if (!status.IsOk()) {
+                    return status;
+                }
                 schema.SetShardsNum(response.shards_num());
                 desc.SetSchema(std::move(schema));
                 desc.SetID(response.collectionid());
                 desc.SetCreatedTime(response.created_timestamp());
+                desc.SetUpdateTime(response.update_timestamp());
+                desc.SetConsistencyLevel(ConsistencyLevelCast(response.consistency_level()));
+                desc.SetNumPartitions(response.num_partitions());
                 return Status::OK();
             };
             auto status =

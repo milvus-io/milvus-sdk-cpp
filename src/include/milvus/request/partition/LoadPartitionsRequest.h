@@ -252,6 +252,30 @@ class MILVUS_SDK_API LoadPartitionsRequest {
     LoadPartitionsRequest&
     AddTargetResourceGroups(const std::string& target_resource_group);
 
+    /**
+     * @brief Load priority.
+     * The load priority of the partitions. Set "low" to select low priority; any other value (including "high")
+     * defaults to high priority.
+     */
+    const std::string&
+    LoadPriority() const;
+
+    /**
+     * @brief Set load priority.
+     * The load priority of the partitions. Set "low" to select low priority; any other value (including "high")
+     * defaults to high priority.
+     */
+    void
+    SetLoadPriority(const std::string& load_priority);
+
+    /**
+     * @brief Set load priority.
+     * The load priority of the partitions. Set "low" to select low priority; any other value (including "high")
+     * defaults to high priority.
+     */
+    LoadPartitionsRequest&
+    WithLoadPriority(const std::string& load_priority);
+
  private:
     std::string db_name_;
     std::string collection_name_;
@@ -263,6 +287,7 @@ class MILVUS_SDK_API LoadPartitionsRequest {
     std::set<std::string> load_feilds_;
     bool skip_dynamic_field_{false};
     std::set<std::string> target_resource_groups_;
+    std::string load_priority_;
 };
 
 }  // namespace milvus

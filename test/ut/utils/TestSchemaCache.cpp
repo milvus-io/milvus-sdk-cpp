@@ -219,7 +219,11 @@ TEST(SchemaCacheTest, ConcurrentMissesShareOneLoad) {
     auto loader = [&](milvus::CollectionDescPtr& desc) {
         load_count.fetch_add(1);
         std::unique_lock<std::mutex> lock(gate_mutex);
-        gate_cv.wait(lock, [&entered, kThreadCount]() { return entered.load() == kThreadCount; });
+        if (!gate_cv.wait_for(lock, std::chrono::seconds(30),
+                              [&entered, kThreadCount]() { return entered.load() == kThreadCount; })) {
+            return milvus::Status{milvus::StatusCode::UNKNOWN_ERROR,
+                                  "timed out waiting for all concurrent loaders to enter"};
+        }
         desc = MakeCollectionDesc(100);
         return milvus::Status::OK();
     };
@@ -262,7 +266,11 @@ TEST(SchemaCacheTest, DifferentLoadScopesDoNotShareInFlightLoad) {
         std::unique_lock<std::mutex> lock(gate_mutex);
         first_loader_started = true;
         gate_cv.notify_all();
-        gate_cv.wait(lock, [&allow_first_loader_to_finish]() { return allow_first_loader_to_finish; });
+        if (!gate_cv.wait_for(lock, std::chrono::seconds(30),
+                              [&allow_first_loader_to_finish]() { return allow_first_loader_to_finish; })) {
+            return milvus::Status{milvus::StatusCode::UNKNOWN_ERROR,
+                                  "timed out waiting for the first loader to finish"};
+        }
         desc = MakeCollectionDesc(100);
         return milvus::Status::OK();
     };
@@ -278,9 +286,21 @@ TEST(SchemaCacheTest, DifferentLoadScopesDoNotShareInFlightLoad) {
         first_status = cache.GetOrLoad("endpoint", "db", "collection", false, &first_scope, first_loader, first_desc);
     });
 
+    bool first_loader_started_ok = false;
     {
         std::unique_lock<std::mutex> lock(gate_mutex);
-        gate_cv.wait(lock, [&first_loader_started]() { return first_loader_started; });
+        first_loader_started_ok =
+            gate_cv.wait_for(lock, std::chrono::seconds(30), [&first_loader_started]() { return first_loader_started; });
+    }
+    if (!first_loader_started_ok) {
+        {
+            std::lock_guard<std::mutex> lock(gate_mutex);
+            allow_first_loader_to_finish = true;
+        }
+        gate_cv.notify_all();
+        first_thread.join();
+        FAIL() << "timed out waiting for the first loader to start";
+        return;
     }
 
     milvus::CollectionDescPtr second_desc;
@@ -319,7 +339,10 @@ TEST(SchemaCacheTest, InvalidateDuringLoadPreventsCacheRepopulation) {
         std::unique_lock<std::mutex> lock(gate_mutex);
         loader_started = true;
         gate_cv.notify_all();
-        gate_cv.wait(lock, [&allow_loader_to_finish]() { return allow_loader_to_finish; });
+        if (!gate_cv.wait_for(lock, std::chrono::seconds(30),
+                              [&allow_loader_to_finish]() { return allow_loader_to_finish; })) {
+            return milvus::Status{milvus::StatusCode::UNKNOWN_ERROR, "timed out waiting for the loader to finish"};
+        }
         desc = MakeCollectionDesc(100);
         return milvus::Status::OK();
     };
@@ -329,9 +352,20 @@ TEST(SchemaCacheTest, InvalidateDuringLoadPreventsCacheRepopulation) {
     std::thread thread(
         [&]() { status = cache.GetOrLoad("endpoint", "db", "collection", false, TestLoadScope(), loader, loaded); });
 
+    bool started = false;
     {
         std::unique_lock<std::mutex> lock(gate_mutex);
-        gate_cv.wait(lock, [&loader_started]() { return loader_started; });
+        started = gate_cv.wait_for(lock, std::chrono::seconds(30), [&loader_started]() { return loader_started; });
+    }
+    if (!started) {
+        {
+            std::lock_guard<std::mutex> lock(gate_mutex);
+            allow_loader_to_finish = true;
+        }
+        gate_cv.notify_all();
+        thread.join();
+        FAIL() << "timed out waiting for the loader to start";
+        return;
     }
     cache.Invalidate("endpoint", "db", "collection");
     {

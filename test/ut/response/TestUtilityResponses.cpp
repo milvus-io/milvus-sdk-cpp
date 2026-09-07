@@ -110,6 +110,14 @@ TEST_F(GetCompactionPlansResponseTest, SetterAndGetter) {
     milvus::CompactionPlans plans;
     resp.SetPlans(std::move(plans));
     (void)resp.Plans();
+
+    EXPECT_EQ(resp.CompactionID(), 0);
+    resp.SetCompactionID(123);
+    EXPECT_EQ(resp.CompactionID(), 123);
+
+    EXPECT_EQ(resp.State(), milvus::CompactionStateCode::UNKNOWN);
+    resp.SetState(milvus::CompactionStateCode::COMPLETED);
+    EXPECT_EQ(resp.State(), milvus::CompactionStateCode::COMPLETED);
 }
 
 class GetServerVersionResponseTest : public ::testing::Test {};

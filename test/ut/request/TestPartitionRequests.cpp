@@ -95,6 +95,12 @@ TEST_F(LoadPartitionsRequestTest, GettersAndSetters) {
 
     req.WithTimeoutMs(120000);
     EXPECT_EQ(req.TimeoutMs(), 120000);
+
+    // LoadPriority
+    req.WithLoadPriority("Medium");
+    EXPECT_EQ(req.LoadPriority(), "Medium");
+    req.SetLoadPriority("High");
+    EXPECT_EQ(req.LoadPriority(), "High");
 }
 
 class ReleasePartitionsRequestTest : public ::testing::Test {};

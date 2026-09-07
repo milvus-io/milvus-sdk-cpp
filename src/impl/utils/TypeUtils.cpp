@@ -367,9 +367,9 @@ ConvertRestoreSnapshotJobInfo(const proto::milvus::RestoreSnapshotInfo& rpc_info
     return info;
 }
 
-RefreshExternalCollectionJobInfo
-ConvertRefreshExternalCollectionJobInfo(const proto::milvus::RefreshExternalCollectionJobInfo& rpc_info) {
-    RefreshExternalCollectionJobInfo info;
+Status
+ConvertRefreshExternalCollectionJobInfo(const proto::milvus::RefreshExternalCollectionJobInfo& rpc_info,
+                                        RefreshExternalCollectionJobInfo& info) {
     info.SetJobID(rpc_info.job_id());
     info.SetCollectionName(rpc_info.collection_name());
     info.SetState(RefreshExternalCollectionStateCast(rpc_info.state()));
@@ -378,7 +378,16 @@ ConvertRefreshExternalCollectionJobInfo(const proto::milvus::RefreshExternalColl
     info.SetExternalSource(rpc_info.external_source());
     info.SetStartTime(static_cast<uint64_t>(rpc_info.start_time()));
     info.SetEndTime(static_cast<uint64_t>(rpc_info.end_time()));
-    return info;
+    if (rpc_info.external_spec().empty()) {
+        info.SetExternalSpec(nullptr);
+        return Status::OK();
+    }
+    try {
+        info.SetExternalSpec(nlohmann::json::parse(rpc_info.external_spec()));
+    } catch (const nlohmann::json::parse_error& e) {
+        return {StatusCode::SERVER_FAILED, "Invalid external_spec: " + std::string(e.what())};
+    }
+    return Status::OK();
 }
 
 FileResourceInfo
@@ -508,7 +517,7 @@ ConvertFunctionSchema(const proto::schema::FunctionSchema& proto_function, Funct
     }
 }
 
-void
+Status
 ConvertCollectionSchema(const proto::schema::CollectionSchema& proto_schema, CollectionSchema& schema) {
     schema.SetName(proto_schema.name());
     schema.SetDescription(proto_schema.description());
@@ -517,7 +526,11 @@ ConvertCollectionSchema(const proto::schema::CollectionSchema& proto_schema, Col
     if (proto_schema.external_spec().empty()) {
         schema.SetExternalSpec(nullptr);
     } else {
-        schema.SetExternalSpec(nlohmann::json::parse(proto_schema.external_spec()));
+        try {
+            schema.SetExternalSpec(nlohmann::json::parse(proto_schema.external_spec()));
+        } catch (const nlohmann::json::parse_error& e) {
+            return {StatusCode::SERVER_FAILED, "Invalid external_spec in collection schema: " + std::string(e.what())};
+        }
     }
 
     for (int i = 0; i < proto_schema.fields_size(); ++i) {
@@ -540,6 +553,7 @@ ConvertCollectionSchema(const proto::schema::CollectionSchema& proto_schema, Col
         ConvertFunctionSchema(proto_function, function_schema);
         schema.AddFunction(function_schema);
     }
+    return Status::OK();
 }
 
 Status
@@ -552,12 +566,18 @@ ConvertDescribeCollectionResponse(const proto::milvus::DescribeCollectionRespons
     }
 
     CollectionSchema schema;
-    ConvertCollectionSchema(rpc_response.schema(), schema);
+    auto convert_status = ConvertCollectionSchema(rpc_response.schema(), schema);
+    if (!convert_status.IsOk()) {
+        return convert_status;
+    }
     schema.SetShardsNum(rpc_response.shards_num());
 
     collection_desc.SetSchema(std::move(schema));
     collection_desc.SetID(rpc_response.collectionid());
     collection_desc.SetCreatedTime(rpc_response.created_timestamp());
+    collection_desc.SetUpdateTime(rpc_response.update_timestamp());
+    collection_desc.SetConsistencyLevel(ConsistencyLevelCast(rpc_response.consistency_level()));
+    collection_desc.SetNumPartitions(rpc_response.num_partitions());
 
     std::vector<std::string> aliases;
     aliases.reserve(rpc_response.aliases_size());

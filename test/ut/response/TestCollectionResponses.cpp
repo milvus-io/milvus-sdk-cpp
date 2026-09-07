@@ -128,8 +128,12 @@ class GetCollectionStatsResponseTest : public ::testing::Test {};
 TEST_F(GetCollectionStatsResponseTest, SetterAndGetter) {
     milvus::GetCollectionStatsResponse resp;
     milvus::CollectionStat stats;
+    stats.Emplace("row_count", "123");
+    stats.Emplace("key", "value");
     resp.SetStats(std::move(stats));
-    (void)resp.Stats();
+    EXPECT_EQ(resp.Stats().Statistics().at("row_count"), "123");
+    EXPECT_EQ(resp.Stats().Statistics().at("key"), "value");
+    EXPECT_EQ(resp.Stats().Statistics().size(), 2);
 }
 
 class GetLoadStateResponseTest : public ::testing::Test {};

@@ -360,6 +360,9 @@ MilvusClientV2Impl::LoadCollection(const LoadCollectionRequest& request) {
         for (const auto& rg : request.TargetResourceGroups()) {
             rpc_request.add_resource_groups(rg);
         }
+        if (!request.LoadPriority().empty()) {
+            (*rpc_request.mutable_load_params())["load_priority"] = request.LoadPriority();
+        }
         return Status::OK();
     };
 
@@ -1223,6 +1226,9 @@ MilvusClientV2Impl::LoadPartitions(const LoadPartitionsRequest& request) {
         }
         for (const auto& rg : request.TargetResourceGroups()) {
             rpc_request.add_resource_groups(rg);
+        }
+        if (!request.LoadPriority().empty()) {
+            (*rpc_request.mutable_load_params())["load_priority"] = request.LoadPriority();
         }
         return Status::OK();
     };
@@ -3138,7 +3144,19 @@ MilvusClientV2Impl::GetCompactionPlans(const GetCompactionPlansRequest& request,
         return Status::OK();
     };
 
-    auto post = [&response](const proto::milvus::GetCompactionPlansResponse& rpc_response) {
+    auto post = [&response, &request](const proto::milvus::GetCompactionPlansResponse& rpc_response) {
+        response.SetCompactionID(request.CompactionID());
+        switch (rpc_response.state()) {
+            case proto::common::CompactionState::Completed:
+                response.SetState(CompactionStateCode::COMPLETED);
+                break;
+            case proto::common::CompactionState::Executing:
+                response.SetState(CompactionStateCode::EXECUTING);
+                break;
+            default:
+                response.SetState(CompactionStateCode::UNKNOWN);
+                break;
+        }
         CompactionPlans plans;
         plans.reserve(rpc_response.mergeinfos_size());
         for (int i = 0; i < rpc_response.mergeinfos_size(); ++i) {
@@ -3444,7 +3462,12 @@ MilvusClientV2Impl::GetRefreshExternalCollectionProgress(const GetRefreshExterna
     };
 
     auto post = [&response](const proto::milvus::GetRefreshExternalCollectionProgressResponse& rpc_response) {
-        response.SetJobInfo(ConvertRefreshExternalCollectionJobInfo(rpc_response.job_info()));
+        RefreshExternalCollectionJobInfo info;
+        auto status = ConvertRefreshExternalCollectionJobInfo(rpc_response.job_info(), info);
+        if (!status.IsOk()) {
+            return status;
+        }
+        response.SetJobInfo(std::move(info));
         return Status::OK();
     };
 
@@ -3466,7 +3489,12 @@ MilvusClientV2Impl::ListRefreshExternalCollectionJobs(const ListRefreshExternalC
         std::vector<RefreshExternalCollectionJobInfo> jobs;
         jobs.reserve(rpc_response.jobs_size());
         for (const auto& job : rpc_response.jobs()) {
-            jobs.push_back(ConvertRefreshExternalCollectionJobInfo(job));
+            RefreshExternalCollectionJobInfo info;
+            auto status = ConvertRefreshExternalCollectionJobInfo(job, info);
+            if (!status.IsOk()) {
+                return status;
+            }
+            jobs.push_back(std::move(info));
         }
         response.SetJobs(std::move(jobs));
         return Status::OK();

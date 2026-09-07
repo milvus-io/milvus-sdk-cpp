@@ -98,4 +98,14 @@ RefreshExternalCollectionJobInfo::SetEndTime(uint64_t end_time) {
     end_time_ = end_time;
 }
 
+const nlohmann::json&
+RefreshExternalCollectionJobInfo::ExternalSpec() const {
+    return external_spec_;
+}
+
+void
+RefreshExternalCollectionJobInfo::SetExternalSpec(const nlohmann::json& external_spec) {
+    external_spec_ = external_spec;
+}
+
 }  // namespace milvus

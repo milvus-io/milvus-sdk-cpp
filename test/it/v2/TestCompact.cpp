@@ -25,9 +25,13 @@ using ::milvus::proto::milvus::ConnectRequest;
 using ::milvus::proto::milvus::ConnectResponse;
 using ::milvus::proto::milvus::DescribeCollectionRequest;
 using ::milvus::proto::milvus::DescribeCollectionResponse;
+using ::milvus::proto::milvus::GetCompactionPlansRequest;
+using ::milvus::proto::milvus::GetCompactionPlansResponse;
 using ::milvus::proto::milvus::ManualCompactionRequest;
 using ::milvus::proto::milvus::ManualCompactionResponse;
 using ::testing::_;
+using ::testing::ElementsAreArray;
+using ::testing::Property;
 
 namespace {
 
@@ -127,4 +131,73 @@ TEST_F(UnconnectMilvusMockedTest, CompactRejectsInvalidUnit) {
                                   response);
     EXPECT_FALSE(status.IsOk());
     EXPECT_EQ(status.Code(), milvus::StatusCode::INVALID_ARGUMENT);
+}
+
+TEST_F(UnconnectMilvusMockedTest, GetCompactionPlansV2) {
+    auto client = CreateConnectedV2Client(service_, server_.ListenPort());
+
+    const int64_t compaction_id = 42;
+    const std::vector<int64_t> sources = {1, 2, 3};
+    const int64_t target = 100;
+
+    EXPECT_CALL(service_,
+                GetCompactionStateWithPlans(_, Property(&GetCompactionPlansRequest::compactionid, compaction_id), _))
+        .WillOnce([&](::grpc::ServerContext*, const GetCompactionPlansRequest*, GetCompactionPlansResponse* response) {
+            response->set_state(milvus::proto::common::CompactionState::Completed);
+            auto info = response->add_mergeinfos();
+            for (auto i : sources) {
+                info->add_sources(i);
+            }
+            info->set_target(target);
+            return ::grpc::Status{};
+        });
+
+    milvus::GetCompactionPlansResponse response;
+    auto status =
+        client->GetCompactionPlans(milvus::GetCompactionPlansRequest().WithCompactionID(compaction_id), response);
+    EXPECT_TRUE(status.IsOk());
+    EXPECT_EQ(response.CompactionID(), compaction_id);
+    EXPECT_EQ(response.State(), milvus::CompactionStateCode::COMPLETED);
+    ASSERT_EQ(response.Plans().size(), 1);
+    EXPECT_THAT(response.Plans()[0].SourceSegments(), ElementsAreArray(sources));
+    EXPECT_EQ(response.Plans()[0].DestinySegemnt(), target);
+}
+
+TEST_F(UnconnectMilvusMockedTest, GetCompactionPlansV2ExecutingState) {
+    auto client = CreateConnectedV2Client(service_, server_.ListenPort());
+
+    const int64_t compaction_id = 43;
+
+    EXPECT_CALL(service_,
+                GetCompactionStateWithPlans(_, Property(&GetCompactionPlansRequest::compactionid, compaction_id), _))
+        .WillOnce([](::grpc::ServerContext*, const GetCompactionPlansRequest*, GetCompactionPlansResponse* response) {
+            response->set_state(milvus::proto::common::CompactionState::Executing);
+            return ::grpc::Status{};
+        });
+
+    milvus::GetCompactionPlansResponse response;
+    auto status =
+        client->GetCompactionPlans(milvus::GetCompactionPlansRequest().WithCompactionID(compaction_id), response);
+    EXPECT_TRUE(status.IsOk());
+    EXPECT_EQ(response.CompactionID(), compaction_id);
+    EXPECT_EQ(response.State(), milvus::CompactionStateCode::EXECUTING);
+}
+
+TEST_F(UnconnectMilvusMockedTest, GetCompactionPlansV2UnsetState) {
+    auto client = CreateConnectedV2Client(service_, server_.ListenPort());
+
+    const int64_t compaction_id = 44;
+
+    EXPECT_CALL(service_,
+                GetCompactionStateWithPlans(_, Property(&GetCompactionPlansRequest::compactionid, compaction_id), _))
+        .WillOnce([](::grpc::ServerContext*, const GetCompactionPlansRequest*, GetCompactionPlansResponse*) {
+            return ::grpc::Status{};
+        });
+
+    milvus::GetCompactionPlansResponse response;
+    auto status =
+        client->GetCompactionPlans(milvus::GetCompactionPlansRequest().WithCompactionID(compaction_id), response);
+    EXPECT_TRUE(status.IsOk());
+    EXPECT_EQ(response.CompactionID(), compaction_id);
+    EXPECT_EQ(response.State(), milvus::CompactionStateCode::UNKNOWN);
 }

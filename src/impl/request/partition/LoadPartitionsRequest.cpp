@@ -196,4 +196,20 @@ LoadPartitionsRequest::AddTargetResourceGroups(const std::string& target_resourc
     return *this;
 }
 
+const std::string&
+LoadPartitionsRequest::LoadPriority() const {
+    return load_priority_;
+}
+
+void
+LoadPartitionsRequest::SetLoadPriority(const std::string& load_priority) {
+    load_priority_ = load_priority;
+}
+
+LoadPartitionsRequest&
+LoadPartitionsRequest::WithLoadPriority(const std::string& load_priority) {
+    SetLoadPriority(load_priority);
+    return *this;
+}
+
 }  // namespace milvus

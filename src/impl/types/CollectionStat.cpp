@@ -47,4 +47,9 @@ CollectionStat::Emplace(std::string key, std::string value) {
     statistics_.emplace(std::move(key), std::move(value));
 }
 
+const std::unordered_map<std::string, std::string>&
+CollectionStat::Statistics() const {
+    return statistics_;
+}
+
 }  // namespace milvus

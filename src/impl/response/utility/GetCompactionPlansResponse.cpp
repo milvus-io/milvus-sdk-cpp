@@ -28,4 +28,24 @@ GetCompactionPlansResponse::SetPlans(CompactionPlans&& plans) {
     plans_ = std::move(plans);
 }
 
+int64_t
+GetCompactionPlansResponse::CompactionID() const {
+    return compaction_id_;
+}
+
+void
+GetCompactionPlansResponse::SetCompactionID(int64_t compaction_id) {
+    compaction_id_ = compaction_id;
+}
+
+CompactionStateCode
+GetCompactionPlansResponse::State() const {
+    return state_;
+}
+
+void
+GetCompactionPlansResponse::SetState(CompactionStateCode state) {
+    state_ = state;
+}
+
 }  // namespace milvus

@@ -16,8 +16,11 @@
 
 #pragma once
 
+#include <cstdint>
+
 #include "milvus/Export.h"
 #include "milvus/types/CompactionPlan.h"
+#include "milvus/types/CompactionState.h"
 
 namespace milvus {
 
@@ -43,8 +46,34 @@ class MILVUS_SDK_API GetCompactionPlansResponse {
     void
     SetPlans(CompactionPlans&& plans);
 
+    /**
+     * @brief Get the id of the compaction.
+     */
+    int64_t
+    CompactionID() const;
+
+    /**
+     * @brief Set the id of the compaction.
+     */
+    void
+    SetCompactionID(int64_t compaction_id);
+
+    /**
+     * @brief Get the state of the compaction.
+     */
+    CompactionStateCode
+    State() const;
+
+    /**
+     * @brief Set the state of the compaction.
+     */
+    void
+    SetState(CompactionStateCode state);
+
  private:
     CompactionPlans plans_;
+    int64_t compaction_id_{0};
+    CompactionStateCode state_{CompactionStateCode::UNKNOWN};
 };
 
 }  // namespace milvus
