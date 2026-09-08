@@ -676,11 +676,11 @@ TEST_F(TypeUtilsTest, ConvertCollectionSchema) {
     proto_schema_no_spec.set_name("empty_spec");
     proto_schema_no_spec.set_description("desc");
     milvus::CollectionSchema sdk_schema_no_spec;
-    ConvertCollectionSchema(proto_schema_no_spec, sdk_schema_no_spec);
+    EXPECT_TRUE(milvus::ConvertCollectionSchema(proto_schema_no_spec, sdk_schema_no_spec).IsOk());
     EXPECT_TRUE(sdk_schema_no_spec.ExternalSpec().is_null());
 
     milvus::CollectionSchema sdk_schema;
-    ConvertCollectionSchema(proto_schema, sdk_schema);
+    EXPECT_TRUE(milvus::ConvertCollectionSchema(proto_schema, sdk_schema).IsOk());
 
     EXPECT_EQ(sdk_schema.Name(), collection_name);
     EXPECT_EQ(sdk_schema.Description(), collection_desc);
@@ -703,10 +703,23 @@ TEST_F(TypeUtilsTest, ConvertCollectionSchema) {
     EXPECT_EQ(sdk_function->Params().at("111"), "222");
 }
 
+TEST_F(TypeUtilsTest, ConvertCollectionSchemaInvalidExternalSpec) {
+    milvus::proto::schema::CollectionSchema proto_schema;
+    proto_schema.set_name("coll");
+    proto_schema.set_external_spec("{invalid json");
+
+    milvus::CollectionSchema sdk_schema;
+    auto status = milvus::ConvertCollectionSchema(proto_schema, sdk_schema);
+
+    EXPECT_EQ(status.Code(), milvus::StatusCode::SERVER_FAILED);
+    EXPECT_NE(status.Message().find("Invalid external_spec"), std::string::npos);
+}
+
 TEST_F(TypeUtilsTest, ConvertDescribeCollectionResponse) {
     const int64_t collection_id = 100;
     const int32_t shards_num = 3;
     const uint64_t created_ts = 123456;
+    const uint64_t update_ts = 654321;
 
     milvus::CollectionSchema collection_schema("test_collection", "test description", 1, true);
     collection_schema.AddField({"id", milvus::DataType::INT64, "primary key", true, false});
@@ -718,6 +731,9 @@ TEST_F(TypeUtilsTest, ConvertDescribeCollectionResponse) {
     rpc_response.set_collectionid(collection_id);
     rpc_response.set_shards_num(shards_num);
     rpc_response.set_created_timestamp(created_ts);
+    rpc_response.set_update_timestamp(update_ts);
+    rpc_response.set_consistency_level(milvus::proto::common::ConsistencyLevel::Eventually);
+    rpc_response.set_num_partitions(64);
     rpc_response.add_aliases("alias_a");
     rpc_response.add_aliases("alias_b");
     auto* property = rpc_response.add_properties();
@@ -731,6 +747,9 @@ TEST_F(TypeUtilsTest, ConvertDescribeCollectionResponse) {
     EXPECT_TRUE(status.IsOk());
     EXPECT_EQ(collection_desc.ID(), collection_id);
     EXPECT_EQ(collection_desc.CreatedTime(), created_ts);
+    EXPECT_EQ(collection_desc.UpdateTime(), update_ts);
+    EXPECT_EQ(collection_desc.GetConsistencyLevel(), milvus::ConsistencyLevel::EVENTUALLY);
+    EXPECT_EQ(collection_desc.NumPartitions(), 64);
     EXPECT_EQ(collection_desc.CollectionName(), collection_schema.Name());
     EXPECT_EQ(collection_desc.Description(), collection_schema.Description());
     EXPECT_EQ(collection_desc.NumShards(), shards_num);
@@ -765,7 +784,59 @@ TEST_F(TypeUtilsTest, ConvertDescribeCollectionResponseInvalidExternalSpec) {
     rpc_response.mutable_schema()->set_external_spec("{invalid json");
 
     milvus::CollectionDesc collection_desc;
-    EXPECT_THROW(milvus::ConvertDescribeCollectionResponse(rpc_response, collection_desc), nlohmann::json::parse_error);
+    auto status = milvus::ConvertDescribeCollectionResponse(rpc_response, collection_desc);
+
+    EXPECT_EQ(status.Code(), milvus::StatusCode::SERVER_FAILED);
+    EXPECT_NE(status.Message().find("Invalid external_spec"), std::string::npos);
+}
+
+TEST_F(TypeUtilsTest, ConvertRefreshExternalCollectionJobInfo) {
+    milvus::proto::milvus::RefreshExternalCollectionJobInfo rpc_info;
+    rpc_info.set_job_id(7);
+    rpc_info.set_collection_name("ext_coll");
+    rpc_info.set_progress(50);
+    rpc_info.set_reason("in progress");
+    rpc_info.set_external_source("s3://bucket/path/");
+    rpc_info.set_external_spec("{\"format\":\"parquet\",\"extfs\":{\"region\":\"us-east-1\"}}");
+    rpc_info.set_state(milvus::proto::milvus::RefreshInProgress);
+
+    milvus::RefreshExternalCollectionJobInfo info;
+    auto status = milvus::ConvertRefreshExternalCollectionJobInfo(rpc_info, info);
+
+    EXPECT_TRUE(status.IsOk());
+    EXPECT_EQ(info.JobID(), 7);
+    EXPECT_EQ(info.CollectionName(), "ext_coll");
+    EXPECT_EQ(info.Progress(), 50);
+    EXPECT_EQ(info.Reason(), "in progress");
+    EXPECT_EQ(info.ExternalSource(), "s3://bucket/path/");
+    ASSERT_FALSE(info.ExternalSpec().is_null());
+    EXPECT_EQ(info.ExternalSpec().at("format"), "parquet");
+    EXPECT_EQ(info.ExternalSpec().at("extfs").at("region"), "us-east-1");
+    EXPECT_EQ(info.State(), milvus::RefreshExternalCollectionStateCode::IN_PROGRESS);
+}
+
+TEST_F(TypeUtilsTest, ConvertRefreshExternalCollectionJobInfoEmptySpec) {
+    milvus::proto::milvus::RefreshExternalCollectionJobInfo rpc_info;
+    rpc_info.set_job_id(8);
+
+    milvus::RefreshExternalCollectionJobInfo info;
+    auto status = milvus::ConvertRefreshExternalCollectionJobInfo(rpc_info, info);
+
+    EXPECT_TRUE(status.IsOk());
+    EXPECT_EQ(info.JobID(), 8);
+    EXPECT_TRUE(info.ExternalSpec().is_null());
+}
+
+TEST_F(TypeUtilsTest, ConvertRefreshExternalCollectionJobInfoInvalidSpec) {
+    milvus::proto::milvus::RefreshExternalCollectionJobInfo rpc_info;
+    rpc_info.set_job_id(9);
+    rpc_info.set_external_spec("{invalid json");
+
+    milvus::RefreshExternalCollectionJobInfo info;
+    auto status = milvus::ConvertRefreshExternalCollectionJobInfo(rpc_info, info);
+
+    EXPECT_EQ(status.Code(), milvus::StatusCode::SERVER_FAILED);
+    EXPECT_NE(status.Message().find("Invalid external_spec"), std::string::npos);
 }
 
 TEST_F(TypeUtilsTest, TestB64EncodeGeneric) {

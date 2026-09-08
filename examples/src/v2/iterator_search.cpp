@@ -174,11 +174,10 @@ iterateCollection(milvus::MilvusClientV2Ptr& client, int64_t batch, int64_t limi
 // The callback receives each page of hits fetched by the iterator and prunes rows
 // in place via SingleResult::FilterRows. Here we keep only rows whose user_age is even.
 void
-iterateWithExternalFilter(milvus::MilvusClientV2Ptr& client, int64_t batch, int64_t limit,
-                          const std::string& filter) {
+iterateWithExternalFilter(milvus::MilvusClientV2Ptr& client, int64_t batch, int64_t limit, const std::string& filter) {
     std::cout << "=====================================================" << std::endl;
-    std::cout << "Iterate with external filter, batch: " + std::to_string(batch)
-              << " limit: " + std::to_string(limit) << " filter: " + filter << std::endl;
+    std::cout << "Iterate with external filter, batch: " + std::to_string(batch) << " limit: " + std::to_string(limit)
+              << " filter: " + filter << std::endl;
     milvus::SearchIteratorRequest request;
     request.SetCollectionName(collection_name);
     request.SetBatchSize(batch);

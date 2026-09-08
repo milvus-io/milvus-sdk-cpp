@@ -42,6 +42,18 @@ TEST_F(CollectionDescTest, GeneralTesting) {
     EXPECT_EQ(desc.UpdateTime(), 888);
 }
 
+TEST_F(CollectionDescTest, ConsistencyLevelAndPartitions) {
+    milvus::CollectionDesc desc;
+
+    EXPECT_EQ(desc.GetConsistencyLevel(), milvus::ConsistencyLevel::BOUNDED);
+    desc.SetConsistencyLevel(milvus::ConsistencyLevel::EVENTUALLY);
+    EXPECT_EQ(desc.GetConsistencyLevel(), milvus::ConsistencyLevel::EVENTUALLY);
+
+    EXPECT_EQ(desc.NumPartitions(), 0);
+    desc.SetNumPartitions(64);
+    EXPECT_EQ(desc.NumPartitions(), 64);
+}
+
 TEST_F(CollectionDescTest, ExternalSpec) {
     milvus::CollectionDesc desc;
     EXPECT_TRUE(desc.ExternalSpec().is_null());

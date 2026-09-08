@@ -160,6 +160,12 @@ TEST_F(LoadCollectionRequestTest, GettersAndSetters) {
     req.WithTargetResourceGroups(groups);
     EXPECT_EQ(req.TargetResourceGroups().size(), 2);
     EXPECT_TRUE(req.TargetResourceGroups().count("rg1"));
+
+    // LoadPriority
+    req.WithLoadPriority("Low");
+    EXPECT_EQ(req.LoadPriority(), "Low");
+    req.SetLoadPriority("High");
+    EXPECT_EQ(req.LoadPriority(), "High");
 }
 
 class RefreshLoadRequestTest : public ::testing::Test {};

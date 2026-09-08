@@ -58,6 +58,12 @@ class MILVUS_SDK_API CollectionStat {
     void
     Emplace(std::string key, std::string value);
 
+    /**
+     * @brief Get the raw key/value statistics map of this collection.
+     */
+    const std::unordered_map<std::string, std::string>&
+    Statistics() const;
+
  private:
     std::string name_;
     std::unordered_map<std::string, std::string> statistics_;

@@ -36,6 +36,14 @@ TEST_F(GetRefreshExternalCollectionProgressResponseTest, SetterAndGetter) {
     EXPECT_EQ(resp.JobInfo().JobID(), 101);
 }
 
+TEST_F(RefreshExternalCollectionResponseTest, JobInfoExternalSpec) {
+    milvus::RefreshExternalCollectionJobInfo info;
+    EXPECT_TRUE(info.ExternalSpec().is_null());
+    info.SetExternalSpec({{"format", "parquet"}, {"extfs", {{"region", "us-east-1"}}}});
+    EXPECT_EQ(info.ExternalSpec().at("format"), "parquet");
+    EXPECT_EQ(info.ExternalSpec().at("extfs").at("region"), "us-east-1");
+}
+
 class ListRefreshExternalCollectionJobsResponseTest : public ::testing::Test {};
 
 TEST_F(ListRefreshExternalCollectionJobsResponseTest, SetterAndGetter) {

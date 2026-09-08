@@ -81,8 +81,9 @@ RefreshExternalCollectionStateCast(proto::milvus::RefreshExternalCollectionState
 RestoreSnapshotJobInfo
 ConvertRestoreSnapshotJobInfo(const proto::milvus::RestoreSnapshotInfo& rpc_info);
 
-RefreshExternalCollectionJobInfo
-ConvertRefreshExternalCollectionJobInfo(const proto::milvus::RefreshExternalCollectionJobInfo& rpc_info);
+Status
+ConvertRefreshExternalCollectionJobInfo(const proto::milvus::RefreshExternalCollectionJobInfo& rpc_info,
+                                        RefreshExternalCollectionJobInfo& info);
 
 FileResourceInfo
 ConvertFileResourceInfo(const proto::milvus::FileResourceInfo& rpc_info);
@@ -99,7 +100,7 @@ ConvertStructFieldSchema(const proto::schema::StructArrayFieldSchema& proto_sche
 void
 ConvertFunctionSchema(const proto::schema::FunctionSchema& proto_function, FunctionPtr& function_schema);
 
-void
+Status
 ConvertCollectionSchema(const proto::schema::CollectionSchema& proto_schema, CollectionSchema& schema);
 
 Status

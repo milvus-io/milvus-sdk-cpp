@@ -23,6 +23,7 @@
 #include <vector>
 
 #include "CollectionSchema.h"
+#include "ConsistencyLevel.h"
 #include "milvus/Export.h"
 
 namespace milvus {
@@ -158,6 +159,31 @@ class MILVUS_SDK_API CollectionDesc {
     void
     SetExternalSpec(const nlohmann::json& external_spec);
 
+    /**
+     * @brief Consistency level of the collection.
+     */
+    ConsistencyLevel
+    GetConsistencyLevel() const;
+
+    /**
+     * @brief Set consistency level of the collection.
+     */
+    void
+    SetConsistencyLevel(ConsistencyLevel level);
+
+    /**
+     * @brief Number of partitions of the collection.
+     * Only valid when the collection is created with a partition key.
+     */
+    int64_t
+    NumPartitions() const;
+
+    /**
+     * @brief Set number of partitions of the collection.
+     */
+    void
+    SetNumPartitions(int64_t num_partitions);
+
  private:
     std::string db_name_;
     CollectionSchema schema_;
@@ -168,6 +194,8 @@ class MILVUS_SDK_API CollectionDesc {
     std::unordered_map<std::string, std::string> properties_;
     std::string external_source_;
     nlohmann::json external_spec_;
+    ConsistencyLevel consistency_level_{ConsistencyLevel::BOUNDED};
+    int64_t num_partitions_{0};
 };
 
 using CollectionDescPtr = std::shared_ptr<CollectionDesc>;
