@@ -37,6 +37,7 @@ ignore:
   - src/include/milvus/thirdparty
   - test
   - thirdparty
+  - tutorial
   - "**/*.txt"
   - "**/*.md"
   - "**/*.yml"

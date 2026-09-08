@@ -27,7 +27,7 @@ namespace milvus {
  *
  * The object-scoped (V1) privilege form grants a privilege on an arbitrary object,
  * identified by its type and name. Typical object types are "Global", "Database",
- * "Collection" and "User"; the object name is empty for the "Global" scope.
+ * "Collection" and "User"; use "*" as the object name for the "Global" scope.
  */
 class MILVUS_SDK_API PrivilegeRequest {
  public:
@@ -74,7 +74,7 @@ class MILVUS_SDK_API PrivilegeRequest {
     WithObjectType(const std::string& object_type);
 
     /**
-     * @brief Name of the object the privilege applies to. Empty for the "Global" scope.
+     * @brief Name of the object the privilege applies to. Use "*" for the "Global" scope.
      */
     const std::string&
     ObjectName() const;

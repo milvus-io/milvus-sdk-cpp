@@ -212,6 +212,23 @@ class ConnectionHandler {
                Status (MilvusConnection::*rpc)(const Request&, Response&, const GrpcOpts&),
                std::function<Status(const Response&)> wait_for_status, std::function<Status(const Response&)> post,
                uint64_t rpc_timeout_ms = 0) {
+        try {
+            return invokeInternal(validate, pre, rpc, wait_for_status, post, rpc_timeout_ms);
+        } catch (const std::exception& e) {
+            return StatusFromException(e);
+        } catch (...) {
+            return StatusFromUnknownException();
+        }
+    }
+
+    // Runs the shared validate/pre/rpc/wait/post pipeline. apiHandler wraps this in an
+    // exception barrier so public SDK calls always return a Status instead of throwing.
+    template <typename Request, typename Response>
+    Status
+    invokeInternal(const std::function<Status(void)>& validate, std::function<Status(Request&)> pre,
+                   Status (MilvusConnection::*rpc)(const Request&, Response&, const GrpcOpts&),
+                   std::function<Status(const Response&)> wait_for_status, std::function<Status(const Response&)> post,
+                   uint64_t rpc_timeout_ms) {
         MilvusConnectionPtr connection;
         RetryParam retry_param;
         uint64_t timeout = 0;

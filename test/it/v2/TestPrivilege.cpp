@@ -76,7 +76,7 @@ TEST_F(UnconnectMilvusMockedTest, RevokePrivilege) {
         .WillOnce([](::grpc::ServerContext*, const OperatePrivilegeRequest* request, ::milvus::proto::common::Status*) {
             EXPECT_EQ(request->entity().role().name(), "reader_role");
             EXPECT_EQ(request->entity().object().name(), "Global");
-            EXPECT_EQ(request->entity().object_name(), "");
+            EXPECT_EQ(request->entity().object_name(), "*");
             EXPECT_EQ(request->entity().grantor().privilege().name(), "CreateCollection");
             EXPECT_TRUE(request->entity().db_name().empty());
             EXPECT_EQ(request->type(), ::milvus::proto::milvus::OperatePrivilegeType::Revoke);
@@ -86,6 +86,7 @@ TEST_F(UnconnectMilvusMockedTest, RevokePrivilege) {
     auto status = client->RevokePrivilege(milvus::RevokePrivilegeRequest()
                                               .WithRoleName("reader_role")
                                               .WithObjectType("Global")
+                                              .WithObjectName("*")
                                               .WithPrivilege("CreateCollection"));
     EXPECT_TRUE(status.IsOk());
 }

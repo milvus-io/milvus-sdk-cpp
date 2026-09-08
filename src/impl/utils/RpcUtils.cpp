@@ -101,4 +101,14 @@ Retry(std::function<Status(void)> caller, const RetryParam& retry_param) {
     return Status::OK();
 }
 
+Status
+StatusFromException(const std::exception& e, const std::string& prefix) {
+    return {StatusCode::UNKNOWN_ERROR, prefix + e.what()};
+}
+
+Status
+StatusFromUnknownException(const std::string& message) {
+    return {StatusCode::UNKNOWN_ERROR, message};
+}
+
 }  // namespace milvus

@@ -19,6 +19,8 @@
 #include <algorithm>
 #include <exception>
 
+#include "../RpcUtils.h"
+
 namespace milvus {
 
 SchemaCache::SchemaCache(size_t capacity) : capacity_(capacity) {
@@ -113,9 +115,9 @@ SchemaCache::GetOrLoad(const std::string& endpoint, const std::string& db_name, 
 
         return finish_load(status, loaded);
     } catch (const std::exception& e) {
-        return finish_load({StatusCode::UNKNOWN_ERROR, "Schema loader failed: " + std::string(e.what())}, nullptr);
+        return finish_load(StatusFromException(e, "Schema loader failed: "), nullptr);
     } catch (...) {
-        return finish_load({StatusCode::UNKNOWN_ERROR, "Schema loader failed with unknown exception"}, nullptr);
+        return finish_load(StatusFromUnknownException("Schema loader failed with unknown exception"), nullptr);
     }
 }
 
