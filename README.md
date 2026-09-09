@@ -17,8 +17,8 @@ The following table lists the recommended Milvus C++ SDK version for each Milvus
 | 2.3.x | `2.3` branch |
 | 2.4.x | `v2.4.1` |
 | 2.5.x | `v2.5.4` |
-| 2.6.x | `v2.6.6` |
-| 3.0.x | `v3.0.2` |
+| 2.6.x | `v2.6.7` |
+| 3.0.x | `v3.0.3` |
 
 ## Build from source
 

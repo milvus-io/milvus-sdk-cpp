@@ -1,5 +1,25 @@
 # Changelog
 
+## milvus-sdk-cpp 3.0.3 (2026-09-10)
+### Feature
+- Support client telemetry
+- Support global cluster
+- Support the Text datatype
+- Support client-side roaring bitmap blobs for `roaring_match`
+- Add function chains support for search
+
+### Improvement
+- Add an exception barrier so public SDK APIs never throw
+- Align MilvusClientV2 load/describe/compaction/stats APIs with PyMilvus
+- Align MilvusClientV2 RBAC/utility/index APIs with PyMilvus
+- Match PyMilvus search iterator external filter and empty DML/get short-circuits
+- Expose DML cost and validate search/hybrid_search parameters
+- Speed up builds with unity builds and line-table debug info
+- Add tutorials
+- Preserve empty database names for serverless requests
+- Avoid version conflicts with a system-installed protoc
+- Optimize client telemetry
+
 ## milvus-sdk-cpp 3.0.2 (2026-08-07)
 ### Feature
 - Support query by integer or string primary-key IDs
@@ -50,6 +70,59 @@
 ### Improvement
 - Refine the struct field example to cover supported vector types and element-level search
 - Align GetLoadState/LoadCollection/LoadPartitions with PyMilvus
+
+
+## milvus-sdk-cpp 2.6.7 (2026-09-03)
+### Feature
+- Support GetServerVersionV2() with build-time, git-commit, go-version, and deploy-mode detail
+- Report operation cost in DmlResults and support L0 compaction for CompactRequest
+- Support user description for UpdatePasswordRequest
+- Add tutorials covering quickstart, collection, schema, index, DML, DQL, database, and RBAC
+
+### Improvement
+- Align MilvusClientV2 with pymilvus on cost, compact, rbac, and server version APIs
+- Speed up builds with unity build and line-tables debug info
+- Avoid conflicts with a system-installed protoc
+- Reject empty index lists in CreateIndex
+
+### Bug
+- Preserve empty database names for serverless requests
+
+
+## milvus-sdk-cpp 2.6.6 (2026-08-07)
+### Feature
+- Support query by integer or string primary-key IDs
+- Support renaming collections across databases
+
+### Improvement
+- Refine collection schema and session timestamp caching for concurrent DML and DQL workloads
+
+### Bug
+- Fix iterator pagination and session timestamp handling that could skip or return stale results
+- Preserve the active connection when a reconnect attempt is rejected
+
+
+## milvus-sdk-cpp 2.6.5 (2026-07-24)
+### Feature
+- Support highlighting for search results
+- Support DumpMessages(), AlterRole(), and UpdateUser() interfaces
+- Support search by primary-key IDs
+- Support nullable vector fields
+- Support field-level partial-update operations for upsert
+
+### Improvement
+- Align CreateRoleRequest/CreateUserRequest/SearchResponse/QueryResponse with other SDKs
+- Avoid conflicts with a system-installed nlohmann/json library
+
+
+## milvus-sdk-cpp 2.6.4 (2026-06-17)
+### Feature
+- Support GetReplicateInfo() interface
+- Support FlushAll()/GetFlushAllState() interfaces
+- Support GetReplicateConfiguration()/UpdateReplicateConfiguration() interfaces
+
+### Improvement
+- Align GetLoadState()/LoadCollection()/LoadPartitions() behavior with PyMilvus
 
 
 ## milvus-sdk-cpp 2.6.3 (2026-05-06)

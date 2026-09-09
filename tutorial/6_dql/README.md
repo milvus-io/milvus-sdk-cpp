@@ -23,7 +23,7 @@ make run
 ```
 
 Set `MILVUS_URI` and `MILVUS_TOKEN` for another server. The tutorial uses
-`milvus-sdk-cpp/3.0.2@milvus/dev` unless the `MILVUS_SDK_*` variables override it, and drops its
+`milvus-sdk-cpp/3.0.3@milvus/dev` unless the `MILVUS_SDK_*` variables override it, and drops its
 temporary collection before exiting.
 
 ## Expected output

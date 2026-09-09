@@ -29,7 +29,7 @@ MILVUS_USER_PASSWORD="a-strong-temporary-password" make run
 
 The tutorial uses fixed temporary names (`cpp_tutorial_*`), so do not run concurrent copies with the
 same server credentials. It removes those resources on normal completion. The default Conan package
-is `milvus-sdk-cpp/3.0.2@milvus/dev`; override it with `MILVUS_SDK_*` variables.
+is `milvus-sdk-cpp/3.0.3@milvus/dev`; override it with `MILVUS_SDK_*` variables.
 
 ## Expected output
 

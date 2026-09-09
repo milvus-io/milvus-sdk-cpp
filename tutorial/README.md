@@ -7,7 +7,7 @@ Prerequisites: CMake 3.16+, a C++14 compiler, Conan 2.x, and an accessible Milvu
 
 ## Configure the Conan remote
 
-The tutorials default to `milvus-sdk-cpp/3.0.2@milvus/dev`. This package is hosted on the Milvus
+The tutorials default to `milvus-sdk-cpp/3.0.3@milvus/dev`. This package is hosted on the Milvus
 Artifactory remote rather than ConanCenter. Add the remote once before the first tutorial build:
 
 ```bash
