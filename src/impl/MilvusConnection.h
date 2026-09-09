@@ -35,6 +35,7 @@
 #include "milvus/ClientRequestContext.h"
 #include "milvus/ClientTelemetry.h"
 #include "milvus/Status.h"
+#include "utils/RpcUtils.h"
 #include "milvus/types/ConnectParam.h"
 #include "schema.pb.h"
 
@@ -560,6 +561,24 @@ class MilvusConnection {
     grpcCall(const char* name,
              grpc::Status (proto::milvus::MilvusService::Stub::*func)(grpc::ClientContext*, const Request&, Response*),
              const Request& request, Response& response, const GrpcContextOptions& options) {
+        // Defense-in-depth: most callers already run inside ConnectionHandler::apiHandler's
+        // barrier, but lifecycle APIs such as ConnectionHandler::GetLoadingProgress call
+        // grpcCall directly and rely on these branches.
+        try {
+            return grpcCallInternal(name, func, request, response, options);
+        } catch (const std::exception& e) {
+            return StatusFromException(e);
+        } catch (...) {
+            return StatusFromUnknownException();
+        }
+    }
+
+    template <typename Request, typename Response>
+    Status
+    grpcCallInternal(const char* name,
+                     grpc::Status (proto::milvus::MilvusService::Stub::*func)(grpc::ClientContext*, const Request&,
+                                                                             Response*),
+                     const Request& request, Response& response, const GrpcContextOptions& options) {
         (void)name;
         std::shared_ptr<proto::milvus::MilvusService::Stub> stub;
         {

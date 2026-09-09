@@ -177,60 +177,59 @@ MilvusConnection::Connect(const ConnectParam& param, const std::string& runtime_
 
     // grpc channel has been create, now we call the proto::milvus::MilvusClient::Connect() interface
     // to send some basic information of client to the server, including the sdk type, version, etc.
-    proto::milvus::ConnectRequest rpc_request;
-    auto client_info = rpc_request.mutable_client_info();
-    client_info->set_sdk_type("CPP");
-    client_info->set_user(param.Username());
-    client_info->set_sdk_version(GetBuildVersion());
-    client_info->set_host(param.Host());
-
-    auto now = std::chrono::system_clock::now();
-    std::time_t now_time = std::chrono::system_clock::to_time_t(now);
-    std::tm* local_time = std::localtime(&now_time);
-    std::stringstream ss;
-    ss << std::put_time(local_time, "%Y-%m-%d %H:%M:%S");
-    client_info->set_local_time(ss.str());
-
-    // the default value of ConnectTimeout is 10 seconds, means if the server could not return response
-    // in 10 seconds, the MilvusClient will return an error
-    ::grpc::ClientContext context;
-    if (param.ConnectTimeout() > 0) {
-        auto deadline = now + std::chrono::milliseconds{param.ConnectTimeout()};
-        context.set_deadline(deadline);
-    }
-
-    proto::milvus::ConnectResponse rpc_response;
-    auto grpc_status = stub->Connect(&context, rpc_request, &rpc_response);
-    auto status = StatusCodeFromGrpcStatus(grpc_status);
-    if (!status.IsOk()) {
-        return status;
-    }
-
-    status = StatusByProtoResponse(rpc_response);
-    if (!status.IsOk()) {
-        return status;
-    }
-
     try {
+        proto::milvus::ConnectRequest rpc_request;
+        auto client_info = rpc_request.mutable_client_info();
+        client_info->set_sdk_type("CPP");
+        client_info->set_user(param.Username());
+        client_info->set_sdk_version(GetBuildVersion());
+        client_info->set_host(param.Host());
+
+        auto now = std::chrono::system_clock::now();
+        std::time_t now_time = std::chrono::system_clock::to_time_t(now);
+        std::tm* local_time = std::localtime(&now_time);
+        std::stringstream ss;
+        ss << std::put_time(local_time, "%Y-%m-%d %H:%M:%S");
+        client_info->set_local_time(ss.str());
+
+        // the default value of ConnectTimeout is 10 seconds, means if the server could not return response
+        // in 10 seconds, the MilvusClient will return an error
+        ::grpc::ClientContext context;
+        if (param.ConnectTimeout() > 0) {
+            auto deadline = now + std::chrono::milliseconds{param.ConnectTimeout()};
+            context.set_deadline(deadline);
+        }
+
+        proto::milvus::ConnectResponse rpc_response;
+        auto grpc_status = stub->Connect(&context, rpc_request, &rpc_response);
+        auto status = StatusCodeFromGrpcStatus(grpc_status);
+        if (!status.IsOk()) {
+            return status;
+        }
+
+        status = StatusByProtoResponse(rpc_response);
+        if (!status.IsOk()) {
+            return status;
+        }
+
         telemetry->AttachChannel(channel, param.Username(), param.DbName(), reported_endpoint, GetBuildVersion(),
                                  connection_scope);
-    } catch (const std::exception& exception) {
-        return {StatusCode::UNKNOWN_ERROR,
-                std::string("Failed to attach client telemetry transport: ") + exception.what()};
+        {
+            std::lock_guard<std::mutex> lock(stub_mtx_);
+            param_ = param;
+            channel_ = std::move(channel);
+            stub_ = std::move(stub);
+            telemetry_ = telemetry;
+            telemetry_client_id_ = telemetry->ClientId();
+            telemetry_logical_endpoint_ = telemetry_logical_endpoint;
+        }
+        telemetry->Start();
+        return Status::OK();
+    } catch (const std::exception& e) {
+        return StatusFromException(e);
     } catch (...) {
-        return {StatusCode::UNKNOWN_ERROR, "Failed to attach client telemetry transport"};
+        return StatusFromUnknownException();
     }
-    {
-        std::lock_guard<std::mutex> lock(stub_mtx_);
-        param_ = param;
-        channel_ = std::move(channel);
-        stub_ = std::move(stub);
-        telemetry_ = telemetry;
-        telemetry_client_id_ = telemetry->ClientId();
-        telemetry_logical_endpoint_ = telemetry_logical_endpoint;
-    }
-    telemetry->Start();
-    return Status::OK();
 }
 
 ConnectParam&
@@ -903,50 +902,56 @@ MilvusConnection::GetReplicateInfo(const proto::milvus::GetReplicateInfoRequest&
 Status
 MilvusConnection::DumpMessages(const proto::milvus::DumpMessagesRequest& request, const GrpcContextOptions& options,
                                const std::function<Status(const proto::common::ImmutableMessage&)>& on_message) {
-    std::shared_ptr<proto::milvus::MilvusService::Stub> stub;
-    {
-        std::lock_guard<std::mutex> lock(stub_mtx_);
-        stub = stub_;
-    }
-    if (stub == nullptr) {
-        return {StatusCode::NOT_CONNECTED, "Connection is not ready!"};
-    }
-
-    ::grpc::ClientContext context;
-    if (options.timeout > 0) {
-        auto deadline = std::chrono::system_clock::now() + std::chrono::milliseconds{options.timeout};
-        context.set_deadline(deadline);
-    }
-
-    auto reader = stub->DumpMessages(&context, request);
-    proto::milvus::DumpMessagesResponse response;
-    while (reader->Read(&response)) {
-        switch (response.response_case()) {
-            case proto::milvus::DumpMessagesResponse::kStatus: {
-                auto status = StatusByProtoResponse(response.status());
-                if (!status.IsOk()) {
-                    return status;
-                }
-                break;
-            }
-            case proto::milvus::DumpMessagesResponse::kMessage: {
-                auto status = on_message(response.message());
-                if (!status.IsOk()) {
-                    return status;
-                }
-                break;
-            }
-            case proto::milvus::DumpMessagesResponse::RESPONSE_NOT_SET:
-            default:
-                return {StatusCode::SERVER_FAILED, "Unexpected empty dumpMessages response"};
+    try {
+        std::shared_ptr<proto::milvus::MilvusService::Stub> stub;
+        {
+            std::lock_guard<std::mutex> lock(stub_mtx_);
+            stub = stub_;
         }
-    }
+        if (stub == nullptr) {
+            return {StatusCode::NOT_CONNECTED, "Connection is not ready!"};
+        }
 
-    auto grpc_status = reader->Finish();
-    if (!grpc_status.ok()) {
-        return StatusCodeFromGrpcStatus(grpc_status);
+        ::grpc::ClientContext context;
+        if (options.timeout > 0) {
+            auto deadline = std::chrono::system_clock::now() + std::chrono::milliseconds{options.timeout};
+            context.set_deadline(deadline);
+        }
+
+        auto reader = stub->DumpMessages(&context, request);
+        proto::milvus::DumpMessagesResponse response;
+        while (reader->Read(&response)) {
+            switch (response.response_case()) {
+                case proto::milvus::DumpMessagesResponse::kStatus: {
+                    auto status = StatusByProtoResponse(response.status());
+                    if (!status.IsOk()) {
+                        return status;
+                    }
+                    break;
+                }
+                case proto::milvus::DumpMessagesResponse::kMessage: {
+                    auto status = on_message(response.message());
+                    if (!status.IsOk()) {
+                        return status;
+                    }
+                    break;
+                }
+                case proto::milvus::DumpMessagesResponse::RESPONSE_NOT_SET:
+                default:
+                    return {StatusCode::SERVER_FAILED, "Unexpected empty dumpMessages response"};
+            }
+        }
+
+        auto grpc_status = reader->Finish();
+        if (!grpc_status.ok()) {
+            return StatusCodeFromGrpcStatus(grpc_status);
+        }
+        return Status::OK();
+    } catch (const std::exception& e) {
+        return StatusFromException(e);
+    } catch (...) {
+        return StatusFromUnknownException();
     }
-    return Status::OK();
 }
 
 Status

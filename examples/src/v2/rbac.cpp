@@ -133,7 +133,7 @@ main(int argc, char* argv[]) {
     status = client->GrantPrivilege(milvus::GrantPrivilegeRequest()
                                         .WithRoleName(role_name)
                                         .WithObjectType("Global")
-                                        .WithObjectName("")
+                                        .WithObjectName("*")
                                         .WithPrivilege("CreateDatabase"));
     util::CheckStatus("grant global privilege to role: " + role_name, status);
 
@@ -218,7 +218,7 @@ main(int argc, char* argv[]) {
     status = client->RevokePrivilege(milvus::RevokePrivilegeRequest()
                                          .WithRoleName(role_name)
                                          .WithObjectType("Global")
-                                         .WithObjectName("")
+                                         .WithObjectName("*")
                                          .WithPrivilege("CreateDatabase"));
     util::CheckStatus("revoke global privilege from role: " + role_name, status);
 
