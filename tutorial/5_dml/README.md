@@ -22,7 +22,7 @@ make
 make run
 ```
 
-The default package is `milvus-sdk-cpp/3.0.2@milvus/dev`; override it with `MILVUS_SDK_VERSION`,
+The default package is `milvus-sdk-cpp/3.0.3@milvus/dev`; override it with `MILVUS_SDK_VERSION`,
 `MILVUS_SDK_USER`, and `MILVUS_SDK_CHANNEL`. `make clean` removes build output.
 
 ## Expected output

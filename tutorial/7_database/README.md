@@ -21,7 +21,7 @@ make
 make run
 ```
 
-Override connection variables or the default Conan package (`milvus-sdk-cpp/3.0.2@milvus/dev`)
+Override connection variables or the default Conan package (`milvus-sdk-cpp/3.0.3@milvus/dev`)
 with `MILVUS_URI`, `MILVUS_TOKEN`, and `MILVUS_SDK_*`. The selected database is reset to `default`
 before it is dropped.
 

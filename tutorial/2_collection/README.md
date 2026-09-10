@@ -31,7 +31,7 @@ make
 make run
 ```
 
-The project consumes `milvus-sdk-cpp/3.0.2@milvus/dev` by default. Override the package with
+The project consumes `milvus-sdk-cpp/3.0.3@milvus/dev` by default. Override the package with
 `MILVUS_SDK_VERSION`, `MILVUS_SDK_USER`, and `MILVUS_SDK_CHANNEL`. The tutorial removes its
 temporary collection; use `make clean` to remove build outputs.
 

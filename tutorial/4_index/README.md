@@ -23,7 +23,7 @@ make
 make run
 ```
 
-The project consumes `milvus-sdk-cpp/3.0.2@milvus/dev` by default. Package and connection settings
+The project consumes `milvus-sdk-cpp/3.0.3@milvus/dev` by default. Package and connection settings
 can be overridden with the `MILVUS_SDK_*`, `MILVUS_URI`, and `MILVUS_TOKEN` environment variables.
 
 ## Expected output

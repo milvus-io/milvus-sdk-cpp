@@ -33,7 +33,7 @@ make
 make run
 ```
 
-`make` installs `milvus-sdk-cpp` as a Conan dependency (default `3.0.2@milvus/dev`), configures
+`make` installs `milvus-sdk-cpp` as a Conan dependency (default `3.0.3@milvus/dev`), configures
 CMake, and builds `cmake_build/tutorial_quickstart`. Set `MILVUS_SDK_VERSION`,
 `MILVUS_SDK_USER`, or `MILVUS_SDK_CHANNEL` to consume another package reference.
 
