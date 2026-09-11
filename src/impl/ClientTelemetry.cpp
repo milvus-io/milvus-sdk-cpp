@@ -68,18 +68,12 @@ constexpr size_t kSnapshotLimit = 4096;
 constexpr uint64_t kSamplingScale = 1000000000ULL;
 constexpr size_t kMaxReplyBytes = 1024 * 1024;
 constexpr uint64_t kMaxUnsupportedBackoffMs = 30 * 60 * 1000;
-constexpr uint64_t kMaxHeartbeatIntervalMs = static_cast<uint64_t>(std::numeric_limits<int64_t>::max());
-// condition_variable implementations commonly form an absolute deadline internally.
-// Keep each addition comfortably inside every supported platform clock and represent
-// longer intervals as stop/rebind-aware chunks.
-constexpr uint64_t kMaxWaitChunkMs = 24ULL * 60 * 60 * 1000;
 
 TelemetryConfig
 NormalizedTelemetryConfig(TelemetryConfig config) {
     if (config.heartbeat_interval_ms == 0) {
         config.heartbeat_interval_ms = 10000;
     }
-    config.heartbeat_interval_ms = std::min(config.heartbeat_interval_ms, kMaxHeartbeatIntervalMs);
     config.sampling_rate = std::max(0.0, std::min(1.0, config.sampling_rate));
     if (config.error_max_count == 0) {
         config.error_max_count = 100;
@@ -98,27 +92,6 @@ int64_t
 NowMillis() {
     return std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch())
         .count();
-}
-
-int64_t
-SaturatingWindowStart(int64_t end_time, uint64_t interval_ms) {
-    const auto signed_interval = static_cast<int64_t>(std::min(interval_ms, kMaxHeartbeatIntervalMs));
-    if (end_time < std::numeric_limits<int64_t>::min() + signed_interval) {
-        return std::numeric_limits<int64_t>::min();
-    }
-    return end_time - signed_interval;
-}
-
-size_t
-Utf8SafePrefixLength(const std::string& value, size_t requested) {
-    auto length = std::min(requested, value.size());
-    if (length == value.size()) {
-        return length;
-    }
-    while (length > 0 && (static_cast<unsigned char>(value[length]) & 0xC0) == 0x80) {
-        --length;
-    }
-    return length;
 }
 
 std::string
@@ -470,10 +443,10 @@ FailedReply(const std::string& command_id, const std::string& error) {
 class ClientTelemetryManager::Impl : public std::enable_shared_from_this<ClientTelemetryManager::Impl> {
  public:
     Impl(const TelemetryConfig& value, const std::string& runtime_client_id)
-        : config_(NormalizedTelemetryConfig(value)),
-          connection_config_(config_),
-          stable_client_id_(!value.client_id.empty()),
-          client_id_(stable_client_id_ ? value.client_id
+        : config(NormalizedTelemetryConfig(value)),
+          connection_config(config),
+          stable_client_id(!value.client_id.empty()),
+          client_id(stable_client_id ? value.client_id
                                      : (runtime_client_id.empty() ? RandomUuid() : runtime_client_id)) {
         RegisterDefaultHandlers();
     }
@@ -496,134 +469,123 @@ class ClientTelemetryManager::Impl : public std::enable_shared_from_this<ClientT
         std::string new_sdk_version = version;
         std::string new_connection_scope = scope;
 
-        std::lock_guard<std::recursive_mutex> command_lock(command_mutex_);
-        std::lock_guard<std::mutex> lock(mutex_);
-        stub_ = std::move(new_stub);
-        ++channel_generation_;
-        // A newly attached transport must be probed immediately. Carrying an
-        // UNIMPLEMENTED backoff from the retired endpoint can otherwise keep a
-        // supporting endpoint silent for up to thirty minutes.
-        unsupported_streak_ = 0;
-        ++wait_revision_;
-        username_ = std::move(new_username);
-        database_ = std::move(new_database);
-        uri_ = std::move(new_uri);
-        sdk_version_ = std::move(new_sdk_version);
-        connection_scope_ = std::move(new_connection_scope);
-        condition_.notify_all();
+        std::lock_guard<std::recursive_mutex> command_lock(command_mutex);
+        std::lock_guard<std::mutex> lock(mutex);
+        stub = std::move(new_stub);
+        ++channel_generation;
+        username = std::move(new_username);
+        database = std::move(new_database);
+        uri = std::move(new_uri);
+        sdk_version = std::move(new_sdk_version);
+        connection_scope = std::move(new_connection_scope);
     }
 
     void
     Start() {
-        std::unique_lock<std::mutex> lock(mutex_);
-        if (ready_) {
+        std::unique_lock<std::mutex> lock(mutex);
+        if (ready) {
             return;
         }
-        const bool called_from_worker = worker_running_ && worker_id_ == std::this_thread::get_id();
+        const bool called_from_worker = worker_running && worker_id == std::this_thread::get_id();
         if (called_from_worker) {
             // Stop()/Start() is used by reconnect handlers. Reuse this worker only
             // when no external caller has claimed it for joining. An external stop
             // always wins over a self-restart that races with it.
-            if (join_in_progress_ || external_stop_requested_) {
+            if (join_in_progress || external_stop_requested) {
                 return;
             }
-            ready_ = true;
-            control_plane_activated_ = control_plane_activated_ || config_.enabled;
-            if (!control_plane_activated_) {
-                stopped_ = true;
+            ready = true;
+            control_plane_activated = control_plane_activated || config.enabled;
+            if (!control_plane_activated) {
+                stopped = true;
                 return;
             }
-            stopped_ = false;
+            stopped = false;
             return;
         }
 
-        condition_.wait(lock, [this]() { return !join_in_progress_; });
-        if (ready_) {
+        condition.wait(lock, [this]() { return !join_in_progress; });
+        if (ready) {
             return;
         }
-        if (worker_.joinable()) {
-            join_in_progress_ = true;
-            auto previous_worker = std::move(worker_);
+        if (worker.joinable()) {
+            join_in_progress = true;
+            auto previous_worker = std::move(worker);
             lock.unlock();
             previous_worker.join();
             lock.lock();
-            worker_id_ = {};
-            worker_running_ = false;
-            join_in_progress_ = false;
-            condition_.notify_all();
-            if (ready_) {
+            worker_id = {};
+            worker_running = false;
+            join_in_progress = false;
+            condition.notify_all();
+            if (ready) {
                 return;
             }
         }
-        external_stop_requested_ = false;
-        ready_ = true;
+        external_stop_requested = false;
+        ready = true;
         // Initial enabled=false is an explicit opt-out and creates no control-plane traffic.
         // Once activated, keep the control plane sticky across dynamic disable and
         // Stop/Start reconnects so the server can later re-enable telemetry.
-        control_plane_activated_ = control_plane_activated_ || config_.enabled;
-        if (!control_plane_activated_) {
-            stopped_ = true;
+        control_plane_activated = control_plane_activated || config.enabled;
+        if (!control_plane_activated) {
+            stopped = true;
             return;
         }
-        stopped_ = false;
-        worker_running_ = true;
+        stopped = false;
+        worker_running = true;
         try {
             auto self = shared_from_this();
-            worker_ = std::thread([self = std::move(self)]() { self->HeartbeatLoop(); });
-            worker_id_ = worker_.get_id();
+            worker = std::thread([self = std::move(self)]() { self->HeartbeatLoop(); });
+            worker_id = worker.get_id();
         } catch (...) {
             // Telemetry startup is best-effort. Restore a clean, retryable stopped state instead
             // of leaking an exception through Connect() or leaving worker_running without a thread.
-            ready_ = false;
-            stopped_ = true;
-            worker_running_ = false;
-            worker_id_ = {};
-            condition_.notify_all();
+            ready = false;
+            stopped = true;
+            worker_running = false;
+            worker_id = {};
+            condition.notify_all();
         }
     }
 
     void
     Stop() {
-        std::unique_lock<std::mutex> lock(mutex_);
-        stopped_ = true;
-        ready_ = false;
-        condition_.notify_all();
+        std::unique_lock<std::mutex> lock(mutex);
+        stopped = true;
+        ready = false;
+        condition.notify_all();
 
-        const bool called_from_worker = worker_running_ && worker_id_ == std::this_thread::get_id();
+        const bool called_from_worker = worker_running && worker_id == std::this_thread::get_id();
         if (called_from_worker) {
             return;
         }
 
-        external_stop_requested_ = true;
-        condition_.wait(lock, [this]() { return !join_in_progress_; });
-        if (!worker_.joinable()) {
-            worker_id_ = {};
-            worker_running_ = false;
+        external_stop_requested = true;
+        condition.wait(lock, [this]() { return !join_in_progress; });
+        if (!worker.joinable()) {
+            worker_id = {};
+            worker_running = false;
             return;
         }
 
         // Move the thread object while holding the state mutex. This gives
         // exactly one external caller ownership of join(); other Stop()/Start()
         // calls wait on join_in_progress instead of touching the same std::thread.
-        join_in_progress_ = true;
-        auto current_worker = std::move(worker_);
+        join_in_progress = true;
+        auto current_worker = std::move(worker);
         lock.unlock();
         current_worker.join();
         lock.lock();
-        worker_id_ = {};
-        worker_running_ = false;
-        join_in_progress_ = false;
-        condition_.notify_all();
+        worker_id = {};
+        worker_running = false;
+        join_in_progress = false;
+        condition.notify_all();
     }
 
     void
     HeartbeatLoop() {
         while (true) {
-            uint64_t heartbeat_revision;
-            {
-                std::lock_guard<std::mutex> lock(mutex_);
-                heartbeat_revision = wait_revision_;
-            }
             try {
                 CreateSnapshot();
                 SendHeartbeat();
@@ -632,87 +594,55 @@ class ClientTelemetryManager::Impl : public std::enable_shared_from_this<ClientT
                 // escape a std::thread entry and terminate the process. Keep the control plane
                 // alive; the next iteration can retry on the same or a reattached transport.
                 try {
-                    std::lock_guard<std::mutex> lock(mutex_);
-                    last_heartbeat_error_ = "unexpected client telemetry heartbeat failure";
+                    std::lock_guard<std::mutex> lock(mutex);
+                    last_heartbeat_error = "unexpected client telemetry heartbeat failure";
                 } catch (...) {
                     // Even recording a best-effort diagnostic can fail under memory pressure.
                 }
             }
-            std::unique_lock<std::mutex> lock(mutex_);
-            if (stopped_) {
+            std::unique_lock<std::mutex> lock(mutex);
+            if (stopped) {
                 break;
             }
-            if (heartbeat_revision != wait_revision_) {
-                // AttachChannel may have replaced the transport while the RPC
-                // was in flight, before there was a waiter to notify. Probe the
-                // replacement immediately instead of sleeping the old interval.
-                continue;
-            }
-            uint64_t delay = config_.heartbeat_interval_ms;
-            if (unsupported_streak_ > 0) {
+            uint64_t delay = config.heartbeat_interval_ms;
+            if (unsupported_streak > 0) {
                 uint64_t backed_off = std::min(delay, kMaxUnsupportedBackoffMs);
-                for (int index = 0; index < unsupported_streak_ && backed_off < kMaxUnsupportedBackoffMs; ++index) {
+                for (int index = 0; index < unsupported_streak && backed_off < kMaxUnsupportedBackoffMs; ++index) {
                     backed_off = backed_off > kMaxUnsupportedBackoffMs / 2 ? kMaxUnsupportedBackoffMs : backed_off * 2;
                 }
-                // The backoff caps how often a short-interval client probes an UNIMPLEMENTED
-                // server, but never shortens a configured interval above the cap: a client set
-                // to heartbeat less often must not start probing more often (matches Go SDK).
                 delay = std::max(delay, backed_off);
             }
-            const auto observed_revision = wait_revision_;
-            while (!stopped_ && observed_revision == wait_revision_ && delay > 0) {
-                const auto chunk = std::min(delay, kMaxWaitChunkMs);
-                if (condition_.wait_for(
-                        lock, std::chrono::milliseconds(static_cast<int64_t>(chunk)),
-                        [this, observed_revision]() { return stopped_ || wait_revision_ != observed_revision; })) {
-                    break;
-                }
-                delay -= chunk;
-            }
-            if (stopped_) {
+            condition.wait_for(lock, std::chrono::milliseconds(delay), [this]() { return stopped; });
+            if (stopped) {
                 break;
             }
         }
-        std::lock_guard<std::mutex> lock(mutex_);
-        worker_running_ = false;
+        std::lock_guard<std::mutex> lock(mutex);
+        worker_running = false;
         // If Stop() was called by a command handler, no external thread owns
         // join(). Detach only after the loop has finished using this object;
         // the worker's shared_ptr keeps Impl alive until this function returns.
-        if (worker_.joinable() && worker_.get_id() == std::this_thread::get_id()) {
-            worker_.detach();
-            worker_id_ = {};
+        if (worker.joinable() && worker.get_id() == std::this_thread::get_id()) {
+            worker.detach();
+            worker_id = {};
         }
-        condition_.notify_all();
+        condition.notify_all();
     }
 
     void
     CreateSnapshot() {
+        std::lock_guard<std::mutex> lock(mutex);
+        if (!config.enabled) {
+            return;
+        }
         StoredSnapshot stored;
         auto& snapshot = stored.snapshot;
-        decltype(collectors_) working;
-        bool all_collections_enabled_snapshot = false;
-        std::unordered_set<std::string> enabled_collections_snapshot;
-        {
-            std::lock_guard<std::mutex> lock(mutex_);
-            if (!config_.enabled) {
-                return;
-            }
-            snapshot.end_time = NowMillis();
-            snapshot.timestamp = last_snapshot_end_ == 0 || last_snapshot_end_ > snapshot.end_time
-                                     ? SaturatingWindowStart(snapshot.end_time, config_.heartbeat_interval_ms)
-                                     : last_snapshot_end_;
-            // Cap the reported window start at the retained-history range so a maximum
-            // interval cannot surface an extreme (saturated) timestamp in latency history.
-            snapshot.timestamp = std::max(snapshot.timestamp, snapshot.end_time - kMaxHistoryRangeMs);
-            last_snapshot_end_ = snapshot.end_time;
-            // Swap the accumulated collectors out in O(1) so the per-bucket
-            // snapshot work below runs without holding the lock. Concurrent
-            // RecordOperation calls meanwhile start a fresh next-window bucket.
-            working.swap(collectors_);
-            all_collections_enabled_snapshot = all_collections_enabled_;
-            enabled_collections_snapshot = enabled_collections_;
-        }
-        for (auto& entry : working) {
+        snapshot.end_time = NowMillis();
+        snapshot.timestamp = last_snapshot_end == 0 || last_snapshot_end > snapshot.end_time
+                                 ? snapshot.end_time - config.heartbeat_interval_ms
+                                 : last_snapshot_end;
+        last_snapshot_end = snapshot.end_time;
+        for (auto& entry : collectors) {
             if (entry.second.global.requests == 0) {
                 continue;
             }
@@ -722,28 +652,28 @@ class ClientTelemetryManager::Impl : public std::enable_shared_from_this<ClientT
             operation.global = entry.second.global.Snapshot(&quantile_samples);
             stored.global_samples.emplace(entry.first, std::move(quantile_samples));
             for (const auto& collection : entry.second.collections) {
-                if (all_collections_enabled_snapshot || enabled_collections_snapshot.count(collection.first) > 0) {
+                if (all_collections_enabled || enabled_collections.count(collection.first) > 0) {
                     operation.collection_metrics.emplace(collection.first, collection.second.Snapshot());
                 }
             }
             snapshot.metrics.emplace_back(std::move(operation));
+            entry.second = OperationCollector{};
         }
-        {
-            std::lock_guard<std::mutex> lock(mutex_);
-            latest_snapshot_ = snapshot;
-            const auto history_start = snapshot.end_time - kMaxHistoryRangeMs;
-            while (!snapshots_.empty() && snapshots_.front().snapshot.end_time < history_start) {
-                snapshots_.pop_front();
-            }
-            if (snapshot.metrics.empty()) {
-                return;
-            }
-            snapshots_.push_back(std::move(stored));
-            while (snapshots_.size() > kSnapshotLimit) {
-                snapshots_.pop_front();
-            }
+        // Heartbeats report exactly the collector interval that just ended.
+        // Keep this separate from retained history so skipping an empty history
+        // entry cannot make the next heartbeat resend an older non-empty sample.
+        latest_snapshot = snapshot;
+        const auto history_start = snapshot.end_time - kMaxHistoryRangeMs;
+        while (!snapshots.empty() && snapshots.front().snapshot.end_time < history_start) {
+            snapshots.pop_front();
         }
-        // working is destroyed here, outside the lock.
+        if (snapshot.metrics.empty()) {
+            return;
+        }
+        snapshots.push_back(std::move(stored));
+        while (snapshots.size() > kSnapshotLimit) {
+            snapshots.pop_front();
+        }
     }
 
     void
@@ -753,54 +683,49 @@ class ClientTelemetryManager::Impl : public std::enable_shared_from_this<ClientT
         uint64_t heartbeat_generation = 0;
         size_t reply_count = 0;
         {
-            std::lock_guard<std::mutex> lock(mutex_);
-            if (stub_ == nullptr) {
+            std::lock_guard<std::mutex> lock(mutex);
+            if (stub == nullptr) {
                 return;
             }
             auto* info = request.mutable_client_info();
             info->set_sdk_type("CPP");
-            info->set_sdk_version(sdk_version_);
+            info->set_sdk_version(sdk_version);
             info->set_local_time(LocalTimeString());
-            info->set_user(username_);
+            info->set_user(username);
             info->set_host(HostName());
-            (*info->mutable_reserved())["client_id"] = client_id_;
-            (*info->mutable_reserved())["client_id_stable"] = stable_client_id_ ? "true" : "false";
-            if (!database_.empty()) {
-                (*info->mutable_reserved())["db_name"] = database_;
+            (*info->mutable_reserved())["client_id"] = client_id;
+            (*info->mutable_reserved())["client_id_stable"] = stable_client_id ? "true" : "false";
+            if (!database.empty()) {
+                (*info->mutable_reserved())["db_name"] = database;
             }
             request.set_report_timestamp(NowMillis());
             // Do not resend the final enabled snapshot after collection is disabled. Replies,
             // config hash, cursor and incoming commands remain active as the control plane.
-            if (config_.enabled) {
-                // TODO: serializing every enabled collection's metrics here scales with the
-                // collection count and blocks RecordOperation for the duration while this lock
-                // is held. Build the request outside the lock instead: snapshot the cheap shared
-                // state (identity, config, filters, pending_replies, config hash, cursor) under
-                // the lock and reference latest_snapshot, whose only writer is this worker.
-                for (const auto& operation : latest_snapshot_.metrics) {
+            if (config.enabled) {
+                for (const auto& operation : latest_snapshot.metrics) {
                     auto* output = request.add_metrics();
                     output->set_operation(operation.operation);
                     *output->mutable_global() = ToProtoMetric(operation.global);
                     for (const auto& collection : operation.collection_metrics) {
-                        if (all_collections_enabled_ || enabled_collections_.count(collection.first) > 0) {
+                        if (all_collections_enabled || enabled_collections.count(collection.first) > 0) {
                             (*output->mutable_collection_metrics())[collection.first] =
                                 ToProtoMetric(collection.second);
                         }
                     }
                 }
             }
-            for (const auto& reply : pending_replies_) {
+            for (const auto& reply : pending_replies) {
                 auto* output = request.add_command_replies();
                 output->set_command_id(reply.command_id);
                 output->set_success(reply.success);
                 output->set_error_message(reply.error_message);
                 output->set_payload(reply.payload);
             }
-            reply_count = pending_replies_.size();
-            request.set_config_hash(config_hash_);
-            request.set_last_command_timestamp(last_command_timestamp_);
-            heartbeat_stub = stub_;
-            heartbeat_generation = channel_generation_;
+            reply_count = pending_replies.size();
+            request.set_config_hash(config_hash);
+            request.set_last_command_timestamp(last_command_timestamp);
+            heartbeat_stub = stub;
+            heartbeat_generation = channel_generation;
         }
 
         grpc::ClientContext context;
@@ -808,26 +733,26 @@ class ClientTelemetryManager::Impl : public std::enable_shared_from_this<ClientT
         proto::milvus::ClientHeartbeatResponse response;
         auto grpc_status = heartbeat_stub->ClientHeartbeat(&context, request, &response);
         if (!grpc_status.ok()) {
-            std::lock_guard<std::mutex> lock(mutex_);
-            if (heartbeat_generation != channel_generation_) {
+            std::lock_guard<std::mutex> lock(mutex);
+            if (heartbeat_generation != channel_generation) {
                 return;
             }
-            last_heartbeat_error_ = grpc_status.error_message();
+            last_heartbeat_error = grpc_status.error_message();
             if (grpc_status.error_code() == grpc::StatusCode::UNIMPLEMENTED) {
-                ++unsupported_streak_;
+                ++unsupported_streak;
             }
             return;
         }
         {
-            std::lock_guard<std::mutex> lock(mutex_);
-            if (heartbeat_generation != channel_generation_) {
+            std::lock_guard<std::mutex> lock(mutex);
+            if (heartbeat_generation != channel_generation) {
                 return;
             }
             // Reaching any server implementation proves the RPC exists, even when the
             // response carries a business error.
-            unsupported_streak_ = 0;
+            unsupported_streak = 0;
             if (response.status().code() != 0 || response.status().error_code() != proto::common::ErrorCode::Success) {
-                last_heartbeat_error_ = response.status().reason();
+                last_heartbeat_error = response.status().reason();
                 return;
             }
         }
@@ -838,13 +763,13 @@ class ClientTelemetryManager::Impl : public std::enable_shared_from_this<ClientT
                                 command.persistent(), command.target_scope()});
         }
         {
-            std::lock_guard<std::mutex> lock(mutex_);
-            if (heartbeat_generation != channel_generation_) {
+            std::lock_guard<std::mutex> lock(mutex);
+            if (heartbeat_generation != channel_generation) {
                 return;
             }
-            pending_replies_.erase(pending_replies_.begin(),
-                                  pending_replies_.begin() + std::min(reply_count, pending_replies_.size()));
-            last_heartbeat_error_.clear();
+            pending_replies.erase(pending_replies.begin(),
+                                  pending_replies.begin() + std::min(reply_count, pending_replies.size()));
+            last_heartbeat_error.clear();
         }
         ProcessCommands(commands, heartbeat_generation);
     }
@@ -853,19 +778,15 @@ class ClientTelemetryManager::Impl : public std::enable_shared_from_this<ClientT
     HandleCommand(const TelemetryCommand& command) {
         CommandHandler handler;
         {
-            std::lock_guard<std::mutex> lock(mutex_);
-            auto iterator = handlers_.find(command.command_type);
-            if (iterator == handlers_.end()) {
+            std::lock_guard<std::mutex> lock(mutex);
+            auto iterator = handlers.find(command.command_type);
+            if (iterator == handlers.end()) {
                 return FailedReply(command.command_id, "unknown command type: " + command.command_type);
             }
             handler = iterator->second;
         }
         try {
-            auto reply = handler(command);
-            // The incoming command ID is the protocol correlation key. Extension
-            // handlers control the result, but cannot redirect or drop its ACK.
-            reply.command_id = command.command_id;
-            return reply;
+            return handler(command);
         } catch (const std::exception& exception) {
             return FailedReply(command.command_id, exception.what());
         } catch (...) {
@@ -877,14 +798,14 @@ class ClientTelemetryManager::Impl : public std::enable_shared_from_this<ClientT
 
     void
     ProcessCommands(const std::vector<TelemetryCommand>& commands, uint64_t expected_generation = 0) {
-        std::lock_guard<std::recursive_mutex> command_lock(command_mutex_);
+        std::lock_guard<std::recursive_mutex> command_lock(command_mutex);
         int64_t previous_timestamp;
         {
-            std::lock_guard<std::mutex> lock(mutex_);
-            if (expected_generation != 0 && expected_generation != channel_generation_) {
+            std::lock_guard<std::mutex> lock(mutex);
+            if (expected_generation != 0 && expected_generation != channel_generation) {
                 return;
             }
-            previous_timestamp = last_command_timestamp_;
+            previous_timestamp = last_command_timestamp;
         }
         int64_t max_timestamp = previous_timestamp;
         bool has_persistent = false;
@@ -893,56 +814,37 @@ class ClientTelemetryManager::Impl : public std::enable_shared_from_this<ClientT
             has_persistent = has_persistent || command.persistent;
             bool skip = false;
             {
-                std::lock_guard<std::mutex> lock(mutex_);
-                if (expected_generation != 0 && expected_generation != channel_generation_) {
-                    return;
-                }
-                skip = command.create_time < previous_timestamp || executed_commands_.count(command.command_id) > 0;
+                std::lock_guard<std::mutex> lock(mutex);
+                skip = command.create_time < previous_timestamp || executed_commands.count(command.command_id) > 0;
                 if (skip) {
-                    auto executed = executed_commands_.find(command.command_id);
-                    if (executed != executed_commands_.end()) {
-                        // Re-queue the command's actual reply so a fenced redelivery cannot
-                        // turn an already-reported failure into a contradictory success ACK.
-                        pending_replies_.push_back(executed->second.reply_);
-                    } else {
-                        pending_replies_.push_back(SuccessReply(command.command_id));
-                    }
+                    pending_replies.push_back(SuccessReply(command.command_id));
                 }
             }
             if (skip) {
                 continue;
             }
             auto reply = HandleCommand(command);
-            {
-                std::lock_guard<std::mutex> lock(mutex_);
-                executed_commands_[command.command_id] = {command.create_time, reply};
-                pending_replies_.push_back(std::move(reply));
-                if (expected_generation != 0 && expected_generation != channel_generation_) {
-                    // Preserve the completed command's ACK/executed marker so a
-                    // redelivery cannot repeat its side effects, but leave the
-                    // cursor/hash unchanged and do not run the retired endpoint's
-                    // remaining commands.
-                    return;
-                }
-            }
+            std::lock_guard<std::mutex> lock(mutex);
+            executed_commands[command.command_id] = command.create_time;
+            pending_replies.push_back(std::move(reply));
         }
-        std::lock_guard<std::mutex> lock(mutex_);
-        for (auto iterator = executed_commands_.begin(); iterator != executed_commands_.end();) {
-            if (iterator->second.create_time_ < max_timestamp) {
-                iterator = executed_commands_.erase(iterator);
+        std::lock_guard<std::mutex> lock(mutex);
+        for (auto iterator = executed_commands.begin(); iterator != executed_commands.end();) {
+            if (iterator->second < max_timestamp) {
+                iterator = executed_commands.erase(iterator);
             } else {
                 ++iterator;
             }
         }
         if (has_persistent) {
-            config_hash_ = ClientTelemetryManager::CalculateConfigHash(commands);
+            config_hash = ClientTelemetryManager::CalculateConfigHash(commands);
         }
-        last_command_timestamp_ = std::max(last_command_timestamp_, max_timestamp);
+        last_command_timestamp = std::max(last_command_timestamp, max_timestamp);
     }
 
     void
     RegisterDefaultHandlers() {
-        handlers_["push_config"] = [this](const TelemetryCommand& command) {
+        handlers["push_config"] = [this](const TelemetryCommand& command) {
             auto payload = command.payload.empty() ? nlohmann::json::object() : nlohmann::json::parse(command.payload);
             if (!payload.is_object()) {
                 throw std::invalid_argument("push_config payload must be a JSON object");
@@ -951,7 +853,7 @@ class ClientTelemetryManager::Impl : public std::enable_shared_from_this<ClientT
             std::vector<std::string> applied;
             std::vector<std::string> ignored;
             bool enabled = false;
-            uint64_t interval = 0;
+            int64_t interval = 0;
             double sampling_rate = 0;
             if (payload.count("enabled")) {
                 if (!payload["enabled"].is_boolean()) {
@@ -965,16 +867,10 @@ class ClientTelemetryManager::Impl : public std::enable_shared_from_this<ClientT
                     !payload["heartbeat_interval_ms"].is_number_unsigned()) {
                     throw std::invalid_argument("heartbeat_interval_ms must be an integer");
                 }
-                if (payload["heartbeat_interval_ms"].is_number_integer() &&
-                    !payload["heartbeat_interval_ms"].is_number_unsigned() &&
-                    payload["heartbeat_interval_ms"].get<int64_t>() < 0) {
+                interval = payload["heartbeat_interval_ms"].get<int64_t>();
+                if (interval <= 0) {
                     throw std::invalid_argument("heartbeat_interval_ms must be positive");
                 }
-                interval = payload["heartbeat_interval_ms"].get<uint64_t>();
-                if (interval == 0) {
-                    throw std::invalid_argument("heartbeat_interval_ms must be positive");
-                }
-                interval = std::min(interval, kMaxHeartbeatIntervalMs);
                 applied.emplace_back("heartbeat_interval_ms");
             }
             if (payload.count("sampling_rate")) {
@@ -988,6 +884,12 @@ class ClientTelemetryManager::Impl : public std::enable_shared_from_this<ClientT
                 sampling_rate = std::max(0.0, std::min(1.0, sampling_rate));
                 applied.emplace_back("sampling_rate");
             }
+            if (payload.count("ttl_seconds")) {
+                if (!payload["ttl_seconds"].is_number_integer() && !payload["ttl_seconds"].is_number_unsigned()) {
+                    throw std::invalid_argument("ttl_seconds must be an integer");
+                }
+                (void)payload["ttl_seconds"].get<int64_t>();
+            }
             for (auto iterator = payload.begin(); iterator != payload.end(); ++iterator) {
                 if (iterator.key() != "enabled" && iterator.key() != "heartbeat_interval_ms" &&
                     iterator.key() != "sampling_rate") {
@@ -996,33 +898,27 @@ class ClientTelemetryManager::Impl : public std::enable_shared_from_this<ClientT
             }
             std::sort(ignored.begin(), ignored.end());
             {
-                std::lock_guard<std::mutex> lock(mutex_);
+                std::lock_guard<std::mutex> lock(mutex);
                 if (payload.count("enabled")) {
-                    config_.enabled = enabled;
+                    config.enabled = enabled;
                 }
                 if (payload.count("heartbeat_interval_ms")) {
-                    // A decrease must wake the chunked heartbeat wait so a corrective
-                    // interval push is applied on the next loop iteration instead of after
-                    // the current chunk; an increase takes effect at the next wake anyway.
-                    if (interval < config_.heartbeat_interval_ms) {
-                        ++wait_revision_;
-                    }
-                    config_.heartbeat_interval_ms = interval;
+                    config.heartbeat_interval_ms = static_cast<uint64_t>(interval);
                 }
                 if (payload.count("sampling_rate")) {
-                    config_.sampling_rate = sampling_rate;
+                    config.sampling_rate = sampling_rate;
                 }
-                condition_.notify_all();
+                condition.notify_all();
             }
             return SuccessReply(command.command_id, nlohmann::json{{"applied", applied}, {"ignored", ignored}}.dump());
         };
-        handlers_["collection_metrics"] = [this](const TelemetryCommand& command) {
-            std::lock_guard<std::mutex> lock(mutex_);
+        handlers["collection_metrics"] = [this](const TelemetryCommand& command) {
+            std::lock_guard<std::mutex> lock(mutex);
             if (command.payload.empty()) {
-                std::vector<std::string> names(enabled_collections_.begin(), enabled_collections_.end());
+                std::vector<std::string> names(enabled_collections.begin(), enabled_collections.end());
                 std::sort(names.begin(), names.end());
                 nlohmann::json result = {{"enabled_collections", names},
-                                         {"all_collections_enabled", all_collections_enabled_}};
+                                         {"all_collections_enabled", all_collections_enabled}};
                 return SuccessReply(command.command_id, result.dump());
             }
             auto payload = nlohmann::json::parse(command.payload);
@@ -1049,21 +945,21 @@ class ClientTelemetryManager::Impl : public std::enable_shared_from_this<ClientT
                     throw std::invalid_argument("collections list cannot be empty when enabled=true");
                 }
                 if (wildcard) {
-                    all_collections_enabled_ = true;
+                    all_collections_enabled = true;
                 } else {
-                    enabled_collections_.insert(collections.begin(), collections.end());
+                    enabled_collections.insert(collections.begin(), collections.end());
                 }
             } else if (wildcard || collections.empty()) {
-                all_collections_enabled_ = false;
-                enabled_collections_.clear();
+                all_collections_enabled = false;
+                enabled_collections.clear();
             } else {
                 for (const auto& collection : collections) {
-                    enabled_collections_.erase(collection);
+                    enabled_collections.erase(collection);
                 }
             }
             return SuccessReply(command.command_id);
         };
-        handlers_["show_errors"] = [this](const TelemetryCommand& command) {
+        handlers["show_errors"] = [this](const TelemetryCommand& command) {
             auto payload = command.payload.empty() ? nlohmann::json::object() : nlohmann::json::parse(command.payload);
             if (!payload.is_object()) {
                 throw std::invalid_argument("show_errors payload must be a JSON object");
@@ -1076,8 +972,8 @@ class ClientTelemetryManager::Impl : public std::enable_shared_from_this<ClientT
             auto max_count = static_cast<size_t>(requested <= 0 ? 100 : requested);
             std::vector<TelemetryError> values;
             {
-                std::lock_guard<std::mutex> lock(mutex_);
-                for (auto iterator = errors_.rbegin(); iterator != errors_.rend() && values.size() < max_count;
+                std::lock_guard<std::mutex> lock(mutex);
+                for (auto iterator = errors.rbegin(); iterator != errors.rend() && values.size() < max_count;
                      ++iterator) {
                     values.push_back(*iterator);
                 }
@@ -1101,74 +997,34 @@ class ClientTelemetryManager::Impl : public std::enable_shared_from_this<ClientT
                 result.erase(result.begin() + result.size() / 2, result.end());
             }
             auto encoded = result.dump();
-            constexpr const char* kTruncated = "...(truncated)";
-            constexpr std::array<const char*, 4> kTruncatableFields = {"error_msg", "collection", "operation",
-                                                                       "request_id"};
-            while (encoded.size() > kMaxReplyBytes && result.size() == 1) {
-                auto& detail = result.at(0);
-                const char* longest_field = nullptr;
-                size_t longest_size = 0;
-                for (const auto* field : kTruncatableFields) {
-                    if (!detail.contains(field) || !detail.at(field).is_string()) {
-                        continue;
-                    }
-                    const auto size = detail.at(field).get_ref<const std::string&>().size();
-                    if (size > longest_size) {
-                        longest_field = field;
-                        longest_size = size;
-                    }
-                }
-                if (longest_field == nullptr || longest_size == 0) {
-                    break;
-                }
-
-                const auto previous_size = encoded.size();
-                const auto value = detail.at(longest_field).get<std::string>();
-                const auto suffix_size = std::strlen(kTruncated);
-                if (value.size() > suffix_size + 1) {
-                    auto keep = value.size() / 2;
-                    if (keep > suffix_size) {
-                        keep -= suffix_size;
-                    } else {
-                        keep = 0;
-                    }
-                    keep = Utf8SafePrefixLength(value, keep);
-                    detail[longest_field] = value.substr(0, keep) + kTruncated;
-                } else {
-                    detail[longest_field] = "";
-                }
+            while (encoded.size() > kMaxReplyBytes && result.size() == 1 &&
+                   result.at(0).value("error_msg", std::string{}).size() > 1) {
+                auto message = result.at(0).at("error_msg").get<std::string>();
+                result.at(0)["error_msg"] =
+                    message.substr(0, std::max<size_t>(1, message.size() / 2)) + "...(truncated)";
                 encoded = result.dump();
-                if (encoded.size() >= previous_size) {
-                    // Guarantee monotonic progress even for strings whose JSON
-                    // escaping defeats the best-effort prefix truncation.
-                    detail[longest_field] = "";
-                    encoded = result.dump();
-                    if (encoded.size() >= previous_size) {
-                        break;
-                    }
-                }
             }
             if (encoded.size() > kMaxReplyBytes) {
                 throw std::invalid_argument("show_errors response exceeds the 1MB payload limit");
             }
             return SuccessReply(command.command_id, encoded);
         };
-        handlers_["get_config"] = [this](const TelemetryCommand& command) {
-            std::lock_guard<std::mutex> lock(mutex_);
-            std::vector<std::string> collections(enabled_collections_.begin(), enabled_collections_.end());
+        handlers["get_config"] = [this](const TelemetryCommand& command) {
+            std::lock_guard<std::mutex> lock(mutex);
+            std::vector<std::string> collections(enabled_collections.begin(), enabled_collections.end());
             std::sort(collections.begin(), collections.end());
             nlohmann::json user_config = {
-                {"address", uri_},
-                {"username", username_},
-                {"db_name", database_},
-                {"telemetry_enabled", config_.enabled},
-                {"telemetry_heartbeat_interval_ms", config_.heartbeat_interval_ms},
-                {"telemetry_sampling_rate", config_.sampling_rate},
-                {"enabled_collections", all_collections_enabled_ ? std::vector<std::string>{"*"} : collections},
-                {"all_collections_enabled", all_collections_enabled_}};
+                {"address", uri},
+                {"username", username},
+                {"db_name", database},
+                {"telemetry_enabled", config.enabled},
+                {"telemetry_heartbeat_interval_ms", config.heartbeat_interval_ms},
+                {"telemetry_sampling_rate", config.sampling_rate},
+                {"enabled_collections", all_collections_enabled ? std::vector<std::string>{"*"} : collections},
+                {"all_collections_enabled", all_collections_enabled}};
             return SuccessReply(command.command_id, nlohmann::json{{"user_config", user_config}}.dump());
         };
-        handlers_["show_latency_history"] = [this](const TelemetryCommand& command) {
+        handlers["show_latency_history"] = [this](const TelemetryCommand& command) {
             if (command.payload.empty()) {
                 throw std::invalid_argument("payload is required with start_time and end_time");
             }
@@ -1189,9 +1045,9 @@ class ClientTelemetryManager::Impl : public std::enable_shared_from_this<ClientT
             }
             std::vector<StoredSnapshot> selected;
             {
-                std::lock_guard<std::mutex> lock(mutex_);
-                selected.reserve(snapshots_.size());
-                for (const auto& stored : snapshots_) {
+                std::lock_guard<std::mutex> lock(mutex);
+                selected.reserve(snapshots.size());
+                for (const auto& stored : snapshots) {
                     const auto& snapshot = stored.snapshot;
                     if (snapshot.end_time >= start && snapshot.timestamp <= end) {
                         selected.push_back(stored);
@@ -1298,52 +1154,46 @@ class ClientTelemetryManager::Impl : public std::enable_shared_from_this<ClientT
         };
     }
 
-    struct ExecutedCommand {
-        int64_t create_time_{0};
-        TelemetryCommandReply reply_;
-    };
-
-    mutable std::mutex mutex_;
-    std::condition_variable condition_;
-    TelemetryConfig config_;
-    const TelemetryConfig connection_config_;
-    const bool stable_client_id_;
-    const std::string client_id_;
-    std::shared_ptr<proto::milvus::ClientTelemetryService::Stub> stub_;
-    uint64_t channel_generation_{0};
-    std::string username_;
-    std::string database_;
-    std::string uri_;
-    std::string sdk_version_;
-    std::string connection_scope_;
-    std::unordered_map<std::string, OperationCollector> collectors_;
-    std::deque<TelemetryError> errors_;
-    TelemetrySnapshot latest_snapshot_;
-    std::deque<StoredSnapshot> snapshots_;
-    std::vector<TelemetryCommandReply> pending_replies_;
-    std::unordered_map<std::string, ExecutedCommand> executed_commands_;
-    std::unordered_map<std::string, CommandHandler> handlers_;
-    std::unordered_set<std::string> enabled_collections_;
-    bool all_collections_enabled_{false};
-    bool ready_{false};
-    bool stopped_{true};
-    bool control_plane_activated_{false};
-    bool worker_running_{false};
-    bool join_in_progress_{false};
-    bool external_stop_requested_{false};
-    int unsupported_streak_{0};
-    uint64_t wait_revision_{0};
+    mutable std::mutex mutex;
+    std::condition_variable condition;
+    TelemetryConfig config;
+    const TelemetryConfig connection_config;
+    const bool stable_client_id;
+    const std::string client_id;
+    std::shared_ptr<proto::milvus::ClientTelemetryService::Stub> stub;
+    uint64_t channel_generation{0};
+    std::string username;
+    std::string database;
+    std::string uri;
+    std::string sdk_version;
+    std::string connection_scope;
+    std::unordered_map<std::string, OperationCollector> collectors;
+    std::deque<TelemetryError> errors;
+    TelemetrySnapshot latest_snapshot;
+    std::deque<StoredSnapshot> snapshots;
+    std::vector<TelemetryCommandReply> pending_replies;
+    std::unordered_map<std::string, int64_t> executed_commands;
+    std::unordered_map<std::string, CommandHandler> handlers;
+    std::unordered_set<std::string> enabled_collections;
+    bool all_collections_enabled{false};
+    bool ready{false};
+    bool stopped{true};
+    bool control_plane_activated{false};
+    bool worker_running{false};
+    bool join_in_progress{false};
+    bool external_stop_requested{false};
+    int unsupported_streak{0};
     // Carries the fractional sampling rate between operations, in kSamplingScale units:
     // each operation adds the rate and the one that pushes it past a whole unit is the one
     // sampled.
-    uint64_t sampling_accum_{0};
-    int64_t last_command_timestamp_{0};
-    int64_t last_snapshot_end_{0};
-    std::string config_hash_;
-    std::string last_heartbeat_error_;
-    std::thread worker_;
-    std::thread::id worker_id_;
-    std::recursive_mutex command_mutex_;
+    uint64_t sampling_accum{0};
+    int64_t last_command_timestamp{0};
+    int64_t last_snapshot_end{0};
+    std::string config_hash;
+    std::string last_heartbeat_error;
+    std::thread worker;
+    std::thread::id worker_id;
+    std::recursive_mutex command_mutex;
 };
 
 ClientTelemetryManager::ClientTelemetryManager(const TelemetryConfig& config, const std::string& runtime_client_id)
@@ -1376,62 +1226,62 @@ ClientTelemetryManager::Stop() {
 
 bool
 ClientTelemetryManager::IsReady() const {
-    std::lock_guard<std::mutex> lock(impl_->mutex_);
-    return impl_->ready_;
+    std::lock_guard<std::mutex> lock(impl_->mutex);
+    return impl_->ready;
 }
 
 bool
 ClientTelemetryManager::isWorkerThread() const {
-    std::lock_guard<std::mutex> lock(impl_->mutex_);
-    return impl_->worker_running_ && impl_->worker_id_ == std::this_thread::get_id();
+    std::lock_guard<std::mutex> lock(impl_->mutex);
+    return impl_->worker_running && impl_->worker_id == std::this_thread::get_id();
 }
 
 bool
 ClientTelemetryManager::IsSupported() const {
-    std::lock_guard<std::mutex> lock(impl_->mutex_);
-    return impl_->unsupported_streak_ == 0;
+    std::lock_guard<std::mutex> lock(impl_->mutex);
+    return impl_->unsupported_streak == 0;
 }
 
 const std::string&
 ClientTelemetryManager::ClientId() const {
-    return impl_->client_id_;
+    return impl_->client_id;
 }
 
 std::string
 ClientTelemetryManager::ConfigHash() const {
-    std::lock_guard<std::mutex> lock(impl_->mutex_);
-    return impl_->config_hash_;
+    std::lock_guard<std::mutex> lock(impl_->mutex);
+    return impl_->config_hash;
 }
 
 int64_t
 ClientTelemetryManager::LastCommandTimestamp() const {
-    std::lock_guard<std::mutex> lock(impl_->mutex_);
-    return impl_->last_command_timestamp_;
+    std::lock_guard<std::mutex> lock(impl_->mutex);
+    return impl_->last_command_timestamp;
 }
 
 TelemetryConfig
 ClientTelemetryManager::Config() const {
-    std::lock_guard<std::mutex> lock(impl_->mutex_);
-    return impl_->config_;
+    std::lock_guard<std::mutex> lock(impl_->mutex);
+    return impl_->config;
 }
 
 bool
 ClientTelemetryManager::MatchesConnection(const TelemetryConfig& config, const std::string& connection_scope) const {
-    std::lock_guard<std::mutex> lock(impl_->mutex_);
-    return impl_->connection_scope_ == connection_scope &&
-           SameTelemetryConfig(impl_->connection_config_, NormalizedTelemetryConfig(config));
+    std::lock_guard<std::mutex> lock(impl_->mutex);
+    return impl_->connection_scope == connection_scope &&
+           SameTelemetryConfig(impl_->connection_config, NormalizedTelemetryConfig(config));
 }
 
 std::string
 ClientTelemetryManager::LastHeartbeatError() const {
-    std::lock_guard<std::mutex> lock(impl_->mutex_);
-    return impl_->last_heartbeat_error_;
+    std::lock_guard<std::mutex> lock(impl_->mutex);
+    return impl_->last_heartbeat_error;
 }
 
 void
 ClientTelemetryManager::RegisterCommandHandler(const std::string& command_type, CommandHandler handler) {
-    std::lock_guard<std::mutex> lock(impl_->mutex_);
-    impl_->handlers_[command_type] = std::move(handler);
+    std::lock_guard<std::mutex> lock(impl_->mutex);
+    impl_->handlers[command_type] = std::move(handler);
 }
 
 void
@@ -1454,11 +1304,11 @@ ClientTelemetryManager::RecordOperation(const std::string& operation, const std:
     auto latency_us =
         std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now() - started).count();
     auto latency = static_cast<double>(latency_us) / 1000.0;
-    std::lock_guard<std::mutex> lock(impl_->mutex_);
-    if (!impl_->config_.enabled) {
+    std::lock_guard<std::mutex> lock(impl_->mutex);
+    if (!impl_->config.enabled) {
         return;
     }
-    auto rate = impl_->config_.sampling_rate;
+    auto rate = impl_->config.sampling_rate;
     bool sampled = rate >= 1.0;
     if (rate > 0.0 && rate < 1.0) {
         // Sample on the operation that carries the accumulator across a whole unit, so the
@@ -1471,33 +1321,33 @@ ClientTelemetryManager::RecordOperation(const std::string& operation, const std:
         if (step == 0) {
             step = 1;
         }
-        auto before = impl_->sampling_accum_;
-        impl_->sampling_accum_ = before + step;
-        sampled = impl_->sampling_accum_ / kSamplingScale != before / kSamplingScale;
+        auto before = impl_->sampling_accum;
+        impl_->sampling_accum = before + step;
+        sampled = impl_->sampling_accum / kSamplingScale != before / kSamplingScale;
     }
     if (!sampled) {
         return;
     }
-    bool collection_enabled = impl_->all_collections_enabled_ || impl_->enabled_collections_.count(collection) > 0;
-    auto& collector = impl_->collectors_[operation];
+    bool collection_enabled = impl_->all_collections_enabled || impl_->enabled_collections.count(collection) > 0;
+    auto& collector = impl_->collectors[operation];
     collector.global.Record(latency, success);
     if (!collection.empty() && collection_enabled) {
         collector.collections[collection].Record(latency, success);
     }
     if (!success) {
-        impl_->errors_.push_back({NowMillis(), operation, error_message, collection,
+        impl_->errors.push_back({NowMillis(), operation, error_message, collection,
                                  ClientRequestContext::IsValid(request_id) ? request_id : std::string{}});
-        while (impl_->errors_.size() > impl_->config_.error_max_count) {
-            impl_->errors_.pop_front();
+        while (impl_->errors.size() > impl_->config.error_max_count) {
+            impl_->errors.pop_front();
         }
     }
 }
 
 std::vector<TelemetryError>
 ClientTelemetryManager::RecentErrors(size_t max_count) const {
-    std::lock_guard<std::mutex> lock(impl_->mutex_);
+    std::lock_guard<std::mutex> lock(impl_->mutex);
     std::vector<TelemetryError> result;
-    for (auto iterator = impl_->errors_.rbegin(); iterator != impl_->errors_.rend() && result.size() < max_count;
+    for (auto iterator = impl_->errors.rbegin(); iterator != impl_->errors.rend() && result.size() < max_count;
          ++iterator) {
         result.push_back(*iterator);
     }
@@ -1506,10 +1356,10 @@ ClientTelemetryManager::RecentErrors(size_t max_count) const {
 
 std::vector<TelemetrySnapshot>
 ClientTelemetryManager::MetricsSnapshots() const {
-    std::lock_guard<std::mutex> lock(impl_->mutex_);
+    std::lock_guard<std::mutex> lock(impl_->mutex);
     std::vector<TelemetrySnapshot> result;
-    result.reserve(impl_->snapshots_.size());
-    for (const auto& stored : impl_->snapshots_) {
+    result.reserve(impl_->snapshots.size());
+    for (const auto& stored : impl_->snapshots) {
         result.push_back(stored.snapshot);
     }
     return result;
@@ -1517,8 +1367,8 @@ ClientTelemetryManager::MetricsSnapshots() const {
 
 std::vector<TelemetryCommandReply>
 ClientTelemetryManager::PendingCommandReplies() const {
-    std::lock_guard<std::mutex> lock(impl_->mutex_);
-    return impl_->pending_replies_;
+    std::lock_guard<std::mutex> lock(impl_->mutex);
+    return impl_->pending_replies;
 }
 
 void
