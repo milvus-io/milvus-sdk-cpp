@@ -340,7 +340,7 @@ jobs:
     # Windows builds are slow. Run on pushes so the windows ccache is refreshed
     # in the default-branch scope for PRs.
     needs: changes
-    if: always() && (github.event_name == 'push' || needs.changes.outputs.core_relevant == 'true')
+    if: always() && (github.event_name == 'push' || (needs.changes.outputs.core_relevant == 'true' && !contains(github.event.pull_request.labels.*.name, 'skip-windows-ci')))
     runs-on: windows-2022
     # github automatically evicts no-access caches after 7 days, so we set a longer timeout to avoid unnecessary workflow timeout.
     timeout-minutes: 150
