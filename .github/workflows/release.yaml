@@ -61,10 +61,109 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  # Validate the release commit before any package is built: the tag must point at
+  # a commit contained in master or a numeric release branch, and the required CI
+  # checks must have passed on that commit or its nearest ancestor. This prevents
+  # packaging an unreviewed or non-release-line commit.
+  validate:
+    name: Validate release commit
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      checks: read
+    steps:
+      - name: Checkout release tag and history
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Verify tag ancestry and completed CI
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ inputs.tag }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          git fetch --no-tags origin '+refs/heads/*:refs/remotes/origin/*' \
+            "+refs/tags/${RELEASE_TAG}:refs/tags/${RELEASE_TAG}"
+          tag_sha="$(git rev-parse "${RELEASE_TAG}^{commit}")"
+
+          approved_branch=""
+          if git merge-base --is-ancestor "${tag_sha}" origin/master; then
+            approved_branch="master"
+          else
+            while IFS= read -r branch; do
+              branch_name="${branch#origin/}"
+              if [[ "${branch_name}" =~ ^[0-9]+\.[0-9]+$ ]] && \
+                git merge-base --is-ancestor "${tag_sha}" "${branch}"; then
+                approved_branch="${branch_name}"
+                break
+              fi
+            done < <(git for-each-ref --format='%(refname:short)' 'refs/remotes/origin/')
+          fi
+          if [[ -z "${approved_branch}" ]]; then
+            echo "Release tag commit ${tag_sha} is not contained in master or a numeric release branch." >&2
+            exit 1
+          fi
+          echo "Release commit ${tag_sha} is contained in ${approved_branch}."
+
+          # Release tags may point at a "Prepare for vX.Y.Z" commit that itself lacks
+          # completed successful checks for any reason (markdown-only push, or a run
+          # still in flight). Walk back to the nearest ancestor whose required checks
+          # all completed successfully; fail hard only when an ancestor's required check
+          # genuinely failed so a failing release commit is never bypassed.
+          # The required check names below must stay in sync with the job names in
+          # main.yaml (the "Build and test AMD64 <distro> <version>" matrix legs and
+          # "Build and test macOS 15" / "Build and test windows"): renaming or dropping
+          # a CI job there breaks this gate, blocking every release or silently disabling
+          # validation.
+          sha_to_check="${tag_sha}"
+          verified_sha=""
+          for depth in $(seq 0 50); do
+            check_runs="$(gh api "repos/${GITHUB_REPOSITORY}/commits/${sha_to_check}/check-runs?per_page=100")"
+            all_present=1
+            for check_name in "Build and test AMD64 Ubuntu 20.04" "Build and test AMD64 Fedora 39" \
+              "Build and test macOS 15" "Build and test windows"; do
+              successful="$(
+                jq -c --arg name "${check_name}" --arg sha "${sha_to_check}" \
+                  '[.check_runs[] | select(.name == $name and .head_sha == $sha and .conclusion == "success")] | length' \
+                  <<<"${check_runs}"
+              )"
+              if [[ "${successful}" -gt 0 ]]; then
+                continue
+              fi
+              # Fail hard only on genuine failures. cancelled runs (main.yaml
+              # cancels superseded pushes), skipped path-filtered jobs, and
+              # neutral outcomes are treated as "not present" so they walk past.
+              failed="$(
+                jq -c --arg name "${check_name}" --arg sha "${sha_to_check}" \
+                  '[.check_runs[] | select(.name == $name and .head_sha == $sha and .status == "completed" and (.conclusion == "failure" or .conclusion == "timed_out" or .conclusion == "startup_failure" or .conclusion == "action_required"))] | length' \
+                  <<<"${check_runs}"
+              )"
+              if [[ "${failed}" -gt 0 ]]; then
+                echo "Required check ${check_name} failed on ${sha_to_check}; refusing to walk past a failing release commit." >&2
+                exit 1
+              fi
+              all_present=0
+            done
+            if [[ "${all_present}" -eq 1 ]]; then
+              verified_sha="${sha_to_check}"
+              break
+            fi
+            sha_to_check="$(git rev-parse "${sha_to_check}~1")"
+          done
+          if [[ -z "${verified_sha}" ]]; then
+            echo "No ancestor of ${tag_sha} has the required successful checks (searched 50 commits)." >&2
+            exit 1
+          fi
+          echo "Required post-merge checks passed at ${verified_sha} (nearest CI-verified ancestor of ${tag_sha})."
+
   # Select release targets based on workflow inputs, and output the selected targets for downstream jobs.
   # This allows us to conditionally run jobs based on user input, which is not natively supported by GitHub Actions.
   select-targets:
     name: Select release targets
+    needs: validate
     runs-on: ubuntu-latest
     outputs:
       tag: ${{ steps.matrix.outputs.tag }}
