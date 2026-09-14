@@ -399,7 +399,7 @@ jobs:
       - name: Unit Testing
         shell: cmd
         run: |
-          set PATH=%CD%\build\src;%PATH%
+          set PATH=%CD%\build\src;%CD%\build\_deps\grpc-build\third_party\re2;%PATH%
           rem testing-it starts an in-process mocked gRPC server and is unstable across the Windows EXE/DLL boundary.
           build\test\testing-ut
           if errorlevel 1 exit /b %errorlevel%
@@ -416,6 +416,7 @@ jobs:
         run: |
           cmake --build build --target package
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          $env:PATH = "$env:GITHUB_WORKSPACE\build\src;$env:GITHUB_WORKSPACE\build\_deps\grpc-build\third_party\re2;$env:PATH"
           ./scripts/verify_package_windows.ps1 build/Pack
       - name: Prune old ccache generations
         shell: bash
