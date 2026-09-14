@@ -292,6 +292,31 @@ TEST_F(UnconnectMilvusMockedTest, V2QueryByIDsAndRejectsFilterCombination) {
     EXPECT_EQ(status.Message(), "Filter and IDs cannot be set at the same time");
 }
 
+TEST_F(UnconnectMilvusMockedTest, V2QuerySurfacesCostExtraInfo) {
+    auto client = CreateConnectedClient(service_, server_.ListenPort());
+
+    EXPECT_CALL(service_, Query(_, _, _))
+        .WillOnce([](::grpc::ServerContext*, const milvus::proto::milvus::QueryRequest*,
+                     milvus::proto::milvus::QueryResults* response) {
+            auto* extra_info = response->mutable_status()->mutable_extra_info();
+            (*extra_info)["report_value"] = "101";
+            (*extra_info)["scanned_remote_bytes"] = "102";
+            (*extra_info)["scanned_total_bytes"] = "103";
+            (*extra_info)["cache_hit_ratio"] = "0.5";
+            return ::grpc::Status{};
+        });
+
+    milvus::QueryRequest request;
+    request.WithCollectionName("cost_collection").WithFilter("id > 0");
+    milvus::QueryResponse response;
+    EXPECT_TRUE(client->Query(request, response).IsOk());
+
+    EXPECT_EQ(response.Cost(), 101);
+    EXPECT_EQ(response.ScannedRemoteBytes(), 102);
+    EXPECT_EQ(response.ScannedTotalBytes(), 103);
+    EXPECT_FLOAT_EQ(response.CacheHitRatio(), 0.5f);
+}
+
 TEST_F(UnconnectMilvusMockedTest, V2SessionIteratorsRouteEveryRequestWithoutMutatingInput) {
     auto client = CreateConnectedClient(service_, server_.ListenPort());
     milvus::MilvusClientV2SessionPtr session;

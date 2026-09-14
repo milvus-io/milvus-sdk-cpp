@@ -35,6 +35,7 @@
 
 namespace milvus {
 class SearchResponse;
+class QueryResponse;
 
 Status
 CreateMilvusFieldData(const proto::schema::FieldData& proto_data, size_t offset, size_t count,
@@ -99,8 +100,9 @@ ConvertSearchAggregation(const SearchAggregation& aggregation, proto::common::Se
 Status
 ConvertAggregationBuckets(const proto::milvus::SearchResults& rpc_results, AggregationBuckets& buckets);
 
+template <typename T>
 void
-FillSearchResponseExtraInfo(const proto::common::Status& status, SearchResponse& response);
+FillResponseExtraInfo(const proto::common::Status& status, T& response);
 
 template <typename T>
 Status
@@ -177,5 +179,12 @@ extern template Status
 ConvertHybridSearchRequest<HybridSearchRequest>(const HybridSearchRequest&, const std::string&,
                                                 proto::milvus::HybridSearchRequest&, const std::string&,
                                                 const std::string&);
+
+// response extra info
+extern template void
+FillResponseExtraInfo<SearchResponse>(const proto::common::Status&, SearchResponse&);
+
+extern template void
+FillResponseExtraInfo<QueryResponse>(const proto::common::Status&, QueryResponse&);
 
 }  // namespace milvus

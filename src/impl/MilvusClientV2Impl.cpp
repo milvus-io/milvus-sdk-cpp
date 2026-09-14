@@ -2187,7 +2187,7 @@ MilvusClientV2Impl::search(const SearchRequest& request, SearchResponse& respons
         response.SetResults(std::move(results));
         response.SetAggregationBuckets(std::move(aggregation_buckets));
         response.SetSessionTs(rpc_response.session_ts());
-        FillSearchResponseExtraInfo(rpc_response.status(), response);
+        FillResponseExtraInfo(rpc_response.status(), response);
         return status;
     };
 
@@ -2314,7 +2314,7 @@ MilvusClientV2Impl::hybridSearch(const HybridSearchRequest& request, HybridSearc
         auto status = ConvertSearchResults(rpc_response, pk_name, results);
         response.SetResults(std::move(results));
         response.SetSessionTs(rpc_response.session_ts());
-        FillSearchResponseExtraInfo(rpc_response.status(), response);
+        FillResponseExtraInfo(rpc_response.status(), response);
         return status;
     };
 
@@ -2373,6 +2373,7 @@ MilvusClientV2Impl::query(const std::string& endpoint, const std::string& databa
         auto status = ConvertQueryResults(rpc_response, results);
         response.SetResults(std::move(results));
         response.SetSessionTs(rpc_response.session_ts());
+        FillResponseExtraInfo(rpc_response.status(), response);
         return status;
     };
 
@@ -2404,6 +2405,7 @@ MilvusClientV2Impl::getWithoutTelemetry(const GetRequest& request, GetResponse& 
         }
         response.SetResults(QueryResults{});
         response.SetSessionTs(0);
+        FillResponseExtraInfo(proto::common::Status{}, response);
         return Status::OK();
     }
 

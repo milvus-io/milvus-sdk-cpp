@@ -19,6 +19,7 @@
 #include <algorithm>
 #include <memory>
 
+#include "milvus/response/dql/QueryResponse.h"
 #include "milvus/response/dql/SearchResponse.h"
 #include "milvus/types/Constants.h"
 #include "milvus/types/FieldData.h"
@@ -48,7 +49,7 @@ using ::testing::ElementsAre;
 
 class DqlUtilsTest : public ::testing::Test {};
 
-TEST_F(DqlUtilsTest, FillSearchResponseExtraInfoTest) {
+TEST_F(DqlUtilsTest, FillResponseExtraInfoTest) {
     milvus::proto::common::Status status;
     auto* extra_info = status.mutable_extra_info();
     (*extra_info)["report_value"] = "101";
@@ -57,7 +58,7 @@ TEST_F(DqlUtilsTest, FillSearchResponseExtraInfoTest) {
     (*extra_info)["cache_hit_ratio"] = "0.5";
 
     milvus::SearchResponse response;
-    milvus::FillSearchResponseExtraInfo(status, response);
+    milvus::FillResponseExtraInfo(status, response);
 
     EXPECT_EQ(response.Cost(), 101);
     EXPECT_EQ(response.ScannedRemoteBytes(), 102);
@@ -65,18 +66,18 @@ TEST_F(DqlUtilsTest, FillSearchResponseExtraInfoTest) {
     EXPECT_FLOAT_EQ(response.CacheHitRatio(), 0.5f);
 }
 
-TEST_F(DqlUtilsTest, FillSearchResponseExtraInfoRejectsCommaFloatTest) {
+TEST_F(DqlUtilsTest, FillResponseExtraInfoRejectsCommaFloatTest) {
     milvus::proto::common::Status status;
     auto* extra_info = status.mutable_extra_info();
     (*extra_info)["cache_hit_ratio"] = "0,5";
 
     milvus::SearchResponse response;
-    milvus::FillSearchResponseExtraInfo(status, response);
+    milvus::FillResponseExtraInfo(status, response);
 
     EXPECT_FLOAT_EQ(response.CacheHitRatio(), -1.0f);
 }
 
-TEST_F(DqlUtilsTest, FillSearchResponseExtraInfoMalformedFallbackTest) {
+TEST_F(DqlUtilsTest, FillResponseExtraInfoMalformedFallbackTest) {
     milvus::proto::common::Status status;
     auto* extra_info = status.mutable_extra_info();
     (*extra_info)["report_value"] = "abc";
@@ -85,7 +86,7 @@ TEST_F(DqlUtilsTest, FillSearchResponseExtraInfoMalformedFallbackTest) {
     (*extra_info)["cache_hit_ratio"] = "bad-ratio";
 
     milvus::SearchResponse response;
-    milvus::FillSearchResponseExtraInfo(status, response);
+    milvus::FillResponseExtraInfo(status, response);
 
     EXPECT_EQ(response.Cost(), -1);
     EXPECT_EQ(response.ScannedRemoteBytes(), 102);
@@ -93,7 +94,7 @@ TEST_F(DqlUtilsTest, FillSearchResponseExtraInfoMalformedFallbackTest) {
     EXPECT_FLOAT_EQ(response.CacheHitRatio(), -1.0f);
 }
 
-TEST_F(DqlUtilsTest, FillSearchResponseExtraInfoResetsStaleMetadataTest) {
+TEST_F(DqlUtilsTest, FillResponseExtraInfoResetsStaleMetadataTest) {
     milvus::proto::common::Status first_status;
     auto* first_extra_info = first_status.mutable_extra_info();
     (*first_extra_info)["report_value"] = "101";
@@ -104,13 +105,30 @@ TEST_F(DqlUtilsTest, FillSearchResponseExtraInfoResetsStaleMetadataTest) {
     milvus::proto::common::Status second_status;
 
     milvus::SearchResponse response;
-    milvus::FillSearchResponseExtraInfo(first_status, response);
-    milvus::FillSearchResponseExtraInfo(second_status, response);
+    milvus::FillResponseExtraInfo(first_status, response);
+    milvus::FillResponseExtraInfo(second_status, response);
 
     EXPECT_EQ(response.Cost(), -1);
     EXPECT_EQ(response.ScannedRemoteBytes(), -1);
     EXPECT_EQ(response.ScannedTotalBytes(), -1);
     EXPECT_FLOAT_EQ(response.CacheHitRatio(), -1.0f);
+}
+
+TEST_F(DqlUtilsTest, FillResponseExtraInfoQueryResponseTest) {
+    milvus::proto::common::Status status;
+    auto* extra_info = status.mutable_extra_info();
+    (*extra_info)["report_value"] = "201";
+    (*extra_info)["scanned_remote_bytes"] = "202";
+    (*extra_info)["scanned_total_bytes"] = "203";
+    (*extra_info)["cache_hit_ratio"] = "0.75";
+
+    milvus::QueryResponse response;
+    milvus::FillResponseExtraInfo(status, response);
+
+    EXPECT_EQ(response.Cost(), 201);
+    EXPECT_EQ(response.ScannedRemoteBytes(), 202);
+    EXPECT_EQ(response.ScannedTotalBytes(), 203);
+    EXPECT_FLOAT_EQ(response.CacheHitRatio(), 0.75f);
 }
 
 TEST_F(DqlUtilsTest, DeduceGuaranteeTimestampTest) {

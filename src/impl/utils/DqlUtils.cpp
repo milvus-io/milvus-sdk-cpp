@@ -26,6 +26,7 @@
 #include "./MiscUtils.h"
 #include "./TypeUtils.h"
 #include "./cache/CollectionTsCache.h"
+#include "milvus/response/dql/QueryResponse.h"
 #include "milvus/response/dql/SearchResponse.h"
 #include "milvus/types/Constants.h"
 #include "milvus/utils/FP16.h"
@@ -109,8 +110,9 @@ AppendOrderByFields(const std::vector<OrderByField>& order_by_fields,
 
 }  // namespace
 
+template <typename T>
 void
-FillSearchResponseExtraInfo(const proto::common::Status& status, SearchResponse& response) {
+FillResponseExtraInfo(const proto::common::Status& status, T& response) {
     response.SetCost(-1);
     response.SetScannedRemoteBytes(-1);
     response.SetScannedTotalBytes(-1);
@@ -2621,5 +2623,12 @@ template Status
 ConvertHybridSearchRequest<HybridSearchRequest>(const HybridSearchRequest&, const std::string&,
                                                 proto::milvus::HybridSearchRequest&, const std::string&,
                                                 const std::string&);
+
+// response extra info
+template void
+FillResponseExtraInfo<SearchResponse>(const proto::common::Status&, SearchResponse&);
+
+template void
+FillResponseExtraInfo<QueryResponse>(const proto::common::Status&, QueryResponse&);
 
 }  // namespace milvus
