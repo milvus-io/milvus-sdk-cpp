@@ -51,9 +51,37 @@ class MILVUS_SDK_API QueryResponse {
     void
     SetSessionTs(uint64_t session_ts);
 
+    int64_t
+    Cost() const;
+
+    void
+    SetCost(int64_t cost);
+
+    int64_t
+    ScannedRemoteBytes() const;
+
+    void
+    SetScannedRemoteBytes(int64_t scanned_remote_bytes);
+
+    int64_t
+    ScannedTotalBytes() const;
+
+    void
+    SetScannedTotalBytes(int64_t scanned_total_bytes);
+
+    float
+    CacheHitRatio() const;
+
+    void
+    SetCacheHitRatio(float cache_hit_ratio);
+
  private:
     QueryResults results_;
     uint64_t session_ts_{0};
+    int64_t cost_{-1};
+    int64_t scanned_remote_bytes_{-1};
+    int64_t scanned_total_bytes_{-1};
+    float cache_hit_ratio_{-1.0f};
 };
 
 using GetResponse = QueryResponse;

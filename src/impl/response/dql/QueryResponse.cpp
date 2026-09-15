@@ -40,4 +40,44 @@ QueryResponse::SetSessionTs(uint64_t session_ts) {
     session_ts_ = session_ts;
 }
 
+int64_t
+QueryResponse::Cost() const {
+    return cost_;
+}
+
+void
+QueryResponse::SetCost(int64_t cost) {
+    cost_ = cost;
+}
+
+int64_t
+QueryResponse::ScannedRemoteBytes() const {
+    return scanned_remote_bytes_;
+}
+
+void
+QueryResponse::SetScannedRemoteBytes(int64_t scanned_remote_bytes) {
+    scanned_remote_bytes_ = scanned_remote_bytes;
+}
+
+int64_t
+QueryResponse::ScannedTotalBytes() const {
+    return scanned_total_bytes_;
+}
+
+void
+QueryResponse::SetScannedTotalBytes(int64_t scanned_total_bytes) {
+    scanned_total_bytes_ = scanned_total_bytes;
+}
+
+float
+QueryResponse::CacheHitRatio() const {
+    return cache_hit_ratio_;
+}
+
+void
+QueryResponse::SetCacheHitRatio(float cache_hit_ratio) {
+    cache_hit_ratio_ = cache_hit_ratio;
+}
+
 }  // namespace milvus

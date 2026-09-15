@@ -695,7 +695,16 @@ TEST_F(UnconnectMilvusMockedTest, GetEmptyIdsShortCircuitsNoRpc) {
     auto client = CreateConnectedV2Client(service_, server_.ListenPort());
 
     milvus::GetResponse response;
+    response.SetCost(100);
+    response.SetScannedRemoteBytes(200);
+    response.SetScannedTotalBytes(300);
+    response.SetCacheHitRatio(0.5f);
+
     auto status = client->Get(milvus::GetRequest().WithCollectionName("empty_coll"), response);
     EXPECT_TRUE(status.IsOk()) << status.Message();
     EXPECT_EQ(response.Results().GetRowCount(), 0);
+    EXPECT_EQ(response.Cost(), -1);
+    EXPECT_EQ(response.ScannedRemoteBytes(), -1);
+    EXPECT_EQ(response.ScannedTotalBytes(), -1);
+    EXPECT_FLOAT_EQ(response.CacheHitRatio(), -1.0f);
 }

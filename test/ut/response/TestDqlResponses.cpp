@@ -27,10 +27,22 @@ TEST_F(QueryResponseTest, SetterAndGetter) {
     (void)resp.Results();
 
     EXPECT_EQ(resp.SessionTs(), 0u);
+    EXPECT_EQ(resp.Cost(), -1);
+    EXPECT_EQ(resp.ScannedRemoteBytes(), -1);
+    EXPECT_EQ(resp.ScannedTotalBytes(), -1);
+    EXPECT_FLOAT_EQ(resp.CacheHitRatio(), -1.0f);
 
     resp.SetSessionTs(100);
+    resp.SetCost(101);
+    resp.SetScannedRemoteBytes(102);
+    resp.SetScannedTotalBytes(103);
+    resp.SetCacheHitRatio(0.5f);
 
     EXPECT_EQ(resp.SessionTs(), 100u);
+    EXPECT_EQ(resp.Cost(), 101);
+    EXPECT_EQ(resp.ScannedRemoteBytes(), 102);
+    EXPECT_EQ(resp.ScannedTotalBytes(), 103);
+    EXPECT_FLOAT_EQ(resp.CacheHitRatio(), 0.5f);
 }
 
 class SearchResponseTest : public ::testing::Test {};
