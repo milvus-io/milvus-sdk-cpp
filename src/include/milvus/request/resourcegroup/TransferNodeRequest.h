@@ -34,18 +34,21 @@ class MILVUS_SDK_API TransferNodeRequest {
 
     /**
      * @brief Get name of the source resource group.
+     * @return the source group.
      */
     const std::string&
     SourceGroup() const;
 
     /**
      * @brief Set name of the source resource group.
+     * @param [in] source_group the source group.
      */
     void
     SetSourceGroup(const std::string& source_group);
 
     /**
      * @brief Set name of the source resource group.
+     * @param [in] source_group the source group.
      */
     TransferNodeRequest&
     WithSourceGroup(const std::string& source_group);

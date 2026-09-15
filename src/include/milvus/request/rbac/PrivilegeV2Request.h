@@ -34,72 +34,84 @@ class MILVUS_SDK_API PrivilegeV2Request {
 
     /**
      * @brief Name of the role.
+     * @return the role name.
      */
     const std::string&
     RoleName() const;
 
     /**
      * @brief Set name of the role.
+     * @param [in] name the name.
      */
     void
     SetRoleName(const std::string& name);
 
     /**
      * @brief Set name of the role.
+     * @param [in] name the name.
      */
     PrivilegeV2Request&
     WithRoleName(const std::string& name);
 
     /**
      * @brief Get database name.
+     * @return the database name.
      */
     const std::string&
     DatabaseName() const;
 
     /**
      * @brief Set database name.
+     * @param [in] db_name the DB name.
      */
     void
     SetDatabaseName(const std::string& db_name);
 
     /**
      * @brief Set database name.
+     * @param [in] db_name the DB name.
      */
     PrivilegeV2Request&
     WithDatabaseName(const std::string& db_name);
 
     /**
      * @brief Name of the collection.
+     * @return the collection name.
      */
     const std::string&
     CollectionName() const;
 
     /**
      * @brief Set name of the collection.
+     * @param [in] collection_name the collection name.
      */
     void
     SetCollectionName(const std::string& collection_name);
 
     /**
      * @brief Set name of the collection.
+     * @param [in] collection_name the collection name.
      */
     PrivilegeV2Request&
     WithCollectionName(const std::string& collection_name);
 
     /**
      * @brief Name of the privilege.
+     * @return the privilege.
      */
     const std::string&
     Privilege() const;
 
     /**
      * @brief Set name of the privilege.
+     * @param [in] privilege the privilege.
      */
     void
     SetPrivilege(const std::string& privilege);
 
     /**
      * @brief Set name of the privilege.
+     * @param [in] privilege the privilege.
      */
     PrivilegeV2Request&
     WithPrivilege(const std::string& privilege);

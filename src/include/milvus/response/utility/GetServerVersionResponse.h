@@ -34,60 +34,70 @@ class MILVUS_SDK_API GetServerVersionResponse {
 
     /**
      * @brief Version of the Milvus server.
+     * @return the version.
      */
     const std::string&
     Version() const;
 
     /**
      * @brief Set version of the Milvus server.
+     * @param [in] version the version.
      */
     void
     SetVersion(const std::string& version);
 
     /**
      * @brief Build time of the Milvus server.
+     * @return the build time.
      */
     const std::string&
     BuildTime() const;
 
     /**
      * @brief Set build time of the Milvus server.
+     * @param [in] build_time the build time.
      */
     void
     SetBuildTime(const std::string& build_time);
 
     /**
      * @brief Git commit of the Milvus server build.
+     * @return the git commit.
      */
     const std::string&
     GitCommit() const;
 
     /**
      * @brief Set git commit of the Milvus server build.
+     * @param [in] git_commit the git commit.
      */
     void
     SetGitCommit(const std::string& git_commit);
 
     /**
      * @brief Go version used to build the Milvus server.
+     * @return the go version.
      */
     const std::string&
     GoVersion() const;
 
     /**
      * @brief Set Go version used to build the Milvus server.
+     * @param [in] go_version the go version.
      */
     void
     SetGoVersion(const std::string& go_version);
 
     /**
      * @brief Deploy mode of the Milvus server.
+     * @return the deploy mode.
      */
     const std::string&
     DeployMode() const;
 
     /**
      * @brief Set deploy mode of the Milvus server.
+     * @param [in] deploy_mode the deploy mode.
      */
     void
     SetDeployMode(const std::string& deploy_mode);

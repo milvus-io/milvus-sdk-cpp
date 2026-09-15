@@ -35,36 +35,42 @@ class MILVUS_SDK_API ListAliasesResponse {
 
     /**
      * @brief Get the database name where the aliases exist.
+     * @return the database name.
      */
     const std::string&
     DatabaseName() const;
 
     /**
      * @brief Set the database name where the aliases exist.
+     * @param [in] db_name the DB name.
      */
     void
     SetDatabaseName(const std::string& db_name);
 
     /**
      * @brief Get the collection name with which the aliases is associated.
+     * @return the collection name.
      */
     const std::string&
     CollectionName() const;
 
     /**
      * @brief Set the collection name with which the aliases is associated.
+     * @param [in] collection_name the collection name.
      */
     void
     SetCollectionName(const std::string& collection_name);
 
     /**
      * @brief Get aliases.
+     * @return the aliases.
      */
     const std::vector<std::string>&
     Aliases() const;
 
     /**
      * @brief Set aliases.
+     * @param [in] aliases the aliases.
      */
     void
     SetAliases(std::vector<std::string>&& aliases);

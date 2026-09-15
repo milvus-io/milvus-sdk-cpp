@@ -28,6 +28,7 @@ class MILVUS_SDK_API SubSearchRequest : public SearchRequestVectorAssigner<SubSe
  public:
     /**
      * @brief Specifies the metric type.
+     * @param [in] metric_type the metric type.
      */
     SubSearchRequest&
     WithMetricType(::milvus::MetricType metric_type);
@@ -35,24 +36,28 @@ class MILVUS_SDK_API SubSearchRequest : public SearchRequestVectorAssigner<SubSe
     /**
      * @brief Set search limit(topk).
      * Note: this value is stored in the ExtraParams.
+     * @param [in] limit the limit.
      */
     SubSearchRequest&
     WithLimit(int64_t limit);
 
     /**
      * @brief Set filter expression.
+     * @param [in] filter the filter.
      */
     SubSearchRequest&
     WithFilter(std::string filter);
 
     /**
      * @brief Set target field of ann search.
+     * @param [in] ann_field the ANN field.
      */
     SubSearchRequest&
     WithAnnsField(const std::string& ann_field);
 
     /**
      * @brief Set timezone, takes effect for Timestamptz field.
+     * @param [in] timezone the timezone.
      */
     SubSearchRequest&
     WithTimezone(const std::string& timezone);

@@ -35,36 +35,42 @@ class MILVUS_SDK_API CompactRequest {
 
     /**
      * @brief Database name in which the collections are created.
+     * @return the database name.
      */
     const std::string&
     DatabaseName() const;
 
     /**
      * @brief Set database name in which the collections are created.
+     * @param [in] db_name the DB name.
      */
     void
     SetDatabaseName(const std::string& db_name);
 
     /**
      * @brief Set database name in which the collections are created.
+     * @param [in] db_name the DB name.
      */
     CompactRequest&
     WithDatabaseName(const std::string& db_name);
 
     /**
      * @brief Name of the collection to be compacted.
+     * @return the collection name.
      */
     const std::string&
     CollectionName() const;
 
     /**
      * @brief Set name of the collection to be compacted.
+     * @param [in] collection_name the collection name.
      */
     void
     SetCollectionName(const std::string& collection_name);
 
     /**
      * @brief Set name of the collection to be compacted.
+     * @param [in] collection_name the collection name.
      */
     CompactRequest&
     WithCollectionName(const std::string& collection_name);
@@ -72,6 +78,7 @@ class MILVUS_SDK_API CompactRequest {
     /**
      * @brief Target segment size, expressed in the unit returned by TargetSizeUnit().
      * Zero means use server default. Must be a positive integer when set.
+     * @return the target size.
      */
     int64_t
     TargetSize() const;
@@ -79,6 +86,7 @@ class MILVUS_SDK_API CompactRequest {
     /**
      * @brief Set target segment size, expressed in the unit returned by TargetSizeUnit().
      * Zero means use server default.
+     * @param [in] target_size the target size.
      */
     void
     SetTargetSize(int64_t target_size);
@@ -86,6 +94,7 @@ class MILVUS_SDK_API CompactRequest {
     /**
      * @brief Set target segment size, expressed in the unit returned by TargetSizeUnit().
      * Zero means use server default.
+     * @param [in] target_size the target size.
      */
     CompactRequest&
     WithTargetSize(int64_t target_size);
@@ -93,6 +102,7 @@ class MILVUS_SDK_API CompactRequest {
     /**
      * @brief Unit of the target segment size. Supported values: "b", "kb", "mb", "gb",
      * "tb", "pb". Default is "mb".
+     * @return the target size unit.
      */
     const std::string&
     TargetSizeUnit() const;
@@ -100,6 +110,7 @@ class MILVUS_SDK_API CompactRequest {
     /**
      * @brief Set unit of the target segment size. Supported values: "b", "kb", "mb", "gb",
      * "tb", "pb". Default is "mb".
+     * @param [in] unit the unit.
      */
     void
     SetTargetSizeUnit(const std::string& unit);
@@ -107,12 +118,14 @@ class MILVUS_SDK_API CompactRequest {
     /**
      * @brief Set unit of the target segment size. Supported values: "b", "kb", "mb", "gb",
      * "tb", "pb". Default is "mb".
+     * @param [in] unit the unit.
      */
     CompactRequest&
     WithTargetSizeUnit(const std::string& unit);
 
     /**
      * @brief Get the flag whether it is cluserting compaction or not.
+     * @return the clustering compaction.
      */
     bool
     ClusteringCompaction() const;
@@ -121,6 +134,7 @@ class MILVUS_SDK_API CompactRequest {
      * @brief Set cluserting compaction flag.
      * True: do cluserting compaction, report error if no clustering key.
      * False: do normal compaction.
+     * @param [in] clustering_compaction the clustering compaction.
      */
     void
     SetClusteringCompaction(bool clustering_compaction);
@@ -129,12 +143,14 @@ class MILVUS_SDK_API CompactRequest {
      * @brief Set cluserting compaction flag.
      * True: do cluserting compaction, report error if no clustering key.
      * False: do normal compaction.
+     * @param [in] clustering_compaction the clustering compaction.
      */
     CompactRequest&
     WithClusteringCompaction(bool clustering_compaction);
 
     /**
      * @brief Get the flag whether it is L0 compaction or not.
+     * @return true if the compaction target is L0.
      */
     bool
     IsL0() const;
@@ -143,6 +159,7 @@ class MILVUS_SDK_API CompactRequest {
      * @brief Set L0 compaction flag.
      * True: compact L0 segments only.
      * False: normal compaction.
+     * @param [in] is_l0 the is l0.
      */
     void
     SetIsL0(bool is_l0);
@@ -151,6 +168,7 @@ class MILVUS_SDK_API CompactRequest {
      * @brief Set L0 compaction flag.
      * True: compact L0 segments only.
      * False: normal compaction.
+     * @param [in] is_l0 the is l0.
      */
     CompactRequest&
     WithIsL0(bool is_l0);

@@ -27,6 +27,9 @@ namespace milvus {
 class MILVUS_SDK_API ListRefreshExternalCollectionJobsRequest
     : public CollectionRequestBase<ListRefreshExternalCollectionJobsRequest> {
  public:
+    /**
+     * @brief Constructor
+     */
     ListRefreshExternalCollectionJobsRequest() = default;
 };
 

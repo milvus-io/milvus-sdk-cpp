@@ -34,6 +34,7 @@ class PartitionRequestBase {
  public:
     /**
      * @brief Get the target db name
+     * @return the database name.
      */
     const std::string&
     DatabaseName() const {
@@ -42,6 +43,7 @@ class PartitionRequestBase {
 
     /**
      * @brief Set target db name, use default database if it is empty.
+     * @param [in] db_name the DB name.
      */
     void
     SetDatabaseName(const std::string& db_name) {
@@ -50,6 +52,7 @@ class PartitionRequestBase {
 
     /**
      * @brief Set target db name, use default database if it is empty.
+     * @param [in] db_name the DB name.
      */
     T&
     WithDatabaseName(const std::string& db_name) {
@@ -59,6 +62,7 @@ class PartitionRequestBase {
 
     /**
      * @brief Get the collection name.
+     * @return the collection name.
      */
     const std::string&
     CollectionName() const {
@@ -67,6 +71,7 @@ class PartitionRequestBase {
 
     /**
      * @brief Set the collection name.
+     * @param [in] collection_name the collection name.
      */
     void
     SetCollectionName(const std::string& collection_name) {
@@ -75,6 +80,7 @@ class PartitionRequestBase {
 
     /**
      * @brief Set name of the collection.
+     * @param [in] collection_name the collection name.
      */
     T&
     WithCollectionName(const std::string& collection_name) {
@@ -84,6 +90,7 @@ class PartitionRequestBase {
 
     /**
      * @brief Set name of the partition.
+     * @return the partition name.
      */
     const std::string&
     PartitionName() const {
@@ -92,6 +99,7 @@ class PartitionRequestBase {
 
     /**
      * @brief Set name of the partition.
+     * @param [in] partition_name the partition name.
      */
     void
     SetPartitionName(const std::string& partition_name) {
@@ -100,6 +108,7 @@ class PartitionRequestBase {
 
     /**
      * @brief Set name of the partition.
+     * @param [in] partition_name the partition name.
      */
     T&
     WithPartitionName(const std::string& partition_name) {

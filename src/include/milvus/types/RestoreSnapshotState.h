@@ -26,10 +26,25 @@ namespace milvus {
  * @brief State code for restore snapshot jobs.
  */
 enum class RestoreSnapshotStateCode {
+    /**
+     * @brief The restore job state is unknown.
+     */
     UNKNOWN = 0,
+    /**
+     * @brief The restore job is pending.
+     */
     PENDING = 1,
+    /**
+     * @brief The restore job is running.
+     */
     EXECUTING = 2,
+    /**
+     * @brief The restore job completed.
+     */
     COMPLETED = 3,
+    /**
+     * @brief The restore job failed.
+     */
     FAILED = 4,
 };
 
@@ -37,5 +52,9 @@ enum class RestoreSnapshotStateCode {
 
 namespace std {
 MILVUS_SDK_API std::string
+/**
+ * @brief Convert a state code to its string name.
+ * @param [in] state the state.
+ */
 to_string(milvus::RestoreSnapshotStateCode state);
 }  // namespace std

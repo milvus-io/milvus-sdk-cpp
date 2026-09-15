@@ -33,18 +33,21 @@ class MILVUS_SDK_API ListIndexesRequest : public IndexRequestBase<ListIndexesReq
 
     /**
      * @brief Get the field name. If empty, indexes of all fields are returned.
+     * @return the field name.
      */
     const std::string&
     FieldName() const;
 
     /**
      * @brief Set the field name. If empty, indexes of all fields are returned.
+     * @param [in] field_name the field name.
      */
     void
     SetFieldName(const std::string& field_name);
 
     /**
      * @brief Set the field name. If empty, indexes of all fields are returned.
+     * @param [in] field_name the field name.
      */
     ListIndexesRequest&
     WithFieldName(const std::string& field_name);

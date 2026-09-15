@@ -27,14 +27,29 @@ namespace milvus {
  */
 class MILVUS_SDK_API FileResourceRequest {
  public:
+    /**
+     * @brief Constructor
+     */
     FileResourceRequest() = default;
 
+    /**
+     * @brief Get the resource name.
+     * @return the name.
+     */
     const std::string&
     Name() const;
 
+    /**
+     * @brief Set the resource name.
+     * @param [in] name the name.
+     */
     void
     SetName(const std::string& name);
 
+    /**
+     * @brief Set the resource name.
+     * @param [in] name the name.
+     */
     FileResourceRequest&
     WithName(const std::string& name);
 
@@ -47,17 +62,36 @@ class MILVUS_SDK_API FileResourceRequest {
  */
 class MILVUS_SDK_API AddFileResourceRequest : public FileResourceRequest {
  public:
+    /**
+     * @brief Constructor
+     */
     AddFileResourceRequest() = default;
 
+    /**
+     * @brief Set the resource name.
+     * @param [in] name the name.
+     */
     AddFileResourceRequest&
     WithName(const std::string& name);
 
+    /**
+     * @brief Get the file path of the resource.
+     * @return the path.
+     */
     const std::string&
     Path() const;
 
+    /**
+     * @brief Set the file path of the resource.
+     * @param [in] path the path.
+     */
     void
     SetPath(const std::string& path);
 
+    /**
+     * @brief Set the file path of the resource.
+     * @param [in] path the path.
+     */
     AddFileResourceRequest&
     WithPath(const std::string& path);
 
@@ -72,6 +106,9 @@ using RemoveFileResourceRequest = FileResourceRequest;
  */
 class MILVUS_SDK_API ListFileResourcesRequest {
  public:
+    /**
+     * @brief Constructor
+     */
     ListFileResourcesRequest() = default;
 };
 

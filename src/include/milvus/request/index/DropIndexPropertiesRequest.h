@@ -35,6 +35,7 @@ class MILVUS_SDK_API DropIndexPropertiesRequest : public IndexRequestBase<DropIn
 
     /**
      * @brief Name of the index.
+     * @return the index name.
      */
     const std::string&
     IndexName() const;
@@ -42,6 +43,7 @@ class MILVUS_SDK_API DropIndexPropertiesRequest : public IndexRequestBase<DropIn
     /**
      * @brief Set name of the index.
      * Currently, this API only supports index_name.
+     * @param [in] index_name the index name.
      */
     void
     SetIndexName(const std::string& index_name);
@@ -49,30 +51,35 @@ class MILVUS_SDK_API DropIndexPropertiesRequest : public IndexRequestBase<DropIn
     /**
      * @brief Set name of the index.
      * Currently, this API only supports index_name.
+     * @param [in] index_name the index name.
      */
     DropIndexPropertiesRequest&
     WithIndexName(const std::string& index_name);
 
     /**
      * @brief Get deleted keys.
+     * @return the property keys.
      */
     const std::set<std::string>&
     PropertyKeys() const;
 
     /**
      * @brief Set deleted keys of this index.
+     * @param [in] keys the keys.
      */
     void
     SetPropertyKeys(std::set<std::string>&& keys);
 
     /**
      * @brief Set deleted keys of this index.
+     * @param [in] keys the keys.
      */
     DropIndexPropertiesRequest&
     WithPropertyKeys(std::set<std::string>&& keys);
 
     /**
      * @brief Set a key to be deleted.
+     * @param [in] key the key.
      */
     DropIndexPropertiesRequest&
     AddPropertyKey(const std::string& key);

@@ -59,44 +59,52 @@ class MILVUS_SDK_API IDArray {
 
     /**
      * @brief Constructor
+     * @param [in] id_array the ID array.
      */
     explicit IDArray(const std::vector<int64_t>& id_array);
 
     /**
      * @brief Constructor
+     * @param [in] id_array the ID array.
      */
     explicit IDArray(std::vector<int64_t>&& id_array);
 
     /**
      * @brief Constructor
+     * @param [in] id_array the ID array.
      */
     explicit IDArray(const std::vector<std::string>& id_array);
 
     /**
      * @brief Constructor
+     * @param [in] id_array the ID array.
      */
     explicit IDArray(std::vector<std::string>&& id_array);
 
     /**
      * @brief Indicate this is an integer id array
+     * @return true if the ID array is of integer type.
      */
     bool
     IsIntegerID() const;
 
     /**
      * @brief Return integer id array
+     * @return the int ID array.
      */
     const std::vector<int64_t>&
     IntIDArray() const;
 
     /**
      * @brief Return string id array
+     * @return the str ID array.
      */
     const std::vector<std::string>&
     StrIDArray() const;
 
     /**
      * @brief Get row count.
+     * @return the row count.
      */
     uint64_t
     GetRowCount() const;

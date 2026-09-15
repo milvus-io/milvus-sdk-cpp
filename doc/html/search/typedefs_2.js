@@ -1,5 +1,4 @@
 var searchData=
 [
-  ['partitionsinfo_2051',['PartitionsInfo',['../namespacemilvus.html#affb31ba1d459f7fa231ffda305c08733',1,'milvus']]],
-  ['privilegegroupinfos_2052',['PrivilegeGroupInfos',['../namespacemilvus.html#a15be5036b84ca41b3ba6ce976c91f9bc',1,'milvus']]]
+  ['elementt_3365',['ElementT',['../classmilvus_1_1FieldData.html#a921c839e5d8df646cb7a20029ddb17f6',1,'milvus::FieldData::ElementT()'],['../classmilvus_1_1ArrayFieldData.html#a749afa058acaceefa076915cd2e5ff70',1,'milvus::ArrayFieldData::ElementT()'],['../classmilvus_1_1BinaryVecFieldData.html#ae2026c27ee8465dd5fbc630778737e3c',1,'milvus::BinaryVecFieldData::ElementT()']]]
 ];

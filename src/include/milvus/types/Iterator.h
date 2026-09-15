@@ -31,6 +31,9 @@ namespace milvus {
 template <typename T>
 class Iterator {
  protected:
+    /**
+     * @brief Constructor
+     */
     Iterator() = default;
 
  public:
@@ -41,6 +44,7 @@ class Iterator {
      * Note: this method is not designed to be called in multi-thread, it is not thread-safe.
      *
      * @return QueryResults or SingleResult
+     * @param [in] results the results.
      */
     virtual Status
     Next(T& results) = 0;

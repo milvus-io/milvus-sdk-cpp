@@ -28,12 +28,33 @@ namespace milvus {
  * @brief State of segment
  */
 enum class SegmentState {
+    /**
+     * @brief Segment state is unknown.
+     */
     UNKNOWN = 0,
+    /**
+     * @brief The segment does not exist.
+     */
     NOT_EXIST = 1,
+    /**
+     * @brief The segment is growing and accepting writes.
+     */
     GROWING = 2,
+    /**
+     * @brief The segment is sealed and no longer accepts writes.
+     */
     SEALED = 3,
+    /**
+     * @brief The segment has been flushed to storage.
+     */
     FLUSHED = 4,
+    /**
+     * @brief The segment is being flushed to storage.
+     */
     FLUSHING = 5,
+    /**
+     * @brief The segment has been dropped.
+     */
     DROPPED = 6,
 };
 
@@ -41,10 +62,25 @@ enum class SegmentState {
  * @brief Level of segment.
  */
 enum class SegmentLevel {
+    /**
+     * @brief Segment state is unknown.
+     */
     UNKNOWN = -1,
+    /**
+     * @brief Legacy segment level.
+     */
     LEGACY = 0,
+    /**
+     * @brief Level-0 segment (delta log).
+     */
     L0 = 1,
+    /**
+     * @brief Level-1 sealed segment.
+     */
     L1 = 2,
+    /**
+     * @brief Level-2 sealed segment.
+     */
     L2 = 3,
 };
 
@@ -55,6 +91,11 @@ class MILVUS_SDK_API SegmentInfo {
  public:
     /**
      * @brief Constructor
+     * @param [in] collection_id the collection ID.
+     * @param [in] partition_id the partition ID.
+     * @param [in] segment_id the segment ID.
+     * @param [in] row_count the row count.
+     * @param [in] state the state.
      */
     SegmentInfo(int64_t collection_id, int64_t partition_id, int64_t segment_id, int64_t row_count, SegmentState state);
 
@@ -66,53 +107,62 @@ class MILVUS_SDK_API SegmentInfo {
 
     /**
      * @brief The collection id which this segment belong to.
+     * @return the collection ID.
      */
     int64_t
     CollectionID() const;
 
     /**
      * @brief The partition id which this segment belong to.
+     * @return the partition ID.
      */
     int64_t
     PartitionID() const;
 
     /**
      * @brief ID of the segment.
+     * @return the segment ID.
      */
     int64_t
     SegmentID() const;
     /**
      * @brief Row count of the segment.
+     * @return the row count.
      */
     int64_t
     RowCount() const;
 
     /**
      * @brief Current state of the segment.
+     * @return the state.
      */
     SegmentState
     State() const;
 
     /**
      * @brief The collection name which this segment belongs to.
+     * @return the collection name.
      */
     const std::string&
     CollectionName() const;
 
     /**
      * @brief Level of the segment.
+     * @return the level.
      */
     SegmentLevel
     Level() const;
 
     /**
      * @brief Storage version of the segment.
+     * @return the storage version.
      */
     int64_t
     StorageVersion() const;
 
     /**
      * @brief Whether the segment is sorted.
+     * @return true if the results are sorted.
      */
     bool
     IsSorted() const;
@@ -157,12 +207,14 @@ class MILVUS_SDK_API QuerySegmentInfo : public SegmentInfo {
 
     /**
      * @brief Index name of the segment.
+     * @return the index name.
      */
     std::string
     IndexName() const;
 
     /**
      * @brief Index id the segment.
+     * @return the index ID.
      */
     int64_t
     IndexID() const;
@@ -171,18 +223,21 @@ class MILVUS_SDK_API QuerySegmentInfo : public SegmentInfo {
      * @brief Node id of the segment.
      * @deprecated in v2.4, a segment can be loaded into multiple nodes, use the NodeIDs() instead.
      * This method will return the first node id in from id list.
+     * @return the node ID.
      */
     int64_t
     NodeID() const;
 
     /**
      * @brief Node id list of the segment.
+     * @return the node i ds.
      */
     const std::vector<int64_t>&
     NodeIDs() const;
 
     /**
      * @brief Memory size of the segment.
+     * @return the mem size.
      */
     int64_t
     MemSize() const;

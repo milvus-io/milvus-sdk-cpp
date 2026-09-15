@@ -36,42 +36,49 @@ class MILVUS_SDK_API DropCollectionFieldPropertiesRequest
 
     /**
      * @brief Name of the field.
+     * @return the field name.
      */
     const std::string&
     FieldName() const;
 
     /**
      * @brief Set name of the field.
+     * @param [in] field_name the field name.
      */
     void
     SetFieldName(const std::string& field_name);
 
     /**
      * @brief Set name of the field.
+     * @param [in] field_name the field name.
      */
     DropCollectionFieldPropertiesRequest&
     WithFieldName(const std::string& field_name);
 
     /**
      * @brief Get deleted keys.
+     * @return the property keys.
      */
     const std::set<std::string>&
     PropertyKeys() const;
 
     /**
      * @brief Set deleted keys of this database.
+     * @param [in] keys the keys.
      */
     void
     SetPropertyKeys(std::set<std::string>&& keys);
 
     /**
      * @brief Set deleted keys of this database.
+     * @param [in] keys the keys.
      */
     DropCollectionFieldPropertiesRequest&
     WithPropertyKeys(std::set<std::string>&& keys);
 
     /**
      * @brief Add a key to be deleted.
+     * @param [in] key the key.
      */
     DropCollectionFieldPropertiesRequest&
     AddPropertyKey(const std::string& key);

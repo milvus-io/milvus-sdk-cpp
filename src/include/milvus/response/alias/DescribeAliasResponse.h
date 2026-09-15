@@ -33,12 +33,14 @@ class MILVUS_SDK_API DescribeAliasResponse {
 
     /**
      * @brief Get alias description.
+     * @return the desc.
      */
     const AliasDesc&
     Desc() const;
 
     /**
      * @brief Set alias description.
+     * @param [in] desc the desc.
      */
     void
     SetDesc(AliasDesc&& desc);

@@ -72,6 +72,9 @@ TEST_F(ListPartitionsRequestTest, GettersAndSetters) {
 
     req.WithDatabaseName("test_db");
     EXPECT_EQ(req.DatabaseName(), "test_db");
+
+    req.SetCollectionName("test_coll_set");
+    EXPECT_EQ(req.CollectionName(), "test_coll_set");
 }
 
 class LoadPartitionsRequestTest : public ::testing::Test {};
@@ -101,6 +104,16 @@ TEST_F(LoadPartitionsRequestTest, GettersAndSetters) {
     EXPECT_EQ(req.LoadPriority(), "Medium");
     req.SetLoadPriority("High");
     EXPECT_EQ(req.LoadPriority(), "High");
+
+    // Plain setters
+    req.SetCollectionName("test_coll_set");
+    EXPECT_EQ(req.CollectionName(), "test_coll_set");
+    req.SetSync(true);
+    EXPECT_TRUE(req.Sync());
+    req.SetReplicaNum(2);
+    EXPECT_EQ(req.ReplicaNum(), 2);
+    req.SetTimeoutMs(60000);
+    EXPECT_EQ(req.TimeoutMs(), 60000);
 }
 
 class ReleasePartitionsRequestTest : public ::testing::Test {};
@@ -116,6 +129,9 @@ TEST_F(ReleasePartitionsRequestTest, GettersAndSetters) {
     EXPECT_EQ(req.PartitionNames().size(), 2);
     EXPECT_TRUE(req.PartitionNames().count("p1"));
     EXPECT_TRUE(req.PartitionNames().count("p2"));
+
+    req.SetCollectionName("test_coll_set");
+    EXPECT_EQ(req.CollectionName(), "test_coll_set");
 }
 
 TEST_F(LoadPartitionsRequestTest, SetDatabaseName) {

@@ -35,12 +35,14 @@ class MILVUS_SDK_API DescribeReplicasResponse {
 
     /**
      * @brief Get replica information.
+     * @return the replicas.
      */
     const std::vector<ReplicaInfo>&
     Replicas() const;
 
     /**
      * @brief Set replica information.
+     * @param [in] replicas the replicas.
      */
     void
     SetReplicas(std::vector<ReplicaInfo>&& replicas);

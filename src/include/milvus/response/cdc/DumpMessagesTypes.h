@@ -24,35 +24,85 @@
 
 namespace milvus {
 
+/**
+ * @brief A message dumped from a Pulsar channel by MilvusClientV2::DumpMessages().
+ */
 class MILVUS_SDK_API DumpedMessage {
+    /**
+     * @brief Get the message identifier.
+     * @return the message ID.
+     */
  public:
     const ReplicateMessageID&
     MessageID() const;
 
+    /**
+     * @brief Set the message identifier.
+     *
+     * @param [in] message_id
+     */
     void
     SetMessageID(ReplicateMessageID&& message_id);
 
+    /**
+     * @brief Set the message identifier.
+     *
+     * @param [in] message_id
+     */
     DumpedMessage&
     WithMessageID(ReplicateMessageID&& message_id);
 
+    /**
+     * @brief Get the message payload.
+     * @return the payload.
+     */
     const std::string&
     Payload() const;
 
+    /**
+     * @brief Set the message payload.
+     *
+     * @param [in] payload
+     */
     void
     SetPayload(const std::string& payload);
 
+    /**
+     * @brief Set the message payload.
+     *
+     * @param [in] payload
+     */
     DumpedMessage&
     WithPayload(const std::string& payload);
 
+    /**
+     * @brief Get the message properties.
+     * @return the properties.
+     */
     const std::unordered_map<std::string, std::string>&
     Properties() const;
 
+    /**
+     * @brief Set the message properties.
+     *
+     * @param [in] string, properties
+     */
     void
     SetProperties(std::unordered_map<std::string, std::string>&& properties);
 
+    /**
+     * @brief Set the message properties.
+     *
+     * @param [in] string, properties
+     */
     DumpedMessage&
     WithProperties(std::unordered_map<std::string, std::string>&& properties);
 
+    /**
+     * @brief Add a message property.
+     *
+     * @param [in] key, value
+     */
     DumpedMessage&
     AddProperty(const std::string& key, const std::string& value);
 

@@ -72,6 +72,10 @@ class MilvusMockedService : public ::milvus::proto::milvus::MilvusService::Servi
                  ::grpc::Status(::grpc::ServerContext*, const ::milvus::proto::milvus::DescribeCollectionRequest*,
                                 ::milvus::proto::milvus::DescribeCollectionResponse*));
 
+    MOCK_METHOD3(BatchDescribeCollection,
+                 ::grpc::Status(::grpc::ServerContext*, const ::milvus::proto::milvus::BatchDescribeCollectionRequest*,
+                                ::milvus::proto::milvus::BatchDescribeCollectionResponse*));
+
     MOCK_METHOD3(RenameCollection,
                  ::grpc::Status(::grpc::ServerContext*, const ::milvus::proto::milvus::RenameCollectionRequest*,
                                 ::milvus::proto::common::Status*));
@@ -232,6 +236,9 @@ class MilvusMockedService : public ::milvus::proto::milvus::MilvusService::Servi
     MOCK_METHOD3(GetQuerySegmentInfo,
                  ::grpc::Status(::grpc::ServerContext*, const ::milvus::proto::milvus::GetQuerySegmentInfoRequest*,
                                 ::milvus::proto::milvus::GetQuerySegmentInfoResponse*));
+
+    MOCK_METHOD3(GetReplicas, ::grpc::Status(::grpc::ServerContext*, const ::milvus::proto::milvus::GetReplicasRequest*,
+                                             ::milvus::proto::milvus::GetReplicasResponse*));
 
     MOCK_METHOD3(GetMetrics, ::grpc::Status(::grpc::ServerContext*, const ::milvus::proto::milvus::GetMetricsRequest*,
                                             ::milvus::proto::milvus::GetMetricsResponse*));

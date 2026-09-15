@@ -27,8 +27,17 @@ namespace milvus {
  * @brief State Code for compaction
  */
 enum class CompactionStateCode {
+    /**
+     * @brief The compaction state is unknown.
+     */
     UNKNOWN = 0,
+    /**
+     * @brief The compaction is executing.
+     */
     EXECUTING = 1,
+    /**
+     * @brief The compaction completed.
+     */
     COMPLETED = 2,
 };
 
@@ -41,60 +50,70 @@ class MILVUS_SDK_API CompactionState {
 
     /**
      * @brief Compaction state code.
+     * @return the state.
      */
     CompactionStateCode
     State() const;
 
     /**
      * @brief Set compaction state code.
+     * @param [in] state the state.
      */
     void
     SetState(CompactionStateCode state);
 
     /**
      * @brief The executing plan id.
+     * @return the executing plan.
      */
     int64_t
     ExecutingPlan() const;
 
     /**
      * @brief Set the number of executing plans.
+     * @param [in] num the num.
      */
     void
     SetExecutingPlan(int64_t num);
 
     /**
      * @brief The number of timeout plans.
+     * @return the timeout plan.
      */
     int64_t
     TimeoutPlan() const;
 
     /**
      * @brief Set the number of timeout plans.
+     * @param [in] num the num.
      */
     void
     SetTimeoutPlan(int64_t num);
 
     /**
      * @brief The number of completed plans.
+     * @return the completed plan.
      */
     int64_t
     CompletedPlan() const;
 
     /**
      * @brief Set number of completed plans.
+     * @param [in] num the num.
      */
     void
     SetCompletedPlan(int64_t num);
 
     /**
      * @brief The number of failed plans.
+     * @return the failed plan.
      */
     int64_t
     FailedPlan() const;
 
     /**
      * @brief Set the number of failed plans.
+     * @param [in] num the num.
      */
     void
     SetFailedPlan(int64_t num);

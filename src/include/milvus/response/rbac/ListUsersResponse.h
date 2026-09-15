@@ -35,12 +35,14 @@ class MILVUS_SDK_API ListUsersResponse {
 
     /**
      * @brief Get names of users.
+     * @return the user names.
      */
     const std::vector<std::string>&
     UserNames() const;
 
     /**
      * @brief Set names of users.
+     * @param [in] users the users.
      */
     void
     SetUserNames(std::vector<std::string>&& users);

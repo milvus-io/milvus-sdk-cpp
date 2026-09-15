@@ -24,6 +24,9 @@
 
 namespace milvus {
 
+/**
+ * @brief Shard replica information of a replica group.
+ */
 class MILVUS_SDK_API ShardReplica {
  public:
     /**
@@ -33,48 +36,56 @@ class MILVUS_SDK_API ShardReplica {
 
     /**
      * @brief Get leader node id.
+     * @return the leader ID.
      */
     int64_t
     LeaderID() const;
 
     /**
      * @brief Set leader node id.
+     * @param [in] leader_id the leader ID.
      */
     void
     SetLeaderID(int64_t leader_id);
 
     /**
      * @brief Get leader address.
+     * @return the leader address.
      */
     const std::string&
     LeaderAddress() const;
 
     /**
      * @brief Set leader address.
+     * @param [in] leader_address the leader address.
      */
     void
     SetLeaderAddress(const std::string& leader_address);
 
     /**
      * @brief Get channel name.
+     * @return the channel name.
      */
     const std::string&
     ChannelName() const;
 
     /**
      * @brief Set channel name.
+     * @param [in] channel_name the channel name.
      */
     void
     SetChannelName(const std::string& channel_name);
 
     /**
      * @brief Get node ids.
+     * @return the node i ds.
      */
     const std::vector<int64_t>&
     NodeIDs() const;
 
     /**
      * @brief Set node ids.
+     * @param [in] node_ids the node ids.
      */
     void
     SetNodeIDs(std::vector<int64_t>&& node_ids);

@@ -54,6 +54,11 @@ TEST_F(UpdatePasswordRequestTest, GettersAndSetters) {
     req.WithNewPassword("new_pass");
     EXPECT_EQ(req.NewPassword(), "new_pass");
 
+    req.SetOldPassword("old_pass_set");
+    EXPECT_EQ(req.OldPassword(), "old_pass_set");
+    req.SetNewPassword("new_pass_set");
+    EXPECT_EQ(req.NewPassword(), "new_pass_set");
+
     // description
     EXPECT_TRUE(req.Description().empty());
     req.WithDescription("user description");

@@ -27,6 +27,17 @@ namespace milvus {
 
 /**
  * @brief Used by MilvusClientV2::Upsert()
+ *
+ * Override mode inserts a new entity or replaces an existing one by primary key. Merge mode
+ * (WithPartialUpdate(true)) updates only the supplied fields of an existing entity.
+ * @par Example
+ * @code
+ * milvus::UpsertResponse response;
+ * milvus::UpsertRequest request;
+ * request.WithCollectionName("demo")
+ *     .AddRowData({{ "id", 1 }, { "vector", std::vector<float>{0.1f, 0.2f, 0.3f, 0.4f} }});
+ * auto status = client->Upsert(request, response);
+ * @endcode
  */
 class MILVUS_SDK_API UpsertRequest : public InsertRequest {
  public:
@@ -38,12 +49,14 @@ class MILVUS_SDK_API UpsertRequest : public InsertRequest {
     /**
      * @brief Set database name.
      * If database name is empty, will list collections of the default database.
+     * @param [in] db_name the DB name.
      */
     UpsertRequest&
     WithDatabaseName(const std::string& db_name);
 
     /**
      * @brief Set name of the collection.
+     * @param [in] collection_name the collection name.
      */
     UpsertRequest&
     WithCollectionName(const std::string& collection_name);
@@ -51,6 +64,7 @@ class MILVUS_SDK_API UpsertRequest : public InsertRequest {
     /**
      * @brief Set new name of the partition.
      * If partition name is empty, it will insert data into the default partition.
+     * @param [in] partition_name the partition name.
      */
     UpsertRequest&
     WithPartitionName(const std::string& partition_name);
@@ -58,6 +72,7 @@ class MILVUS_SDK_API UpsertRequest : public InsertRequest {
     /**
      * @brief Set fields data with fluent interface.
      * ColumnsData and RowsData cannot both be set.
+     * @param [in] columns_data the columns data.
      */
     UpsertRequest&
     WithColumnsData(std::vector<FieldDataPtr>&& columns_data);
@@ -65,6 +80,7 @@ class MILVUS_SDK_API UpsertRequest : public InsertRequest {
     /**
      * @brief Set a field data with fluent interface.
      * ColumnsData and RowsData cannot both be set.
+     * @param [in] column_data the column data.
      */
     UpsertRequest&
     AddColumnData(const FieldDataPtr& column_data);
@@ -72,6 +88,7 @@ class MILVUS_SDK_API UpsertRequest : public InsertRequest {
     /**
      * @brief Set entity rows with fluent interface.
      * ColumnsData and RowsData cannot both be set.
+     * @param [in] rows_data the rows data.
      */
     UpsertRequest&
     WithRowsData(EntityRows&& rows_data);
@@ -79,12 +96,14 @@ class MILVUS_SDK_API UpsertRequest : public InsertRequest {
     /**
      * @brief Add an entity row with the fluent interface.
      * ColumnsData and RowsData cannot both be set.
+     * @param [in] row_data the row data.
      */
     UpsertRequest&
     AddRowData(EntityRow&& row_data);
 
     /**
      * @brief Get partial update or not.
+     * @return the partial update.
      */
     bool
     PartialUpdate() const;
@@ -93,6 +112,7 @@ class MILVUS_SDK_API UpsertRequest : public InsertRequest {
      * @brief Set partial update.
      * If True, only the specified fields will be updated while others remain unchanged.
      * Default is False.
+     * @param [in] partial_update the partial update.
      */
     void
     SetPartialUpdate(bool partial_update);
@@ -101,12 +121,14 @@ class MILVUS_SDK_API UpsertRequest : public InsertRequest {
      * @brief Set database name.
      * If True, only the specified fields will be updated while others remain unchanged.
      * Default is False.
+     * @param [in] partial_update the partial update.
      */
     UpsertRequest&
     WithPartialUpdate(bool partial_update);
 
     /**
      * @brief Get per-field partial update operations.
+     * @return the field ops.
      */
     const std::vector<FieldPartialUpdateOp>&
     FieldOps() const;
@@ -114,18 +136,21 @@ class MILVUS_SDK_API UpsertRequest : public InsertRequest {
     /**
      * @brief Set per-field partial update operations.
      * ARRAY_APPEND and ARRAY_REMOVE automatically enable partial update semantics.
+     * @param [in] field_ops the field ops.
      */
     void
     SetFieldOps(std::vector<FieldPartialUpdateOp>&& field_ops);
 
     /**
      * @brief Set per-field partial update operations with fluent interface.
+     * @param [in] field_ops the field ops.
      */
     UpsertRequest&
     WithFieldOps(std::vector<FieldPartialUpdateOp>&& field_ops);
 
     /**
      * @brief Add a per-field partial update operation.
+     * @param [in] field_op the field op.
      */
     UpsertRequest&
     AddFieldOp(FieldPartialUpdateOp field_op);

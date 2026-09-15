@@ -39,18 +39,22 @@ class MILVUS_SDK_API PartitionStat {
 
     /**
      *  @brief Set partition name.
+     * @param [in] name the name.
      */
     void
     SetName(std::string name);
 
     /**
      *  @brief Get partition name.
+     * @return the name.
      */
     const std::string&
     Name() const;
 
     /**
      * @brief add key/value pair for partition statistics.
+     * @param [in] key the key.
+     * @param [in] value the value.
      */
     void
     Emplace(std::string key, std::string value);

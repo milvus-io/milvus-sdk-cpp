@@ -1,7 +1,24 @@
 var searchData=
 [
-  ['validate_1914',['Validate',['../classmilvus_1_1_hybrid_search_arguments.html#ad18907ef565412be3a0a303e933dc509',1,'milvus::HybridSearchArguments::Validate()'],['../classmilvus_1_1_search_request_base.html#a3ed541eae981355f2f9b6ce56fc67efb',1,'milvus::SearchRequestBase::Validate()']]],
-  ['validdata_1915',['ValidData',['../classmilvus_1_1_field_data.html#a63c81a34447ca5daac5a103f95d8e67f',1,'milvus::FieldData']]],
-  ['value_1916',['Value',['../classmilvus_1_1_field_data.html#aeef6cd1d5a3555cddaafae5a11c8c277',1,'milvus::FieldData']]],
-  ['vectorfieldname_1917',['VectorFieldName',['../classmilvus_1_1_create_simple_collection_request.html#ab1932c5ae02fa8759e4c7306677a8b12',1,'milvus::CreateSimpleCollectionRequest']]]
+  ['unpinsnapshotdata_3067',['UnpinSnapshotData',['../classmilvus_1_1MilvusClientV2.html#ae1a81e2b0bde8ce1356e1964818358da',1,'milvus::MilvusClientV2']]],
+  ['unpinsnapshotdatarequest_3068',['UnpinSnapshotDataRequest',['../classmilvus_1_1UnpinSnapshotDataRequest.html#ae26b3056fffdfa727e8e7bc8a4f46fc3',1,'milvus::UnpinSnapshotDataRequest']]],
+  ['updatecredential_3069',['UpdateCredential',['../classmilvus_1_1MilvusClient.html#ac53676eb10e84a04d3e0f9f2d69bf3f5',1,'milvus::MilvusClient']]],
+  ['updatepassword_3070',['UpdatePassword',['../classmilvus_1_1MilvusClient.html#a2652488359729a6ba8cc17d3a8b98b31',1,'milvus::MilvusClient::UpdatePassword()'],['../classmilvus_1_1MilvusClientV2.html#a9565af1ad74cb88af1d2dcc7d241cd3d',1,'milvus::MilvusClientV2::UpdatePassword()']]],
+  ['updatepasswordrequest_3071',['UpdatePasswordRequest',['../classmilvus_1_1UpdatePasswordRequest.html#ab90cd2984c4e9292f2dc84530034eecd',1,'milvus::UpdatePasswordRequest']]],
+  ['updatereplicateconfiguration_3072',['UpdateReplicateConfiguration',['../classmilvus_1_1MilvusClientV2.html#a0ed9b250112a7f53d82cd7b2f22f6351',1,'milvus::MilvusClientV2']]],
+  ['updateresourcegroups_3073',['UpdateResourceGroups',['../classmilvus_1_1MilvusClient.html#a32a92e5a53188904b98d2c09232d5a23',1,'milvus::MilvusClient::UpdateResourceGroups()'],['../classmilvus_1_1MilvusClientV2.html#a89a32a976780526ebb01b592bc1d7d75',1,'milvus::MilvusClientV2::UpdateResourceGroups()']]],
+  ['updateresourcegroupsrequest_3074',['UpdateResourceGroupsRequest',['../classmilvus_1_1UpdateResourceGroupsRequest.html#acf7e56d7ae7ac7a0853da5e6f831efc0',1,'milvus::UpdateResourceGroupsRequest']]],
+  ['updatetime_3075',['UpdateTime',['../classmilvus_1_1CollectionDesc.html#a6a963b08db54dc0ac828e18d6c02aedb',1,'milvus::CollectionDesc']]],
+  ['updateuser_3076',['UpdateUser',['../classmilvus_1_1MilvusClientV2.html#aaa234179195038842c3e9487411ab099',1,'milvus::MilvusClientV2']]],
+  ['updateuserrequest_3077',['UpdateUserRequest',['../classmilvus_1_1UpdateUserRequest.html#a9fca2f35328144505b465166a5534379',1,'milvus::UpdateUserRequest']]],
+  ['upsert_3078',['Upsert',['../classmilvus_1_1MilvusClient.html#afb04bce18eb5b65899f7510d710a8448',1,'milvus::MilvusClient::Upsert(const std::string &amp;collection_name, const std::string &amp;partition_name, const std::vector&lt; FieldDataPtr &gt; &amp;fields, DmlResults &amp;results)=0'],['../classmilvus_1_1MilvusClient.html#addf0736a66a40f073ab39e4b8181fbd6',1,'milvus::MilvusClient::Upsert(const std::string &amp;collection_name, const std::string &amp;partition_name, const EntityRows &amp;rows, DmlResults &amp;results)=0'],['../classmilvus_1_1MilvusClientV2.html#a34854f80532d73c837b08e1ebd8511cb',1,'milvus::MilvusClientV2::Upsert()']]],
+  ['upsertcount_3079',['UpsertCount',['../classmilvus_1_1DmlResults.html#aeb9629aa326ed5c4b7136fb100085281',1,'milvus::DmlResults']]],
+  ['upsertrequest_3080',['UpsertRequest',['../classmilvus_1_1UpsertRequest.html#a35959be81f0e13fded02bf8d4b119c26',1,'milvus::UpsertRequest']]],
+  ['uri_3081',['Uri',['../classmilvus_1_1ConnectParam.html#aae0f9f0a2226a16462690750a78ee9a1',1,'milvus::ConnectParam::Uri()'],['../classmilvus_1_1MilvusCluster.html#a798bbbbdfa02732d772bb04b684d893d',1,'milvus::MilvusCluster::Uri()']]],
+  ['usedatabase_3082',['UseDatabase',['../classmilvus_1_1MilvusClient.html#ace5a955cc9e661c52400928cf288e997',1,'milvus::MilvusClient::UseDatabase()'],['../classmilvus_1_1MilvusClientV2.html#af6ba04be8fe1433050b09eb413bfb233',1,'milvus::MilvusClientV2::UseDatabase()']]],
+  ['userdesc_3083',['UserDesc',['../classmilvus_1_1UserDesc.html#aefe0d450b2fc6df0bd60a139391f99a1',1,'milvus::UserDesc::UserDesc()'],['../classmilvus_1_1UserDesc.html#af5c036383e84f699308aaff395a8bf64',1,'milvus::UserDesc::UserDesc(const std::string &amp;name, std::vector&lt; std::string &gt; &amp;&amp;roles)']]],
+  ['username_3084',['Username',['../classmilvus_1_1ConnectParam.html#a16a683c0770109b163153c59b6db8aa0',1,'milvus::ConnectParam']]],
+  ['username_3085',['UserName',['../classmilvus_1_1CreateUserRequest.html#a53645836487c6fef90d15539cca9d082',1,'milvus::CreateUserRequest::UserName()'],['../classmilvus_1_1RoleUserRequest.html#aab957c2934c23602a87c8dd0aabb3b8f',1,'milvus::RoleUserRequest::UserName()'],['../classmilvus_1_1UpdatePasswordRequest.html#a17c8aa16ef30b0de9aea7ae9d4aa5a60',1,'milvus::UpdatePasswordRequest::UserName()'],['../classmilvus_1_1UpdateUserRequest.html#a151191c88437c0467836985502f1220f',1,'milvus::UpdateUserRequest::UserName()'],['../classmilvus_1_1UserRequest.html#ad7c23fce1984f58c7392d91b697a1f96',1,'milvus::UserRequest::UserName()']]],
+  ['usernames_3086',['UserNames',['../classmilvus_1_1ListUsersResponse.html#a7bf6b0f4a1ac81d1b13069c314826452',1,'milvus::ListUsersResponse']]],
+  ['userrequest_3087',['UserRequest',['../classmilvus_1_1UserRequest.html#a9f1ef75cbab62d64ae31eb16910aec9d',1,'milvus::UserRequest']]]
 ];

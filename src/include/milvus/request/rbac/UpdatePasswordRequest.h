@@ -34,78 +34,91 @@ class MILVUS_SDK_API UpdatePasswordRequest {
 
     /**
      * @brief Name of the user.
+     * @return the user name.
      */
     const std::string&
     UserName() const;
 
     /**
      * @brief Set name of the user.
+     * @param [in] name the name.
      */
     void
     SetUserName(const std::string& name);
 
     /**
      * @brief Set name of the user.
+     * @param [in] name the name.
      */
     UpdatePasswordRequest&
     WithUserName(const std::string& name);
 
     /**
      * @brief Password of the user.
+     * @return the old password.
      */
     const std::string&
     OldPassword() const;
 
     /**
      * @brief Set password of the user.
+     * @param [in] password the password.
      */
     void
     SetOldPassword(const std::string& password);
 
     /**
      * @brief Set password of the user.
+     * @param [in] password the password.
      */
     UpdatePasswordRequest&
     WithOldPassword(const std::string& password);
 
     /**
      * @brief Password of the user.
+     * @return the new password.
      */
     const std::string&
     NewPassword() const;
 
     /**
      * @brief Set new password of the user.
+     * @param [in] password the password.
      */
     void
     SetNewPassword(const std::string& password);
 
     /**
      * @brief Set new password of the user.
+     * @param [in] password the password.
      */
     UpdatePasswordRequest&
     WithNewPassword(const std::string& password);
 
     /**
      * @brief Description of the user.
+     * @return the description.
      */
     const std::string&
     Description() const;
 
     /**
      * @brief Set description of the user.
+     * @param [in] description the description.
      */
     void
     SetDescription(const std::string& description);
 
     /**
      * @brief Set description of the user.
+     * @param [in] description the description.
      */
     UpdatePasswordRequest&
     WithDescription(const std::string& description);
 
     /**
      * @brief Whether to reset the current connection with the new credentials after the password is updated.
+     * @return the reset connection.
      */
     bool
     ResetConnection() const;
@@ -117,6 +130,7 @@ class MILVUS_SDK_API UpdatePasswordRequest {
      * Note: the password is updated on the server before the reconnect is attempted. If the reconnect
      * fails, the returned Status reports that the password was updated but the connection must be
      * re-established manually with the new credentials.
+     * @param [in] reset_connection the reset connection.
      */
     void
     SetResetConnection(bool reset_connection);
@@ -128,6 +142,7 @@ class MILVUS_SDK_API UpdatePasswordRequest {
      * Note: the password is updated on the server before the reconnect is attempted. If the reconnect
      * fails, the returned Status reports that the password was updated but the connection must be
      * re-established manually with the new credentials.
+     * @param [in] reset_connection the reset connection.
      */
     UpdatePasswordRequest&
     WithResetConnection(bool reset_connection);

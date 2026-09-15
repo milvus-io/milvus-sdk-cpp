@@ -32,18 +32,21 @@ class MILVUS_SDK_API GetServerVersionRequest {
 
     /**
      * @brief Whether to return detailed build information of the Milvus server.
+     * @return the detail.
      */
     bool
     Detail() const;
 
     /**
      * @brief Set whether to return detailed build information of the Milvus server.
+     * @param [in] detail the detail.
      */
     void
     SetDetail(bool detail);
 
     /**
      * @brief Set whether to return detailed build information of the Milvus server.
+     * @param [in] detail the detail.
      */
     GetServerVersionRequest&
     WithDetail(bool detail);

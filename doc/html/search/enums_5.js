@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['metrictype_2062',['MetricType',['../namespacemilvus.html#a188c0c4910c0aaa1d67c0f089b55c00e',1,'milvus']]]
+  ['loadstate_3379',['LoadState',['../namespacemilvus.html#addf62a871202720fb21fb6e5cfee17ae',1,'milvus']]]
 ];

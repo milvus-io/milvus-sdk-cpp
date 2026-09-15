@@ -49,6 +49,9 @@ TEST_F(IndexDescTest, GeneralTesting) {
 
     index_desc.SetFailReason("hello failed");
     EXPECT_EQ(index_desc.FailReason(), "hello failed");
+
+    index_desc.SetMetricType(milvus::MetricType::L2);
+    EXPECT_EQ(index_desc.MetricType(), milvus::MetricType::L2);
 }
 
 TEST_F(IndexDescTest, AddExtraParam) {

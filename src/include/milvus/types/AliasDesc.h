@@ -43,36 +43,42 @@ class MILVUS_SDK_API AliasDesc {
 
     /**
      * @brief Alias name.
+     * @return the name.
      */
     const std::string&
     Name() const;
 
     /**
      * @brief Set name of the alias.
+     * @param [in] name the name.
      */
     void
     SetName(const std::string& name);
 
     /**
      * @brief Database name which the alias belong to.
+     * @return the database name.
      */
     const std::string&
     DatabaseName() const;
 
     /**
      * @brief Set database name which the alias belong to.
+     * @param [in] db_name the DB name.
      */
     void
     SetDatabaseName(const std::string& db_name);
 
     /**
      * @brief Collection name.
+     * @return the collection name.
      */
     const std::string&
     CollectionName() const;
 
     /**
      * @brief Set collection name.
+     * @param [in] collection_name the collection name.
      */
     void
     SetCollectionName(const std::string& collection_name);

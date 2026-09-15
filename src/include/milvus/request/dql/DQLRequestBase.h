@@ -29,11 +29,15 @@ namespace milvus {
 template <typename T>
 class DQLRequestBase {
  protected:
+    /**
+     * @brief Constructor
+     */
     DQLRequestBase() = default;
 
  public:
     /**
      * @brief Get the target db name
+     * @return the database name.
      */
     const std::string&
     DatabaseName() const {
@@ -42,6 +46,7 @@ class DQLRequestBase {
 
     /**
      * @brief Set target db name, use default database if it is empty.
+     * @param [in] db_name the DB name.
      */
     void
     SetDatabaseName(const std::string& db_name) {
@@ -50,6 +55,7 @@ class DQLRequestBase {
 
     /**
      * @brief Set target db name, use default database if it is empty.
+     * @param [in] db_name the DB name.
      */
     T&
     WithDatabaseName(const std::string& db_name) {
@@ -59,6 +65,7 @@ class DQLRequestBase {
 
     /**
      * @brief Get the collection name.
+     * @return the collection name.
      */
     const std::string&
     CollectionName() const {
@@ -67,6 +74,7 @@ class DQLRequestBase {
 
     /**
      * @brief Set the collection name.
+     * @param [in] collection_name the collection name.
      */
     void
     SetCollectionName(const std::string& collection_name) {
@@ -75,6 +83,7 @@ class DQLRequestBase {
 
     /**
      * @brief Set name of the collection.
+     * @param [in] collection_name the collection name.
      */
     T&
     WithCollectionName(const std::string& collection_name) {
@@ -84,6 +93,7 @@ class DQLRequestBase {
 
     /**
      * @brief Get the partition names.
+     * @return the partition names.
      */
     const std::set<std::string>&
     PartitionNames() const {
@@ -93,6 +103,7 @@ class DQLRequestBase {
     /**
      * @brief Set the partition names.
      * If partition names are empty, the entire collection is queried.
+     * @param [in] partition_names the partition names.
      */
     void
     SetPartitionNames(std::set<std::string>&& partition_names) {
@@ -102,6 +113,7 @@ class DQLRequestBase {
     /**
      * @brief Set the partition names.
      * If partition names are empty, the entire collection is queried.
+     * @param [in] partition_names the partition names.
      */
     T&
     WithPartitionNames(std::set<std::string>&& partition_names) {
@@ -111,6 +123,7 @@ class DQLRequestBase {
 
     /**
      * @brief Add a partition name.
+     * @param [in] partition_name the partition name.
      */
     T&
     AddPartitionName(const std::string& partition_name) {
@@ -120,6 +133,7 @@ class DQLRequestBase {
 
     /**
      * @brief Get the output field names.
+     * @return the output fields.
      */
     const std::set<std::string>&
     OutputFields() const {
@@ -128,6 +142,7 @@ class DQLRequestBase {
 
     /**
      * @brief Set the output field names.
+     * @param [in] output_field_names the output field names.
      */
     void
     SetOutputFields(std::set<std::string>&& output_field_names) {
@@ -136,6 +151,7 @@ class DQLRequestBase {
 
     /**
      * @brief Set the output field names.
+     * @param [in] output_field_names the output field names.
      */
     T&
     WithOutputFields(std::set<std::string>&& output_field_names) {
@@ -145,6 +161,7 @@ class DQLRequestBase {
 
     /**
      * @brief Add an output field.
+     * @param [in] output_field the output field.
      */
     T&
     AddOutputField(const std::string& output_field) {
@@ -154,6 +171,7 @@ class DQLRequestBase {
 
     /**
      * @brief Get the consistency level.
+     * @return the consistency level.
      */
     ::milvus::ConsistencyLevel
     GetConsistencyLevel() const {
@@ -162,6 +180,7 @@ class DQLRequestBase {
 
     /**
      * @brief Set the consistency level.
+     * @param [in] consistency_level the consistency level.
      */
     void
     SetConsistencyLevel(::milvus::ConsistencyLevel consistency_level) {
@@ -171,6 +190,7 @@ class DQLRequestBase {
     /**
      * @brief Set the consistency level.
      * Read the doc for more info: https://milvus.io/docs/consistency.md#Consistency-Level
+     * @param [in] consistency_level the consistency level.
      */
     T&
     WithConsistencyLevel(ConsistencyLevel consistency_level) {

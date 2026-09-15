@@ -26,6 +26,9 @@ namespace milvus {
  */
 class MILVUS_SDK_API ListSnapshotsRequest : public SnapshotRequestBase<ListSnapshotsRequest> {
  public:
+    /**
+     * @brief Constructor
+     */
     ListSnapshotsRequest() = default;
 };
 

@@ -76,6 +76,21 @@ TEST_F(QueryRequestTest, GettersAndSetters) {
     EXPECT_EQ(&order_ref, &req);
     ASSERT_EQ(req.OrderByFields().size(), 1);
     EXPECT_EQ(req.OrderByFields().at(0).Direction(), milvus::AggregationDirection::DESC);
+
+    // Plain setters
+    req.SetOffset(25);
+    EXPECT_EQ(req.Offset(), 25);
+    req.SetIgnoreGrowing(false);
+    EXPECT_FALSE(req.IgnoreGrowing());
+    std::unordered_map<std::string, nlohmann::json> tmpls;
+    tmpls["threshold"] = 100;
+    req.SetFilterTemplates(std::move(tmpls));
+    ASSERT_EQ(req.FilterTemplates().size(), 1);
+    EXPECT_EQ(req.FilterTemplates().at("threshold"), 100);
+    std::vector<milvus::OrderByField> order_fields{milvus::OrderByField("price")};
+    req.SetOrderByFields(std::move(order_fields));
+    ASSERT_EQ(req.OrderByFields().size(), 1);
+    EXPECT_EQ(req.OrderByFields().at(0).FieldName(), "price");
 }
 
 TEST_F(QueryRequestTest, DQLRequestBaseMethods) {
@@ -268,6 +283,33 @@ TEST_F(SearchRequestTest, GettersAndSetters) {
     std::vector<uint8_t> bin_vec{0x01, 0x02};
     req2.AddBinaryVector(bin_vec);
     EXPECT_NE(req2.TargetVectors(), nullptr);
+
+    // Plain setters
+    req.SetOffset(3);
+    EXPECT_EQ(req.Offset(), 3);
+    req.SetRoundDecimal(2);
+    EXPECT_EQ(req.RoundDecimal(), 2);
+    req.SetIgnoreGrowing(false);
+    EXPECT_FALSE(req.IgnoreGrowing());
+    req.SetGroupSize(4);
+    EXPECT_EQ(req.GroupSize(), 4);
+    req.SetStrictGroupSize(false);
+    EXPECT_FALSE(req.StrictGroupSize());
+    std::vector<milvus::OrderByField> order_fields{milvus::OrderByField("price")};
+    req.SetOrderByFields(std::move(order_fields));
+    ASSERT_EQ(req.OrderByFields().size(), 1);
+    EXPECT_EQ(req.OrderByFields().at(0).FieldName(), "price");
+    milvus::FunctionChain chain(milvus::FunctionChainStage::L2_RERANK, "chain");
+    std::vector<milvus::FunctionChain> chains{chain};
+    req.SetFunctionChains(std::move(chains));
+    ASSERT_EQ(req.FunctionChains().size(), 1);
+    EXPECT_EQ(req.FunctionChains().at(0).Name(), "chain");
+    auto highlighter2 = std::make_shared<milvus::LexicalHighlighter>();
+    req.SetHighlighter(highlighter2);
+    EXPECT_EQ(req.GetHighlighter(), highlighter2);
+    auto aggregation = std::make_shared<milvus::SearchAggregation>(std::vector<std::string>{"category"}, 5);
+    req.SetSearchAggregation(aggregation);
+    EXPECT_EQ(req.GetSearchAggregation(), aggregation);
 }
 
 TEST_F(SearchRequestTest, IDs) {
@@ -660,6 +702,13 @@ TEST_F(SearchRequestTest, SearchRequestBaseSetMethods) {
     req.WithFilterTemplates(std::move(tmpls));
     EXPECT_EQ(req.FilterTemplates().size(), 1);
 
+    // SetFilterTemplates
+    std::unordered_map<std::string, nlohmann::json> tmpls2;
+    tmpls2["age"] = 20;
+    req.SetFilterTemplates(std::move(tmpls2));
+    ASSERT_EQ(req.FilterTemplates().size(), 1);
+    EXPECT_EQ(req.FilterTemplates().at("age"), 20);
+
     // Validate
     req.AddFloatVector({1.0f, 2.0f, 3.0f});
     auto status = req.Validate();
@@ -712,6 +761,23 @@ TEST_F(HybridSearchRequestTest, GettersAndSetters) {
     // ConsistencyLevel (inherited from DQLRequestBase)
     req.WithConsistencyLevel(milvus::ConsistencyLevel::STRONG);
     EXPECT_EQ(req.GetConsistencyLevel(), milvus::ConsistencyLevel::STRONG);
+
+    // Plain setters
+    std::vector<milvus::SubSearchRequestPtr> subs{std::make_shared<milvus::SubSearchRequest>()};
+    req.SetSubRequests(std::move(subs));
+    EXPECT_EQ(req.SubRequests().size(), 1);
+    req.SetRerank(std::make_shared<milvus::WeightedRerank>(std::vector<float>{0.5f, 0.5f}));
+    EXPECT_NE(req.Rerank(), nullptr);
+    req.SetOffset(5);
+    EXPECT_EQ(req.Offset(), 5);
+    req.SetRoundDecimal(2);
+    EXPECT_EQ(req.GetRoundDecimal(), 2);
+    req.SetIgnoreGrowing(false);
+    EXPECT_FALSE(req.IgnoreGrowing());
+    req.SetGroupSize(6);
+    EXPECT_EQ(req.GroupSize(), 6);
+    req.SetStrictGroupSize(false);
+    EXPECT_FALSE(req.StrictGroupSize());
 }
 
 TEST_F(HybridSearchRequestTest, WithRoundDecimal) {
@@ -837,4 +903,64 @@ TEST_F(HybridSearchRequestTest, ValidateRejectsNonRerankFunction) {
     auto status = req.Validate();
     EXPECT_FALSE(status.IsOk());
     EXPECT_EQ(status.Code(), milvus::StatusCode::INVALID_ARGUMENT);
+}
+
+TEST_F(SearchRequestTest, BulkVectorSetters) {
+    milvus::SearchRequest req;
+
+    // WithBinaryVectors (string array, auto-converted)
+    req.WithBinaryVectors(std::vector<std::string>{std::string("\xFF\x00", 2), std::string("\x01\x02", 2)});
+    EXPECT_EQ(req.TargetVectors()->Count(), 2);
+    EXPECT_EQ(req.TargetVectors()->Type(), milvus::DataType::BINARY_VECTOR);
+
+    // WithBinaryVectors (uint8 array)
+    req.WithBinaryVectors(std::vector<milvus::BinaryVecFieldData::ElementT>{{0xFF, 0x00}, {0x01, 0x02}});
+    EXPECT_EQ(req.TargetVectors()->Count(), 2);
+
+    // WithFloatVectors
+    req.WithFloatVectors(std::vector<milvus::FloatVecFieldData::ElementT>{{1.0f, 2.0f}, {3.0f, 4.0f}});
+    EXPECT_EQ(req.TargetVectors()->Count(), 2);
+    EXPECT_EQ(req.TargetVectors()->Type(), milvus::DataType::FLOAT_VECTOR);
+
+    // WithSparseVectors (map)
+    std::vector<milvus::SparseFloatVecFieldData::ElementT> sparse{{{1, 0.1f}}, {{5, 0.2f}}};
+    req.WithSparseVectors(std::move(sparse));
+    EXPECT_EQ(req.TargetVectors()->Count(), 2);
+
+    // WithSparseVectors (json dict)
+    req.WithSparseVectors(std::vector<nlohmann::json>{{{"1", 0.1}}, {{"5", 0.2}}});
+    EXPECT_EQ(req.TargetVectors()->Count(), 2);
+
+    // WithFloat16Vectors (uint16 array)
+    req.WithFloat16Vectors(std::vector<milvus::Float16VecFieldData::ElementT>{{0x3C00}, {0x4000}});
+    EXPECT_EQ(req.TargetVectors()->Count(), 2);
+
+    // WithFloat16Vectors (float array, auto-convert)
+    req.WithFloat16Vectors(std::vector<std::vector<float>>{{1.0f}, {2.0f}});
+    EXPECT_EQ(req.TargetVectors()->Count(), 2);
+
+    // WithBFloat16Vectors (uint16 array)
+    req.WithBFloat16Vectors(std::vector<milvus::BFloat16VecFieldData::ElementT>{{0x3F80}, {0x4000}});
+    EXPECT_EQ(req.TargetVectors()->Count(), 2);
+
+    // WithBFloat16Vectors (float array, auto-convert)
+    req.WithBFloat16Vectors(std::vector<std::vector<float>>{{1.0f}, {2.0f}});
+    EXPECT_EQ(req.TargetVectors()->Count(), 2);
+
+    // WithInt8Vectors
+    req.WithInt8Vectors(std::vector<milvus::Int8VecFieldData::ElementT>{{1, -2}, {3, -4}});
+    EXPECT_EQ(req.TargetVectors()->Count(), 2);
+
+    // WithEmbeddedTexts
+    req.WithEmbeddedTexts(std::vector<std::string>{"hello", "world"});
+    EXPECT_EQ(req.TargetVectors()->Count(), 2);
+
+    // WithEmbeddingLists
+    std::vector<milvus::EmbeddingList> emb_lists;
+    milvus::EmbeddingList emb1;
+    emb1.AddFloatVector({1.0f, 2.0f});
+    emb_lists.emplace_back(std::move(emb1));
+    auto& ref = req.WithEmbeddingLists(std::move(emb_lists));
+    EXPECT_EQ(&ref, &req);
+    ASSERT_EQ(req.EmbeddingLists().size(), 1);
 }

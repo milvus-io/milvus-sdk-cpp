@@ -36,36 +36,42 @@ class MILVUS_SDK_API GetCompactionPlansResponse {
 
     /**
      * @brief Get plans of the compaction.
+     * @return the plans.
      */
     const CompactionPlans&
     Plans() const;
 
     /**
      * @brief Set plans of the compaction.
+     * @param [in] plans the plans.
      */
     void
     SetPlans(CompactionPlans&& plans);
 
     /**
      * @brief Get the id of the compaction.
+     * @return the compaction ID.
      */
     int64_t
     CompactionID() const;
 
     /**
      * @brief Set the id of the compaction.
+     * @param [in] compaction_id the compaction ID.
      */
     void
     SetCompactionID(int64_t compaction_id);
 
     /**
      * @brief Get the state of the compaction.
+     * @return the state.
      */
     CompactionStateCode
     State() const;
 
     /**
      * @brief Set the state of the compaction.
+     * @param [in] state the state.
      */
     void
     SetState(CompactionStateCode state);

@@ -35,12 +35,14 @@ class MILVUS_SDK_API ListResourceGroupsResponse {
 
     /**
      * @brief Get names of resource groups.
+     * @return the group names.
      */
     const std::vector<std::string>&
     GroupNames() const;
 
     /**
      * @brief Set names of resource groups.
+     * @param [in] names the names.
      */
     void
     SetGroupNames(std::vector<std::string>&& names);

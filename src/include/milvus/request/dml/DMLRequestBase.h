@@ -26,11 +26,15 @@ namespace milvus {
 template <typename T>
 class DMLRequestBase {
  protected:
+    /**
+     * @brief Constructor
+     */
     DMLRequestBase() = default;
 
  public:
     /**
      * @brief Get the target db name
+     * @return the database name.
      */
     const std::string&
     DatabaseName() const {
@@ -39,6 +43,7 @@ class DMLRequestBase {
 
     /**
      * @brief Set target db name, use default database if it is empty.
+     * @param [in] db_name the DB name.
      */
     void
     SetDatabaseName(const std::string& db_name) {
@@ -47,6 +52,7 @@ class DMLRequestBase {
 
     /**
      * @brief Set target db name, use default database if it is empty.
+     * @param [in] db_name the DB name.
      */
     T&
     WithDatabaseName(const std::string& db_name) {
@@ -56,6 +62,7 @@ class DMLRequestBase {
 
     /**
      * @brief Get the collection name.
+     * @return the collection name.
      */
     const std::string&
     CollectionName() const {
@@ -64,6 +71,7 @@ class DMLRequestBase {
 
     /**
      * @brief Set the collection name.
+     * @param [in] collection_name the collection name.
      */
     void
     SetCollectionName(const std::string& collection_name) {
@@ -72,6 +80,7 @@ class DMLRequestBase {
 
     /**
      * @brief Set name of the collection.
+     * @param [in] collection_name the collection name.
      */
     T&
     WithCollectionName(const std::string& collection_name) {
@@ -81,6 +90,7 @@ class DMLRequestBase {
 
     /**
      * @brief Get the partition name.
+     * @return the partition name.
      */
     const std::string&
     PartitionName() const {
@@ -90,6 +100,7 @@ class DMLRequestBase {
     /**
      * @brief Set the partition name.
      * If partition name is empty, will use the default partition.
+     * @param [in] partition_name the partition name.
      */
     void
     SetPartitionName(const std::string& partition_name) {
@@ -99,6 +110,7 @@ class DMLRequestBase {
     /**
      * @brief Set the partition name.
      * If partition name is empty, will use the default partition.
+     * @param [in] partition_name the partition name.
      */
     T&
     WithPartitionName(const std::string& partition_name) {

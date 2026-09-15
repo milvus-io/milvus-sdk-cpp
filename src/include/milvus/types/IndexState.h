@@ -27,11 +27,29 @@ namespace milvus {
  * @brief State Code for index
  */
 enum class IndexStateCode {
+    /**
+     * @brief No index state has been reported.
+     */
     NONE = 0,
+    /**
+     * @brief The index build task has not been issued.
+     */
     UNISSUED = 1,
+    /**
+     * @brief The index is being built.
+     */
     IN_PROGRESS = 2,
+    /**
+     * @brief The index has been built successfully.
+     */
     FINISHED = 3,
+    /**
+     * @brief The index build failed.
+     */
     FAILED = 4,
+    /**
+     * @brief The index build is being retried.
+     */
     RETRY = 5,
 };
 
@@ -42,24 +60,28 @@ class MILVUS_SDK_API IndexState {
  public:
     /**
      * @brief Index state code.
+     * @return the state code.
      */
     IndexStateCode
     StateCode() const;
 
     /**
      * @brief Set Index state code.
+     * @param [in] state_code the state code.
      */
     void
     SetStateCode(IndexStateCode state_code);
 
     /**
      * @brief Failed reason why the index failed to build.
+     * @return the failed reason.
      */
     std::string
     FailedReason() const;
 
     /**
      * @brief Set Failure resaon.
+     * @param [in] failed_reason the failed reason.
      */
     void
     SetFailedReason(std::string failed_reason);
@@ -78,24 +100,28 @@ class MILVUS_SDK_API IndexProgress {
      * @brief Get number of indexed rows.
      * Note that indexed rows could be larger than total rows, because some segments will be reindexed
      * after compaction.
+     * @return the indexed rows.
      */
     int64_t
     IndexedRows() const;
 
     /**
      * @brief Set number of indexed rows.
+     * @param [in] indexed_rows the indexed rows.
      */
     void
     SetIndexedRows(int64_t indexed_rows);
 
     /**
      * @brief Get number of total rows.
+     * @return the total rows.
      */
     int64_t
     TotalRows() const;
 
     /**
      * @brief Set number of total rows.
+     * @param [in] total_rows the total rows.
      */
     void
     SetTotalRows(int64_t total_rows);

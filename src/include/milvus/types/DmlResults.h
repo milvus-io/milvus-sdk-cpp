@@ -31,78 +31,91 @@ class MILVUS_SDK_API DmlResults {
  public:
     /**
      * @brief The id array for entities which are inserted or deleted.
+     * @return the ID array.
      */
     const IDArray&
     IdArray() const;
 
     /**
      * @brief Set the id array.
+     * @param [in] id_array the ID array.
      */
     void
     SetIdArray(const IDArray& id_array);
 
     /**
      * @brief Set the id array.
+     * @param [in] id_array the ID array.
      */
     void
     SetIdArray(IDArray&& id_array);
 
     /**
      * @brief The operation timestamp marked by server side.
+     * @return the timestamp.
      */
     uint64_t
     Timestamp() const;
 
     /**
      * @brief Set operation timestamp.
+     * @param [in] timestamp the timestamp.
      */
     void
     SetTimestamp(uint64_t timestamp);
 
     /**
      * @brief The number of inserted rows.
+     * @return the insert count.
      */
     uint64_t
     InsertCount() const;
 
     /**
      * @brief Set number of inserted rows.
+     * @param [in] count the count.
      */
     void
     SetInsertCount(uint64_t count);
 
     /**
      * @brief The number of deleted rows.
+     * @return the delete count.
      */
     uint64_t
     DeleteCount() const;
 
     /**
      * @brief Set number of deleted rows.
+     * @param [in] count the count.
      */
     void
     SetDeleteCount(uint64_t count);
 
     /**
      * @brief The number of upserted rows.
+     * @return the upsert count.
      */
     uint64_t
     UpsertCount() const;
 
     /**
      * @brief Set number of upserted rows.
+     * @param [in] count the count.
      */
     void
     SetUpsertCount(uint64_t count);
 
     /**
      * @brief The operation cost in VCU reported by the server, -1 when unavailable.
+     * @return the cost.
      */
     int64_t
     Cost() const;
 
     /**
      * @brief Set the operation cost reported by the server.
+     * @param [in] cost the cost.
      */
     void
     SetCost(int64_t cost);

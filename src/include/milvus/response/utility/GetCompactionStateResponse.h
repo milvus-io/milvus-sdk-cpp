@@ -33,12 +33,14 @@ class MILVUS_SDK_API GetCompactionStateResponse {
 
     /**
      * @brief Get state of the compaction.
+     * @return the state.
      */
     const CompactionState&
     State() const;
 
     /**
      * @brief Set state of the compaction.
+     * @param [in] state the state.
      */
     void
     SetState(const CompactionState& state);

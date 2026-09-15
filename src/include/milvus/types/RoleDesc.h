@@ -76,6 +76,8 @@ class MILVUS_SDK_API RoleDesc {
 
     /**
      * @brief Construct a new RoleDesc object.
+     * @param [in] name the name.
+     * @param [in] grant_items the grant items.
      */
     RoleDesc(const std::string& name, std::vector<GrantItem>&& grant_items);
 
@@ -83,30 +85,43 @@ class MILVUS_SDK_API RoleDesc {
 
     /**
      * @brief Set name of the role.
+     * @param [in] name the name.
      */
     void
     SetName(const std::string& name);
 
     /**
      * @brief Get name of the role.
+     * @return the name.
      */
     const std::string&
     Name() const;
 
+    /**
+     * @brief Get the role description.
+     * @return the description.
+     */
     const std::string&
     Description() const;
 
+    /**
+     * @brief Set the role description.
+     *
+     * @param [in] description
+     */
     void
     SetDescription(const std::string& description);
 
     /**
      * @brief Add a privilege item for the role.
+     * @param [in] grant_item the grant item.
      */
     void
     AddGrantItem(GrantItem&& grant_item);
 
     /**
      * @brief Get privilege items of the role.
+     * @return the grant items.
      */
     const std::vector<GrantItem>&
     GrantItems() const;

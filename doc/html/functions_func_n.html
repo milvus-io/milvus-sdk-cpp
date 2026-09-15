@@ -5,10 +5,14 @@
 <meta http-equiv="X-UA-Compatible" content="IE=9"/>
 <meta name="generator" content="Doxygen 1.9.1"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>milvus-sdk-cpp: Class Members - Functions</title>
+<title>Milvus C++ SDK: Class Members - Functions</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
+<link href="navtree.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="resize.js"></script>
+<script type="text/javascript" src="navtreedata.js"></script>
+<script type="text/javascript" src="navtree.js"></script>
 <link href="search/search.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="search/searchdata.js"></script>
 <script type="text/javascript" src="search/search.js"></script>
@@ -21,8 +25,9 @@
  <tbody>
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
-   <div id="projectname">milvus-sdk-cpp
+   <div id="projectname">Milvus C++ SDK
    </div>
+   <div id="projectbrief">C++ client for the Milvus vector database</div>
   </td>
  </tr>
  </tbody>
@@ -46,6 +51,22 @@ $(function() {
 /* @license-end */</script>
 <div id="main-nav"></div>
 </div><!-- top -->
+<div id="side-nav" class="ui-resizable side-nav-resizable">
+  <div id="nav-tree">
+    <div id="nav-tree-contents">
+      <div id="nav-sync" class="sync"></div>
+    </div>
+  </div>
+  <div id="splitbar" style="-moz-user-select:none;" 
+       class="ui-resizable-handle">
+  </div>
+</div>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:cf05388f2679ee054f2beb29a391d25f4e673ac3&amp;dn=gpl-2.0.txt GPL-v2 */
+$(document).ready(function(){initNavTree('functions_func_n.html',''); initResizable(); });
+/* @license-end */
+</script>
+<div id="doc-content">
 <!-- window showing the filter options -->
 <div id="MSearchSelectWindow"
      onmouseover="return searchBox.OnSearchSelectShow()"
@@ -65,70 +86,92 @@ $(function() {
 
 <h3><a id="index_n"></a>- n -</h3><ul>
 <li>Name()
-: <a class="el" href="classmilvus_1_1_alias_desc.html#a969871ce3b1f2501cd93644ed005aa68">milvus::AliasDesc</a>
-, <a class="el" href="classmilvus_1_1_collection_info.html#a23b36430aa724f64b338687adbbfd51f">milvus::CollectionInfo</a>
-, <a class="el" href="classmilvus_1_1_collection_schema.html#aa4aeb2f4ddf4ab7800626968c7f8ffa9">milvus::CollectionSchema</a>
-, <a class="el" href="classmilvus_1_1_collection_stat.html#afdcd09a8e35016cf8aa24de74a788b30">milvus::CollectionStat</a>
-, <a class="el" href="classmilvus_1_1_create_resource_group_request.html#a8a28f827317d7fd128d8fb353f0a07d7">milvus::CreateResourceGroupRequest</a>
-, <a class="el" href="classmilvus_1_1_database_desc.html#a755f44c70a17c2de29e513ab96c82ec7">milvus::DatabaseDesc</a>
-, <a class="el" href="classmilvus_1_1_field_schema.html#a19297a8cf5f763975d392f5a037d7554">milvus::FieldSchema</a>
-, <a class="el" href="classmilvus_1_1_function.html#a511bf30f9bf4380451416b84c3567522">milvus::Function</a>
-, <a class="el" href="classmilvus_1_1_partition_info.html#abce6b71f98c1418c632b6d284ce0116c">milvus::PartitionInfo</a>
-, <a class="el" href="classmilvus_1_1_partition_stat.html#a7a87600f694002f187090da4a616cd34">milvus::PartitionStat</a>
-, <a class="el" href="classmilvus_1_1_privilege_group_info.html#a279ea9d6d861d2c82f916d8dab8a33eb">milvus::PrivilegeGroupInfo</a>
-, <a class="el" href="classmilvus_1_1_resource_group_desc.html#af78db863389bc5df661ca7837d84b446">milvus::ResourceGroupDesc</a>
-, <a class="el" href="classmilvus_1_1_role_desc.html#a1b433512db4fa8cb7c03dae2cc630216">milvus::RoleDesc</a>
-, <a class="el" href="classmilvus_1_1_struct_field_schema.html#a21c52a5172cf89eb4b11d1846c8e0672">milvus::StructFieldSchema</a>
-, <a class="el" href="classmilvus_1_1_user_desc.html#aa3ba63edcf4e815d0f85c2344f5557a6">milvus::UserDesc</a>
+: <a class="el" href="classmilvus_1_1AliasDesc.html#a9f511fa0518b1c82b69a4d21d98b6a51">milvus::AliasDesc</a>
+, <a class="el" href="classmilvus_1_1CollectionInfo.html#ac32c7342e63e4f4ecaf3e66b819d68dc">milvus::CollectionInfo</a>
+, <a class="el" href="classmilvus_1_1CollectionSchema.html#ad53e007042cc09ecb321e7adca70148f">milvus::CollectionSchema</a>
+, <a class="el" href="classmilvus_1_1CollectionStat.html#a101e22ca65776ca349115b289fafd10d">milvus::CollectionStat</a>
+, <a class="el" href="classmilvus_1_1CreateResourceGroupRequest.html#a18a67caf5ff616429e70b290abf981d6">milvus::CreateResourceGroupRequest</a>
+, <a class="el" href="classmilvus_1_1DatabaseDesc.html#a47622336ae03b7a10e4015d0caced3ec">milvus::DatabaseDesc</a>
+, <a class="el" href="classmilvus_1_1DescribeSnapshotResponse.html#ac4061d4e74c2e5de0a57bfbc05df9c2a">milvus::DescribeSnapshotResponse</a>
+, <a class="el" href="classmilvus_1_1Field.html#aebf82a0879fff0e8a4f6cec8e7b9141c">milvus::Field</a>
+, <a class="el" href="classmilvus_1_1FieldSchema.html#a8224147697c1416a8e80157224a9cc2a">milvus::FieldSchema</a>
+, <a class="el" href="classmilvus_1_1FileResourceInfo.html#ad77a9f958736543e83e9639fe24bcc21">milvus::FileResourceInfo</a>
+, <a class="el" href="classmilvus_1_1FileResourceRequest.html#aa19874369dd2fa9579ff5772d4a1c2a1">milvus::FileResourceRequest</a>
+, <a class="el" href="classmilvus_1_1Function.html#aa220464b384c35bf4ece2e0c02c34877">milvus::Function</a>
+, <a class="el" href="classmilvus_1_1FunctionChain.html#a25b0289079698568f179c79e46437878">milvus::FunctionChain</a>
+, <a class="el" href="classmilvus_1_1FunctionChainColumnRef.html#a7be49f969015fe38b14540bc27140405">milvus::FunctionChainColumnRef</a>
+, <a class="el" href="classmilvus_1_1FunctionChainExpr.html#ab2dfa8686a364e0cc9da8261cf785975">milvus::FunctionChainExpr</a>
+, <a class="el" href="classmilvus_1_1PartitionInfo.html#abce6b71f98c1418c632b6d284ce0116c">milvus::PartitionInfo</a>
+, <a class="el" href="classmilvus_1_1PartitionStat.html#a86a0d0888c605f889d257d11ab2ed976">milvus::PartitionStat</a>
+, <a class="el" href="classmilvus_1_1PrivilegeGroupInfo.html#a8d097b910ea69b3cb0c848e342b0b100">milvus::PrivilegeGroupInfo</a>
+, <a class="el" href="classmilvus_1_1ResourceGroupDesc.html#a4c1380d543767bc89c78c6ee6098f116">milvus::ResourceGroupDesc</a>
+, <a class="el" href="classmilvus_1_1RoleDesc.html#a8ae25564e951b762cc3a15065b2ef207">milvus::RoleDesc</a>
+, <a class="el" href="classmilvus_1_1StructFieldSchema.html#a27b28a3509864a5eb6275bba29500f28">milvus::StructFieldSchema</a>
+, <a class="el" href="classmilvus_1_1UserDesc.html#aa1bbcbfcaa55ca68b750603c3762b357">milvus::UserDesc</a>
 </li>
 <li>NewCollectionName()
-: <a class="el" href="classmilvus_1_1_rename_collection_request.html#aecbe12eb4955f0e2ad72aff80df63bff">milvus::RenameCollectionRequest</a>
+: <a class="el" href="classmilvus_1_1RenameCollectionRequest.html#a7dc142bdc3be2c28c5c6450d85f90e05">milvus::RenameCollectionRequest</a>
 </li>
 <li>NewPassword()
-: <a class="el" href="classmilvus_1_1_update_password_request.html#aa9ed426b5cdae5f311fc8bff2f993a34">milvus::UpdatePasswordRequest</a>
+: <a class="el" href="classmilvus_1_1UpdatePasswordRequest.html#a684c79a7431fcc215516caa4b690ebf3">milvus::UpdatePasswordRequest</a>
+</li>
+<li>NewRequestId()
+: <a class="el" href="classmilvus_1_1ClientRequestContext.html#a522ff487f5935837ae6048e233542263">milvus::ClientRequestContext</a>
 </li>
 <li>Next()
-: <a class="el" href="classmilvus_1_1_iterator.html#a5f3e94555b667524d523c68e581b97d8">milvus::Iterator&lt; T &gt;</a>
+: <a class="el" href="classmilvus_1_1Iterator.html#a5f3e94555b667524d523c68e581b97d8">milvus::Iterator&lt; T &gt;</a>
 </li>
 <li>NodeFilters()
-: <a class="el" href="classmilvus_1_1_resource_group_config.html#a4ab68305a2cc2d7fc493a57d4226675d">milvus::ResourceGroupConfig</a>
+: <a class="el" href="classmilvus_1_1ResourceGroupConfig.html#a8c341be0ea82e103477fdf0a52044617">milvus::ResourceGroupConfig</a>
 </li>
 <li>NodeID()
-: <a class="el" href="classmilvus_1_1_query_segment_info.html#a35c405ba48db8b6c05a10fabe3ad306d">milvus::QuerySegmentInfo</a>
+: <a class="el" href="classmilvus_1_1QuerySegmentInfo.html#a35c405ba48db8b6c05a10fabe3ad306d">milvus::QuerySegmentInfo</a>
 </li>
 <li>NodeIDs()
-: <a class="el" href="classmilvus_1_1_query_segment_info.html#a465a105d939979c1b58b9ccb96e4373a">milvus::QuerySegmentInfo</a>
+: <a class="el" href="classmilvus_1_1QuerySegmentInfo.html#aa3661db16c05f89127c9eed5ca33f84c">milvus::QuerySegmentInfo</a>
+, <a class="el" href="classmilvus_1_1ReplicaInfo.html#a1a81fddfd6c34df13f9336a201d7671d">milvus::ReplicaInfo</a>
+, <a class="el" href="classmilvus_1_1ShardReplica.html#ae41f3636558262aa0bed78aa55f5db3c">milvus::ShardReplica</a>
 </li>
 <li>NodeInfo()
-: <a class="el" href="structmilvus_1_1_node_info.html#acb9daf2d5301f3bc6b32c1283dff23c5">milvus::NodeInfo</a>
+: <a class="el" href="structmilvus_1_1NodeInfo.html#acb9daf2d5301f3bc6b32c1283dff23c5">milvus::NodeInfo</a>
 </li>
 <li>Nodes()
-: <a class="el" href="classmilvus_1_1_resource_group_desc.html#a58a9df3f70c4d549836a8040da26553b">milvus::ResourceGroupDesc</a>
+: <a class="el" href="classmilvus_1_1ResourceGroupDesc.html#ac2812c104c1c33af114c5630ab57f416">milvus::ResourceGroupDesc</a>
 </li>
 <li>NoWait()
-: <a class="el" href="classmilvus_1_1_progress_monitor.html#abdcdb9f357de11ea5713dc33f27a6ff5">milvus::ProgressMonitor</a>
+: <a class="el" href="classmilvus_1_1ProgressMonitor.html#ab6649b1a1ca207cd43ba72dc5893bffa">milvus::ProgressMonitor</a>
 </li>
 <li>Nprobe()
-: <a class="el" href="classmilvus_1_1_search_arguments.html#abe65d4487c42bd1c9902db5616128ec6">milvus::SearchArguments</a>
+: <a class="el" href="classmilvus_1_1SearchArguments.html#abe65d4487c42bd1c9902db5616128ec6">milvus::SearchArguments</a>
+</li>
+<li>NumBlocks()
+: <a class="el" href="classmilvus_1_1BloomFilterBuilder.html#adb15313bb461e87ef33f224987d080c6">milvus::BloomFilterBuilder</a>
 </li>
 <li>NumNodes()
-: <a class="el" href="classmilvus_1_1_transfer_node_request.html#a04cb020f1fb3ae7a5b0e9255e8a55b33">milvus::TransferNodeRequest</a>
+: <a class="el" href="classmilvus_1_1TransferNodeRequest.html#a04cb020f1fb3ae7a5b0e9255e8a55b33">milvus::TransferNodeRequest</a>
+</li>
+<li>NumOutboundNode()
+: <a class="el" href="classmilvus_1_1ReplicaInfo.html#ae09fe80401c2ea425b18ffe330c325a0">milvus::ReplicaInfo</a>
 </li>
 <li>NumPartitions()
-: <a class="el" href="classmilvus_1_1_create_collection_request.html#ac622a9c8a5aee709bf3461d7b89d57dd">milvus::CreateCollectionRequest</a>
+: <a class="el" href="classmilvus_1_1CollectionDesc.html#ad8a12b34e089b2e25064d04262b241a2">milvus::CollectionDesc</a>
+, <a class="el" href="classmilvus_1_1CreateCollectionRequest.html#ac622a9c8a5aee709bf3461d7b89d57dd">milvus::CreateCollectionRequest</a>
 </li>
 <li>NumReplicas()
-: <a class="el" href="classmilvus_1_1_transfer_replica_request.html#a7b86646e134bb1f557c938f56a738a4a">milvus::TransferReplicaRequest</a>
+: <a class="el" href="classmilvus_1_1TransferReplicaRequest.html#a7b86646e134bb1f557c938f56a738a4a">milvus::TransferReplicaRequest</a>
 </li>
 <li>NumShards()
-: <a class="el" href="classmilvus_1_1_collection_desc.html#a368cff0bef5d1ec223901874361d2219">milvus::CollectionDesc</a>
-, <a class="el" href="classmilvus_1_1_create_collection_request.html#af0a18b1f91b1036280674c3dc3aa45ad">milvus::CreateCollectionRequest</a>
+: <a class="el" href="classmilvus_1_1CollectionDesc.html#a368cff0bef5d1ec223901874361d2219">milvus::CollectionDesc</a>
+, <a class="el" href="classmilvus_1_1CreateCollectionRequest.html#af0a18b1f91b1036280674c3dc3aa45ad">milvus::CreateCollectionRequest</a>
 </li>
 </ul>
 </div><!-- contents -->
+</div><!-- doc-content -->
 <!-- start footer part -->
-<hr class="footer"/><address class="footer"><small>
-Generated by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.1
-</small></address>
+<div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
+  <ul>
+    <li class="footer">Generated by <a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.1 </li>
+  </ul>
+</div>
 </body>
 </html>

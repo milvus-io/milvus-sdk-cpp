@@ -40,6 +40,7 @@ class MILVUS_SDK_API AddFunctionFieldRequest : public CollectionRequestBase<AddF
      * @brief Get the function output field schema.
      *
      * BM25 requires SPARSE_FLOAT_VECTOR and MinHash requires BINARY_VECTOR.
+     * @return the field.
      */
     const FieldSchema&
     Field() const;
@@ -48,6 +49,7 @@ class MILVUS_SDK_API AddFunctionFieldRequest : public CollectionRequestBase<AddF
      * @brief Set the function output field schema.
      *
      * BM25 requires SPARSE_FLOAT_VECTOR and MinHash requires BINARY_VECTOR.
+     * @param [in] field_schema the field schema.
      */
     void
     SetField(FieldSchema&& field_schema);
@@ -56,6 +58,7 @@ class MILVUS_SDK_API AddFunctionFieldRequest : public CollectionRequestBase<AddF
      * @brief Set the function output field schema.
      *
      * BM25 requires SPARSE_FLOAT_VECTOR and MinHash requires BINARY_VECTOR.
+     * @param [in] field_schema the field schema.
      */
     AddFunctionFieldRequest&
     WithField(FieldSchema&& field_schema);
@@ -64,6 +67,7 @@ class MILVUS_SDK_API AddFunctionFieldRequest : public CollectionRequestBase<AddF
      * @brief Get the function to be added.
      *
      * AddFunctionField currently supports BM25 and MinHash functions.
+     * @return the function.
      */
     const FunctionPtr&
     Function() const;
@@ -88,6 +92,7 @@ class MILVUS_SDK_API AddFunctionFieldRequest : public CollectionRequestBase<AddF
      * @brief Get the index bound to the function output field.
      *
      * The bound index is required and must use an explicit index type.
+     * @return the index.
      */
     const IndexDesc&
     Index() const;
@@ -96,6 +101,7 @@ class MILVUS_SDK_API AddFunctionFieldRequest : public CollectionRequestBase<AddF
      * @brief Set the index bound to the function output field.
      *
      * The bound index is required and must use an explicit index type.
+     * @param [in] index the index.
      */
     void
     SetIndex(IndexDesc&& index);
@@ -104,6 +110,7 @@ class MILVUS_SDK_API AddFunctionFieldRequest : public CollectionRequestBase<AddF
      * @brief Set the index bound to the function output field.
      *
      * The bound index is required and must use an explicit index type.
+     * @param [in] index the index.
      */
     AddFunctionFieldRequest&
     WithIndex(IndexDesc&& index);

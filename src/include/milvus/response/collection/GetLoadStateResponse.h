@@ -35,24 +35,28 @@ class MILVUS_SDK_API GetLoadStateResponse {
 
     /**
      * @brief Get loading state.
+     * @return the state.
      */
     LoadState
     State() const;
 
     /**
      * @brief Set loading state.
+     * @param [in] state the state.
      */
     void
     SetState(LoadState state);
 
     /**
      * @brief Get percent value of loading progress.
+     * @return the progress.
      */
     int64_t
     Progress() const;
 
     /**
      * @brief Set percent value of loading progress.
+     * @param [in] progress the progress.
      */
     void
     SetProgress(int64_t progress);

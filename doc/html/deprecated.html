@@ -5,10 +5,14 @@
 <meta http-equiv="X-UA-Compatible" content="IE=9"/>
 <meta name="generator" content="Doxygen 1.9.1"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>milvus-sdk-cpp: Deprecated List</title>
+<title>Milvus C++ SDK: Deprecated List</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
+<link href="navtree.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="resize.js"></script>
+<script type="text/javascript" src="navtreedata.js"></script>
+<script type="text/javascript" src="navtree.js"></script>
 <link href="search/search.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="search/searchdata.js"></script>
 <script type="text/javascript" src="search/search.js"></script>
@@ -21,8 +25,9 @@
  <tbody>
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
-   <div id="projectname">milvus-sdk-cpp
+   <div id="projectname">Milvus C++ SDK
    </div>
+   <div id="projectbrief">C++ client for the Milvus vector database</div>
   </td>
  </tr>
  </tbody>
@@ -45,6 +50,23 @@ $(function() {
 });
 /* @license-end */</script>
 <div id="main-nav"></div>
+</div><!-- top -->
+<div id="side-nav" class="ui-resizable side-nav-resizable">
+  <div id="nav-tree">
+    <div id="nav-tree-contents">
+      <div id="nav-sync" class="sync"></div>
+    </div>
+  </div>
+  <div id="splitbar" style="-moz-user-select:none;" 
+       class="ui-resizable-handle">
+  </div>
+</div>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:cf05388f2679ee054f2beb29a391d25f4e673ac3&amp;dn=gpl-2.0.txt GPL-v2 */
+$(document).ready(function(){initNavTree('deprecated.html',''); initResizable(); });
+/* @license-end */
+</script>
+<div id="doc-content">
 <!-- window showing the filter options -->
 <div id="MSearchSelectWindow"
      onmouseover="return searchBox.OnSearchSelectShow()"
@@ -59,127 +81,133 @@ $(function() {
 </iframe>
 </div>
 
-</div><!-- top -->
 <div class="PageDoc"><div class="header">
   <div class="headertitle">
 <div class="title">Deprecated List </div>  </div>
 </div><!--header-->
 <div class="contents">
 <div class="textblock"><dl class="reflist">
-<dt>Member <a class="el" href="classmilvus_1_1_collection_info.html#a8f27c2eafdc9f930d4a0d2eb381fb3ef">milvus::CollectionInfo::MemoryPercentage</a>  () const</dt>
-<dd><a class="anchor" id="_deprecated000008"></a>This method always returns 0, use GetLoadState to get the progress instead.  </dd>
-<dt>Member <a class="el" href="classmilvus_1_1_collection_schema.html#a0d5c933e01fe3aa976a786871249b7c5">milvus::CollectionSchema::Description</a>  () const</dt>
-<dd><a class="anchor" id="_deprecated000011"></a>in <a class="el" href="classmilvus_1_1_milvus_client_v2.html" title="Milvus client abstract class, provide Create() method to create an implementation instance.">MilvusClientV2</a>, description is passed by <a class="el" href="classmilvus_1_1_create_collection_request.html" title="Used by MilvusClientV2::CreateCollection()">CreateCollectionRequest</a>.  </dd>
-<dt>Member <a class="el" href="classmilvus_1_1_collection_schema.html#aa4aeb2f4ddf4ab7800626968c7f8ffa9">milvus::CollectionSchema::Name</a>  () const</dt>
-<dd><a class="anchor" id="_deprecated000009"></a>in <a class="el" href="classmilvus_1_1_milvus_client_v2.html" title="Milvus client abstract class, provide Create() method to create an implementation instance.">MilvusClientV2</a>, collection name is passed by <a class="el" href="classmilvus_1_1_create_collection_request.html" title="Used by MilvusClientV2::CreateCollection()">CreateCollectionRequest</a>.  </dd>
-<dt>Member <a class="el" href="classmilvus_1_1_collection_schema.html#ac3b8f3e0d632ce307a75eeff6c07c2cc">milvus::CollectionSchema::SetDescription</a>  (std::string description)</dt>
-<dd><a class="anchor" id="_deprecated000012"></a>in <a class="el" href="classmilvus_1_1_milvus_client_v2.html" title="Milvus client abstract class, provide Create() method to create an implementation instance.">MilvusClientV2</a>, description is passed by <a class="el" href="classmilvus_1_1_create_collection_request.html" title="Used by MilvusClientV2::CreateCollection()">CreateCollectionRequest</a>.  </dd>
-<dt>Member <a class="el" href="classmilvus_1_1_collection_schema.html#a65b3283b703b976d2abedcf8aa2bc9ee">milvus::CollectionSchema::SetName</a>  (std::string name)</dt>
-<dd><a class="anchor" id="_deprecated000010"></a>in <a class="el" href="classmilvus_1_1_milvus_client_v2.html" title="Milvus client abstract class, provide Create() method to create an implementation instance.">MilvusClientV2</a>, collection name is passed by <a class="el" href="classmilvus_1_1_create_collection_request.html" title="Used by MilvusClientV2::CreateCollection()">CreateCollectionRequest</a>.  </dd>
-<dt>Member <a class="el" href="classmilvus_1_1_collection_schema.html#af14377075e0cf7f247c304db391395cb">milvus::CollectionSchema::SetShardsNum</a>  (int32_t num)</dt>
-<dd><a class="anchor" id="_deprecated000014"></a>in <a class="el" href="classmilvus_1_1_milvus_client_v2.html" title="Milvus client abstract class, provide Create() method to create an implementation instance.">MilvusClientV2</a>, shardsNum is passed by <a class="el" href="classmilvus_1_1_create_collection_request.html" title="Used by MilvusClientV2::CreateCollection()">CreateCollectionRequest</a>.  </dd>
-<dt>Member <a class="el" href="classmilvus_1_1_collection_schema.html#a1b9ea81c13f83282a135dda3a8461eb4">milvus::CollectionSchema::ShardsNum</a>  () const</dt>
-<dd><a class="anchor" id="_deprecated000013"></a>in <a class="el" href="classmilvus_1_1_milvus_client_v2.html" title="Milvus client abstract class, provide Create() method to create an implementation instance.">MilvusClientV2</a>, shardsNum is passed by <a class="el" href="classmilvus_1_1_create_collection_request.html" title="Used by MilvusClientV2::CreateCollection()">CreateCollectionRequest</a>.  </dd>
-<dt>Member <a class="el" href="classmilvus_1_1_connect_param.html#a9db93643e84952947d07847ed99305de">milvus::ConnectParam::ConnectParam</a>  (std::string host, uint16_t port, std::string username, std::string password)</dt>
+<dt>Member <a class="el" href="classmilvus_1_1CollectionInfo.html#a8f27c2eafdc9f930d4a0d2eb381fb3ef">milvus::CollectionInfo::MemoryPercentage</a>  () const</dt>
+<dd><a class="anchor" id="_deprecated000010"></a>This method always returns 0, use GetLoadState to get the progress instead.  </dd>
+<dt>Member <a class="el" href="classmilvus_1_1CollectionSchema.html#ae8a43e75b2f9c2820a8513d752174e4a">milvus::CollectionSchema::Description</a>  () const</dt>
+<dd><a class="anchor" id="_deprecated000013"></a>in <a class="el" href="classmilvus_1_1MilvusClientV2.html" title="Milvus client abstract class, provide Create() method to create an implementation instance.">MilvusClientV2</a>, description is passed by <a class="el" href="classmilvus_1_1CreateCollectionRequest.html" title="Used by MilvusClientV2::CreateCollection()">CreateCollectionRequest</a>.  </dd>
+<dt>Member <a class="el" href="classmilvus_1_1CollectionSchema.html#ad53e007042cc09ecb321e7adca70148f">milvus::CollectionSchema::Name</a>  () const</dt>
+<dd><a class="anchor" id="_deprecated000011"></a>in <a class="el" href="classmilvus_1_1MilvusClientV2.html" title="Milvus client abstract class, provide Create() method to create an implementation instance.">MilvusClientV2</a>, collection name is passed by <a class="el" href="classmilvus_1_1CreateCollectionRequest.html" title="Used by MilvusClientV2::CreateCollection()">CreateCollectionRequest</a>.  </dd>
+<dt>Member <a class="el" href="classmilvus_1_1CollectionSchema.html#ac3b8f3e0d632ce307a75eeff6c07c2cc">milvus::CollectionSchema::SetDescription</a>  (std::string description)</dt>
+<dd><a class="anchor" id="_deprecated000014"></a>in <a class="el" href="classmilvus_1_1MilvusClientV2.html" title="Milvus client abstract class, provide Create() method to create an implementation instance.">MilvusClientV2</a>, description is passed by <a class="el" href="classmilvus_1_1CreateCollectionRequest.html" title="Used by MilvusClientV2::CreateCollection()">CreateCollectionRequest</a>.  </dd>
+<dt>Member <a class="el" href="classmilvus_1_1CollectionSchema.html#a65b3283b703b976d2abedcf8aa2bc9ee">milvus::CollectionSchema::SetName</a>  (std::string name)</dt>
+<dd><a class="anchor" id="_deprecated000012"></a>in <a class="el" href="classmilvus_1_1MilvusClientV2.html" title="Milvus client abstract class, provide Create() method to create an implementation instance.">MilvusClientV2</a>, collection name is passed by <a class="el" href="classmilvus_1_1CreateCollectionRequest.html" title="Used by MilvusClientV2::CreateCollection()">CreateCollectionRequest</a>.  </dd>
+<dt>Member <a class="el" href="classmilvus_1_1CollectionSchema.html#af14377075e0cf7f247c304db391395cb">milvus::CollectionSchema::SetShardsNum</a>  (int32_t num)</dt>
+<dd><a class="anchor" id="_deprecated000016"></a>in <a class="el" href="classmilvus_1_1MilvusClientV2.html" title="Milvus client abstract class, provide Create() method to create an implementation instance.">MilvusClientV2</a>, shardsNum is passed by <a class="el" href="classmilvus_1_1CreateCollectionRequest.html" title="Used by MilvusClientV2::CreateCollection()">CreateCollectionRequest</a>.  </dd>
+<dt>Member <a class="el" href="classmilvus_1_1CollectionSchema.html#a1b9ea81c13f83282a135dda3a8461eb4">milvus::CollectionSchema::ShardsNum</a>  () const</dt>
+<dd><a class="anchor" id="_deprecated000015"></a>in <a class="el" href="classmilvus_1_1MilvusClientV2.html" title="Milvus client abstract class, provide Create() method to create an implementation instance.">MilvusClientV2</a>, shardsNum is passed by <a class="el" href="classmilvus_1_1CreateCollectionRequest.html" title="Used by MilvusClientV2::CreateCollection()">CreateCollectionRequest</a>.  </dd>
+<dt>Member <a class="el" href="classmilvus_1_1ConnectParam.html#a9db93643e84952947d07847ed99305de">milvus::ConnectParam::ConnectParam</a>  (std::string host, uint16_t port, std::string username, std::string password)</dt>
+<dd><a class="anchor" id="_deprecated000019"></a>host/port is replaced by uri  </dd>
+<dt>Member <a class="el" href="classmilvus_1_1ConnectParam.html#aac6f1beb992b82d39b1dc0517f1ae032">milvus::ConnectParam::ConnectParam</a>  (std::string host, uint16_t port, const std::string &amp;token)</dt>
+<dd><a class="anchor" id="_deprecated000018"></a>host/port is replaced by uri  </dd>
+<dt>Member <a class="el" href="classmilvus_1_1ConnectParam.html#a1aa8a859d021328320c19a3b3930ff72">milvus::ConnectParam::ConnectParam</a>  (std::string host, uint16_t port)</dt>
 <dd><a class="anchor" id="_deprecated000017"></a>host/port is replaced by uri  </dd>
-<dt>Member <a class="el" href="classmilvus_1_1_connect_param.html#aac6f1beb992b82d39b1dc0517f1ae032">milvus::ConnectParam::ConnectParam</a>  (std::string host, uint16_t port, const std::string &amp;token)</dt>
-<dd><a class="anchor" id="_deprecated000016"></a>host/port is replaced by uri  </dd>
-<dt>Member <a class="el" href="classmilvus_1_1_connect_param.html#a1aa8a859d021328320c19a3b3930ff72">milvus::ConnectParam::ConnectParam</a>  (std::string host, uint16_t port)</dt>
-<dd><a class="anchor" id="_deprecated000015"></a>host/port is replaced by uri  </dd>
-<dt>Member <a class="el" href="classmilvus_1_1_milvus_client.html#a54fcf962deef1aa39d4bbb3eeacec7a1">milvus::MilvusClient::CreateCredential</a>  (const std::string &amp;username, const std::string &amp;password)=0</dt>
-<dd><a class="anchor" id="_deprecated000004"></a>replaced by <a class="el" href="classmilvus_1_1_milvus_client.html#af34599912d16e25d32d549d364fa0d1f" title="Create an user.">CreateUser()</a> in v2.4 </dd>
-<dt>Member <a class="el" href="classmilvus_1_1_milvus_client.html#a14105e69922cd45347fd472b25753533">milvus::MilvusClient::DeleteCredential</a>  (const std::string &amp;username)=0</dt>
-<dd><a class="anchor" id="_deprecated000006"></a>replaced by <a class="el" href="classmilvus_1_1_milvus_client.html#a83d14ad1e8479badfc64bb9fe1944c42" title="Drop an user.">DropUser()</a> in v2.4 </dd>
-<dt>Member <a class="el" href="classmilvus_1_1_milvus_client.html#afc0de98530d68126bbb878819b411d3f">milvus::MilvusClient::GetVersion</a>  (std::string &amp;version)=0</dt>
-<dd><a class="anchor" id="_deprecated000001"></a>replaced by <a class="el" href="classmilvus_1_1_milvus_client.html#a8564247d9aafbdc082f372ec04b2c5a0" title="Get milvus server version.">GetServerVersion()</a> </dd>
-<dt>Member <a class="el" href="classmilvus_1_1_milvus_client.html#aac191536b781ffff8de14f2fd26d102d">milvus::MilvusClient::ListCredUsers</a>  (std::vector&lt; std::string &gt; &amp;names)=0</dt>
-<dd><a class="anchor" id="_deprecated000007"></a>replaced by <a class="el" href="classmilvus_1_1_milvus_client.html#ac670bb063648b1a33d99d18802deb656" title="List users.">ListUsers()</a> in v2.4 </dd>
-<dt>Member <a class="el" href="classmilvus_1_1_milvus_client.html#a8c5d625d72056a6e4f2f98607ebd0051">milvus::MilvusClient::ShowCollections</a>  (const std::vector&lt; std::string &gt; &amp;collection_names, CollectionsInfo &amp;collections_info)=0</dt>
-<dd><a class="anchor" id="_deprecated000002"></a>In v2.4, the parameter collection_names is no longer work, use the <a class="el" href="classmilvus_1_1_milvus_client.html#a23d8be8f5fe079419de91b0b3a9825b0" title="List all collections brief information&#39;s.">ListCollections()</a> instead. </dd>
-<dt>Member <a class="el" href="classmilvus_1_1_milvus_client.html#a12b481158b57a806f8d341178348f735">milvus::MilvusClient::ShowPartitions</a>  (const std::string &amp;collection_name, const std::vector&lt; std::string &gt; &amp;partition_names, PartitionsInfo &amp;partitions_info)=0</dt>
-<dd><a class="anchor" id="_deprecated000003"></a>In v2.4, the parameter partition_names is no longer work, use the <a class="el" href="classmilvus_1_1_milvus_client.html#ad7dd61f9c3127a88c330d7250ae7dad8" title="If the partition_names is empty, list all partitions brief information&#39;s.">ListPartitions()</a> instead. </dd>
-<dt>Member <a class="el" href="classmilvus_1_1_milvus_client.html#ac53676eb10e84a04d3e0f9f2d69bf3f5">milvus::MilvusClient::UpdateCredential</a>  (const std::string &amp;username, const std::string &amp;old_password, const std::string &amp;new_password)=0</dt>
-<dd><a class="anchor" id="_deprecated000005"></a>replaced by <a class="el" href="classmilvus_1_1_milvus_client.html#a2652488359729a6ba8cc17d3a8b98b31" title="Update password of an user.">UpdatePassword()</a> in v2.4 </dd>
-<dt>Member <a class="el" href="classmilvus_1_1_partition_info.html#aa760577d344207a0a170ab30e92f244d">milvus::PartitionInfo::InMemoryPercentage</a>  () const</dt>
-<dd><a class="anchor" id="_deprecated000018"></a>This method always returns 0, use GetLoadState to get the load state instead.  </dd>
-<dt>Member <a class="el" href="classmilvus_1_1_partition_info.html#ae104eecfb6d501a19e77ff1ee3e28e5d">milvus::PartitionInfo::Loaded</a>  () const</dt>
-<dd><a class="anchor" id="_deprecated000019"></a>This method always returns false, use GetLoadState to get the load state instead.  </dd>
-<dt>Class <a class="el" href="structmilvus_1_1_progress.html">milvus::Progress</a>  </dt>
-<dd><a class="anchor" id="_deprecated000020"></a>no longer used in <a class="el" href="classmilvus_1_1_milvus_client_v2.html" title="Milvus client abstract class, provide Create() method to create an implementation instance.">MilvusClientV2</a>  </dd>
-<dt>Member <a class="el" href="classmilvus_1_1_query_arguments.html#a8206f1a9e636a9f4e518424d9dfe48c2">milvus::QueryArguments::Expression</a>  () const</dt>
-<dd><a class="anchor" id="_deprecated000021"></a>replaced by <a class="el" href="classmilvus_1_1_query_arguments.html#a7ba8cc33b4b2b4311820eee344c5d880" title="Get filter expression.">Filter()</a>  </dd>
-<dt>Member <a class="el" href="classmilvus_1_1_query_arguments.html#a12d32edef32435204f9be016296f4246">milvus::QueryArguments::GuaranteeTimestamp</a>  () const</dt>
-<dd><a class="anchor" id="_deprecated000025"></a>Deprecated in 2.4, replaced by ConsistencyLevel, this value is not used anymore.  </dd>
-<dt>Member <a class="el" href="classmilvus_1_1_query_arguments.html#a09f543774bc107024420439e0715955b">milvus::QueryArguments::SetExpression</a>  (std::string expression)</dt>
-<dd><a class="anchor" id="_deprecated000022"></a>replaced by <a class="el" href="classmilvus_1_1_query_arguments.html#a4c1df480d0da5d76954feaa43b33bee9" title="Set filter expression.">SetFilter()</a>  </dd>
-<dt>Member <a class="el" href="classmilvus_1_1_query_arguments.html#a027873a6b8008516c638838698dbb81d">milvus::QueryArguments::SetGuaranteeTimestamp</a>  (uint64_t timestamp)</dt>
-<dd><a class="anchor" id="_deprecated000026"></a>Deprecated in 2.4, replaced by ConsistencyLevel  </dd>
-<dt>Member <a class="el" href="classmilvus_1_1_query_arguments.html#a114498bb746857299e37e2e6e3867536">milvus::QueryArguments::SetTravelTimestamp</a>  (uint64_t timestamp)</dt>
-<dd><a class="anchor" id="_deprecated000024"></a>Deprecated in 2.4, replaced by ConsistencyLevel.  </dd>
-<dt>Member <a class="el" href="classmilvus_1_1_query_arguments.html#a775438bb6cbd1a1a397d15d319a33292">milvus::QueryArguments::TravelTimestamp</a>  () const</dt>
-<dd><a class="anchor" id="_deprecated000023"></a>Deprecated in 2.4, replaced by ConsistencyLevel.  </dd>
-<dt>Member <a class="el" href="classmilvus_1_1_query_results.html#affd16dfdba2961667c8974eb18f30a01">milvus::QueryResults::GetFieldByName</a>  (const std::string &amp;name)</dt>
-<dd><a class="anchor" id="_deprecated000027"></a>replaced by <a class="el" href="classmilvus_1_1_query_results.html#a954611f2594abf553f414fd015bb60b0" title="Get an output field by name.">OutputField()</a>  </dd>
-<dt>Member <a class="el" href="classmilvus_1_1_query_segment_info.html#a35c405ba48db8b6c05a10fabe3ad306d">milvus::QuerySegmentInfo::NodeID</a>  () const</dt>
-<dd><a class="anchor" id="_deprecated000054"></a>in v2.4, a segment can be loaded into multiple nodes, use the <a class="el" href="classmilvus_1_1_query_segment_info.html#a465a105d939979c1b58b9ccb96e4373a" title="Node id list of the segment.">NodeIDs()</a> instead. This method will return the first node id in from id list.  </dd>
-<dt>Member <a class="el" href="classmilvus_1_1_search_arguments.html#af05b551abe28ddccc7930d5c514c44e3">milvus::SearchArguments::AddTargetVector</a>  (std::string field_name, const std::string &amp;vector)</dt>
-<dd><a class="anchor" id="_deprecated000034"></a>replaced by AddBinaryVector  </dd>
-<dt>Member <a class="el" href="classmilvus_1_1_search_arguments.html#a068382e14d8cf1a8c88c0fa7532a90cb">milvus::SearchArguments::AddTargetVector</a>  (std::string field_name, const std::vector&lt; uint8_t &gt; &amp;vector)</dt>
-<dd><a class="anchor" id="_deprecated000035"></a>replaced by AddBinaryVector  </dd>
-<dt>Member <a class="el" href="classmilvus_1_1_search_arguments.html#af1256857eb65c839900491473882b0d7">milvus::SearchArguments::AddTargetVector</a>  (std::string field_name, std::string &amp;&amp;vector)</dt>
+<dt>Member <a class="el" href="classmilvus_1_1MilvusClient.html#a54fcf962deef1aa39d4bbb3eeacec7a1">milvus::MilvusClient::CreateCredential</a>  (const std::string &amp;username, const std::string &amp;password)=0</dt>
+<dd><a class="anchor" id="_deprecated000004"></a>replaced by <a class="el" href="classmilvus_1_1MilvusClient.html#af34599912d16e25d32d549d364fa0d1f" title="Create an user.">CreateUser()</a> in v2.4 </dd>
+<dt>Member <a class="el" href="classmilvus_1_1MilvusClient.html#a14105e69922cd45347fd472b25753533">milvus::MilvusClient::DeleteCredential</a>  (const std::string &amp;username)=0</dt>
+<dd><a class="anchor" id="_deprecated000006"></a>replaced by <a class="el" href="classmilvus_1_1MilvusClient.html#a83d14ad1e8479badfc64bb9fe1944c42" title="Drop an user.">DropUser()</a> in v2.4 </dd>
+<dt>Member <a class="el" href="classmilvus_1_1MilvusClient.html#afc0de98530d68126bbb878819b411d3f">milvus::MilvusClient::GetVersion</a>  (std::string &amp;version)=0</dt>
+<dd><a class="anchor" id="_deprecated000001"></a>replaced by <a class="el" href="classmilvus_1_1MilvusClient.html#a8564247d9aafbdc082f372ec04b2c5a0" title="Get the Milvus server version.">GetServerVersion()</a> </dd>
+<dt>Member <a class="el" href="classmilvus_1_1MilvusClient.html#aac191536b781ffff8de14f2fd26d102d">milvus::MilvusClient::ListCredUsers</a>  (std::vector&lt; std::string &gt; &amp;names)=0</dt>
+<dd><a class="anchor" id="_deprecated000007"></a>replaced by <a class="el" href="classmilvus_1_1MilvusClient.html#ac670bb063648b1a33d99d18802deb656" title="List users.">ListUsers()</a> in v2.4 </dd>
+<dt>Member <a class="el" href="classmilvus_1_1MilvusClient.html#a8c5d625d72056a6e4f2f98607ebd0051">milvus::MilvusClient::ShowCollections</a>  (const std::vector&lt; std::string &gt; &amp;collection_names, CollectionsInfo &amp;collections_info)=0</dt>
+<dd><a class="anchor" id="_deprecated000002"></a>In v2.4, the parameter collection_names is no longer work, use the <a class="el" href="classmilvus_1_1MilvusClient.html#a23d8be8f5fe079419de91b0b3a9825b0" title="List brief information about all collections.">ListCollections()</a> instead. </dd>
+<dt>Member <a class="el" href="classmilvus_1_1MilvusClient.html#a12b481158b57a806f8d341178348f735">milvus::MilvusClient::ShowPartitions</a>  (const std::string &amp;collection_name, const std::vector&lt; std::string &gt; &amp;partition_names, PartitionsInfo &amp;partitions_info)=0</dt>
+<dd><a class="anchor" id="_deprecated000003"></a>In v2.4, the parameter partition_names is no longer work, use the <a class="el" href="classmilvus_1_1MilvusClient.html#ad7dd61f9c3127a88c330d7250ae7dad8" title="List brief information about all partitions.">ListPartitions()</a> instead. </dd>
+<dt>Member <a class="el" href="classmilvus_1_1MilvusClient.html#ac53676eb10e84a04d3e0f9f2d69bf3f5">milvus::MilvusClient::UpdateCredential</a>  (const std::string &amp;username, const std::string &amp;old_password, const std::string &amp;new_password)=0</dt>
+<dd><a class="anchor" id="_deprecated000005"></a>replaced by <a class="el" href="classmilvus_1_1MilvusClient.html#a2652488359729a6ba8cc17d3a8b98b31" title="Update password of an user.">UpdatePassword()</a> in v2.4 </dd>
+<dt>Member <a class="el" href="classmilvus_1_1MilvusClientV2.html#abb1d9a8a40e6b3164ac71f266552aa83">milvus::MilvusClientV2::AddCollectionFunction</a>  (const <a class="el" href="classmilvus_1_1AddCollectionFunctionRequest.html" title="Used by MilvusClientV2::AddCollectionFunction()">AddCollectionFunctionRequest</a> &amp;request)=0</dt>
+<dd><a class="anchor" id="_deprecated000008"></a>Use <a class="el" href="classmilvus_1_1MilvusClientV2.html#a8cb214ab330489e86671bae59082a1f4" title="Add a BM25 sparse-vector or MinHash binary-vector function-backed field to an existing collection.">AddFunctionField()</a> to add the function together with a new output field and bound index. </dd>
+<dt>Member <a class="el" href="classmilvus_1_1MilvusClientV2.html#a755de3ec5c92cd076ce38604fa5b1a91">milvus::MilvusClientV2::DropCollectionFunction</a>  (const <a class="el" href="classmilvus_1_1DropCollectionFunctionRequest.html" title="Used by MilvusClientV2::DropCollectionFunction()">DropCollectionFunctionRequest</a> &amp;request)=0</dt>
+<dd><a class="anchor" id="_deprecated000009"></a>Use <a class="el" href="classmilvus_1_1MilvusClientV2.html#afd74e4f91324b2c6e3b71e7c21d23e15" title="Drop a function from an existing collection together with its generated output fields.">DropFunctionField()</a> to drop the function together with its output field and bound index. </dd>
+<dt>Member <a class="el" href="classmilvus_1_1PartitionInfo.html#aa760577d344207a0a170ab30e92f244d">milvus::PartitionInfo::InMemoryPercentage</a>  () const</dt>
+<dd><a class="anchor" id="_deprecated000020"></a>This method always returns 0, use GetLoadState to get the load state instead.  </dd>
+<dt>Member <a class="el" href="classmilvus_1_1PartitionInfo.html#ae104eecfb6d501a19e77ff1ee3e28e5d">milvus::PartitionInfo::Loaded</a>  () const</dt>
+<dd><a class="anchor" id="_deprecated000021"></a>This method always returns false, use GetLoadState to get the load state instead.  </dd>
+<dt>Class <a class="el" href="structmilvus_1_1Progress.html">milvus::Progress</a>  </dt>
+<dd><a class="anchor" id="_deprecated000022"></a>no longer used in <a class="el" href="classmilvus_1_1MilvusClientV2.html" title="Milvus client abstract class, provide Create() method to create an implementation instance.">MilvusClientV2</a>  </dd>
+<dt>Member <a class="el" href="classmilvus_1_1QueryArguments.html#a13a167fb62fb87e6fe63cf4f922a2ae6">milvus::QueryArguments::Expression</a>  () const</dt>
+<dd><a class="anchor" id="_deprecated000023"></a>replaced by <a class="el" href="classmilvus_1_1QueryArguments.html#a27e6fa03bf0e3ae19933583821ed15f4" title="Get filter expression.">Filter()</a>  </dd>
+<dt>Member <a class="el" href="classmilvus_1_1QueryArguments.html#a12d32edef32435204f9be016296f4246">milvus::QueryArguments::GuaranteeTimestamp</a>  () const</dt>
+<dd><a class="anchor" id="_deprecated000027"></a>Deprecated in 2.4, replaced by ConsistencyLevel, this value is not used anymore.  </dd>
+<dt>Member <a class="el" href="classmilvus_1_1QueryArguments.html#a09f543774bc107024420439e0715955b">milvus::QueryArguments::SetExpression</a>  (std::string expression)</dt>
+<dd><a class="anchor" id="_deprecated000024"></a>replaced by <a class="el" href="classmilvus_1_1QueryArguments.html#a4c1df480d0da5d76954feaa43b33bee9" title="Set filter expression.">SetFilter()</a>  </dd>
+<dt>Member <a class="el" href="classmilvus_1_1QueryArguments.html#a027873a6b8008516c638838698dbb81d">milvus::QueryArguments::SetGuaranteeTimestamp</a>  (uint64_t timestamp)</dt>
+<dd><a class="anchor" id="_deprecated000028"></a>Deprecated in 2.4, replaced by ConsistencyLevel  </dd>
+<dt>Member <a class="el" href="classmilvus_1_1QueryArguments.html#a114498bb746857299e37e2e6e3867536">milvus::QueryArguments::SetTravelTimestamp</a>  (uint64_t timestamp)</dt>
+<dd><a class="anchor" id="_deprecated000026"></a>Deprecated in 2.4, replaced by ConsistencyLevel.  </dd>
+<dt>Member <a class="el" href="classmilvus_1_1QueryArguments.html#a775438bb6cbd1a1a397d15d319a33292">milvus::QueryArguments::TravelTimestamp</a>  () const</dt>
+<dd><a class="anchor" id="_deprecated000025"></a>Deprecated in 2.4, replaced by ConsistencyLevel.  </dd>
+<dt>Member <a class="el" href="classmilvus_1_1QueryResults.html#affd16dfdba2961667c8974eb18f30a01">milvus::QueryResults::GetFieldByName</a>  (const std::string &amp;name)</dt>
+<dd><a class="anchor" id="_deprecated000029"></a>replaced by <a class="el" href="classmilvus_1_1QueryResults.html#a954611f2594abf553f414fd015bb60b0" title="Get an output field by name.">OutputField()</a>  </dd>
+<dt>Member <a class="el" href="classmilvus_1_1QuerySegmentInfo.html#a35c405ba48db8b6c05a10fabe3ad306d">milvus::QuerySegmentInfo::NodeID</a>  () const</dt>
+<dd><a class="anchor" id="_deprecated000056"></a>in v2.4, a segment can be loaded into multiple nodes, use the <a class="el" href="classmilvus_1_1QuerySegmentInfo.html#aa3661db16c05f89127c9eed5ca33f84c" title="Node id list of the segment.">NodeIDs()</a> instead. This method will return the first node id in from id list.  </dd>
+<dt>Member <a class="el" href="classmilvus_1_1SearchArguments.html#ae8963e64770d22e5cdab8ab8151042eb">milvus::SearchArguments::AddTargetVector</a>  (std::string field_name, <a class="el" href="classmilvus_1_1FieldData.html#a921c839e5d8df646cb7a20029ddb17f6" title="Field element type.">FloatVecFieldData::ElementT</a> &amp;&amp;vector)</dt>
+<dd><a class="anchor" id="_deprecated000040"></a>replaced by AddFloatVector  </dd>
+<dt>Member <a class="el" href="classmilvus_1_1SearchArguments.html#ab2e7c6dec1b8b0fcbd5da9a70f17062d">milvus::SearchArguments::AddTargetVector</a>  (std::string field_name, const <a class="el" href="classmilvus_1_1FieldData.html#a921c839e5d8df646cb7a20029ddb17f6" title="Field element type.">FloatVecFieldData::ElementT</a> &amp;vector)</dt>
+<dd><a class="anchor" id="_deprecated000039"></a>replaced by AddFloatVector  </dd>
+<dt>Member <a class="el" href="classmilvus_1_1SearchArguments.html#af1256857eb65c839900491473882b0d7">milvus::SearchArguments::AddTargetVector</a>  (std::string field_name, std::string &amp;&amp;vector)</dt>
+<dd><a class="anchor" id="_deprecated000038"></a>replaced by AddBinaryVector  </dd>
+<dt>Member <a class="el" href="classmilvus_1_1SearchArguments.html#af05b551abe28ddccc7930d5c514c44e3">milvus::SearchArguments::AddTargetVector</a>  (std::string field_name, const std::string &amp;vector)</dt>
 <dd><a class="anchor" id="_deprecated000036"></a>replaced by AddBinaryVector  </dd>
-<dt>Member <a class="el" href="classmilvus_1_1_search_arguments.html#ab2e7c6dec1b8b0fcbd5da9a70f17062d">milvus::SearchArguments::AddTargetVector</a>  (std::string field_name, const <a class="el" href="classmilvus_1_1_field_data.html#a921c839e5d8df646cb7a20029ddb17f6" title="Field element type.">FloatVecFieldData::ElementT</a> &amp;vector)</dt>
-<dd><a class="anchor" id="_deprecated000037"></a>replaced by AddFloatVector  </dd>
-<dt>Member <a class="el" href="classmilvus_1_1_search_arguments.html#ae8963e64770d22e5cdab8ab8151042eb">milvus::SearchArguments::AddTargetVector</a>  (std::string field_name, <a class="el" href="classmilvus_1_1_field_data.html#a921c839e5d8df646cb7a20029ddb17f6" title="Field element type.">FloatVecFieldData::ElementT</a> &amp;&amp;vector)</dt>
-<dd><a class="anchor" id="_deprecated000038"></a>replaced by AddFloatVector  </dd>
-<dt>Member <a class="el" href="classmilvus_1_1_search_arguments.html#ac468362aa8a56e96e9b06c7a5793083a">milvus::SearchArguments::Expression</a>  () const</dt>
-<dd><a class="anchor" id="_deprecated000028"></a>replaced by <a class="el" href="classmilvus_1_1_search_request_base.html#a4f17c369a7ed39b0afa12c568a5fcdc7" title="Get filter expression.">Filter()</a>  </dd>
-<dt>Member <a class="el" href="classmilvus_1_1_search_arguments.html#ab07eb3b4968436f36f0b3ec620dcdc11">milvus::SearchArguments::GuaranteeTimestamp</a>  () const</dt>
-<dd><a class="anchor" id="_deprecated000041"></a>Deprecated in 2.4, replaced by ConsistencyLevel, this value is not used anymore.  </dd>
-<dt>Member <a class="el" href="classmilvus_1_1_search_arguments.html#abe65d4487c42bd1c9902db5616128ec6">milvus::SearchArguments::Nprobe</a>  () const</dt>
-<dd><a class="anchor" id="_deprecated000032"></a>replaced by <a class="el" href="classmilvus_1_1_search_request_base.html#a005d263c1d59d32522de9893f174ffdd" title="Get extra param. Note: int v2.4, we redefine this method, old client code might be affected.">ExtraParams()</a>  </dd>
-<dt>Member <a class="el" href="classmilvus_1_1_search_arguments.html#ae54f0e40595b49851e1ac8ffbc4535f9">milvus::SearchArguments::SetExpression</a>  (std::string expression)</dt>
-<dd><a class="anchor" id="_deprecated000029"></a>replaced by <a class="el" href="classmilvus_1_1_search_request_base.html#a05edcea2cf12165a9325eb604fc4507c" title="Set filter expression.">SetFilter()</a>  </dd>
-<dt>Member <a class="el" href="classmilvus_1_1_search_arguments.html#ac2e9e3e820db51c764c816b14b6e717f">milvus::SearchArguments::SetGuaranteeTimestamp</a>  (uint64_t timestamp)</dt>
-<dd><a class="anchor" id="_deprecated000042"></a>Deprecated in 2.4, replaced by ConsistencyLevel.  </dd>
-<dt>Member <a class="el" href="classmilvus_1_1_search_arguments.html#acc00cd9e4c4b8f2e3f3ae319bc7d5dd9">milvus::SearchArguments::SetNprobe</a>  (int64_t nlist)</dt>
-<dd><a class="anchor" id="_deprecated000033"></a>replaced by <a class="el" href="classmilvus_1_1_search_request_base.html#af8ddd47c1801eff46a34f3e649950ad8" title="Add extra param. Note: int v2.4, we redefine this method, old client code might be affected.">AddExtraParam()</a>  </dd>
-<dt>Member <a class="el" href="classmilvus_1_1_search_arguments.html#a3ad3e29cfd3726628cbd77203e7af277">milvus::SearchArguments::SetTopK</a>  (int64_t topk)</dt>
-<dd><a class="anchor" id="_deprecated000030"></a>replaced by <a class="el" href="classmilvus_1_1_search_request_base.html#abff44574886b5cdcd07a5c43ee670f0c" title="Set search limit(topk).">SetLimit()</a>  </dd>
-<dt>Member <a class="el" href="classmilvus_1_1_search_arguments.html#a4fae6c38804ea381a7c5c9ec21313c2a">milvus::SearchArguments::SetTravelTimestamp</a>  (uint64_t timestamp)</dt>
-<dd><a class="anchor" id="_deprecated000040"></a>Deprecated in 2.4, replaced by ConsistencyLevel  </dd>
-<dt>Member <a class="el" href="classmilvus_1_1_search_arguments.html#acf264bf78982b48aff4dbb040e520fad">milvus::SearchArguments::TopK</a>  () const</dt>
-<dd><a class="anchor" id="_deprecated000031"></a>replaced by <a class="el" href="classmilvus_1_1_search_request_base.html#a765d6d3f681beee028c098e8cc15ad56" title="Get search limit(topk).">Limit()</a>  </dd>
-<dt>Member <a class="el" href="classmilvus_1_1_search_arguments.html#a7266302c96fa8219a67e28d08fd4742c">milvus::SearchArguments::TravelTimestamp</a>  () const</dt>
-<dd><a class="anchor" id="_deprecated000039"></a>Deprecated in 2.4, replaced by ConsistencyLevel  </dd>
-<dt>Member <a class="el" href="classmilvus_1_1_search_request_base.html#a6bc563473d3781ec0d07e321e7282825">milvus::SearchRequestBase::AddBFloat16Vector</a>  (std::string field_name, const <a class="el" href="classmilvus_1_1_field_data.html#a921c839e5d8df646cb7a20029ddb17f6" title="Field element type.">BFloat16VecFieldData::ElementT</a> &amp;vector)</dt>
-<dd><a class="anchor" id="_deprecated000050"></a>replaced by same name method without field_name parameter, use SetAnnField() to set ann field name.  </dd>
-<dt>Member <a class="el" href="classmilvus_1_1_search_request_base.html#a6f53bcef28950bc810baaeb7dd4f4ce7">milvus::SearchRequestBase::AddBFloat16Vector</a>  (std::string field_name, const std::vector&lt; float &gt; &amp;vector)</dt>
-<dd><a class="anchor" id="_deprecated000051"></a>replaced by same name method without field_name parameter, use SetAnnField() to set ann field name.  </dd>
-<dt>Member <a class="el" href="classmilvus_1_1_search_request_base.html#ad84354a80a1b0975247c192b210dfb7b">milvus::SearchRequestBase::AddBinaryVector</a>  (std::string field_name, const std::string &amp;vector)</dt>
-<dd><a class="anchor" id="_deprecated000043"></a>replaced by same name method without field_name parameter, use SetAnnField() to set ann field name.  </dd>
-<dt>Member <a class="el" href="classmilvus_1_1_search_request_base.html#a159b549fd539ab42ee854c78b30ace6d">milvus::SearchRequestBase::AddBinaryVector</a>  (std::string field_name, const BinaryVecFieldData::ElementT &amp;vector)</dt>
-<dd><a class="anchor" id="_deprecated000044"></a>replaced by same name method without field_name parameter  </dd>
-<dt>Member <a class="el" href="classmilvus_1_1_search_request_base.html#aaa9c9f757faf198504b3102d437d5967">milvus::SearchRequestBase::AddEmbeddedText</a>  (std::string field_name, const std::string &amp;text)</dt>
-<dd><a class="anchor" id="_deprecated000052"></a>replaced by same name method without field_name parameter, use SetAnnField() to set ann field name.  </dd>
-<dt>Member <a class="el" href="classmilvus_1_1_search_request_base.html#a87a369a5f1a97d027549f8d9bf453b47">milvus::SearchRequestBase::AddFloat16Vector</a>  (std::string field_name, const <a class="el" href="classmilvus_1_1_field_data.html#a921c839e5d8df646cb7a20029ddb17f6" title="Field element type.">Float16VecFieldData::ElementT</a> &amp;vector)</dt>
-<dd><a class="anchor" id="_deprecated000048"></a>replaced by same name method without field_name parameter, use SetAnnField() to set ann field name.  </dd>
-<dt>Member <a class="el" href="classmilvus_1_1_search_request_base.html#ab4b023749431d75b60d2651454f52c12">milvus::SearchRequestBase::AddFloat16Vector</a>  (std::string field_name, const std::vector&lt; float &gt; &amp;vector)</dt>
-<dd><a class="anchor" id="_deprecated000049"></a>replaced by same name method without field_name parameter, use SetAnnField() to set ann field name.  </dd>
-<dt>Member <a class="el" href="classmilvus_1_1_search_request_base.html#a4a2475cac447ef57a55cfe9905fa4638">milvus::SearchRequestBase::AddFloatVector</a>  (std::string field_name, const <a class="el" href="classmilvus_1_1_field_data.html#a921c839e5d8df646cb7a20029ddb17f6" title="Field element type.">FloatVecFieldData::ElementT</a> &amp;vector)</dt>
-<dd><a class="anchor" id="_deprecated000045"></a>replaced by same name method without field_name parameter, use SetAnnField() to set ann field name.  </dd>
-<dt>Member <a class="el" href="classmilvus_1_1_search_request_base.html#a4105db78847621e7aa14fbe26155436e">milvus::SearchRequestBase::AddInt8Vector</a>  (std::string field_name, const <a class="el" href="classmilvus_1_1_field_data.html#a921c839e5d8df646cb7a20029ddb17f6" title="Field element type.">Int8VecFieldData::ElementT</a> &amp;vector)</dt>
-<dd><a class="anchor" id="_deprecated000053"></a>replaced by same name method without field_name parameter, use SetAnnField() to set ann field name.  </dd>
-<dt>Member <a class="el" href="classmilvus_1_1_search_request_base.html#aae6e3b726a1407de8495f3a338250818">milvus::SearchRequestBase::AddSparseVector</a>  (std::string field_name, const <a class="el" href="classmilvus_1_1_field_data.html#a921c839e5d8df646cb7a20029ddb17f6" title="Field element type.">SparseFloatVecFieldData::ElementT</a> &amp;vector)</dt>
-<dd><a class="anchor" id="_deprecated000046"></a>replaced by same name method without field_name parameter, use SetAnnField() to set ann field name.  </dd>
-<dt>Member <a class="el" href="classmilvus_1_1_search_request_base.html#ab85ab368007c509daeca92cbc730c13a">milvus::SearchRequestBase::AddSparseVector</a>  (std::string field_name, const nlohmann::json &amp;vector)</dt>
-<dd><a class="anchor" id="_deprecated000047"></a>replaced by same name method without field_name parameter, use SetAnnField() to set ann field name. </dd>
+<dt>Member <a class="el" href="classmilvus_1_1SearchArguments.html#a068382e14d8cf1a8c88c0fa7532a90cb">milvus::SearchArguments::AddTargetVector</a>  (std::string field_name, const std::vector&lt; uint8_t &gt; &amp;vector)</dt>
+<dd><a class="anchor" id="_deprecated000037"></a>replaced by AddBinaryVector  </dd>
+<dt>Member <a class="el" href="classmilvus_1_1SearchArguments.html#ab5d81af06850a4833ae07fdeaa85256c">milvus::SearchArguments::Expression</a>  () const</dt>
+<dd><a class="anchor" id="_deprecated000030"></a>replaced by <a class="el" href="classmilvus_1_1SearchRequestBase.html#aff4286c484252229f44ab77afd9fa3e8" title="Get filter expression.">Filter()</a>  </dd>
+<dt>Member <a class="el" href="classmilvus_1_1SearchArguments.html#ab07eb3b4968436f36f0b3ec620dcdc11">milvus::SearchArguments::GuaranteeTimestamp</a>  () const</dt>
+<dd><a class="anchor" id="_deprecated000043"></a>Deprecated in 2.4, replaced by ConsistencyLevel, this value is not used anymore.  </dd>
+<dt>Member <a class="el" href="classmilvus_1_1SearchArguments.html#abe65d4487c42bd1c9902db5616128ec6">milvus::SearchArguments::Nprobe</a>  () const</dt>
+<dd><a class="anchor" id="_deprecated000034"></a>replaced by <a class="el" href="classmilvus_1_1SearchRequestBase.html#a204a20832e1288fd44f0c65e018183a8" title="Get extra param.">ExtraParams()</a>  </dd>
+<dt>Member <a class="el" href="classmilvus_1_1SearchArguments.html#ae54f0e40595b49851e1ac8ffbc4535f9">milvus::SearchArguments::SetExpression</a>  (std::string expression)</dt>
+<dd><a class="anchor" id="_deprecated000031"></a>replaced by <a class="el" href="classmilvus_1_1SearchRequestBase.html#a05edcea2cf12165a9325eb604fc4507c" title="Set filter expression.">SetFilter()</a>  </dd>
+<dt>Member <a class="el" href="classmilvus_1_1SearchArguments.html#ac2e9e3e820db51c764c816b14b6e717f">milvus::SearchArguments::SetGuaranteeTimestamp</a>  (uint64_t timestamp)</dt>
+<dd><a class="anchor" id="_deprecated000044"></a>Deprecated in 2.4, replaced by ConsistencyLevel.  </dd>
+<dt>Member <a class="el" href="classmilvus_1_1SearchArguments.html#acc00cd9e4c4b8f2e3f3ae319bc7d5dd9">milvus::SearchArguments::SetNprobe</a>  (int64_t nlist)</dt>
+<dd><a class="anchor" id="_deprecated000035"></a>replaced by <a class="el" href="classmilvus_1_1SearchRequestBase.html#af8ddd47c1801eff46a34f3e649950ad8" title="Add extra param.">AddExtraParam()</a>  </dd>
+<dt>Member <a class="el" href="classmilvus_1_1SearchArguments.html#a3ad3e29cfd3726628cbd77203e7af277">milvus::SearchArguments::SetTopK</a>  (int64_t topk)</dt>
+<dd><a class="anchor" id="_deprecated000032"></a>replaced by <a class="el" href="classmilvus_1_1SearchRequestBase.html#abff44574886b5cdcd07a5c43ee670f0c" title="Set search limit(topk).">SetLimit()</a>  </dd>
+<dt>Member <a class="el" href="classmilvus_1_1SearchArguments.html#a4fae6c38804ea381a7c5c9ec21313c2a">milvus::SearchArguments::SetTravelTimestamp</a>  (uint64_t timestamp)</dt>
+<dd><a class="anchor" id="_deprecated000042"></a>Deprecated in 2.4, replaced by ConsistencyLevel  </dd>
+<dt>Member <a class="el" href="classmilvus_1_1SearchArguments.html#acf264bf78982b48aff4dbb040e520fad">milvus::SearchArguments::TopK</a>  () const</dt>
+<dd><a class="anchor" id="_deprecated000033"></a>replaced by <a class="el" href="classmilvus_1_1SearchRequestBase.html#a765d6d3f681beee028c098e8cc15ad56" title="Get search limit(topk).">Limit()</a>  </dd>
+<dt>Member <a class="el" href="classmilvus_1_1SearchArguments.html#a7266302c96fa8219a67e28d08fd4742c">milvus::SearchArguments::TravelTimestamp</a>  () const</dt>
+<dd><a class="anchor" id="_deprecated000041"></a>Deprecated in 2.4, replaced by ConsistencyLevel  </dd>
+<dt>Member <a class="el" href="classmilvus_1_1SearchRequestBase.html#a6bc563473d3781ec0d07e321e7282825">milvus::SearchRequestBase::AddBFloat16Vector</a>  (std::string field_name, const <a class="el" href="classmilvus_1_1FieldData.html#a921c839e5d8df646cb7a20029ddb17f6" title="Field element type.">BFloat16VecFieldData::ElementT</a> &amp;vector)</dt>
+<dd><a class="anchor" id="_deprecated000052"></a>Replaced by the same method without the field_name parameter. Use <a class="el" href="classmilvus_1_1SearchRequestBase.html#a4d2e95b143144fc68719d9ce5eaa4e7e" title="Set target field of ann search.">SetAnnsField()</a> to set the ANN field name.  </dd>
+<dt>Member <a class="el" href="classmilvus_1_1SearchRequestBase.html#a6f53bcef28950bc810baaeb7dd4f4ce7">milvus::SearchRequestBase::AddBFloat16Vector</a>  (std::string field_name, const std::vector&lt; float &gt; &amp;vector)</dt>
+<dd><a class="anchor" id="_deprecated000053"></a>Replaced by the same method without the field_name parameter. Use <a class="el" href="classmilvus_1_1SearchRequestBase.html#a4d2e95b143144fc68719d9ce5eaa4e7e" title="Set target field of ann search.">SetAnnsField()</a> to set the ANN field name.  </dd>
+<dt>Member <a class="el" href="classmilvus_1_1SearchRequestBase.html#a159b549fd539ab42ee854c78b30ace6d">milvus::SearchRequestBase::AddBinaryVector</a>  (std::string field_name, const <a class="el" href="classmilvus_1_1BinaryVecFieldData.html#ae2026c27ee8465dd5fbc630778737e3c" title="Field element type.">BinaryVecFieldData::ElementT</a> &amp;vector)</dt>
+<dd><a class="anchor" id="_deprecated000046"></a>replaced by same name method without field_name parameter  </dd>
+<dt>Member <a class="el" href="classmilvus_1_1SearchRequestBase.html#ad84354a80a1b0975247c192b210dfb7b">milvus::SearchRequestBase::AddBinaryVector</a>  (std::string field_name, const std::string &amp;vector)</dt>
+<dd><a class="anchor" id="_deprecated000045"></a>Replaced by the same method without the field_name parameter. Use <a class="el" href="classmilvus_1_1SearchRequestBase.html#a4d2e95b143144fc68719d9ce5eaa4e7e" title="Set target field of ann search.">SetAnnsField()</a> to set the ANN field name.  </dd>
+<dt>Member <a class="el" href="classmilvus_1_1SearchRequestBase.html#aaa9c9f757faf198504b3102d437d5967">milvus::SearchRequestBase::AddEmbeddedText</a>  (std::string field_name, const std::string &amp;text)</dt>
+<dd><a class="anchor" id="_deprecated000054"></a>Replaced by the same method without the field_name parameter. Use <a class="el" href="classmilvus_1_1SearchRequestBase.html#a4d2e95b143144fc68719d9ce5eaa4e7e" title="Set target field of ann search.">SetAnnsField()</a> to set the ANN field name.  </dd>
+<dt>Member <a class="el" href="classmilvus_1_1SearchRequestBase.html#a87a369a5f1a97d027549f8d9bf453b47">milvus::SearchRequestBase::AddFloat16Vector</a>  (std::string field_name, const <a class="el" href="classmilvus_1_1FieldData.html#a921c839e5d8df646cb7a20029ddb17f6" title="Field element type.">Float16VecFieldData::ElementT</a> &amp;vector)</dt>
+<dd><a class="anchor" id="_deprecated000050"></a>Replaced by the same method without the field_name parameter. Use <a class="el" href="classmilvus_1_1SearchRequestBase.html#a4d2e95b143144fc68719d9ce5eaa4e7e" title="Set target field of ann search.">SetAnnsField()</a> to set the ANN field name.  </dd>
+<dt>Member <a class="el" href="classmilvus_1_1SearchRequestBase.html#ab4b023749431d75b60d2651454f52c12">milvus::SearchRequestBase::AddFloat16Vector</a>  (std::string field_name, const std::vector&lt; float &gt; &amp;vector)</dt>
+<dd><a class="anchor" id="_deprecated000051"></a>Replaced by the same method without the field_name parameter. Use <a class="el" href="classmilvus_1_1SearchRequestBase.html#a4d2e95b143144fc68719d9ce5eaa4e7e" title="Set target field of ann search.">SetAnnsField()</a> to set the ANN field name.  </dd>
+<dt>Member <a class="el" href="classmilvus_1_1SearchRequestBase.html#a4a2475cac447ef57a55cfe9905fa4638">milvus::SearchRequestBase::AddFloatVector</a>  (std::string field_name, const <a class="el" href="classmilvus_1_1FieldData.html#a921c839e5d8df646cb7a20029ddb17f6" title="Field element type.">FloatVecFieldData::ElementT</a> &amp;vector)</dt>
+<dd><a class="anchor" id="_deprecated000047"></a>Replaced by the same method without the field_name parameter. Use <a class="el" href="classmilvus_1_1SearchRequestBase.html#a4d2e95b143144fc68719d9ce5eaa4e7e" title="Set target field of ann search.">SetAnnsField()</a> to set the ANN field name.  </dd>
+<dt>Member <a class="el" href="classmilvus_1_1SearchRequestBase.html#a4105db78847621e7aa14fbe26155436e">milvus::SearchRequestBase::AddInt8Vector</a>  (std::string field_name, const <a class="el" href="classmilvus_1_1FieldData.html#a921c839e5d8df646cb7a20029ddb17f6" title="Field element type.">Int8VecFieldData::ElementT</a> &amp;vector)</dt>
+<dd><a class="anchor" id="_deprecated000055"></a>Replaced by the same method without the field_name parameter. Use <a class="el" href="classmilvus_1_1SearchRequestBase.html#a4d2e95b143144fc68719d9ce5eaa4e7e" title="Set target field of ann search.">SetAnnsField()</a> to set the ANN field name.  </dd>
+<dt>Member <a class="el" href="classmilvus_1_1SearchRequestBase.html#aae6e3b726a1407de8495f3a338250818">milvus::SearchRequestBase::AddSparseVector</a>  (std::string field_name, const <a class="el" href="classmilvus_1_1FieldData.html#a921c839e5d8df646cb7a20029ddb17f6" title="Field element type.">SparseFloatVecFieldData::ElementT</a> &amp;vector)</dt>
+<dd><a class="anchor" id="_deprecated000048"></a>Replaced by the same method without the field_name parameter. Use <a class="el" href="classmilvus_1_1SearchRequestBase.html#a4d2e95b143144fc68719d9ce5eaa4e7e" title="Set target field of ann search.">SetAnnsField()</a> to set the ANN field name.  </dd>
+<dt>Member <a class="el" href="classmilvus_1_1SearchRequestBase.html#ab85ab368007c509daeca92cbc730c13a">milvus::SearchRequestBase::AddSparseVector</a>  (std::string field_name, const nlohmann::json &amp;vector)</dt>
+<dd><a class="anchor" id="_deprecated000049"></a>Replaced by the same method without the field_name parameter. Use <a class="el" href="classmilvus_1_1SearchRequestBase.html#a4d2e95b143144fc68719d9ce5eaa4e7e" title="Set target field of ann search.">SetAnnsField()</a> to set the ANN field name. </dd>
 </dl>
 </div></div><!-- contents -->
 </div><!-- PageDoc -->
+</div><!-- doc-content -->
 <!-- start footer part -->
-<hr class="footer"/><address class="footer"><small>
-Generated by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.1
-</small></address>
+<div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
+  <ul>
+    <li class="footer">Generated by <a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.1 </li>
+  </ul>
+</div>
 </body>
 </html>

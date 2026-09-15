@@ -34,36 +34,42 @@ class MILVUS_SDK_API DescribeRoleRequest {
 
     /**
      * @brief Name of the role.
+     * @return the role name.
      */
     const std::string&
     RoleName() const;
 
     /**
      * @brief Set name of the role.
+     * @param [in] name the name.
      */
     void
     SetRoleName(const std::string& name);
 
     /**
      * @brief Set name of the role.
+     * @param [in] name the name.
      */
     DescribeRoleRequest&
     WithRoleName(const std::string& name);
 
     /**
      * @brief Database name which the role is assigned.
+     * @return the database name.
      */
     const std::string&
     DatabaseName() const;
 
     /**
      * @brief Set database name which the role is assigned.
+     * @param [in] db_name the DB name.
      */
     void
     SetDatabaseName(const std::string& db_name);
 
     /**
      * @brief Set database name which the role is assigned.
+     * @param [in] db_name the DB name.
      */
     DescribeRoleRequest&
     WithDatabaseName(const std::string& db_name);

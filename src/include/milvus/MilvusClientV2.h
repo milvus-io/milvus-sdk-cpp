@@ -206,6 +206,35 @@ namespace milvus {
  *   calls targeting the affected objects. Results are not guaranteed when these operations overlap.
  * - Connection lifecycle methods, including Connect(), Disconnect(), and UseDatabase(), must be serialized with all
  *   other operations. Do not call them, or destroy the client, while RPCs are in flight.
+ * @par Example
+ * @code
+ * // Connect to a Milvus deployment.
+ * auto client = milvus::MilvusClientV2::Create();
+ * if (!client->Connect(milvus::ConnectParam{"localhost", 19530}).IsOk()) {
+ *     return;
+ * }
+ *
+ * // Create a simple collection with one 8-dimension vector field.
+ * client->CreateCollection(milvus::CreateSimpleCollectionRequest()
+ *                              .WithCollectionName("demo")
+ *                              .WithDimension(8)
+ *                              .WithMetricType(milvus::MetricType::COSINE));
+ *
+ * // Insert two rows expressed as JSON objects.
+ * milvus::InsertResponse insert_resp;
+ * milvus::InsertRequest insert;
+ * insert.WithCollectionName("demo")
+ *     .AddRowData({{ "id", 1 }, { "vector", std::vector<float>{0.1f, 0.2f, 0.3f, 0.4f, 0.5f, 0.6f, 0.7f, 0.8f} }})
+ *     .AddRowData({{ "id", 2 }, { "vector", std::vector<float>{0.9f, 0.8f, 0.7f, 0.6f, 0.5f, 0.4f, 0.3f, 0.2f} }});
+ * client->Insert(insert, insert_resp);
+ *
+ * // Search for the top-3 most similar vectors.
+ * milvus::SearchResponse search_resp;
+ * milvus::SearchRequest search;
+ * search.WithCollectionName("demo").WithLimit(3).WithOutputFields({"id"});
+ * search.AddFloatVector(std::vector<float>{0.1f, 0.2f, 0.3f, 0.4f, 0.5f, 0.6f, 0.7f, 0.8f});
+ * auto status = client->Search(search, search_resp);
+ * @endcode
  */
 class MILVUS_SDK_API MilvusClientV2 {
  public:
@@ -242,6 +271,7 @@ class MILVUS_SDK_API MilvusClientV2 {
      * @brief Change timeout value in milliseconds for each RPC call.
      *
      * @retval StatusCode::CLIENT_BUSY another connection lifecycle change is in progress; the operation may be retried
+     * @param [in] timeout_ms the timeout ms.
      */
     virtual Status
     SetRpcDeadlineMs(uint64_t timeout_ms) = 0;
@@ -1201,6 +1231,13 @@ class MILVUS_SDK_API MilvusClientV2 {
     virtual Status
     GetReplicateInfo(const GetReplicateInfoRequest& request, GetReplicateInfoResponse& response) = 0;
 
+    /**
+     * @brief Dump messages from a Pulsar channel for debugging replication.
+     *
+     * @param [in] request dump messages request parameters.
+     * @param [in] on_message callback invoked for each dumped message; return a non-OK Status to abort.
+     * @return Status operation result.
+     */
     virtual Status
     DumpMessages(const DumpMessagesRequest& request, const std::function<Status(const DumpedMessage&)>& on_message) = 0;
 
@@ -1289,6 +1326,12 @@ class MILVUS_SDK_API MilvusClientV2 {
     virtual Status
     UpdatePassword(const UpdatePasswordRequest& request) = 0;
 
+    /**
+     * @brief Update the description of an existing user.
+     *
+     * @param [in] request update user request parameters.
+     * @return Status operation result.
+     */
     virtual Status
     UpdateUser(const UpdateUserRequest& request) = 0;
 
@@ -1331,6 +1374,12 @@ class MILVUS_SDK_API MilvusClientV2 {
     virtual Status
     CreateRole(const CreateRoleRequest& request) = 0;
 
+    /**
+     * @brief Alter an existing role.
+     *
+     * @param [in] request alter role request parameters.
+     * @return Status operation result.
+     */
     virtual Status
     AlterRole(const AlterRoleRequest& request) = 0;
 
@@ -1484,7 +1533,10 @@ class MILVUS_SDK_API MilvusClientV2 {
     virtual Status
     Session(const std::string& cluster_id, MilvusClientV2SessionPtr& session) = 0;
 
-    /** Returns the telemetry manager for diagnostics and custom command handlers. */
+    /**
+     * @brief Get the telemetry manager for diagnostics and custom command handlers.
+     * @return the telemetry manager.
+     */
     virtual ClientTelemetryManagerPtr
     GetTelemetry() const {
         return nullptr;

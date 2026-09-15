@@ -34,18 +34,21 @@ class MILVUS_SDK_API AddCollectionStructFieldRequest : public CollectionRequestB
 
     /**
      * @brief Get the struct field schema.
+     * @return the struct field.
      */
     const StructFieldSchema&
     StructField() const;
 
     /**
      * @brief Set the struct field schema.
+     * @param [in] field_schema the field schema.
      */
     void
     SetStructField(StructFieldSchema&& field_schema);
 
     /**
      * @brief Set the struct field schema.
+     * @param [in] field_schema the field schema.
      */
     AddCollectionStructFieldRequest&
     WithStructField(StructFieldSchema&& field_schema);

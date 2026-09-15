@@ -34,24 +34,28 @@ class MILVUS_SDK_API CompactResponse {
 
     /**
      * @brief Get ID of the compaction action.
+     * @return the compaction ID.
      */
     int64_t
     CompactionID() const;
 
     /**
      * @brief Set ID of the compaction action.
+     * @param [in] id the ID.
      */
     void
     SetCompactionID(int64_t id);
 
     /**
      * @brief Get number of plans of the compaction.
+     * @return the compaction plan count.
      */
     int64_t
     CompactionPlanCount() const;
 
     /**
      * @brief Set number of plans of the compaction.
+     * @param [in] id the ID.
      */
     void
     SetCompactionPlanCount(int64_t id);

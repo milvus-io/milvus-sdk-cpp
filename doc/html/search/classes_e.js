@@ -1,15 +1,10 @@
 var searchData=
 [
-  ['releasecollectionrequest_1139',['ReleaseCollectionRequest',['../classmilvus_1_1_release_collection_request.html',1,'milvus']]],
-  ['releasepartitionsrequest_1140',['ReleasePartitionsRequest',['../classmilvus_1_1_release_partitions_request.html',1,'milvus']]],
-  ['renamecollectionrequest_1141',['RenameCollectionRequest',['../classmilvus_1_1_rename_collection_request.html',1,'milvus']]],
-  ['resourcegroupconfig_1142',['ResourceGroupConfig',['../classmilvus_1_1_resource_group_config.html',1,'milvus']]],
-  ['resourcegroupdesc_1143',['ResourceGroupDesc',['../classmilvus_1_1_resource_group_desc.html',1,'milvus']]],
-  ['resourcegrouprequest_1144',['ResourceGroupRequest',['../classmilvus_1_1_resource_group_request.html',1,'milvus']]],
-  ['retryparam_1145',['RetryParam',['../classmilvus_1_1_retry_param.html',1,'milvus']]],
-  ['roledesc_1146',['RoleDesc',['../classmilvus_1_1_role_desc.html',1,'milvus']]],
-  ['roleuserrequest_1147',['RoleUserRequest',['../classmilvus_1_1_role_user_request.html',1,'milvus']]],
-  ['rrfrerank_1148',['RRFRerank',['../classmilvus_1_1_r_r_f_rerank.html',1,'milvus']]],
-  ['runanalyzerarguments_1149',['RunAnalyzerArguments',['../classmilvus_1_1_run_analyzer_arguments.html',1,'milvus']]],
-  ['runanalyzerresponse_1150',['RunAnalyzerResponse',['../classmilvus_1_1_run_analyzer_response.html',1,'milvus']]]
+  ['queryarguments_1866',['QueryArguments',['../classmilvus_1_1QueryArguments.html',1,'milvus']]],
+  ['queryiteratorarguments_1867',['QueryIteratorArguments',['../classmilvus_1_1QueryIteratorArguments.html',1,'milvus']]],
+  ['queryiteratorrequest_1868',['QueryIteratorRequest',['../classmilvus_1_1QueryIteratorRequest.html',1,'milvus']]],
+  ['queryrequest_1869',['QueryRequest',['../classmilvus_1_1QueryRequest.html',1,'milvus']]],
+  ['queryresponse_1870',['QueryResponse',['../classmilvus_1_1QueryResponse.html',1,'milvus']]],
+  ['queryresults_1871',['QueryResults',['../classmilvus_1_1QueryResults.html',1,'milvus']]],
+  ['querysegmentinfo_1872',['QuerySegmentInfo',['../classmilvus_1_1QuerySegmentInfo.html',1,'milvus']]]
 ];

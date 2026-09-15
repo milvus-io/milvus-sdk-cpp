@@ -26,6 +26,13 @@ namespace milvus {
 
 /**
  * @brief Used by MilvusClientV2::Get()
+ * @par Example
+ * @code
+ * milvus::GetResponse response;
+ * milvus::GetRequest request;
+ * request.WithCollectionName("demo").WithIDs(std::vector<int64_t>{1, 2, 3}).WithOutputFields({"id"});
+ * auto status = client->Get(request, response);
+ * @endcode
  */
 class MILVUS_SDK_API GetRequest : public DQLRequestBase<GetRequest> {
  public:
@@ -36,6 +43,7 @@ class MILVUS_SDK_API GetRequest : public DQLRequestBase<GetRequest> {
 
     /**
      * @brief Get id array.
+     * @return the i ds.
      */
     const IDArray&
     IDs() const;
@@ -43,6 +51,7 @@ class MILVUS_SDK_API GetRequest : public DQLRequestBase<GetRequest> {
     /**
      * @brief Set id array.
      * Note: this method will reset the id array.
+     * @param [in] id_array the ID array.
      */
     void
     SetIDs(std::vector<int64_t>&& id_array);
@@ -50,6 +59,7 @@ class MILVUS_SDK_API GetRequest : public DQLRequestBase<GetRequest> {
     /**
      * @brief Set id array.
      * Note: this method will reset the id array.
+     * @param [in] id_array the ID array.
      */
     void
     SetIDs(std::vector<std::string>&& id_array);
@@ -57,6 +67,7 @@ class MILVUS_SDK_API GetRequest : public DQLRequestBase<GetRequest> {
     /**
      * @brief Set id array.
      * Note: this method will reset the id array.
+     * @param [in] id_array the ID array.
      */
     GetRequest&
     WithIDs(std::vector<int64_t>&& id_array);
@@ -64,6 +75,7 @@ class MILVUS_SDK_API GetRequest : public DQLRequestBase<GetRequest> {
     /**
      * @brief Set id array.
      * Note: this method will reset the id array.
+     * @param [in] id_array the ID array.
      */
     GetRequest&
     WithIDs(std::vector<std::string>&& id_array);

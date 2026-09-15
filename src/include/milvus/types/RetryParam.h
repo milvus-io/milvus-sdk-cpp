@@ -31,6 +31,9 @@ namespace milvus {
  */
 class MILVUS_SDK_API RetryParam {
  public:
+    /**
+     * @brief Constructor
+     */
     RetryParam() = default;
 
     RetryParam&
@@ -38,42 +41,49 @@ class MILVUS_SDK_API RetryParam {
 
     /**
      * @brief Get max retry times.
+     * @return the max retry times.
      */
     uint64_t
     MaxRetryTimes() const;
 
     /**
      * @brief Set max retry times.
+     * @param [in] max_retry_times the max retry times.
      */
     void
     SetMaxRetryTimes(uint64_t max_retry_times);
 
     /**
      * @brief Set max retry times.
+     * @param [in] max_retry_times the max retry times.
      */
     RetryParam&
     WithMaxRetryTimes(uint64_t max_retry_times);
 
     /**
      * @brief Get maximum retry timeout in milliseconds.
+     * @return the max retry timeout ms.
      */
     uint64_t
     MaxRetryTimeoutMs() const;
 
     /**
      * @brief Set maximum retry timeout in milliseconds.
+     * @param [in] max_retry_timeout_ms the max retry timeout ms.
      */
     void
     SetMaxRetryTimeoutMs(uint64_t max_retry_timeout_ms);
 
     /**
      * @brief Set maximum retry timeout in milliseconds.
+     * @param [in] max_retry_timeout_ms the max retry timeout ms.
      */
     RetryParam&
     WithMaxRetryTimeoutMs(uint64_t max_retry_timeout_ms);
 
     /**
      * @brief Get initial backOff in milliseconds.
+     * @return the initial back off ms.
      */
     uint64_t
     InitialBackOffMs() const;
@@ -94,6 +104,7 @@ class MILVUS_SDK_API RetryParam {
 
     /**
      * @brief Get maximum backOff in milliseconds.
+     * @return the max back off ms.
      */
     uint64_t
     MaxBackOffMs() const;
@@ -114,6 +125,7 @@ class MILVUS_SDK_API RetryParam {
 
     /**
      * @brief Get backOff multiplier.
+     * @return the back off multiplier.
      */
     uint64_t
     BackOffMultiplier() const;
@@ -134,18 +146,21 @@ class MILVUS_SDK_API RetryParam {
 
     /**
      * @brief Get retry for ratelimit or not.
+     * @return the retry on rate limit.
      */
     bool
     RetryOnRateLimit() const;
 
     /**
      * @brief Set retry for ratelimit.
+     * @param [in] retry_on_ratelimit the retry on ratelimit.
      */
     void
     SetRetryOnRateLimit(bool retry_on_ratelimit);
 
     /**
      * @brief Set retry for ratelimit.
+     * @param [in] retry_on_ratelimit the retry on ratelimit.
      */
     RetryParam&
     WithRetryOnRateLimit(bool retry_on_ratelimit);

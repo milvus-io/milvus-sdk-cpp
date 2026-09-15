@@ -33,11 +33,14 @@ struct MILVUS_SDK_API Progress {
 
     /**
      * @brief Constructor
+     * @param [in] finished the finished.
+     * @param [in] total the total.
      */
     Progress(uint32_t finished, uint32_t total);
 
     /**
      * @brief The progress is done or not.
+     * @return the done.
      */
     bool
     Done() const;
@@ -83,12 +86,14 @@ class MILVUS_SDK_API ProgressMonitor {
 
     /**
      * @brief time duration to wait the progress complete.
+     * @return the check timeout.
      */
     uint32_t
     CheckTimeout() const;
 
     /**
      * @brief time interval to check the progress state.
+     * @return the check interval.
      */
     uint32_t
     CheckInterval() const;
@@ -104,6 +109,7 @@ class MILVUS_SDK_API ProgressMonitor {
 
     /**
      * @brief Trigger the call back function to notify progress.
+     * @param [in] p the p.
      */
     void
     DoProgress(Progress& p) const;
@@ -118,12 +124,14 @@ class MILVUS_SDK_API ProgressMonitor {
 
     /**
      * @brief Immediately return without waiting request finished.
+     * @return the no wait.
      */
     static ProgressMonitor
     NoWait();
 
     /**
      * @brief A monitor to wait request until it is finished.
+     * @return the forever.
      */
     static ProgressMonitor
     Forever();

@@ -27,11 +27,23 @@ namespace milvus {
  */
 class MILVUS_SDK_API PinSnapshotDataResponse {
  public:
+    /**
+     * @brief Constructor
+     */
     PinSnapshotDataResponse() = default;
 
+    /**
+     * @brief Get the pin identifier of the pinned data.
+     * @return the pin ID.
+     */
     int64_t
     PinID() const;
 
+    /**
+     * @brief Set the pin identifier of the pinned data.
+     *
+     * @param [in] pin_id
+     */
     void
     SetPinID(int64_t pin_id);
 

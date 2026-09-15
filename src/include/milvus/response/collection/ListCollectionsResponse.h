@@ -36,24 +36,28 @@ class MILVUS_SDK_API ListCollectionsResponse {
 
     /**
      * @brief Get collections names.
+     * @return the collection names.
      */
     const std::vector<std::string>&
     CollectionNames() const;
 
     /**
      * @brief Set collections names.
+     * @param [in] names the names.
      */
     void
     SetCollectionNames(std::vector<std::string>&& names);
 
     /**
      * @brief Get brief informations of collections.
+     * @return the collection infos.
      */
     const std::vector<CollectionInfo>&
     CollectionInfos() const;
 
     /**
      * @brief Set brief informations of collections.
+     * @param [in] infos the infos.
      */
     void
     SetCollectionInfos(std::vector<CollectionInfo>&& infos);

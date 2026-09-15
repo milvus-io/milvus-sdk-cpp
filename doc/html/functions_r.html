@@ -5,10 +5,14 @@
 <meta http-equiv="X-UA-Compatible" content="IE=9"/>
 <meta name="generator" content="Doxygen 1.9.1"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>milvus-sdk-cpp: Class Members</title>
+<title>Milvus C++ SDK: Class Members</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
+<link href="navtree.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="resize.js"></script>
+<script type="text/javascript" src="navtreedata.js"></script>
+<script type="text/javascript" src="navtree.js"></script>
 <link href="search/search.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="search/searchdata.js"></script>
 <script type="text/javascript" src="search/search.js"></script>
@@ -21,8 +25,9 @@
  <tbody>
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
-   <div id="projectname">milvus-sdk-cpp
+   <div id="projectname">Milvus C++ SDK
    </div>
+   <div id="projectbrief">C++ client for the Milvus vector database</div>
   </td>
  </tr>
  </tbody>
@@ -46,6 +51,22 @@ $(function() {
 /* @license-end */</script>
 <div id="main-nav"></div>
 </div><!-- top -->
+<div id="side-nav" class="ui-resizable side-nav-resizable">
+  <div id="nav-tree">
+    <div id="nav-tree-contents">
+      <div id="nav-sync" class="sync"></div>
+    </div>
+  </div>
+  <div id="splitbar" style="-moz-user-select:none;" 
+       class="ui-resizable-handle">
+  </div>
+</div>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:cf05388f2679ee054f2beb29a391d25f4e673ac3&amp;dn=gpl-2.0.txt GPL-v2 */
+$(document).ready(function(){initNavTree('functions_r.html',''); initResizable(); });
+/* @license-end */
+</script>
+<div id="doc-content">
 <!-- window showing the filter options -->
 <div id="MSearchSelectWindow"
      onmouseover="return searchBox.OnSearchSelectShow()"
@@ -65,144 +86,227 @@ $(function() {
 
 <h3><a id="index_r"></a>- r -</h3><ul>
 <li>Radius()
-: <a class="el" href="classmilvus_1_1_search_request_base.html#a9753601b12e4c0dbada930697e45ea42">milvus::SearchRequestBase</a>
+: <a class="el" href="classmilvus_1_1SearchRequestBase.html#a9753601b12e4c0dbada930697e45ea42">milvus::SearchRequestBase</a>
 </li>
 <li>RangeFilter()
-: <a class="el" href="classmilvus_1_1_search_request_base.html#ab75f6efe06497d71e50b993cd2490621">milvus::SearchRequestBase</a>
+: <a class="el" href="classmilvus_1_1SearchRequestBase.html#ab75f6efe06497d71e50b993cd2490621">milvus::SearchRequestBase</a>
+</li>
+<li>Reason()
+: <a class="el" href="classmilvus_1_1RefreshExternalCollectionJobInfo.html#a6111aa3204b66011baf7117c6c3fe6b1">milvus::RefreshExternalCollectionJobInfo</a>
+, <a class="el" href="classmilvus_1_1RestoreSnapshotJobInfo.html#a93fbfc0150c5e09950c8cfee4d90fb7a">milvus::RestoreSnapshotJobInfo</a>
 </li>
 <li>Reasons()
-: <a class="el" href="classmilvus_1_1_check_health_response.html#acc1f8a054ad376999897f8403016778e">milvus::CheckHealthResponse</a>
+: <a class="el" href="classmilvus_1_1CheckHealthResponse.html#a82fb16722a203f28846f20e757a182d9">milvus::CheckHealthResponse</a>
 </li>
 <li>Recalls()
-: <a class="el" href="classmilvus_1_1_search_results.html#a69a1a47f76be66752dbaf33e0f63ef25">milvus::SearchResults</a>
+: <a class="el" href="classmilvus_1_1SearchResults.html#a3c49214c3d3db2a76364059e280c1ac7">milvus::SearchResults</a>
+</li>
+<li>RecentErrors()
+: <a class="el" href="classmilvus_1_1ClientTelemetryManager.html#a76bb4b5c549d32bfcd7f56c92b852f30">milvus::ClientTelemetryManager</a>
+</li>
+<li>RecordOperation()
+: <a class="el" href="classmilvus_1_1ClientTelemetryManager.html#acd00805fa727fd483f1b928ca684f94c">milvus::ClientTelemetryManager</a>
 </li>
 <li>ReduceStopForBest()
-: <a class="el" href="classmilvus_1_1_query_iterator_arguments.html#a09947b2115428d98d2deba2d025ee1e4">milvus::QueryIteratorArguments</a>
-, <a class="el" href="classmilvus_1_1_query_iterator_request.html#a123c9b2d91e66d5ed45f80ba1842e8b4">milvus::QueryIteratorRequest</a>
+: <a class="el" href="classmilvus_1_1QueryIteratorArguments.html#a09947b2115428d98d2deba2d025ee1e4">milvus::QueryIteratorArguments</a>
+, <a class="el" href="classmilvus_1_1QueryIteratorRequest.html#a123c9b2d91e66d5ed45f80ba1842e8b4">milvus::QueryIteratorRequest</a>
 </li>
 <li>Refresh()
-: <a class="el" href="classmilvus_1_1_load_collection_request.html#ae634295466fb0c7ce6d9f62eae383acd">milvus::LoadCollectionRequest</a>
-, <a class="el" href="classmilvus_1_1_load_partitions_request.html#a36e25e6cfb69885bce611f87571d2b5f">milvus::LoadPartitionsRequest</a>
+: <a class="el" href="classmilvus_1_1LoadCollectionRequest.html#ae634295466fb0c7ce6d9f62eae383acd">milvus::LoadCollectionRequest</a>
+, <a class="el" href="classmilvus_1_1LoadPartitionsRequest.html#a36e25e6cfb69885bce611f87571d2b5f">milvus::LoadPartitionsRequest</a>
+</li>
+<li>RefreshExternalCollection()
+: <a class="el" href="classmilvus_1_1MilvusClientV2.html#a9dea6352213a4ecba52aec2b54d88533">milvus::MilvusClientV2</a>
+</li>
+<li>RefreshExternalCollectionRequest()
+: <a class="el" href="classmilvus_1_1RefreshExternalCollectionRequest.html#a0fc18756c140a35073e0fa03653f87ba">milvus::RefreshExternalCollectionRequest</a>
+</li>
+<li>RefreshExternalCollectionResponse()
+: <a class="el" href="classmilvus_1_1RefreshExternalCollectionResponse.html#a8d963ff8637ea3915deafdc43d33df08">milvus::RefreshExternalCollectionResponse</a>
+</li>
+<li>RefreshLoad()
+: <a class="el" href="classmilvus_1_1MilvusClientV2.html#a676626a422ede5b9a6453fd6a1213349">milvus::MilvusClientV2</a>
+</li>
+<li>RefreshLoadRequest()
+: <a class="el" href="classmilvus_1_1RefreshLoadRequest.html#a585643e0d6e993ff23041e6f3279b4a6">milvus::RefreshLoadRequest</a>
+</li>
+<li>RegisterCommandHandler()
+: <a class="el" href="classmilvus_1_1ClientTelemetryManager.html#a09bb25817d5c9ef37527ab5c51a871c0">milvus::ClientTelemetryManager</a>
 </li>
 <li>ReleaseCollection()
-: <a class="el" href="classmilvus_1_1_milvus_client.html#aab31131eca6dffbdd9e3257ae9f7f87f">milvus::MilvusClient</a>
-, <a class="el" href="classmilvus_1_1_milvus_client_v2.html#aef1ad4d68b196e17b7da3e91796ec9ed">milvus::MilvusClientV2</a>
+: <a class="el" href="classmilvus_1_1MilvusClient.html#aab31131eca6dffbdd9e3257ae9f7f87f">milvus::MilvusClient</a>
+, <a class="el" href="classmilvus_1_1MilvusClientV2.html#aef1ad4d68b196e17b7da3e91796ec9ed">milvus::MilvusClientV2</a>
 </li>
 <li>ReleaseCollectionRequest()
-: <a class="el" href="classmilvus_1_1_release_collection_request.html#af2a8ea715adf2da0cad5b702f455073a">milvus::ReleaseCollectionRequest</a>
+: <a class="el" href="classmilvus_1_1ReleaseCollectionRequest.html#af2a8ea715adf2da0cad5b702f455073a">milvus::ReleaseCollectionRequest</a>
 </li>
 <li>ReleasePartitions()
-: <a class="el" href="classmilvus_1_1_milvus_client.html#a24576d00b4baa08d13de0d9eecffc7bd">milvus::MilvusClient</a>
-, <a class="el" href="classmilvus_1_1_milvus_client_v2.html#afef171a5ef84e422b6faf0bee8b8d5ac">milvus::MilvusClientV2</a>
+: <a class="el" href="classmilvus_1_1MilvusClient.html#a24576d00b4baa08d13de0d9eecffc7bd">milvus::MilvusClient</a>
+, <a class="el" href="classmilvus_1_1MilvusClientV2.html#afef171a5ef84e422b6faf0bee8b8d5ac">milvus::MilvusClientV2</a>
 </li>
 <li>ReleasePartitionsRequest()
-: <a class="el" href="classmilvus_1_1_release_partitions_request.html#a9f015aa5726e94fcdacd734ad3605003">milvus::ReleasePartitionsRequest</a>
+: <a class="el" href="classmilvus_1_1ReleasePartitionsRequest.html#a9f015aa5726e94fcdacd734ad3605003">milvus::ReleasePartitionsRequest</a>
+</li>
+<li>RemoveFileResource()
+: <a class="el" href="classmilvus_1_1MilvusClientV2.html#a49573def3590349d6916d34f2cab7d09">milvus::MilvusClientV2</a>
 </li>
 <li>RemovePrivilegesFromGroup()
-: <a class="el" href="classmilvus_1_1_milvus_client.html#aec6eebbcef688044717fc45e4ee0aeb2">milvus::MilvusClient</a>
-, <a class="el" href="classmilvus_1_1_milvus_client_v2.html#ac79f95063afdb52f053cc8bbee736fff">milvus::MilvusClientV2</a>
+: <a class="el" href="classmilvus_1_1MilvusClient.html#aec6eebbcef688044717fc45e4ee0aeb2">milvus::MilvusClient</a>
+, <a class="el" href="classmilvus_1_1MilvusClientV2.html#ac79f95063afdb52f053cc8bbee736fff">milvus::MilvusClientV2</a>
 </li>
 <li>RenameCollection()
-: <a class="el" href="classmilvus_1_1_milvus_client.html#afe19cf06cf9ee596315b26d4fa619316">milvus::MilvusClient</a>
-, <a class="el" href="classmilvus_1_1_milvus_client_v2.html#aa83645d00f86e43902bcef889be5dde7">milvus::MilvusClientV2</a>
+: <a class="el" href="classmilvus_1_1MilvusClient.html#afe19cf06cf9ee596315b26d4fa619316">milvus::MilvusClient</a>
+, <a class="el" href="classmilvus_1_1MilvusClientV2.html#aa83645d00f86e43902bcef889be5dde7">milvus::MilvusClientV2</a>
 </li>
 <li>RenameCollectionRequest()
-: <a class="el" href="classmilvus_1_1_rename_collection_request.html#a72a7198458a31220879f6535b29c8de8">milvus::RenameCollectionRequest</a>
+: <a class="el" href="classmilvus_1_1RenameCollectionRequest.html#a72a7198458a31220879f6535b29c8de8">milvus::RenameCollectionRequest</a>
+</li>
+<li>ReplicaID()
+: <a class="el" href="classmilvus_1_1ReplicaInfo.html#aa09d4bd2edcf1b6cf7c206f0d673467a">milvus::ReplicaInfo</a>
+</li>
+<li>ReplicaInfo()
+: <a class="el" href="classmilvus_1_1ReplicaInfo.html#a73c95ffdda696c049f4bac99e6868f08">milvus::ReplicaInfo</a>
 </li>
 <li>ReplicaNum()
-: <a class="el" href="classmilvus_1_1_load_collection_request.html#ab6cd969a4390af043ffe5f5f501f9f46">milvus::LoadCollectionRequest</a>
-, <a class="el" href="classmilvus_1_1_load_partitions_request.html#af7e5b4120981d608a900e435810d1bc6">milvus::LoadPartitionsRequest</a>
+: <a class="el" href="classmilvus_1_1LoadCollectionRequest.html#ab6cd969a4390af043ffe5f5f501f9f46">milvus::LoadCollectionRequest</a>
+, <a class="el" href="classmilvus_1_1LoadPartitionsRequest.html#af7e5b4120981d608a900e435810d1bc6">milvus::LoadPartitionsRequest</a>
+</li>
+<li>Replicas()
+: <a class="el" href="classmilvus_1_1DescribeReplicasResponse.html#a1f9a003d23ecf03448e153526ee28840">milvus::DescribeReplicasResponse</a>
+</li>
+<li>request_count
+: <a class="el" href="structmilvus_1_1TelemetryMetric.html#ab6229b324cb967e94d442d582b5dc73e">milvus::TelemetryMetric</a>
+</li>
+<li>request_id
+: <a class="el" href="structmilvus_1_1TelemetryError.html#ad6abc54a38ce4ba48c1f0b617bb13efd">milvus::TelemetryError</a>
 </li>
 <li>Requests()
-: <a class="el" href="classmilvus_1_1_resource_group_config.html#a8d8574fe86a984fc83b23f39e3389ff4">milvus::ResourceGroupConfig</a>
+: <a class="el" href="classmilvus_1_1ResourceGroupConfig.html#a8d8574fe86a984fc83b23f39e3389ff4">milvus::ResourceGroupConfig</a>
 </li>
 <li>Rerank()
-: <a class="el" href="classmilvus_1_1_hybrid_search_arguments.html#a3a24bbf7fa8ed244e0fda6599ba84c94">milvus::HybridSearchArguments</a>
-, <a class="el" href="classmilvus_1_1_hybrid_search_request.html#a2233b84b7ce7bbe5b3f6b975f1336856">milvus::HybridSearchRequest</a>
-, <a class="el" href="classmilvus_1_1_search_request.html#a616693bcce527db07c0c32e46574384d">milvus::SearchRequest</a>
+: <a class="el" href="classmilvus_1_1HybridSearchArguments.html#a3a24bbf7fa8ed244e0fda6599ba84c94">milvus::HybridSearchArguments</a>
+, <a class="el" href="classmilvus_1_1HybridSearchRequest.html#a2233b84b7ce7bbe5b3f6b975f1336856">milvus::HybridSearchRequest</a>
+, <a class="el" href="classmilvus_1_1SearchRequest.html#ab5d5c2af412d07f3e21dddc6b346a3f2">milvus::SearchRequest</a>
 </li>
 <li>Reserve()
-: <a class="el" href="classmilvus_1_1_field_data.html#a8800b9a72d22bd2b3a7e7e05dca457ec">milvus::FieldData&lt; T, Dt &gt;</a>
+: <a class="el" href="classmilvus_1_1Field.html#ad71bfd845af0dfd4a8c88a69fc94ad82">milvus::Field</a>
+, <a class="el" href="classmilvus_1_1FieldData.html#a8800b9a72d22bd2b3a7e7e05dca457ec">milvus::FieldData&lt; T, Dt &gt;</a>
+</li>
+<li>ResetConnection()
+: <a class="el" href="classmilvus_1_1UpdatePasswordRequest.html#a07aaf6c275ca19e1c26ba3112320d78e">milvus::UpdatePasswordRequest</a>
+</li>
+<li>ResourceGroupName()
+: <a class="el" href="classmilvus_1_1ReplicaInfo.html#a09cf1f87188c17f09b23c3ec8c9ababd">milvus::ReplicaInfo</a>
 </li>
 <li>ResourceGroupRequest()
-: <a class="el" href="classmilvus_1_1_resource_group_request.html#a5afcf330ff7aa53c73d6a2aa48d09506">milvus::ResourceGroupRequest</a>
+: <a class="el" href="classmilvus_1_1ResourceGroupRequest.html#a5afcf330ff7aa53c73d6a2aa48d09506">milvus::ResourceGroupRequest</a>
+</li>
+<li>Resources()
+: <a class="el" href="classmilvus_1_1ListFileResourcesResponse.html#a2548dc17e425fe4e6e45e867499a331d">milvus::ListFileResourcesResponse</a>
+</li>
+<li>RestoreSnapshot()
+: <a class="el" href="classmilvus_1_1MilvusClientV2.html#ae1ccf844ce19f7cefc84e84bb166c153">milvus::MilvusClientV2</a>
+</li>
+<li>RestoreSnapshotRequest()
+: <a class="el" href="classmilvus_1_1RestoreSnapshotRequest.html#ab5cb27561d63fd711d7a0fcc9228c569">milvus::RestoreSnapshotRequest</a>
+</li>
+<li>RestoreSnapshotResponse()
+: <a class="el" href="classmilvus_1_1RestoreSnapshotResponse.html#a052d386d309eb562f5b9dc10f5e7e216">milvus::RestoreSnapshotResponse</a>
 </li>
 <li>Result()
-: <a class="el" href="classmilvus_1_1_list_segments_response.html#af6d65f42ca2e2848a19bfa591d188235">milvus::ListSegmentsResponse&lt; T &gt;</a>
+: <a class="el" href="classmilvus_1_1ListSegmentsResponse.html#a88a0b8a6bb09ed18af376acb1209ead6">milvus::ListSegmentsResponse&lt; T &gt;</a>
 </li>
 <li>Results()
-: <a class="el" href="classmilvus_1_1_dml_response.html#a3ca169e26832bc2af36fbf444dd8f272">milvus::DmlResponse</a>
-, <a class="el" href="classmilvus_1_1_query_response.html#a4d7a24976dbbfb50238bf367f664a281">milvus::QueryResponse</a>
-, <a class="el" href="classmilvus_1_1_run_analyzer_response.html#ae0d10aad68fb462982b423abf0294440">milvus::RunAnalyzerResponse</a>
-, <a class="el" href="classmilvus_1_1_search_response.html#addb572b0950c4eabcf3678c5c11d6404">milvus::SearchResponse</a>
-, <a class="el" href="classmilvus_1_1_search_results.html#ada5f505b22eb32d3d1d1446b3e883ee8">milvus::SearchResults</a>
+: <a class="el" href="classmilvus_1_1DmlResponse.html#a73e32e5448f92fc076b97843bee31486">milvus::DmlResponse</a>
+, <a class="el" href="classmilvus_1_1QueryResponse.html#ad29421bd070243f20cb4e2bd7f38d326">milvus::QueryResponse</a>
+, <a class="el" href="classmilvus_1_1RunAnalyzerResponse.html#a2ac5031d026cebc5dad86c39da8de9b8">milvus::RunAnalyzerResponse</a>
+, <a class="el" href="classmilvus_1_1SearchResponse.html#a1775cbbdd8c27c4aa83be47380a21933">milvus::SearchResponse</a>
+, <a class="el" href="classmilvus_1_1SearchResults.html#a012374a607ddc7c18e18b230e2191c83">milvus::SearchResults</a>
 </li>
 <li>RetryOnRateLimit()
-: <a class="el" href="classmilvus_1_1_retry_param.html#a8b85ea7a82cb99e997a2bbd911e9f14d">milvus::RetryParam</a>
+: <a class="el" href="classmilvus_1_1RetryParam.html#a8b85ea7a82cb99e997a2bbd911e9f14d">milvus::RetryParam</a>
+</li>
+<li>RetryParam()
+: <a class="el" href="classmilvus_1_1RetryParam.html#a0d0b845f7ce7e3ddf5b40ea765c21c6d">milvus::RetryParam</a>
 </li>
 <li>RevokePrivilege()
-: <a class="el" href="classmilvus_1_1_milvus_client.html#a1ed6e474c29536031688b9bf3ade9050">milvus::MilvusClient</a>
+: <a class="el" href="classmilvus_1_1MilvusClient.html#a1ed6e474c29536031688b9bf3ade9050">milvus::MilvusClient</a>
+, <a class="el" href="classmilvus_1_1MilvusClientV2.html#a99f0ca9faee873372bf31b719ba7afc1">milvus::MilvusClientV2</a>
 </li>
 <li>RevokePrivilegeV2()
-: <a class="el" href="classmilvus_1_1_milvus_client_v2.html#a33200da7c9f5a6fe0f031bea4667b6b0">milvus::MilvusClientV2</a>
+: <a class="el" href="classmilvus_1_1MilvusClientV2.html#a33200da7c9f5a6fe0f031bea4667b6b0">milvus::MilvusClientV2</a>
 </li>
 <li>RevokeRole()
-: <a class="el" href="classmilvus_1_1_milvus_client.html#aeb576d7001cecadf250373ea2c5baca7">milvus::MilvusClient</a>
-, <a class="el" href="classmilvus_1_1_milvus_client_v2.html#a97cca71f973596c5dc3c34a09514ff69">milvus::MilvusClientV2</a>
+: <a class="el" href="classmilvus_1_1MilvusClient.html#aeb576d7001cecadf250373ea2c5baca7">milvus::MilvusClient</a>
+, <a class="el" href="classmilvus_1_1MilvusClientV2.html#a97cca71f973596c5dc3c34a09514ff69">milvus::MilvusClientV2</a>
 </li>
 <li>role_name_
-: <a class="el" href="structmilvus_1_1_grant_item.html#ae2736aef8fadddfce67e2763560eae0a">milvus::GrantItem</a>
+: <a class="el" href="structmilvus_1_1GrantItem.html#ae2736aef8fadddfce67e2763560eae0a">milvus::GrantItem</a>
 </li>
 <li>RoleDesc()
-: <a class="el" href="classmilvus_1_1_role_desc.html#a5f935088891b5af78016ca96b473e596">milvus::RoleDesc</a>
+: <a class="el" href="classmilvus_1_1RoleDesc.html#a5f935088891b5af78016ca96b473e596">milvus::RoleDesc</a>
 </li>
 <li>RoleName()
-: <a class="el" href="classmilvus_1_1_create_role_request.html#a561c8776457ed5b32e3a588ba833a46a">milvus::CreateRoleRequest</a>
-, <a class="el" href="classmilvus_1_1_describe_role_request.html#a3b1f765eede30ab5ae863044fa018b88">milvus::DescribeRoleRequest</a>
-, <a class="el" href="classmilvus_1_1_drop_role_request.html#a599163d5bd0fb3f8f8de23b468b37df3">milvus::DropRoleRequest</a>
-, <a class="el" href="classmilvus_1_1_privilege_v2_request.html#a0a4f4f354af87ec18dbffd1d843edc87">milvus::PrivilegeV2Request</a>
-, <a class="el" href="classmilvus_1_1_role_user_request.html#a464486e8d262e9abaf52147eb4bd5b79">milvus::RoleUserRequest</a>
+: <a class="el" href="classmilvus_1_1AlterRoleRequest.html#a208f48a83369aacbdf607086f5f88cd7">milvus::AlterRoleRequest</a>
+, <a class="el" href="classmilvus_1_1CreateRoleRequest.html#ae8347445ce498d5fcc3cc4b0c642e24b">milvus::CreateRoleRequest</a>
+, <a class="el" href="classmilvus_1_1DescribeRoleRequest.html#a753f006887785a65bda9c411a0c811af">milvus::DescribeRoleRequest</a>
+, <a class="el" href="classmilvus_1_1DropRoleRequest.html#ac33f55c010ce7bc34344d654311722b0">milvus::DropRoleRequest</a>
+, <a class="el" href="classmilvus_1_1PrivilegeRequest.html#a8bb1e5466dec3bb658d1f23c3867d05e">milvus::PrivilegeRequest</a>
+, <a class="el" href="classmilvus_1_1PrivilegeV2Request.html#a97668da805a52ab4105e713ca2343376">milvus::PrivilegeV2Request</a>
+, <a class="el" href="classmilvus_1_1RoleUserRequest.html#ada90ea79befc21f1abfb9c616e335f16">milvus::RoleUserRequest</a>
 </li>
 <li>RoleNames()
-: <a class="el" href="classmilvus_1_1_list_roles_response.html#a228ea66bd2d594fe05a7b3d2f4e4c83c">milvus::ListRolesResponse</a>
+: <a class="el" href="classmilvus_1_1ListRolesResponse.html#abe3d3a0febcab3d48e71109f06e2bbb0">milvus::ListRolesResponse</a>
 </li>
 <li>Roles()
-: <a class="el" href="classmilvus_1_1_user_desc.html#a88819d3f853b084dce08a83e92ab1b6a">milvus::UserDesc</a>
+: <a class="el" href="classmilvus_1_1UserDesc.html#a438b8e2e4f1b39296f20a9a56e131400">milvus::UserDesc</a>
 </li>
 <li>RoleUserRequest()
-: <a class="el" href="classmilvus_1_1_role_user_request.html#a4697baa3150d1c82c4f62a3a18acdaec">milvus::RoleUserRequest</a>
+: <a class="el" href="classmilvus_1_1RoleUserRequest.html#a4697baa3150d1c82c4f62a3a18acdaec">milvus::RoleUserRequest</a>
 </li>
 <li>RoundDecimal()
-: <a class="el" href="classmilvus_1_1_hybrid_search_arguments.html#a36477d9264d24f3c7ec86dc07193a174">milvus::HybridSearchArguments</a>
-, <a class="el" href="classmilvus_1_1_search_arguments.html#a86e54279326bee6c1b2cf1c3864dc847">milvus::SearchArguments</a>
-, <a class="el" href="classmilvus_1_1_search_request.html#af9e78b60e441299960891bf5f2b2280d">milvus::SearchRequest</a>
+: <a class="el" href="classmilvus_1_1HybridSearchArguments.html#a36477d9264d24f3c7ec86dc07193a174">milvus::HybridSearchArguments</a>
+, <a class="el" href="classmilvus_1_1SearchArguments.html#a86e54279326bee6c1b2cf1c3864dc847">milvus::SearchArguments</a>
+, <a class="el" href="classmilvus_1_1SearchRequest.html#af9e78b60e441299960891bf5f2b2280d">milvus::SearchRequest</a>
 </li>
 <li>RowCount()
-: <a class="el" href="classmilvus_1_1_collection_stat.html#abe35e504349f96d9f5351c00a3b82e55">milvus::CollectionStat</a>
-, <a class="el" href="classmilvus_1_1_partition_stat.html#a67137365a97dd5a4d62a993a9aa6b86e">milvus::PartitionStat</a>
-, <a class="el" href="classmilvus_1_1_segment_info.html#adcf9ed245a2c6f52355e1c61b7d9cf9e">milvus::SegmentInfo</a>
+: <a class="el" href="classmilvus_1_1CollectionStat.html#abe35e504349f96d9f5351c00a3b82e55">milvus::CollectionStat</a>
+, <a class="el" href="classmilvus_1_1PartitionStat.html#a67137365a97dd5a4d62a993a9aa6b86e">milvus::PartitionStat</a>
+, <a class="el" href="classmilvus_1_1SegmentInfo.html#adcf9ed245a2c6f52355e1c61b7d9cf9e">milvus::SegmentInfo</a>
 </li>
 <li>RowsData()
-: <a class="el" href="classmilvus_1_1_insert_request.html#ac3cb41a2738a63b95a54669435b6d881">milvus::InsertRequest</a>
+: <a class="el" href="classmilvus_1_1InsertRequest.html#a45979229101ec5fae28ab5ce04c4bb73">milvus::InsertRequest</a>
 </li>
 <li>RpcDeadlineMs()
-: <a class="el" href="classmilvus_1_1_connect_param.html#a493640d0514a2603e2911082e897d67a">milvus::ConnectParam</a>
+: <a class="el" href="classmilvus_1_1ConnectParam.html#a493640d0514a2603e2911082e897d67a">milvus::ConnectParam</a>
 </li>
 <li>RpcErrCode()
-: <a class="el" href="classmilvus_1_1_status.html#ae10aab1cfc1c74fd0a3597e0b2740dd6">milvus::Status</a>
+: <a class="el" href="classmilvus_1_1Status.html#ae10aab1cfc1c74fd0a3597e0b2740dd6">milvus::Status</a>
+</li>
+<li>RRFRerank()
+: <a class="el" href="classmilvus_1_1RRFRerank.html#a87fded82fca650c8b51144fe55b228fe">milvus::RRFRerank</a>
+</li>
+<li>run_containers
+: <a class="el" href="structmilvus_1_1RoaringBitmapStats.html#a92e837387d4426e4265515568c8ede80">milvus::RoaringBitmapStats</a>
 </li>
 <li>RunAnalyzer()
-: <a class="el" href="classmilvus_1_1_milvus_client.html#a6fc4ad8b8b0acfcf1302495779dc54c4">milvus::MilvusClient</a>
-, <a class="el" href="classmilvus_1_1_milvus_client_v2.html#af23d0963c98cee2ca2b20181c57e1de8">milvus::MilvusClientV2</a>
+: <a class="el" href="classmilvus_1_1MilvusClient.html#a6fc4ad8b8b0acfcf1302495779dc54c4">milvus::MilvusClient</a>
+, <a class="el" href="classmilvus_1_1MilvusClientV2.html#af23d0963c98cee2ca2b20181c57e1de8">milvus::MilvusClientV2</a>
+</li>
+<li>RunAnalyzerArguments()
+: <a class="el" href="classmilvus_1_1RunAnalyzerArguments.html#ab973063cb8ee8aa59cad5bf9df0efaa5">milvus::RunAnalyzerArguments</a>
 </li>
 <li>RunAnalyzerResponse()
-: <a class="el" href="classmilvus_1_1_run_analyzer_response.html#a115da4fb3604657434d1cd186e2aeeb6">milvus::RunAnalyzerResponse</a>
+: <a class="el" href="classmilvus_1_1RunAnalyzerResponse.html#a115da4fb3604657434d1cd186e2aeeb6">milvus::RunAnalyzerResponse</a>
 </li>
 </ul>
 </div><!-- contents -->
+</div><!-- doc-content -->
 <!-- start footer part -->
-<hr class="footer"/><address class="footer"><small>
-Generated by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.1
-</small></address>
+<div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
+  <ul>
+    <li class="footer">Generated by <a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.1 </li>
+  </ul>
+</div>
 </body>
 </html>

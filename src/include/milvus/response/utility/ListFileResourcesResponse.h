@@ -28,11 +28,23 @@ namespace milvus {
  */
 class MILVUS_SDK_API ListFileResourcesResponse {
  public:
+    /**
+     * @brief Constructor
+     */
     ListFileResourcesResponse() = default;
 
+    /**
+     * @brief Get the file resources.
+     * @return the resources.
+     */
     const std::vector<FileResourceInfo>&
     Resources() const;
 
+    /**
+     * @brief Set the file resources.
+     *
+     * @param [in] resources
+     */
     void
     SetResources(std::vector<FileResourceInfo>&& resources);
 

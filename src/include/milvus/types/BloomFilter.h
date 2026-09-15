@@ -39,6 +39,7 @@ constexpr double BloomFilterMaxFPR = 0.05;
 /**
  * @brief Recommended false-positive rate when a caller has no specific target.
  *
+ * @param [in] maxBloomFilterSize the max bloom filter size.
  * Sizing follows the Arrow formula, so a body holds roughly 0.72 members per byte at this
  * rate: a 64 MiB body (the default proxy.maxBloomFilterSize) holds about 48.6M members.
  * Bodies are powers of two, so a member count just past a tier boundary doubles the blob and
@@ -60,6 +61,7 @@ constexpr double BloomFilterDefaultFPR = 0.005;
  * alone -- never from the values -- and insertion is order-independent and idempotent, so
  * members can be streamed in from a cursor or a file and dropped as they go:
  *
+ * @param [in] BloomFilterDefaultFPR the bloom filter default FPR.
  * @code
  * milvus::BloomFilterBuilder builder(10000000, milvus::BloomFilterDefaultFPR);
  * while (cursor.Next()) {
@@ -94,24 +96,28 @@ class MILVUS_SDK_API BloomFilterBuilder {
 
     /**
      * @brief Insert an integer member, hashed as its 8-byte little-endian encoding.
+     * @param [in] value the value.
      */
     BloomFilterBuilder&
     AddInt64(int64_t value);
 
     /**
      * @brief Insert a string member, hashed as its raw UTF-8 bytes.
+     * @param [in] value the value.
      */
     BloomFilterBuilder&
     AddString(const std::string& value);
 
     /**
      * @brief Insert a whole vector of integer members.
+     * @param [in] values the values.
      */
     BloomFilterBuilder&
     AddInt64s(const std::vector<int64_t>& values);
 
     /**
      * @brief Insert a whole vector of string members.
+     * @param [in] values the values.
      */
     BloomFilterBuilder&
     AddStrings(const std::vector<std::string>& values);
@@ -119,18 +125,21 @@ class MILVUS_SDK_API BloomFilterBuilder {
     /**
      * @brief The value domains recorded so far. Zero means nothing was inserted, and such a
      * filter matches no row.
+     * @return the domains.
      */
     uint8_t
     Domains() const;
 
     /**
      * @brief The number of 32-byte blocks in the filter body.
+     * @return the num blocks.
      */
     uint32_t
     NumBlocks() const;
 
     /**
      * @brief Stamp the envelope header and return the blob.
+     * @return the build.
      */
     std::vector<uint8_t>
     Build() const;
@@ -141,6 +150,7 @@ class MILVUS_SDK_API BloomFilterBuilder {
      *
      * Binary rather than a JSON string: the filter body is not valid UTF-8, and proto3 bytes
      * has no UTF-8 constraint, so the blob travels raw with no base64 inflation.
+     * @return the build template.
      */
     nlohmann::json
     BuildTemplate() const;
@@ -168,6 +178,9 @@ BloomFilterTemplate(const std::vector<int64_t>& members, double fpr, nlohmann::j
 
 /**
  * @brief Build a filter over a string membership set, ready for AddFilterTemplate().
+ * @param [in] members the members.
+ * @param [in] fpr the fpr.
+ * @param [in] output the output.
  */
 MILVUS_SDK_API Status
 BloomFilterTemplate(const std::vector<std::string>& members, double fpr, nlohmann::json& output);
@@ -176,9 +189,14 @@ BloomFilterTemplate(const std::vector<std::string>& members, double fpr, nlohman
  * @brief The exact byte length a filter for @a n members at @a fpr will occupy, without
  * allocating it or hashing anything.
  *
+ * @param [in] default the default.
  * Use it to check a planned filter against the proxy limits before building it: the body must
+ * @param [in] default the default.
  * fit proxy.maxBloomFilterSize (64 MiB by default) and the whole request must fit
  * proxy.grpc.serverMaxRecvSize (128 MiB by default).
+ * @param [in] n the n.
+ * @param [in] fpr the fpr.
+ * @param [in] output the output.
  */
 MILVUS_SDK_API Status
 EstimateBloomFilterSize(uint64_t n, double fpr, uint64_t& output);

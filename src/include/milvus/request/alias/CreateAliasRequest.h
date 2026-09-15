@@ -25,6 +25,12 @@ namespace milvus {
 
 /**
  * @brief Used by MilvusClientV2::CreateAlias().
+ * @par Example
+ * @code
+ * auto status = client->CreateAlias(milvus::CreateAliasRequest()
+ *                                       .WithCollectionName("demo")
+ *                                       .WithAlias("demo_alias"));
+ * @endcode
  */
 class MILVUS_SDK_API CreateAliasRequest : public AliasRequestBase<CreateAliasRequest> {
  public:
@@ -35,18 +41,21 @@ class MILVUS_SDK_API CreateAliasRequest : public AliasRequestBase<CreateAliasReq
 
     /**
      * @brief Set name of the alias.
+     * @return the alias.
      */
     const std::string&
     Alias() const;
 
     /**
      * @brief Set name of the alias.
+     * @param [in] alias the alias.
      */
     void
     SetAlias(const std::string& alias);
 
     /**
      * @brief Set name of the alias.
+     * @param [in] alias the alias.
      */
     CreateAliasRequest&
     WithAlias(const std::string& alias);

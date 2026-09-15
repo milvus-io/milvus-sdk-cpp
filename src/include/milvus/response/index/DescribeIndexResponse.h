@@ -35,12 +35,14 @@ class MILVUS_SDK_API DescribeIndexResponse {
 
     /**
      * @brief Get index description.
+     * @return the descs.
      */
     const std::vector<IndexDesc>&
     Descs() const;
 
     /**
      * @brief Set index description.
+     * @param [in] descs the descs.
      */
     void
     SetDescs(std::vector<IndexDesc>&& descs);

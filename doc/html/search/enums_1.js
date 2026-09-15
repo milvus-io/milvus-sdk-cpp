@@ -1,4 +1,5 @@
 var searchData=
 [
-  ['datatype_2057',['DataType',['../namespacemilvus.html#a3bdf02cc09dcb59a1e1d2f287d90788b',1,'milvus']]]
+  ['compactionstatecode_3372',['CompactionStateCode',['../namespacemilvus.html#ae2c03b3dbf792fba6a8ab10cb3a7cc5a',1,'milvus']]],
+  ['consistencylevel_3373',['ConsistencyLevel',['../namespacemilvus.html#a26e8c5ec421df0853e145d04d0fbb414',1,'milvus']]]
 ];

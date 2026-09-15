@@ -26,18 +26,35 @@ namespace milvus {
  */
 class MILVUS_SDK_API GetRestoreSnapshotStateRequest {
  public:
+    /**
+     * @brief Constructor
+     */
     GetRestoreSnapshotStateRequest() = default;
 
+    /**
+     * @brief Get the restore job identifier.
+     * @return the job ID.
+     */
     int64_t
     JobID() const {
         return job_id_;
     }
 
+    /**
+     * @brief Set the restore job identifier.
+     *
+     * @param [in] job_id restore job identifier.
+     */
     void
     SetJobID(int64_t job_id) {
         job_id_ = job_id;
     }
 
+    /**
+     * @brief Set the restore job identifier.
+     *
+     * @param [in] job_id restore job identifier.
+     */
     GetRestoreSnapshotStateRequest&
     WithJobID(int64_t job_id) {
         SetJobID(job_id);

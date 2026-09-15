@@ -47,12 +47,14 @@ class MILVUS_SDK_API AnalyzerResult {
 
     /**
      * @brief Set tokens to be analyzed.
+     * @return the tokens.
      */
     const std::vector<AnalyzerToken>&
     Tokens() const;
 
     /**
      * @brief Add a token to be analyzed.
+     * @param [in] token the token.
      */
     Status
     AddToken(AnalyzerToken&& token);

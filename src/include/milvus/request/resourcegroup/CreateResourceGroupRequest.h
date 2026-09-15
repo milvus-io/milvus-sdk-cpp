@@ -33,36 +33,42 @@ class MILVUS_SDK_API CreateResourceGroupRequest {
 
     /**
      * @brief Get name of the resource group.
+     * @return the name.
      */
     const std::string&
     Name() const;
 
     /**
      * @brief Set name of the resource group.
+     * @param [in] name the name.
      */
     void
     SetName(const std::string& name);
 
     /**
      * @brief Set name of the resource group.
+     * @param [in] name the name.
      */
     CreateResourceGroupRequest&
     WithName(const std::string& name);
 
     /**
      * @brief Get resource group config.
+     * @return the config.
      */
     const ResourceGroupConfig&
     Config() const;
 
     /**
      * @brief Set resource group config.
+     * @param [in] config the config.
      */
     void
     SetConfig(ResourceGroupConfig&& config);
 
     /**
      * @brief Set resource group config.
+     * @param [in] config the config.
      */
     CreateResourceGroupRequest&
     WithConfig(ResourceGroupConfig&& config);

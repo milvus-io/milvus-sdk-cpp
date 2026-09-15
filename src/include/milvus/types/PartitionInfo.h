@@ -32,23 +32,29 @@ class MILVUS_SDK_API PartitionInfo {
  public:
     /**
      * @brief Constructor
+     * @param [in] name the name.
+     * @param [in] id the ID.
+     * @param [in] created_utc_timestamp the created utc timestamp.
      */
     PartitionInfo(std::string name, int64_t id, uint64_t created_utc_timestamp = 0);
 
     /**
      * @brief Get name of this partition.
+     * @return the name.
      */
     std::string
     Name() const;
 
     /**
      * @brief Get internal id of this partition.
+     * @return the ID.
      */
     int64_t
     Id() const;
 
     /**
      * @brief Get the utc timestamp calculated by created_timestamp.
+     * @return the created utc timestamp.
      */
     uint64_t
     CreatedUtcTimestamp() const;
@@ -56,6 +62,7 @@ class MILVUS_SDK_API PartitionInfo {
     /**
      * @brief Get partition loading percentage.
      * @deprecated This method always returns 0, use GetLoadState to get the load state instead.
+     * @return the in memory percentage.
      */
     int64_t
     InMemoryPercentage() const;
@@ -63,6 +70,7 @@ class MILVUS_SDK_API PartitionInfo {
     /**
      * @brief Indicated whether the partition has been loaded completed.
      * @deprecated This method always returns false, use GetLoadState to get the load state instead.
+     * @return the loaded.
      */
     bool
     Loaded() const;

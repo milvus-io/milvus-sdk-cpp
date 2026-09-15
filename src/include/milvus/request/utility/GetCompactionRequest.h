@@ -34,18 +34,21 @@ class MILVUS_SDK_API GetCompactionRequest {
 
     /**
      * @brief Get compaction job id which is returned by Compact().
+     * @return the compaction ID.
      */
     int64_t
     CompactionID() const;
 
     /**
      * @brief Set compaction job id which is returned by Compact().
+     * @param [in] id the ID.
      */
     void
     SetCompactionID(int64_t id);
 
     /**
      * @brief Set compaction job id which is returned by Compact().
+     * @param [in] id the ID.
      */
     GetCompactionRequest&
     WithCompactionID(int64_t id);

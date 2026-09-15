@@ -24,41 +24,92 @@
 
 namespace milvus {
 
+/**
+ * @brief Used by MilvusClientV2::DumpMessages() to dump messages from a Pulsar channel.
+ */
 class MILVUS_SDK_API DumpMessagesRequest {
  public:
+    /**
+     * @brief Get the Pulsar channel name.
+     * @return the p channel.
+     */
     const std::string&
     PChannel() const;
 
+    /**
+     * @brief Set the Pulsar channel name.
+     * @param [in] pchannel the pchannel.
+     */
     void
     SetPChannel(const std::string& pchannel);
 
+    /**
+     * @brief Set the Pulsar channel name.
+     * @param [in] pchannel the pchannel.
+     */
     DumpMessagesRequest&
     WithPChannel(const std::string& pchannel);
 
+    /**
+     * @brief Get the start message identifier.
+     * @return the start message ID.
+     */
     const ReplicateMessageID&
     StartMessageID() const;
 
+    /**
+     * @brief Set the start message identifier.
+     * @param [in] start_message_id the start message ID.
+     */
     void
     SetStartMessageID(ReplicateMessageID&& start_message_id);
 
+    /**
+     * @brief Set the start message identifier.
+     * @param [in] start_message_id the start message ID.
+     */
     DumpMessagesRequest&
     WithStartMessageID(ReplicateMessageID&& start_message_id);
 
+    /**
+     * @brief Get the start time tick.
+     * @return the start time tick.
+     */
     uint64_t
     StartTimeTick() const;
 
+    /**
+     * @brief Set the start time tick.
+     * @param [in] start_timetick the start timetick.
+     */
     void
     SetStartTimeTick(uint64_t start_timetick);
 
+    /**
+     * @brief Set the start time tick.
+     * @param [in] start_timetick the start timetick.
+     */
     DumpMessagesRequest&
     WithStartTimeTick(uint64_t start_timetick);
 
+    /**
+     * @brief Get the end time tick.
+     * @return the end time tick.
+     */
     uint64_t
     EndTimeTick() const;
 
+    /**
+     * @brief Set the end time tick.
+     * @param [in] end_timetick the end timetick.
+     */
     void
     SetEndTimeTick(uint64_t end_timetick);
 
+    /**
+     * @brief Set the end time tick.
+     * @param [in] end_timetick the end timetick.
+     */
     DumpMessagesRequest&
     WithEndTimeTick(uint64_t end_timetick);
 

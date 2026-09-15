@@ -35,42 +35,49 @@ class MILVUS_SDK_API PrivilegesOfGroupRequest {
 
     /**
      * @brief Name of the privilege group.
+     * @return the group name.
      */
     const std::string&
     GroupName() const;
 
     /**
      * @brief Set name of the privilege group..
+     * @param [in] name the name.
      */
     void
     SetGroupName(const std::string& name);
 
     /**
      * @brief Set name of the privilege group..
+     * @param [in] name the name.
      */
     PrivilegesOfGroupRequest&
     WithGroupName(const std::string& name);
 
     /**
      * @brief Get privileges of the group to be added or removed.
+     * @return the privileges.
      */
     const std::set<std::string>&
     Privileges() const;
 
     /**
      * @brief Set privileges of the group to be added or removed.
+     * @param [in] privileges the privileges.
      */
     void
     SetPrivileges(std::set<std::string>&& privileges);
 
     /**
      * @brief Set privileges of the group to be added or removed.
+     * @param [in] privileges the privileges.
      */
     PrivilegesOfGroupRequest&
     WithPrivileges(std::set<std::string>&& privileges);
 
     /**
      * @brief Add a privileges of the group to be added or removed.
+     * @param [in] privilege the privilege.
      */
     PrivilegesOfGroupRequest&
     AddPrivilege(const std::string& privilege);

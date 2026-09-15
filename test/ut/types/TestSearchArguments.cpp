@@ -44,6 +44,28 @@ TEST_F(SearchArgumentsTest, GeneralTesting) {
 
     auto status = arguments.AddOutputField("");
     EXPECT_FALSE(status.IsOk());
+
+    // deprecated Expression/SetExpression aliases
+    auto set_status = arguments.SetExpression("expr2");
+    EXPECT_TRUE(set_status.IsOk());
+    EXPECT_EQ("expr2", arguments.Expression());
+    EXPECT_EQ("expr2", arguments.Filter());
+
+    // deprecated TopK/SetTopK aliases
+    auto topk_status = arguments.SetTopK(25);
+    EXPECT_TRUE(topk_status.IsOk());
+    EXPECT_EQ(25, arguments.TopK());
+    EXPECT_EQ(25, arguments.Limit());
+
+    // deprecated Offset
+    auto offset_status = arguments.SetOffset(7);
+    EXPECT_TRUE(offset_status.IsOk());
+    EXPECT_EQ(7, arguments.Offset());
+
+    // deprecated TravelTimestamp (accepted but not stored)
+    auto ts_status = arguments.SetTravelTimestamp(5000);
+    EXPECT_TRUE(ts_status.IsOk());
+    EXPECT_EQ(0, arguments.TravelTimestamp());
 }
 
 TEST_F(SearchArgumentsTest, VectorTesting) {

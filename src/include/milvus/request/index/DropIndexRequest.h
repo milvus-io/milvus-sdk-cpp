@@ -33,6 +33,7 @@ class MILVUS_SDK_API DropIndexRequest : public IndexRequestBase<DropIndexRequest
 
     /**
      * @brief Name of the field.
+     * @return the field name.
      */
     const std::string&
     FieldName() const;
@@ -40,6 +41,7 @@ class MILVUS_SDK_API DropIndexRequest : public IndexRequestBase<DropIndexRequest
     /**
      * @brief Set name of the field.
      * Note: if both field_name and index_name are specified, it will use index name firstly.
+     * @param [in] field_name the field name.
      */
     void
     SetFieldName(const std::string& field_name);
@@ -47,12 +49,14 @@ class MILVUS_SDK_API DropIndexRequest : public IndexRequestBase<DropIndexRequest
     /**
      * @brief Set name of the field.
      * Note: if both field_name and index_name are specified, it will use index name firstly.
+     * @param [in] field_name the field name.
      */
     DropIndexRequest&
     WithFieldName(const std::string& field_name);
 
     /**
      * @brief Name of the index.
+     * @return the index name.
      */
     const std::string&
     IndexName() const;
@@ -60,6 +64,7 @@ class MILVUS_SDK_API DropIndexRequest : public IndexRequestBase<DropIndexRequest
     /**
      * @brief Set name of the index.
      * Note: if both field_name and index_name are specified, it will use index name firstly.
+     * @param [in] index_name the index name.
      */
     void
     SetIndexName(const std::string& index_name);
@@ -67,6 +72,7 @@ class MILVUS_SDK_API DropIndexRequest : public IndexRequestBase<DropIndexRequest
     /**
      * @brief Set name of the index.
      * Note: if both field_name and index_name are specified, it will use index name firstly.
+     * @param [in] index_name the index name.
      */
     DropIndexRequest&
     WithIndexName(const std::string& index_name);

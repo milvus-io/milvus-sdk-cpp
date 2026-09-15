@@ -34,6 +34,7 @@ class MILVUS_SDK_API ListPartitionsRequest {
 
     /**
      * @brief Database name.
+     * @return the database name.
      */
     const std::string&
     DatabaseName() const;
@@ -41,6 +42,7 @@ class MILVUS_SDK_API ListPartitionsRequest {
     /**
      * @brief Set database name.
      * If database name is empty, will list collections of the default database.
+     * @param [in] db_name the DB name.
      */
     void
     SetDatabaseName(const std::string& db_name);
@@ -48,24 +50,28 @@ class MILVUS_SDK_API ListPartitionsRequest {
     /**
      * @brief Set database name.
      * If database name is empty, will list collections of the default database.
+     * @param [in] db_name the DB name.
      */
     ListPartitionsRequest&
     WithDatabaseName(const std::string& db_name);
 
     /**
      * @brief Name of the collection.
+     * @return the collection name.
      */
     const std::string&
     CollectionName() const;
 
     /**
      * @brief Set name of the collection.
+     * @param [in] collection_name the collection name.
      */
     void
     SetCollectionName(const std::string& collection_name);
 
     /**
      * @brief Set name of the collection.
+     * @param [in] collection_name the collection name.
      */
     ListPartitionsRequest&
     WithCollectionName(const std::string& collection_name);

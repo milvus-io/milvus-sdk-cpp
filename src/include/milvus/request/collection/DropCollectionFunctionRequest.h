@@ -35,18 +35,21 @@ class MILVUS_SDK_API DropCollectionFunctionRequest : public CollectionRequestBas
 
     /**
      * @brief Name of the function to drop.
+     * @return the function name.
      */
     const std::string&
     FunctionName() const;
 
     /**
      * @brief Set the name of the function to drop.
+     * @param [in] function_name the function name.
      */
     void
     SetFunctionName(std::string function_name);
 
     /**
      * @brief Set the name of the function to drop.
+     * @param [in] function_name the function name.
      */
     DropCollectionFunctionRequest&
     WithFunctionName(std::string function_name);

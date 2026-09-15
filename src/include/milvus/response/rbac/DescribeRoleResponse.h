@@ -33,12 +33,14 @@ class MILVUS_SDK_API DescribeRoleResponse {
 
     /**
      * @brief Get role description.
+     * @return the desc.
      */
     const RoleDesc&
     Desc() const;
 
     /**
      * @brief Set role description.
+     * @param [in] descs the descs.
      */
     void
     SetDesc(RoleDesc&& descs);

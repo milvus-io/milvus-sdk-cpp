@@ -1,10 +1,19 @@
 var searchData=
 [
-  ['queryarguments_1132',['QueryArguments',['../classmilvus_1_1_query_arguments.html',1,'milvus']]],
-  ['queryiteratorarguments_1133',['QueryIteratorArguments',['../classmilvus_1_1_query_iterator_arguments.html',1,'milvus']]],
-  ['queryiteratorrequest_1134',['QueryIteratorRequest',['../classmilvus_1_1_query_iterator_request.html',1,'milvus']]],
-  ['queryrequest_1135',['QueryRequest',['../classmilvus_1_1_query_request.html',1,'milvus']]],
-  ['queryresponse_1136',['QueryResponse',['../classmilvus_1_1_query_response.html',1,'milvus']]],
-  ['queryresults_1137',['QueryResults',['../classmilvus_1_1_query_results.html',1,'milvus']]],
-  ['querysegmentinfo_1138',['QuerySegmentInfo',['../classmilvus_1_1_query_segment_info.html',1,'milvus']]]
+  ['partitioninfo_1850',['PartitionInfo',['../classmilvus_1_1PartitionInfo.html',1,'milvus']]],
+  ['partitionrequestbase_1851',['PartitionRequestBase',['../classmilvus_1_1PartitionRequestBase.html',1,'milvus']]],
+  ['partitionrequestbase_3c_20createpartitionrequest_20_3e_1852',['PartitionRequestBase&lt; CreatePartitionRequest &gt;',['../classmilvus_1_1PartitionRequestBase.html',1,'milvus']]],
+  ['partitionrequestbase_3c_20droppartitionrequest_20_3e_1853',['PartitionRequestBase&lt; DropPartitionRequest &gt;',['../classmilvus_1_1PartitionRequestBase.html',1,'milvus']]],
+  ['partitionrequestbase_3c_20getpartitionstatsrequest_20_3e_1854',['PartitionRequestBase&lt; GetPartitionStatsRequest &gt;',['../classmilvus_1_1PartitionRequestBase.html',1,'milvus']]],
+  ['partitionrequestbase_3c_20haspartitionrequest_20_3e_1855',['PartitionRequestBase&lt; HasPartitionRequest &gt;',['../classmilvus_1_1PartitionRequestBase.html',1,'milvus']]],
+  ['partitionstat_1856',['PartitionStat',['../classmilvus_1_1PartitionStat.html',1,'milvus']]],
+  ['pinsnapshotdatarequest_1857',['PinSnapshotDataRequest',['../classmilvus_1_1PinSnapshotDataRequest.html',1,'milvus']]],
+  ['pinsnapshotdataresponse_1858',['PinSnapshotDataResponse',['../classmilvus_1_1PinSnapshotDataResponse.html',1,'milvus']]],
+  ['privilegegroupinfo_1859',['PrivilegeGroupInfo',['../classmilvus_1_1PrivilegeGroupInfo.html',1,'milvus']]],
+  ['privilegegrouprequest_1860',['PrivilegeGroupRequest',['../classmilvus_1_1PrivilegeGroupRequest.html',1,'milvus']]],
+  ['privilegerequest_1861',['PrivilegeRequest',['../classmilvus_1_1PrivilegeRequest.html',1,'milvus']]],
+  ['privilegesofgrouprequest_1862',['PrivilegesOfGroupRequest',['../classmilvus_1_1PrivilegesOfGroupRequest.html',1,'milvus']]],
+  ['privilegev2request_1863',['PrivilegeV2Request',['../classmilvus_1_1PrivilegeV2Request.html',1,'milvus']]],
+  ['progress_1864',['Progress',['../structmilvus_1_1Progress.html',1,'milvus']]],
+  ['progressmonitor_1865',['ProgressMonitor',['../classmilvus_1_1ProgressMonitor.html',1,'milvus']]]
 ];

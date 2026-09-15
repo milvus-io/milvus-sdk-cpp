@@ -34,18 +34,21 @@ class MILVUS_SDK_API PrivilegeGroupRequest {
 
     /**
      * @brief Name of the privilege group.
+     * @return the group name.
      */
     const std::string&
     GroupName() const;
 
     /**
      * @brief Set name of the privilege group.
+     * @param [in] name the name.
      */
     void
     SetGroupName(const std::string& name);
 
     /**
      * @brief Set name of the privilege group.
+     * @param [in] name the name.
      */
     PrivilegeGroupRequest&
     WithGroupName(const std::string& name);

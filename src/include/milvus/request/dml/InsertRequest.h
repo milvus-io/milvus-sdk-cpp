@@ -27,6 +27,17 @@ namespace milvus {
 
 /**
  * @brief Used by MilvusClientV2::Insert()
+ *
+ * Insert does not check duplicate primary keys; use Upsert to update or avoid duplicates.
+ * @par Example
+ * @code
+ * milvus::InsertResponse response;
+ * milvus::InsertRequest request;
+ * request.WithCollectionName("demo")
+ *     .AddRowData({{ "id", 1 }, { "vector", std::vector<float>{0.1f, 0.2f, 0.3f, 0.4f} }})
+ *     .AddRowData({{ "id", 2 }, { "vector", std::vector<float>{0.5f, 0.6f, 0.7f, 0.8f} }});
+ * auto status = client->Insert(request, response);
+ * @endcode
  */
 class MILVUS_SDK_API InsertRequest : public DMLRequestBase<InsertRequest> {
  public:
@@ -37,6 +48,7 @@ class MILVUS_SDK_API InsertRequest : public DMLRequestBase<InsertRequest> {
 
     /**
      * @brief Get fields data.
+     * @return the columns data.
      */
     const std::vector<FieldDataPtr>&
     ColumnsData() const;
@@ -44,6 +56,7 @@ class MILVUS_SDK_API InsertRequest : public DMLRequestBase<InsertRequest> {
     /**
      * @brief Set fields data.
      * ColumnsData and RowsData cannot both be set.
+     * @param [in] columns_data the columns data.
      */
     void
     SetColumnsData(std::vector<FieldDataPtr>&& columns_data);
@@ -51,6 +64,7 @@ class MILVUS_SDK_API InsertRequest : public DMLRequestBase<InsertRequest> {
     /**
      * @brief Set fields data with fluent interface.
      * ColumnsData and RowsData cannot both be set.
+     * @param [in] columns_data the columns data.
      */
     InsertRequest&
     WithColumnsData(std::vector<FieldDataPtr>&& columns_data);
@@ -58,12 +72,14 @@ class MILVUS_SDK_API InsertRequest : public DMLRequestBase<InsertRequest> {
     /**
      * @brief Set a field data with fluent interface.
      * ColumnsData and RowsData cannot both be set.
+     * @param [in] column_data the column data.
      */
     InsertRequest&
     AddColumnData(const FieldDataPtr& column_data);
 
     /**
      * @brief Get entity rows.
+     * @return the rows data.
      */
     const EntityRows&
     RowsData() const;
@@ -71,6 +87,7 @@ class MILVUS_SDK_API InsertRequest : public DMLRequestBase<InsertRequest> {
     /**
      * @brief Set entity rows.
      * ColumnsData and RowsData cannot both be set.
+     * @param [in] rows_data the rows data.
      */
     void
     SetRowsData(EntityRows&& rows_data);
@@ -78,6 +95,7 @@ class MILVUS_SDK_API InsertRequest : public DMLRequestBase<InsertRequest> {
     /**
      * @brief Set entity rows with fluent interface.
      * ColumnsData and RowsData cannot both be set.
+     * @param [in] rows_data the rows data.
      */
     InsertRequest&
     WithRowsData(EntityRows&& rows_data);
@@ -85,6 +103,7 @@ class MILVUS_SDK_API InsertRequest : public DMLRequestBase<InsertRequest> {
     /**
      * @brief Add an entity row with the fluent interface.
      * ColumnsData and RowsData cannot both be set.
+     * @param [in] row_data the row data.
      */
     InsertRequest&
     AddRowData(EntityRow&& row_data);

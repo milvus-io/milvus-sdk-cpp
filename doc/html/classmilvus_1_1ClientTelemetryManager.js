@@ -1,0 +1,28 @@
+var classmilvus_1_1ClientTelemetryManager =
+[
+    [ "CommandHandler", "classmilvus_1_1ClientTelemetryManager.html#af2762feaa1e3d98e43ae963802491146", null ],
+    [ "ClientTelemetryManager", "classmilvus_1_1ClientTelemetryManager.html#ac8f6e4bb0f0daf679145e55b23192f43", null ],
+    [ "~ClientTelemetryManager", "classmilvus_1_1ClientTelemetryManager.html#acf6cfb8a463f88780f9bb6c732d93304", null ],
+    [ "ClientTelemetryManager", "classmilvus_1_1ClientTelemetryManager.html#a5df83b896e3bee277ade5f524130f32b", null ],
+    [ "AttachChannel", "classmilvus_1_1ClientTelemetryManager.html#afc332e643ebcf7c59d7e17cf71ef2a39", null ],
+    [ "ClientId", "classmilvus_1_1ClientTelemetryManager.html#a783023b448d49dae41cc9998ad1059fb", null ],
+    [ "Config", "classmilvus_1_1ClientTelemetryManager.html#a8148b61db098b4ef6c485743bf7a3db9", null ],
+    [ "ConfigHash", "classmilvus_1_1ClientTelemetryManager.html#a2c3355462127092e213b4f7dd6f3986a", null ],
+    [ "IsReady", "classmilvus_1_1ClientTelemetryManager.html#a389f926842105b88e7a60e93a27e6d58", null ],
+    [ "IsSupported", "classmilvus_1_1ClientTelemetryManager.html#aa788781a48c7b205ecd502880cab3ecf", null ],
+    [ "LastCommandTimestamp", "classmilvus_1_1ClientTelemetryManager.html#ab3dcf72187b6ec76789ff364b3bdacc0", null ],
+    [ "LastHeartbeatError", "classmilvus_1_1ClientTelemetryManager.html#aebd4bc54b67b2f0f19d2bec9034a4d25", null ],
+    [ "MatchesConnection", "classmilvus_1_1ClientTelemetryManager.html#aec8ec8de2cf5081b01d5b6e58cc1be1e", null ],
+    [ "MetricsSnapshots", "classmilvus_1_1ClientTelemetryManager.html#abb8ad5f749b5197c4bc64a21848dc491", null ],
+    [ "operator=", "classmilvus_1_1ClientTelemetryManager.html#a1274e7e755896f0b6fb34bc59436979d", null ],
+    [ "PendingCommandReplies", "classmilvus_1_1ClientTelemetryManager.html#a7fe6d0203a3a86257faa3ac625e6c251", null ],
+    [ "ProcessCommands", "classmilvus_1_1ClientTelemetryManager.html#a356eea623c30e0b2e187fb9fb887348d", null ],
+    [ "RecentErrors", "classmilvus_1_1ClientTelemetryManager.html#a76bb4b5c549d32bfcd7f56c92b852f30", null ],
+    [ "RecordOperation", "classmilvus_1_1ClientTelemetryManager.html#acd00805fa727fd483f1b928ca684f94c", null ],
+    [ "RecordOperation", "classmilvus_1_1ClientTelemetryManager.html#aae9ed3c292df4bc948c26a505f281223", null ],
+    [ "RegisterCommandHandler", "classmilvus_1_1ClientTelemetryManager.html#a09bb25817d5c9ef37527ab5c51a871c0", null ],
+    [ "Start", "classmilvus_1_1ClientTelemetryManager.html#abf1cf66e5d766c5e8b626997a4571ddd", null ],
+    [ "Stop", "classmilvus_1_1ClientTelemetryManager.html#a195531d6b5da33f73442d096d8078d40", null ],
+    [ "MilvusClient", "classmilvus_1_1ClientTelemetryManager.html#a379cc09eff7a52aad71bd55630bd464b", null ],
+    [ "MilvusClientV2", "classmilvus_1_1ClientTelemetryManager.html#aa04fbb0be994742f3a6c3beebf73d405", null ]
+];

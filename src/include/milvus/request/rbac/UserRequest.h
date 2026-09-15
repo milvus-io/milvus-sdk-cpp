@@ -34,18 +34,21 @@ class MILVUS_SDK_API UserRequest {
 
     /**
      * @brief Name of the user.
+     * @return the user name.
      */
     const std::string&
     UserName() const;
 
     /**
      * @brief Set name of the user.
+     * @param [in] name the name.
      */
     void
     SetUserName(const std::string& name);
 
     /**
      * @brief Set name of the user.
+     * @param [in] name the name.
      */
     UserRequest&
     WithUserName(const std::string& name);

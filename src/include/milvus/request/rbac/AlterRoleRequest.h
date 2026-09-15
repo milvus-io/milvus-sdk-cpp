@@ -27,23 +27,54 @@ namespace milvus {
  */
 class MILVUS_SDK_API AlterRoleRequest {
  public:
+    /**
+     * @brief Constructor
+     */
     AlterRoleRequest() = default;
 
+    /**
+     * @brief Get the role name.
+     * @return the role name.
+     */
     const std::string&
     RoleName() const;
 
+    /**
+     * @brief Set the role name.
+     *
+     * @param [in] role_name
+     */
     void
     SetRoleName(const std::string& role_name);
 
+    /**
+     * @brief Set the role name.
+     *
+     * @param [in] role_name
+     */
     AlterRoleRequest&
     WithRoleName(const std::string& role_name);
 
+    /**
+     * @brief Get the role description.
+     * @return the description.
+     */
     const std::string&
     Description() const;
 
+    /**
+     * @brief Set the role description.
+     *
+     * @param [in] description
+     */
     void
     SetDescription(const std::string& description);
 
+    /**
+     * @brief Set the role description.
+     *
+     * @param [in] description
+     */
     AlterRoleRequest&
     WithDescription(const std::string& description);
 

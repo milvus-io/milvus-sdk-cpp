@@ -32,12 +32,14 @@ class MILVUS_SDK_API GetFlushAllStateResponse {
 
     /**
      * @brief Whether the flush-all action has finished.
+     * @return the flushed.
      */
     bool
     Flushed() const;
 
     /**
      * @brief Set whether the flush-all action has finished.
+     * @param [in] flushed the flushed.
      */
     void
     SetFlushed(bool flushed);

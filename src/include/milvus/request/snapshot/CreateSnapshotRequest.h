@@ -29,23 +29,54 @@ namespace milvus {
  */
 class MILVUS_SDK_API CreateSnapshotRequest : public SnapshotNameRequestBase<CreateSnapshotRequest> {
  public:
+    /**
+     * @brief Constructor
+     */
     CreateSnapshotRequest() = default;
 
+    /**
+     * @brief Get the snapshot description.
+     * @return the description.
+     */
     const std::string&
     Description() const;
 
+    /**
+     * @brief Set the snapshot description.
+     *
+     * @param [in] description
+     */
     void
     SetDescription(const std::string& description);
 
+    /**
+     * @brief Set the snapshot description.
+     *
+     * @param [in] description
+     */
     CreateSnapshotRequest&
     WithDescription(const std::string& description);
 
+    /**
+     * @brief Get the compaction protection window in seconds.
+     * @return the compaction protection seconds.
+     */
     int64_t
     CompactionProtectionSeconds() const;
 
+    /**
+     * @brief Set the compaction protection window in seconds.
+     *
+     * @param [in] seconds
+     */
     void
     SetCompactionProtectionSeconds(int64_t seconds);
 
+    /**
+     * @brief Set the compaction protection window in seconds.
+     *
+     * @param [in] seconds
+     */
     CreateSnapshotRequest&
     WithCompactionProtectionSeconds(int64_t seconds);
 

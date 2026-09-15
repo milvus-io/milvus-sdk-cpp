@@ -52,60 +52,70 @@ class MILVUS_SDK_API IndexDesc {
 
     /**
      * @brief Filed name which the index belong to.
+     * @return the field name.
      */
     const std::string&
     FieldName() const;
 
     /**
      * @brief Set field name which the index belong to.
+     * @param [in] field_name the field name.
      */
     Status
     SetFieldName(std::string field_name);
 
     /**
      * @brief Index name. Index name cannot be empty.
+     * @return the index name.
      */
     const std::string&
     IndexName() const;
 
     /**
      * @brief Set index name.
+     * @param [in] index_name the index name.
      */
     Status
     SetIndexName(std::string index_name);
 
     /**
      * @brief Index ID.
+     * @return the index ID.
      */
     int64_t
     IndexId() const;
 
     /**
      * @brief Set index id.
+     * @param [in] index_id the index ID.
      */
     Status
     SetIndexId(int64_t index_id);
 
     /**
      * @brief Metric type.
+     * @return the metric type.
      */
     milvus::MetricType
     MetricType() const;
 
     /**
      * @brief Set metric type.
+     * @param [in] metric_type the metric type.
      */
     Status
     SetMetricType(milvus::MetricType metric_type);
 
     /**
      * @brief Index type.
+     * @return the index type.
      */
     milvus::IndexType
     IndexType() const;
 
     /**
      * @brief Set index type.
+     * @param [in] index_type the index type.
      */
     Status
     SetIndexType(milvus::IndexType index_type);
@@ -113,6 +123,8 @@ class MILVUS_SDK_API IndexDesc {
     /**
      * @brief Add extra param.
      * Note: this method was redefined in v2.4, which may affect older client code.
+     * @param [in] key the key.
+     * @param [in] value the value.
      */
     Status
     AddExtraParam(const std::string& key, const std::string& value);
@@ -120,6 +132,7 @@ class MILVUS_SDK_API IndexDesc {
     /**
      * @brief Get extra param.
      * Note: this method was redefined in v2.4, which may affect older client code.
+     * @return the extra params.
      */
     const std::unordered_map<std::string, std::string>&
     ExtraParams() const;
@@ -133,30 +146,35 @@ class MILVUS_SDK_API IndexDesc {
 
     /**
      * @brief Set index state.
+     * @param [in] code the code.
      */
     Status
     SetStateCode(const milvus::IndexStateCode& code);
 
     /**
      * @brief Get index state.
+     * @return the state code.
      */
     milvus::IndexStateCode
     StateCode() const;
 
     /**
      * @brief Set index failed reason.
+     * @param [in] reason the reason.
      */
     Status
     SetFailReason(const std::string& reason);
 
     /**
      * @brief Get index failed reason.
+     * @return the fail reason.
      */
     std::string
     FailReason() const;
 
     /**
      * @brief Set number of indexed rows.
+     * @param [in] rows the rows.
      */
     Status
     SetIndexedRows(int64_t rows);
@@ -165,30 +183,35 @@ class MILVUS_SDK_API IndexDesc {
      * @brief Get number of indexed rows.
      * Note that indexed rows could be larger than total rows, because some segments will be reindexed
      * after compaction.
+     * @return the indexed rows.
      */
     int64_t
     IndexedRows() const;
 
     /**
      * @brief Set number of total rows.
+     * @param [in] rows the rows.
      */
     Status
     SetTotalRows(int64_t rows);
 
     /**
      * @brief Get number of total rows.
+     * @return the total rows.
      */
     int64_t
     TotalRows() const;
 
     /**
      * @brief Set number of pending unindexed rows.
+     * @param [in] rows the rows.
      */
     Status
     SetPendingRows(int64_t rows);
 
     /**
      * @brief Get number of pending unindexed rows.
+     * @return the pending rows.
      */
     int64_t
     PendingRows() const;

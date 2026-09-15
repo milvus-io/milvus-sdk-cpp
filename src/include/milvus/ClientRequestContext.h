@@ -16,31 +16,64 @@
 
 namespace milvus {
 
-/** Per-thread request ID propagated as the client_request_id gRPC metadata. */
+/**
+ * @brief Per-thread request ID propagated as the client_request_id gRPC metadata.
+ */
 class MILVUS_SDK_API ClientRequestContext {
  public:
+    /**
+     * @brief Set the request ID of the current thread.
+     *
+     * @param [in] request_id request ID to propagate in outgoing RPC metadata.
+     */
     static void
     Set(const std::string& request_id);
 
+    /**
+     * @brief Get the request ID of the current thread.
+     * @return the request id.
+     */
     static const std::string&
     Get();
 
+    /**
+     * @brief Clear the request ID of the current thread.
+     */
     static void
     Clear();
 
-    /** Returns a lowercase 32-character OpenTelemetry-compatible trace ID. */
+    /**
+     * @brief Generate a lowercase 32-character OpenTelemetry-compatible trace ID.
+     * @return the new request ID.
+     */
     static std::string
     NewRequestId();
 
-    /** Returns true for a lowercase, non-zero, 32-character OpenTelemetry trace ID. */
+    /**
+     * @brief Check whether a string is a valid lowercase, non-zero 32-character OpenTelemetry trace ID.
+     *
+     * @param [in] request_id request ID to validate.
+     * @return true when the request ID is a valid trace ID.
+     */
     static bool
     IsValid(const std::string& request_id);
 };
 
-/** Restores the previous thread-local request ID when it leaves scope. */
+/**
+ * @brief RAII guard that restores the previous thread-local request ID when it leaves scope.
+ */
 class MILVUS_SDK_API ScopedClientRequestId {
  public:
+    /**
+     * @brief Set a request ID for the current thread and remember the previous one.
+     *
+     * @param [in] request_id request ID to install for the current scope.
+     */
     explicit ScopedClientRequestId(const std::string& request_id);
+
+    /**
+     * @brief Restore the previous thread-local request ID.
+     */
     ~ScopedClientRequestId();
 
     ScopedClientRequestId(const ScopedClientRequestId&) = delete;

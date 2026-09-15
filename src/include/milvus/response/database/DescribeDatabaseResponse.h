@@ -33,12 +33,14 @@ class MILVUS_SDK_API DescribeDatabaseResponse {
 
     /**
      * @brief Get database descriptions.
+     * @return the desc.
      */
     const DatabaseDesc&
     Desc() const;
 
     /**
      * @brief Set  database descriptions.
+     * @param [in] desc the desc.
      */
     void
     SetDesc(DatabaseDesc&& desc);

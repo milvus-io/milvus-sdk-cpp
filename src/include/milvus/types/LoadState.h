@@ -26,9 +26,21 @@ namespace milvus {
  * @brief State code for load process
  */
 enum class LoadState {
+    /**
+     * @brief The collection or partition does not exist.
+     */
     LOAD_STATE_NOT_EXIST = 0,
+    /**
+     * @brief The collection or partition is not loaded.
+     */
     LOAD_STATE_NOT_LOAD = 1,
+    /**
+     * @brief The collection or partition is being loaded.
+     */
     LOAD_STATE_LOADING = 2,
+    /**
+     * @brief The collection or partition is loaded.
+     */
     LOAD_STATE_LOADED = 3
 };
 

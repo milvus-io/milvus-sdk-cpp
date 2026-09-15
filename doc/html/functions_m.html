@@ -5,10 +5,14 @@
 <meta http-equiv="X-UA-Compatible" content="IE=9"/>
 <meta name="generator" content="Doxygen 1.9.1"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>milvus-sdk-cpp: Class Members</title>
+<title>Milvus C++ SDK: Class Members</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
+<link href="navtree.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="resize.js"></script>
+<script type="text/javascript" src="navtreedata.js"></script>
+<script type="text/javascript" src="navtree.js"></script>
 <link href="search/search.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="search/searchdata.js"></script>
 <script type="text/javascript" src="search/search.js"></script>
@@ -21,8 +25,9 @@
  <tbody>
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
-   <div id="projectname">milvus-sdk-cpp
+   <div id="projectname">Milvus C++ SDK
    </div>
+   <div id="projectbrief">C++ client for the Milvus vector database</div>
   </td>
  </tr>
  </tbody>
@@ -46,6 +51,22 @@ $(function() {
 /* @license-end */</script>
 <div id="main-nav"></div>
 </div><!-- top -->
+<div id="side-nav" class="ui-resizable side-nav-resizable">
+  <div id="nav-tree">
+    <div id="nav-tree-contents">
+      <div id="nav-sync" class="sync"></div>
+    </div>
+  </div>
+  <div id="splitbar" style="-moz-user-select:none;" 
+       class="ui-resizable-handle">
+  </div>
+</div>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:cf05388f2679ee054f2beb29a391d25f4e673ac3&amp;dn=gpl-2.0.txt GPL-v2 */
+$(document).ready(function(){initNavTree('functions_m.html',''); initResizable(); });
+/* @license-end */
+</script>
+<div id="doc-content">
 <!-- window showing the filter options -->
 <div id="MSearchSelectWindow"
      onmouseover="return searchBox.OnSearchSelectShow()"
@@ -65,44 +86,78 @@ $(function() {
 
 <h3><a id="index_m"></a>- m -</h3><ul>
 <li>ManualCompaction()
-: <a class="el" href="classmilvus_1_1_milvus_client.html#aded6fdc88693663dd6f501d6191658d3">milvus::MilvusClient</a>
+: <a class="el" href="classmilvus_1_1MilvusClient.html#aded6fdc88693663dd6f501d6191658d3">milvus::MilvusClient</a>
+</li>
+<li>Map()
+: <a class="el" href="classmilvus_1_1FunctionChain.html#a8584eabfbdeaab917aac4a6c960b26ec">milvus::FunctionChain</a>
+</li>
+<li>MatchesConnection()
+: <a class="el" href="classmilvus_1_1ClientTelemetryManager.html#aec8ec8de2cf5081b01d5b6e58cc1be1e">milvus::ClientTelemetryManager</a>
+</li>
+<li>max_latency_ms
+: <a class="el" href="structmilvus_1_1TelemetryMetric.html#a853dc20b835ad5f6b44345d27d67d7ef">milvus::TelemetryMetric</a>
 </li>
 <li>MaxBackOffMs()
-: <a class="el" href="classmilvus_1_1_retry_param.html#af1aa954fd46efea0aca4ac8848cf4283">milvus::RetryParam</a>
+: <a class="el" href="classmilvus_1_1RetryParam.html#af1aa954fd46efea0aca4ac8848cf4283">milvus::RetryParam</a>
 </li>
 <li>MaxCapacity()
-: <a class="el" href="classmilvus_1_1_field_schema.html#ae52846bcf91362e135b9004d4a208f7d">milvus::FieldSchema</a>
-, <a class="el" href="classmilvus_1_1_struct_field_schema.html#a937c9dcd95327c510988f7db755a6c3e">milvus::StructFieldSchema</a>
+: <a class="el" href="classmilvus_1_1FieldSchema.html#ae52846bcf91362e135b9004d4a208f7d">milvus::FieldSchema</a>
+, <a class="el" href="classmilvus_1_1StructFieldSchema.html#a937c9dcd95327c510988f7db755a6c3e">milvus::StructFieldSchema</a>
 </li>
 <li>MaxLength()
-: <a class="el" href="classmilvus_1_1_create_simple_collection_request.html#a3afc95b752b044576b3830c483c97f3a">milvus::CreateSimpleCollectionRequest</a>
-, <a class="el" href="classmilvus_1_1_field_schema.html#a5fb3b1800e02765942ad72fd336498c9">milvus::FieldSchema</a>
+: <a class="el" href="classmilvus_1_1CreateSimpleCollectionRequest.html#a3afc95b752b044576b3830c483c97f3a">milvus::CreateSimpleCollectionRequest</a>
+, <a class="el" href="classmilvus_1_1FieldSchema.html#a5fb3b1800e02765942ad72fd336498c9">milvus::FieldSchema</a>
 </li>
 <li>MaxRetryTimeoutMs()
-: <a class="el" href="classmilvus_1_1_retry_param.html#a3a82d61dd720409ecdd04fd4cc9437bf">milvus::RetryParam</a>
+: <a class="el" href="classmilvus_1_1RetryParam.html#a3a82d61dd720409ecdd04fd4cc9437bf">milvus::RetryParam</a>
 </li>
 <li>MaxRetryTimes()
-: <a class="el" href="classmilvus_1_1_retry_param.html#a2b1d0c234916558bc4e0b31b131436f3">milvus::RetryParam</a>
+: <a class="el" href="classmilvus_1_1RetryParam.html#a2b1d0c234916558bc4e0b31b131436f3">milvus::RetryParam</a>
 </li>
 <li>MemoryPercentage()
-: <a class="el" href="classmilvus_1_1_collection_info.html#a8f27c2eafdc9f930d4a0d2eb381fb3ef">milvus::CollectionInfo</a>
+: <a class="el" href="classmilvus_1_1CollectionInfo.html#a8f27c2eafdc9f930d4a0d2eb381fb3ef">milvus::CollectionInfo</a>
+</li>
+<li>MemSize()
+: <a class="el" href="classmilvus_1_1QuerySegmentInfo.html#a3c7df27314f779f54244b5fa1fe1a690">milvus::QuerySegmentInfo</a>
 </li>
 <li>Message()
-: <a class="el" href="classmilvus_1_1_status.html#a411b3c769fc95da8479c9bd615d3eebc">milvus::Status</a>
+: <a class="el" href="classmilvus_1_1Status.html#a30c4719a56213cb804c739ca2bf6a2c8">milvus::Status</a>
+</li>
+<li>MessageID()
+: <a class="el" href="classmilvus_1_1DumpedMessage.html#a58a6dd427e5e6b1fe5cea2f594fe8712">milvus::DumpedMessage</a>
+, <a class="el" href="classmilvus_1_1ReplicateCheckpoint.html#a14cb937e8d800070a8f02983cf2796fb">milvus::ReplicateCheckpoint</a>
+</li>
+<li>metrics
+: <a class="el" href="structmilvus_1_1AggregationBucket.html#a7eedcbadbb4936fbddc13ed4d40c1d23">milvus::AggregationBucket</a>
+</li>
+<li>Metrics()
+: <a class="el" href="classmilvus_1_1SearchAggregation.html#a0dc404f8eed956f93ec2673516125dea">milvus::SearchAggregation</a>
+</li>
+<li>metrics
+: <a class="el" href="structmilvus_1_1TelemetrySnapshot.html#a62bde2d0bcd28120d87e3a34b7ffdc9d">milvus::TelemetrySnapshot</a>
+</li>
+<li>MetricsSnapshots()
+: <a class="el" href="classmilvus_1_1ClientTelemetryManager.html#abb8ad5f749b5197c4bc64a21848dc491">milvus::ClientTelemetryManager</a>
 </li>
 <li>MetricType()
-: <a class="el" href="classmilvus_1_1_create_simple_collection_request.html#a3150a71d3902e701df04e867c2637ec2">milvus::CreateSimpleCollectionRequest</a>
-, <a class="el" href="classmilvus_1_1_index_desc.html#a21e80f8646c456dd4d058f76e7d020b0">milvus::IndexDesc</a>
-, <a class="el" href="classmilvus_1_1_search_request_base.html#ab0314c5ba166ca7544a2fb000c282dad">milvus::SearchRequestBase</a>
+: <a class="el" href="classmilvus_1_1CreateSimpleCollectionRequest.html#a3150a71d3902e701df04e867c2637ec2">milvus::CreateSimpleCollectionRequest</a>
+, <a class="el" href="classmilvus_1_1IndexDesc.html#a21e80f8646c456dd4d058f76e7d020b0">milvus::IndexDesc</a>
+, <a class="el" href="classmilvus_1_1SearchRequestBase.html#a28281cb05a54747bd66f93cc7bbd2fa5">milvus::SearchRequestBase</a>
+</li>
+<li>ModelRerank()
+: <a class="el" href="classmilvus_1_1ModelRerank.html#a2bfbb7fc255b01afe9c5d74e43a6e664">milvus::ModelRerank</a>
 </li>
 <li>MultiAnalyzerParams()
-: <a class="el" href="classmilvus_1_1_field_schema.html#a1a0d73b4af12acfcaaa0a92bf54e91da">milvus::FieldSchema</a>
+: <a class="el" href="classmilvus_1_1FieldSchema.html#a1a0d73b4af12acfcaaa0a92bf54e91da">milvus::FieldSchema</a>
 </li>
 </ul>
 </div><!-- contents -->
+</div><!-- doc-content -->
 <!-- start footer part -->
-<hr class="footer"/><address class="footer"><small>
-Generated by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.1
-</small></address>
+<div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
+  <ul>
+    <li class="footer">Generated by <a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.1 </li>
+  </ul>
+</div>
 </body>
 </html>

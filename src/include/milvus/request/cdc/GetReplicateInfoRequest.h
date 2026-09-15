@@ -22,23 +22,54 @@
 
 namespace milvus {
 
+/**
+ * @brief Used by MilvusClientV2::GetReplicateInfo()
+ */
 class MILVUS_SDK_API GetReplicateInfoRequest {
+    /**
+     * @brief Get the source cluster identifier.
+     * @return the source cluster ID.
+     */
  public:
     const std::string&
     SourceClusterID() const;
 
+    /**
+     * @brief Set the source cluster identifier.
+     *
+     * @param [in] source_cluster_id
+     */
     void
     SetSourceClusterID(const std::string& source_cluster_id);
 
+    /**
+     * @brief Set the source cluster identifier.
+     *
+     * @param [in] source_cluster_id
+     */
     GetReplicateInfoRequest&
     WithSourceClusterID(const std::string& source_cluster_id);
 
+    /**
+     * @brief Get the target Pulsar channel name.
+     * @return the target p channel.
+     */
     const std::string&
     TargetPChannel() const;
 
+    /**
+     * @brief Set the target Pulsar channel name.
+     *
+     * @param [in] target_pchannel
+     */
     void
     SetTargetPChannel(const std::string& target_pchannel);
 
+    /**
+     * @brief Set the target Pulsar channel name.
+     *
+     * @param [in] target_pchannel
+     */
     GetReplicateInfoRequest&
     WithTargetPChannel(const std::string& target_pchannel);
 

@@ -35,18 +35,21 @@ class MILVUS_SDK_API AlterAliasRequest : public AliasRequestBase<AlterAliasReque
 
     /**
      * @brief Set name of the alias.
+     * @return the alias.
      */
     const std::string&
     Alias() const;
 
     /**
      * @brief Set name of the alias.
+     * @param [in] alias the alias.
      */
     void
     SetAlias(const std::string& alias);
 
     /**
      * @brief Set name of the alias.
+     * @param [in] alias the alias.
      */
     AlterAliasRequest&
     WithAlias(const std::string& alias);

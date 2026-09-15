@@ -26,6 +26,9 @@
 
 namespace milvus {
 
+/**
+ * @brief Replica group information returned by MilvusClientV2::DescribeReplicas().
+ */
 class MILVUS_SDK_API ReplicaInfo {
  public:
     /**
@@ -35,84 +38,98 @@ class MILVUS_SDK_API ReplicaInfo {
 
     /**
      * @brief Get replica id.
+     * @return the replica ID.
      */
     int64_t
     ReplicaID() const;
 
     /**
      * @brief Set replica id.
+     * @param [in] replica_id the replica ID.
      */
     void
     SetReplicaID(int64_t replica_id);
 
     /**
      * @brief Get collection id.
+     * @return the collection ID.
      */
     int64_t
     CollectionID() const;
 
     /**
      * @brief Set collection id.
+     * @param [in] collection_id the collection ID.
      */
     void
     SetCollectionID(int64_t collection_id);
 
     /**
      * @brief Get partition ids.
+     * @return the partition i ds.
      */
     const std::vector<int64_t>&
     PartitionIDs() const;
 
     /**
      * @brief Set partition ids.
+     * @param [in] partition_ids the partition ids.
      */
     void
     SetPartitionIDs(std::vector<int64_t>&& partition_ids);
 
     /**
      * @brief Get shard replicas.
+     * @return the shard replicas.
      */
     const std::vector<ShardReplica>&
     ShardReplicas() const;
 
     /**
      * @brief Set shard replicas.
+     * @param [in] shard_replicas the shard replicas.
      */
     void
     SetShardReplicas(std::vector<ShardReplica>&& shard_replicas);
 
     /**
      * @brief Get node ids.
+     * @return the node i ds.
      */
     const std::vector<int64_t>&
     NodeIDs() const;
 
     /**
      * @brief Set node ids.
+     * @param [in] node_ids the node ids.
      */
     void
     SetNodeIDs(std::vector<int64_t>&& node_ids);
 
     /**
      * @brief Get resource group name.
+     * @return the resource group name.
      */
     const std::string&
     ResourceGroupName() const;
 
     /**
      * @brief Set resource group name.
+     * @param [in] resource_group_name the resource group name.
      */
     void
     SetResourceGroupName(const std::string& resource_group_name);
 
     /**
      * @brief Get outbound node count by resource group.
+     * @return the num outbound node.
      */
     const std::unordered_map<std::string, int32_t>&
     NumOutboundNode() const;
 
     /**
      * @brief Set outbound node count by resource group.
+     * @param [in] num_outbound_node the num outbound node.
      */
     void
     SetNumOutboundNode(std::unordered_map<std::string, int32_t>&& num_outbound_node);

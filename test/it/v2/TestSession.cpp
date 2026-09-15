@@ -461,3 +461,15 @@ TEST_F(UnconnectMilvusMockedTest, V2SessionGetRoutesTranslatedQuery) {
     milvus::GetResponse response;
     EXPECT_TRUE(session->Get(request, response).IsOk());
 }
+
+TEST_F(UnconnectMilvusMockedTest, SetRetryParamAfterConnect) {
+    auto client = CreateConnectedClient(service_, server_.ListenPort());
+
+    milvus::RetryParam retry_param;
+    retry_param.SetMaxRetryTimes(3);
+    retry_param.SetInitialBackOffMs(100);
+    retry_param.SetMaxBackOffMs(1000);
+
+    auto status = client->SetRetryParam(retry_param);
+    EXPECT_TRUE(status.IsOk());
+}

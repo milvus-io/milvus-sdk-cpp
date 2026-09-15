@@ -44,6 +44,7 @@ extern MILVUS_SDK_API const char* DATABASE_RESOURCE_GROUPS;
 // the following methods are reserved to compatible with old client code
 /**
  * @brief Global definition for row count label.
+ * @return the key row count.
  */
 inline std::string
 KeyRowCount() {
@@ -52,6 +53,7 @@ KeyRowCount() {
 
 /**
  * @brief Global definition for index type label.
+ * @return the key index type.
  */
 inline std::string
 KeyIndexType() {
@@ -60,6 +62,7 @@ KeyIndexType() {
 
 /**
  * @brief Global definition for metric type label.
+ * @return the key metric type.
  */
 inline std::string
 KeyMetricType() {
@@ -68,6 +71,7 @@ KeyMetricType() {
 
 /**
  * @brief Global definition for metric type label.
+ * @return the key params.
  */
 inline std::string
 KeyParams() {
@@ -76,6 +80,7 @@ KeyParams() {
 
 /**
  * @brief Global definition for vector dimension label.
+ * @return the field dim.
  */
 inline std::string
 FieldDim() {
@@ -84,6 +89,7 @@ FieldDim() {
 
 /**
  * @brief Max length field name for varchar field.
+ * @return the field max length.
  */
 inline std::string
 FieldMaxLength() {
@@ -92,6 +98,7 @@ FieldMaxLength() {
 
 /**
  * @brief Global definition for strong guarantee timestamp.
+ * @return the guarantee strong ts.
  */
 inline uint64_t
 GuaranteeStrongTs() {
@@ -100,6 +107,7 @@ GuaranteeStrongTs() {
 
 /**
  * @brief Global definition for eventually guarantee timestamp.
+ * @return the guarantee eventually ts.
  */
 inline uint64_t
 GuaranteeEventuallyTs() {

@@ -35,6 +35,7 @@ class MILVUS_SDK_API AlterIndexPropertiesRequest : public IndexRequestBase<Alter
 
     /**
      * @brief Name of the index.
+     * @return the index name.
      */
     const std::string&
     IndexName() const;
@@ -42,6 +43,7 @@ class MILVUS_SDK_API AlterIndexPropertiesRequest : public IndexRequestBase<Alter
     /**
      * @brief Set name of the index.
      * Currently, this API only supports index_name.
+     * @param [in] index_name the index name.
      */
     void
     SetIndexName(const std::string& index_name);
@@ -49,30 +51,36 @@ class MILVUS_SDK_API AlterIndexPropertiesRequest : public IndexRequestBase<Alter
     /**
      * @brief Set name of the index.
      * Currently, this API only supports index_name.
+     * @param [in] index_name the index name.
      */
     AlterIndexPropertiesRequest&
     WithIndexName(const std::string& index_name);
 
     /**
      * @brief Get altered properties.
+     * @return the properties.
      */
     const std::unordered_map<std::string, std::string>&
     Properties() const;
 
     /**
      * @brief Set altered properties of this index.
+     * @param [in] properties the properties.
      */
     void
     SetProperties(std::unordered_map<std::string, std::string>&& properties);
 
     /**
      * @brief Set altered properties of this index.
+     * @param [in] properties the properties.
      */
     AlterIndexPropertiesRequest&
     WithProperties(std::unordered_map<std::string, std::string>&& properties);
 
     /**
      * @brief Add a property of this index.
+     * @param [in] key the key.
+     * @param [in] property the property.
      */
     AlterIndexPropertiesRequest&
     AddProperty(const std::string& key, const std::string& property);

@@ -35,60 +35,70 @@ class MILVUS_SDK_API ReleasePartitionsRequest {
 
     /**
      * @brief Database name in which the collection is created.
+     * @return the database name.
      */
     const std::string&
     DatabaseName() const;
 
     /**
      * @brief Set database name in which the collection is created.
+     * @param [in] db_name the DB name.
      */
     void
     SetDatabaseName(const std::string& db_name);
 
     /**
      * @brief Set database name in which the collection is created.
+     * @param [in] db_name the DB name.
      */
     ReleasePartitionsRequest&
     WithDatabaseName(const std::string& db_name);
 
     /**
      * @brief Name of the collection.
+     * @return the collection name.
      */
     const std::string&
     CollectionName() const;
 
     /**
      * @brief Set name of the collection.
+     * @param [in] collection_name the collection name.
      */
     void
     SetCollectionName(const std::string& collection_name);
 
     /**
      * @brief Set name of the collection.
+     * @param [in] collection_name the collection name.
      */
     ReleasePartitionsRequest&
     WithCollectionName(const std::string& collection_name);
 
     /**
      * @brief Name of the partitions.
+     * @return the partition names.
      */
     const std::set<std::string>&
     PartitionNames() const;
 
     /**
      * @brief Set name of the partitions.
+     * @param [in] partition_names the partition names.
      */
     void
     SetPartitionNames(const std::set<std::string>& partition_names);
 
     /**
      * @brief Set new name of the partitions.
+     * @param [in] partition_names the partition names.
      */
     ReleasePartitionsRequest&
     WithPartitionNames(const std::set<std::string>& partition_names);
 
     /**
      * @brief Add a partition to be released.
+     * @param [in] partition_name the partition name.
      */
     ReleasePartitionsRequest&
     AddPartitionName(const std::string& partition_name);

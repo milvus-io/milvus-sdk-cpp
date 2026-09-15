@@ -170,3 +170,33 @@ TEST_F(ConnectParamTest, WithTlsBuilder) {
     EXPECT_EQ(ref3.Key(), "key");
     EXPECT_EQ(ref3.CaCert(), "ca");
 }
+
+TEST_F(ConnectParamTest, ConnectTimeoutBuilder) {
+    milvus::ConnectParam param{"localhost", 19530};
+    EXPECT_EQ(param.ConnectTimeout(), 10000);
+
+    auto& ref = param.WithConnectTimeout(3000);
+    EXPECT_EQ(ref.ConnectTimeout(), 3000);
+}
+
+TEST_F(ConnectParamTest, TelemetryConfigSettersAndBuilder) {
+    milvus::ConnectParam param{"localhost", 19530};
+    EXPECT_TRUE(param.Telemetry().enabled);
+    EXPECT_EQ(param.Telemetry().heartbeat_interval_ms, 10000);
+
+    milvus::TelemetryConfig config;
+    config.enabled = false;
+    config.heartbeat_interval_ms = 5000;
+    config.client_id = "client-1";
+    param.SetTelemetryConfig(config);
+    EXPECT_FALSE(param.Telemetry().enabled);
+    EXPECT_EQ(param.Telemetry().heartbeat_interval_ms, 5000);
+    EXPECT_EQ(param.Telemetry().client_id, "client-1");
+
+    milvus::TelemetryConfig config2;
+    config2.enabled = true;
+    config2.heartbeat_interval_ms = 2000;
+    auto& ref = param.WithTelemetryConfig(config2);
+    EXPECT_TRUE(ref.Telemetry().enabled);
+    EXPECT_EQ(ref.Telemetry().heartbeat_interval_ms, 2000);
+}

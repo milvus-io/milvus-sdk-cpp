@@ -18,18 +18,24 @@
 
 namespace milvus {
 
-/** Client metrics, heartbeat, and server-pushed command configuration. */
+/**
+ * @brief Client metrics, heartbeat, and server-pushed command configuration.
+ */
 struct MILVUS_SDK_API TelemetryConfig {
+    /** @brief Whether telemetry reporting is enabled. */
     bool enabled{true};
-    // Milliseconds between heartbeats, and therefore the metrics window: each heartbeat
-    // carries the operations since the last one. The coordinator answers a telemetry query
-    // from the window before the newest, so what a caller reads is between one and two
-    // intervals old.
+    /** @brief Milliseconds between heartbeats, which is also the metrics window.
+     *
+     * Each heartbeat carries the operations since the last one. The coordinator answers a telemetry query from the
+     * window before the newest, so what a caller reads is between one and two intervals old.
+     */
     uint64_t heartbeat_interval_ms{10000};
+    /** @brief Sampling rate of recorded operations (0.0 to 1.0). */
     double sampling_rate{1.0};
+    /** @brief Maximum number of recorded errors retained. */
     size_t error_max_count{100};
 
-    /** Optional stable identity. A random UUID is used when empty. */
+    /** @brief Optional stable identity; a random UUID is used when empty. */
     std::string client_id;
 };
 

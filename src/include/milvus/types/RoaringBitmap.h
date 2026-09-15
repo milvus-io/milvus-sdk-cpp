@@ -110,12 +110,14 @@ class MILVUS_SDK_API RoaringBitmapBuilder {
  public:
     /**
      * @brief Insert one member.
+     * @param [in] value the value.
      */
     RoaringBitmapBuilder&
     AddInt64(int64_t value);
 
     /**
      * @brief Insert a whole vector of members.
+     * @param [in] values the values.
      */
     RoaringBitmapBuilder&
     AddInt64s(const std::vector<int64_t>& values);
@@ -146,6 +148,7 @@ class MILVUS_SDK_API RoaringBitmapBuilder {
 
     /**
      * @brief The number of distinct members inserted so far.
+     * @return the cardinality.
      */
     uint64_t
     Cardinality() const;
@@ -156,6 +159,7 @@ class MILVUS_SDK_API RoaringBitmapBuilder {
      * The per-container histogram it reports cannot be known without laying the containers out,
      * so this does that work even for a member set the server would reject. Call Validate()
      * first if the set is untrusted; it refuses a hopeless one from the bucket counts alone.
+     * @return the stats.
      */
     RoaringBitmapStats
     Stats() const;
@@ -167,6 +171,7 @@ class MILVUS_SDK_API RoaringBitmapBuilder {
      * materialising tens of megabytes. A set far past the limits -- shuffled full-range int64
      * ids land in nearly one high container each -- is refused from the bucket counts alone,
      * without laying out a container plan per bucket first.
+     * @return the validate.
      */
     Status
     Validate() const;
@@ -176,6 +181,7 @@ class MILVUS_SDK_API RoaringBitmapBuilder {
      *
      * Note: this throws std::runtime_error when the member set exceeds a limit. Call Validate()
      * first, or use RoaringBitmapTemplate(), when the set comes from untrusted input.
+     * @return the build.
      */
     std::vector<uint8_t>
     Build() const;
@@ -189,6 +195,7 @@ class MILVUS_SDK_API RoaringBitmapBuilder {
      *
      * Binary rather than a JSON string: a roaring body is not valid UTF-8, and proto3 bytes has
      * no UTF-8 constraint, so the blob travels raw with no base64 inflation.
+     * @return the build template.
      */
     nlohmann::json
     BuildTemplate() const;

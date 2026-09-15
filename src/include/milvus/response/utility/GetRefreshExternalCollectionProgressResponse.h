@@ -26,11 +26,23 @@ namespace milvus {
  */
 class MILVUS_SDK_API GetRefreshExternalCollectionProgressResponse {
  public:
+    /**
+     * @brief Constructor
+     */
     GetRefreshExternalCollectionProgressResponse() = default;
 
+    /**
+     * @brief Get the refresh job information.
+     * @return the job info.
+     */
     const RefreshExternalCollectionJobInfo&
     JobInfo() const;
 
+    /**
+     * @brief Set the refresh job information.
+     *
+     * @param [in] job_info
+     */
     void
     SetJobInfo(RefreshExternalCollectionJobInfo&& job_info);
 

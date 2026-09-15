@@ -26,9 +26,19 @@ namespace milvus {
 
 /**
  * @brief Connection parameters. Used by MilvusClient::Connect()
+ * @par Example
+ * @code
+ * milvus::ConnectParam param{"localhost", 19530};
+ * param.SetToken("root:Milvus");
+ * auto client = milvus::MilvusClientV2::Create();
+ * auto status = client->Connect(param);
+ * @endcode
  */
 class MILVUS_SDK_API ConnectParam {
  public:
+    /**
+     * @brief Constructor
+     */
     ConnectParam() = default;
 
     ConnectParam&
@@ -53,53 +63,68 @@ class MILVUS_SDK_API ConnectParam {
     /**
      * @brief Constructor
      * @deprecated host/port is replaced by uri
+     * @param [in] host the host.
+     * @param [in] port the port.
      */
     ConnectParam(std::string host, uint16_t port);
 
     /**
      * @brief Constructor
      * @deprecated host/port is replaced by uri
+     * @param [in] host the host.
+     * @param [in] port the port.
+     * @param [in] token the token.
      */
     ConnectParam(std::string host, uint16_t port, const std::string& token);
 
     /**
      * @brief Constructor
      * @deprecated host/port is replaced by uri
+     * @param [in] host the host.
+     * @param [in] port the port.
+     * @param [in] username the username.
+     * @param [in] password the password.
      */
     ConnectParam(std::string host, uint16_t port, std::string username, std::string password);
 
     /**
      * @brief IP address of the Milvus proxy.
+     * @return the host.
      */
     std::string
     Host() const;
 
     /**
      * @brief Port of the Milvus proxy.
+     * @return the port.
      */
     uint16_t
     Port() const;
 
     /**
      * @brief URI for connecting to Milvus.
+     * @return the URI.
      */
     std::string
     Uri() const;
 
     /**
      * @brief Set the URI for connecting to Milvus.
+     * @param [in] uri the URI.
      */
     void
     SetUri(const std::string& uri);
 
     /**
      * @brief Set the URI for connecting to Milvus.
+     * @param [in] uri the URI.
      */
     ConnectParam&
     WithUri(const std::string& uri);
 
     /**
      * @brief Token for connecting to Milvus.
+     * @return the token.
      */
     const std::string&
     Token() const;
@@ -107,6 +132,7 @@ class MILVUS_SDK_API ConnectParam {
     /**
      * @brief Set the token for connecting to Milvus.
      * Note: calling this method resets the username and password.
+     * @param [in] token the token.
      */
     void
     SetToken(const std::string& token);
@@ -114,6 +140,7 @@ class MILVUS_SDK_API ConnectParam {
     /**
      * @brief Set the token for connecting to Milvus.
      * Note: calling this method resets the username and password.
+     * @param [in] token the token.
      */
     ConnectParam&
     WithToken(const std::string& token);
@@ -121,6 +148,7 @@ class MILVUS_SDK_API ConnectParam {
     /**
      * @brief Authorization header value for connecting to Milvus.
      * Authorizations() = base64('username:password').
+     * @return the authorizations.
      */
     const std::string&
     Authorizations() const;
@@ -128,6 +156,8 @@ class MILVUS_SDK_API ConnectParam {
     /**
      * @brief Set the username and password used to connect to Milvus.
      * Note: calling this method resets the token.
+     * @param [in] username the username.
+     * @param [in] password the password.
      */
     void
     SetAuthorizations(std::string username, std::string password);
@@ -135,6 +165,8 @@ class MILVUS_SDK_API ConnectParam {
     /**
      * @brief Set the username and password used to connect to Milvus.
      * Note: calling this method resets the token.
+     * @param [in] username the username.
+     * @param [in] password the password.
      */
     ConnectParam&
     WithAuthorizations(std::string username, std::string password);
@@ -142,6 +174,7 @@ class MILVUS_SDK_API ConnectParam {
     /**
      * @brief Connect timeout in milliseconds.
      *
+     * @return the connect timeout.
      */
     uint64_t
     ConnectTimeout() const;
@@ -149,12 +182,14 @@ class MILVUS_SDK_API ConnectParam {
     /**
      * @brief Set connect timeout in milliseconds. It is the timeout value to wait grpc channel to ready.
      *
+     * @param [in] connect_timeout_ms the connect timeout ms.
      */
     void
     SetConnectTimeout(uint64_t connect_timeout_ms);
 
     /**
      * @brief Set connect timeout in milliseconds. It is the timeout value to wait grpc channel to ready.
+     * @param [in] connect_timeout_ms the connect timeout ms.
      */
     ConnectParam&
     WithConnectTimeout(uint64_t connect_timeout_ms);
@@ -164,6 +199,7 @@ class MILVUS_SDK_API ConnectParam {
      *
      * Read the gRPC documentation for more information:
      * https://github.com/grpc/grpc/blob/master/doc/keepalive.md
+     * @return the keepalive time ms.
      */
     uint64_t
     KeepaliveTimeMs() const;
@@ -171,12 +207,14 @@ class MILVUS_SDK_API ConnectParam {
     /**
      * @brief Set keepalive time value in milliseconds.
      *
+     * @param [in] keepalive_time_ms the keepalive time ms.
      */
     void
     SetKeepaliveTimeMs(uint64_t keepalive_time_ms);
 
     /**
      * @brief Set keepalive time value in milliseconds.
+     * @param [in] keepalive_time_ms the keepalive time ms.
      */
     ConnectParam&
     WithKeepaliveTimeMs(uint64_t keepalive_time_ms);
@@ -184,6 +222,7 @@ class MILVUS_SDK_API ConnectParam {
     /**
      * @brief Get keepalive timeout value milliseconds.
      *
+     * @return the keepalive timeout ms.
      */
     uint64_t
     KeepaliveTimeoutMs() const;
@@ -191,12 +230,14 @@ class MILVUS_SDK_API ConnectParam {
     /**
      * @brief Set keepalive timeout value in milliseconds.
      *
+     * @param [in] keepalive_timeout_ms the keepalive timeout ms.
      */
     void
     SetKeepaliveTimeoutMs(uint64_t keepalive_timeout_ms);
 
     /**
      * @brief Set keepalive timeout value in milliseconds.
+     * @param [in] keepalive_timeout_ms the keepalive timeout ms.
      */
     ConnectParam&
     WithKeepaliveTimeoutMs(uint64_t keepalive_timeout_ms);
@@ -204,6 +245,7 @@ class MILVUS_SDK_API ConnectParam {
     /**
      * @brief Get keepalive without calls value.
      *
+     * @return the keepalive without calls.
      */
     bool
     KeepaliveWithoutCalls() const;
@@ -211,12 +253,14 @@ class MILVUS_SDK_API ConnectParam {
     /**
      * @brief Set keepalive without calls or not.
      *
+     * @param [in] keepalive_without_calls the keepalive without calls.
      */
     void
     SetKeepaliveWithoutCalls(bool keepalive_without_calls);
 
     /**
      * @brief Set keepalive without calls or not.
+     * @param [in] keepalive_without_calls the keepalive without calls.
      */
     ConnectParam&
     WithKeepaliveWithoutCalls(bool keepalive_without_calls);
@@ -224,6 +268,7 @@ class MILVUS_SDK_API ConnectParam {
     /**
      * @brief Get deadline value of rpc call in milliseconds.
      *
+     * @return the RPC deadline ms.
      */
     uint64_t
     RpcDeadlineMs() const;
@@ -231,18 +276,21 @@ class MILVUS_SDK_API ConnectParam {
     /**
      * @brief Set deadline value of rpc call in milliseconds.
      *
+     * @param [in] rpc_deadline_ms the RPC deadline ms.
      */
     void
     SetRpcDeadlineMs(uint64_t rpc_deadline_ms);
 
     /**
      * @brief Set deadline value of rpc call in milliseconds.
+     * @param [in] rpc_deadline_ms the RPC deadline ms.
      */
     ConnectParam&
     WithRpcDeadlineMs(uint64_t rpc_deadline_ms);
 
     /**
      * @brief With ssl
+     * @return the with tls.
      */
     ConnectParam&
     WithTls();
@@ -255,18 +303,23 @@ class MILVUS_SDK_API ConnectParam {
 
     /**
      * @brief With ssl
+     * @param [in] server_name the server name.
+     * @param [in] ca_cert the ca cert.
      */
     ConnectParam&
     WithTls(const std::string& server_name, const std::string& ca_cert);
 
     /**
      * @brief Enable ssl
+     * @param [in] server_name the server name.
+     * @param [in] ca_cert the ca cert.
      */
     void
     EnableTls(const std::string& server_name, const std::string& ca_cert);
 
     /**
      * @brief With ssl and provides certificates
+     * @return the with tls.
      */
     ConnectParam&
     WithTls(const std::string& server_name, const std::string& cert, const std::string& key,
@@ -287,65 +340,87 @@ class MILVUS_SDK_API ConnectParam {
 
     /**
      * @brief TlsEnabled
+     * @return the tls enabled.
      */
     bool
     TlsEnabled() const;
 
     /**
      * @brief ServerName tls hostname
+     * @return the server name.
      */
     const std::string&
     ServerName() const;
 
     /**
      * @brief Cert tls cert file
+     * @return the cert.
      */
     const std::string&
     Cert() const;
 
     /**
      * @brief Key tls key file
+     * @return the key.
      */
     const std::string&
     Key() const;
 
     /**
      * @brief CaCert tls ca cert file
+     * @return the ca cert.
      */
     const std::string&
     CaCert() const;
 
     /**
      * @brief Return user name
+     * @return the username.
      */
     const std::string&
     Username() const;
 
     /**
      * @brief Return the current used database name
+     * @return the DB name.
      */
     std::string
     DbName() const;
 
     /**
      * @brief Set the current used database name
+     * @param [in] db_name the DB name.
      */
     void
     SetDbName(const std::string& db_name);
 
     /**
      * @brief Set the current used database name
+     * @param [in] db_name the DB name.
      */
     ConnectParam&
     WithDbName(const std::string& db_name);
 
-    /** Client telemetry and command configuration. */
+    /**
+     * @brief Get the telemetry configuration.
+     * @return the telemetry.
+     */
     const TelemetryConfig&
     Telemetry() const;
 
+    /**
+     * @brief Set the telemetry configuration.
+     *
+     * @param [in] config
+     */
     void
     SetTelemetryConfig(const TelemetryConfig& config);
 
+    /**
+     * @brief Set the telemetry configuration.
+     *
+     * @param [in] config
+     */
     ConnectParam&
     WithTelemetryConfig(const TelemetryConfig& config);
 

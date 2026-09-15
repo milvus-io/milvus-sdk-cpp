@@ -32,6 +32,11 @@ TEST_F(MilvusClusterTest, GettersSettersAndFluentMethods) {
     cluster.AddPChannel("by-dev-rootcoord-dml_2");
     EXPECT_EQ(cluster.PChannels().size(), 3);
     EXPECT_EQ(cluster.PChannels()[2], "by-dev-rootcoord-dml_2");
+
+    cluster.SetUri("http://localhost:19531");
+    EXPECT_EQ(cluster.Uri(), "http://localhost:19531");
+    cluster.SetToken("token-set");
+    EXPECT_EQ(cluster.Token(), "token-set");
 }
 
 class CrossClusterTopologyTest : public ::testing::Test {};
@@ -42,6 +47,11 @@ TEST_F(CrossClusterTopologyTest, GettersSettersAndFluentMethods) {
     EXPECT_EQ(&ref, &topology);
     EXPECT_EQ(topology.SourceClusterID(), "source");
     EXPECT_EQ(topology.TargetClusterID(), "target");
+
+    topology.SetSourceClusterID("source-set");
+    EXPECT_EQ(topology.SourceClusterID(), "source-set");
+    topology.SetTargetClusterID("target-set");
+    EXPECT_EQ(topology.TargetClusterID(), "target-set");
 }
 
 class ReplicateMessageIDTest : public ::testing::Test {};
@@ -130,4 +140,20 @@ TEST_F(ReplicateConfigurationTest, GettersSettersAndFluentMethods) {
     configuration.WithCrossClusterTopologies(std::move(topologies));
     ASSERT_EQ(configuration.CrossClusterTopologies().size(), 1u);
     EXPECT_EQ(configuration.CrossClusterTopologies()[0].TargetClusterID(), "new-target");
+
+    std::vector<milvus::MilvusCluster> clusters2;
+    milvus::MilvusCluster cluster2;
+    cluster2.WithClusterID("cluster-c");
+    clusters2.emplace_back(std::move(cluster2));
+    configuration.SetClusters(std::move(clusters2));
+    ASSERT_EQ(configuration.Clusters().size(), 1u);
+    EXPECT_EQ(configuration.Clusters()[0].ClusterID(), "cluster-c");
+
+    std::vector<milvus::CrossClusterTopology> topologies2;
+    milvus::CrossClusterTopology topology2;
+    topology2.WithSourceClusterID("source-c").WithTargetClusterID("target-c");
+    topologies2.emplace_back(std::move(topology2));
+    configuration.SetCrossClusterTopologies(std::move(topologies2));
+    ASSERT_EQ(configuration.CrossClusterTopologies().size(), 1u);
+    EXPECT_EQ(configuration.CrossClusterTopologies()[0].SourceClusterID(), "source-c");
 }

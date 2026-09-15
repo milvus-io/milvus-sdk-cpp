@@ -29,23 +29,54 @@ namespace milvus {
  */
 class MILVUS_SDK_API RefreshExternalCollectionRequest : public CollectionRequestBase<RefreshExternalCollectionRequest> {
  public:
+    /**
+     * @brief Constructor
+     */
     RefreshExternalCollectionRequest() = default;
 
+    /**
+     * @brief Get the external data source, e.g. an S3 path.
+     * @return the external source.
+     */
     const std::string&
     ExternalSource() const;
 
+    /**
+     * @brief Set the external data source, e.g. an S3 path.
+     *
+     * @param [in] external_source
+     */
     void
     SetExternalSource(const std::string& external_source);
 
+    /**
+     * @brief Set the external data source, e.g. an S3 path.
+     *
+     * @param [in] external_source
+     */
     RefreshExternalCollectionRequest&
     WithExternalSource(const std::string& external_source);
 
+    /**
+     * @brief Get the external file specification.
+     * @return the external spec.
+     */
     const nlohmann::json&
     ExternalSpec() const;
 
+    /**
+     * @brief Set the external file specification.
+     *
+     * @param [in] external_spec
+     */
     void
     SetExternalSpec(const nlohmann::json& external_spec);
 
+    /**
+     * @brief Set the external file specification.
+     *
+     * @param [in] external_spec
+     */
     RefreshExternalCollectionRequest&
     WithExternalSpec(const nlohmann::json& external_spec);
 

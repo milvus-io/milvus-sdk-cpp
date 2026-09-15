@@ -40,6 +40,11 @@ TEST_F(CollectionDescTest, GeneralTesting) {
 
     desc.SetUpdateTime(888);
     EXPECT_EQ(desc.UpdateTime(), 888);
+
+    std::unordered_map<std::string, std::string> properties{{"k1", "v1"}};
+    desc.SetProperties(std::move(properties));
+    ASSERT_EQ(desc.Properties().size(), 1);
+    EXPECT_EQ(desc.Properties().at("k1"), "v1");
 }
 
 TEST_F(CollectionDescTest, ConsistencyLevelAndPartitions) {

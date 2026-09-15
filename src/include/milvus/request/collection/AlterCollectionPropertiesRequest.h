@@ -36,24 +36,29 @@ class MILVUS_SDK_API AlterCollectionPropertiesRequest : public CollectionRequest
 
     /**
      * @brief Get altered properties.
+     * @return the properties.
      */
     const std::unordered_map<std::string, std::string>&
     Properties() const;
 
     /**
      * @brief Set altered properties of this collection.
+     * @param [in] properties the properties.
      */
     void
     SetProperties(std::unordered_map<std::string, std::string>&& properties);
 
     /**
      * @brief Set altered properties of this collection.
+     * @param [in] properties the properties.
      */
     AlterCollectionPropertiesRequest&
     WithProperties(std::unordered_map<std::string, std::string>&& properties);
 
     /**
      * @brief Set a property of this collection.
+     * @param [in] key the key.
+     * @param [in] property the property.
      */
     AlterCollectionPropertiesRequest&
     AddProperty(const std::string& key, const std::string& property);

@@ -27,50 +27,113 @@ namespace milvus {
  */
 class MILVUS_SDK_API RestoreSnapshotRequest {
  public:
+    /**
+     * @brief Constructor
+     */
     RestoreSnapshotRequest() = default;
 
+    /**
+     * @brief Get the name of the snapshot to restore.
+     * @return the snapshot name.
+     */
     const std::string&
     SnapshotName() const;
 
+    /**
+     * @brief Set the name of the snapshot to restore.
+     * @param [in] snapshot_name the snapshot name.
+     */
     void
     SetSnapshotName(const std::string& snapshot_name);
 
+    /**
+     * @brief Set the name of the snapshot to restore.
+     * @param [in] snapshot_name the snapshot name.
+     */
     RestoreSnapshotRequest&
     WithSnapshotName(const std::string& snapshot_name);
 
+    /**
+     * @brief Get the source database name.
+     * @return the source database name.
+     */
     const std::string&
     SourceDatabaseName() const;
 
+    /**
+     * @brief Set the source database name.
+     * @param [in] db_name the DB name.
+     */
     void
     SetSourceDatabaseName(const std::string& db_name);
 
+    /**
+     * @brief Set the source database name.
+     * @param [in] db_name the DB name.
+     */
     RestoreSnapshotRequest&
     WithSourceDatabaseName(const std::string& db_name);
 
+    /**
+     * @brief Get the source collection name.
+     * @return the source collection name.
+     */
     const std::string&
     SourceCollectionName() const;
 
+    /**
+     * @brief Set the source collection name.
+     * @param [in] collection_name the collection name.
+     */
     void
     SetSourceCollectionName(const std::string& collection_name);
 
+    /**
+     * @brief Set the source collection name.
+     * @param [in] collection_name the collection name.
+     */
     RestoreSnapshotRequest&
     WithSourceCollectionName(const std::string& collection_name);
 
+    /**
+     * @brief Get the target database name.
+     * @return the target database name.
+     */
     const std::string&
     TargetDatabaseName() const;
 
+    /**
+     * @brief Set the target database name.
+     * @param [in] db_name the DB name.
+     */
     void
     SetTargetDatabaseName(const std::string& db_name);
 
+    /**
+     * @brief Set the target database name.
+     * @param [in] db_name the DB name.
+     */
     RestoreSnapshotRequest&
     WithTargetDatabaseName(const std::string& db_name);
 
+    /**
+     * @brief Get the target collection name.
+     * @return the target collection name.
+     */
     const std::string&
     TargetCollectionName() const;
 
+    /**
+     * @brief Set the target collection name.
+     * @param [in] collection_name the collection name.
+     */
     void
     SetTargetCollectionName(const std::string& collection_name);
 
+    /**
+     * @brief Set the target collection name.
+     * @param [in] collection_name the collection name.
+     */
     RestoreSnapshotRequest&
     WithTargetCollectionName(const std::string& collection_name);
 

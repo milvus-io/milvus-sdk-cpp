@@ -34,12 +34,14 @@ class MILVUS_SDK_API FlushAllResponse {
 
     /**
      * @brief Get flush-all timestamp.
+     * @return the flush all ts.
      */
     uint64_t
     FlushAllTs() const;
 
     /**
      * @brief Set flush-all timestamp.
+     * @param [in] flush_all_ts the flush all ts.
      */
     void
     SetFlushAllTs(uint64_t flush_all_ts);

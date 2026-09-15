@@ -33,12 +33,14 @@ class MILVUS_SDK_API GetPartitionStatsResponse {
 
     /**
      * @brief Get partition stats.
+     * @return the stats.
      */
     const PartitionStat&
     Stats() const;
 
     /**
      * @brief Set partition stats.
+     * @param [in] stats the stats.
      */
     void
     SetStats(PartitionStat&& stats);

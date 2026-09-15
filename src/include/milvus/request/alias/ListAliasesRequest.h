@@ -34,36 +34,42 @@ class MILVUS_SDK_API ListAliasesRequest {
 
     /**
      * @brief Database name in which the collection is created.
+     * @return the database name.
      */
     const std::string&
     DatabaseName() const;
 
     /**
      * @brief Set database name in which the collection is created.
+     * @param [in] db_name the DB name.
      */
     void
     SetDatabaseName(const std::string& db_name);
 
     /**
      * @brief Set database name in which the collection is created.
+     * @param [in] db_name the DB name.
      */
     ListAliasesRequest&
     WithDatabaseName(const std::string& db_name);
 
     /**
      * @brief Name of the collection.
+     * @return the collection name.
      */
     const std::string&
     CollectionName() const;
 
     /**
      * @brief Set name of the collection.
+     * @param [in] collection_name the collection name.
      */
     void
     SetCollectionName(const std::string& collection_name);
 
     /**
      * @brief Set name of the collection.
+     * @param [in] collection_name the collection name.
      */
     ListAliasesRequest&
     WithCollectionName(const std::string& collection_name);

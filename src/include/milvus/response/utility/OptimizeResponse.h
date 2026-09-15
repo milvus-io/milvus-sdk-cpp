@@ -36,66 +36,77 @@ class MILVUS_SDK_API OptimizeResponse {
 
     /**
      * @brief Get status text.
+     * @return the status text.
      */
     const std::string&
     StatusText() const;
 
     /**
      * @brief Set status text.
+     * @param [in] status the status.
      */
     void
     SetStatusText(const std::string& status);
 
     /**
      * @brief Get collection name.
+     * @return the collection name.
      */
     const std::string&
     CollectionName() const;
 
     /**
      * @brief Set collection name.
+     * @param [in] collection_name the collection name.
      */
     void
     SetCollectionName(const std::string& collection_name);
 
     /**
      * @brief Get compaction ID.
+     * @return the compaction ID.
      */
     int64_t
     CompactionID() const;
 
     /**
      * @brief Set compaction ID.
+     * @param [in] compaction_id the compaction ID.
      */
     void
     SetCompactionID(int64_t compaction_id);
 
     /**
      * @brief Get normalized target size.
+     * @return the target size.
      */
     const std::string&
     TargetSize() const;
 
     /**
      * @brief Set normalized target size.
+     * @param [in] target_size the target size.
      */
     void
     SetTargetSize(const std::string& target_size);
 
     /**
      * @brief Get progress history.
+     * @return the progress history.
      */
     const std::vector<std::string>&
     ProgressHistory() const;
 
     /**
      * @brief Set progress history.
+     * @param [in] progress_history the progress history.
      */
     void
     SetProgressHistory(std::vector<std::string>&& progress_history);
 
     /**
      * @brief Add progress message.
+     * @param [in] progress the progress.
      */
     void
     AddProgress(const std::string& progress);

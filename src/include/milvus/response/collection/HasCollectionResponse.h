@@ -20,7 +20,7 @@
 namespace milvus {
 
 /**
- * @brief Used by MilvusClientV2::CreateCollection()
+ * @brief Used by MilvusClientV2::HasCollection()
  */
 class MILVUS_SDK_API HasCollectionResponse {
  public:
@@ -31,12 +31,14 @@ class MILVUS_SDK_API HasCollectionResponse {
 
     /**
      * @brief Get whether the collection exists or not.
+     * @return true if the collection exists.
      */
     bool
     Has() const;
 
     /**
      * @brief Set whether the collection exists or not.
+     * @param [in] has the has.
      */
     void
     SetHas(bool has);

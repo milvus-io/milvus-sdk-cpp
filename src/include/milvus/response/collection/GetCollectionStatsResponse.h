@@ -33,12 +33,14 @@ class MILVUS_SDK_API GetCollectionStatsResponse {
 
     /**
      * @brief Get collection stats.
+     * @return the stats.
      */
     const CollectionStat&
     Stats() const;
 
     /**
      * @brief Set collection stats.
+     * @param [in] stats the stats.
      */
     void
     SetStats(CollectionStat&& stats);
