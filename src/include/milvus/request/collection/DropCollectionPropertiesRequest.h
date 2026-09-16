@@ -35,24 +35,28 @@ class MILVUS_SDK_API DropCollectionPropertiesRequest : public CollectionRequestB
 
     /**
      * @brief Get deleted keys.
+     * @return the property keys.
      */
     const std::set<std::string>&
     PropertyKeys() const;
 
     /**
      * @brief Set deleted keys of this database.
+     * @param [in] keys the keys.
      */
     void
     SetPropertyKeys(std::set<std::string>&& keys);
 
     /**
      * @brief Set deleted keys of this database.
+     * @param [in] keys the keys.
      */
     DropCollectionPropertiesRequest&
     WithPropertyKeys(std::set<std::string>&& keys);
 
     /**
      * @brief Add a key to be deleted.
+     * @param [in] key the key.
      */
     DropCollectionPropertiesRequest&
     AddPropertyKey(const std::string& key);

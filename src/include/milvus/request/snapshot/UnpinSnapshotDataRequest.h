@@ -26,18 +26,35 @@ namespace milvus {
  */
 class MILVUS_SDK_API UnpinSnapshotDataRequest {
  public:
+    /**
+     * @brief Constructor
+     */
     UnpinSnapshotDataRequest() = default;
 
+    /**
+     * @brief Get the pin identifier.
+     * @return the pin ID.
+     */
     int64_t
     PinID() const {
         return pin_id_;
     }
 
+    /**
+     * @brief Set the pin identifier.
+     *
+     * @param [in] pin_id pin identifier.
+     */
     void
     SetPinID(int64_t pin_id) {
         pin_id_ = pin_id;
     }
 
+    /**
+     * @brief Set the pin identifier.
+     *
+     * @param [in] pin_id pin identifier.
+     */
     UnpinSnapshotDataRequest&
     WithPinID(int64_t pin_id) {
         SetPinID(pin_id);

@@ -35,6 +35,8 @@ class MILVUS_SDK_API UserDesc {
 
     /**
      * @brief Construct a new UserDesc object.
+     * @param [in] name the name.
+     * @param [in] roles the roles.
      */
     UserDesc(const std::string& name, std::vector<std::string>&& roles);
 
@@ -42,30 +44,43 @@ class MILVUS_SDK_API UserDesc {
 
     /**
      * @brief Set the name of the user.
+     * @param [in] name the name.
      */
     void
     SetName(const std::string& name);
 
     /**
      * @brief Get the name of the user.
+     * @return the name.
      */
     const std::string&
     Name() const;
 
+    /**
+     * @brief Get the user description.
+     * @return the description.
+     */
     const std::string&
     Description() const;
 
+    /**
+     * @brief Set the user description.
+     *
+     * @param [in] description
+     */
     void
     SetDescription(const std::string& description);
 
     /**
      * @brief Add a role name for the user.
+     * @param [in] role_name the role name.
      */
     void
     AddRole(const std::string& role_name);
 
     /**
      * @brief Get role names of the user.
+     * @return the roles.
      */
     const std::vector<std::string>&
     Roles() const;

@@ -35,138 +35,177 @@ class MILVUS_SDK_API CollectionDesc {
  public:
     /**
      * @brief The database name which this collection belong to.
+     * @return the database name.
      */
     const std::string&
     DatabaseName() const;
 
     /**
      * @brief Set database name.
+     * @param [in] name the name.
      */
     void
     SetDatabaseName(std::string name);
 
     /**
      * @brief The collection name.
+     * @return the collection name.
      */
     const std::string&
     CollectionName() const;
 
     /**
      * @brief Description of the collection.
+     * @return the description.
      */
     const std::string&
     Description() const;
 
     /**
      * @brief Shards number of the collection.
+     * @return the num shards.
      */
     int64_t
     NumShards() const;
 
     /**
      * @brief Collection schema.
+     * @return the schema.
      */
     const CollectionSchema&
     Schema() const;
 
     /**
      * @brief Set collection schema.
+     * @param [in] schema the schema.
      */
     void
     SetSchema(const CollectionSchema& schema);
 
     /**
      * @brief Set collection schema.
+     * @param [in] schema the schema.
      */
     void
     SetSchema(CollectionSchema&& schema);
 
     /**
      * @brief Collection id.
+     * @return the ID.
      */
     int64_t
     ID() const;
 
     /**
      * @brief Set collection id.
+     * @param [in] id the ID.
      */
     void
     SetID(int64_t id);
 
     /**
      * @brief Collection alias.
+     * @return the alias.
      */
     const std::vector<std::string>&
     Alias() const;
 
     /**
      * @brief Set collection alias.
+     * @param [in] alias the alias.
      */
     void
     SetAlias(const std::vector<std::string>& alias);
 
     /**
      * @brief Set collection alias.
+     * @param [in] alias the alias.
      */
     void
     SetAlias(std::vector<std::string>&& alias);
 
     /**
      * @brief Timestamp when the collection created.
+     * @return the created time.
      */
     uint64_t
     CreatedTime() const;
 
     /**
      * @brief Set timestamp when the collection created.
+     * @param [in] ts the ts.
      */
     void
     SetCreatedTime(uint64_t ts);
 
     /**
      * @brief Timestamp when the collection is updated.
+     * @return the update time.
      */
     uint64_t
     UpdateTime() const;
 
     /**
      * @brief Set timestamp when the collection is updated.
+     * @param [in] ts the ts.
      */
     void
     SetUpdateTime(uint64_t ts);
 
     /**
      * @brief Collection properties.
+     * @return the properties.
      */
     const std::unordered_map<std::string, std::string>&
     Properties() const;
 
     /**
      * @brief Set properties of the collection.
+     * @param [in] properties the properties.
      */
     void
     SetProperties(std::unordered_map<std::string, std::string>&& properties);
 
+    /**
+     * @brief Get the external data source of the collection.
+     * @return the external source.
+     */
     const std::string&
     ExternalSource() const;
 
+    /**
+     * @brief Set the external data source of the collection.
+     *
+     * @param [in] external_source
+     */
     void
     SetExternalSource(std::string external_source);
 
+    /**
+     * @brief Get the external file specification of the collection.
+     * @return the external spec.
+     */
     const nlohmann::json&
     ExternalSpec() const;
 
+    /**
+     * @brief Set the external file specification of the collection.
+     *
+     * @param [in] external_spec
+     */
     void
     SetExternalSpec(const nlohmann::json& external_spec);
 
     /**
      * @brief Consistency level of the collection.
+     * @return the consistency level.
      */
     ConsistencyLevel
     GetConsistencyLevel() const;
 
     /**
      * @brief Set consistency level of the collection.
+     * @param [in] level the level.
      */
     void
     SetConsistencyLevel(ConsistencyLevel level);
@@ -174,12 +213,14 @@ class MILVUS_SDK_API CollectionDesc {
     /**
      * @brief Number of partitions of the collection.
      * Only valid when the collection is created with a partition key.
+     * @return the num partitions.
      */
     int64_t
     NumPartitions() const;
 
     /**
      * @brief Set number of partitions of the collection.
+     * @param [in] num_partitions the num partitions.
      */
     void
     SetNumPartitions(int64_t num_partitions);

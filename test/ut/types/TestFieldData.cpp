@@ -715,3 +715,23 @@ TEST_F(FieldDataTest, Int8VecFieldData) {
     auto& vd = data.ValidData();
     EXPECT_EQ(vd.size(), 2);
 }
+
+TEST_F(FieldDataTest, BinaryVecConversions) {
+    const std::vector<uint8_t> vec{0x01, 0x02, 0xFF};
+    const auto str = milvus::BinaryVecFieldData::ToBinaryString(vec);
+    EXPECT_EQ(str, (std::string{'\x01', '\x02', '\xFF'}));
+
+    const std::vector<std::vector<uint8_t>> vecs{{0x01}, {0x02, 0xFF}};
+    const auto strs = milvus::BinaryVecFieldData::ToBinaryStrings(vecs);
+    ASSERT_EQ(strs.size(), 2);
+    EXPECT_EQ(strs[0], (std::string{'\x01'}));
+    EXPECT_EQ(strs[1], (std::string{'\x02', '\xFF'}));
+
+    const auto round_trip = milvus::BinaryVecFieldData::ToUnsignedChars(std::string{'\x01', '\x02'});
+    EXPECT_EQ(round_trip, (std::vector<uint8_t>{0x01, 0x02}));
+
+    const auto round_trips = milvus::BinaryVecFieldData::ToUnsignedChars(strs);
+    ASSERT_EQ(round_trips.size(), 2);
+    EXPECT_EQ(round_trips[0], (std::vector<uint8_t>{0x01}));
+    EXPECT_EQ(round_trips[1], (std::vector<uint8_t>{0x02, 0xFF}));
+}

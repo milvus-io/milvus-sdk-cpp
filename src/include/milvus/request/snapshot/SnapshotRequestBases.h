@@ -21,38 +21,70 @@
 
 namespace milvus {
 
+/**
+ * @brief CRTP base class of snapshot request types that target a database and collection.
+ *
+ * @tparam T derived request type returned by the fluent With* methods.
+ */
 template <typename T>
 class SnapshotRequestBase {
  protected:
+    /**
+     * @brief Constructor
+     */
     SnapshotRequestBase() = default;
 
  public:
+    /**
+     * @brief Get the target database name.
+     * @return database name.
+     */
     const std::string&
     DatabaseName() const {
         return db_name_;
     }
 
+    /**
+     * @brief Set the target database name.
+     * @param [in] db_name database name.
+     */
     void
     SetDatabaseName(const std::string& db_name) {
         db_name_ = db_name;
     }
 
+    /**
+     * @brief Set the target database name.
+     * @param [in] db_name database name.
+     */
     T&
     WithDatabaseName(const std::string& db_name) {
         SetDatabaseName(db_name);
         return static_cast<T&>(*this);
     }
 
+    /**
+     * @brief Get the target collection name.
+     * @return collection name.
+     */
     const std::string&
     CollectionName() const {
         return collection_name_;
     }
 
+    /**
+     * @brief Set the target collection name.
+     * @param [in] collection_name collection name.
+     */
     void
     SetCollectionName(const std::string& collection_name) {
         collection_name_ = collection_name;
     }
 
+    /**
+     * @brief Set the target collection name.
+     * @param [in] collection_name collection name.
+     */
     T&
     WithCollectionName(const std::string& collection_name) {
         SetCollectionName(collection_name);
@@ -64,22 +96,42 @@ class SnapshotRequestBase {
     std::string collection_name_;
 };
 
+/**
+ * @brief CRTP base class of snapshot request types that also target a snapshot name.
+ *
+ * @tparam T derived request type returned by the fluent With* methods.
+ */
 template <typename T>
 class SnapshotNameRequestBase : public SnapshotRequestBase<T> {
  protected:
+    /**
+     * @brief Constructor
+     */
     SnapshotNameRequestBase() = default;
 
  public:
+    /**
+     * @brief Get the target snapshot name.
+     * @return snapshot name.
+     */
     const std::string&
     SnapshotName() const {
         return snapshot_name_;
     }
 
+    /**
+     * @brief Set the target snapshot name.
+     * @param [in] snapshot_name snapshot name.
+     */
     void
     SetSnapshotName(const std::string& snapshot_name) {
         snapshot_name_ = snapshot_name;
     }
 
+    /**
+     * @brief Set the target snapshot name.
+     * @param [in] snapshot_name snapshot name.
+     */
     T&
     WithSnapshotName(const std::string& snapshot_name) {
         SetSnapshotName(snapshot_name);

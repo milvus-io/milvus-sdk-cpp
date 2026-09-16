@@ -31,6 +31,9 @@ TEST_F(CreateAliasRequestTest, GettersAndSetters) {
 
     req.WithDatabaseName("alias_db");
     EXPECT_EQ(req.DatabaseName(), "alias_db");
+
+    req.SetAlias("my_alias_set");
+    EXPECT_EQ(req.Alias(), "my_alias_set");
 }
 
 class AlterAliasRequestTest : public ::testing::Test {};
@@ -43,6 +46,9 @@ TEST_F(AlterAliasRequestTest, GettersAndSetters) {
 
     req.WithAlias("altered_alias");
     EXPECT_EQ(req.Alias(), "altered_alias");
+
+    req.SetAlias("altered_alias_set");
+    EXPECT_EQ(req.Alias(), "altered_alias_set");
 }
 
 class DropAliasRequestTest : public ::testing::Test {};
@@ -55,6 +61,9 @@ TEST_F(DropAliasRequestTest, GettersAndSetters) {
 
     req.WithDatabaseName("drop_alias_db");
     EXPECT_EQ(req.DatabaseName(), "drop_alias_db");
+
+    req.SetAlias("drop_alias_set");
+    EXPECT_EQ(req.Alias(), "drop_alias_set");
 }
 
 class DescribeAliasRequestTest : public ::testing::Test {};
@@ -67,6 +76,9 @@ TEST_F(DescribeAliasRequestTest, GettersAndSetters) {
 
     req.WithDatabaseName("desc_alias_db");
     EXPECT_EQ(req.DatabaseName(), "desc_alias_db");
+
+    req.SetAlias("desc_alias_set");
+    EXPECT_EQ(req.Alias(), "desc_alias_set");
 }
 
 class ListAliasesRequestTest : public ::testing::Test {};

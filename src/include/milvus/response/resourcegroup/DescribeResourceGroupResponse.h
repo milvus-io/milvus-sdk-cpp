@@ -33,12 +33,14 @@ class MILVUS_SDK_API DescribeResourceGroupResponse {
 
     /**
      * @brief Get resource group description.
+     * @return the desc.
      */
     const ResourceGroupDesc&
     Desc() const;
 
     /**
      * @brief Set resource group description.
+     * @param [in] desc the desc.
      */
     void
     SetDesc(ResourceGroupDesc&& desc);

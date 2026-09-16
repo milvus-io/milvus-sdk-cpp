@@ -21,23 +21,54 @@
 
 namespace milvus {
 
+/**
+ * @brief Used by MilvusClientV2::UpdateReplicateConfiguration()
+ */
 class MILVUS_SDK_API UpdateReplicateConfigurationRequest {
+    /**
+     * @brief Get the replication configuration.
+     * @return the configuration.
+     */
  public:
     const ReplicateConfiguration&
     Configuration() const;
 
+    /**
+     * @brief Set the replication configuration.
+     *
+     * @param [in] configuration
+     */
     void
     SetConfiguration(ReplicateConfiguration&& configuration);
 
+    /**
+     * @brief Set the replication configuration.
+     *
+     * @param [in] configuration
+     */
     UpdateReplicateConfigurationRequest&
     WithConfiguration(ReplicateConfiguration&& configuration);
 
+    /**
+     * @brief Get whether to force-promote the configuration.
+     * @return the force promote.
+     */
     bool
     ForcePromote() const;
 
+    /**
+     * @brief Set whether to force-promote the configuration.
+     *
+     * @param [in] force_promote
+     */
     void
     SetForcePromote(bool force_promote);
 
+    /**
+     * @brief Set whether to force-promote the configuration.
+     *
+     * @param [in] force_promote
+     */
     UpdateReplicateConfigurationRequest&
     WithForcePromote(bool force_promote);
 

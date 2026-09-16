@@ -1,0 +1,37 @@
+# Doxygen configuration for the Milvus C++ SDK public API documentation.
+#
+# Generates the API reference from the Doxygen comments in the public headers
+# under src/include/milvus. HTML output is written to doc/html. Build locally
+# with `doxygen` or `make docs`.
+
+PROJECT_NAME           = "Milvus C++ SDK"
+PROJECT_BRIEF          = "C++ client for the Milvus vector database"
+OUTPUT_DIRECTORY       = doc
+INPUT                  = src/include/milvus
+RECURSIVE              = YES
+EXCLUDE_PATTERNS       = */thirdparty/*
+FILE_PATTERNS          = *.h *.hpp
+
+GENERATE_HTML          = YES
+GENERATE_LATEX         = NO
+GENERATE_TREEVIEW      = YES
+SOURCE_BROWSER         = YES
+INLINE_SOURCES         = NO
+
+EXTRACT_ALL            = NO
+EXTRACT_PRIVATE        = NO
+EXTRACT_STATIC         = NO
+EXTRACT_ANON_NSPACES   = NO
+HIDE_UNDOC_MEMBERS     = NO
+
+WARN_IF_UNDOCUMENTED   = YES
+WARN_IF_DOC_ERROR      = YES
+# Flip to YES to fail the build on any undocumented public member.
+WARN_AS_ERROR          = NO
+QUIET                  = YES
+
+MACRO_EXPANSION        = YES
+PREDEFINED             = MILVUS_SDK_API=
+CLASS_DIAGRAMS         = NO
+HAVE_DOT               = NO
+JAVADOC_AUTOBRIEF      = YES

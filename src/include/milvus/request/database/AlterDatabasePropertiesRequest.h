@@ -36,24 +36,29 @@ class MILVUS_SDK_API AlterDatabasePropertiesRequest : public DBRequestBase<Alter
 
     /**
      * @brief Get altered properties.
+     * @return the properties.
      */
     const std::unordered_map<std::string, std::string>&
     Properties() const;
 
     /**
      * @brief Set altered properties of this database.
+     * @param [in] properties the properties.
      */
     void
     SetProperties(std::unordered_map<std::string, std::string>&& properties);
 
     /**
      * @brief Set altered properties of this database.
+     * @param [in] properties the properties.
      */
     AlterDatabasePropertiesRequest&
     WithProperties(std::unordered_map<std::string, std::string>&& properties);
 
     /**
      * @brief Add a property of this database.
+     * @param [in] key the key.
+     * @param [in] property the property.
      */
     AlterDatabasePropertiesRequest&
     AddProperty(const std::string& key, const std::string& property);

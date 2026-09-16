@@ -30,27 +30,46 @@ TEST_F(CreateCollectionRequestTest, GettersAndSetters) {
     // DatabaseName
     req.WithDatabaseName("test_db");
     EXPECT_EQ(req.DatabaseName(), "test_db");
+    req.SetDatabaseName("test_db_set");
+    EXPECT_EQ(req.DatabaseName(), "test_db_set");
 
     // Description
     req.WithDescription("my description");
     EXPECT_EQ(req.Description(), "my description");
+    req.SetDescription("my description set");
+    EXPECT_EQ(req.Description(), "my description set");
 
     // CollectionSchema
     auto schema = std::make_shared<milvus::CollectionSchema>("test_coll");
     req.WithCollectionSchema(schema);
     EXPECT_EQ(req.CollectionSchema()->Name(), "test_coll");
+    // the collection name set earlier overrides the schema name on SetCollectionSchema
+    auto schema2 = std::make_shared<milvus::CollectionSchema>("test_coll_set");
+    req.SetCollectionSchema(schema2);
+    EXPECT_EQ(req.CollectionSchema()->Name(), "test_coll");
+
+    // SetCollectionName overrides the schema name once a schema is attached
+    req.SetCollectionName("test_coll_set");
+    EXPECT_EQ(req.CollectionName(), "test_coll_set");
+    EXPECT_EQ(req.CollectionSchema()->Name(), "test_coll_set");
 
     // NumPartitions
     req.WithNumPartitions(16);
     EXPECT_EQ(req.NumPartitions(), 16);
+    req.SetNumPartitions(32);
+    EXPECT_EQ(req.NumPartitions(), 32);
 
     // NumShards
     req.WithNumShards(4);
     EXPECT_EQ(req.NumShards(), 4);
+    req.SetNumShards(8);
+    EXPECT_EQ(req.NumShards(), 8);
 
     // ConsistencyLevel
     req.WithConsistencyLevel(milvus::ConsistencyLevel::STRONG);
     EXPECT_EQ(req.GetConsistencyLevel(), milvus::ConsistencyLevel::STRONG);
+    req.SetConsistencyLevel(milvus::ConsistencyLevel::EVENTUALLY);
+    EXPECT_EQ(req.GetConsistencyLevel(), milvus::ConsistencyLevel::EVENTUALLY);
 
     // Properties
     std::unordered_map<std::string, std::string> props;
@@ -73,6 +92,12 @@ TEST_F(CreateCollectionRequestTest, GettersAndSetters) {
     milvus::IndexDesc idx2;
     req.AddIndex(std::move(idx2));
     EXPECT_EQ(req.Indexes().size(), 2);
+
+    // SetIndexes
+    std::vector<milvus::IndexDesc> indexes2;
+    indexes2.push_back(milvus::IndexDesc());
+    req.SetIndexes(std::move(indexes2));
+    EXPECT_EQ(req.Indexes().size(), 1);
 }
 
 TEST_F(CreateCollectionRequestTest, FluentChaining) {
@@ -128,18 +153,26 @@ TEST_F(LoadCollectionRequestTest, GettersAndSetters) {
     EXPECT_FALSE(req.Sync());
     req.WithSync(true);
     EXPECT_TRUE(req.Sync());
+    req.SetSync(false);
+    EXPECT_FALSE(req.Sync());
 
     // ReplicaNum
     req.WithReplicaNum(3);
     EXPECT_EQ(req.ReplicaNum(), 3);
+    req.SetReplicaNum(5);
+    EXPECT_EQ(req.ReplicaNum(), 5);
 
     // TimeoutMs
     req.WithTimeoutMs(30000);
     EXPECT_EQ(req.TimeoutMs(), 30000);
+    req.SetTimeoutMs(15000);
+    EXPECT_EQ(req.TimeoutMs(), 15000);
 
     // Refresh
     req.WithRefresh(true);
     EXPECT_TRUE(req.Refresh());
+    req.SetRefresh(false);
+    EXPECT_FALSE(req.Refresh());
 
     // LoadFields
     std::set<std::string> fields{"f1", "f2"};
@@ -151,15 +184,29 @@ TEST_F(LoadCollectionRequestTest, GettersAndSetters) {
     req.AddLoadField("f3");
     EXPECT_TRUE(req.LoadFields().count("f3"));
 
+    // SetLoadFields
+    std::set<std::string> fields2{"f4"};
+    req.SetLoadFields(fields2);
+    EXPECT_EQ(req.LoadFields().size(), 1);
+    EXPECT_TRUE(req.LoadFields().count("f4"));
+
     // SkipDynamicField
     req.WithSkipDynamicField(true);
     EXPECT_TRUE(req.SkipDynamicField());
+    req.SetSkipDynamicField(false);
+    EXPECT_FALSE(req.SkipDynamicField());
 
     // TargetResourceGroups
     std::set<std::string> groups{"rg1", "rg2"};
     req.WithTargetResourceGroups(groups);
     EXPECT_EQ(req.TargetResourceGroups().size(), 2);
     EXPECT_TRUE(req.TargetResourceGroups().count("rg1"));
+
+    // SetTargetResourceGroups
+    std::set<std::string> groups2{"rg3"};
+    req.SetTargetResourceGroups(groups2);
+    EXPECT_EQ(req.TargetResourceGroups().size(), 1);
+    EXPECT_TRUE(req.TargetResourceGroups().count("rg3"));
 
     // LoadPriority
     req.WithLoadPriority("Low");
@@ -181,6 +228,11 @@ TEST_F(RefreshLoadRequestTest, GettersAndSetters) {
     EXPECT_EQ(req.CollectionName(), "refresh_coll");
     EXPECT_FALSE(req.Sync());
     EXPECT_EQ(req.TimeoutMs(), 30000);
+
+    req.SetSync(true);
+    EXPECT_TRUE(req.Sync());
+    req.SetTimeoutMs(10000);
+    EXPECT_EQ(req.TimeoutMs(), 10000);
 }
 
 class ReleaseCollectionRequestTest : public ::testing::Test {};
@@ -203,6 +255,11 @@ TEST_F(RenameCollectionRequestTest, GettersAndSetters) {
 
     req.WithTargetDatabaseName("target_db");
     EXPECT_EQ(req.TargetDatabaseName(), "target_db");
+
+    req.SetNewCollectionName("new_name_set");
+    EXPECT_EQ(req.NewCollectionName(), "new_name_set");
+    req.SetTargetDatabaseName("target_db_set");
+    EXPECT_EQ(req.TargetDatabaseName(), "target_db_set");
 }
 
 class TruncateCollectionRequestTest : public ::testing::Test {};
@@ -243,6 +300,19 @@ TEST_F(BatchDescribeCollectionsRequestTest, GettersAndSetters) {
     EXPECT_EQ(&add_id_ref, &req);
     ASSERT_EQ(req.CollectionIDs().size(), 3);
     EXPECT_EQ(req.CollectionIDs()[2], 103);
+
+    req.SetDatabaseName("db_set");
+    EXPECT_EQ(req.DatabaseName(), "db_set");
+
+    std::vector<std::string> names2{"coll_a"};
+    req.SetCollectionNames(std::move(names2));
+    ASSERT_EQ(req.CollectionNames().size(), 1);
+    EXPECT_EQ(req.CollectionNames()[0], "coll_a");
+
+    std::vector<int64_t> ids2{200};
+    req.SetCollectionIDs(std::move(ids2));
+    ASSERT_EQ(req.CollectionIDs().size(), 1);
+    EXPECT_EQ(req.CollectionIDs()[0], 200);
 }
 
 class DescribeReplicasRequestTest : public ::testing::Test {};
@@ -268,6 +338,11 @@ TEST_F(ListCollectionsRequestTest, GettersAndSetters) {
 
     req.WithOnlyShowLoaded(false);
     EXPECT_FALSE(req.OnlyShowLoaded());
+
+    req.SetDatabaseName("test_db_set");
+    EXPECT_EQ(req.DatabaseName(), "test_db_set");
+    req.SetOnlyShowLoaded(true);
+    EXPECT_TRUE(req.OnlyShowLoaded());
 }
 
 class GetCollectionStatsRequestTest : public ::testing::Test {};
@@ -317,6 +392,11 @@ TEST_F(AddCollectionFieldRequestTest, GettersAndSetters) {
     field.SetName("my_field");
     req.WithField(std::move(field));
     EXPECT_EQ(req.Field().Name(), "my_field");
+
+    milvus::FieldSchema field2;
+    field2.SetName("my_field_set");
+    req.SetField(std::move(field2));
+    EXPECT_EQ(req.Field().Name(), "my_field_set");
 }
 
 class AddCollectionStructFieldRequestTest : public ::testing::Test {};
@@ -334,6 +414,11 @@ TEST_F(AddCollectionStructFieldRequestTest, GettersAndSetters) {
     req.WithStructField(std::move(field));
     EXPECT_EQ(req.StructField().Name(), "my_struct_field");
     EXPECT_EQ(req.StructField().Fields().size(), 2);
+
+    milvus::StructFieldSchema field2;
+    field2.WithName("my_struct_field_set");
+    req.SetStructField(std::move(field2));
+    EXPECT_EQ(req.StructField().Name(), "my_struct_field_set");
 }
 
 class DropCollectionFieldRequestTest : public ::testing::Test {};
@@ -350,6 +435,9 @@ TEST_F(DropCollectionFieldRequestTest, GettersAndSetters) {
     EXPECT_EQ(&ref, &req);
     EXPECT_EQ(req.FieldName(), "my_field");
     EXPECT_EQ(req.FieldID(), 0);
+
+    req.SetFieldName("my_field_set");
+    EXPECT_EQ(req.FieldName(), "my_field_set");
 }
 
 TEST_F(DropCollectionFieldRequestTest, Setters) {
@@ -391,6 +479,11 @@ TEST_F(AddFunctionFieldRequestTest, GettersAndSetters) {
     EXPECT_EQ(req.Index().IndexType(), milvus::IndexType::SPARSE_INVERTED_INDEX);
     EXPECT_EQ(req.Index().MetricType(), milvus::MetricType::BM25);
     EXPECT_EQ(req.Index().ExtraParams().at("drop_ratio_build"), "0.2");
+
+    milvus::FieldSchema field2;
+    field2.SetName("sparse_vec_set");
+    req.SetField(std::move(field2));
+    EXPECT_EQ(req.Field().Name(), "sparse_vec_set");
 }
 
 TEST_F(AddFunctionFieldRequestTest, SetFunction) {
@@ -577,6 +670,9 @@ TEST_F(AlterCollectionFieldPropertiesRequestTest, GettersAndSetters) {
 
     req.AddProperty("pk1", "pv1");
     EXPECT_EQ(req.Properties().at("pk1"), "pv1");
+
+    req.SetFieldName("my_field_set");
+    EXPECT_EQ(req.FieldName(), "my_field_set");
 }
 
 class DropCollectionFieldPropertiesRequestTest : public ::testing::Test {};
@@ -592,56 +688,28 @@ TEST_F(DropCollectionFieldPropertiesRequestTest, GettersAndSetters) {
     req.AddPropertyKey("fk1");
     EXPECT_EQ(req.PropertyKeys().size(), 1);
     EXPECT_TRUE(req.PropertyKeys().count("fk1"));
+
+    req.SetFieldName("my_field_set");
+    EXPECT_EQ(req.FieldName(), "my_field_set");
 }
 
 class CreateSimpleCollectionRequestTest : public ::testing::Test {};
 
-TEST_F(CreateSimpleCollectionRequestTest, PrimaryFieldName) {
+TEST_F(CreateSimpleCollectionRequestTest, GettersAndSetters) {
     milvus::CreateSimpleCollectionRequest req;
 
-    // Default is "id"
+    // Defaults
+    EXPECT_EQ(req.CollectionName(), "");
     EXPECT_EQ(req.PrimaryFieldName(), "id");
-
-    auto& ref = req.WithPrimaryFieldName("my_pk");
-    EXPECT_EQ(req.PrimaryFieldName(), "my_pk");
-    EXPECT_EQ(&ref, &req);
-}
-
-TEST_F(CreateSimpleCollectionRequestTest, PrimaryFieldType) {
-    milvus::CreateSimpleCollectionRequest req;
-
-    // Default is INT64
     EXPECT_EQ(req.PrimaryFieldType(), milvus::DataType::INT64);
-
-    auto& ref = req.WithPrimaryFieldType(milvus::DataType::VARCHAR);
-    EXPECT_EQ(req.PrimaryFieldType(), milvus::DataType::VARCHAR);
-    EXPECT_EQ(&ref, &req);
-}
-
-TEST_F(CreateSimpleCollectionRequestTest, VectorFieldName) {
-    milvus::CreateSimpleCollectionRequest req;
-
-    // Default is "vector"
     EXPECT_EQ(req.VectorFieldName(), "vector");
-
-    auto& ref = req.WithVectorFieldName("embedding");
-    EXPECT_EQ(req.VectorFieldName(), "embedding");
-    EXPECT_EQ(&ref, &req);
-}
-
-TEST_F(CreateSimpleCollectionRequestTest, MetricType) {
-    milvus::CreateSimpleCollectionRequest req;
-
-    // Default is COSINE
     EXPECT_EQ(req.MetricType(), milvus::MetricType::COSINE);
+    EXPECT_EQ(req.ConsistencyLevel(), milvus::ConsistencyLevel::BOUNDED);
+    EXPECT_FALSE(req.AutoID());
+    EXPECT_TRUE(req.EnableDynamicField());
+    EXPECT_EQ(req.MaxLength(), 65535);
 
-    auto& ref = req.WithMetricType(milvus::MetricType::L2);
-    EXPECT_EQ(req.MetricType(), milvus::MetricType::L2);
-    EXPECT_EQ(&ref, &req);
-}
-
-TEST_F(CreateSimpleCollectionRequestTest, FluentChaining) {
-    milvus::CreateSimpleCollectionRequest req;
+    // Fluent setters
     auto& ref = req.WithCollectionName("simple_coll")
                     .WithPrimaryFieldName("pk")
                     .WithPrimaryFieldType(milvus::DataType::VARCHAR)
@@ -663,4 +731,24 @@ TEST_F(CreateSimpleCollectionRequestTest, FluentChaining) {
     EXPECT_FALSE(req.EnableDynamicField());
     EXPECT_EQ(req.MaxLength(), 256);
     EXPECT_EQ(req.ConsistencyLevel(), milvus::ConsistencyLevel::STRONG);
+
+    // Plain setters
+    req.SetPrimaryFieldName("pk_set");
+    EXPECT_EQ(req.PrimaryFieldName(), "pk_set");
+    req.SetPrimaryFieldType(milvus::DataType::INT64);
+    EXPECT_EQ(req.PrimaryFieldType(), milvus::DataType::INT64);
+    req.SetVectorFieldName("vec_set");
+    EXPECT_EQ(req.VectorFieldName(), "vec_set");
+    req.SetDimension(64);
+    EXPECT_EQ(req.Dimension(), 64);
+    req.SetMetricType(milvus::MetricType::L2);
+    EXPECT_EQ(req.MetricType(), milvus::MetricType::L2);
+    req.SetAutoID(false);
+    EXPECT_FALSE(req.AutoID());
+    req.SetEnableDynamicField(true);
+    EXPECT_TRUE(req.EnableDynamicField());
+    req.SetMaxLength(512);
+    EXPECT_EQ(req.MaxLength(), 512);
+    req.SetConsistencyLevel(milvus::ConsistencyLevel::EVENTUALLY);
+    EXPECT_EQ(req.ConsistencyLevel(), milvus::ConsistencyLevel::EVENTUALLY);
 }

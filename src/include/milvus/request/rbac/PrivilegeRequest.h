@@ -38,18 +38,21 @@ class MILVUS_SDK_API PrivilegeRequest {
 
     /**
      * @brief Name of the role.
+     * @return the role name.
      */
     const std::string&
     RoleName() const;
 
     /**
      * @brief Set name of the role.
+     * @param [in] name the name.
      */
     void
     SetRoleName(const std::string& name);
 
     /**
      * @brief Set name of the role.
+     * @param [in] name the name.
      */
     PrivilegeRequest&
     WithRoleName(const std::string& name);
@@ -57,72 +60,84 @@ class MILVUS_SDK_API PrivilegeRequest {
     /**
      * @brief Type of the object the privilege applies to, such as "Global", "Database",
      * "Collection" or "User".
+     * @return the object type.
      */
     const std::string&
     ObjectType() const;
 
     /**
      * @brief Set type of the object the privilege applies to.
+     * @param [in] object_type the object type.
      */
     void
     SetObjectType(const std::string& object_type);
 
     /**
      * @brief Set type of the object the privilege applies to.
+     * @param [in] object_type the object type.
      */
     PrivilegeRequest&
     WithObjectType(const std::string& object_type);
 
     /**
      * @brief Name of the object the privilege applies to. Use "*" for the "Global" scope.
+     * @return the object name.
      */
     const std::string&
     ObjectName() const;
 
     /**
      * @brief Set name of the object the privilege applies to.
+     * @param [in] object_name the object name.
      */
     void
     SetObjectName(const std::string& object_name);
 
     /**
      * @brief Set name of the object the privilege applies to.
+     * @param [in] object_name the object name.
      */
     PrivilegeRequest&
     WithObjectName(const std::string& object_name);
 
     /**
      * @brief Name of the privilege.
+     * @return the privilege.
      */
     const std::string&
     Privilege() const;
 
     /**
      * @brief Set name of the privilege.
+     * @param [in] privilege the privilege.
      */
     void
     SetPrivilege(const std::string& privilege);
 
     /**
      * @brief Set name of the privilege.
+     * @param [in] privilege the privilege.
      */
     PrivilegeRequest&
     WithPrivilege(const std::string& privilege);
 
     /**
      * @brief Get database name.
+     * @return the database name.
      */
     const std::string&
     DatabaseName() const;
 
     /**
      * @brief Set database name.
+     * @param [in] db_name the DB name.
      */
     void
     SetDatabaseName(const std::string& db_name);
 
     /**
      * @brief Set database name.
+     * @param [in] db_name the DB name.
      */
     PrivilegeRequest&
     WithDatabaseName(const std::string& db_name);

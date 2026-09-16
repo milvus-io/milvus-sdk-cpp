@@ -35,29 +35,35 @@ class MILVUS_SDK_API PrivilegeGroupInfo {
 
     /**
      * @brief Construct a new PrivilegeGroupInfo object.
+     * @param [in] name the name.
+     * @param [in] privileges the privileges.
      */
     PrivilegeGroupInfo(const std::string& name, std::vector<std::string>&& privileges);
 
     /**
      * @brief Name of the group.
+     * @return the name.
      */
     const std::string&
     Name() const;
 
     /**
      * @brief Set name of the group.
+     * @param [in] name the name.
      */
     void
     SetName(const std::string& name);
 
     /**
      * @brief Privileges if the group.
+     * @return the privileges.
      */
     const std::vector<std::string>&
     Privileges() const;
 
     /**
      * @brief Add a privilege name into the info.
+     * @param [in] privilege the privilege.
      */
     void
     AddPrivilege(const std::string& privilege);

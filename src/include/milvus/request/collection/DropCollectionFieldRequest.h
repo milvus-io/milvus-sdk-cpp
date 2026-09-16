@@ -36,36 +36,42 @@ class MILVUS_SDK_API DropCollectionFieldRequest : public CollectionRequestBase<D
 
     /**
      * @brief Name of the field to drop.
+     * @return the field name.
      */
     const std::string&
     FieldName() const;
 
     /**
      * @brief Set the name of the field to drop.
+     * @param [in] field_name the field name.
      */
     void
     SetFieldName(std::string field_name);
 
     /**
      * @brief Set the name of the field to drop.
+     * @param [in] field_name the field name.
      */
     DropCollectionFieldRequest&
     WithFieldName(std::string field_name);
 
     /**
      * @brief ID of the field to drop.
+     * @return the field ID.
      */
     int64_t
     FieldID() const;
 
     /**
      * @brief Set the ID of the field to drop.
+     * @param [in] field_id the field ID.
      */
     void
     SetFieldID(int64_t field_id);
 
     /**
      * @brief Set the ID of the field to drop.
+     * @param [in] field_id the field ID.
      */
     DropCollectionFieldRequest&
     WithFieldID(int64_t field_id);

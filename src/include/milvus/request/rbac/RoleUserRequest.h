@@ -34,36 +34,42 @@ class MILVUS_SDK_API RoleUserRequest {
 
     /**
      * @brief Name of the user, grant a role to this user.
+     * @return the user name.
      */
     const std::string&
     UserName() const;
 
     /**
      * @brief Set name of the user, grant a role to this user.
+     * @param [in] name the name.
      */
     void
     SetUserName(const std::string& name);
 
     /**
      * @brief Set name of the user, grant a role to this user.
+     * @param [in] name the name.
      */
     RoleUserRequest&
     WithUserName(const std::string& name);
 
     /**
      * @brief Name of the role.
+     * @return the role name.
      */
     const std::string&
     RoleName() const;
 
     /**
      * @brief Set Name of the role.
+     * @param [in] name the name.
      */
     void
     SetRoleName(const std::string& name);
 
     /**
      * @brief Set name of the role.
+     * @param [in] name the name.
      */
     RoleUserRequest&
     WithRoleName(const std::string& name);

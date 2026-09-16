@@ -56,6 +56,7 @@ TEST_F(QueryResultsTest, OutputRowsAndOutputRow) {
     auto status = results.OutputRows(rows);
     EXPECT_TRUE(status.IsOk());
     EXPECT_EQ(rows.size(), 2);
+    EXPECT_EQ(results.GetRowCount(), 2);
 
     // Test OutputRow
     milvus::EntityRow row;

@@ -34,54 +34,63 @@ class MILVUS_SDK_API TransferReplicaRequest {
 
     /**
      * @brief Database name in which the collection is created.
+     * @return the database name.
      */
     const std::string&
     DatabaseName() const;
 
     /**
      * @brief Set database name in which the collection is created.
+     * @param [in] db_name the DB name.
      */
     void
     SetDatabaseName(const std::string& db_name);
 
     /**
      * @brief Set database name in which the collection is created.
+     * @param [in] db_name the DB name.
      */
     TransferReplicaRequest&
     WithDatabaseName(const std::string& db_name);
 
     /**
      * @brief Name of the collection.
+     * @return the collection name.
      */
     const std::string&
     CollectionName() const;
 
     /**
      * @brief Set name of the collection.
+     * @param [in] collection_name the collection name.
      */
     void
     SetCollectionName(const std::string& collection_name);
 
     /**
      * @brief Set name of the collection.
+     * @param [in] collection_name the collection name.
      */
     TransferReplicaRequest&
     WithCollectionName(const std::string& collection_name);
 
     /**
      * @brief Get name of the source resource group.
+     * @return the source group.
      */
     const std::string&
     SourceGroup() const;
 
     /**
      * @brief Set name of the source resource group.
+     * @param [in] source_group the source group.
      */
     void
     SetSourceGroup(const std::string& source_group);
 
     /**
      * @brief Set name of the source resource group.
+     * @param [in] source_group the source group.
      */
     TransferReplicaRequest&
     WithSourceGroup(const std::string& source_group);

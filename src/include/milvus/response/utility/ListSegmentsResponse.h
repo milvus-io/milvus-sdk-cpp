@@ -34,12 +34,14 @@ class ListSegmentsResponse {
 
     /**
      * @brief Get infomations of segments.
+     * @return the result.
      */
     const T&
     Result() const;
 
     /**
      * @brief Set infomations of segments.
+     * @param [in] results the results.
      */
     void
     SetResult(T&& results);

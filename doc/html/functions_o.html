@@ -5,10 +5,14 @@
 <meta http-equiv="X-UA-Compatible" content="IE=9"/>
 <meta name="generator" content="Doxygen 1.9.1"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>milvus-sdk-cpp: Class Members</title>
+<title>Milvus C++ SDK: Class Members</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
+<link href="navtree.css" rel="stylesheet" type="text/css"/>
+<script type="text/javascript" src="resize.js"></script>
+<script type="text/javascript" src="navtreedata.js"></script>
+<script type="text/javascript" src="navtree.js"></script>
 <link href="search/search.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="search/searchdata.js"></script>
 <script type="text/javascript" src="search/search.js"></script>
@@ -21,8 +25,9 @@
  <tbody>
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
-   <div id="projectname">milvus-sdk-cpp
+   <div id="projectname">Milvus C++ SDK
    </div>
+   <div id="projectbrief">C++ client for the Milvus vector database</div>
   </td>
  </tr>
  </tbody>
@@ -46,6 +51,22 @@ $(function() {
 /* @license-end */</script>
 <div id="main-nav"></div>
 </div><!-- top -->
+<div id="side-nav" class="ui-resizable side-nav-resizable">
+  <div id="nav-tree">
+    <div id="nav-tree-contents">
+      <div id="nav-sync" class="sync"></div>
+    </div>
+  </div>
+  <div id="splitbar" style="-moz-user-select:none;" 
+       class="ui-resizable-handle">
+  </div>
+</div>
+<script type="text/javascript">
+/* @license magnet:?xt=urn:btih:cf05388f2679ee054f2beb29a391d25f4e673ac3&amp;dn=gpl-2.0.txt GPL-v2 */
+$(document).ready(function(){initNavTree('functions_o.html',''); initResizable(); });
+/* @license-end */
+</script>
+<div id="doc-content">
 <!-- window showing the filter options -->
 <div id="MSearchSelectWindow"
      onmouseover="return searchBox.OnSearchSelectShow()"
@@ -65,61 +86,117 @@ $(function() {
 
 <h3><a id="index_o"></a>- o -</h3><ul>
 <li>object_name_
-: <a class="el" href="structmilvus_1_1_grant_item.html#a30988412de7798b7f63a9ea313f13cc6">milvus::GrantItem</a>
+: <a class="el" href="structmilvus_1_1GrantItem.html#a30988412de7798b7f63a9ea313f13cc6">milvus::GrantItem</a>
 </li>
 <li>object_type_
-: <a class="el" href="structmilvus_1_1_grant_item.html#a53e17f3e71ea173be873d28c6e145031">milvus::GrantItem</a>
+: <a class="el" href="structmilvus_1_1GrantItem.html#a53e17f3e71ea173be873d28c6e145031">milvus::GrantItem</a>
+</li>
+<li>ObjectName()
+: <a class="el" href="classmilvus_1_1PrivilegeRequest.html#a4b5345d7973e871135c4d7a4f01406f9">milvus::PrivilegeRequest</a>
+</li>
+<li>ObjectType()
+: <a class="el" href="classmilvus_1_1PrivilegeRequest.html#a7954ceb9a966af74bde685f722da569a">milvus::PrivilegeRequest</a>
 </li>
 <li>Offset()
-: <a class="el" href="classmilvus_1_1_hybrid_search_arguments.html#a741eac46e768fbcdd58e1860bb7d4111">milvus::HybridSearchArguments</a>
-, <a class="el" href="classmilvus_1_1_hybrid_search_request.html#ab18177eb9e27a0e992447c180a6b560c">milvus::HybridSearchRequest</a>
-, <a class="el" href="classmilvus_1_1_query_arguments.html#a98ff352fa3d44313d2a73d4083b6c99d">milvus::QueryArguments</a>
-, <a class="el" href="classmilvus_1_1_query_request.html#aa67f33aac509c303e62283438db70ec8">milvus::QueryRequest</a>
-, <a class="el" href="classmilvus_1_1_search_arguments.html#ad74427f45aba4954720327e6b09d6a9e">milvus::SearchArguments</a>
-, <a class="el" href="classmilvus_1_1_search_request.html#aa8617bb9080425d5af180d8df27b6447">milvus::SearchRequest</a>
+: <a class="el" href="classmilvus_1_1HybridSearchArguments.html#a741eac46e768fbcdd58e1860bb7d4111">milvus::HybridSearchArguments</a>
+, <a class="el" href="classmilvus_1_1HybridSearchRequest.html#ab18177eb9e27a0e992447c180a6b560c">milvus::HybridSearchRequest</a>
+, <a class="el" href="classmilvus_1_1QueryArguments.html#a98ff352fa3d44313d2a73d4083b6c99d">milvus::QueryArguments</a>
+, <a class="el" href="classmilvus_1_1QueryRequest.html#aa67f33aac509c303e62283438db70ec8">milvus::QueryRequest</a>
+, <a class="el" href="classmilvus_1_1SearchArguments.html#ad74427f45aba4954720327e6b09d6a9e">milvus::SearchArguments</a>
+, <a class="el" href="classmilvus_1_1SearchRequest.html#aa8617bb9080425d5af180d8df27b6447">milvus::SearchRequest</a>
 </li>
 <li>OK()
-: <a class="el" href="classmilvus_1_1_status.html#a801f8a92aea9ed1f2c97ac634cbe4873">milvus::Status</a>
+: <a class="el" href="classmilvus_1_1Status.html#a931f620b689f89e6556a88a4ddb35356">milvus::Status</a>
 </li>
 <li>OldPassword()
-: <a class="el" href="classmilvus_1_1_update_password_request.html#ab495ccb4229f77ca82d00dbeb74852df">milvus::UpdatePasswordRequest</a>
+: <a class="el" href="classmilvus_1_1UpdatePasswordRequest.html#a7e3d09e1c5f0d5f8e032ccfab05cf130">milvus::UpdatePasswordRequest</a>
 </li>
 <li>OnlyShowLoaded()
-: <a class="el" href="classmilvus_1_1_list_collections_request.html#aedbd5a5178214b87429cd634de1f3da7">milvus::ListCollectionsRequest</a>
+: <a class="el" href="classmilvus_1_1ListCollectionsRequest.html#aedbd5a5178214b87429cd634de1f3da7">milvus::ListCollectionsRequest</a>
+</li>
+<li>op
+: <a class="el" href="structmilvus_1_1AggregationMetric.html#a249beb00ed2be376e726f8a60cc59989">milvus::AggregationMetric</a>
+</li>
+<li>Op()
+: <a class="el" href="classmilvus_1_1FunctionChainOp.html#af80292b34af1c17263f80186fc77bc33">milvus::FunctionChainOp</a>
+</li>
+<li>operation
+: <a class="el" href="structmilvus_1_1TelemetryError.html#a1d44bf4c54d901a62943cfd645b0126e">milvus::TelemetryError</a>
+, <a class="el" href="structmilvus_1_1TelemetryOperationMetrics.html#a6754340011d953293ef08536860f5f9d">milvus::TelemetryOperationMetrics</a>
+</li>
+<li>operator=()
+: <a class="el" href="classmilvus_1_1IDArray.html#ac48e9825702cba0009d9d100ef4b3c6e">milvus::IDArray</a>
+</li>
+<li>Ops()
+: <a class="el" href="classmilvus_1_1FunctionChain.html#a18c28b879c52f91158014e02d09e3cd2">milvus::FunctionChain</a>
+</li>
+<li>Optimize()
+: <a class="el" href="classmilvus_1_1MilvusClientV2.html#a9092deba8b875f6bf551d00f623da1d0">milvus::MilvusClientV2</a>
+</li>
+<li>OptimizeRequest()
+: <a class="el" href="classmilvus_1_1OptimizeRequest.html#a4b9723765da7dc48d525597ee6cf9338">milvus::OptimizeRequest</a>
+</li>
+<li>OptimizeResponse()
+: <a class="el" href="classmilvus_1_1OptimizeResponse.html#aa51f6b676d54f8b4610d530fc2771c46">milvus::OptimizeResponse</a>
+</li>
+<li>OptimizeTask()
+: <a class="el" href="classmilvus_1_1OptimizeTask.html#a75d66b4c88690dfa72aeaefe7dce39ab">milvus::OptimizeTask</a>
+</li>
+<li>OpType
+: <a class="el" href="classmilvus_1_1FieldPartialUpdateOp.html#a349bbcb6324232d2340c6829a1929733">milvus::FieldPartialUpdateOp</a>
+</li>
+<li>OrderByField()
+: <a class="el" href="classmilvus_1_1OrderByField.html#addcf07ee181dcc4a6690d337b6914612">milvus::OrderByField</a>
+</li>
+<li>OrderByFields()
+: <a class="el" href="classmilvus_1_1QueryRequest.html#a4e4357e17592ede736407bf86cc0b5cd">milvus::QueryRequest</a>
+, <a class="el" href="classmilvus_1_1SearchRequest.html#adf1d7f494c695f4d97b7447ebfa69e53">milvus::SearchRequest</a>
+</li>
+<li>Orders()
+: <a class="el" href="classmilvus_1_1SearchAggregation.html#a07348ee07f126182417980fc89525683">milvus::SearchAggregation</a>
 </li>
 <li>OutgoingNodesNum()
-: <a class="el" href="classmilvus_1_1_resource_group_desc.html#aeeba1b7998d1dff005d55fc5546b6d64">milvus::ResourceGroupDesc</a>
+: <a class="el" href="classmilvus_1_1ResourceGroupDesc.html#a1886a927f628bb9d87b45cbc85da6d0b">milvus::ResourceGroupDesc</a>
 </li>
 <li>OutputField()
-: <a class="el" href="classmilvus_1_1_query_results.html#a954611f2594abf553f414fd015bb60b0">milvus::QueryResults</a>
-, <a class="el" href="structmilvus_1_1_single_result.html#affd01238acb6cb6866c6e1231344d973">milvus::SingleResult</a>
+: <a class="el" href="classmilvus_1_1QueryResults.html#a954611f2594abf553f414fd015bb60b0">milvus::QueryResults</a>
+, <a class="el" href="structmilvus_1_1SingleResult.html#affd01238acb6cb6866c6e1231344d973">milvus::SingleResult</a>
 </li>
 <li>OutputFieldNames()
-: <a class="el" href="classmilvus_1_1_function.html#af7441cb071ff824a6f173a1c14cf78e4">milvus::Function</a>
-, <a class="el" href="classmilvus_1_1_query_results.html#a5fdb503b79529d99574adb8cd11b96e9">milvus::QueryResults</a>
-, <a class="el" href="structmilvus_1_1_single_result.html#acf18b68f407ecf1e4bad101e8b388317">milvus::SingleResult</a>
+: <a class="el" href="classmilvus_1_1Function.html#a6e336b5e4cfc6906d121447f0c834e93">milvus::Function</a>
+, <a class="el" href="classmilvus_1_1QueryResults.html#ad50a371edb9bafc1758c8431900d5bdb">milvus::QueryResults</a>
+, <a class="el" href="structmilvus_1_1SingleResult.html#a975fae63bbd28b8c4f035663916ca67b">milvus::SingleResult</a>
 </li>
 <li>OutputFields()
-: <a class="el" href="classmilvus_1_1_d_q_l_request_base.html#a764b99501c752d8072c5d2d60a00f492">milvus::DQLRequestBase&lt; T &gt;</a>
-, <a class="el" href="classmilvus_1_1_hybrid_search_arguments.html#a0769bb361c27c50588233e724a276ad2">milvus::HybridSearchArguments</a>
-, <a class="el" href="classmilvus_1_1_query_arguments.html#add2d149c14af977f38df98e08547d724">milvus::QueryArguments</a>
-, <a class="el" href="classmilvus_1_1_query_results.html#a688020871848f6d934b56eb20e2c38ae">milvus::QueryResults</a>
-, <a class="el" href="classmilvus_1_1_search_arguments.html#ae85acc059cfa4ed2581017955021297d">milvus::SearchArguments</a>
-, <a class="el" href="structmilvus_1_1_single_result.html#a66128504b76ecc8161b55bc9c65c050e">milvus::SingleResult</a>
+: <a class="el" href="classmilvus_1_1DQLRequestBase.html#a764b99501c752d8072c5d2d60a00f492">milvus::DQLRequestBase&lt; T &gt;</a>
+, <a class="el" href="classmilvus_1_1HybridSearchArguments.html#a220074e2d1182e39e1380304f8793852">milvus::HybridSearchArguments</a>
+, <a class="el" href="classmilvus_1_1QueryArguments.html#a31fb09de17771c1dad8bb550882193f1">milvus::QueryArguments</a>
+, <a class="el" href="classmilvus_1_1QueryResults.html#a2a18ada4e506488d702cabb992241802">milvus::QueryResults</a>
+, <a class="el" href="classmilvus_1_1SearchArguments.html#a7aca68d702f30329d9b2adcbcb03b187">milvus::SearchArguments</a>
+, <a class="el" href="structmilvus_1_1SingleResult.html#abe8e800870319ea38ab3e907e116a0b0">milvus::SingleResult</a>
+</li>
+<li>OutputHighlightResult()
+: <a class="el" href="structmilvus_1_1SingleResult.html#a18526c4cc0e6d4e74b22c49365c43ce4">milvus::SingleResult</a>
 </li>
 <li>OutputRow()
-: <a class="el" href="classmilvus_1_1_query_results.html#ad27a188bfba06c7c44718da11110fc6d">milvus::QueryResults</a>
-, <a class="el" href="structmilvus_1_1_single_result.html#adebf9068c60360c56f922474c6e9f00a">milvus::SingleResult</a>
+: <a class="el" href="classmilvus_1_1QueryResults.html#ad27a188bfba06c7c44718da11110fc6d">milvus::QueryResults</a>
+, <a class="el" href="structmilvus_1_1SingleResult.html#adebf9068c60360c56f922474c6e9f00a">milvus::SingleResult</a>
 </li>
 <li>OutputRows()
-: <a class="el" href="classmilvus_1_1_query_results.html#acf6db47fbcfd5d14d54fc4703b0f67f6">milvus::QueryResults</a>
-, <a class="el" href="structmilvus_1_1_single_result.html#a1de33ad188ffaf13d88ce3c395dbdfa6">milvus::SingleResult</a>
+: <a class="el" href="classmilvus_1_1QueryResults.html#acf6db47fbcfd5d14d54fc4703b0f67f6">milvus::QueryResults</a>
+, <a class="el" href="structmilvus_1_1SingleResult.html#a1de33ad188ffaf13d88ce3c395dbdfa6">milvus::SingleResult</a>
+</li>
+<li>Outputs()
+: <a class="el" href="classmilvus_1_1FunctionChainOp.html#a1d7bd190f194a2a8495b9c0b8dcf3fac">milvus::FunctionChainOp</a>
 </li>
 </ul>
 </div><!-- contents -->
+</div><!-- doc-content -->
 <!-- start footer part -->
-<hr class="footer"/><address class="footer"><small>
-Generated by&#160;<a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.1
-</small></address>
+<div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
+  <ul>
+    <li class="footer">Generated by <a href="https://www.doxygen.org/index.html"><img class="footer" src="doxygen.svg" width="104" height="31" alt="doxygen"/></a> 1.9.1 </li>
+  </ul>
+</div>
 </body>
 </html>

@@ -31,54 +31,63 @@ class MILVUS_SDK_API DatabaseDesc {
  public:
     /**
      * @brief Get database name.
+     * @return the name.
      */
     const std::string&
     Name() const;
 
     /**
      * @brief Set Database name.
+     * @param [in] name the name.
      */
     void
     SetName(std::string name);
 
     /**
      * @brief Get database ID.
+     * @return the ID.
      */
     int64_t
     ID() const;
 
     /**
      * @brief Set database ID.
+     * @param [in] id the ID.
      */
     void
     SetID(int64_t id);
 
     /**
      * @brief Get database properties.
+     * @return the properties.
      */
     const std::unordered_map<std::string, std::string>&
     Properties() const;
 
     /**
      * @brief Set database properties.
+     * @param [in] properties the properties.
      */
     void
     SetProperties(const std::unordered_map<std::string, std::string>& properties);
 
     /**
      * @brief Set database properties.
+     * @param [in] properties the properties.
      */
     void
     SetProperties(std::unordered_map<std::string, std::string>&& properties);
 
     /**
      * @brief Get the timestamp when the database created.
+     * @return the created time.
      */
     uint64_t
     CreatedTime() const;
 
     /**
      * @brief Set the timestamp when the database created.
+     * @param [in] ts the ts.
      */
     void
     SetCreatedTime(uint64_t ts);

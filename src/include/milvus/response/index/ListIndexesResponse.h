@@ -33,12 +33,14 @@ class MILVUS_SDK_API ListIndexesResponse : public DescribeIndexResponse {
 
     /**
      * @brief Get index names.
+     * @return the index names.
      */
     const std::vector<std::string>&
     IndexNames() const;
 
     /**
      * @brief Set index names.
+     * @param [in] names the names.
      */
     void
     SetIndexNames(std::vector<std::string>&& names);

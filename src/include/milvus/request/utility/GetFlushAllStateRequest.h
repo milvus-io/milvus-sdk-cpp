@@ -35,36 +35,42 @@ class MILVUS_SDK_API GetFlushAllStateRequest {
 
     /**
      * @brief Database name in which collections are flushed.
+     * @return the database name.
      */
     const std::string&
     DatabaseName() const;
 
     /**
      * @brief Set database name in which collections are flushed.
+     * @param [in] db_name the DB name.
      */
     void
     SetDatabaseName(const std::string& db_name);
 
     /**
      * @brief Set database name in which collections are flushed.
+     * @param [in] db_name the DB name.
      */
     GetFlushAllStateRequest&
     WithDatabaseName(const std::string& db_name);
 
     /**
      * @brief Get flush-all timestamp returned by FlushAll().
+     * @return the flush all ts.
      */
     uint64_t
     FlushAllTs() const;
 
     /**
      * @brief Set flush-all timestamp returned by FlushAll().
+     * @param [in] flush_all_ts the flush all ts.
      */
     void
     SetFlushAllTs(uint64_t flush_all_ts);
 
     /**
      * @brief Set flush-all timestamp returned by FlushAll().
+     * @param [in] flush_all_ts the flush all ts.
      */
     GetFlushAllStateRequest&
     WithFlushAllTs(uint64_t flush_all_ts);

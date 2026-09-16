@@ -1,5 +1,5 @@
 var searchData=
 [
-  ['compactionstatecode_2055',['CompactionStateCode',['../namespacemilvus.html#ae2c03b3dbf792fba6a8ab10cb3a7cc5a',1,'milvus']]],
-  ['consistencylevel_2056',['ConsistencyLevel',['../namespacemilvus.html#a26e8c5ec421df0853e145d04d0fbb414',1,'milvus']]]
+  ['aggregationdirection_3370',['AggregationDirection',['../namespacemilvus.html#abf2a84d1426edfb15f19dc1f1a35d281',1,'milvus']]],
+  ['aggregationmetricop_3371',['AggregationMetricOp',['../namespacemilvus.html#afde4b0d3108829ad7a904ddfb68be52e',1,'milvus']]]
 ];

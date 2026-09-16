@@ -33,12 +33,14 @@ class MILVUS_SDK_API DmlResponse {
 
     /**
      * @brief Get result of dml operation.
+     * @return the results.
      */
     const DmlResults&
     Results() const;
 
     /**
      * @brief Set result of dml operation.
+     * @param [in] results the results.
      */
     void
     SetResults(DmlResults&& results);

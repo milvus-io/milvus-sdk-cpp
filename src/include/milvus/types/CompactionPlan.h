@@ -35,40 +35,49 @@ class MILVUS_SDK_API CompactionPlan {
 
     /**
      * @brief Constructor
+     * @param [in] segments the segments.
+     * @param [in] dst_segment the dst segment.
      */
     CompactionPlan(const std::vector<int64_t>& segments, int64_t dst_segment);
 
     /**
      * @brief Constructor
+     * @param [in] segments the segments.
+     * @param [in] dst_segment the dst segment.
      */
     CompactionPlan(std::vector<int64_t>&& segments, int64_t dst_segment);
 
     /**
      * @brief Segment id array to be merged.
+     * @return the source segments.
      */
     const std::vector<int64_t>&
     SourceSegments() const;
 
     /**
      * @brief Set segment id array to be merged.
+     * @param [in] segments the segments.
      */
     void
     SetSourceSegments(const std::vector<int64_t>& segments);
 
     /**
      * @brief Set segment id array to be merged.
+     * @param [in] segments the segments.
      */
     void
     SetSourceSegments(std::vector<int64_t>&& segments);
 
     /**
      * @brief New generated segment id after merging.
+     * @return the destiny segemnt.
      */
     int64_t
     DestinySegemnt() const;
 
     /**
      * @brief Set segment id.
+     * @param [in] id the ID.
      */
     void
     SetDestinySegemnt(int64_t id);

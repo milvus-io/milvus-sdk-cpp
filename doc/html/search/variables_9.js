@@ -1,5 +1,4 @@
 var searchData=
 [
-  ['timeout_2045',['timeout',['../structmilvus_1_1_milvus_connection_1_1_grpc_context_options.html#a47593b47d0a7f0f401597ea343725fc2',1,'milvus::MilvusConnection::GrpcContextOptions']]],
-  ['total_5f_2046',['total_',['../structmilvus_1_1_progress.html#a091a9e8bfd2de0e132da7312a47b53cb',1,'milvus::Progress']]]
+  ['key_3330',['key',['../structmilvus_1_1AggregationBucket.html#a2417620f06a53241c8fcb784c18fa0d7',1,'milvus::AggregationBucket::key()'],['../structmilvus_1_1AggregationOrder.html#ac165cf2e00fc9d7c78efcd162579a879',1,'milvus::AggregationOrder::key()']]]
 ];

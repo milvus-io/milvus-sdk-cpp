@@ -26,11 +26,23 @@ namespace milvus {
  */
 class MILVUS_SDK_API GetRestoreSnapshotStateResponse {
  public:
+    /**
+     * @brief Constructor
+     */
     GetRestoreSnapshotStateResponse() = default;
 
+    /**
+     * @brief Get the restore job information.
+     * @return the job info.
+     */
     const RestoreSnapshotJobInfo&
     JobInfo() const;
 
+    /**
+     * @brief Set the restore job information.
+     *
+     * @param [in] job_info
+     */
     void
     SetJobInfo(RestoreSnapshotJobInfo&& job_info);
 

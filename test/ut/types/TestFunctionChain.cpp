@@ -134,3 +134,23 @@ TEST_F(FunctionChainTest, EmptyColumnNameRejected) {
 
     EXPECT_FALSE(request.Validate().IsOk());
 }
+
+TEST_F(FunctionChainTest, OpInputsAndOutputs) {
+    milvus::FunctionChainExpr expr("round_decimal");
+    expr.AddColumnArg("$score").AddParam("decimal", 4).AddLiteralArg(2);
+
+    milvus::FunctionChainOp op("map");
+    auto& ref = op.WithExpr(expr);
+    EXPECT_EQ(&ref, &op);
+    EXPECT_TRUE(op.HasExpr());
+    EXPECT_EQ(op.Expr().Name(), "round_decimal");
+
+    op.AddInput("$score");
+    op.AddInput("$vector");
+    EXPECT_EQ(op.Inputs().size(), 2u);
+    EXPECT_EQ(op.Inputs()[0], "$score");
+
+    op.AddOutput("$score_rounded");
+    EXPECT_EQ(op.Outputs().size(), 1u);
+    EXPECT_EQ(op.Outputs()[0], "$score_rounded");
+}

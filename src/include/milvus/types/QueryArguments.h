@@ -37,59 +37,69 @@ class MILVUS_SDK_API QueryArguments {
 
     /**
      * @brief Get the target db name.
+     * @return the database name.
      */
     const std::string&
     DatabaseName() const;
 
     /**
      * @brief Set target db name, default is empty, means use the db name of MilvusClient.
+     * @param [in] db_name the DB name.
      */
     Status
     SetDatabaseName(const std::string& db_name);
 
     /**
      * @brief Get name of the target collection.
+     * @return the collection name.
      */
     const std::string&
     CollectionName() const;
 
     /**
      * @brief Set name of this collection, cannot be empty.
+     * @param [in] collection_name the collection name.
      */
     Status
     SetCollectionName(std::string collection_name);
 
     /**
      * @brief Get partition names.
+     * @return the partition names.
      */
     const std::set<std::string>&
     PartitionNames() const;
 
     /**
      * @brief Specify partition name to control query scope, the name cannot be empty.
+     * @param [in] partition_name the partition name.
      */
     Status
     AddPartitionName(std::string partition_name);
 
     /**
      * @brief Get output field names.
+     * @return the output fields.
      */
     const std::set<std::string>&
     OutputFields() const;
     /**
      * @brief Specify output field names to return field data, the name cannot be empty.
+     * @param [in] field_name the field name.
      */
     Status
     AddOutputField(std::string field_name);
 
     /**
      * @brief Get filter expression.
+     * @return the filter.
      */
     const std::string&
     Filter() const;
 
     /**
      * @brief Set filter expression.
+     * @param [in] filter the filter.
      */
     Status
     SetFilter(std::string filter);
@@ -104,18 +114,22 @@ class MILVUS_SDK_API QueryArguments {
      *     filterTemplate = {"age": 3, "city": ["beijing", "shanghai", ......]}
      * Valid value of a template can be:
      *     boolean, numeric, string, array.
+     * @param [in] key the key.
+     * @param [in] filter_template the filter template.
      */
     Status
     AddFilterTemplate(std::string key, const nlohmann::json& filter_template);
 
     /**
      * @brief Get filter templates.
+     * @return the filter templates.
      */
     const std::unordered_map<std::string, nlohmann::json>&
     FilterTemplates() const;
 
     /**
      * @brief Get limit value.
+     * @return the limit.
      */
     int64_t
     Limit() const;
@@ -123,12 +137,14 @@ class MILVUS_SDK_API QueryArguments {
     /**
      * @brief Set limit value, only avaiable when expression is empty.
      * Note: this value is stored in the ExtraParams.
+     * @param [in] limit the limit.
      */
     Status
     SetLimit(int64_t limit);
 
     /**
      * @brief Get offset value.
+     * @return the offset.
      */
     int64_t
     Offset() const;
@@ -136,42 +152,50 @@ class MILVUS_SDK_API QueryArguments {
     /**
      * @brief Set offset value, only avaiable when expression is empty.
      * Note: this value is stored in the ExtraParams.
+     * @param [in] offset the offset.
      */
     Status
     SetOffset(int64_t offset);
 
     /**
      * @brief Get ignore growing segments.
+     * @return the ignore growing.
      */
     bool
     IgnoreGrowing() const;
 
     /**
      * @brief Set ignore growing segments.
+     * @param [in] ignore_growing the ignore growing.
      */
     Status
     SetIgnoreGrowing(bool ignore_growing);
 
     /**
      * @brief Add extra param.
+     * @param [in] key the key.
+     * @param [in] value the value.
      */
     Status
     AddExtraParam(const std::string& key, const std::string& value);
 
     /**
      * @brief Get extra param.
+     * @return the extra params.
      */
     const std::unordered_map<std::string, std::string>&
     ExtraParams() const;
 
     /**
      * @brief Get consistency level.
+     * @return the consistency level.
      */
     ConsistencyLevel
     GetConsistencyLevel() const;
 
     /**
      * @brief Set consistency level.
+     * @param [in] level the level.
      */
     Status
     SetConsistencyLevel(const ConsistencyLevel& level);
@@ -182,6 +206,7 @@ class MILVUS_SDK_API QueryArguments {
      * @brief Get filter expression.
      * Can be empty if Limit() is zero, else must be non-empty.
      * @deprecated replaced by Filter()
+     * @return the expression.
      */
     const std::string&
     Expression() const;
@@ -190,6 +215,7 @@ class MILVUS_SDK_API QueryArguments {
      * @brief Set filter expression.
      * Can be empty if Limit() is zero, else must be non-empty.
      * @deprecated replaced by SetFilter()
+     * @param [in] expression the expression.
      */
     Status
     SetExpression(std::string expression);
@@ -197,6 +223,7 @@ class MILVUS_SDK_API QueryArguments {
     /**
      * @brief Get travel timestamp.
      * @deprecated Deprecated in 2.4, replaced by ConsistencyLevel.
+     * @return the travel timestamp.
      */
     uint64_t
     TravelTimestamp() const;
@@ -205,6 +232,7 @@ class MILVUS_SDK_API QueryArguments {
      * in time.
      * Default value is 0, server executes query on a full data view.
      * @deprecated Deprecated in 2.4, replaced by ConsistencyLevel.
+     * @param [in] timestamp the timestamp.
      */
     Status
     SetTravelTimestamp(uint64_t timestamp);
@@ -212,6 +240,7 @@ class MILVUS_SDK_API QueryArguments {
     /**
      * @brief Get guarantee timestamp.
      * @deprecated Deprecated in 2.4, replaced by ConsistencyLevel, this value is not used anymore.
+     * @return the guarantee timestamp.
      */
     uint64_t
     GuaranteeTimestamp() const;
@@ -228,6 +257,7 @@ class MILVUS_SDK_API QueryArguments {
      *
      * Default value is 1, server executes search immediately.
      * @deprecated Deprecated in 2.4, replaced by ConsistencyLevel
+     * @param [in] timestamp the timestamp.
      */
     Status
     SetGuaranteeTimestamp(uint64_t timestamp);

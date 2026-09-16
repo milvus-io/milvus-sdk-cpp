@@ -34,36 +34,42 @@ class MILVUS_SDK_API ListSegmentsRequest {
 
     /**
      * @brief Database name in which the collections are created.
+     * @return the database name.
      */
     const std::string&
     DatabaseName() const;
 
     /**
      * @brief Set database name in which the collections are created.
+     * @param [in] db_name the DB name.
      */
     void
     SetDatabaseName(const std::string& db_name);
 
     /**
      * @brief Set database name in which the collections are created.
+     * @param [in] db_name the DB name.
      */
     ListSegmentsRequest&
     WithDatabaseName(const std::string& db_name);
 
     /**
      * @brief Get collection name.
+     * @return the collection name.
      */
     const std::string&
     CollectionName() const;
 
     /**
      * @brief Set collection name.
+     * @param [in] name the name.
      */
     void
     SetCollectionNames(const std::string& name);
 
     /**
      * @brief Set collection name.
+     * @param [in] name the name.
      */
     ListSegmentsRequest&
     WithCollectionName(const std::string& name);

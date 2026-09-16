@@ -32,6 +32,9 @@ struct SingleResult;
  */
 class MILVUS_SDK_API IteratorArguments {
  protected:
+    /**
+     * @brief Constructor
+     */
     IteratorArguments() = default;
 
  public:
@@ -39,18 +42,21 @@ class MILVUS_SDK_API IteratorArguments {
 
     /**
      * @brief Get the batch size.
+     * @return the batch size.
      */
     int64_t
     BatchSize() const;
 
     /**
      * @brief Set the batch size.
+     * @param [in] batch_size the batch size.
      */
     Status
     SetBatchSize(int64_t batch_size);
 
     /**
      * @brief Get the collection id.
+     * @return the collection ID.
      */
     int64_t
     CollectionID() const;
@@ -58,12 +64,14 @@ class MILVUS_SDK_API IteratorArguments {
     /**
      * @brief Set the collection id.
      * No need to manually assign this member, MilvusClient automatically assigns it.
+     * @param [in] id the ID.
      */
     Status
     SetCollectionID(int64_t id);
 
     /**
      * @brief Get the primary key field schema.
+     * @return the PK schema.
      */
     const FieldSchema&
     PkSchema() const;
@@ -71,6 +79,7 @@ class MILVUS_SDK_API IteratorArguments {
     /**
      * @brief Set the primary key field schema.
      * No need to manually assign this member, MilvusClient automatically assigns it.
+     * @param [in] schema the schema.
      */
     Status
     SetPkSchema(const FieldSchema& schema);
@@ -81,6 +90,7 @@ class MILVUS_SDK_API IteratorArguments {
      * returns Status::OK after filtering the page in place (e.g. via
      * SingleResult::FilterRows). Returning a non-OK status aborts iteration.
      * Only SearchIterator supports this callback.
+     * @return the status.
      */
     const std::function<Status(SingleResult&)>&
     ExternalFilterFunc() const;
@@ -107,12 +117,14 @@ class MILVUS_SDK_API QueryIteratorArguments : public IteratorArguments, public Q
  public:
     /**
      * @brief Get the flag of internal retrieve strategy.
+     * @return the reduce stop for best.
      */
     bool
     ReduceStopForBest() const;
 
     /**
      * @brief Set the flag of internal retrieve strategy.
+     * @param [in] reduce_stop_for_best the reduce stop for best.
      */
     Status
     SetReduceStopForBest(bool reduce_stop_for_best);

@@ -26,6 +26,9 @@ namespace milvus {
  */
 class MILVUS_SDK_API DropSnapshotRequest : public SnapshotNameRequestBase<DropSnapshotRequest> {
  public:
+    /**
+     * @brief Constructor
+     */
     DropSnapshotRequest() = default;
 };
 

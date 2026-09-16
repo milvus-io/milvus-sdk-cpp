@@ -31,6 +31,11 @@ TEST_F(RefreshExternalCollectionRequestTest, GettersAndSetters) {
     EXPECT_EQ(req.CollectionName(), "coll");
     EXPECT_EQ(req.ExternalSource(), "s3://bucket/path/");
     EXPECT_EQ(req.ExternalSpec().at("format"), "parquet");
+
+    req.SetExternalSource("s3://bucket/set/path/");
+    EXPECT_EQ(req.ExternalSource(), "s3://bucket/set/path/");
+    req.SetExternalSpec(nlohmann::json{{"format", "csv"}});
+    EXPECT_EQ(req.ExternalSpec().at("format"), "csv");
 }
 
 class GetRefreshExternalCollectionProgressRequestTest : public ::testing::Test {};
@@ -39,6 +44,9 @@ TEST_F(GetRefreshExternalCollectionProgressRequestTest, GettersAndSetters) {
     milvus::GetRefreshExternalCollectionProgressRequest req;
     req.WithJobID(123);
     EXPECT_EQ(req.JobID(), 123);
+
+    req.SetJobID(456);
+    EXPECT_EQ(req.JobID(), 456);
 }
 
 class ListRefreshExternalCollectionJobsRequestTest : public ::testing::Test {};
@@ -57,6 +65,9 @@ TEST_F(AddFileResourceRequestTest, GettersAndSetters) {
     req.WithName("res1").WithPath("/tmp/data.parquet");
     EXPECT_EQ(req.Name(), "res1");
     EXPECT_EQ(req.Path(), "/tmp/data.parquet");
+
+    req.SetPath("/tmp/data2.parquet");
+    EXPECT_EQ(req.Path(), "/tmp/data2.parquet");
 }
 
 class RemoveFileResourceRequestTest : public ::testing::Test {};

@@ -39,10 +39,14 @@ using HighlightResults = std::unordered_map<std::string, HighlightResult>;
  * @brief Topk results for one target vector of MilvusClient::Search()
  */
 struct MILVUS_SDK_API SingleResult {
+    /**
+     * @brief Constructor
+     */
     SingleResult() = default;
 
     /**
      * @brief Constructor
+     * @param [in] src the src.
      */
     SingleResult(const SingleResult& src);
 
@@ -57,6 +61,7 @@ struct MILVUS_SDK_API SingleResult {
 
     /**
      * @brief Distances/scores array of one target vector.
+     * @return the scores.
      */
     const std::vector<float>&
     Scores() const;
@@ -66,6 +71,7 @@ struct MILVUS_SDK_API SingleResult {
      * Note: the returned IDArray is a temporary object copied from FieldData. It is recommended to
      * use OutputField() method like this:
      *    FieldDataPtr ids = result.OutputField(result.PrimaryKeyName());
+     * @return the ids.
      */
     IDArray
     Ids() const;
@@ -74,6 +80,7 @@ struct MILVUS_SDK_API SingleResult {
      * @brief The primary key name.
      * Sometimes the caller of Search() doesn't know the pk name, the server returns this name,
      * so that you don't need to describe the collection again.
+     * @return the primary key name.
      */
     const std::string&
     PrimaryKeyName() const;
@@ -83,24 +90,28 @@ struct MILVUS_SDK_API SingleResult {
      * Note: the default score name is "score", but if your collection schema already has a "score" field,
      * and the "score" field is an output field, the score name will be changed to "_score". If "_score" is
      * also duplicated, then the score name will be changed to "__score", etc.
+     * @return the score name.
      */
     const std::string&
     ScoreName() const;
 
     /**
      * @brief Output fields data.
+     * @return the output fields.
      */
     const std::vector<FieldDataPtr>&
     OutputFields() const;
 
     /**
      * @brief Get an output field by name.
+     * @param [in] name the name.
      */
     FieldDataPtr
     OutputField(const std::string& name) const;
 
     /**
      * @brief Get an output field by name and cast to specific pointer.
+     * @param [in] name the name.
      */
     template <typename T>
     std::shared_ptr<T>
@@ -110,30 +121,37 @@ struct MILVUS_SDK_API SingleResult {
 
     /**
      * @brief Output field names specified by search().
+     * @return the output field names.
      */
     const std::set<std::string>&
     OutputFieldNames() const;
 
     /**
      * @brief Get all output rows.
+     * @param [in] rows the rows.
      */
     Status
     OutputRows(EntityRows& rows) const;
 
     /**
      * @brief Get row data. Returns INVALID_ARGUMENT status if the i is out of bound.
+     * @param [in] i the i.
+     * @param [in] row the row.
      */
     Status
     OutputRow(int i, EntityRow& row) const;
 
     /**
      * @brief Get highlight results of one row. Returns INVALID_ARGUMENT status if the i is out of bound.
+     * @param [in] i the i.
+     * @param [in] result the result.
      */
     Status
     OutputHighlightResult(int i, HighlightResults& result) const;
 
     /**
      * @brief Get row count of the result.
+     * @return the row count.
      */
     uint64_t
     GetRowCount() const;
@@ -144,6 +162,11 @@ struct MILVUS_SDK_API SingleResult {
     void
     Clear();
 
+    /**
+     * @brief Set the highlight results of this search result.
+     *
+     * @param [in] highlight_results per-field highlight results.
+     */
     SingleResult&
     WithHighlightResults(std::vector<HighlightResults>&& highlight_results);
 
@@ -153,6 +176,7 @@ struct MILVUS_SDK_API SingleResult {
      * hits fetched from the server. The order of the kept rows follows `keep_indices`.
      * @return Status::OK on success, otherwise an error status (INVALID_ARGUMENT
      * or NOT_SUPPORTED, as propagated from the underlying field copy).
+     * @param [in] keep_indices the keep indices.
      */
     Status
     FilterRows(const std::vector<uint64_t>& keep_indices);
@@ -179,16 +203,19 @@ class MILVUS_SDK_API SearchResults {
 
     /**
      * @brief Constructor
+     * @param [in] results the results.
      */
     explicit SearchResults(std::vector<SingleResult>&& results);
 
     /**
      * @brief Constructor
+     * @param [in] results the results.
      */
     explicit SearchResults(const std::vector<SingleResult>& results);
 
     /**
      * @brief Get search results.
+     * @return the results.
      */
     const std::vector<SingleResult>&
     Results() const;
@@ -196,6 +223,7 @@ class MILVUS_SDK_API SearchResults {
     /**
      * @brief Get recalls of search results.
      * Note: only works when search with enable_recall_calculation is true on zilliz cloud instance.
+     * @return the recalls.
      */
     const std::vector<float>&
     Recalls() const;
@@ -205,6 +233,7 @@ class MILVUS_SDK_API SearchResults {
      * Note: only works when search with enable_recall_calculation is true on zilliz cloud instance.
      * When enable_recall_calculation is true, the server will use near-brute-force search to compute precise results,
      * the search performance is poor.
+     * @param [in] recalls the recalls.
      */
     SearchResults&
     WithRecalls(std::vector<float>&& recalls);

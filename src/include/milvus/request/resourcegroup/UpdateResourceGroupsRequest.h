@@ -36,24 +36,29 @@ class MILVUS_SDK_API UpdateResourceGroupsRequest {
 
     /**
      * @brief Get the resource groups to be updated.
+     * @return the groups.
      */
     const std::unordered_map<std::string, ResourceGroupConfig>&
     Groups() const;
 
     /**
      * @brief Set the resource groups to be updated.
+     * @param [in] groups the groups.
      */
     void
     SetGroups(std::unordered_map<std::string, ResourceGroupConfig>&& groups);
 
     /**
      * @brief Set the resource groups to be updated.
+     * @param [in] groups the groups.
      */
     UpdateResourceGroupsRequest&
     WithGroups(std::unordered_map<std::string, ResourceGroupConfig>&& groups);
 
     /**
      * @brief Add a resource group to be updated.
+     * @param [in] name the name.
+     * @param [in] config the config.
      */
     UpdateResourceGroupsRequest&
     AddGroup(const std::string& name, ResourceGroupConfig&& config);

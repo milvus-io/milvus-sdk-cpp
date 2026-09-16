@@ -37,18 +37,21 @@ class MILVUS_SDK_API EmbeddingList {
 
     /**
      * @brief Get target vectors.
+     * @return the target vectors.
      */
     FieldDataPtr
     TargetVectors() const;
 
     /**
      * @brief Get count of target vectors.
+     * @return the count.
      */
     size_t
     Count() const;
 
     /**
      * @brief Dimension of the vectors, for embedded text, the value is 0.
+     * @return the dim.
      */
     int64_t
     Dim() const;
@@ -116,6 +119,7 @@ class MILVUS_SDK_API EmbeddingList {
 
     /**
      * @brief Add a text to search. Only works for BM25 function.
+     * @param [in] text the text.
      */
     Status
     AddEmbeddedText(const std::string& text);
@@ -132,6 +136,7 @@ class MILVUS_SDK_API EmbeddingList {
      * @brief Assign binary vectors to search request.
      * This method automatically converts the string array to uint8 array.
      * Note: this method will reset the vector list.
+     * @param [in] vectors the vectors.
      */
     Status
     SetBinaryVectors(const std::vector<std::string>& vectors);
@@ -139,6 +144,7 @@ class MILVUS_SDK_API EmbeddingList {
     /**
      * @brief Assign binary vectors to search request.
      * Note: this method will reset the vector list.
+     * @param [in] vectors the vectors.
      */
     Status
     SetBinaryVectors(std::vector<BinaryVecFieldData::ElementT>&& vectors);
@@ -146,6 +152,7 @@ class MILVUS_SDK_API EmbeddingList {
     /**
      * @brief Assign float vectors to search request.
      * Note: this method will reset the vector list.
+     * @param [in] vectors the vectors.
      */
     Status
     SetFloatVectors(std::vector<FloatVecFieldData::ElementT>&& vectors);
@@ -153,6 +160,7 @@ class MILVUS_SDK_API EmbeddingList {
     /**
      * @brief Assign sparse vectors to search request.
      * Note: this method will reset the vector list.
+     * @param [in] vectors the vectors.
      */
     Status
     SetSparseVectors(std::vector<SparseFloatVecFieldData::ElementT>&& vectors);
@@ -163,6 +171,7 @@ class MILVUS_SDK_API EmbeddingList {
      * We support two patterns of sparse vector:
      *  1. a json dict like {"1": 0.1, "5": 0.2, "8": 0.15}.
      *  2. a json dict like {"indices": [1, 5, 8], "values": [0.1, 0.2, 0.15]}.
+     * @param [in] vectors the vectors.
      */
     Status
     SetSparseVectors(const std::vector<nlohmann::json>& vectors);
@@ -170,6 +179,7 @@ class MILVUS_SDK_API EmbeddingList {
     /**
      * @brief Assign float16 vectors to search request.
      * Note: this method will reset the vector list.
+     * @param [in] vectors the vectors.
      */
     Status
     SetFloat16Vectors(std::vector<Float16VecFieldData::ElementT>&& vectors);
@@ -178,6 +188,7 @@ class MILVUS_SDK_API EmbeddingList {
      * @brief Assign float16 vectors to search request.
      * This method automatically converts the float array to float16 binary.
      * Note: this method will reset the vector list.
+     * @param [in] vectors the vectors.
      */
     Status
     SetFloat16Vectors(const std::vector<std::vector<float>>& vectors);
@@ -185,6 +196,7 @@ class MILVUS_SDK_API EmbeddingList {
     /**
      * @brief Assign bfloat16 vectors to search request.
      * Note: this method will reset the vector list.
+     * @param [in] vectors the vectors.
      */
     Status
     SetBFloat16Vectors(std::vector<BFloat16VecFieldData::ElementT>&& vectors);
@@ -193,6 +205,7 @@ class MILVUS_SDK_API EmbeddingList {
      * @brief Assign bfloat16 vector.
      * This method automatically converts the float array to bfloat16 binary.
      * Note: this method will reset the vector list.
+     * @param [in] vectors the vectors.
      */
     Status
     SetBFloat16Vectors(const std::vector<std::vector<float>>& vectors);
@@ -200,6 +213,7 @@ class MILVUS_SDK_API EmbeddingList {
     /**
      * @brief Assign texts. Only works for BM25 function.
      * Note: this method will reset the vector list.
+     * @param [in] texts the texts.
      */
     Status
     SetEmbeddedTexts(std::vector<std::string>&& texts);
@@ -207,6 +221,7 @@ class MILVUS_SDK_API EmbeddingList {
     /**
      * @brief Assign int8 vectors.
      * Note: this method will reset the vector list.
+     * @param [in] vectors the vectors.
      */
     Status
     SetInt8Vectors(std::vector<Int8VecFieldData::ElementT>&& vectors);

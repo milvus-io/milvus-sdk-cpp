@@ -35,6 +35,17 @@ TEST_F(CreateIndexRequestTest, GettersAndSetters) {
 
     req.WithTimeoutMs(90000);
     EXPECT_EQ(req.TimeoutMs(), 90000);
+
+    std::vector<milvus::IndexDesc> indexes2;
+    indexes2.push_back(milvus::IndexDesc());
+    req.SetIndexes(std::move(indexes2));
+    EXPECT_EQ(req.Indexes().size(), 1);
+
+    req.SetSync(true);
+    EXPECT_TRUE(req.Sync());
+
+    req.SetTimeoutMs(30000);
+    EXPECT_EQ(req.TimeoutMs(), 30000);
 }
 
 TEST_F(CreateIndexRequestTest, IndexRequestBaseMethods) {

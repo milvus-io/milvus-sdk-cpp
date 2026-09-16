@@ -37,42 +37,50 @@ class MILVUS_SDK_API AlterCollectionFieldPropertiesRequest
 
     /**
      * @brief Name of the field.
+     * @return the field name.
      */
     const std::string&
     FieldName() const;
 
     /**
      * @brief Set name of the field.
+     * @param [in] field_name the field name.
      */
     void
     SetFieldName(const std::string& field_name);
 
     /**
      * @brief Set name of the field.
+     * @param [in] field_name the field name.
      */
     AlterCollectionFieldPropertiesRequest&
     WithFieldName(const std::string& field_name);
 
     /**
      * @brief Get altered properties.
+     * @return the properties.
      */
     const std::unordered_map<std::string, std::string>&
     Properties() const;
 
     /**
      * @brief Set altered properties of this field.
+     * @param [in] properties the properties.
      */
     void
     SetProperties(std::unordered_map<std::string, std::string>&& properties);
 
     /**
      * @brief Set altered properties of this field.
+     * @param [in] properties the properties.
      */
     AlterCollectionFieldPropertiesRequest&
     WithProperties(std::unordered_map<std::string, std::string>&& properties);
 
     /**
      * @brief Set a property of this field.
+     * @param [in] key the key.
+     * @param [in] property the property.
      */
     AlterCollectionFieldPropertiesRequest&
     AddProperty(const std::string& key, const std::string& property);

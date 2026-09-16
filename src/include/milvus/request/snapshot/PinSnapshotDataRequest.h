@@ -28,14 +28,31 @@ namespace milvus {
  */
 class MILVUS_SDK_API PinSnapshotDataRequest : public SnapshotNameRequestBase<PinSnapshotDataRequest> {
  public:
+    /**
+     * @brief Constructor
+     */
     PinSnapshotDataRequest() = default;
 
+    /**
+     * @brief Get the pin TTL in seconds.
+     * @return the TTL seconds.
+     */
     int64_t
     TtlSeconds() const;
 
+    /**
+     * @brief Set the pin TTL in seconds.
+     *
+     * @param [in] ttl_seconds
+     */
     void
     SetTtlSeconds(int64_t ttl_seconds);
 
+    /**
+     * @brief Set the pin TTL in seconds.
+     *
+     * @param [in] ttl_seconds
+     */
     PinSnapshotDataRequest&
     WithTtlSeconds(int64_t ttl_seconds);
 

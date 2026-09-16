@@ -1,4 +1,5 @@
 var searchData=
 [
-  ['loadstate_2061',['LoadState',['../namespacemilvus.html#addf62a871202720fb21fb6e5cfee17ae',1,'milvus']]]
+  ['indexstatecode_3377',['IndexStateCode',['../namespacemilvus.html#a41d88e00964bea51a391cff73f2cb256',1,'milvus']]],
+  ['indextype_3378',['IndexType',['../namespacemilvus.html#a6c4ec790e4c2dcd6630b99e90ee1f753',1,'milvus']]]
 ];

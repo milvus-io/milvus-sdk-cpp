@@ -37,12 +37,14 @@ class MILVUS_SDK_API DescribeCollectionResponse {
 
     /**
      * @brief Get collection description.
+     * @return the desc.
      */
     const CollectionDesc&
     Desc() const;
 
     /**
      * @brief Set collection description.
+     * @param [in] desc the desc.
      */
     void
     SetDesc(CollectionDesc&& desc);

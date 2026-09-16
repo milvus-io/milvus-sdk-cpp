@@ -26,61 +26,133 @@
 namespace milvus {
 
 /**
- * @brief Refresh external collection job information.
+ * @brief Information of an external collection refresh job.
  */
 class MILVUS_SDK_API RefreshExternalCollectionJobInfo {
  public:
+    /**
+     * @brief Get the refresh job identifier.
+     * @return job identifier.
+     */
     int64_t
     JobID() const;
 
+    /**
+     * @brief Set the refresh job identifier.
+     * @param [in] job_id job identifier.
+     */
     void
     SetJobID(int64_t job_id);
 
+    /**
+     * @brief Get the collection being refreshed.
+     * @return collection name.
+     */
     const std::string&
     CollectionName() const;
 
+    /**
+     * @brief Set the collection being refreshed.
+     * @param [in] collection_name collection name.
+     */
     void
     SetCollectionName(std::string collection_name);
 
+    /**
+     * @brief Get the current state of the refresh job.
+     * @return refresh job state.
+     */
     RefreshExternalCollectionStateCode
     State() const;
 
+    /**
+     * @brief Set the current state of the refresh job.
+     * @param [in] state refresh job state.
+     */
     void
     SetState(RefreshExternalCollectionStateCode state);
 
+    /**
+     * @brief Get the refresh progress in percent (0 to 100).
+     * @return progress in percent.
+     */
     int32_t
     Progress() const;
 
+    /**
+     * @brief Set the refresh progress in percent (0 to 100).
+     * @param [in] progress progress in percent.
+     */
     void
     SetProgress(int32_t progress);
 
+    /**
+     * @brief Get the failure reason of the refresh job, empty when the job has not failed.
+     * @return failure reason.
+     */
     const std::string&
     Reason() const;
 
+    /**
+     * @brief Set the failure reason of the refresh job.
+     * @param [in] reason failure reason.
+     */
     void
     SetReason(std::string reason);
 
+    /**
+     * @brief Get the external data source, e.g. an S3 path.
+     * @return external source.
+     */
     const std::string&
     ExternalSource() const;
 
+    /**
+     * @brief Set the external data source.
+     * @param [in] external_source external source.
+     */
     void
     SetExternalSource(std::string external_source);
 
+    /**
+     * @brief Get the start timestamp of the refresh job.
+     * @return start timestamp.
+     */
     uint64_t
     StartTime() const;
 
+    /**
+     * @brief Set the start timestamp of the refresh job.
+     * @param [in] start_time start timestamp.
+     */
     void
     SetStartTime(uint64_t start_time);
 
+    /**
+     * @brief Get the end timestamp of the refresh job.
+     * @return end timestamp.
+     */
     uint64_t
     EndTime() const;
 
+    /**
+     * @brief Set the end timestamp of the refresh job.
+     * @param [in] end_time end timestamp.
+     */
     void
     SetEndTime(uint64_t end_time);
 
+    /**
+     * @brief Get the external file specification.
+     * @return external specification.
+     */
     const nlohmann::json&
     ExternalSpec() const;
 
+    /**
+     * @brief Set the external file specification.
+     * @param [in] external_spec external specification.
+     */
     void
     SetExternalSpec(const nlohmann::json& external_spec);
 

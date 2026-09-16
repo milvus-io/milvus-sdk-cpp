@@ -25,48 +25,56 @@ namespace milvus {
 
 /**
  * @brief Convert a float32 value to a float16 value represented by uint16_t.
+ * @param [in] val the val.
  */
 MILVUS_SDK_API uint16_t
 F32toF16(float val);
 
 /**
  * @brief Convert a float16 value to a float32 value.
+ * @param [in] val the val.
  */
 MILVUS_SDK_API float
 F16toF32(uint16_t val);
 
 /**
  * @brief Convert a float32 value to a bfloat16 value represented by uint16_t.
+ * @param [in] val the val.
  */
 MILVUS_SDK_API uint16_t
 F32toBF16(float val);
 
 /**
  * @brief Convert a bfloat16 value to a float32 value.
+ * @param [in] val the val.
  */
 MILVUS_SDK_API float
 BF16toF32(uint16_t val);
 
 /**
  * @brief Convert a float32 array to a float16 array represented by uint16_t.
+ * @param [in] array the array.
  */
 MILVUS_SDK_API std::vector<uint16_t>
 ArrayF32toF16(const std::vector<float>& array);
 
 /**
  * @brief Convert a float16 array to a float32 array.
+ * @param [in] array the array.
  */
 MILVUS_SDK_API std::vector<float>
 ArrayF16toF32(const std::vector<uint16_t>& array);
 
 /**
  * @brief Convert a float32 array to a bfloat16 array represented by uint16_t.
+ * @param [in] array the array.
  */
 MILVUS_SDK_API std::vector<uint16_t>
 ArrayF32toBF16(const std::vector<float>& array);
 
 /**
  * @brief Convert a bfloat16 array to a float32 array.
+ * @param [in] array the array.
  */
 MILVUS_SDK_API std::vector<float>
 ArrayBF16toF32(const std::vector<uint16_t>& array);

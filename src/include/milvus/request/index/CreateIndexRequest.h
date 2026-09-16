@@ -27,6 +27,15 @@ namespace milvus {
 
 /**
  * @brief Used by MilvusClientV2::CreateIndex()
+ * @par Example
+ * @code
+ * milvus::IndexDesc index("vector", "vector_idx", milvus::IndexType::HNSW, milvus::MetricType::L2);
+ * index.AddExtraParam("M", "16");
+ * auto status = client->CreateIndex(milvus::CreateIndexRequest()
+ *                                       .WithCollectionName("demo")
+ *                                       .WithIndexes({std::move(index)})
+ *                                       .WithSync(true));
+ * @endcode
  */
 class MILVUS_SDK_API CreateIndexRequest : public IndexRequestBase<CreateIndexRequest> {
  public:
@@ -37,24 +46,28 @@ class MILVUS_SDK_API CreateIndexRequest : public IndexRequestBase<CreateIndexReq
 
     /**
      * @brief Get indexes.
+     * @return the indexes.
      */
     const std::vector<IndexDesc>&
     Indexes() const;
 
     /**
      * @brief Set indexes to be created.
+     * @param [in] indexes the indexes.
      */
     void
     SetIndexes(std::vector<IndexDesc>&& indexes);
 
     /**
      * @brief Set indexes to be created.
+     * @param [in] indexes the indexes.
      */
     CreateIndexRequest&
     WithIndexes(std::vector<IndexDesc>&& indexes);
 
     /**
      * @brief Add an index to be created.
+     * @param [in] index the index.
      */
     CreateIndexRequest&
     AddIndex(IndexDesc&& index);
@@ -63,6 +76,7 @@ class MILVUS_SDK_API CreateIndexRequest : public IndexRequestBase<CreateIndexReq
      * @brief Get sync mode.
      * True: wait the indexes are ready.
      * False: return immediately no matter the indexes are ready or not.
+     * @return the sync.
      */
     bool
     Sync() const;
@@ -71,6 +85,7 @@ class MILVUS_SDK_API CreateIndexRequest : public IndexRequestBase<CreateIndexReq
      * @brief Set sync mode. Default value is true.
      * True: wait the indexes are ready.
      * False: return immediately no matter the indexes are ready or not.
+     * @param [in] sync the sync.
      */
     void
     SetSync(bool sync);
@@ -79,12 +94,14 @@ class MILVUS_SDK_API CreateIndexRequest : public IndexRequestBase<CreateIndexReq
      * @brief Set sync mode. Default value is true.
      * True: wait the indexes are ready.
      * False: return immediately no matter the indexes are ready or not.
+     * @param [in] sync the sync.
      */
     CreateIndexRequest&
     WithSync(bool sync);
 
     /**
      * @brief Timeout in milliseconds.
+     * @return the timeout ms.
      */
     int64_t
     TimeoutMs() const;
@@ -95,6 +112,7 @@ class MILVUS_SDK_API CreateIndexRequest : public IndexRequestBase<CreateIndexReq
      * until the index is fully built.
      * If the TimeoutMs is larger than zero, the CreateIndex() will break the loop after a certain of time span
      * and return a status saying the process is timeout.
+     * @param [in] timeout_ms the timeout ms.
      */
     void
     SetTimeoutMs(int64_t timeout_ms);
@@ -105,6 +123,7 @@ class MILVUS_SDK_API CreateIndexRequest : public IndexRequestBase<CreateIndexReq
      * until the index is fully built.
      * If the TimeoutMs is larger than zero, the CreateIndex() will break the loop after a certain of time span
      * and return a status saying the process is timeout.
+     * @param [in] timeout_ms the timeout ms.
      */
     CreateIndexRequest&
     WithTimeoutMs(int64_t timeout_ms);

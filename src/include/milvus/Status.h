@@ -58,31 +58,51 @@ class MILVUS_SDK_API Status {
  public:
     /**
      * @brief Constructor of Status
+     * @param [in] code the code.
+     * @param [in] msg the msg.
      */
     Status(StatusCode code, std::string msg);
+
+    /**
+     * @brief Construct a Status carrying both client-side and server-side error details.
+     *
+     * @param [in] code client-side status code.
+     * @param [in] msg error message.
+     * @param [in] rpc_err_code error code from the gRPC library.
+     * @param [in] server_err_code server-side error code (Milvus v2.4+).
+     * @param [in] legacy_server_code legacy server-side error code (Milvus v2.2/v2.3).
+     */
     Status(StatusCode code, std::string msg, int32_t rpc_err_code, int32_t server_err_code, int32_t legacy_server_code);
+
+    /**
+     * @brief Construct a success Status (equivalent to Status::OK()).
+     */
     Status();
 
     /**
      * @brief A success status.
+     * @return a success status.
      */
     static Status
     OK();
 
     /**
      * @brief Indicate the status is ok.
+     * @return true if the status is ok.
      */
     bool
     IsOk() const;
 
     /**
      * @brief Return the status code(general client-side error code).
+     * @return the code.
      */
     StatusCode
     Code() const;
 
     /**
      * @brief Return the error message.
+     * @return the message.
      */
     const std::string&
     Message() const;
@@ -90,18 +110,21 @@ class MILVUS_SDK_API Status {
     /**
      * @brief The error code from gRPC lib, which are listed here:
      *      https://grpc.github.io/grpc/cpp/md_doc_statuscodes.html
+     * @return the RPC err code.
      */
     int32_t
     RpcErrCode() const;
 
     /**
      * @brief The server-side error code of milvus v2.4 and later versions.
+     * @return the server code.
      */
     int32_t
     ServerCode() const;
 
     /**
      * @brief The legacy server-side error code of milvus v2.2/v2.3.
+     * @return the legacy server code.
      */
     int32_t
     LegacyServerCode() const;

@@ -26,6 +26,9 @@ namespace milvus {
  */
 class MILVUS_SDK_API ListRestoreSnapshotJobsRequest : public SnapshotRequestBase<ListRestoreSnapshotJobsRequest> {
  public:
+    /**
+     * @brief Constructor
+     */
     ListRestoreSnapshotJobsRequest() = default;
 };
 

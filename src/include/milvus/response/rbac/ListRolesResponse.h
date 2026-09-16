@@ -35,12 +35,14 @@ class MILVUS_SDK_API ListRolesResponse {
 
     /**
      * @brief Get names of roles.
+     * @return the role names.
      */
     const std::vector<std::string>&
     RoleNames() const;
 
     /**
      * @brief Set names of roles.
+     * @param [in] roles the roles.
      */
     void
     SetRoleNames(std::vector<std::string>&& roles);

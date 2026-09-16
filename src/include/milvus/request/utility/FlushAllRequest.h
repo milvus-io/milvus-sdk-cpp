@@ -35,36 +35,42 @@ class MILVUS_SDK_API FlushAllRequest {
 
     /**
      * @brief Database name in which collections are flushed.
+     * @return the database name.
      */
     const std::string&
     DatabaseName() const;
 
     /**
      * @brief Set database name in which collections are flushed.
+     * @param [in] db_name the DB name.
      */
     void
     SetDatabaseName(const std::string& db_name);
 
     /**
      * @brief Set database name in which collections are flushed.
+     * @param [in] db_name the DB name.
      */
     FlushAllRequest&
     WithDatabaseName(const std::string& db_name);
 
     /**
      * @brief Get milliseconds to wait the flush-all action done.
+     * @return the wait flushed ms.
      */
     int64_t
     WaitFlushedMs() const;
 
     /**
      * @brief Set milliseconds to wait the flush-all action done. Default value is 0, which means forever.
+     * @param [in] ms the ms.
      */
     void
     SetWaitFlushedMs(int64_t ms);
 
     /**
      * @brief Set milliseconds to wait the flush-all action done. Default value is 0, which means forever.
+     * @param [in] ms the ms.
      */
     FlushAllRequest&
     WithWaitFlushedMs(int64_t ms);

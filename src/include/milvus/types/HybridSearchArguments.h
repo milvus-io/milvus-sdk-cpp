@@ -37,54 +37,63 @@ class MILVUS_SDK_API HybridSearchArguments {
  public:
     /**
      * @brief Get the target db name.
+     * @return the database name.
      */
     const std::string&
     DatabaseName() const;
 
     /**
      * @brief Set target db name, default is empty, means use the db name of MilvusClient.
+     * @param [in] db_name the DB name.
      */
     Status
     SetDatabaseName(const std::string& db_name);
 
     /**
      * @brief Get name of the target collection.
+     * @return the collection name.
      */
     const std::string&
     CollectionName() const;
 
     /**
      * @brief Set name of this collection, cannot be empty.
+     * @param [in] collection_name the collection name.
      */
     Status
     SetCollectionName(std::string collection_name);
 
     /**
      * @brief Get partition names.
+     * @return the partition names.
      */
     const std::set<std::string>&
     PartitionNames() const;
 
     /**
      * @brief Specify partition name to control search scope, the name cannot be empty.
+     * @param [in] partition_name the partition name.
      */
     Status
     AddPartitionName(std::string partition_name);
 
     /**
      * @brief Get output field names.
+     * @return the output fields.
      */
     const std::set<std::string>&
     OutputFields() const;
 
     /**
      * @brief Specify output field names to return field data, the name cannot be empty.
+     * @param [in] field_name the field name.
      */
     Status
     AddOutputField(std::string field_name);
 
     /**
      * @brief Get search limit(topk).
+     * @return the limit.
      */
     int64_t
     Limit() const;
@@ -92,12 +101,14 @@ class MILVUS_SDK_API HybridSearchArguments {
     /**
      * @brief Set search limit(topk).
      * Note: this value is stored in the ExtraParams.
+     * @param [in] limit the limit.
      */
     Status
     SetLimit(int64_t limit);
 
     /**
      * @brief Get offset value.
+     * @return the offset.
      */
     int64_t
     Offset() const;
@@ -105,12 +116,14 @@ class MILVUS_SDK_API HybridSearchArguments {
     /**
      * @brief Set offset value.
      * Note: this value is stored in the ExtraParams.
+     * @param [in] offset the offset.
      */
     Status
     SetOffset(int64_t offset);
 
     /**
      * @brief Get the decimal place of the returned results.
+     * @return the round decimal.
      */
     int
     RoundDecimal() const;
@@ -118,102 +131,120 @@ class MILVUS_SDK_API HybridSearchArguments {
     /**
      * @brief Specifies the decimal place of the returned results.
      * Note: this value is stored in the ExtraParams.
+     * @param [in] round_decimal the round decimal.
      */
     Status
     SetRoundDecimal(int round_decimal);
 
     /**
      * @brief Get consistency level.
+     * @return the consistency level.
      */
     ConsistencyLevel
     GetConsistencyLevel() const;
 
     /**
      * @brief Set consistency level.
+     * @param [in] level the level.
      */
     Status
     SetConsistencyLevel(const ConsistencyLevel& level);
 
     /**
      * @brief Get ignore growing segments.
+     * @return the ignore growing.
      */
     bool
     IgnoreGrowing() const;
 
     /**
      * @brief Set ignore growing segments.
+     * @param [in] ignore_growing the ignore growing.
      */
     Status
     SetIgnoreGrowing(bool ignore_growing);
 
     /**
      * @brief Get sub search requests.
+     * @return the sub requests.
      */
     const std::vector<SubSearchRequestPtr>&
     SubRequests() const;
 
     /**
      * @brief Add sub search request.
+     * @param [in] request the request.
      */
     Status
     AddSubRequest(const SubSearchRequestPtr& request);
 
     /**
      * @brief Get rerank.
+     * @return the rerank.
      */
     FunctionPtr
     Rerank() const;
 
     /**
      * @brief Set rerank, only accept RERANK function type.
+     * @param [in] rerank the rerank.
      */
     Status
     SetRerank(const FunctionPtr& rerank);
 
     /**
      * @brief Get group by field name.
+     * @return the group by field.
      */
     std::string
     GroupByField() const;
 
     /**
      * @brief Set group by field name.
+     * @param [in] field_name the field name.
      */
     Status
     SetGroupByField(const std::string& field_name);
 
     /**
      * @brief Get size of group by.
+     * @return the group size.
      */
     uint64_t
     GroupSize() const;
 
     /**
      * @brief Set size of group by.
+     * @param [in] group_size the group size.
      */
     Status
     SetGroupSize(uint64_t group_size);
 
     /**
      * @brief Get the flag whether to strict group size.
+     * @return the strict group size.
      */
     bool
     StrictGroupSize() const;
 
     /**
      * @brief Set the flag whether to strict group size.
+     * @param [in] strict_group_size the strict group size.
      */
     Status
     SetStrictGroupSize(bool strict_group_size);
 
     /**
      * @brief Add extra param.
+     * @param [in] key the key.
+     * @param [in] value the value.
      */
     Status
     AddExtraParam(const std::string& key, const std::string& value);
 
     /**
      * @brief Get extra param.
+     * @return the extra params.
      */
     const std::unordered_map<std::string, std::string>&
     ExtraParams() const;
@@ -221,6 +252,7 @@ class MILVUS_SDK_API HybridSearchArguments {
     /**
      * @brief Validate for search arguments.
      * MilvusClient calls this method internally, users no need to mamually call it.
+     * @return the validate.
      */
     Status
     Validate() const;

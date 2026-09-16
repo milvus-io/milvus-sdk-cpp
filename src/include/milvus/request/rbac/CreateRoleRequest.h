@@ -34,36 +34,42 @@ class MILVUS_SDK_API CreateRoleRequest {
 
     /**
      * @brief Name of the role.
+     * @return the role name.
      */
     const std::string&
     RoleName() const;
 
     /**
      * @brief Set name of the role.
+     * @param [in] name the name.
      */
     void
     SetRoleName(const std::string& name);
 
     /**
      * @brief Set name of the role.
+     * @param [in] name the name.
      */
     CreateRoleRequest&
     WithRoleName(const std::string& name);
 
     /**
      * @brief Description of the role.
+     * @return the description.
      */
     const std::string&
     Description() const;
 
     /**
      * @brief Set description of the role.
+     * @param [in] description the description.
      */
     void
     SetDescription(const std::string& description);
 
     /**
      * @brief Set description of the role.
+     * @param [in] description the description.
      */
     CreateRoleRequest&
     WithDescription(const std::string& description);

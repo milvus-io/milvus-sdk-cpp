@@ -1,0 +1,27 @@
+var classmilvus_1_1SearchAggregation =
+[
+    [ "SearchAggregation", "classmilvus_1_1SearchAggregation.html#a541ae612a1769995f05078815455ded2", null ],
+    [ "SearchAggregation", "classmilvus_1_1SearchAggregation.html#a0414f6e2e2a994f3469be7ce7591df8b", null ],
+    [ "AddField", "classmilvus_1_1SearchAggregation.html#a578aaa417ca2a8b52fef4649080cf7cb", null ],
+    [ "AddMetric", "classmilvus_1_1SearchAggregation.html#a344e733249da7656ba3beab6238004cc", null ],
+    [ "AddOrder", "classmilvus_1_1SearchAggregation.html#aab6aafad6fbc6b7fe71f4b73d3ce37d1", null ],
+    [ "Fields", "classmilvus_1_1SearchAggregation.html#ac856b8a01f47d7d2714c4b095ad4c212", null ],
+    [ "Metrics", "classmilvus_1_1SearchAggregation.html#a0dc404f8eed956f93ec2673516125dea", null ],
+    [ "Orders", "classmilvus_1_1SearchAggregation.html#a07348ee07f126182417980fc89525683", null ],
+    [ "SetFields", "classmilvus_1_1SearchAggregation.html#aabbf27468149b0588f7e141119ed34bf", null ],
+    [ "SetMetrics", "classmilvus_1_1SearchAggregation.html#ad8f31287b1741c577ac624a5601b7581", null ],
+    [ "SetOrders", "classmilvus_1_1SearchAggregation.html#a58acd10ddda9b0b186fd46ba0dd81371", null ],
+    [ "SetSize", "classmilvus_1_1SearchAggregation.html#ac7342764df00d46816691b2e9df8fa8c", null ],
+    [ "SetSubAggregation", "classmilvus_1_1SearchAggregation.html#acd91dff815cebd2ef26274cb3b5f7533", null ],
+    [ "SetTopHits", "classmilvus_1_1SearchAggregation.html#aebfe129d1c89154f4891fcc9e680432f", null ],
+    [ "Size", "classmilvus_1_1SearchAggregation.html#a5d532f2f71ec42c30f85e00569235247", null ],
+    [ "SubAggregation", "classmilvus_1_1SearchAggregation.html#a30dd53b449fbfc007dc73b7910267d2d", null ],
+    [ "TopHits", "classmilvus_1_1SearchAggregation.html#af50b36211caa71d5f6b9eab16fcbf370", null ],
+    [ "Validate", "classmilvus_1_1SearchAggregation.html#ac5fb69264672823db7f67c43099b290a", null ],
+    [ "WithFields", "classmilvus_1_1SearchAggregation.html#ad0724053819dc21c785364ca18fd5d91", null ],
+    [ "WithMetrics", "classmilvus_1_1SearchAggregation.html#ab6fb304420c98a344697506f02bb605a", null ],
+    [ "WithOrders", "classmilvus_1_1SearchAggregation.html#a28396fe04e57d95db5d3257e6309a7f3", null ],
+    [ "WithSize", "classmilvus_1_1SearchAggregation.html#a5f9e8077a6a71a16ff84e5bd03c86217", null ],
+    [ "WithSubAggregation", "classmilvus_1_1SearchAggregation.html#a4910c688d3713ce996a26ea19af78bb8", null ],
+    [ "WithTopHits", "classmilvus_1_1SearchAggregation.html#a2a5abe0dd7a50fc169ca09709f062d61", null ]
+];

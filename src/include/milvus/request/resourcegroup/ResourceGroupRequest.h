@@ -34,18 +34,21 @@ class MILVUS_SDK_API ResourceGroupRequest {
 
     /**
      * @brief Get name of the resource group.
+     * @return the group name.
      */
     const std::string&
     GroupName() const;
 
     /**
      * @brief Set name of the resource group.
+     * @param [in] name the name.
      */
     void
     SetGroupName(const std::string& name);
 
     /**
      * @brief Set name of the resource group.
+     * @param [in] name the name.
      */
     ResourceGroupRequest&
     WithGroupName(const std::string& name);

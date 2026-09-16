@@ -34,36 +34,42 @@ class MILVUS_SDK_API DropRoleRequest {
 
     /**
      * @brief Name of the role.
+     * @return the role name.
      */
     const std::string&
     RoleName() const;
 
     /**
      * @brief Set name of the role.
+     * @param [in] name the name.
      */
     void
     SetRoleName(const std::string& name);
 
     /**
      * @brief Set name of the role.
+     * @param [in] name the name.
      */
     DropRoleRequest&
     WithRoleName(const std::string& name);
 
     /**
      * @brief Get the flag whether to force drop the role.
+     * @return the force drop.
      */
     bool
     ForceDrop() const;
 
     /**
      * @brief Set the flag whether to force drop the role.
+     * @param [in] force_drop the force drop.
      */
     void
     SetForceDrop(bool force_drop);
 
     /**
      * @brief Set the flag whether to force drop the role.
+     * @param [in] force_drop the force drop.
      */
     DropRoleRequest&
     WithForceDrop(bool force_drop);

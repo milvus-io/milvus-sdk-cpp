@@ -36,18 +36,21 @@ class MILVUS_SDK_API AddCollectionFieldRequest : public CollectionRequestBase<Ad
 
     /**
      * @brief Get the field schema.
+     * @return the field.
      */
     const FieldSchema&
     Field() const;
 
     /**
      * @brief Set the field schema.
+     * @param [in] field_schema the field schema.
      */
     void
     SetField(FieldSchema&& field_schema);
 
     /**
      * @brief Set the field schema.
+     * @param [in] field_schema the field schema.
      */
     AddCollectionFieldRequest&
     WithField(FieldSchema&& field_schema);

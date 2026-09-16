@@ -34,54 +34,63 @@ class MILVUS_SDK_API CreateUserRequest {
 
     /**
      * @brief Name of the user.
+     * @return the user name.
      */
     const std::string&
     UserName() const;
 
     /**
      * @brief Set name of the user.
+     * @param [in] name the name.
      */
     void
     SetUserName(const std::string& name);
 
     /**
      * @brief Set name of the user.
+     * @param [in] name the name.
      */
     CreateUserRequest&
     WithUserName(const std::string& name);
 
     /**
      * @brief Password of the user.
+     * @return the password.
      */
     const std::string&
     Password() const;
 
     /**
      * @brief Set password of the user.
+     * @param [in] password the password.
      */
     void
     SetPassword(const std::string& password);
 
     /**
      * @brief Set password of the user.
+     * @param [in] password the password.
      */
     CreateUserRequest&
     WithPassword(const std::string& password);
 
     /**
      * @brief Description of the user.
+     * @return the description.
      */
     const std::string&
     Description() const;
 
     /**
      * @brief Set description of the user.
+     * @param [in] description the description.
      */
     void
     SetDescription(const std::string& description);
 
     /**
      * @brief Set description of the user.
+     * @param [in] description the description.
      */
     CreateUserRequest&
     WithDescription(const std::string& description);

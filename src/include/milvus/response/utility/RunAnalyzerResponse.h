@@ -33,12 +33,14 @@ class MILVUS_SDK_API RunAnalyzerResponse {
 
     /**
      * @brief Get results of analyzer.
+     * @return the results.
      */
     const AnalyzerResults&
     Results() const;
 
     /**
      * @brief Set results of analyzer.
+     * @param [in] result the result.
      */
     void
     SetResults(AnalyzerResults&& result);

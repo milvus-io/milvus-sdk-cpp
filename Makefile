@@ -151,8 +151,8 @@ coverage:
 
 doc:
 	@echo "Generating Milvus SDK documentation ..."
-	rm -rf ./doc/html ./doc/latex
-	doxygen ./doc/Doxyfile
+	rm -rf ./doc/html
+	doxygen ./Doxyfile
 
 package:
 	@echo "Packaging Milvus SDK release version ..."

@@ -27,11 +27,26 @@ namespace milvus {
  * Read the doc for more info: https://milvus.io/docs/consistency.md#Consistency-Level
  */
 enum class ConsistencyLevel {
+    /**
+     * @brief Not specified; the server uses the collection's default consistency level.
+     */
     NONE = -1,
 
+    /**
+     * @brief Strong consistency; reads always see the latest writes.
+     */
     STRONG = 0,
+    /**
+     * @brief Session consistency; reads see writes made in the same session.
+     */
     SESSION = 1,
+    /**
+     * @brief Bounded staleness consistency; reads tolerate a bounded time lag.
+     */
     BOUNDED = 2,
+    /**
+     * @brief Eventually consistent; reads may see a time lag.
+     */
     EVENTUALLY = 3,
 };
 

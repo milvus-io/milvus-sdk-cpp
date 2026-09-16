@@ -28,11 +28,23 @@ namespace milvus {
  */
 class MILVUS_SDK_API ListSnapshotsResponse {
  public:
+    /**
+     * @brief Constructor
+     */
     ListSnapshotsResponse() = default;
 
+    /**
+     * @brief Get the snapshot names.
+     * @return the snapshots.
+     */
     const std::vector<std::string>&
     Snapshots() const;
 
+    /**
+     * @brief Set the snapshot names.
+     *
+     * @param [in] snapshots
+     */
     void
     SetSnapshots(std::vector<std::string>&& snapshots);
 

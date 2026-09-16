@@ -1,5 +1,4 @@
 var searchData=
 [
-  ['segmentstate_2063',['SegmentState',['../namespacemilvus.html#abe8ed76f6dc4b1b12a59f67fcef5afed',1,'milvus']]],
-  ['statuscode_2064',['StatusCode',['../namespacemilvus.html#ad8f8a6a0abb456a62ed9fec3f2ff1f23',1,'milvus']]]
+  ['metrictype_3380',['MetricType',['../namespacemilvus.html#a188c0c4910c0aaa1d67c0f089b55c00e',1,'milvus']]]
 ];

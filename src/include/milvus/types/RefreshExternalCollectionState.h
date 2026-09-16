@@ -26,9 +26,21 @@ namespace milvus {
  * @brief State code for refresh external collection jobs.
  */
 enum class MILVUS_SDK_API RefreshExternalCollectionStateCode {
+    /**
+     * @brief The refresh job is pending.
+     */
     PENDING = 0,
+    /**
+     * @brief The refresh job is running.
+     */
     IN_PROGRESS = 1,
+    /**
+     * @brief The refresh job completed.
+     */
     COMPLETED = 2,
+    /**
+     * @brief The refresh job failed.
+     */
     FAILED = 3,
 };
 
@@ -36,5 +48,9 @@ enum class MILVUS_SDK_API RefreshExternalCollectionStateCode {
 
 namespace std {
 MILVUS_SDK_API std::string
+/**
+ * @brief Convert a state code to its string name.
+ * @param [in] state the state.
+ */
 to_string(milvus::RefreshExternalCollectionStateCode state);
 }  // namespace std

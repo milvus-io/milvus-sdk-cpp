@@ -28,11 +28,23 @@ namespace milvus {
  */
 class MILVUS_SDK_API ListRefreshExternalCollectionJobsResponse {
  public:
+    /**
+     * @brief Constructor
+     */
     ListRefreshExternalCollectionJobsResponse() = default;
 
+    /**
+     * @brief Get the refresh jobs.
+     * @return the jobs.
+     */
     const std::vector<RefreshExternalCollectionJobInfo>&
     Jobs() const;
 
+    /**
+     * @brief Set the refresh jobs.
+     *
+     * @param [in] jobs
+     */
     void
     SetJobs(std::vector<RefreshExternalCollectionJobInfo>&& jobs);
 

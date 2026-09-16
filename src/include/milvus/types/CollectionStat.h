@@ -36,30 +36,36 @@ class MILVUS_SDK_API CollectionStat {
 
     /**
      * @brief Return row count of this collection.
+     * @return the row count.
      */
     uint64_t
     RowCount() const;
 
     /**
      * @brief Set collection name.
+     * @param [in] name the name.
      */
     void
     SetName(std::string name);
 
     /**
      * @brief Get collection name.
+     * @return the name.
      */
     const std::string&
     Name() const;
 
     /**
      * @brief add key/value pair for collection statistics.
+     * @param [in] key the key.
+     * @param [in] value the value.
      */
     void
     Emplace(std::string key, std::string value);
 
     /**
      * @brief Get the raw key/value statistics map of this collection.
+     * @return the statistics.
      */
     const std::unordered_map<std::string, std::string>&
     Statistics() const;

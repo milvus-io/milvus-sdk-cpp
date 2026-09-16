@@ -35,12 +35,14 @@ class MILVUS_SDK_API ListDatabasesResponse {
 
     /**
      * @brief Get database names.
+     * @return the database names.
      */
     const std::vector<std::string>&
     DatabaseNames() const;
 
     /**
      * @brief Set database names.
+     * @param [in] databases the databases.
      */
     void
     SetDatabaseNames(std::vector<std::string>&& databases);

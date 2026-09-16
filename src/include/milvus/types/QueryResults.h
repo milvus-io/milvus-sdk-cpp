@@ -34,29 +34,36 @@ class MILVUS_SDK_API QueryResults {
 
     /**
      * @brief Constructor
+     * @param [in] output_fields the output fields.
+     * @param [in] output_names the output names.
      */
     explicit QueryResults(const std::vector<FieldDataPtr>& output_fields, const std::set<std::string>& output_names);
 
     /**
      * @brief Constructor
+     * @param [in] output_fields the output fields.
+     * @param [in] output_names the output names.
      */
     explicit QueryResults(std::vector<FieldDataPtr>&& output_fields, const std::set<std::string>& output_names);
 
     /**
      * @brief Get output field data by name.
      * @deprecated replaced by OutputField()
+     * @param [in] name the name.
      */
     FieldDataPtr
     GetFieldByName(const std::string& name);
 
     /**
      * @brief Get an output field by name.
+     * @param [in] name the name.
      */
     FieldDataPtr
     OutputField(const std::string& name) const;
 
     /**
      * @brief Get an output field by name and cast to specific pointer.
+     * @param [in] name the name.
      */
     template <typename T>
     std::shared_ptr<T>
@@ -66,30 +73,36 @@ class MILVUS_SDK_API QueryResults {
 
     /**
      * @brief Get all output fields data.
+     * @return the output fields.
      */
     const std::vector<FieldDataPtr>&
     OutputFields() const;
 
     /**
      * @brief Get output field names specified by query().
+     * @return the output field names.
      */
     const std::set<std::string>&
     OutputFieldNames() const;
 
     /**
      * @brief Get all output rows.
+     * @param [in] rows the rows.
      */
     Status
     OutputRows(EntityRows& rows) const;
 
     /**
      * @brief Get row data. Throw exception if the i is out of bound.
+     * @param [in] i the i.
+     * @param [in] row the row.
      */
     Status
     OutputRow(int i, EntityRow& row) const;
 
     /**
      * @brief Get row count of the result. Return the value of count(*) when you query with count(*).
+     * @return the row count.
      */
     uint64_t
     GetRowCount() const;

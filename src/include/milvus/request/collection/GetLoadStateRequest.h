@@ -36,6 +36,7 @@ class MILVUS_SDK_API GetLoadStateRequest : public CollectionRequestBase<GetLoadS
     /**
      * @brief Get partition names to get load state.
      * If partition name list is empty, will get load state of the collection.
+     * @return the partition names.
      */
     const std::set<std::string>&
     PartitionNames() const;
@@ -43,6 +44,7 @@ class MILVUS_SDK_API GetLoadStateRequest : public CollectionRequestBase<GetLoadS
     /**
      * @brief Set partition names to get load state of the partition.
      * If partition name list is empty, will get load state of the collection.
+     * @param [in] partition_names the partition names.
      */
     void
     SetPartitionNames(std::set<std::string>&& partition_names);
@@ -50,12 +52,14 @@ class MILVUS_SDK_API GetLoadStateRequest : public CollectionRequestBase<GetLoadS
     /**
      * @brief Set partition names to get load state of the partition.
      * If partition name list is empty, will get load state of the collection.
+     * @param [in] partition_names the partition names.
      */
     GetLoadStateRequest&
     WithPartitionNames(std::set<std::string>&& partition_names);
 
     /**
      * @brief Add a partition name to get load state.
+     * @param [in] partition_name the partition name.
      */
     GetLoadStateRequest&
     AddPartitionName(const std::string& partition_name);

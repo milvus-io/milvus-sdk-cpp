@@ -34,54 +34,63 @@ class MILVUS_SDK_API ResourceGroupConfig {
 
     /**
      * @brief Number of requested nodes.
+     * @return the requests.
      */
     uint32_t
     Requests() const;
 
     /**
      * @brief Set number of requested nodes.
+     * @param [in] num the num.
      */
     void
     SetRequests(uint32_t num);
 
     /**
      * @brief Maximum number of nodes.
+     * @return the limits.
      */
     uint32_t
     Limits() const;
 
     /**
      * @brief Set maximum number of nodes.
+     * @param [in] num the num.
      */
     void
     SetLimits(uint32_t num);
 
     /**
      * @brief Group names from which the nodes can be transfered.
+     * @return the transfer from groups.
      */
     const std::set<std::string>&
     TransferFromGroups() const;
 
     /**
      * @brief Add a group name from which the nodes can be transfered.
+     * @param [in] group_name the group name.
      */
     void
     AddTrnasferFromGroup(const std::string& group_name);
 
     /**
      * @brief Group names to which the nodes can be transfered.
+     * @return the transfer to groups.
      */
     const std::set<std::string>&
     TransferToGroups() const;
 
     /**
      * @brief Add a group name to which the nodes can be transfered.
+     * @param [in] group_name the group name.
      */
     void
     AddTrnasferToGroup(const std::string& group_name);
 
     /**
      * @brief Resource group will prefer to accept node which match node filter.
+     * @return the node filters.
      */
     const std::unordered_map<std::string, std::string>&
     NodeFilters() const;
@@ -89,6 +98,8 @@ class MILVUS_SDK_API ResourceGroupConfig {
     /**
      * @brief Add a node filter, each filter is a key-value pair that represent a label of nodes.
      * For example, a node is marked as "CPU : 32", the key is "CPU", value is "32".
+     * @param [in] key the key.
+     * @param [in] value the value.
      */
     void
     AddNodeFilter(const std::string& key, const std::string& value);

@@ -25,6 +25,14 @@ namespace milvus {
 
 /**
  * @brief Used by MilvusClientV2::LoadCollection()
+ *
+ * Loading is the prerequisite for search and query; Milvus loads the index and raw data into memory.
+ * @par Example
+ * @code
+ * auto status = client->LoadCollection(milvus::LoadCollectionRequest()
+ *                                         .WithCollectionName("demo")
+ *                                         .WithSync(true));
+ * @endcode
  */
 class MILVUS_SDK_API LoadCollectionRequest : public CollectionRequestBase<LoadCollectionRequest> {
  public:
@@ -35,6 +43,7 @@ class MILVUS_SDK_API LoadCollectionRequest : public CollectionRequestBase<LoadCo
 
     /**
      * @brief Sync mode.
+     * @return the sync.
      */
     bool
     Sync() const;
@@ -43,6 +52,7 @@ class MILVUS_SDK_API LoadCollectionRequest : public CollectionRequestBase<LoadCo
      * @brief Set sync mode. Default value is true.
      * True: wait the collection to be fully loaded.
      * False: return immediately no matter the collection is fully loaded or not.
+     * @param [in] sync the sync.
      */
     void
     SetSync(bool sync);
@@ -51,30 +61,35 @@ class MILVUS_SDK_API LoadCollectionRequest : public CollectionRequestBase<LoadCo
      * @brief Set sync mode. Default value is true.
      * True: wait the collection to be fully loaded.
      * False: return immediately no matter the collection is fully loaded or not.
+     * @param [in] sync the sync.
      */
     LoadCollectionRequest&
     WithSync(bool sync);
 
     /**
      * @brief Number of replicas.
+     * @return the replica num.
      */
     int64_t
     ReplicaNum() const;
 
     /**
      * @brief Set number of replicas.
+     * @param [in] replica_num the replica num.
      */
     void
     SetReplicaNum(int64_t replica_num);
 
     /**
      * @brief Set number of replicas.
+     * @param [in] replica_num the replica num.
      */
     LoadCollectionRequest&
     WithReplicaNum(int64_t replica_num);
 
     /**
      * @brief Timeout in milliseconds.
+     * @return the timeout ms.
      */
     int64_t
     TimeoutMs() const;
@@ -85,6 +100,7 @@ class MILVUS_SDK_API LoadCollectionRequest : public CollectionRequestBase<LoadCo
      * until the collection is fully loaded into memory.
      * If the WaitFlushedMs is larger than zero, the LoadCollection() will break the loop after a certain of time span
      * and return a status saying the process is timeout.
+     * @param [in] timeout_ms the timeout ms.
      */
     void
     SetTimeoutMs(int64_t timeout_ms);
@@ -95,12 +111,14 @@ class MILVUS_SDK_API LoadCollectionRequest : public CollectionRequestBase<LoadCo
      * until the collection is fully loaded into memory.
      * If the WaitFlushedMs is larger than zero, the LoadCollection() will break the loop after a certain of time span
      * and return a status saying the process is timeout.
+     * @param [in] timeout_ms the timeout ms.
      */
     LoadCollectionRequest&
     WithTimeoutMs(int64_t timeout_ms);
 
     /**
      * @brief Refresh option.
+     * @return the refresh.
      */
     bool
     Refresh() const;
@@ -110,6 +128,7 @@ class MILVUS_SDK_API LoadCollectionRequest : public CollectionRequestBase<LoadCo
      * Take effect when there are new segments generaged by bulkimport interface.
      * True: load new segments generaged by bulkimport interface.
      * False: ignore new segments generaged by bulkimport interface.
+     * @param [in] refresh the refresh.
      */
     void
     SetRefresh(bool refresh);
@@ -119,30 +138,35 @@ class MILVUS_SDK_API LoadCollectionRequest : public CollectionRequestBase<LoadCo
      * Take effect when there are new segments generaged by bulkimport interface.
      * True: load new segments generaged by bulkimport interface.
      * False: ignore new segments generaged by bulkimport interface.
+     * @param [in] refresh the refresh.
      */
     LoadCollectionRequest&
     WithRefresh(bool refresh);
 
     /**
      * @brief Load fields.
+     * @return the load fields.
      */
     const std::set<std::string>&
     LoadFields() const;
 
     /**
      * @brief Set load fields.
+     * @param [in] load_fields the load fields.
      */
     void
     SetLoadFields(const std::set<std::string>& load_fields);
 
     /**
      * @brief Set load fields.
+     * @param [in] load_fields the load fields.
      */
     LoadCollectionRequest&
     WithLoadFields(const std::set<std::string>& load_fields);
 
     /**
      * @brief Add a field to be loaded.
+     * @param [in] field_name the field name.
      */
     LoadCollectionRequest&
     AddLoadField(const std::string& field_name);
@@ -151,6 +175,7 @@ class MILVUS_SDK_API LoadCollectionRequest : public CollectionRequestBase<LoadCo
      * @brief Load priority.
      * The load priority of the collection. Set "low" to select low priority; any other value (including "high")
      * defaults to high priority.
+     * @return the load priority.
      */
     const std::string&
     LoadPriority() const;
@@ -159,6 +184,7 @@ class MILVUS_SDK_API LoadCollectionRequest : public CollectionRequestBase<LoadCo
      * @brief Set load priority.
      * The load priority of the collection. Set "low" to select low priority; any other value (including "high")
      * defaults to high priority.
+     * @param [in] load_priority the load priority.
      */
     void
     SetLoadPriority(const std::string& load_priority);
@@ -167,42 +193,49 @@ class MILVUS_SDK_API LoadCollectionRequest : public CollectionRequestBase<LoadCo
      * @brief Set load priority.
      * The load priority of the collection. Set "low" to select low priority; any other value (including "high")
      * defaults to high priority.
+     * @param [in] load_priority the load priority.
      */
     LoadCollectionRequest&
     WithLoadPriority(const std::string& load_priority);
 
     /**
      * @brief Skip dynamic field option.
+     * @return the skip dynamic field.
      */
     bool
     SkipDynamicField() const;
 
     /**
      * @brief Set skip dynamic field option.
+     * @param [in] skip_dynamic_field the skip dynamic field.
      */
     void
     SetSkipDynamicField(bool skip_dynamic_field);
 
     /**
      * @brief Set skip dynamic field option.
+     * @param [in] skip_dynamic_field the skip dynamic field.
      */
     LoadCollectionRequest&
     WithSkipDynamicField(bool skip_dynamic_field);
 
     /**
      * @brief Target resource groups.
+     * @return the target resource groups.
      */
     const std::set<std::string>&
     TargetResourceGroups() const;
 
     /**
      * @brief Set target resource groups.
+     * @param [in] target_resource_groups the target resource groups.
      */
     void
     SetTargetResourceGroups(const std::set<std::string>& target_resource_groups);
 
     /**
      * @brief Set target resource groups.
+     * @param [in] target_resource_groups the target resource groups.
      */
     LoadCollectionRequest&
     WithTargetResourceGroups(const std::set<std::string>& target_resource_groups);

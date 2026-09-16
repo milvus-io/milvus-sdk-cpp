@@ -27,11 +27,23 @@ namespace milvus {
  */
 class MILVUS_SDK_API RefreshExternalCollectionResponse {
  public:
+    /**
+     * @brief Constructor
+     */
     RefreshExternalCollectionResponse() = default;
 
+    /**
+     * @brief Get the refresh job identifier.
+     * @return the job ID.
+     */
     int64_t
     JobID() const;
 
+    /**
+     * @brief Set the refresh job identifier.
+     *
+     * @param [in] job_id
+     */
     void
     SetJobID(int64_t job_id);
 

@@ -146,6 +146,12 @@ jobs:
           # Release matches the dependency stack the tutorials step consumes below,
           # so one Conan cache serves the whole job.
           make lint-release
+      - name: Doxygen docs
+        if: ${{ matrix.os.distro == 'Ubuntu' }}
+        run: |
+          apt-get update && apt-get install -y doxygen
+          make doc
+          test -f doc/html/index.html
       - name: Unit Testing
         run: |
           make test-release

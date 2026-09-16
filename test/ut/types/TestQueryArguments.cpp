@@ -48,6 +48,11 @@ TEST_F(QueryArgumentsTest, GeneralTesting) {
     EXPECT_FALSE(arguments.SetFilter(empty_name).IsOk());
     EXPECT_EQ(expression, arguments.Filter());
 
+    // deprecated Expression/SetExpression aliases
+    arguments.SetExpression("expr2");
+    EXPECT_EQ("expr2", arguments.Expression());
+    EXPECT_EQ("expr2", arguments.Filter());
+
     uint64_t ts = 1000;
     arguments.SetTravelTimestamp(ts);
     EXPECT_EQ(ts, arguments.TravelTimestamp());

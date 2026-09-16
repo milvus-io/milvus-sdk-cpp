@@ -34,36 +34,42 @@ class MILVUS_SDK_API DropAliasRequest {
 
     /**
      * @brief Database name in which the collection is created.
+     * @return the database name.
      */
     const std::string&
     DatabaseName() const;
 
     /**
      * @brief Set database name in which the collection is created.
+     * @param [in] db_name the DB name.
      */
     void
     SetDatabaseName(const std::string& db_name);
 
     /**
      * @brief Set database name in which the collection is created.
+     * @param [in] db_name the DB name.
      */
     DropAliasRequest&
     WithDatabaseName(const std::string& db_name);
 
     /**
      * @brief Set name of the alias.
+     * @return the alias.
      */
     const std::string&
     Alias() const;
 
     /**
      * @brief Set name of the alias.
+     * @param [in] alias the alias.
      */
     void
     SetAlias(const std::string& alias);
 
     /**
      * @brief Set name of the alias.
+     * @param [in] alias the alias.
      */
     DropAliasRequest&
     WithAlias(const std::string& alias);

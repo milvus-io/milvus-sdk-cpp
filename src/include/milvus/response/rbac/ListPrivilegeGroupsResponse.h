@@ -33,12 +33,14 @@ class MILVUS_SDK_API ListPrivilegeGroupsResponse {
 
     /**
      * @brief Get informations of privilege groups.
+     * @return the groups.
      */
     const PrivilegeGroupInfos&
     Groups() const;
 
     /**
      * @brief Set informations of privilege groups.
+     * @param [in] groups the groups.
      */
     void
     SetGroups(PrivilegeGroupInfos&& groups);

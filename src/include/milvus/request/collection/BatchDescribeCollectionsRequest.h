@@ -36,66 +36,77 @@ class MILVUS_SDK_API BatchDescribeCollectionsRequest {
 
     /**
      * @brief Get target database name.
+     * @return the database name.
      */
     const std::string&
     DatabaseName() const;
 
     /**
      * @brief Set target database name.
+     * @param [in] db_name the DB name.
      */
     void
     SetDatabaseName(const std::string& db_name);
 
     /**
      * @brief Set target database name.
+     * @param [in] db_name the DB name.
      */
     BatchDescribeCollectionsRequest&
     WithDatabaseName(const std::string& db_name);
 
     /**
      * @brief Get collection names.
+     * @return the collection names.
      */
     const std::vector<std::string>&
     CollectionNames() const;
 
     /**
      * @brief Set collection names.
+     * @param [in] collection_names the collection names.
      */
     void
     SetCollectionNames(std::vector<std::string>&& collection_names);
 
     /**
      * @brief Set collection names.
+     * @param [in] collection_names the collection names.
      */
     BatchDescribeCollectionsRequest&
     WithCollectionNames(std::vector<std::string>&& collection_names);
 
     /**
      * @brief Add a collection name.
+     * @param [in] collection_name the collection name.
      */
     BatchDescribeCollectionsRequest&
     AddCollectionName(const std::string& collection_name);
 
     /**
      * @brief Get collection ids.
+     * @return the collection i ds.
      */
     const std::vector<int64_t>&
     CollectionIDs() const;
 
     /**
      * @brief Set collection ids.
+     * @param [in] collection_ids the collection ids.
      */
     void
     SetCollectionIDs(std::vector<int64_t>&& collection_ids);
 
     /**
      * @brief Set collection ids.
+     * @param [in] collection_ids the collection ids.
      */
     BatchDescribeCollectionsRequest&
     WithCollectionIDs(std::vector<int64_t>&& collection_ids);
 
     /**
      * @brief Add a collection id.
+     * @param [in] collection_id the collection ID.
      */
     BatchDescribeCollectionsRequest&
     AddCollectionID(int64_t collection_id);

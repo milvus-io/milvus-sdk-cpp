@@ -24,6 +24,18 @@ namespace milvus {
 
 /**
  * @brief Used by MilvusClientV2::QueryIterator()
+ * @par Example
+ * @code
+ * milvus::QueryIteratorPtr iterator;
+ * milvus::QueryIteratorRequest request;
+ * request.WithCollectionName("demo").WithBatchSize(100).WithOutputFields({"id"});
+ * if (client->QueryIterator(request, iterator).IsOk()) {
+ *     milvus::QueryResults results;
+ *     while (iterator->Next(results).IsOk() && results.GetRowCount() > 0) {
+ *         // process one page of results
+ *     }
+ * }
+ * @endcode
  */
 class MILVUS_SDK_API QueryIteratorRequest : public IteratorArguments, public QueryRequest {
  public:
@@ -46,18 +58,21 @@ class MILVUS_SDK_API QueryIteratorRequest : public IteratorArguments, public Que
 
     /**
      * @brief Get the flag of internal retrieve strategy.
+     * @return the reduce stop for best.
      */
     bool
     ReduceStopForBest() const;
 
     /**
      * @brief Set the flag of internal retrieve strategy.
+     * @param [in] reduce_stop_for_best the reduce stop for best.
      */
     void
     SetReduceStopForBest(bool reduce_stop_for_best);
 
     /**
      * @brief Set the flag of internal retrieve strategy.
+     * @param [in] reduce_stop_for_best the reduce stop for best.
      */
     QueryIteratorRequest&
     WithReduceStopForBest(bool reduce_stop_for_best);

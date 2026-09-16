@@ -34,6 +34,7 @@ class MILVUS_SDK_API AlterCollectionFunctionRequest : public CollectionRequestBa
 
     /**
      * @brief Get the function with new definition.
+     * @return the function.
      */
     const FunctionPtr&
     Function() const;

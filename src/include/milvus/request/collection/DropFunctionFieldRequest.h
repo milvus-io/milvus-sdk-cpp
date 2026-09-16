@@ -35,18 +35,21 @@ class MILVUS_SDK_API DropFunctionFieldRequest : public CollectionRequestBase<Dro
 
     /**
      * @brief Name of the function to drop together with its output fields.
+     * @return the function name.
      */
     const std::string&
     FunctionName() const;
 
     /**
      * @brief Set the name of the function to drop together with its output fields.
+     * @param [in] function_name the function name.
      */
     void
     SetFunctionName(std::string function_name);
 
     /**
      * @brief Set the name of the function to drop together with its output fields.
+     * @param [in] function_name the function name.
      */
     DropFunctionFieldRequest&
     WithFunctionName(std::string function_name);

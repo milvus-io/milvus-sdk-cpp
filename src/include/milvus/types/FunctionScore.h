@@ -36,6 +36,7 @@ class MILVUS_SDK_API FunctionScore {
 
     /**
      * @brief Get fuctions.
+     * @return the functions.
      */
     const std::vector<FunctionPtr>&
     Functions() const;
@@ -44,6 +45,7 @@ class MILVUS_SDK_API FunctionScore {
      * @brief Set fuctions.
      * For Search(), the functions can be Boost/Decay/Model, etc.
      * For HybridSearch(), the functions can be RRF/Weighted, etc
+     * @param [in] functions the functions.
      */
     void
     SetFunctions(std::vector<FunctionPtr>&& functions);
@@ -52,6 +54,7 @@ class MILVUS_SDK_API FunctionScore {
      * @brief Set fuctions.
      * For Search(), the functions can be Boost/Decay/Model, etc.
      * For HybridSearch(), the functions can be RRF/Weighted, etc
+     * @param [in] functions the functions.
      */
     FunctionScore&
     WithFunctions(std::vector<FunctionPtr>&& functions);
@@ -66,24 +69,29 @@ class MILVUS_SDK_API FunctionScore {
 
     /**
      * @brief Get extra params.
+     * @return the params.
      */
     const std::unordered_map<std::string, nlohmann::json>&
     Params() const;
 
     /**
      * @brief Set extra params.
+     * @param [in] params the params.
      */
     void
     SetParams(std::unordered_map<std::string, nlohmann::json>&& params);
 
     /**
      * @brief Set extra params.
+     * @param [in] params the params.
      */
     FunctionScore&
     WithParams(std::unordered_map<std::string, nlohmann::json>&& params);
 
     /**
      * @brief Add an extra param.
+     * @param [in] key the key.
+     * @param [in] param the param.
      */
     FunctionScore&
     AddParam(const std::string& key, nlohmann::json&& param);

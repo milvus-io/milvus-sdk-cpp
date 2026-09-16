@@ -25,61 +25,133 @@
 namespace milvus {
 
 /**
- * @brief Restore snapshot job information.
+ * @brief Information of a snapshot restore job, returned by MilvusClientV2::GetRestoreSnapshotState().
  */
 class MILVUS_SDK_API RestoreSnapshotJobInfo {
  public:
+    /**
+     * @brief Get the name of the snapshot being restored.
+     * @return snapshot name.
+     */
     const std::string&
     SnapshotName() const;
 
+    /**
+     * @brief Set the name of the snapshot being restored.
+     * @param [in] snapshot_name snapshot name.
+     */
     void
     SetSnapshotName(std::string snapshot_name);
 
+    /**
+     * @brief Get the source database name of the restore job.
+     * @return source database name.
+     */
     const std::string&
     DatabaseName() const;
 
+    /**
+     * @brief Set the source database name of the restore job.
+     * @param [in] db_name source database name.
+     */
     void
     SetDatabaseName(std::string db_name);
 
+    /**
+     * @brief Get the source collection name of the restore job.
+     * @return source collection name.
+     */
     const std::string&
     CollectionName() const;
 
+    /**
+     * @brief Set the source collection name of the restore job.
+     * @param [in] collection_name source collection name.
+     */
     void
     SetCollectionName(std::string collection_name);
 
+    /**
+     * @brief Get the restore job identifier.
+     * @return job identifier.
+     */
     int64_t
     JobID() const;
 
+    /**
+     * @brief Set the restore job identifier.
+     * @param [in] job_id job identifier.
+     */
     void
     SetJobID(int64_t job_id);
 
+    /**
+     * @brief Get the current state of the restore job.
+     * @return restore job state.
+     */
     RestoreSnapshotStateCode
     State() const;
 
+    /**
+     * @brief Set the current state of the restore job.
+     * @param [in] state restore job state.
+     */
     void
     SetState(RestoreSnapshotStateCode state);
 
+    /**
+     * @brief Get the restore progress in percent (0 to 100).
+     * @return progress in percent.
+     */
     int32_t
     Progress() const;
 
+    /**
+     * @brief Set the restore progress in percent (0 to 100).
+     * @param [in] progress progress in percent.
+     */
     void
     SetProgress(int32_t progress);
 
+    /**
+     * @brief Get the failure reason of the restore job, empty when the job has not failed.
+     * @return failure reason.
+     */
     const std::string&
     Reason() const;
 
+    /**
+     * @brief Set the failure reason of the restore job.
+     * @param [in] reason failure reason.
+     */
     void
     SetReason(std::string reason);
 
+    /**
+     * @brief Get the start timestamp of the restore job.
+     * @return start timestamp.
+     */
     uint64_t
     StartTime() const;
 
+    /**
+     * @brief Set the start timestamp of the restore job.
+     * @param [in] start_time start timestamp.
+     */
     void
     SetStartTime(uint64_t start_time);
 
+    /**
+     * @brief Get the elapsed time of the restore job in milliseconds.
+     * @return elapsed time in milliseconds.
+     */
     uint64_t
     TimeCost() const;
 
+    /**
+     * @brief Set the elapsed time of the restore job in milliseconds.
+     * @param [in] time_cost elapsed time in milliseconds.
+     */
     void
     SetTimeCost(uint64_t time_cost);
 

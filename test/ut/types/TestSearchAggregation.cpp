@@ -146,3 +146,46 @@ TEST_F(SearchAggregationTest, AcceptsValidConfiguration) {
 
     EXPECT_TRUE(aggregation.Validate().IsOk());
 }
+
+TEST_F(SearchAggregationTest, SetMethods) {
+    milvus::SearchAggregation aggregation({"category"}, 1);
+
+    std::vector<std::string> fields{"brand", "region"};
+    aggregation.SetFields(std::move(fields));
+    EXPECT_EQ(aggregation.Fields(), (std::vector<std::string>{"brand", "region"}));
+
+    aggregation.SetSize(8);
+    EXPECT_EQ(aggregation.Size(), 8);
+
+    std::map<std::string, milvus::AggregationMetric> metrics{{"doc_count", {milvus::AggregationMetricOp::COUNT, "*"}}};
+    aggregation.SetMetrics(std::move(metrics));
+    ASSERT_EQ(aggregation.Metrics().size(), 1);
+    EXPECT_EQ(aggregation.Metrics().at("doc_count").op, milvus::AggregationMetricOp::COUNT);
+
+    std::vector<milvus::AggregationOrder> orders{{"doc_count", milvus::AggregationDirection::DESC}};
+    aggregation.SetOrders(std::move(orders));
+    ASSERT_EQ(aggregation.Orders().size(), 1);
+    EXPECT_EQ(aggregation.Orders().at(0).key, "doc_count");
+
+    auto top_hits = std::make_shared<milvus::AggregationTopHits>(2);
+    aggregation.SetTopHits(top_hits);
+    EXPECT_EQ(aggregation.TopHits(), top_hits);
+
+    auto sub_aggregation = std::make_shared<milvus::SearchAggregation>(std::vector<std::string>{"brand"}, 1);
+    aggregation.SetSubAggregation(sub_aggregation);
+    EXPECT_EQ(aggregation.SubAggregation(), sub_aggregation);
+    aggregation.SetSubAggregation(nullptr);
+    EXPECT_EQ(aggregation.SubAggregation(), nullptr);
+}
+
+TEST_F(SearchAggregationTest, AggregationTopHitsSetMethods) {
+    milvus::AggregationTopHits top_hits;
+
+    top_hits.SetSize(4);
+    EXPECT_EQ(top_hits.Size(), 4);
+
+    std::vector<milvus::AggregationSort> sorts{{"score", milvus::AggregationDirection::DESC}};
+    top_hits.SetSorts(std::move(sorts));
+    ASSERT_EQ(top_hits.Sorts().size(), 1);
+    EXPECT_EQ(top_hits.Sorts().at(0).field_name, "score");
+}

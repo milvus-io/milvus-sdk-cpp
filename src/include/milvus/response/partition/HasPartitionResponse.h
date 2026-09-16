@@ -31,12 +31,14 @@ class MILVUS_SDK_API HasPartitionResponse {
 
     /**
      * @brief Get whether the partition exists or not.
+     * @return true if the partition exists.
      */
     bool
     Has() const;
 
     /**
      * @brief Set whether the partition exists or not.
+     * @param [in] has the has.
      */
     void
     SetHas(bool has);

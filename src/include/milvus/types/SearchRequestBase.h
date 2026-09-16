@@ -34,18 +34,23 @@ namespace milvus {
  */
 class MILVUS_SDK_API SearchRequestBase {
  protected:
+    /**
+     * @brief Constructor
+     */
     SearchRequestBase() = default;
     virtual ~SearchRequestBase() = default;
 
  public:
     /**
      * @brief Get filter expression.
+     * @return the filter.
      */
     const std::string&
     Filter() const;
 
     /**
      * @brief Set filter expression.
+     * @param [in] filter the filter.
      */
     Status
     SetFilter(std::string filter);
@@ -60,30 +65,36 @@ class MILVUS_SDK_API SearchRequestBase {
      *     filterTemplate = {"age": 3, "city": ["beijing", "shanghai", ......]}
      * Valid value of a template can be:
      *     boolean, numeric, string, array.
+     * @param [in] key the key.
+     * @param [in] filter_template the filter template.
      */
     Status
     AddFilterTemplate(std::string key, const nlohmann::json& filter_template);
 
     /**
      * @brief Get filter templates.
+     * @return the filter templates.
      */
     const std::unordered_map<std::string, nlohmann::json>&
     FilterTemplates() const;
 
     /**
      * @brief Set filter templates.
+     * @param [in] filter_templates the filter templates.
      */
     Status
     SetFilterTemplates(std::unordered_map<std::string, nlohmann::json>&& filter_templates);
 
     /**
      * @brief Get target vectors.
+     * @return the target vectors.
      */
     FieldDataPtr
     TargetVectors() const;
 
     /**
      * @brief Get embedding lists for struct field ann search.
+     * @return the embedding lists.
      */
     const std::vector<EmbeddingList>&
     EmbeddingLists() const;
@@ -149,6 +160,7 @@ class MILVUS_SDK_API SearchRequestBase {
 
     /**
      * @brief Add a text to search. Only works for BM25 function.
+     * @param [in] text the text.
      */
     Status
     AddEmbeddedText(const std::string& text);
@@ -161,42 +173,49 @@ class MILVUS_SDK_API SearchRequestBase {
 
     /**
      * @brief Add an embedding list to search on struct field.
+     * @param [in] emb_list the emb list.
      */
     Status
     AddEmbeddingList(EmbeddingList&& emb_list);
 
     /**
      * @brief Get anns field name.
+     * @return the anns field.
      */
     std::string
     AnnsField() const;
 
     /**
      * @brief Set target field of ann search.
+     * @param [in] ann_field the ANN field.
      */
     Status
     SetAnnsField(const std::string& ann_field);
 
     /**
      * @brief Get search limit(topk).
+     * @return the limit.
      */
     int64_t
     Limit() const;
 
     /**
      * @brief Set search limit(topk).
+     * @param [in] limit the limit.
      */
     Status
     SetLimit(int64_t limit);
 
     /**
      * @brief Get the metric type.
+     * @return the metric type.
      */
     ::milvus::MetricType
     MetricType() const;
 
     /**
      * @brief Specifies the metric type.
+     * @param [in] metric_type the metric type.
      */
     Status
     SetMetricType(::milvus::MetricType metric_type);
@@ -204,6 +223,8 @@ class MILVUS_SDK_API SearchRequestBase {
     /**
      * @brief Add extra param.
      * Note: this method was redefined in v2.4, which may affect older client code.
+     * @param [in] key the key.
+     * @param [in] value the value.
      */
     Status
     AddExtraParam(const std::string& key, const std::string& value);
@@ -211,6 +232,7 @@ class MILVUS_SDK_API SearchRequestBase {
     /**
      * @brief Get extra param.
      * Note: this method was redefined in v2.4, which may affect older client code.
+     * @return the extra params.
      */
     const std::unordered_map<std::string, std::string>&
     ExtraParams() const;
@@ -226,6 +248,7 @@ class MILVUS_SDK_API SearchRequestBase {
      * @brief Set range radius.
      * Note: this value is stored in the ExtraParams.
      * @return
+     * @param [in] value the value.
      */
     Status
     SetRadius(double value);
@@ -241,6 +264,7 @@ class MILVUS_SDK_API SearchRequestBase {
      * @brief Set range filter.
      * Note: this value is stored in the ExtraParams.
      * @return
+     * @param [in] value the value.
      */
     Status
     SetRangeFilter(double value);
@@ -258,6 +282,7 @@ class MILVUS_SDK_API SearchRequestBase {
     /**
      * @brief Get timezone, takes effect for Timestamptz field.
      * Note: this value is stored in the ExtraParams.
+     * @return the timezone.
      */
     std::string
     Timezone() const;
@@ -265,6 +290,7 @@ class MILVUS_SDK_API SearchRequestBase {
     /**
      * @brief Set timezone, takes effect for Timestamptz field.
      * Note: this value is stored in the ExtraParams.
+     * @param [in] timezone the timezone.
      */
     Status
     SetTimezone(const std::string& timezone);
@@ -278,6 +304,7 @@ class MILVUS_SDK_API SearchRequestBase {
      * when adding a target vector. If target vectors are added multiple times, the caller must ensure that the field
      * name is the same; otherwise, Validate() returns an error.
      * The Validate() method is called before Search().
+     * @return the validate.
      */
     Status
     Validate() const;
@@ -288,6 +315,7 @@ class MILVUS_SDK_API SearchRequestBase {
      * @brief Add a binary vector to search.
      * @deprecated Replaced by the same method without the field_name parameter. Use SetAnnsField() to set the ANN
      * field name.
+     * @param [in] field_name the field name.
      */
     Status
     AddBinaryVector(std::string field_name, const std::string& vector);
@@ -295,6 +323,7 @@ class MILVUS_SDK_API SearchRequestBase {
     /**
      * @brief Add a binary vector to search.
      * @deprecated replaced by same name method without field_name parameter
+     * @param [in] field_name the field name.
      */
     Status
     AddBinaryVector(std::string field_name, const BinaryVecFieldData::ElementT& vector);
@@ -303,6 +332,7 @@ class MILVUS_SDK_API SearchRequestBase {
      * @brief Add a float vector to search.
      * @deprecated Replaced by the same method without the field_name parameter. Use SetAnnsField() to set the ANN
      * field name.
+     * @param [in] field_name the field name.
      */
     Status
     AddFloatVector(std::string field_name, const FloatVecFieldData::ElementT& vector);
@@ -311,6 +341,7 @@ class MILVUS_SDK_API SearchRequestBase {
      * @brief Add a sparse vector to search.
      * @deprecated Replaced by the same method without the field_name parameter. Use SetAnnsField() to set the ANN
      * field name.
+     * @param [in] field_name the field name.
      */
     Status
     AddSparseVector(std::string field_name, const SparseFloatVecFieldData::ElementT& vector);
@@ -322,6 +353,7 @@ class MILVUS_SDK_API SearchRequestBase {
      *  2. a json dict like {"indices": [1, 5, 8], "values": [0.1, 0.2, 0.15]}.
      * @deprecated Replaced by the same method without the field_name parameter. Use SetAnnsField() to set the ANN
      * field name.
+     * @param [in] field_name the field name.
      */
     Status
     AddSparseVector(std::string field_name, const nlohmann::json& vector);
@@ -330,6 +362,7 @@ class MILVUS_SDK_API SearchRequestBase {
      * @brief Add a float16 vector to search.
      * @deprecated Replaced by the same method without the field_name parameter. Use SetAnnsField() to set the ANN
      * field name.
+     * @param [in] field_name the field name.
      */
     Status
     AddFloat16Vector(std::string field_name, const Float16VecFieldData::ElementT& vector);
@@ -339,6 +372,7 @@ class MILVUS_SDK_API SearchRequestBase {
      * This method automatically converts the float array to float16 binary.
      * @deprecated Replaced by the same method without the field_name parameter. Use SetAnnsField() to set the ANN
      * field name.
+     * @param [in] field_name the field name.
      */
     Status
     AddFloat16Vector(std::string field_name, const std::vector<float>& vector);
@@ -347,6 +381,7 @@ class MILVUS_SDK_API SearchRequestBase {
      * @brief Add a bfloat16 vector to search.
      * @deprecated Replaced by the same method without the field_name parameter. Use SetAnnsField() to set the ANN
      * field name.
+     * @param [in] field_name the field name.
      */
     Status
     AddBFloat16Vector(std::string field_name, const BFloat16VecFieldData::ElementT& vector);
@@ -356,6 +391,7 @@ class MILVUS_SDK_API SearchRequestBase {
      * This method automatically converts the float array to bfloat16 binary.
      * @deprecated Replaced by the same method without the field_name parameter. Use SetAnnsField() to set the ANN
      * field name.
+     * @param [in] field_name the field name.
      */
     Status
     AddBFloat16Vector(std::string field_name, const std::vector<float>& vector);
@@ -364,6 +400,8 @@ class MILVUS_SDK_API SearchRequestBase {
      * @brief Add a text to search. Only works for BM25 function.
      * @deprecated Replaced by the same method without the field_name parameter. Use SetAnnsField() to set the ANN
      * field name.
+     * @param [in] field_name the field name.
+     * @param [in] text the text.
      */
     Status
     AddEmbeddedText(std::string field_name, const std::string& text);
@@ -372,6 +410,7 @@ class MILVUS_SDK_API SearchRequestBase {
      * @brief Add an int8 vector to search.
      * @deprecated Replaced by the same method without the field_name parameter. Use SetAnnsField() to set the ANN
      * field name.
+     * @param [in] field_name the field name.
      */
     Status
     AddInt8Vector(std::string field_name, const Int8VecFieldData::ElementT& vector);
@@ -394,8 +433,17 @@ class MILVUS_SDK_API SearchRequestBase {
  * @brief Recurring template pattern class for SubSearchRequest and SearchRequest
  */
 template <typename T>
+/**
+ * @brief CRTP helper that exposes vector-assignment setters on a search request type.
+ *
+ * Derived search request classes (for example SearchRequest, HybridSearchRequest and SubSearchRequest)
+ * inherit the single-vector and multi-vector assignment methods declared here.
+ */
 class SearchRequestVectorAssigner : public SearchRequestBase {
  protected:
+    /**
+     * @brief Constructor
+     */
     SearchRequestVectorAssigner() = default;
 
  public:
@@ -490,6 +538,7 @@ class SearchRequestVectorAssigner : public SearchRequestBase {
 
     /**
      * @brief Add a text to search request. Only works for BM25 function.
+     * @param [in] text the text.
      */
     T&
     AddEmbeddedText(const std::string& text) {
@@ -508,6 +557,7 @@ class SearchRequestVectorAssigner : public SearchRequestBase {
 
     /**
      * @brief Add an embedding list to search request on struct field.
+     * @param [in] emb_list the emb list.
      */
     T&
     AddEmbeddingList(EmbeddingList&& emb_list) {
@@ -521,6 +571,7 @@ class SearchRequestVectorAssigner : public SearchRequestBase {
      * @brief Assign binary vectors to search request.
      * This method automatically converts the string array to uint8 array.
      * Note: this method will reset the vector list of the request.
+     * @param [in] vectors the vectors.
      */
     T&
     WithBinaryVectors(const std::vector<std::string>& vectors) {
@@ -531,6 +582,7 @@ class SearchRequestVectorAssigner : public SearchRequestBase {
     /**
      * @brief Assign binary vectors to search request.
      * Note: this method will reset the vector list of the request.
+     * @param [in] vectors the vectors.
      */
     T&
     WithBinaryVectors(std::vector<BinaryVecFieldData::ElementT>&& vectors) {
@@ -541,6 +593,7 @@ class SearchRequestVectorAssigner : public SearchRequestBase {
     /**
      * @brief Assign float vectors to search request.
      * Note: this method will reset the vector list of the request.
+     * @param [in] vectors the vectors.
      */
     T&
     WithFloatVectors(std::vector<FloatVecFieldData::ElementT>&& vectors) {
@@ -551,6 +604,7 @@ class SearchRequestVectorAssigner : public SearchRequestBase {
     /**
      * @brief Assign sparse vectors to search request.
      * Note: this method will reset the vector list of the request.
+     * @param [in] vectors the vectors.
      */
     T&
     WithSparseVectors(std::vector<SparseFloatVecFieldData::ElementT>&& vectors) {
@@ -564,6 +618,7 @@ class SearchRequestVectorAssigner : public SearchRequestBase {
      * We support two patterns of sparse vector:
      *  1. a json dict like {"1": 0.1, "5": 0.2, "8": 0.15}.
      *  2. a json dict like {"indices": [1, 5, 8], "values": [0.1, 0.2, 0.15]}.
+     * @param [in] vectors the vectors.
      */
     T&
     WithSparseVectors(const std::vector<nlohmann::json>& vectors) {
@@ -574,6 +629,7 @@ class SearchRequestVectorAssigner : public SearchRequestBase {
     /**
      * @brief Assign float16 vectors to search request.
      * Note: this method will reset the vector list of the request.
+     * @param [in] vectors the vectors.
      */
     T&
     WithFloat16Vectors(std::vector<Float16VecFieldData::ElementT>&& vectors) {
@@ -585,6 +641,7 @@ class SearchRequestVectorAssigner : public SearchRequestBase {
      * @brief Assign float16 vectors to search request.
      * This method automatically converts the float array to float16 binary.
      * Note: this method will reset the vector list of the request.
+     * @param [in] vectors the vectors.
      */
     T&
     WithFloat16Vectors(const std::vector<std::vector<float>>& vectors) {
@@ -595,6 +652,7 @@ class SearchRequestVectorAssigner : public SearchRequestBase {
     /**
      * @brief Assign bfloat16 vectors to search request.
      * Note: this method will reset the vector list of the request.
+     * @param [in] vectors the vectors.
      */
     T&
     WithBFloat16Vectors(std::vector<BFloat16VecFieldData::ElementT>&& vectors) {
@@ -606,6 +664,7 @@ class SearchRequestVectorAssigner : public SearchRequestBase {
      * @brief Assign bfloat16 vectors to search request.
      * This method automatically converts the float array to bfloat16 binary.
      * Note: this method will reset the vector list of the request.
+     * @param [in] vectors the vectors.
      */
     T&
     WithBFloat16Vectors(const std::vector<std::vector<float>>& vectors) {
@@ -616,6 +675,7 @@ class SearchRequestVectorAssigner : public SearchRequestBase {
     /**
      * @brief Assign texts to search request. Only works for BM25 function.
      * Note: this method will reset the vector list of the request.
+     * @param [in] texts the texts.
      */
     T&
     WithEmbeddedTexts(std::vector<std::string>&& texts) {
@@ -626,6 +686,7 @@ class SearchRequestVectorAssigner : public SearchRequestBase {
     /**
      * @brief Assign int8 vectors to search request.
      * Note: this method will reset the vector list of the request.
+     * @param [in] vectors the vectors.
      */
     T&
     WithInt8Vectors(std::vector<Int8VecFieldData::ElementT>&& vectors) {
@@ -636,6 +697,7 @@ class SearchRequestVectorAssigner : public SearchRequestBase {
     /**
      * @brief Assign embedding lists to search request on struct field.
      * Note: this method will reset the vector list of the request.
+     * @param [in] emb_lists the emb lists.
      */
     T&
     WithEmbeddingLists(std::vector<EmbeddingList>&& emb_lists) {

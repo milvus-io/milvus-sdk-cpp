@@ -49,42 +49,50 @@ class MILVUS_SDK_API OptimizeTask : public std::enable_shared_from_this<Optimize
 
     /**
      * @brief Wait for task result. Timeout zero means wait forever.
+     * @param [in] response the response.
+     * @param [in] timeout_ms the timeout ms.
      */
     Status
     GetResult(OptimizeResponse& response, int64_t timeout_ms = 0);
 
     /**
      * @brief Cancel the task cooperatively.
+     * @return the cancel.
      */
     bool
     Cancel();
 
     /**
      * @brief Whether the task is done.
+     * @return true if iteration is done.
      */
     bool
     IsDone() const;
 
     /**
      * @brief Whether the task is cancelled.
+     * @return true if the task was cancelled.
      */
     bool
     IsCancelled() const;
 
     /**
      * @brief Current progress message.
+     * @return the current progress.
      */
     std::string
     CurrentProgress() const;
 
     /**
      * @brief Progress message history.
+     * @return the progress history.
      */
     std::vector<std::string>
     ProgressHistory() const;
 
     /**
      * @brief Final task status if done, otherwise OK.
+     * @return the task status.
      */
     Status
     TaskStatus() const;

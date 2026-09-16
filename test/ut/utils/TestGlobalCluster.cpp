@@ -414,3 +414,26 @@ TEST(GlobalClusterTelemetryTest, FailoverAndUseDatabasePreserveLogicalTelemetryS
     first_server->Shutdown();
     second_server->Shutdown();
 }
+
+TEST(ConnectionHandlerTest, RetryParamAndRpcDeadlineSetters) {
+    milvus::ConnectionHandler handler;
+    EXPECT_EQ(handler.GetRpcDeadlineMs(), 0);
+
+    auto default_retry = handler.GetRetryParam();
+    EXPECT_EQ(default_retry.MaxRetryTimes(), 75);
+    EXPECT_EQ(default_retry.InitialBackOffMs(), 10);
+    EXPECT_EQ(default_retry.MaxBackOffMs(), 3000);
+
+    // setters require an established connection
+    milvus::RetryParam retry_param;
+    retry_param.SetMaxRetryTimes(3);
+    retry_param.SetInitialBackOffMs(100);
+    retry_param.SetMaxBackOffMs(1000);
+    EXPECT_EQ(handler.SetRpcDeadlineMs(5000).Code(), milvus::StatusCode::NOT_CONNECTED);
+    EXPECT_EQ(handler.SetRetryParam(retry_param).Code(), milvus::StatusCode::NOT_CONNECTED);
+
+    // a failed setter must not mutate the stored configuration
+    EXPECT_EQ(handler.GetRpcDeadlineMs(), 0);
+    auto stored = handler.GetRetryParam();
+    EXPECT_EQ(stored.MaxRetryTimes(), 75);
+}

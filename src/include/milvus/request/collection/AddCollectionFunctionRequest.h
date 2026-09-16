@@ -34,6 +34,7 @@ class MILVUS_SDK_API AddCollectionFunctionRequest : public CollectionRequestBase
 
     /**
      * @brief Get the function to be added.
+     * @return the function.
      */
     const FunctionPtr&
     Function() const;

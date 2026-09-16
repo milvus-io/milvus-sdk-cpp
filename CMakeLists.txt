@@ -252,6 +252,20 @@ add_custom_target(lint
         ${CMAKE_CURRENT_SOURCE_DIR}
         ${MILVUS_LINT_QUIET})
 
+#
+# docs target: generate the public API reference with Doxygen.
+#
+# The command resolves `doxygen` from PATH at build time so the target exists even
+# when Doxygen is installed after CMake configure (as in CI). HTML is written to
+# doc/html (see Doxyfile), which is committed so the published reference stays
+# in sync with the documented headers.
+add_custom_target(docs
+        COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_CURRENT_SOURCE_DIR}/doc
+        COMMAND doxygen ${CMAKE_CURRENT_SOURCE_DIR}/Doxyfile
+        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+        COMMENT "Generating Doxygen documentation in doc/html")
+
+
 
 #
 # clang-format targets

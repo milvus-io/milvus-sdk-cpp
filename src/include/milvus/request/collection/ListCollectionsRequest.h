@@ -34,6 +34,7 @@ class MILVUS_SDK_API ListCollectionsRequest {
 
     /**
      * @brief Database name.
+     * @return the database name.
      */
     const std::string&
     DatabaseName() const;
@@ -41,6 +42,7 @@ class MILVUS_SDK_API ListCollectionsRequest {
     /**
      * @brief Set database name.
      * If database name is empty, will list collections of the default database
+     * @param [in] db_name the DB name.
      */
     void
     SetDatabaseName(const std::string& db_name);
@@ -48,24 +50,28 @@ class MILVUS_SDK_API ListCollectionsRequest {
     /**
      * @brief Set database name.
      * If database name is empty, will list collections of the default database
+     * @param [in] db_name the DB name.
      */
     ListCollectionsRequest&
     WithDatabaseName(const std::string& db_name);
 
     /**
      * @brief Only show loaded collections or show all collections.
+     * @return the only show loaded.
      */
     bool
     OnlyShowLoaded() const;
 
     /**
      * @brief Set the flag only show loaded collections or show all collections.
+     * @param [in] only_show_loaded the only show loaded.
      */
     void
     SetOnlyShowLoaded(bool only_show_loaded);
 
     /**
      * @brief Set the flag only show loaded collections or show all collections.
+     * @param [in] only_show_loaded the only show loaded.
      */
     ListCollectionsRequest&
     WithOnlyShowLoaded(bool only_show_loaded);

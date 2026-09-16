@@ -35,6 +35,7 @@ class MILVUS_SDK_API RefreshLoadRequest : public CollectionRequestBase<RefreshLo
 
     /**
      * @brief Sync mode.
+     * @return the sync.
      */
     bool
     Sync() const;
@@ -43,6 +44,7 @@ class MILVUS_SDK_API RefreshLoadRequest : public CollectionRequestBase<RefreshLo
      * @brief Set sync mode. Default value is true.
      * True: wait the collection refresh to complete.
      * False: return immediately.
+     * @param [in] sync the sync.
      */
     void
     SetSync(bool sync);
@@ -51,24 +53,28 @@ class MILVUS_SDK_API RefreshLoadRequest : public CollectionRequestBase<RefreshLo
      * @brief Set sync mode. Default value is true.
      * True: wait the collection refresh to complete.
      * False: return immediately.
+     * @param [in] sync the sync.
      */
     RefreshLoadRequest&
     WithSync(bool sync);
 
     /**
      * @brief Timeout in milliseconds.
+     * @return the timeout ms.
      */
     int64_t
     TimeoutMs() const;
 
     /**
      * @brief Set timeout in milliseconds. Default value is 60000ms. Only works when Sync() is true.
+     * @param [in] timeout_ms the timeout ms.
      */
     void
     SetTimeoutMs(int64_t timeout_ms);
 
     /**
      * @brief Set timeout in milliseconds. Default value is 60000ms. Only works when Sync() is true.
+     * @param [in] timeout_ms the timeout ms.
      */
     RefreshLoadRequest&
     WithTimeoutMs(int64_t timeout_ms);

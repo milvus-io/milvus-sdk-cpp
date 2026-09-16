@@ -35,48 +35,56 @@ class MILVUS_SDK_API FlushRequest {
 
     /**
      * @brief Database name in which the collections are created.
+     * @return the database name.
      */
     const std::string&
     DatabaseName() const;
 
     /**
      * @brief Set database name in which the collections are created.
+     * @param [in] db_name the DB name.
      */
     void
     SetDatabaseName(const std::string& db_name);
 
     /**
      * @brief Set database name in which the collections are created.
+     * @param [in] db_name the DB name.
      */
     FlushRequest&
     WithDatabaseName(const std::string& db_name);
 
     /**
      * @brief Get collection names to be flushed.
+     * @return the collection names.
      */
     const std::set<std::string>&
     CollectionNames() const;
 
     /**
      * @brief Set collection names to be flushed.
+     * @param [in] names the names.
      */
     void
     SetCollectionNames(std::set<std::string>&& names);
 
     /**
      * @brief Set collection names to be flushed.
+     * @param [in] names the names.
      */
     FlushRequest&
     WithCollectionNames(std::set<std::string>&& names);
 
     /**
      * @brief Add a collection name to be flushed.
+     * @param [in] name the name.
      */
     FlushRequest&
     AddCollectionName(const std::string& name);
 
     /**
      * @brief Get milliseconds to wait the flush action done.
+     * @return the wait flushed ms.
      */
     int64_t
     WaitFlushedMs() const;
@@ -87,6 +95,7 @@ class MILVUS_SDK_API FlushRequest {
      * until all the segments are flushed to make sure the buffer persisted successfully.
      * If the WaitFlushedMs is larger than zero, the GetFlushState() will break the loop after a certain of time span
      * and return a status saying the process is timeout.
+     * @param [in] ms the ms.
      */
     void
     SetWaitFlushedMs(int64_t ms);
@@ -97,6 +106,7 @@ class MILVUS_SDK_API FlushRequest {
      * until all the segments are flushed to make sure the buffer persisted successfully.
      * If the WaitFlushedMs is larger than zero, the GetFlushState() will break the loop after a certain of time span
      * and return a status saying the process is timeout.
+     * @param [in] ms the ms.
      */
     FlushRequest&
     WithWaitFlushedMs(int64_t ms);

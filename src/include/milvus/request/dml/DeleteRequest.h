@@ -27,6 +27,15 @@ namespace milvus {
 
 /**
  * @brief Used by MilvusClientV2::Delete()
+ *
+ * Delete entities by a filter expression or by primary keys.
+ * @par Example
+ * @code
+ * milvus::DeleteResponse response;
+ * milvus::DeleteRequest request;
+ * request.WithCollectionName("demo").WithFilter("id in [1, 2]");
+ * auto status = client->Delete(request, response);
+ * @endcode
  */
 class MILVUS_SDK_API DeleteRequest : public DMLRequestBase<DeleteRequest> {
  public:
@@ -37,24 +46,28 @@ class MILVUS_SDK_API DeleteRequest : public DMLRequestBase<DeleteRequest> {
 
     /**
      * @brief Get filter expression.
+     * @return the filter.
      */
     const std::string&
     Filter() const;
 
     /**
      * @brief Set filter expression.
+     * @param [in] filter the filter.
      */
     void
     SetFilter(const std::string& filter);
 
     /**
      * @brief Set filter expression.
+     * @param [in] filter the filter.
      */
     DeleteRequest&
     WithFilter(const std::string& filter);
 
     /**
      * @brief Get filter templates.
+     * @return the filter templates.
      */
     const std::unordered_map<std::string, nlohmann::json>&
     FilterTemplates() const;
@@ -72,48 +85,57 @@ class MILVUS_SDK_API DeleteRequest : public DMLRequestBase<DeleteRequest> {
      * A binary value (nlohmann::json::binary) is a client-built membership blob -- see
      * RoaringBitmapBuilder::BuildTemplate() for roaring_match, which is exact and therefore
      * permitted in a delete expression.
+     * @param [in] key the key.
+     * @param [in] filter_template the filter template.
      */
     DeleteRequest&
     AddFilterTemplate(std::string key, nlohmann::json&& filter_template);
 
     /**
      * @brief Set filter templates. Only take effect when filter is not empty.
+     * @param [in] filter_templates the filter templates.
      */
     void
     SetFilterTemplates(std::unordered_map<std::string, nlohmann::json>&& filter_templates);
 
     /**
      * @brief Set filter templates. Only take effect when filter is not empty.
+     * @param [in] filter_templates the filter templates.
      */
     DeleteRequest&
     WithFilterTemplates(std::unordered_map<std::string, nlohmann::json>&& filter_templates);
 
     /**
      * @brief Get primary keys to be deleted. Only take effect when filter is empty.
+     * @return the i ds.
      */
     const IDArray&
     IDs() const;
 
     /**
      * @brief Set integer primary keys to be deleted. Only take effect when filter is empty.
+     * @param [in] id_array the ID array.
      */
     void
     SetIDs(std::vector<int64_t>&& id_array);
 
     /**
      * @brief Set integer primary keys to be deleted. Only take effect when filter is empty.
+     * @param [in] id_array the ID array.
      */
     DeleteRequest&
     WithIDs(std::vector<int64_t>&& id_array);
 
     /**
      * @brief Set string primary keys to be deleted. Only take effect when filter is empty.
+     * @param [in] id_array the ID array.
      */
     void
     SetIDs(std::vector<std::string>&& id_array);
 
     /**
      * @brief Set string primary keys to be deleted. Only take effect when filter is empty.
+     * @param [in] id_array the ID array.
      */
     DeleteRequest&
     WithIDs(std::vector<std::string>&& id_array);

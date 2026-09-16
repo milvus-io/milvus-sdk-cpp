@@ -116,3 +116,15 @@ TEST_F(CollectionSchemaTest, ExternalSpecNullRoundTrip) {
     schema.SetExternalSpec(nullptr);
     EXPECT_TRUE(schema.ExternalSpec().is_null());
 }
+
+TEST_F(CollectionSchemaTest, ExternalSource) {
+    milvus::CollectionSchema schema;
+    EXPECT_TRUE(schema.ExternalSource().empty());
+
+    schema.SetExternalSource("s3://bucket/path/");
+    EXPECT_EQ(schema.ExternalSource(), "s3://bucket/path/");
+
+    auto& ref = schema.WithExternalSource("s3://bucket/set/path/");
+    EXPECT_EQ(&ref, &schema);
+    EXPECT_EQ(schema.ExternalSource(), "s3://bucket/set/path/");
+}

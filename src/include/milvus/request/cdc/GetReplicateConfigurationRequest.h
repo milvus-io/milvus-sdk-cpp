@@ -20,8 +20,14 @@
 
 namespace milvus {
 
+/**
+ * @brief Used by MilvusClientV2::GetReplicateConfiguration()
+ */
 class MILVUS_SDK_API GetReplicateConfigurationRequest {
  public:
+    /**
+     * @brief Constructor
+     */
     GetReplicateConfigurationRequest() = default;
 };
 

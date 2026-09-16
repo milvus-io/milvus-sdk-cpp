@@ -1,11 +1,6 @@
 var searchData=
 [
-  ['keepalivetimems_1501',['KeepaliveTimeMs',['../classmilvus_1_1_connect_param.html#a10facc28d0ff6a623ab05602a4202c3b',1,'milvus::ConnectParam']]],
-  ['keepalivetimeoutms_1502',['KeepaliveTimeoutMs',['../classmilvus_1_1_connect_param.html#ae9794a9332132275b20025e48b2339de',1,'milvus::ConnectParam']]],
-  ['keepalivewithoutcalls_1503',['KeepaliveWithoutCalls',['../classmilvus_1_1_connect_param.html#a6dbca8ef7f15678a44ce74ea86b2eec2',1,'milvus::ConnectParam']]],
-  ['key_1504',['Key',['../classmilvus_1_1_connect_param.html#a607b569e8a419db7074afd0e2e5a2873',1,'milvus::ConnectParam']]],
-  ['keyindextype_1505',['KeyIndexType',['../namespacemilvus.html#a8a86d77361adbdbaa6941469e9e3e6cf',1,'milvus']]],
-  ['keymetrictype_1506',['KeyMetricType',['../namespacemilvus.html#ae7fcf90e477956728c90d8124307c2e6',1,'milvus']]],
-  ['keyparams_1507',['KeyParams',['../namespacemilvus.html#a1fb15295457335d8adbc4731466da201',1,'milvus']]],
-  ['keyrowcount_1508',['KeyRowCount',['../namespacemilvus.html#ad6ec1996ee202613927217b9eab59bbd',1,'milvus']]]
+  ['jobid_2439',['JobID',['../classmilvus_1_1GetRestoreSnapshotStateRequest.html#a5413f61e0ec00541d2ea9416156faca9',1,'milvus::GetRestoreSnapshotStateRequest::JobID()'],['../classmilvus_1_1GetRefreshExternalCollectionProgressRequest.html#adb97b7541fdea289507d686d0a69d33d',1,'milvus::GetRefreshExternalCollectionProgressRequest::JobID()'],['../classmilvus_1_1RestoreSnapshotResponse.html#a4cd44a13baca16a444c87704523e5e3e',1,'milvus::RestoreSnapshotResponse::JobID()'],['../classmilvus_1_1RefreshExternalCollectionResponse.html#a0426dee5d07f4a3b6010b469cc40416d',1,'milvus::RefreshExternalCollectionResponse::JobID()'],['../classmilvus_1_1RefreshExternalCollectionJobInfo.html#a9ab5a5839369f97a3723ff7d98406b7c',1,'milvus::RefreshExternalCollectionJobInfo::JobID()'],['../classmilvus_1_1RestoreSnapshotJobInfo.html#a6b112398ab6eebfaea0eabbac0eb8649',1,'milvus::RestoreSnapshotJobInfo::JobID()']]],
+  ['jobinfo_2440',['JobInfo',['../classmilvus_1_1GetRestoreSnapshotStateResponse.html#aef4928cb9220a329cd8ca03923d63b08',1,'milvus::GetRestoreSnapshotStateResponse::JobInfo()'],['../classmilvus_1_1GetRefreshExternalCollectionProgressResponse.html#a7f145843242f2e8eb67e669bb0125225',1,'milvus::GetRefreshExternalCollectionProgressResponse::JobInfo()']]],
+  ['jobs_2441',['Jobs',['../classmilvus_1_1ListRestoreSnapshotJobsResponse.html#afd188e6cec570bae2d019fa894c46596',1,'milvus::ListRestoreSnapshotJobsResponse::Jobs()'],['../classmilvus_1_1ListRefreshExternalCollectionJobsResponse.html#a061f87554d711f33b106f934c145a181',1,'milvus::ListRefreshExternalCollectionJobsResponse::Jobs()']]]
 ];

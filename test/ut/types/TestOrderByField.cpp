@@ -27,4 +27,9 @@ TEST(OrderByFieldTest, GettersSettersAndDefaultDirection) {
     EXPECT_EQ(&ref, &field);
     EXPECT_EQ(field.FieldName(), "rating");
     EXPECT_EQ(field.Direction(), milvus::AggregationDirection::DESC);
+
+    field.SetFieldName("votes");
+    EXPECT_EQ(field.FieldName(), "votes");
+    field.SetDirection(milvus::AggregationDirection::ASC);
+    EXPECT_EQ(field.Direction(), milvus::AggregationDirection::ASC);
 }

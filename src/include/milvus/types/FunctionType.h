@@ -28,11 +28,29 @@ namespace milvus {
  * Existing values must remain stable for wire compatibility.
  */
 enum class FunctionType {
+    /**
+     * @brief Unknown function type.
+     */
     UNKNOWN = 0,
+    /**
+     * @brief BM25 text scoring function.
+     */
     BM25 = 1,
+    /**
+     * @brief Text embedding function.
+     */
     TEXTEMBEDDING = 2,
+    /**
+     * @brief Rerank function.
+     */
     RERANK = 3,
+    /**
+     * @brief MinHash signature function for binary vectors.
+     */
     MINHASH = 4,
+    /**
+     * @brief Molecular fingerprint function.
+     */
     MOLFINGERPRINT = 5,
 };
 }  // namespace milvus

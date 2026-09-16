@@ -37,23 +37,29 @@ class MILVUS_SDK_API CollectionInfo {
 
     /**
      * @brief Constructor
+     * @param [in] collection_name the collection name.
+     * @param [in] collection_id the collection ID.
+     * @param [in] create_time the create time.
      */
     CollectionInfo(std::string collection_name, int64_t collection_id, uint64_t create_time);
 
     /**
      * @brief Name of the collection.
+     * @return the name.
      */
     const std::string&
     Name() const;
 
     /**
      * @brief Internal ID of the collection.
+     * @return the ID.
      */
     int64_t
     ID() const;
 
     /**
      * @brief The utc time when the collection is created.
+     * @return the created time.
      */
     uint64_t
     CreatedTime() const;
@@ -61,6 +67,7 @@ class MILVUS_SDK_API CollectionInfo {
     /**
      * @brief Loading percentage of the collection.
      * @deprecated This method always returns 0, use GetLoadState to get the progress instead.
+     * @return the memory percentage.
      */
     uint64_t
     MemoryPercentage() const;

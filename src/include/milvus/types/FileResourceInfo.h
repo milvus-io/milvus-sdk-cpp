@@ -26,16 +26,34 @@ namespace milvus {
  * @brief File resource information.
  */
 class MILVUS_SDK_API FileResourceInfo {
+    /**
+     * @brief Get the resource name.
+     * @return the name.
+     */
  public:
     const std::string&
     Name() const;
 
+    /**
+     * @brief Set the resource name.
+     *
+     * @param [in] name
+     */
     void
     SetName(std::string name);
 
+    /**
+     * @brief Get the file path of the resource.
+     * @return the path.
+     */
     const std::string&
     Path() const;
 
+    /**
+     * @brief Set the file path of the resource.
+     *
+     * @param [in] path
+     */
     void
     SetPath(std::string path);
 

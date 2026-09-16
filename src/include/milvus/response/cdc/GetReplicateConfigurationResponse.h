@@ -21,11 +21,23 @@
 
 namespace milvus {
 
+/**
+ * @brief Used by MilvusClientV2::GetReplicateConfiguration()
+ */
 class MILVUS_SDK_API GetReplicateConfigurationResponse {
+    /**
+     * @brief Get the replication configuration.
+     * @return the configuration.
+     */
  public:
     const ReplicateConfiguration&
     Configuration() const;
 
+    /**
+     * @brief Set the replication configuration.
+     *
+     * @param [in] configuration
+     */
     void
     SetConfiguration(ReplicateConfiguration&& configuration);
 

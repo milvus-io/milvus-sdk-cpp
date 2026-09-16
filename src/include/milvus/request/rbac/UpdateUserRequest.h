@@ -27,23 +27,54 @@ namespace milvus {
  */
 class MILVUS_SDK_API UpdateUserRequest {
  public:
+    /**
+     * @brief Constructor
+     */
     UpdateUserRequest() = default;
 
+    /**
+     * @brief Get the user name.
+     * @return the user name.
+     */
     const std::string&
     UserName() const;
 
+    /**
+     * @brief Set the user name.
+     *
+     * @param [in] user_name
+     */
     void
     SetUserName(const std::string& user_name);
 
+    /**
+     * @brief Set the user name.
+     *
+     * @param [in] user_name
+     */
     UpdateUserRequest&
     WithUserName(const std::string& user_name);
 
+    /**
+     * @brief Get the user description.
+     * @return the description.
+     */
     const std::string&
     Description() const;
 
+    /**
+     * @brief Set the user description.
+     *
+     * @param [in] description
+     */
     void
     SetDescription(const std::string& description);
 
+    /**
+     * @brief Set the user description.
+     *
+     * @param [in] description
+     */
     UpdateUserRequest&
     WithDescription(const std::string& description);
 

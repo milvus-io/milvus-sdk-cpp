@@ -21,17 +21,38 @@
 
 namespace milvus {
 
+/**
+ * @brief Used by MilvusClientV2::GetReplicateInfo()
+ */
 class MILVUS_SDK_API GetReplicateInfoResponse {
+    /**
+     * @brief Get the replication checkpoint.
+     * @return the checkpoint.
+     */
  public:
     const ReplicateCheckpoint&
     Checkpoint() const;
 
+    /**
+     * @brief Set the replication checkpoint.
+     *
+     * @param [in] checkpoint
+     */
     void
     SetCheckpoint(ReplicateCheckpoint&& checkpoint);
 
+    /**
+     * @brief Get the salvage checkpoint.
+     * @return the salvage checkpoint.
+     */
     const ReplicateCheckpoint&
     SalvageCheckpoint() const;
 
+    /**
+     * @brief Set the salvage checkpoint.
+     *
+     * @param [in] checkpoint
+     */
     void
     SetSalvageCheckpoint(ReplicateCheckpoint&& checkpoint);
 

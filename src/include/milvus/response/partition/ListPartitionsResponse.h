@@ -36,24 +36,28 @@ class MILVUS_SDK_API ListPartitionsResponse {
 
     /**
      * @brief Get partition names.
+     * @return the partitions names.
      */
     const std::vector<std::string>&
     PartitionsNames() const;
 
     /**
      * @brief Set partition names.
+     * @param [in] names the names.
      */
     void
     SetPartitionNames(std::vector<std::string>&& names);
 
     /**
      * @brief Get informations of partitions.
+     * @return the partition infos.
      */
     const std::vector<PartitionInfo>&
     PartitionInfos() const;
 
     /**
      * @brief Set informations of partitions.
+     * @param [in] infos the infos.
      */
     void
     SetPartitionInfos(std::vector<PartitionInfo>&& infos);

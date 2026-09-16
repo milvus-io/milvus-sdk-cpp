@@ -235,3 +235,15 @@ TEST_F(FieldSchemaTest, DefaultValue) {
     auto& ref = schema.WithDefaultValue(val2);
     EXPECT_EQ(ref.DefaultValue(), "hello");
 }
+
+TEST_F(FieldSchemaTest, ExternalField) {
+    milvus::FieldSchema schema;
+    EXPECT_TRUE(schema.ExternalField().empty());
+
+    schema.SetExternalField("ext_field");
+    EXPECT_EQ(schema.ExternalField(), "ext_field");
+
+    auto& ref = schema.WithExternalField("ext_field_2");
+    EXPECT_EQ(&ref, &schema);
+    EXPECT_EQ(schema.ExternalField(), "ext_field_2");
+}

@@ -25,6 +25,12 @@ namespace milvus {
 
 /**
  * @brief Used by MilvusClientV2::CreatePartition()
+ * @par Example
+ * @code
+ * auto status = client->CreatePartition(milvus::CreatePartitionRequest()
+ *                                           .WithCollectionName("demo")
+ *                                           .WithPartitionName("p1"));
+ * @endcode
  */
 class MILVUS_SDK_API CreatePartitionRequest : public PartitionRequestBase<CreatePartitionRequest> {
  public:

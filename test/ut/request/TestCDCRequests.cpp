@@ -41,6 +41,9 @@ TEST_F(UpdateReplicateConfigurationRequestTest, GettersSettersAndFluentMethods) 
     EXPECT_TRUE(request.ForcePromote());
     ASSERT_EQ(request.Configuration().Clusters().size(), 1u);
     EXPECT_EQ(request.Configuration().Clusters()[0].ClusterID(), "cluster-b");
+
+    request.SetForcePromote(false);
+    EXPECT_FALSE(request.ForcePromote());
 }
 
 class GetReplicateConfigurationRequestTest : public ::testing::Test {};

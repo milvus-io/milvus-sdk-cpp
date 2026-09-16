@@ -1,9 +1,12 @@
 var searchData=
 [
-  ['hascollectionrequest_1073',['HasCollectionRequest',['../classmilvus_1_1_has_collection_request.html',1,'milvus']]],
-  ['hascollectionresponse_1074',['HasCollectionResponse',['../classmilvus_1_1_has_collection_response.html',1,'milvus']]],
-  ['haspartitionrequest_1075',['HasPartitionRequest',['../classmilvus_1_1_has_partition_request.html',1,'milvus']]],
-  ['haspartitionresponse_1076',['HasPartitionResponse',['../classmilvus_1_1_has_partition_response.html',1,'milvus']]],
-  ['hybridsearcharguments_1077',['HybridSearchArguments',['../classmilvus_1_1_hybrid_search_arguments.html',1,'milvus']]],
-  ['hybridsearchrequest_1078',['HybridSearchRequest',['../classmilvus_1_1_hybrid_search_request.html',1,'milvus']]]
+  ['hascollectionrequest_1786',['HasCollectionRequest',['../classmilvus_1_1HasCollectionRequest.html',1,'milvus']]],
+  ['hascollectionresponse_1787',['HasCollectionResponse',['../classmilvus_1_1HasCollectionResponse.html',1,'milvus']]],
+  ['haspartitionrequest_1788',['HasPartitionRequest',['../classmilvus_1_1HasPartitionRequest.html',1,'milvus']]],
+  ['haspartitionresponse_1789',['HasPartitionResponse',['../classmilvus_1_1HasPartitionResponse.html',1,'milvus']]],
+  ['highlighter_1790',['Highlighter',['../classmilvus_1_1Highlighter.html',1,'milvus']]],
+  ['highlightquery_1791',['HighlightQuery',['../structmilvus_1_1LexicalHighlighter_1_1HighlightQuery.html',1,'milvus::LexicalHighlighter']]],
+  ['highlightresult_1792',['HighlightResult',['../structmilvus_1_1HighlightResult.html',1,'milvus']]],
+  ['hybridsearcharguments_1793',['HybridSearchArguments',['../classmilvus_1_1HybridSearchArguments.html',1,'milvus']]],
+  ['hybridsearchrequest_1794',['HybridSearchRequest',['../classmilvus_1_1HybridSearchRequest.html',1,'milvus']]]
 ];

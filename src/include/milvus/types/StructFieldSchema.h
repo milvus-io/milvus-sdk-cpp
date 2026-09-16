@@ -24,7 +24,10 @@
 namespace milvus {
 
 /**
- * @brief Struct field schema used by CollectionSchema
+ * @brief Struct field (array of structs) schema used by CollectionSchema.
+ *
+ * A StructArray field stores an array of structured objects; its subfields are declared via
+ * AddField() and its capacity is bounded by MaxCapacity.
  */
 class MILVUS_SDK_API StructFieldSchema {
  public:
@@ -35,95 +38,112 @@ class MILVUS_SDK_API StructFieldSchema {
 
     /**
      * @brief Constructor
+     * @param [in] name the name.
+     * @param [in] description the description.
      */
     explicit StructFieldSchema(std::string name, std::string description = "");
 
     /**
      * @brief Name of this field, cannot be empty.
+     * @return the name.
      */
     const std::string&
     Name() const;
 
     /**
      * @brief Set name of the field.
+     * @param [in] name the name.
      */
     void
     SetName(std::string name);
 
     /**
      * @brief Set name of the field.
+     * @param [in] name the name.
      */
     StructFieldSchema&
     WithName(std::string name);
 
     /**
      * @brief Description of this field, can be empty.
+     * @return the description.
      */
     const std::string&
     Description() const;
 
     /**
      * @brief Set description of the field.
+     * @param [in] description the description.
      */
     void
     SetDescription(std::string description);
 
     /**
      * @brief Set description of the field.
+     * @param [in] description the description.
      */
     StructFieldSchema&
     WithDescription(std::string description);
 
     /**
      * @brief Get max capacity for the struct field
+     * @return the max capacity.
      */
     int64_t
     MaxCapacity() const;
 
     /**
      * @brief Set max capacity for the struct field
+     * @param [in] capacity the capacity.
      */
     void
     SetMaxCapacity(int64_t capacity);
 
     /**
      * @brief Set max capacity for the struct field
+     * @param [in] capacity the capacity.
      */
     StructFieldSchema&
     WithMaxCapacity(int64_t capacity);
 
     /**
      * @brief Whether the struct field is nullable.
+     * @return true if the field is nullable.
      */
     bool
     IsNullable() const;
 
     /**
      * @brief Set nullable for the struct field.
+     * @param [in] nullable the nullable.
      */
     void
     SetNullable(bool nullable);
 
     /**
      * @brief Set nullable for the struct field.
+     * @param [in] nullable the nullable.
      */
     StructFieldSchema&
     WithNullable(bool nullable);
 
     /**
      * @brief Get sub fields of the struct field.
+     * @return the fields.
      */
     const std::vector<FieldSchema>&
     Fields() const;
 
     /**
      * @brief Add a sub field for the struct field.
+     * @param [in] field_schema the field schema.
      */
     StructFieldSchema&
     AddField(const FieldSchema& field_schema);
 
     /**
      * @brief Add a sub field for the struct field.
+     * @param [in] field_schema the field schema.
      */
     StructFieldSchema&
     AddField(FieldSchema&& field_schema);

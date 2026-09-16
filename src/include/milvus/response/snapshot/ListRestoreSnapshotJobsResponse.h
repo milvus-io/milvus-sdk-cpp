@@ -28,11 +28,23 @@ namespace milvus {
  */
 class MILVUS_SDK_API ListRestoreSnapshotJobsResponse {
  public:
+    /**
+     * @brief Constructor
+     */
     ListRestoreSnapshotJobsResponse() = default;
 
+    /**
+     * @brief Get the restore jobs.
+     * @return the jobs.
+     */
     const std::vector<RestoreSnapshotJobInfo>&
     Jobs() const;
 
+    /**
+     * @brief Set the restore jobs.
+     *
+     * @param [in] jobs
+     */
     void
     SetJobs(std::vector<RestoreSnapshotJobInfo>&& jobs);
 

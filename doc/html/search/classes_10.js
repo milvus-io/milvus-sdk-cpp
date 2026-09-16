@@ -1,6 +1,30 @@
 var searchData=
 [
-  ['transfernoderequest_1166',['TransferNodeRequest',['../classmilvus_1_1_transfer_node_request.html',1,'milvus']]],
-  ['transferreplicarequest_1167',['TransferReplicaRequest',['../classmilvus_1_1_transfer_replica_request.html',1,'milvus']]],
-  ['truncatecollectionrequest_1168',['TruncateCollectionRequest',['../classmilvus_1_1_truncate_collection_request.html',1,'milvus']]]
+  ['scopedclientrequestid_1898',['ScopedClientRequestId',['../classmilvus_1_1ScopedClientRequestId.html',1,'milvus']]],
+  ['searchaggregation_1899',['SearchAggregation',['../classmilvus_1_1SearchAggregation.html',1,'milvus']]],
+  ['searcharguments_1900',['SearchArguments',['../classmilvus_1_1SearchArguments.html',1,'milvus']]],
+  ['searchiteratorarguments_1901',['SearchIteratorArguments',['../classmilvus_1_1SearchIteratorArguments.html',1,'milvus']]],
+  ['searchiteratorrequest_1902',['SearchIteratorRequest',['../classmilvus_1_1SearchIteratorRequest.html',1,'milvus']]],
+  ['searchrequest_1903',['SearchRequest',['../classmilvus_1_1SearchRequest.html',1,'milvus']]],
+  ['searchrequestbase_1904',['SearchRequestBase',['../classmilvus_1_1SearchRequestBase.html',1,'milvus']]],
+  ['searchrequestvectorassigner_1905',['SearchRequestVectorAssigner',['../classmilvus_1_1SearchRequestVectorAssigner.html',1,'milvus']]],
+  ['searchrequestvectorassigner_3c_20searchrequest_20_3e_1906',['SearchRequestVectorAssigner&lt; SearchRequest &gt;',['../classmilvus_1_1SearchRequestVectorAssigner.html',1,'milvus']]],
+  ['searchrequestvectorassigner_3c_20subsearchrequest_20_3e_1907',['SearchRequestVectorAssigner&lt; SubSearchRequest &gt;',['../classmilvus_1_1SearchRequestVectorAssigner.html',1,'milvus']]],
+  ['searchresponse_1908',['SearchResponse',['../classmilvus_1_1SearchResponse.html',1,'milvus']]],
+  ['searchresults_1909',['SearchResults',['../classmilvus_1_1SearchResults.html',1,'milvus']]],
+  ['segmentinfo_1910',['SegmentInfo',['../classmilvus_1_1SegmentInfo.html',1,'milvus']]],
+  ['semantichighlighter_1911',['SemanticHighlighter',['../classmilvus_1_1SemanticHighlighter.html',1,'milvus']]],
+  ['shardreplica_1912',['ShardReplica',['../classmilvus_1_1ShardReplica.html',1,'milvus']]],
+  ['singleresult_1913',['SingleResult',['../structmilvus_1_1SingleResult.html',1,'milvus']]],
+  ['snapshotnamerequestbase_1914',['SnapshotNameRequestBase',['../classmilvus_1_1SnapshotNameRequestBase.html',1,'milvus']]],
+  ['snapshotnamerequestbase_3c_20createsnapshotrequest_20_3e_1915',['SnapshotNameRequestBase&lt; CreateSnapshotRequest &gt;',['../classmilvus_1_1SnapshotNameRequestBase.html',1,'milvus']]],
+  ['snapshotnamerequestbase_3c_20describesnapshotrequest_20_3e_1916',['SnapshotNameRequestBase&lt; DescribeSnapshotRequest &gt;',['../classmilvus_1_1SnapshotNameRequestBase.html',1,'milvus']]],
+  ['snapshotnamerequestbase_3c_20dropsnapshotrequest_20_3e_1917',['SnapshotNameRequestBase&lt; DropSnapshotRequest &gt;',['../classmilvus_1_1SnapshotNameRequestBase.html',1,'milvus']]],
+  ['snapshotnamerequestbase_3c_20pinsnapshotdatarequest_20_3e_1918',['SnapshotNameRequestBase&lt; PinSnapshotDataRequest &gt;',['../classmilvus_1_1SnapshotNameRequestBase.html',1,'milvus']]],
+  ['snapshotrequestbase_1919',['SnapshotRequestBase',['../classmilvus_1_1SnapshotRequestBase.html',1,'milvus']]],
+  ['snapshotrequestbase_3c_20listrestoresnapshotjobsrequest_20_3e_1920',['SnapshotRequestBase&lt; ListRestoreSnapshotJobsRequest &gt;',['../classmilvus_1_1SnapshotRequestBase.html',1,'milvus']]],
+  ['snapshotrequestbase_3c_20listsnapshotsrequest_20_3e_1921',['SnapshotRequestBase&lt; ListSnapshotsRequest &gt;',['../classmilvus_1_1SnapshotRequestBase.html',1,'milvus']]],
+  ['status_1922',['Status',['../classmilvus_1_1Status.html',1,'milvus']]],
+  ['structfieldschema_1923',['StructFieldSchema',['../classmilvus_1_1StructFieldSchema.html',1,'milvus']]],
+  ['subsearchrequest_1924',['SubSearchRequest',['../classmilvus_1_1SubSearchRequest.html',1,'milvus']]]
 ];

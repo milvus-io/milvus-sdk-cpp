@@ -60,24 +60,55 @@ class MILVUS_SDK_API FieldPartialUpdateOp {
         ARRAY_REMOVE,
     };
 
+    /**
+     * @brief Constructor
+     */
     FieldPartialUpdateOp() = default;
     explicit FieldPartialUpdateOp(std::string field_name, OpType op_type = OpType::REPLACE);
 
+    /**
+     * @brief Get the field name being updated.
+     * @return the field name.
+     */
     const std::string&
     FieldName() const;
 
+    /**
+     * @brief Set the field name being updated.
+     *
+     * @param [in] field_name
+     */
     void
     SetFieldName(std::string field_name);
 
+    /**
+     * @brief Set the field name being updated.
+     *
+     * @param [in] field_name
+     */
     FieldPartialUpdateOp&
     WithFieldName(std::string field_name);
 
+    /**
+     * @brief Get the partial-update operation type.
+     * @return the operation type.
+     */
     OpType
     GetOpType() const;
 
+    /**
+     * @brief Set the partial-update operation type.
+     *
+     * @param [in] op_type
+     */
     void
     SetOpType(OpType op_type);
 
+    /**
+     * @brief Set the partial-update operation type.
+     *
+     * @param [in] op_type
+     */
     FieldPartialUpdateOp&
     WithOpType(OpType op_type);
 

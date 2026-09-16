@@ -35,12 +35,14 @@ class MILVUS_SDK_API BatchDescribeCollectionsResponse {
 
     /**
      * @brief Get collection descriptions.
+     * @return the descs.
      */
     const std::vector<CollectionDesc>&
     Descs() const;
 
     /**
      * @brief Set collection descriptions.
+     * @param [in] descs the descs.
      */
     void
     SetDescs(std::vector<CollectionDesc>&& descs);

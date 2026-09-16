@@ -33,6 +33,11 @@ TEST_F(CreateSnapshotRequestTest, GettersAndSetters) {
     EXPECT_EQ(req.SnapshotName(), "snap");
     EXPECT_EQ(req.Description(), "desc");
     EXPECT_EQ(req.CompactionProtectionSeconds(), 123);
+
+    req.SetDescription("desc_set");
+    EXPECT_EQ(req.Description(), "desc_set");
+    req.SetCompactionProtectionSeconds(456);
+    EXPECT_EQ(req.CompactionProtectionSeconds(), 456);
 }
 
 class DropSnapshotRequestTest : public ::testing::Test {};
@@ -82,6 +87,17 @@ TEST_F(RestoreSnapshotRequestTest, GettersAndSetters) {
     EXPECT_EQ(req.SourceCollectionName(), "source_coll");
     EXPECT_EQ(req.TargetDatabaseName(), "target_db");
     EXPECT_EQ(req.TargetCollectionName(), "target_coll");
+
+    req.SetSnapshotName("snap_set");
+    EXPECT_EQ(req.SnapshotName(), "snap_set");
+    req.SetSourceDatabaseName("source_db_set");
+    EXPECT_EQ(req.SourceDatabaseName(), "source_db_set");
+    req.SetSourceCollectionName("source_coll_set");
+    EXPECT_EQ(req.SourceCollectionName(), "source_coll_set");
+    req.SetTargetDatabaseName("target_db_set");
+    EXPECT_EQ(req.TargetDatabaseName(), "target_db_set");
+    req.SetTargetCollectionName("target_coll_set");
+    EXPECT_EQ(req.TargetCollectionName(), "target_coll_set");
 }
 
 class GetRestoreSnapshotStateRequestTest : public ::testing::Test {};
@@ -90,6 +106,9 @@ TEST_F(GetRestoreSnapshotStateRequestTest, GettersAndSetters) {
     milvus::GetRestoreSnapshotStateRequest req;
     req.WithJobID(101);
     EXPECT_EQ(req.JobID(), 101);
+
+    req.SetJobID(202);
+    EXPECT_EQ(req.JobID(), 202);
 }
 
 class ListRestoreSnapshotJobsRequestTest : public ::testing::Test {};
@@ -112,6 +131,9 @@ TEST_F(PinSnapshotDataRequestTest, GettersAndSetters) {
     EXPECT_EQ(req.CollectionName(), "coll");
     EXPECT_EQ(req.SnapshotName(), "snap");
     EXPECT_EQ(req.TtlSeconds(), 60);
+
+    req.SetTtlSeconds(120);
+    EXPECT_EQ(req.TtlSeconds(), 120);
 }
 
 class UnpinSnapshotDataRequestTest : public ::testing::Test {};
@@ -120,4 +142,7 @@ TEST_F(UnpinSnapshotDataRequestTest, GettersAndSetters) {
     milvus::UnpinSnapshotDataRequest req;
     req.WithPinID(555);
     EXPECT_EQ(req.PinID(), 555);
+
+    req.SetPinID(666);
+    EXPECT_EQ(req.PinID(), 666);
 }

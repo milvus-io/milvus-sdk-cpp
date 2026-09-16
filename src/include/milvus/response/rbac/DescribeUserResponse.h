@@ -33,12 +33,14 @@ class MILVUS_SDK_API DescribeUserResponse {
 
     /**
      * @brief Get user description.
+     * @return the desc.
      */
     const UserDesc&
     Desc() const;
 
     /**
      * @brief Set user description.
+     * @param [in] descs the descs.
      */
     void
     SetDesc(UserDesc&& descs);
