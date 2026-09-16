@@ -1511,8 +1511,7 @@ TEST(ClientTelemetryTest, PushConfigClampsMaximumInterval) {
     milvus::TelemetryConfig config;
     milvus::ClientTelemetryManager manager(config);
 
-    manager.ProcessCommands(
-        {{"max", "push_config", R"({"heartbeat_interval_ms":18446744073709551615})", 1, true, ""}});
+    manager.ProcessCommands({{"max", "push_config", R"({"heartbeat_interval_ms":18446744073709551615})", 1, true, ""}});
 
     auto replies = manager.PendingCommandReplies();
     ASSERT_EQ(replies.size(), 1U);
@@ -1532,17 +1531,15 @@ TEST(ClientTelemetryTest, PushConfigClampsMaximumInterval) {
 TEST(ClientTelemetryTest, ReplyPayloadKeysStayUnderscoreFree) {
     milvus::TelemetryConfig config;
     milvus::ClientTelemetryManager manager(config);
-    manager.ProcessCommands({{"cfg", "get_config", "", 1, false, ""},
-                             {"cm", "collection_metrics", "", 2, false, ""}});
+    manager.ProcessCommands({{"cfg", "get_config", "", 1, false, ""}, {"cm", "collection_metrics", "", 2, false, ""}});
     const auto replies = manager.PendingCommandReplies();
     ASSERT_EQ(replies.size(), 2U);
     ASSERT_TRUE(replies[0].success);
     ASSERT_TRUE(replies[1].success);
 
     const auto user_config = nlohmann::json::parse(replies[0].payload).at("user_config");
-    for (const char* key : {"address", "username", "db_name", "telemetry_enabled",
-                            "telemetry_heartbeat_interval_ms", "telemetry_sampling_rate",
-                            "enabled_collections", "all_collections_enabled"}) {
+    for (const char* key : {"address", "username", "db_name", "telemetry_enabled", "telemetry_heartbeat_interval_ms",
+                            "telemetry_sampling_rate", "enabled_collections", "all_collections_enabled"}) {
         EXPECT_TRUE(user_config.contains(key)) << "get_config reply missing key: " << key;
     }
 

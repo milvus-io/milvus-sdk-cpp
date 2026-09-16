@@ -289,8 +289,8 @@ TEST(SchemaCacheTest, DifferentLoadScopesDoNotShareInFlightLoad) {
     bool first_loader_started_ok = false;
     {
         std::unique_lock<std::mutex> lock(gate_mutex);
-        first_loader_started_ok =
-            gate_cv.wait_for(lock, std::chrono::seconds(30), [&first_loader_started]() { return first_loader_started; });
+        first_loader_started_ok = gate_cv.wait_for(lock, std::chrono::seconds(30),
+                                                   [&first_loader_started]() { return first_loader_started; });
     }
     if (!first_loader_started_ok) {
         {

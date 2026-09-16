@@ -474,7 +474,7 @@ class ClientTelemetryManager::Impl : public std::enable_shared_from_this<ClientT
           connection_config_(config_),
           stable_client_id_(!value.client_id.empty()),
           client_id_(stable_client_id_ ? value.client_id
-                                     : (runtime_client_id.empty() ? RandomUuid() : runtime_client_id)) {
+                                       : (runtime_client_id.empty() ? RandomUuid() : runtime_client_id)) {
         RegisterDefaultHandlers();
     }
 
@@ -843,7 +843,7 @@ class ClientTelemetryManager::Impl : public std::enable_shared_from_this<ClientT
                 return;
             }
             pending_replies_.erase(pending_replies_.begin(),
-                                  pending_replies_.begin() + std::min(reply_count, pending_replies_.size()));
+                                   pending_replies_.begin() + std::min(reply_count, pending_replies_.size()));
             last_heartbeat_error_.clear();
         }
         ProcessCommands(commands, heartbeat_generation);
@@ -1486,7 +1486,7 @@ ClientTelemetryManager::RecordOperation(const std::string& operation, const std:
     }
     if (!success) {
         impl_->errors_.push_back({NowMillis(), operation, error_message, collection,
-                                 ClientRequestContext::IsValid(request_id) ? request_id : std::string{}});
+                                  ClientRequestContext::IsValid(request_id) ? request_id : std::string{}});
         while (impl_->errors_.size() > impl_->config_.error_max_count) {
             impl_->errors_.pop_front();
         }
