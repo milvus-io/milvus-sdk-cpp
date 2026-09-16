@@ -35,9 +35,9 @@
 #include "milvus/ClientRequestContext.h"
 #include "milvus/ClientTelemetry.h"
 #include "milvus/Status.h"
-#include "utils/RpcUtils.h"
 #include "milvus/types/ConnectParam.h"
 #include "schema.pb.h"
+#include "utils/RpcUtils.h"
 
 namespace milvus {
 
@@ -577,7 +577,7 @@ class MilvusConnection {
     Status
     grpcCallInternal(const char* name,
                      grpc::Status (proto::milvus::MilvusService::Stub::*func)(grpc::ClientContext*, const Request&,
-                                                                             Response*),
+                                                                              Response*),
                      const Request& request, Response& response, const GrpcContextOptions& options) {
         (void)name;
         std::shared_ptr<proto::milvus::MilvusService::Stub> stub;

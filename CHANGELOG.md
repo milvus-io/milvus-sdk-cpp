@@ -1,6 +1,6 @@
 # Changelog
 
-## milvus-sdk-cpp 3.0.3 (2026-09-10)
+## milvus-sdk-cpp 3.0.3 (2026-09-16)
 ### Feature
 - Support client telemetry
 - Support global cluster
@@ -19,6 +19,7 @@
 - Preserve empty database names for serverless requests
 - Avoid version conflicts with a system-installed protoc
 - Optimize client telemetry
+- Expose query/get cost and scanned-bytes stats on QueryResponse
 
 ## milvus-sdk-cpp 3.0.2 (2026-08-07)
 ### Feature
