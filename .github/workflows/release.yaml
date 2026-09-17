@@ -240,7 +240,7 @@ jobs:
     if: needs.select-targets.outputs.linux != '[]'
     runs-on: ${{ matrix.os.runner }}
     container: ${{ matrix.os.image }}
-    timeout-minutes: 100
+    timeout-minutes: 150
     env:
       BUILD_SHARED_LIBS: ON
       # Official release artifacts stay with the default non-unity compilation
@@ -262,9 +262,9 @@ jobs:
         with:
           ref: ${{ needs.select-targets.outputs.tag }}
       - name: Prepare
-        timeout-minutes: 30
+        timeout-minutes: 60
         run: |
-          timeout -k 10 1800 sh scripts/install_deps.sh
+          timeout -k 10 3600 sh scripts/install_deps.sh
       - name: Build
         run: |
           . ~/.venv/bin/activate
@@ -290,7 +290,7 @@ jobs:
     needs: select-targets
     if: needs.select-targets.outputs.macos != '[]'
     runs-on: ${{ matrix.os.runner }}
-    timeout-minutes: 75
+    timeout-minutes: 120
     strategy:
       fail-fast: false
       matrix:
@@ -338,7 +338,7 @@ jobs:
     needs: select-targets
     if: needs.select-targets.outputs.windows != '[]'
     runs-on: ${{ matrix.os.runner }}
-    timeout-minutes: 75
+    timeout-minutes: 100
     strategy:
       fail-fast: false
       matrix:
