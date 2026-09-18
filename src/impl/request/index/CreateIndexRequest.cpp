@@ -18,16 +18,47 @@
 
 #include <memory>
 
+#include "../../utils/IndexUtils.h"
+
 namespace milvus {
+
+const std::vector<IndexParam>&
+CreateIndexRequest::IndexParams() const {
+    return index_params_;
+}
+
+void
+CreateIndexRequest::SetIndexParams(std::vector<IndexParam>&& index_params) {
+    index_params_ = std::move(index_params);
+}
+
+CreateIndexRequest&
+CreateIndexRequest::WithIndexParams(std::vector<IndexParam>&& index_params) {
+    SetIndexParams(std::move(index_params));
+    return *this;
+}
+
+CreateIndexRequest&
+CreateIndexRequest::AddIndexParam(IndexParam&& index_param) {
+    index_params_.emplace_back(std::move(index_param));
+    return *this;
+}
 
 const std::vector<IndexDesc>&
 CreateIndexRequest::Indexes() const {
-    return indexes_;
+    indexes_cache_.clear();
+    for (const auto& index_param : index_params_) {
+        indexes_cache_.emplace_back(ConvertToIndexDesc(index_param));
+    }
+    return indexes_cache_;
 }
 
 void
 CreateIndexRequest::SetIndexes(std::vector<IndexDesc>&& indexes) {
-    indexes_ = std::move(indexes);
+    index_params_.clear();
+    for (const auto& desc : indexes) {
+        index_params_.emplace_back(ConvertToIndexParam(desc));
+    }
 }
 
 CreateIndexRequest&
@@ -38,7 +69,7 @@ CreateIndexRequest::WithIndexes(std::vector<IndexDesc>&& indexes) {
 
 CreateIndexRequest&
 CreateIndexRequest::AddIndex(IndexDesc&& index) {
-    indexes_.emplace_back(std::move(index));
+    index_params_.emplace_back(ConvertToIndexParam(index));
     return *this;
 }
 

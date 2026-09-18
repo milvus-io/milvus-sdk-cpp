@@ -47,12 +47,12 @@ class MilvusServerTestStruct : public MilvusServerTest {
         milvus::test::ExpectStatusOK(status);
 
         // create indexes
-        milvus::IndexDesc idx_vec("vec", "", milvus::IndexType::FLAT, milvus::MetricType::COSINE);
-        milvus::IndexDesc idx_st_vec("st[st_vec]", "", milvus::IndexType::HNSW, milvus::MetricType::MAX_SIM_COSINE);
+        milvus::IndexParam idx_vec("vec", "", milvus::IndexType::FLAT, milvus::MetricType::COSINE);
+        milvus::IndexParam idx_st_vec("st[st_vec]", "", milvus::IndexType::HNSW, milvus::MetricType::MAX_SIM_COSINE);
         status = client_->CreateIndex(milvus::CreateIndexRequest()
                                           .WithCollectionName(collection_name)
-                                          .AddIndex(std::move(idx_vec))
-                                          .AddIndex(std::move(idx_st_vec)));
+                                          .AddIndexParam(std::move(idx_vec))
+                                          .AddIndexParam(std::move(idx_st_vec)));
         milvus::test::ExpectStatusOK(status);
 
         status = client_->LoadCollection(milvus::LoadCollectionRequest().WithCollectionName(collection_name));

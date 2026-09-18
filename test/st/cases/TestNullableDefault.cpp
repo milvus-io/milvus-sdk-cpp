@@ -48,9 +48,9 @@ class MilvusServerTestNullable : public MilvusServerTest {
             milvus::CreateCollectionRequest().WithCollectionName(collection_name).WithCollectionSchema(schema));
         milvus::test::ExpectStatusOK(status);
 
-        milvus::IndexDesc idx("vec", "", milvus::IndexType::FLAT, milvus::MetricType::L2);
+        milvus::IndexParam idx("vec", "", milvus::IndexType::FLAT, milvus::MetricType::L2);
         status = client_->CreateIndex(
-            milvus::CreateIndexRequest().WithCollectionName(collection_name).AddIndex(std::move(idx)));
+            milvus::CreateIndexRequest().WithCollectionName(collection_name).AddIndexParam(std::move(idx)));
         milvus::test::ExpectStatusOK(status);
 
         status = client_->LoadCollection(milvus::LoadCollectionRequest().WithCollectionName(collection_name));
@@ -271,9 +271,9 @@ class MilvusServerTestNullableVector : public MilvusServerTest {
             milvus::CreateCollectionRequest().WithCollectionName(collection_name).WithCollectionSchema(schema));
         milvus::test::ExpectStatusOK(status);
 
-        milvus::IndexDesc index("vec", "", milvus::IndexType::FLAT, milvus::MetricType::L2);
+        milvus::IndexParam index("vec", "", milvus::IndexType::FLAT, milvus::MetricType::L2);
         status = client_->CreateIndex(
-            milvus::CreateIndexRequest().WithCollectionName(collection_name).AddIndex(std::move(index)));
+            milvus::CreateIndexRequest().WithCollectionName(collection_name).AddIndexParam(std::move(index)));
         milvus::test::ExpectStatusOK(status);
 
         status = client_->LoadCollection(milvus::LoadCollectionRequest().WithCollectionName(collection_name));
@@ -406,9 +406,9 @@ class MilvusServerTestDefaultValue : public MilvusServerTest {
             milvus::CreateCollectionRequest().WithCollectionName(collection_name).WithCollectionSchema(schema));
         milvus::test::ExpectStatusOK(status);
 
-        milvus::IndexDesc idx("vec", "", milvus::IndexType::FLAT, milvus::MetricType::L2);
+        milvus::IndexParam idx("vec", "", milvus::IndexType::FLAT, milvus::MetricType::L2);
         status = client_->CreateIndex(
-            milvus::CreateIndexRequest().WithCollectionName(collection_name).AddIndex(std::move(idx)));
+            milvus::CreateIndexRequest().WithCollectionName(collection_name).AddIndexParam(std::move(idx)));
         milvus::test::ExpectStatusOK(status);
 
         status = client_->LoadCollection(milvus::LoadCollectionRequest().WithCollectionName(collection_name));

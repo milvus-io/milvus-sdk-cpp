@@ -47,7 +47,7 @@ InsertNullVectors(const milvus::MilvusClientV2Ptr& client) {
     status = client->CreateIndex(
         milvus::CreateIndexRequest()
             .WithCollectionName(collection_name)
-            .AddIndex(milvus::IndexDesc(field_vector, "", milvus::IndexType::FLAT, milvus::MetricType::L2)));
+            .AddIndexParam(milvus::IndexParam(field_vector, "", milvus::IndexType::FLAT, milvus::MetricType::L2)));
     util::CheckStatus("create index", status);
 
     status = client->LoadCollection(milvus::LoadCollectionRequest().WithCollectionName(collection_name));
@@ -144,7 +144,7 @@ AddNullableVectorField(const milvus::MilvusClientV2Ptr& client) {
     status = client->CreateIndex(
         milvus::CreateIndexRequest()
             .WithCollectionName(collection_name)
-            .AddIndex(milvus::IndexDesc(field_vector_v1, "", milvus::IndexType::FLAT, milvus::MetricType::L2)));
+            .AddIndexParam(milvus::IndexParam(field_vector_v1, "", milvus::IndexType::FLAT, milvus::MetricType::L2)));
     util::CheckStatus("create initial index", status);
 
     status = client->LoadCollection(milvus::LoadCollectionRequest().WithCollectionName(collection_name));
@@ -174,7 +174,7 @@ AddNullableVectorField(const milvus::MilvusClientV2Ptr& client) {
     status = client->CreateIndex(
         milvus::CreateIndexRequest()
             .WithCollectionName(collection_name)
-            .AddIndex(milvus::IndexDesc(field_vector_v2, "", milvus::IndexType::FLAT, milvus::MetricType::L2)));
+            .AddIndexParam(milvus::IndexParam(field_vector_v2, "", milvus::IndexType::FLAT, milvus::MetricType::L2)));
     util::CheckStatus("create index for added field", status);
 
     status = client->LoadCollection(milvus::LoadCollectionRequest().WithCollectionName(collection_name));

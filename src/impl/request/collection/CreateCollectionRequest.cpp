@@ -18,6 +18,8 @@
 
 #include <memory>
 
+#include "../../utils/IndexUtils.h"
+
 namespace milvus {
 
 const std::string&
@@ -182,14 +184,43 @@ CreateCollectionRequest::AddProperty(const std::string& key, const std::string& 
     return *this;
 }
 
+const std::vector<IndexParam>&
+CreateCollectionRequest::IndexParams() const {
+    return index_params_;
+}
+
+void
+CreateCollectionRequest::SetIndexParams(std::vector<IndexParam>&& index_params) {
+    index_params_ = std::move(index_params);
+}
+
+CreateCollectionRequest&
+CreateCollectionRequest::WithIndexParams(std::vector<IndexParam>&& index_params) {
+    SetIndexParams(std::move(index_params));
+    return *this;
+}
+
+CreateCollectionRequest&
+CreateCollectionRequest::AddIndexParam(IndexParam&& index_param) {
+    index_params_.emplace_back(std::move(index_param));
+    return *this;
+}
+
 const std::vector<IndexDesc>&
 CreateCollectionRequest::Indexes() const {
-    return indexes_;
+    indexes_cache_.clear();
+    for (const auto& index_param : index_params_) {
+        indexes_cache_.emplace_back(ConvertToIndexDesc(index_param));
+    }
+    return indexes_cache_;
 }
 
 void
 CreateCollectionRequest::SetIndexes(std::vector<IndexDesc>&& indexes) {
-    indexes_ = std::move(indexes);
+    index_params_.clear();
+    for (const auto& desc : indexes) {
+        index_params_.emplace_back(ConvertToIndexParam(desc));
+    }
 }
 
 CreateCollectionRequest&
@@ -200,7 +231,7 @@ CreateCollectionRequest::WithIndexes(std::vector<IndexDesc>&& indexes) {
 
 CreateCollectionRequest&
 CreateCollectionRequest::AddIndex(IndexDesc&& index) {
-    indexes_.emplace_back(std::move(index));
+    index_params_.emplace_back(ConvertToIndexParam(index));
     return *this;
 }
 

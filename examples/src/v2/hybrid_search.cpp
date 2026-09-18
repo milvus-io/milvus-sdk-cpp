@@ -55,11 +55,11 @@ main(int argc, char* argv[]) {
     util::CheckStatus("create collection: " + collection_name, status);
 
     // create index
-    std::vector<milvus::IndexDesc> indexes = {
-        milvus::IndexDesc(field_dense, "", milvus::IndexType::DISKANN, milvus::MetricType::COSINE),
-        milvus::IndexDesc(field_sparse, "", milvus::IndexType::SPARSE_INVERTED_INDEX, milvus::MetricType::IP)};
+    std::vector<milvus::IndexParam> indexes = {
+        milvus::IndexParam(field_dense, "", milvus::IndexType::DISKANN, milvus::MetricType::COSINE),
+        milvus::IndexParam(field_sparse, "", milvus::IndexType::SPARSE_INVERTED_INDEX, milvus::MetricType::IP)};
     status = client->CreateIndex(
-        milvus::CreateIndexRequest().WithCollectionName(collection_name).WithIndexes(std::move(indexes)));
+        milvus::CreateIndexRequest().WithCollectionName(collection_name).WithIndexParams(std::move(indexes)));
     util::CheckStatus("create indexes on collection", status);
 
     // tell server prepare to load collection

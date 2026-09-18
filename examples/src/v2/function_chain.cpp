@@ -40,9 +40,9 @@ buildCollection(milvus::MilvusClientV2Ptr& client) {
     util::CheckStatus(std::string("create collection: ") + collection_name, status);
 
     // create index
-    milvus::IndexDesc index_vector(field_vector, "", milvus::IndexType::FLAT, milvus::MetricType::COSINE);
+    milvus::IndexParam index_vector(field_vector, "", milvus::IndexType::FLAT, milvus::MetricType::COSINE);
     status = client->CreateIndex(
-        milvus::CreateIndexRequest().WithCollectionName(collection_name).AddIndex(std::move(index_vector)));
+        milvus::CreateIndexRequest().WithCollectionName(collection_name).AddIndexParam(std::move(index_vector)));
     util::CheckStatus("create index on vector field", status);
 
     // tell server prepare to load collection

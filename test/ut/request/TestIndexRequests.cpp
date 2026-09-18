@@ -26,9 +26,9 @@ TEST_F(CreateIndexRequestTest, GettersAndSetters) {
     req.WithCollectionName("idx_coll");
     EXPECT_EQ(req.CollectionName(), "idx_coll");
 
-    milvus::IndexDesc idx;
-    req.AddIndex(std::move(idx));
-    EXPECT_EQ(req.Indexes().size(), 1);
+    milvus::IndexParam index_param;
+    req.AddIndexParam(std::move(index_param));
+    EXPECT_EQ(req.IndexParams().size(), 1);
 
     req.WithSync(false);
     EXPECT_FALSE(req.Sync());
@@ -36,16 +36,45 @@ TEST_F(CreateIndexRequestTest, GettersAndSetters) {
     req.WithTimeoutMs(90000);
     EXPECT_EQ(req.TimeoutMs(), 90000);
 
-    std::vector<milvus::IndexDesc> indexes2;
-    indexes2.push_back(milvus::IndexDesc());
-    req.SetIndexes(std::move(indexes2));
-    EXPECT_EQ(req.Indexes().size(), 1);
+    std::vector<milvus::IndexParam> index_params2;
+    index_params2.push_back(milvus::IndexParam());
+    req.SetIndexParams(std::move(index_params2));
+    EXPECT_EQ(req.IndexParams().size(), 1);
+
+    std::vector<milvus::IndexParam> index_params3;
+    index_params3.push_back(milvus::IndexParam());
+    auto& ref = req.WithIndexParams(std::move(index_params3));
+    EXPECT_EQ(req.IndexParams().size(), 1);
+    EXPECT_EQ(&ref, &req);
 
     req.SetSync(true);
     EXPECT_TRUE(req.Sync());
 
     req.SetTimeoutMs(30000);
     EXPECT_EQ(req.TimeoutMs(), 30000);
+}
+
+TEST_F(CreateIndexRequestTest, DeprecatedIndexDescMethods) {
+    milvus::CreateIndexRequest req;
+
+    milvus::IndexDesc idx;
+    req.AddIndex(std::move(idx));
+    EXPECT_EQ(req.Indexes().size(), 1);
+    // the deprecated input is forwarded to the IndexParam list
+    EXPECT_EQ(req.IndexParams().size(), 1);
+
+    std::vector<milvus::IndexDesc> indexes2;
+    indexes2.push_back(milvus::IndexDesc());
+    req.SetIndexes(std::move(indexes2));
+    EXPECT_EQ(req.Indexes().size(), 1);
+    EXPECT_EQ(req.IndexParams().size(), 1);
+
+    std::vector<milvus::IndexDesc> indexes3;
+    indexes3.push_back(milvus::IndexDesc());
+    auto& ref = req.WithIndexes(std::move(indexes3));
+    EXPECT_EQ(req.Indexes().size(), 1);
+    EXPECT_EQ(req.IndexParams().size(), 1);
+    EXPECT_EQ(&ref, &req);
 }
 
 TEST_F(CreateIndexRequestTest, IndexRequestBaseMethods) {

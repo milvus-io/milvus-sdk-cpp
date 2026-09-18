@@ -21,6 +21,7 @@
 #include "../../types/CollectionSchema.h"
 #include "../../types/ConsistencyLevel.h"
 #include "../../types/IndexDesc.h"
+#include "../../types/IndexParam.h"
 #include "milvus/Export.h"
 
 namespace milvus {
@@ -237,31 +238,63 @@ class MILVUS_SDK_API CreateCollectionRequest {
     AddProperty(const std::string& key, const std::string& property);
 
     /**
+     * @brief Get index params.
+     * @return the index params.
+     */
+    const std::vector<IndexParam>&
+    IndexParams() const;
+
+    /**
+     * @brief Set index params to be created.
+     * @param [in] index_params the index params.
+     */
+    void
+    SetIndexParams(std::vector<IndexParam>&& index_params);
+
+    /**
+     * @brief Set index params to be created.
+     * @param [in] index_params the index params.
+     */
+    CreateCollectionRequest&
+    WithIndexParams(std::vector<IndexParam>&& index_params);
+
+    /**
+     * @brief Add an index param to be created.
+     * @param [in] index_param the index param.
+     */
+    CreateCollectionRequest&
+    AddIndexParam(IndexParam&& index_param);
+
+    /**
      * @brief Get indexes.
      * @return the indexes.
+     * @deprecated Use IndexParams() instead.
      */
-    const std::vector<IndexDesc>&
+    [[deprecated("use IndexParams() instead")]] const std::vector<IndexDesc>&
     Indexes() const;
 
     /**
      * @brief Set indexes to be created.
      * @param [in] indexes the indexes.
+     * @deprecated Use WithIndexParams() instead.
      */
-    void
+    [[deprecated("use WithIndexParams() instead")]] void
     SetIndexes(std::vector<IndexDesc>&& indexes);
 
     /**
      * @brief Set indexes to be created.
      * @param [in] indexes the indexes.
+     * @deprecated Use WithIndexParams() instead.
      */
-    CreateCollectionRequest&
+    [[deprecated("use WithIndexParams() instead")]] CreateCollectionRequest&
     WithIndexes(std::vector<IndexDesc>&& indexes);
 
     /**
      * @brief Add an index to be created.
      * @param [in] index the index.
+     * @deprecated Use AddIndexParam() instead.
      */
-    CreateCollectionRequest&
+    [[deprecated("use AddIndexParam() instead")]] CreateCollectionRequest&
     AddIndex(IndexDesc&& index);
 
  private:
@@ -273,7 +306,8 @@ class MILVUS_SDK_API CreateCollectionRequest {
     int64_t num_shards_{1};
     ConsistencyLevel level_{ConsistencyLevel::BOUNDED};
     std::unordered_map<std::string, std::string> properties_;
-    std::vector<IndexDesc> indexes_;
+    std::vector<IndexParam> index_params_;
+    mutable std::vector<IndexDesc> indexes_cache_;
 };
 
 }  // namespace milvus

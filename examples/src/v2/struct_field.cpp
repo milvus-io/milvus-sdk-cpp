@@ -91,28 +91,28 @@ createCollection(milvus::MilvusClientV2Ptr& client) {
         milvus::CreateCollectionRequest().WithCollectionName(collection_name).WithCollectionSchema(collection_schema));
     util::CheckStatus("create collection: " + std::string(collection_name), status);
 
-    milvus::IndexDesc index_struct_float(combineStructName(field_struct, field_struct_vector), "index_float",
+    milvus::IndexParam index_struct_float(combineStructName(field_struct, field_struct_vector), "index_float",
                                          milvus::IndexType::HNSW, milvus::MetricType::MAX_SIM_IP);
-    milvus::IndexDesc index_struct_binary(combineStructName(field_struct, field_struct_binary_vector), "index_binary",
+    milvus::IndexParam index_struct_binary(combineStructName(field_struct, field_struct_binary_vector), "index_binary",
                                           milvus::IndexType::HNSW, milvus::MetricType::MAX_SIM_HAMMING);
-    milvus::IndexDesc index_struct_fp16(combineStructName(field_struct, field_struct_fp16_vector), "index_float16",
+    milvus::IndexParam index_struct_fp16(combineStructName(field_struct, field_struct_fp16_vector), "index_float16",
                                         milvus::IndexType::IVF_FLAT, milvus::MetricType::MAX_SIM_COSINE);
     index_struct_fp16.AddExtraParam(milvus::NLIST, "64");
-    milvus::IndexDesc index_struct_bf16(combineStructName(field_struct, field_struct_bf16_vector), "index_bfloat16",
+    milvus::IndexParam index_struct_bf16(combineStructName(field_struct, field_struct_bf16_vector), "index_bfloat16",
                                         milvus::IndexType::IVF_FLAT, milvus::MetricType::MAX_SIM_COSINE);
     index_struct_bf16.AddExtraParam(milvus::NLIST, "64");
-    milvus::IndexDesc index_struct_int8(combineStructName(field_struct, field_struct_int8_vector), "index_int8",
+    milvus::IndexParam index_struct_int8(combineStructName(field_struct, field_struct_int8_vector), "index_int8",
                                         milvus::IndexType::HNSW, milvus::MetricType::MAX_SIM_L2);
-    milvus::IndexDesc index_simplify(combineStructName(field_simplify_struct, field_struct_vector), "index_simplify",
+    milvus::IndexParam index_simplify(combineStructName(field_simplify_struct, field_struct_vector), "index_simplify",
                                      milvus::IndexType::HNSW, milvus::MetricType::L2);
     status = client->CreateIndex(milvus::CreateIndexRequest()
                                      .WithCollectionName(collection_name)
-                                     .AddIndex(std::move(index_struct_float))
-                                     .AddIndex(std::move(index_struct_binary))
-                                     .AddIndex(std::move(index_struct_fp16))
-                                     .AddIndex(std::move(index_struct_bf16))
-                                     .AddIndex(std::move(index_struct_int8))
-                                     .AddIndex(std::move(index_simplify)));
+                                     .AddIndexParam(std::move(index_struct_float))
+                                     .AddIndexParam(std::move(index_struct_binary))
+                                     .AddIndexParam(std::move(index_struct_fp16))
+                                     .AddIndexParam(std::move(index_struct_bf16))
+                                     .AddIndexParam(std::move(index_struct_int8))
+                                     .AddIndexParam(std::move(index_simplify)));
     util::CheckStatus("create index on struct vector fields", status);
 
     status = client->LoadCollection(milvus::LoadCollectionRequest().WithCollectionName(collection_name));

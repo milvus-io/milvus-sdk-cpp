@@ -48,13 +48,13 @@ class MilvusServerTestHybridSearch : public ::testing::Test {
             milvus::CreateCollectionRequest().WithCollectionName(collection_name).WithCollectionSchema(schema));
         milvus::test::ExpectStatusOK(status);
 
-        milvus::IndexDesc idx_dense("dense", "", milvus::IndexType::FLAT, milvus::MetricType::COSINE);
-        milvus::IndexDesc idx_sparse("sparse", "", milvus::IndexType::SPARSE_INVERTED_INDEX, milvus::MetricType::IP);
+        milvus::IndexParam idx_dense("dense", "", milvus::IndexType::FLAT, milvus::MetricType::COSINE);
+        milvus::IndexParam idx_sparse("sparse", "", milvus::IndexType::SPARSE_INVERTED_INDEX, milvus::MetricType::IP);
         idx_sparse.AddExtraParam("drop_ratio_build", "0.2");
         status = client_->CreateIndex(milvus::CreateIndexRequest()
                                           .WithCollectionName(collection_name)
-                                          .AddIndex(std::move(idx_dense))
-                                          .AddIndex(std::move(idx_sparse)));
+                                          .AddIndexParam(std::move(idx_dense))
+                                          .AddIndexParam(std::move(idx_sparse)));
         milvus::test::ExpectStatusOK(status);
 
         // insert data

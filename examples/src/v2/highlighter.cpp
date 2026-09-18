@@ -83,12 +83,12 @@ createCollection(milvus::MilvusClientV2Ptr& client) {
     collection_schema->AddFunction(function);
 
     auto status = client->DropCollection(milvus::DropCollectionRequest().WithCollectionName(collection_name));
-    milvus::IndexDesc index_vector(field_vector, "", milvus::IndexType::SPARSE_INVERTED_INDEX,
-                                   milvus::MetricType::BM25);
+    milvus::IndexParam index_vector(field_vector, "", milvus::IndexType::SPARSE_INVERTED_INDEX,
+                                    milvus::MetricType::BM25);
     status = client->CreateCollection(milvus::CreateCollectionRequest()
                                           .WithCollectionName(collection_name)
                                           .WithCollectionSchema(collection_schema)
-                                          .AddIndex(std::move(index_vector))
+                                          .AddIndexParam(std::move(index_vector))
                                           .WithConsistencyLevel(milvus::ConsistencyLevel::BOUNDED));
     util::CheckStatus(std::string("create collection: ") + collection_name, status);
 

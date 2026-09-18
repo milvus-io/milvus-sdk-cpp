@@ -35,9 +35,9 @@ class MilvusServerTestPartition : public MilvusServerTest {
             milvus::CreateCollectionRequest().WithCollectionName(collection_name).WithCollectionSchema(schema));
         milvus::test::ExpectStatusOK(status);
 
-        milvus::IndexDesc index_desc("vec", "", milvus::IndexType::FLAT, milvus::MetricType::L2);
+        milvus::IndexParam index_desc("vec", "", milvus::IndexType::FLAT, milvus::MetricType::L2);
         status = client_->CreateIndex(
-            milvus::CreateIndexRequest().WithCollectionName(collection_name).AddIndex(std::move(index_desc)));
+            milvus::CreateIndexRequest().WithCollectionName(collection_name).AddIndexParam(std::move(index_desc)));
         milvus::test::ExpectStatusOK(status);
     }
 
@@ -176,8 +176,8 @@ TEST_F(MilvusServerTestPartition, PartitionKey) {
     EXPECT_GE(lp_resp.PartitionsNames().size(), 4);
 
     // create index and load
-    milvus::IndexDesc idx("vec", "", milvus::IndexType::FLAT, milvus::MetricType::L2);
-    status = client_->CreateIndex(milvus::CreateIndexRequest().WithCollectionName(pk_coll).AddIndex(std::move(idx)));
+    milvus::IndexParam idx("vec", "", milvus::IndexType::FLAT, milvus::MetricType::L2);
+    status = client_->CreateIndex(milvus::CreateIndexRequest().WithCollectionName(pk_coll).AddIndexParam(std::move(idx)));
     milvus::test::ExpectStatusOK(status);
 
     status = client_->LoadCollection(milvus::LoadCollectionRequest().WithCollectionName(pk_coll));
