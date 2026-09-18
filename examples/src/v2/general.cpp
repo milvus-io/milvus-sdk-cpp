@@ -133,10 +133,10 @@ main(int argc, char* argv[]) {
         milvus::FieldSchema(field_face, milvus::DataType::FLOAT_VECTOR, "face signature").WithDimension(dimension));
 
     // define indexes
-    milvus::IndexDesc index_vector(field_face, "", milvus::IndexType::IVF_FLAT, milvus::MetricType::COSINE);
-    index_vector.AddExtraParam(milvus::NLIST, "100");
-    milvus::IndexDesc index_sort(field_age, "", milvus::IndexType::STL_SORT);
-    milvus::IndexDesc index_varchar(field_name, "", milvus::IndexType::TRIE);
+    milvus::IndexParam index_vector(field_face, "", milvus::IndexType::IVF_FLAT, milvus::MetricType::COSINE);
+    index_vector.AddExtraParam("nlist", "1024");
+    milvus::IndexParam index_sort(field_age, "", milvus::IndexType::STL_SORT);
+    milvus::IndexParam index_varchar(field_name, "", milvus::IndexType::TRIE);
 
     // drop collection if it exists, the CreateCollectionRequest with indexes will automatically create indexes
     // for this collection and load the collection
@@ -149,9 +149,9 @@ main(int argc, char* argv[]) {
             .WithDescription("my collection")
             .WithNumShards(1)
             .WithCollectionSchema(collection_schema)
-            .AddIndex(std::move(index_vector))
-            .AddIndex(std::move(index_sort))
-            .AddIndex(std::move(index_varchar))
+            .AddIndexParam(std::move(index_vector))
+            .AddIndexParam(std::move(index_sort))
+            .AddIndexParam(std::move(index_varchar))
             .AddProperty("my_prop", "dummy")                    // add a customized property
             .AddProperty(milvus::COLLECTION_TTL_SECONDS, "60")  // configure a built-in property
             .WithConsistencyLevel(milvus::ConsistencyLevel::STRONG));
@@ -404,7 +404,7 @@ main(int argc, char* argv[]) {
 
     // create index again
     {
-        milvus::IndexDesc index_vector(field_face, "vector_index_name", milvus::IndexType::HNSW,
+        milvus::IndexParam index_vector(field_face, "vector_index_name", milvus::IndexType::HNSW,
                                        milvus::MetricType::L2);
         index_vector.AddExtraParam("M", "32");
         index_vector.AddExtraParam("efConstruction", "100");
@@ -412,7 +412,7 @@ main(int argc, char* argv[]) {
         status = client->CreateIndex(milvus::CreateIndexRequest()
                                          .WithCollectionName(collection_name)
                                          .WithSync(true)
-                                         .AddIndex(std::move(index_vector)));
+                                         .AddIndexParam(std::move(index_vector)));
         util::CheckStatus("rebuild index for field: " + field_face, status);
 
         status = client->AlterIndexProperties(milvus::AlterIndexPropertiesRequest()

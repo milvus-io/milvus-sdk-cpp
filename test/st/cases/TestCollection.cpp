@@ -52,9 +52,9 @@ TEST_P(MilvusServerTestCollection, CreateAndDeleteCollection) {
     milvus::test::ExpectStatusOK(status);
 
     // create index needed after 2.2.0
-    milvus::IndexDesc index_desc("face", "", milvus::IndexType::FLAT, milvus::MetricType::L2);
+    milvus::IndexParam index_desc("face", "", milvus::IndexType::FLAT, milvus::MetricType::L2);
     status = client_->CreateIndex(
-        milvus::CreateIndexRequest().WithCollectionName(collection_name).AddIndex(std::move(index_desc)));
+        milvus::CreateIndexRequest().WithCollectionName(collection_name).AddIndexParam(std::move(index_desc)));
     milvus::test::ExpectStatusOK(status);
 
     // test for https://github.com/milvus-io/milvus-sdk-cpp/issues/188
@@ -244,9 +244,9 @@ TEST_F(MilvusServerTestCollectionOps, GetLoadState) {
     EXPECT_EQ(milvus::LoadState::LOAD_STATE_NOT_LOAD, state_resp.State());
 
     // create index and load
-    milvus::IndexDesc index_desc("vec", "", milvus::IndexType::FLAT, milvus::MetricType::L2);
+    milvus::IndexParam index_desc("vec", "", milvus::IndexType::FLAT, milvus::MetricType::L2);
     status = client_->CreateIndex(
-        milvus::CreateIndexRequest().WithCollectionName(collection_name).AddIndex(std::move(index_desc)));
+        milvus::CreateIndexRequest().WithCollectionName(collection_name).AddIndexParam(std::move(index_desc)));
     milvus::test::ExpectStatusOK(status);
 
     status = client_->LoadCollection(milvus::LoadCollectionRequest().WithCollectionName(collection_name));
@@ -429,9 +429,9 @@ TEST_F(MilvusServerTestCollectionOps, AlterAndDropCollectionFieldProperties) {
 
 TEST_F(MilvusServerTestCollectionOps, TruncateCollection) {
     // create index first
-    milvus::IndexDesc index_desc("vec", "", milvus::IndexType::FLAT, milvus::MetricType::L2);
+    milvus::IndexParam index_desc("vec", "", milvus::IndexType::FLAT, milvus::MetricType::L2);
     auto status = client_->CreateIndex(
-        milvus::CreateIndexRequest().WithCollectionName(collection_name).AddIndex(std::move(index_desc)));
+        milvus::CreateIndexRequest().WithCollectionName(collection_name).AddIndexParam(std::move(index_desc)));
     milvus::test::ExpectStatusOK(status);
 
     // insert some data
@@ -495,8 +495,8 @@ TEST_F(MilvusServerTestCollectionOps, DynamicField) {
         milvus::CreateCollectionRequest().WithCollectionName(dyn_coll).WithCollectionSchema(schema));
     milvus::test::ExpectStatusOK(status);
 
-    milvus::IndexDesc idx("vec", "", milvus::IndexType::FLAT, milvus::MetricType::L2);
-    status = client_->CreateIndex(milvus::CreateIndexRequest().WithCollectionName(dyn_coll).AddIndex(std::move(idx)));
+    milvus::IndexParam idx("vec", "", milvus::IndexType::FLAT, milvus::MetricType::L2);
+    status = client_->CreateIndex(milvus::CreateIndexRequest().WithCollectionName(dyn_coll).AddIndexParam(std::move(idx)));
     milvus::test::ExpectStatusOK(status);
 
     status = client_->LoadCollection(milvus::LoadCollectionRequest().WithCollectionName(dyn_coll));

@@ -45,7 +45,7 @@ class MilvusServerTestCache : public milvus::test::MilvusServerTest {
         status = client_->CreateIndex(
             milvus::CreateIndexRequest()
                 .WithCollectionName(collection_name)
-                .AddIndex(milvus::IndexDesc("vector", "", milvus::IndexType::FLAT, milvus::MetricType::L2)));
+                .AddIndexParam(milvus::IndexParam("vector", "", milvus::IndexType::FLAT, milvus::MetricType::L2)));
         milvus::test::ExpectStatusOK(status);
 
         status = client_->LoadCollection(milvus::LoadCollectionRequest().WithCollectionName(collection_name));

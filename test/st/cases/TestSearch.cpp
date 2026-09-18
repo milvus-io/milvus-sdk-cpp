@@ -47,9 +47,9 @@ class MilvusServerTestSearch : public MilvusServerTest {
         milvus::test::ExpectStatusOK(status);
 
         if (create_flat_index) {
-            milvus::IndexDesc index_desc("face", "", milvus::IndexType::FLAT, milvus::MetricType::L2);
+            milvus::IndexParam index_desc("face", "", milvus::IndexType::FLAT, milvus::MetricType::L2);
             status = client_->CreateIndex(
-                milvus::CreateIndexRequest().WithCollectionName(collection_name).AddIndex(std::move(index_desc)));
+                milvus::CreateIndexRequest().WithCollectionName(collection_name).AddIndexParam(std::move(index_desc)));
             EXPECT_EQ(status.Message(), "OK");
             milvus::test::ExpectStatusOK(status);
         }
@@ -200,9 +200,9 @@ TEST_F(MilvusServerTestSearch, SearchByStringIDs) {
         milvus::CreateCollectionRequest().WithCollectionName(collection_name).WithCollectionSchema(schema));
     milvus::test::ExpectStatusOK(status);
 
-    milvus::IndexDesc index_desc("face", "", milvus::IndexType::FLAT, milvus::MetricType::L2);
+    milvus::IndexParam index_desc("face", "", milvus::IndexType::FLAT, milvus::MetricType::L2);
     status = client_->CreateIndex(
-        milvus::CreateIndexRequest().WithCollectionName(collection_name).AddIndex(std::move(index_desc)));
+        milvus::CreateIndexRequest().WithCollectionName(collection_name).AddIndexParam(std::move(index_desc)));
     milvus::test::ExpectStatusOK(status);
 
     std::vector<std::string> inserted_ids{"pk_0", "pk_1", "pk_2"};
@@ -381,23 +381,23 @@ TEST_F(MilvusServerTestSearch, SearchWithMultipleVectorTypes) {
     milvus::test::ExpectStatusOK(status);
 
     // create indexes for each vector field
-    milvus::IndexDesc float_idx("float_vec", "", milvus::IndexType::FLAT, milvus::MetricType::L2);
-    milvus::IndexDesc binary_idx("binary_vec", "", milvus::IndexType::BIN_FLAT, milvus::MetricType::HAMMING);
-    milvus::IndexDesc fp16_idx("fp16_vec", "", milvus::IndexType::FLAT, milvus::MetricType::L2);
-    milvus::IndexDesc sparse_idx("sparse_vec", "", milvus::IndexType::SPARSE_INVERTED_INDEX, milvus::MetricType::IP);
+    milvus::IndexParam float_idx("float_vec", "", milvus::IndexType::FLAT, milvus::MetricType::L2);
+    milvus::IndexParam binary_idx("binary_vec", "", milvus::IndexType::BIN_FLAT, milvus::MetricType::HAMMING);
+    milvus::IndexParam fp16_idx("fp16_vec", "", milvus::IndexType::FLAT, milvus::MetricType::L2);
+    milvus::IndexParam sparse_idx("sparse_vec", "", milvus::IndexType::SPARSE_INVERTED_INDEX, milvus::MetricType::IP);
     sparse_idx.AddExtraParam("drop_ratio_build", "0.2");
 
     status =
-        client_->CreateIndex(milvus::CreateIndexRequest().WithCollectionName(coll_name).AddIndex(std::move(float_idx)));
+        client_->CreateIndex(milvus::CreateIndexRequest().WithCollectionName(coll_name).AddIndexParam(std::move(float_idx)));
     milvus::test::ExpectStatusOK(status);
     status = client_->CreateIndex(
-        milvus::CreateIndexRequest().WithCollectionName(coll_name).AddIndex(std::move(binary_idx)));
+        milvus::CreateIndexRequest().WithCollectionName(coll_name).AddIndexParam(std::move(binary_idx)));
     milvus::test::ExpectStatusOK(status);
     status =
-        client_->CreateIndex(milvus::CreateIndexRequest().WithCollectionName(coll_name).AddIndex(std::move(fp16_idx)));
+        client_->CreateIndex(milvus::CreateIndexRequest().WithCollectionName(coll_name).AddIndexParam(std::move(fp16_idx)));
     milvus::test::ExpectStatusOK(status);
     status = client_->CreateIndex(
-        milvus::CreateIndexRequest().WithCollectionName(coll_name).AddIndex(std::move(sparse_idx)));
+        milvus::CreateIndexRequest().WithCollectionName(coll_name).AddIndexParam(std::move(sparse_idx)));
     milvus::test::ExpectStatusOK(status);
 
     // prepare data
@@ -527,10 +527,10 @@ TEST_F(MilvusServerTestSearch, SearchWithIVFIndex) {
     createCollectionAndPartitions(false);
     auto dml_results = insertRecords(fields);
 
-    milvus::IndexDesc index_desc("face", "", milvus::IndexType::IVF_FLAT, milvus::MetricType::L2);
+    milvus::IndexParam index_desc("face", "", milvus::IndexType::IVF_FLAT, milvus::MetricType::L2);
     index_desc.AddExtraParam("nlist", "1024");
     auto status = client_->CreateIndex(
-        milvus::CreateIndexRequest().WithCollectionName(collection_name).AddIndex(std::move(index_desc)));
+        milvus::CreateIndexRequest().WithCollectionName(collection_name).AddIndexParam(std::move(index_desc)));
     EXPECT_EQ(status.Message(), "OK");
     milvus::test::ExpectStatusOK(status);
 
@@ -575,11 +575,11 @@ TEST_F(MilvusServerTestSearch, HybridSearch) {
     milvus::test::ExpectStatusOK(status);
 
     // create indexes
-    milvus::IndexDesc idx1("vec1", "", milvus::IndexType::FLAT, milvus::MetricType::L2);
-    milvus::IndexDesc idx2("vec2", "", milvus::IndexType::FLAT, milvus::MetricType::L2);
-    status = client_->CreateIndex(milvus::CreateIndexRequest().WithCollectionName(coll_name).AddIndex(std::move(idx1)));
+    milvus::IndexParam idx1("vec1", "", milvus::IndexType::FLAT, milvus::MetricType::L2);
+    milvus::IndexParam idx2("vec2", "", milvus::IndexType::FLAT, milvus::MetricType::L2);
+    status = client_->CreateIndex(milvus::CreateIndexRequest().WithCollectionName(coll_name).AddIndexParam(std::move(idx1)));
     milvus::test::ExpectStatusOK(status);
-    status = client_->CreateIndex(milvus::CreateIndexRequest().WithCollectionName(coll_name).AddIndex(std::move(idx2)));
+    status = client_->CreateIndex(milvus::CreateIndexRequest().WithCollectionName(coll_name).AddIndexParam(std::move(idx2)));
     milvus::test::ExpectStatusOK(status);
 
     // insert data
@@ -690,8 +690,8 @@ TEST_F(MilvusServerTestSearch, SearchWithGroupBy) {
         milvus::CreateCollectionRequest().WithCollectionName(coll_name).WithCollectionSchema(schema));
     milvus::test::ExpectStatusOK(status);
 
-    milvus::IndexDesc idx("vec", "", milvus::IndexType::FLAT, milvus::MetricType::L2);
-    status = client_->CreateIndex(milvus::CreateIndexRequest().WithCollectionName(coll_name).AddIndex(std::move(idx)));
+    milvus::IndexParam idx("vec", "", milvus::IndexType::FLAT, milvus::MetricType::L2);
+    status = client_->CreateIndex(milvus::CreateIndexRequest().WithCollectionName(coll_name).AddIndexParam(std::move(idx)));
     milvus::test::ExpectStatusOK(status);
 
     // insert data: 3 categories, 10 rows each

@@ -99,7 +99,7 @@ verifyData(milvus::MilvusClientV2Ptr& client) {
     auto status = client->CreateIndex(
         milvus::CreateIndexRequest()
             .WithCollectionName(collection_name)
-            .AddIndex(milvus::IndexDesc(field_vector, "", milvus::IndexType::FLAT, milvus::MetricType::L2)));
+            .AddIndexParam(milvus::IndexParam(field_vector, "", milvus::IndexType::FLAT, milvus::MetricType::L2)));
     util::CheckStatus("create index on vector field", status);
 
     status = client->LoadCollection(milvus::LoadCollectionRequest().WithCollectionName(collection_name));

@@ -20,6 +20,7 @@
 #include <vector>
 
 #include "../../types/IndexDesc.h"
+#include "../../types/IndexParam.h"
 #include "./IndexRequestBase.h"
 #include "milvus/Export.h"
 
@@ -29,11 +30,11 @@ namespace milvus {
  * @brief Used by MilvusClientV2::CreateIndex()
  * @par Example
  * @code
- * milvus::IndexDesc index("vector", "vector_idx", milvus::IndexType::HNSW, milvus::MetricType::L2);
+ * milvus::IndexParam index("vector", "vector_idx", milvus::IndexType::HNSW, milvus::MetricType::L2);
  * index.AddExtraParam("M", "16");
  * auto status = client->CreateIndex(milvus::CreateIndexRequest()
  *                                       .WithCollectionName("demo")
- *                                       .WithIndexes({std::move(index)})
+ *                                       .WithIndexParams({std::move(index)})
  *                                       .WithSync(true));
  * @endcode
  */
@@ -45,31 +46,63 @@ class MILVUS_SDK_API CreateIndexRequest : public IndexRequestBase<CreateIndexReq
     CreateIndexRequest() = default;
 
     /**
+     * @brief Get index params.
+     * @return the index params.
+     */
+    const std::vector<IndexParam>&
+    IndexParams() const;
+
+    /**
+     * @brief Set index params to be created.
+     * @param [in] index_params the index params.
+     */
+    void
+    SetIndexParams(std::vector<IndexParam>&& index_params);
+
+    /**
+     * @brief Set index params to be created.
+     * @param [in] index_params the index params.
+     */
+    CreateIndexRequest&
+    WithIndexParams(std::vector<IndexParam>&& index_params);
+
+    /**
+     * @brief Add an index param to be created.
+     * @param [in] index_param the index param.
+     */
+    CreateIndexRequest&
+    AddIndexParam(IndexParam&& index_param);
+
+    /**
      * @brief Get indexes.
      * @return the indexes.
+     * @deprecated Use IndexParams() instead.
      */
-    const std::vector<IndexDesc>&
+    [[deprecated("use IndexParams() instead")]] const std::vector<IndexDesc>&
     Indexes() const;
 
     /**
      * @brief Set indexes to be created.
      * @param [in] indexes the indexes.
+     * @deprecated Use WithIndexParams() instead.
      */
-    void
+    [[deprecated("use WithIndexParams() instead")]] void
     SetIndexes(std::vector<IndexDesc>&& indexes);
 
     /**
      * @brief Set indexes to be created.
      * @param [in] indexes the indexes.
+     * @deprecated Use WithIndexParams() instead.
      */
-    CreateIndexRequest&
+    [[deprecated("use WithIndexParams() instead")]] CreateIndexRequest&
     WithIndexes(std::vector<IndexDesc>&& indexes);
 
     /**
      * @brief Add an index to be created.
      * @param [in] index the index.
+     * @deprecated Use AddIndexParam() instead.
      */
-    CreateIndexRequest&
+    [[deprecated("use AddIndexParam() instead")]] CreateIndexRequest&
     AddIndex(IndexDesc&& index);
 
     /**
@@ -129,7 +162,8 @@ class MILVUS_SDK_API CreateIndexRequest : public IndexRequestBase<CreateIndexReq
     WithTimeoutMs(int64_t timeout_ms);
 
  private:
-    std::vector<IndexDesc> indexes_;
+    std::vector<IndexParam> index_params_;
+    mutable std::vector<IndexDesc> indexes_cache_;
     bool sync_{true};
     int64_t timeout_ms_{60000};
 };

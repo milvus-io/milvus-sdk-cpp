@@ -227,15 +227,15 @@ MilvusClientV2Impl::CreateCollection(const CreateCollectionRequest& request) {
         // collection was created or the existing collection was kept.
         SchemaCache::GetInstance().Invalidate(endpoint, database_name, request.CollectionName());
 
-        if (request.Indexes().empty()) {
+        if (request.IndexParams().empty()) {
             return Status::OK();
         }
 
         // if user has defined indexes, create indexes immediately after collection is created.
         // note that Sync is false since the new collection empty, no need to wait index.
-        const auto& descs = request.Indexes();
-        for (const auto& desc : descs) {
-            auto status = createIndex(request.DatabaseName(), schema.Name(), desc, false, 0);
+        const auto& index_params = request.IndexParams();
+        for (const auto& index_param : index_params) {
+            auto status = createIndex(request.DatabaseName(), schema.Name(), index_param, false, 0);
             if (!status.IsOk()) {
                 return status;
             }
@@ -273,14 +273,14 @@ MilvusClientV2Impl::CreateCollection(const CreateSimpleCollectionRequest& reques
     collection_schema->AddField(std::move(vector_field));
     collection_schema->SetEnableDynamicField(request.EnableDynamicField());
 
-    milvus::IndexDesc index_vector(request.VectorFieldName(), "", milvus::IndexType::AUTOINDEX, request.MetricType());
+    milvus::IndexParam index_vector(request.VectorFieldName(), "", milvus::IndexType::AUTOINDEX, request.MetricType());
 
     CreateCollectionRequest actual_request = CreateCollectionRequest()
                                                  .WithCollectionName(request.CollectionName())
                                                  .WithDatabaseName(request.DatabaseName())
                                                  .WithCollectionSchema(collection_schema)
                                                  .WithConsistencyLevel(request.ConsistencyLevel())
-                                                 .AddIndex(std::move(index_vector));
+                                                 .AddIndexParam(std::move(index_vector));
 
     return CreateCollection(actual_request);
 }
@@ -1577,13 +1577,14 @@ MilvusClientV2Impl::DescribeDatabase(const DescribeDatabaseRequest& request, Des
 
 Status
 MilvusClientV2Impl::CreateIndex(const CreateIndexRequest& request) {
-    const auto& descs = request.Indexes();
-    if (descs.empty()) {
+    const auto& index_params = request.IndexParams();
+    if (index_params.empty()) {
         return Status{StatusCode::INVALID_ARGUMENT, "IndexParams is empty, no index can be created"};
     }
-    for (const auto& desc : descs) {
+    for (const auto& index_param : index_params) {
         auto status =
-            createIndex(request.DatabaseName(), request.CollectionName(), desc, request.Sync(), request.TimeoutMs());
+            createIndex(request.DatabaseName(), request.CollectionName(), index_param, request.Sync(),
+                        request.TimeoutMs());
         if (!status.IsOk()) {
             return status;
         }
@@ -4159,26 +4160,44 @@ MilvusClientV2Impl::RemovePrivilegesFromGroup(const RemovePrivilegesFromGroupReq
 Status
 MilvusClientV2Impl::createIndex(const std::string& db_name, const std::string& collection_name, const IndexDesc& desc,
                                 bool sync, int64_t timeout_ms) {
-    auto pre = [&db_name, &collection_name, &desc](proto::milvus::CreateIndexRequest& rpc_request) {
+    return createIndex(db_name, collection_name, desc.FieldName(), desc.IndexName(), desc.IndexType(),
+                       desc.MetricType(), desc.ExtraParams(), sync, timeout_ms);
+}
+
+Status
+MilvusClientV2Impl::createIndex(const std::string& db_name, const std::string& collection_name,
+                                const IndexParam& index_param, bool sync, int64_t timeout_ms) {
+    return createIndex(db_name, collection_name, index_param.FieldName(), index_param.IndexName(),
+                       index_param.IndexType(), index_param.MetricType(), index_param.ExtraParams(), sync, timeout_ms);
+}
+
+Status
+MilvusClientV2Impl::createIndex(const std::string& db_name, const std::string& collection_name,
+                                const std::string& field_name, const std::string& index_name,
+                                milvus::IndexType index_type, milvus::MetricType metric_type,
+                                const std::unordered_map<std::string, std::string>& extra_params, bool sync,
+                                int64_t timeout_ms) {
+    auto pre = [&db_name, &collection_name, &field_name, &index_name, index_type, metric_type,
+                &extra_params](proto::milvus::CreateIndexRequest& rpc_request) {
         rpc_request.set_db_name(db_name);
         rpc_request.set_collection_name(collection_name);
-        rpc_request.set_field_name(desc.FieldName());
-        rpc_request.set_index_name(desc.IndexName());
+        rpc_request.set_field_name(field_name);
+        rpc_request.set_index_name(index_name);
 
         auto kv_pair = rpc_request.add_extra_params();
         kv_pair->set_key(milvus::INDEX_TYPE);
-        kv_pair->set_value(std::to_string(desc.IndexType()));
+        kv_pair->set_value(std::to_string(index_type));
 
         // for scalar fields, no metric type
-        if (desc.MetricType() != MetricType::DEFAULT) {
+        if (metric_type != MetricType::DEFAULT) {
             kv_pair = rpc_request.add_extra_params();
             kv_pair->set_key(milvus::METRIC_TYPE);
-            kv_pair->set_value(std::to_string(desc.MetricType()));
+            kv_pair->set_value(std::to_string(metric_type));
         }
 
         kv_pair = rpc_request.add_extra_params();
         kv_pair->set_key(milvus::PARAMS);
-        ::nlohmann::json json_obj(desc.ExtraParams());
+        ::nlohmann::json json_obj(extra_params);
         kv_pair->set_value(json_obj.dump());
 
         return Status::OK();
@@ -4200,15 +4219,16 @@ MilvusClientV2Impl::createIndex(const std::string& db_name, const std::string& c
     if (timeout_ms > 0) {
         progress_monitor = ProgressMonitor{static_cast<uint32_t>(timeout_ms + 999) / 1000};
     }
-    auto wait_for_status = [&db_name, &collection_name, &desc, &progress_monitor, this](const proto::common::Status&) {
+    auto wait_for_status = [&db_name, &collection_name, &field_name, &progress_monitor, this](
+                               const proto::common::Status&) {
         return ConnectionHandler::WaitForStatus(
-            [&db_name, &collection_name, &desc, this](Progress& progress) -> Status {
+            [&db_name, &collection_name, &field_name, this](Progress& progress) -> Status {
                 progress.total_ = 100;
 
                 DescribeIndexRequest request = DescribeIndexRequest()
                                                    .WithDatabaseName(db_name)
                                                    .WithCollectionName(collection_name)
-                                                   .WithFieldName(desc.FieldName());
+                                                   .WithFieldName(field_name);
                 DescribeIndexResponse response;
                 auto status = DescribeIndex(request, response);
                 if (!status.IsOk()) {

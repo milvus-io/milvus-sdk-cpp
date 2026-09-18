@@ -39,8 +39,8 @@ class MilvusServerTestDml : public MilvusServerTest {
             milvus::CreateCollectionRequest().WithCollectionName(name).WithCollectionSchema(schema));
         milvus::test::ExpectStatusOK(status);
 
-        status = client_->CreateIndex(milvus::CreateIndexRequest().WithCollectionName(name).AddIndex(
-            milvus::IndexDesc("vector", "", milvus::IndexType::FLAT, milvus::MetricType::L2)));
+        status = client_->CreateIndex(milvus::CreateIndexRequest().WithCollectionName(name).AddIndexParam(
+            milvus::IndexParam("vector", "", milvus::IndexType::FLAT, milvus::MetricType::L2)));
         milvus::test::ExpectStatusOK(status);
 
         status = client_->LoadCollection(milvus::LoadCollectionRequest().WithCollectionName(name));
@@ -99,22 +99,22 @@ class MilvusServerTestDml : public MilvusServerTest {
         status = client_->CreateIndex(
             milvus::CreateIndexRequest()
                 .WithCollectionName(collection_name)
-                .AddIndex(milvus::IndexDesc("v_float", "", milvus::IndexType::FLAT, milvus::MetricType::L2)));
+                .AddIndexParam(milvus::IndexParam("v_float", "", milvus::IndexType::FLAT, milvus::MetricType::L2)));
         milvus::test::ExpectStatusOK(status);
         status = client_->CreateIndex(
             milvus::CreateIndexRequest()
                 .WithCollectionName(collection_name)
-                .AddIndex(milvus::IndexDesc("v_binary", "", milvus::IndexType::BIN_FLAT, milvus::MetricType::HAMMING)));
+                .AddIndexParam(milvus::IndexParam("v_binary", "", milvus::IndexType::BIN_FLAT, milvus::MetricType::HAMMING)));
         milvus::test::ExpectStatusOK(status);
         status = client_->CreateIndex(
             milvus::CreateIndexRequest()
                 .WithCollectionName(collection_name)
-                .AddIndex(milvus::IndexDesc("v_fp16", "", milvus::IndexType::FLAT, milvus::MetricType::L2)));
+                .AddIndexParam(milvus::IndexParam("v_fp16", "", milvus::IndexType::FLAT, milvus::MetricType::L2)));
         milvus::test::ExpectStatusOK(status);
-        milvus::IndexDesc sparse_idx("v_sparse", "", milvus::IndexType::SPARSE_INVERTED_INDEX, milvus::MetricType::IP);
+        milvus::IndexParam sparse_idx("v_sparse", "", milvus::IndexType::SPARSE_INVERTED_INDEX, milvus::MetricType::IP);
         sparse_idx.AddExtraParam("drop_ratio_build", "0.2");
         status = client_->CreateIndex(
-            milvus::CreateIndexRequest().WithCollectionName(collection_name).AddIndex(std::move(sparse_idx)));
+            milvus::CreateIndexRequest().WithCollectionName(collection_name).AddIndexParam(std::move(sparse_idx)));
         milvus::test::ExpectStatusOK(status);
     }
 
