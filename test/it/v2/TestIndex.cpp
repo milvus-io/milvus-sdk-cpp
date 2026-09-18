@@ -23,8 +23,10 @@
 
 using ::milvus::proto::milvus::ConnectRequest;
 using ::milvus::proto::milvus::ConnectResponse;
+using ::milvus::proto::milvus::CreateIndexRequest;
 using ::milvus::proto::milvus::DescribeIndexRequest;
 using ::milvus::proto::milvus::DescribeIndexResponse;
+using ::milvus::proto::milvus::LoadCollectionRequest;
 using ::testing::_;
 using ::testing::ElementsAre;
 using ::testing::Property;
@@ -101,4 +103,121 @@ TEST_F(UnconnectMilvusMockedTest, CreateIndexRejectsEmptyIndexes) {
     milvus::Status status = client->CreateIndex(milvus::CreateIndexRequest());
     EXPECT_FALSE(status.IsOk());
     EXPECT_EQ(status.Code(), milvus::StatusCode::INVALID_ARGUMENT);
+}
+
+TEST_F(UnconnectMilvusMockedTest, CreateIndexWithIndexParams) {
+    auto client = CreateConnectedV2Client(service_, server_.ListenPort());
+
+    EXPECT_CALL(service_, CreateIndex(_, Property(&CreateIndexRequest::field_name, "vec_field"), _))
+        .WillOnce([](::grpc::ServerContext*, const CreateIndexRequest* request,
+                     ::milvus::proto::common::Status* status) {
+            EXPECT_EQ(request->collection_name(), "collection");
+            EXPECT_EQ(request->index_name(), "vec_idx");
+            std::unordered_map<std::string, std::string> params{};
+            for (const auto& pair : request->extra_params()) {
+                params.emplace(pair.key(), pair.value());
+            }
+            EXPECT_EQ(params[milvus::INDEX_TYPE], std::to_string(milvus::IndexType::HNSW));
+            EXPECT_EQ(params[milvus::METRIC_TYPE], std::to_string(milvus::MetricType::L2));
+            EXPECT_EQ(params["params"], R"({"M":"16"})");
+            status->set_code(milvus::proto::common::ErrorCode::Success);
+            return ::grpc::Status{};
+        });
+
+    EXPECT_CALL(service_, CreateIndex(_, Property(&CreateIndexRequest::field_name, "text_field"), _))
+        .WillOnce([](::grpc::ServerContext*, const CreateIndexRequest* request,
+                     ::milvus::proto::common::Status* status) {
+            EXPECT_EQ(request->collection_name(), "collection");
+            EXPECT_EQ(request->index_name(), "text_idx");
+            std::unordered_map<std::string, std::string> params{};
+            for (const auto& pair : request->extra_params()) {
+                params.emplace(pair.key(), pair.value());
+            }
+            EXPECT_EQ(params[milvus::INDEX_TYPE], std::to_string(milvus::IndexType::INVERTED));
+            // scalar field index has no metric type
+            EXPECT_EQ(params.count(milvus::METRIC_TYPE), 0);
+            status->set_code(milvus::proto::common::ErrorCode::Success);
+            return ::grpc::Status{};
+        });
+
+    milvus::IndexParam param_vec("vec_field", "vec_idx", milvus::IndexType::HNSW, milvus::MetricType::L2);
+    param_vec.AddExtraParam("M", "16");
+    milvus::IndexParam param_scalar("text_field", "text_idx", milvus::IndexType::INVERTED);
+    auto status = client->CreateIndex(milvus::CreateIndexRequest()
+                                          .WithDatabaseName("db")
+                                          .WithCollectionName("collection")
+                                          .AddIndexParam(std::move(param_vec))
+                                          .AddIndexParam(std::move(param_scalar))
+                                          .WithSync(false));
+    EXPECT_TRUE(status.IsOk());
+}
+
+TEST_F(UnconnectMilvusMockedTest, CreateIndexDeprecatedIndexDescForwarding) {
+    auto client = CreateConnectedV2Client(service_, server_.ListenPort());
+
+    EXPECT_CALL(service_, CreateIndex(_, Property(&CreateIndexRequest::field_name, "vec_field"), _))
+        .WillOnce([](::grpc::ServerContext*, const CreateIndexRequest* request,
+                     ::milvus::proto::common::Status* status) {
+            EXPECT_EQ(request->collection_name(), "collection");
+            EXPECT_EQ(request->index_name(), "vec_idx");
+            std::unordered_map<std::string, std::string> params{};
+            for (const auto& pair : request->extra_params()) {
+                params.emplace(pair.key(), pair.value());
+            }
+            EXPECT_EQ(params[milvus::INDEX_TYPE], std::to_string(milvus::IndexType::HNSW));
+            EXPECT_EQ(params[milvus::METRIC_TYPE], std::to_string(milvus::MetricType::L2));
+            EXPECT_EQ(params["params"], R"({"M":"16"})");
+            status->set_code(milvus::proto::common::ErrorCode::Success);
+            return ::grpc::Status{};
+        });
+
+    milvus::IndexDesc index_desc("vec_field", "vec_idx", milvus::IndexType::HNSW, milvus::MetricType::L2);
+    index_desc.AddExtraParam("M", "16");
+    auto status = client->CreateIndex(milvus::CreateIndexRequest()
+                                          .WithDatabaseName("db")
+                                          .WithCollectionName("collection")
+                                          .WithIndexes({std::move(index_desc)})
+                                          .WithSync(false));
+    EXPECT_TRUE(status.IsOk());
+}
+
+TEST_F(UnconnectMilvusMockedTest, CreateCollectionDeprecatedIndexDescForwarding) {
+    auto client = CreateConnectedV2Client(service_, server_.ListenPort());
+
+    EXPECT_CALL(service_, CreateCollection(_, _, _))
+        .WillOnce([](::grpc::ServerContext*, const ::milvus::proto::milvus::CreateCollectionRequest*,
+                     ::milvus::proto::common::Status*) { return ::grpc::Status{}; });
+
+    EXPECT_CALL(service_, CreateIndex(_, Property(&CreateIndexRequest::field_name, "vec_field"), _))
+        .WillOnce([](::grpc::ServerContext*, const CreateIndexRequest* request,
+                     ::milvus::proto::common::Status* status) {
+            EXPECT_EQ(request->collection_name(), "collection");
+            EXPECT_EQ(request->index_name(), "vec_idx");
+            std::unordered_map<std::string, std::string> params{};
+            for (const auto& pair : request->extra_params()) {
+                params.emplace(pair.key(), pair.value());
+            }
+            EXPECT_EQ(params[milvus::INDEX_TYPE], std::to_string(milvus::IndexType::HNSW));
+            EXPECT_EQ(params[milvus::METRIC_TYPE], std::to_string(milvus::MetricType::L2));
+            EXPECT_EQ(params["params"], R"({"M":"16"})");
+            status->set_code(milvus::proto::common::ErrorCode::Success);
+            return ::grpc::Status{};
+        });
+
+    EXPECT_CALL(service_, LoadCollection(_, _, _))
+        .WillOnce([](::grpc::ServerContext*, const LoadCollectionRequest*,
+                     ::milvus::proto::common::Status*) { return ::grpc::Status{}; });
+
+    auto schema = std::make_shared<milvus::CollectionSchema>("collection");
+    schema->AddField(milvus::FieldSchema("id", milvus::DataType::INT64, "", true));
+    schema->AddField(milvus::FieldSchema("vec_field", milvus::DataType::FLOAT_VECTOR).WithDimension(8));
+
+    milvus::IndexDesc index_desc("vec_field", "vec_idx", milvus::IndexType::HNSW, milvus::MetricType::L2);
+    index_desc.AddExtraParam("M", "16");
+    auto status = client->CreateCollection(milvus::CreateCollectionRequest()
+                                               .WithDatabaseName("db")
+                                               .WithCollectionName("collection")
+                                               .WithCollectionSchema(schema)
+                                               .AddIndex(std::move(index_desc)));
+    EXPECT_TRUE(status.IsOk());
 }

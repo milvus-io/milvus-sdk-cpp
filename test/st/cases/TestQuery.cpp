@@ -44,9 +44,9 @@ class MilvusServerTestQuery : public ::testing::Test {
             milvus::CreateCollectionRequest().WithCollectionName(collection_name).WithCollectionSchema(schema));
         milvus::test::ExpectStatusOK(status);
 
-        milvus::IndexDesc index_desc("vec", "", milvus::IndexType::FLAT, milvus::MetricType::L2);
+        milvus::IndexParam index_desc("vec", "", milvus::IndexType::FLAT, milvus::MetricType::L2);
         status = client_->CreateIndex(
-            milvus::CreateIndexRequest().WithCollectionName(collection_name).AddIndex(std::move(index_desc)));
+            milvus::CreateIndexRequest().WithCollectionName(collection_name).AddIndexParam(std::move(index_desc)));
         milvus::test::ExpectStatusOK(status);
 
         // insert test data using row-based insert
@@ -291,9 +291,9 @@ class MilvusServerTestQueryStringId : public ::testing::Test {
             milvus::CreateCollectionRequest().WithCollectionName(collection_name).WithCollectionSchema(schema));
         milvus::test::ExpectStatusOK(status);
 
-        milvus::IndexDesc index_desc("vec", "", milvus::IndexType::FLAT, milvus::MetricType::L2);
+        milvus::IndexParam index_desc("vec", "", milvus::IndexType::FLAT, milvus::MetricType::L2);
         status = client_->CreateIndex(
-            milvus::CreateIndexRequest().WithCollectionName(collection_name).AddIndex(std::move(index_desc)));
+            milvus::CreateIndexRequest().WithCollectionName(collection_name).AddIndexParam(std::move(index_desc)));
         milvus::test::ExpectStatusOK(status);
 
         // insert test data with string IDs

@@ -101,11 +101,11 @@ main(int argc, char* argv[]) {
     std::cout << "Total inserted: " << total_inserted << " rows" << std::endl;
 
     std::cout << "========== Step 3: Create IVF_FLAT index ==========" << std::endl;
-    milvus::IndexDesc index(vector_field, "", milvus::IndexType::IVF_FLAT, milvus::MetricType::L2);
+    milvus::IndexParam index(vector_field, "", milvus::IndexType::IVF_FLAT, milvus::MetricType::L2);
     index.AddExtraParam("nlist", "32");
     status = client->CreateIndex(milvus::CreateIndexRequest()
                                      .WithCollectionName(collection_name)
-                                     .AddIndex(std::move(index))
+                                     .AddIndexParam(std::move(index))
                                      .WithTimeoutMs(100000));
     util::CheckStatus("create IVF_FLAT index", status);
 

@@ -70,7 +70,7 @@ main() {
             .WithCollectionName(collection)
             .WithCollectionSchema(schema)
             .WithConsistencyLevel(milvus::ConsistencyLevel::BOUNDED)
-            .AddIndex(milvus::IndexDesc("embedding", "", milvus::IndexType::AUTOINDEX, milvus::MetricType::COSINE)));
+            .AddIndexParam(milvus::IndexParam("embedding", "", milvus::IndexType::AUTOINDEX, milvus::MetricType::COSINE)));
     if (!Ok(status, "create collection")) {
         return 1;
     }

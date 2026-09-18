@@ -60,9 +60,9 @@ buildCollection(milvus::MilvusClientV2Ptr& client, milvus::MetricType index_metr
 
     // create index
     // Note that we use FLAT here, because other indexes cannot ensure that all entities can be featched by iterator
-    milvus::IndexDesc index_vector(field_face, "", milvus::IndexType::FLAT, index_metric);
+    milvus::IndexParam index_vector(field_face, "", milvus::IndexType::FLAT, index_metric);
     status = client->CreateIndex(
-        milvus::CreateIndexRequest().WithCollectionName(collection_name).AddIndex(std::move(index_vector)));
+        milvus::CreateIndexRequest().WithCollectionName(collection_name).AddIndexParam(std::move(index_vector)));
     util::CheckStatus("create index on vector field", status);
 
     // tell server prepare to load collection

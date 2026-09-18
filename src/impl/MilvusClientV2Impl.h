@@ -462,8 +462,13 @@ class MilvusClientV2Impl : public MilvusClientV2, public std::enable_shared_from
     queryIterator(QueryIteratorRequest& request, QueryIteratorPtr& iterator, const std::string& cluster_id);
 
     Status
-    createIndex(const std::string& db_name, const std::string& collection_name, const IndexDesc& desc, bool sync,
-                int64_t timeout_ms);
+    createIndex(const std::string& db_name, const std::string& collection_name, const IndexParam& index_param,
+                bool sync, int64_t timeout_ms);
+
+    Status
+    createIndex(const std::string& db_name, const std::string& collection_name, const std::string& field_name,
+                const std::string& index_name, milvus::IndexType index_type, milvus::MetricType metric_type,
+                const std::unordered_map<std::string, std::string>& extra_params, bool sync, int64_t timeout_ms);
 
     Status
     getFlushState(const std::string& db_name, const std::vector<int64_t>& segments, uint64_t flush_ts, bool& flushed);

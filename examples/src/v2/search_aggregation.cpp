@@ -165,13 +165,13 @@ buildCollection(milvus::MilvusClientV2Ptr& client) {
     schema->AddField({field_meta, milvus::DataType::JSON});
     schema->AddField(milvus::FieldSchema(field_embedding, milvus::DataType::FLOAT_VECTOR).WithDimension(dimension));
 
-    milvus::IndexDesc vector_index(field_embedding, "", milvus::IndexType::IVF_FLAT, milvus::MetricType::L2);
+    milvus::IndexParam vector_index(field_embedding, "", milvus::IndexType::IVF_FLAT, milvus::MetricType::L2);
     vector_index.AddExtraParam("nlist", "128");
     auto create_request = milvus::CreateCollectionRequest()
                               .WithCollectionName(collection_name)
                               .WithCollectionSchema(schema)
                               .WithConsistencyLevel(milvus::ConsistencyLevel::BOUNDED)
-                              .AddIndex(std::move(vector_index));
+                              .AddIndexParam(std::move(vector_index));
     auto status = client->CreateCollection(create_request);
     util::CheckStatus("create collection: " + std::string(collection_name), status);
 

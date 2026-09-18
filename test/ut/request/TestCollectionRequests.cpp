@@ -81,23 +81,45 @@ TEST_F(CreateCollectionRequestTest, GettersAndSetters) {
     req.AddProperty("key2", "val2");
     EXPECT_EQ(req.Properties().at("key2"), "val2");
 
-    // Indexes
+    // IndexParams
+    milvus::IndexParam idx;
+    std::vector<milvus::IndexParam> index_params;
+    index_params.push_back(idx);
+    req.WithIndexParams(std::move(index_params));
+    EXPECT_EQ(req.IndexParams().size(), 1);
+
+    // AddIndexParam
+    milvus::IndexParam idx2;
+    req.AddIndexParam(std::move(idx2));
+    EXPECT_EQ(req.IndexParams().size(), 2);
+
+    // SetIndexParams
+    std::vector<milvus::IndexParam> index_params2;
+    index_params2.push_back(milvus::IndexParam());
+    req.SetIndexParams(std::move(index_params2));
+    EXPECT_EQ(req.IndexParams().size(), 1);
+}
+
+TEST_F(CreateCollectionRequestTest, DeprecatedIndexDescMethods) {
+    milvus::CreateCollectionRequest req;
+
     milvus::IndexDesc idx;
-    std::vector<milvus::IndexDesc> indexes;
-    indexes.push_back(idx);
-    req.WithIndexes(std::move(indexes));
+    req.AddIndex(std::move(idx));
     EXPECT_EQ(req.Indexes().size(), 1);
+    EXPECT_EQ(req.IndexParams().size(), 1);
 
-    // AddIndex
-    milvus::IndexDesc idx2;
-    req.AddIndex(std::move(idx2));
-    EXPECT_EQ(req.Indexes().size(), 2);
-
-    // SetIndexes
     std::vector<milvus::IndexDesc> indexes2;
     indexes2.push_back(milvus::IndexDesc());
     req.SetIndexes(std::move(indexes2));
     EXPECT_EQ(req.Indexes().size(), 1);
+    EXPECT_EQ(req.IndexParams().size(), 1);
+
+    std::vector<milvus::IndexDesc> indexes3;
+    indexes3.push_back(milvus::IndexDesc());
+    auto& ref = req.WithIndexes(std::move(indexes3));
+    EXPECT_EQ(req.Indexes().size(), 1);
+    EXPECT_EQ(req.IndexParams().size(), 1);
+    EXPECT_EQ(&ref, &req);
 }
 
 TEST_F(CreateCollectionRequestTest, FluentChaining) {
