@@ -55,11 +55,11 @@ createDedupCollection(milvus::MilvusClientV2Ptr& client) {
         milvus::CreateCollectionRequest().WithCollectionName(collection_name).WithCollectionSchema(schema));
     util::CheckStatus(std::string("create collection: ") + collection_name, status);
 
-    milvus::IndexDesc index(signature_field, "", milvus::IndexType::MINHASH_LSH, milvus::MetricType::MHJACCARD);
+    milvus::IndexParam index(signature_field, "", milvus::IndexType::MINHASH_LSH, milvus::MetricType::MHJACCARD);
     index.AddExtraParam("mh_lsh_band", "8");
     index.AddExtraParam("with_raw_data", "true");
     status = client->CreateIndex(
-        milvus::CreateIndexRequest().WithCollectionName(collection_name).AddIndex(std::move(index)));
+        milvus::CreateIndexRequest().WithCollectionName(collection_name).AddIndexParam(std::move(index)));
     util::CheckStatus("create index on MinHash signature field", status);
 
     status = client->LoadCollection(milvus::LoadCollectionRequest().WithCollectionName(collection_name));

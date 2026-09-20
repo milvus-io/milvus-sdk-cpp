@@ -95,9 +95,10 @@ main() {
         milvus::CreateCollectionRequest()
             .WithCollectionName(collection)
             .WithCollectionSchema(schema)
-            .AddIndex(milvus::IndexDesc("dense", "", milvus::IndexType::AUTOINDEX, milvus::MetricType::COSINE))
-            .AddIndex(
-                milvus::IndexDesc("sparse", "", milvus::IndexType::SPARSE_INVERTED_INDEX, milvus::MetricType::IP)));
+            .AddIndexParam(
+                milvus::IndexParam("dense", "", milvus::IndexType::AUTOINDEX, milvus::MetricType::COSINE))
+            .AddIndexParam(
+                milvus::IndexParam("sparse", "", milvus::IndexType::SPARSE_INVERTED_INDEX, milvus::MetricType::IP)));
     if (!Ok(status, "create collection")) {
         return 1;
     }

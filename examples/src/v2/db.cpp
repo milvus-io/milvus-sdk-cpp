@@ -86,14 +86,14 @@ main(int argc, char* argv[]) {
     util::CheckStatus("create collection: " + collection_name, status);
 
     // create indexes
-    milvus::IndexDesc index_vector(field_face, "", milvus::IndexType::FLAT, milvus::MetricType::COSINE);
-    milvus::IndexDesc index_varchar(field_name, "", milvus::IndexType::TRIE);
-    milvus::IndexDesc index_sort(field_age, "", milvus::IndexType::STL_SORT);
+    milvus::IndexParam index_vector(field_face, "", milvus::IndexType::FLAT, milvus::MetricType::COSINE);
+    milvus::IndexParam index_varchar(field_name, "", milvus::IndexType::TRIE);
+    milvus::IndexParam index_sort(field_age, "", milvus::IndexType::STL_SORT);
     status = client->CreateIndex(milvus::CreateIndexRequest()
                                      .WithCollectionName(collection_name)
-                                     .AddIndex(std::move(index_vector))
-                                     .AddIndex(std::move(index_varchar))
-                                     .AddIndex(std::move(index_sort)));
+                                     .AddIndexParam(std::move(index_vector))
+                                     .AddIndexParam(std::move(index_varchar))
+                                     .AddIndexParam(std::move(index_sort)));
     util::CheckStatus("create indexes on collection", status);
 
     // create a partition

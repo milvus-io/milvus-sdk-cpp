@@ -53,16 +53,16 @@ main() {
     }
     std::cout << "CreateCollection succeeded." << std::endl;
 
-    milvus::IndexDesc vector_index("embedding", "embedding_hnsw_idx", milvus::IndexType::HNSW,
+    milvus::IndexParam vector_index("embedding", "embedding_hnsw_idx", milvus::IndexType::HNSW,
                                    milvus::MetricType::COSINE);
     vector_index.AddExtraParam("M", "16");
     vector_index.AddExtraParam("efConstruction", "100");
     auto request = milvus::CreateIndexRequest()
                        .WithCollectionName(collection)
-                       .AddIndex(std::move(vector_index))
-                       .AddIndex(milvus::IndexDesc("category", "category_inverted_idx", milvus::IndexType::INVERTED))
-                       .AddIndex(milvus::IndexDesc("price", "price_sort_idx", milvus::IndexType::STL_SORT));
-    // CreateIndex builds all supplied index definitions. Each IndexDesc identifies a field,
+                       .AddIndexParam(std::move(vector_index))
+                       .AddIndexParam(milvus::IndexParam("category", "category_inverted_idx", milvus::IndexType::INVERTED))
+                       .AddIndexParam(milvus::IndexParam("price", "price_sort_idx", milvus::IndexType::STL_SORT));
+    // CreateIndex builds all supplied index definitions. Each IndexParam identifies a field,
     // index name and type, plus any metric or build parameters.
     std::cout << "Calling CreateIndex..." << std::endl;
     status = client->CreateIndex(request);

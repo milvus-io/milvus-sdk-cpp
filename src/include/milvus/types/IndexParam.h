@@ -16,13 +16,10 @@
 
 #pragma once
 
-#include <cstdint>
-#include <memory>
 #include <string>
 #include <unordered_map>
 
 #include "../Status.h"
-#include "IndexState.h"
 #include "IndexType.h"
 #include "MetricType.h"
 #include "milvus/Export.h"
@@ -30,25 +27,26 @@
 namespace milvus {
 
 /**
- * @brief Index description. Used by MilvusClient::CreateIndex() and MilvusClient::DescribeIndex().
+ * @brief Parameters used to create an index on a collection field.
+ * Used by MilvusClientV2::CreateIndex().
  */
-class MILVUS_SDK_API IndexDesc {
+class MILVUS_SDK_API IndexParam {
  public:
     /**
-     * @brief Construct a new IndexDesc object.
+     * @brief Construct a new IndexParam object.
      */
-    IndexDesc();
+    IndexParam();
 
     /**
-     * @brief Construct a new IndexDesc object.
+     * @brief Construct a new IndexParam object.
      *
      * @param field_name field name which the index belong to
      * @param index_name index name
-     * @param index_type  index type see IndexType
-     * @param metric_type  metric type see MetricType, no need to set this for scalar field index
+     * @param index_type index type see IndexType
+     * @param metric_type metric type see MetricType, no need to set this for scalar field index
      */
-    IndexDesc(std::string field_name, std::string index_name, milvus::IndexType index_type,
-              milvus::MetricType metric_type = milvus::MetricType::INVALID);
+    IndexParam(std::string field_name, std::string index_name, milvus::IndexType index_type,
+               milvus::MetricType metric_type = milvus::MetricType::INVALID);
 
     /**
      * @brief Field name which the index belong to.
@@ -65,7 +63,7 @@ class MILVUS_SDK_API IndexDesc {
     SetFieldName(std::string field_name);
 
     /**
-     * @brief Index name. Index name cannot be empty.
+     * @brief Index name.
      * @return the index name.
      */
     const std::string&
@@ -77,20 +75,6 @@ class MILVUS_SDK_API IndexDesc {
      */
     Status
     SetIndexName(std::string index_name);
-
-    /**
-     * @brief Index ID.
-     * @return the index ID.
-     */
-    int64_t
-    IndexId() const;
-
-    /**
-     * @brief Set index id.
-     * @param [in] index_id the index ID.
-     */
-    Status
-    SetIndexId(int64_t index_id);
 
     /**
      * @brief Metric type.
@@ -122,7 +106,6 @@ class MILVUS_SDK_API IndexDesc {
 
     /**
      * @brief Add extra param.
-     * Note: this method was redefined in v2.4, which may affect older client code.
      * @param [in] key the key.
      * @param [in] value the value.
      */
@@ -130,91 +113,18 @@ class MILVUS_SDK_API IndexDesc {
     AddExtraParam(const std::string& key, const std::string& value);
 
     /**
-     * @brief Get extra param.
-     * Note: this method was redefined in v2.4, which may affect older client code.
+     * @brief Get extra params.
      * @return the extra params.
      */
     const std::unordered_map<std::string, std::string>&
     ExtraParams() const;
 
     /**
-     * @brief Construct a new IndexDesc from Json object
+     * @brief Construct extra params from a Json object.
      * @param json Json string for parse
      */
     Status
     ExtraParamsFromJson(std::string json);
-
-    /**
-     * @brief Set index state.
-     * @param [in] code the code.
-     */
-    Status
-    SetStateCode(const milvus::IndexStateCode& code);
-
-    /**
-     * @brief Get index state.
-     * @return the state code.
-     */
-    milvus::IndexStateCode
-    StateCode() const;
-
-    /**
-     * @brief Set index failed reason.
-     * @param [in] reason the reason.
-     */
-    Status
-    SetFailReason(const std::string& reason);
-
-    /**
-     * @brief Get index failed reason.
-     * @return the fail reason.
-     */
-    std::string
-    FailReason() const;
-
-    /**
-     * @brief Set number of indexed rows.
-     * @param [in] rows the rows.
-     */
-    Status
-    SetIndexedRows(int64_t rows);
-
-    /**
-     * @brief Get number of indexed rows.
-     * Note that indexed rows could be larger than total rows, because some segments will be reindexed
-     * after compaction.
-     * @return the indexed rows.
-     */
-    int64_t
-    IndexedRows() const;
-
-    /**
-     * @brief Set number of total rows.
-     * @param [in] rows the rows.
-     */
-    Status
-    SetTotalRows(int64_t rows);
-
-    /**
-     * @brief Get number of total rows.
-     * @return the total rows.
-     */
-    int64_t
-    TotalRows() const;
-
-    /**
-     * @brief Set number of pending unindexed rows.
-     * @param [in] rows the rows.
-     */
-    Status
-    SetPendingRows(int64_t rows);
-
-    /**
-     * @brief Get number of pending unindexed rows.
-     * @return the pending rows.
-     */
-    int64_t
-    PendingRows() const;
 
  private:
     std::string field_name_;
@@ -222,14 +132,6 @@ class MILVUS_SDK_API IndexDesc {
     milvus::MetricType metric_type_{milvus::MetricType::INVALID};
     milvus::IndexType index_type_{milvus::IndexType::INVALID};
     std::unordered_map<std::string, std::string> extra_params_;
-
-    // the following members are only for DescribeIndex
-    int64_t index_id_{0};
-    IndexStateCode state_code_{IndexStateCode::NONE};
-    std::string failed_reason_;
-    int64_t indexed_rows_{0};
-    int64_t total_rows_{0};
-    int64_t pending_rows_{0};
 };
 
 }  // namespace milvus

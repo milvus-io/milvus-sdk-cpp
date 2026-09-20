@@ -63,9 +63,9 @@ class MilvusServerTestTextMatch : public ::testing::Test {
             milvus::CreateCollectionRequest().WithCollectionName(collection_name).WithCollectionSchema(schema));
         milvus::test::ExpectStatusOK(status);
 
-        milvus::IndexDesc idx("vec", "", milvus::IndexType::FLAT, milvus::MetricType::L2);
+        milvus::IndexParam idx("vec", "", milvus::IndexType::FLAT, milvus::MetricType::L2);
         status = client_->CreateIndex(
-            milvus::CreateIndexRequest().WithCollectionName(collection_name).AddIndex(std::move(idx)));
+            milvus::CreateIndexRequest().WithCollectionName(collection_name).AddIndexParam(std::move(idx)));
         milvus::test::ExpectStatusOK(status);
 
         // insert text data
@@ -226,9 +226,9 @@ class MilvusServerTestBM25 : public ::testing::Test {
             milvus::CreateCollectionRequest().WithCollectionName(collection_name).WithCollectionSchema(schema));
         milvus::test::ExpectStatusOK(status);
 
-        milvus::IndexDesc idx("sparse_vec", "", milvus::IndexType::SPARSE_INVERTED_INDEX, milvus::MetricType::BM25);
+        milvus::IndexParam idx("sparse_vec", "", milvus::IndexType::SPARSE_INVERTED_INDEX, milvus::MetricType::BM25);
         status = client_->CreateIndex(
-            milvus::CreateIndexRequest().WithCollectionName(collection_name).AddIndex(std::move(idx)));
+            milvus::CreateIndexRequest().WithCollectionName(collection_name).AddIndexParam(std::move(idx)));
         milvus::test::ExpectStatusOK(status);
 
         milvus::EntityRows rows_data;
@@ -367,9 +367,9 @@ class MilvusServerTestMultiAnalyzer : public ::testing::Test {
             milvus::CreateCollectionRequest().WithCollectionName(collection_name).WithCollectionSchema(schema));
         milvus::test::ExpectStatusOK(status);
 
-        milvus::IndexDesc idx("sparse_vec", "", milvus::IndexType::SPARSE_INVERTED_INDEX, milvus::MetricType::BM25);
+        milvus::IndexParam idx("sparse_vec", "", milvus::IndexType::SPARSE_INVERTED_INDEX, milvus::MetricType::BM25);
         status = client_->CreateIndex(
-            milvus::CreateIndexRequest().WithCollectionName(collection_name).AddIndex(std::move(idx)));
+            milvus::CreateIndexRequest().WithCollectionName(collection_name).AddIndexParam(std::move(idx)));
         milvus::test::ExpectStatusOK(status);
 
         milvus::EntityRows rows_data;

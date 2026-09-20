@@ -92,9 +92,9 @@ main(int argc, char* argv[]) {
         milvus::CreateCollectionRequest().WithCollectionName(collection_name).WithCollectionSchema(collection_schema));
     util::CheckStatus("create collection: " + collection_name, status);
 
-    milvus::IndexDesc index_vector("vector", "", milvus::IndexType::AUTOINDEX, milvus::MetricType::L2);
+    milvus::IndexParam index_vector("vector", "", milvus::IndexType::AUTOINDEX, milvus::MetricType::L2);
     status = client->CreateIndex(
-        milvus::CreateIndexRequest().WithCollectionName(collection_name).AddIndex(std::move(index_vector)));
+        milvus::CreateIndexRequest().WithCollectionName(collection_name).AddIndexParam(std::move(index_vector)));
     util::CheckStatus("create index on vector field", status);
 
     status = client->LoadCollection(milvus::LoadCollectionRequest().WithCollectionName(collection_name));

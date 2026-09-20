@@ -56,14 +56,14 @@ buildCollection(milvus::MilvusClientV2Ptr& client, bool auto_id) {
     util::CheckStatus("create collection: " + std::string(collection_name), status);
 
     // create index
-    milvus::IndexDesc index_vector(field_vector, "", milvus::IndexType::HNSW, milvus::MetricType::L2);
+    milvus::IndexParam index_vector(field_vector, "", milvus::IndexType::HNSW, milvus::MetricType::L2);
     index_vector.AddExtraParam("M", "64");
     index_vector.AddExtraParam("efConstruction", "200");
-    milvus::IndexDesc index_text(field_text, "", milvus::IndexType::INVERTED);
+    milvus::IndexParam index_text(field_text, "", milvus::IndexType::INVERTED);
     status = client->CreateIndex(milvus::CreateIndexRequest()
                                      .WithCollectionName(collection_name)
-                                     .AddIndex(std::move(index_vector))
-                                     .AddIndex(std::move(index_text)));
+                                     .AddIndexParam(std::move(index_vector))
+                                     .AddIndexParam(std::move(index_text)));
     util::CheckStatus("create indexes on collection", status);
 
     // load collection

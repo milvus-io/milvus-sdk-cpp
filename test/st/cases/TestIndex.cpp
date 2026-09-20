@@ -46,10 +46,10 @@ class MilvusServerTestIndex : public MilvusServerTest {
 
 TEST_F(MilvusServerTestIndex, CreateDescribeListDrop) {
     // create index
-    milvus::IndexDesc index_desc("vec", "my_index", milvus::IndexType::IVF_FLAT, milvus::MetricType::L2);
+    milvus::IndexParam index_desc("vec", "my_index", milvus::IndexType::IVF_FLAT, milvus::MetricType::L2);
     index_desc.AddExtraParam("nlist", "128");
     auto status = client_->CreateIndex(
-        milvus::CreateIndexRequest().WithCollectionName(collection_name).AddIndex(std::move(index_desc)));
+        milvus::CreateIndexRequest().WithCollectionName(collection_name).AddIndexParam(std::move(index_desc)));
     std::cout << "index created" << std::endl;
     milvus::test::ExpectStatusOK(status);
 
@@ -96,11 +96,11 @@ TEST_F(MilvusServerTestIndex, CreateDescribeListDrop) {
 }
 
 TEST_F(MilvusServerTestIndex, CreateHNSWIndex) {
-    milvus::IndexDesc index_desc("vec", "", milvus::IndexType::HNSW, milvus::MetricType::L2);
+    milvus::IndexParam index_desc("vec", "", milvus::IndexType::HNSW, milvus::MetricType::L2);
     index_desc.AddExtraParam("M", "16");
     index_desc.AddExtraParam("efConstruction", "200");
     auto status = client_->CreateIndex(
-        milvus::CreateIndexRequest().WithCollectionName(collection_name).AddIndex(std::move(index_desc)));
+        milvus::CreateIndexRequest().WithCollectionName(collection_name).AddIndexParam(std::move(index_desc)));
     milvus::test::ExpectStatusOK(status);
 
     status =
@@ -125,11 +125,11 @@ TEST_F(MilvusServerTestIndex, CreateHNSWIndex) {
 
 TEST_F(MilvusServerTestIndex, AlterAndDropIndexProperties) {
     // create index first
-    milvus::IndexDesc index_desc("vec", "test_index", milvus::IndexType::HNSW, milvus::MetricType::L2);
+    milvus::IndexParam index_desc("vec", "test_index", milvus::IndexType::HNSW, milvus::MetricType::L2);
     index_desc.AddExtraParam("M", "16");
     index_desc.AddExtraParam("efConstruction", "200");
     auto status = client_->CreateIndex(
-        milvus::CreateIndexRequest().WithCollectionName(collection_name).AddIndex(std::move(index_desc)));
+        milvus::CreateIndexRequest().WithCollectionName(collection_name).AddIndexParam(std::move(index_desc)));
     milvus::test::ExpectStatusOK(status);
 
     // alter index properties

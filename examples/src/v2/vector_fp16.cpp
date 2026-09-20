@@ -53,12 +53,12 @@ main(int argc, char* argv[]) {
     util::CheckStatus("create collection: " + collection_name, status);
 
     // create index
-    milvus::IndexDesc index_vector_fp16(field_vec_fp16, "", milvus::IndexType::AUTOINDEX, milvus::MetricType::COSINE);
-    milvus::IndexDesc index_vector_bf16(field_vec_bf16, "", milvus::IndexType::AUTOINDEX, milvus::MetricType::COSINE);
+    milvus::IndexParam index_vector_fp16(field_vec_fp16, "", milvus::IndexType::AUTOINDEX, milvus::MetricType::COSINE);
+    milvus::IndexParam index_vector_bf16(field_vec_bf16, "", milvus::IndexType::AUTOINDEX, milvus::MetricType::COSINE);
     status = client->CreateIndex(milvus::CreateIndexRequest()
                                      .WithCollectionName(collection_name)
-                                     .AddIndex(std::move(index_vector_fp16))
-                                     .AddIndex(std::move(index_vector_bf16)));
+                                     .AddIndexParam(std::move(index_vector_fp16))
+                                     .AddIndexParam(std::move(index_vector_bf16)));
     util::CheckStatus("create indexes on collection", status);
 
     // insert some rows
