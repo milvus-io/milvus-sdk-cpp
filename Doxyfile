@@ -12,6 +12,10 @@ RECURSIVE              = YES
 EXCLUDE_PATTERNS       = */thirdparty/*
 FILE_PATTERNS          = *.h *.hpp
 
+# Mark Zilliz Cloud only APIs with @zillizCloudOnly in their Doxygen comment so
+# the published reference badges them; mirrors the Java SDK's @zillizCloudOnly.
+ALIASES                += "zillizCloudOnly=\par \b Zilliz Cloud only"
+
 GENERATE_HTML          = YES
 GENERATE_LATEX         = NO
 GENERATE_TREEVIEW      = YES

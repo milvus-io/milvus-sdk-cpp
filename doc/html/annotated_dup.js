@@ -225,6 +225,7 @@ var annotated_dup =
       [ "HybridSearchArguments", "classmilvus_1_1HybridSearchArguments.html", "classmilvus_1_1HybridSearchArguments" ],
       [ "IDArray", "classmilvus_1_1IDArray.html", "classmilvus_1_1IDArray" ],
       [ "IndexDesc", "classmilvus_1_1IndexDesc.html", "classmilvus_1_1IndexDesc" ],
+      [ "IndexParam", "classmilvus_1_1IndexParam.html", "classmilvus_1_1IndexParam" ],
       [ "IndexState", "classmilvus_1_1IndexState.html", "classmilvus_1_1IndexState" ],
       [ "IndexProgress", "classmilvus_1_1IndexProgress.html", "classmilvus_1_1IndexProgress" ],
       [ "Iterator", "classmilvus_1_1Iterator.html", "classmilvus_1_1Iterator" ],

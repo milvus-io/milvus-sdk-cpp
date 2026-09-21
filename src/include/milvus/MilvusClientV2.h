@@ -1525,6 +1525,7 @@ class MILVUS_SDK_API MilvusClientV2 {
 
     /**
      * @brief Create a cluster-scoped session exposing DQL interfaces only.
+     * @zillizCloudOnly
      *
      * @param [in] cluster_id target cluster identifier
      * @param [out] session cluster-scoped client view

@@ -29,6 +29,7 @@ var dir_53c00515ba0a574351444ad81a3f1700 =
     [ "HybridSearchArguments.h", "HybridSearchArguments_8h_source.html", null ],
     [ "IDArray.h", "IDArray_8h_source.html", null ],
     [ "IndexDesc.h", "IndexDesc_8h_source.html", null ],
+    [ "IndexParam.h", "IndexParam_8h_source.html", null ],
     [ "IndexState.h", "IndexState_8h_source.html", null ],
     [ "IndexType.h", "IndexType_8h_source.html", null ],
     [ "Iterator.h", "Iterator_8h_source.html", null ],
