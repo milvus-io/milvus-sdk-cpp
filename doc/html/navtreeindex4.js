@@ -1,5 +1,14 @@
 var NAVTREEINDEX4 =
 {
+"classmilvus_1_1DropDatabaseRequest.html":[2,0,0,56],
+"classmilvus_1_1DropDatabaseRequest.html#aa24f2402506a39293347aa01b9d22384":[2,0,0,56,0],
+"classmilvus_1_1DropFunctionFieldRequest.html":[2,0,0,41],
+"classmilvus_1_1DropFunctionFieldRequest.html#a101b13b74c9dfc60fed8b60852433b87":[2,0,0,41,3],
+"classmilvus_1_1DropFunctionFieldRequest.html#a72ebe29362bc19a5fcbda37d7a988b83":[2,0,0,41,2],
+"classmilvus_1_1DropFunctionFieldRequest.html#ab64dce7e752734ea25d15784e3e26d1d":[2,0,0,41,0],
+"classmilvus_1_1DropFunctionFieldRequest.html#abe2f9d5b7737d6971c14cf30d83b2bb6":[2,0,0,41,1],
+"classmilvus_1_1DropIndexPropertiesRequest.html":[2,0,0,72],
+"classmilvus_1_1DropIndexPropertiesRequest.html#a09802c6c79b3620655596ceff5f51cca":[2,0,0,72,4],
 "classmilvus_1_1DropIndexPropertiesRequest.html#a121bc78dd8bde7290605e9b55160a6d9":[2,0,0,72,2],
 "classmilvus_1_1DropIndexPropertiesRequest.html#a2da2af2513d55d03a49e5f0d229334cf":[2,0,0,72,7],
 "classmilvus_1_1DropIndexPropertiesRequest.html#a34c61629ef5eb109d6b4cb066f69b479":[2,0,0,72,6],
@@ -240,14 +249,5 @@ var NAVTREEINDEX4 =
 "classmilvus_1_1Function.html#ae7a72953f74f1574fa7d2e1f3ff81ead":[2,0,0,206,0],
 "classmilvus_1_1Function.html#af967ffd4698e00977a7bf9453c8d36d4":[2,0,0,206,12],
 "classmilvus_1_1Function.html#afeebaa8d77629ab3562ebb52122ea0ce":[2,0,0,206,11],
-"classmilvus_1_1FunctionChain.html":[2,0,0,216],
-"classmilvus_1_1FunctionChain.html#a034a4469ecc6102b61cb6b2a7e846187":[2,0,0,216,3],
-"classmilvus_1_1FunctionChain.html#a0d2de88e4e9fe4636c0e903eff41d395":[2,0,0,216,0],
-"classmilvus_1_1FunctionChain.html#a18c28b879c52f91158014e02d09e3cd2":[2,0,0,216,6],
-"classmilvus_1_1FunctionChain.html#a1a0ec3f6de0623e350734ebbe9c7ec25":[2,0,0,216,9],
-"classmilvus_1_1FunctionChain.html#a25b0289079698568f179c79e46437878":[2,0,0,216,5],
-"classmilvus_1_1FunctionChain.html#a33b73c0a9660e608fad9a0c573564e72":[2,0,0,216,1],
-"classmilvus_1_1FunctionChain.html#a33c1fbcb927b99cf8f2f40592c2fbd75":[2,0,0,216,8],
-"classmilvus_1_1FunctionChain.html#a6490197eff356d733e4dbf9b5b945817":[2,0,0,216,7],
-"classmilvus_1_1FunctionChain.html#a8584eabfbdeaab917aac4a6c960b26ec":[2,0,0,216,4]
+"classmilvus_1_1FunctionChain.html":[2,0,0,216]
 };

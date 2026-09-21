@@ -246,6 +246,7 @@ var hierarchy =
     [ "milvus::HybridSearchArguments", "classmilvus_1_1HybridSearchArguments.html", null ],
     [ "milvus::IDArray", "classmilvus_1_1IDArray.html", null ],
     [ "milvus::IndexDesc", "classmilvus_1_1IndexDesc.html", null ],
+    [ "milvus::IndexParam", "classmilvus_1_1IndexParam.html", null ],
     [ "milvus::IndexProgress", "classmilvus_1_1IndexProgress.html", null ],
     [ "milvus::IndexRequestBase< T >", "classmilvus_1_1IndexRequestBase.html", null ],
     [ "milvus::IndexRequestBase< AlterIndexPropertiesRequest >", "classmilvus_1_1IndexRequestBase.html", [

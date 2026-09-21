@@ -34,6 +34,7 @@ namespace milvus {
 
 /**
  * @brief A cluster-scoped view of MilvusClientV2 exposing DQL interfaces only.
+ * @zillizCloudOnly
  * @par Example
  * @code
  * milvus::MilvusClientV2SessionPtr session;
