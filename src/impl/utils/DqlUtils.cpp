@@ -32,6 +32,58 @@
 #include "milvus/utils/FP16.h"
 
 namespace milvus {
+
+Status
+ValidateFunctionChains(const std::vector<FunctionChain>& function_chains) {
+    for (const auto& chain : function_chains) {
+        if (chain.Stage() == FunctionChainStage::UNSPECIFIED) {
+            return {StatusCode::INVALID_ARGUMENT, "UNSPECIFIED function chain stage is not supported"};
+        }
+        for (const auto& op : chain.Ops()) {
+            if (op.Op().empty()) {
+                return {StatusCode::INVALID_ARGUMENT, "Function chain op name cannot be empty"};
+            }
+            for (const auto& input : op.Inputs()) {
+                if (input.empty()) {
+                    return {StatusCode::INVALID_ARGUMENT, "Function chain op input column name cannot be empty"};
+                }
+            }
+            for (const auto& output : op.Outputs()) {
+                if (output.empty()) {
+                    return {StatusCode::INVALID_ARGUMENT, "Function chain op output column name cannot be empty"};
+                }
+            }
+            if (op.Op() == "limit") {
+                auto limit_param = op.Params().find("limit");
+                if (limit_param != op.Params().end() && limit_param->second.is_number_integer()) {
+                    if (limit_param->second.get<int64_t>() <= 0) {
+                        return {StatusCode::INVALID_ARGUMENT, "Function chain limit must be greater than 0"};
+                    }
+                }
+                auto offset_param = op.Params().find("offset");
+                if (offset_param != op.Params().end() && offset_param->second.is_number_integer()) {
+                    if (offset_param->second.get<int64_t>() < 0) {
+                        return {StatusCode::INVALID_ARGUMENT,
+                                "Function chain offset must be greater than or equal to 0"};
+                    }
+                }
+            }
+            if (op.HasExpr()) {
+                const auto& expr = op.Expr();
+                if (expr.Name().empty()) {
+                    return {StatusCode::INVALID_ARGUMENT, "Function chain expression name cannot be empty"};
+                }
+                for (const auto& arg : expr.Args()) {
+                    if (arg.IsColumn() && arg.ColumnName().empty()) {
+                        return {StatusCode::INVALID_ARGUMENT, "Function chain expression column name cannot be empty"};
+                    }
+                }
+            }
+        }
+    }
+    return Status::OK();
+}
+
 namespace {
 
 Status
@@ -2129,11 +2181,13 @@ ConvertHybridSearchRequest(const T& request, const std::string& current_db,
 
     // set rerank
     auto reranker = request.Rerank();
-    for (auto& pair : reranker->Params()) {
-        if (pair.first == CLUSTER_ID) {
-            continue;
+    if (reranker != nullptr) {
+        for (auto& pair : reranker->Params()) {
+            if (pair.first == CLUSTER_ID) {
+                continue;
+            }
+            setParamFunc(pair.first, pair.second);
         }
-        setParamFunc(pair.first, pair.second);
     }
     if (!cluster_id.empty()) {
         setParamFunc(CLUSTER_ID, cluster_id);

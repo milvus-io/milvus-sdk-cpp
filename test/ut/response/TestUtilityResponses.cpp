@@ -118,6 +118,10 @@ TEST_F(GetCompactionPlansResponseTest, SetterAndGetter) {
     EXPECT_EQ(resp.State(), milvus::CompactionStateCode::UNKNOWN);
     resp.SetState(milvus::CompactionStateCode::COMPLETED);
     EXPECT_EQ(resp.State(), milvus::CompactionStateCode::COMPLETED);
+
+    EXPECT_TRUE(resp.CollectionName().empty());
+    resp.SetCollectionName("coll");
+    EXPECT_EQ(resp.CollectionName(), "coll");
 }
 
 class GetServerVersionResponseTest : public ::testing::Test {};

@@ -40,6 +40,29 @@
 
 namespace milvus {
 
+namespace {
+// Shared conversion for GetCompactionPlans() and ListCompactionTasks(): map every
+// CompactionMergeInfo field into a CompactionPlan.
+void
+ConvertCompactionPlans(const proto::milvus::GetCompactionPlansResponse& rpc_response, CompactionPlans& plans) {
+    plans.reserve(rpc_response.mergeinfos_size());
+    for (int i = 0; i < rpc_response.mergeinfos_size(); ++i) {
+        const auto& info = rpc_response.mergeinfos(i);
+        CompactionPlan plan(std::vector<int64_t>(info.sources().begin(), info.sources().end()), info.target());
+        plan.SetPlanId(info.plan_id());
+        plan.SetTriggerId(info.trigger_id());
+        plan.SetCollectionId(info.collection_id());
+        plan.SetPartitionId(info.partition_id());
+        plan.SetChannel(info.channel());
+        plan.SetType(static_cast<CompactionType>(info.type()));
+        plan.SetState(static_cast<CompactionTaskState>(info.state()));
+        plan.SetFailureReason(info.failure_reason());
+        plan.SetTargets(std::vector<int64_t>(info.targets().begin(), info.targets().end()));
+        plans.emplace_back(std::move(plan));
+    }
+}
+}  // namespace
+
 std::shared_ptr<MilvusClientV2>
 MilvusClientV2::Create() {
     return {new MilvusClientV2Impl(), [](MilvusClientV2Impl* client) noexcept {
@@ -1582,9 +1605,8 @@ MilvusClientV2Impl::CreateIndex(const CreateIndexRequest& request) {
         return Status{StatusCode::INVALID_ARGUMENT, "IndexParams is empty, no index can be created"};
     }
     for (const auto& index_param : index_params) {
-        auto status =
-            createIndex(request.DatabaseName(), request.CollectionName(), index_param, request.Sync(),
-                        request.TimeoutMs());
+        auto status = createIndex(request.DatabaseName(), request.CollectionName(), index_param, request.Sync(),
+                                  request.TimeoutMs());
         if (!status.IsOk()) {
             return status;
         }
@@ -2294,8 +2316,18 @@ MilvusClientV2Impl::hybridSearch(const HybridSearchRequest& request, HybridSearc
     auto validate = [&request]() { return request.Validate(); };
 
     auto pre = [&endpoint, &database_name, &request, &cluster_id](proto::milvus::HybridSearchRequest& rpc_request) {
-        return ConvertHybridSearchRequest<HybridSearchRequest>(request, database_name, rpc_request, cluster_id,
-                                                               endpoint);
+        auto status =
+            ConvertHybridSearchRequest<HybridSearchRequest>(request, database_name, rpc_request, cluster_id, endpoint);
+        if (!status.IsOk()) {
+            return status;
+        }
+        for (const auto& function_chain : request.FunctionChains()) {
+            status = ConvertFunctionChain(function_chain, *rpc_request.add_function_chains());
+            if (!status.IsOk()) {
+                return status;
+            }
+        }
+        return Status::OK();
     };
 
     auto post = [this, &endpoint, &database_name, &request,
@@ -3161,14 +3193,39 @@ MilvusClientV2Impl::GetCompactionPlans(const GetCompactionPlansRequest& request,
                 break;
         }
         CompactionPlans plans;
-        plans.reserve(rpc_response.mergeinfos_size());
-        for (int i = 0; i < rpc_response.mergeinfos_size(); ++i) {
-            auto& info = rpc_response.mergeinfos(i);
-            std::vector<int64_t> source_ids;
-            source_ids.reserve(info.sources_size());
-            source_ids.insert(source_ids.end(), info.sources().begin(), info.sources().end());
-            plans.emplace_back(source_ids, info.target());
+        ConvertCompactionPlans(rpc_response, plans);
+        response.SetPlans(std::move(plans));
+        return Status::OK();
+    };
+
+    return connection_.Invoke<proto::milvus::GetCompactionPlansRequest, proto::milvus::GetCompactionPlansResponse>(
+        pre, &MilvusConnection::GetCompactionPlans, post);
+}
+
+Status
+MilvusClientV2Impl::ListCompactionTasks(const ListCompactionTasksRequest& request,
+                                        GetCompactionPlansResponse& response) {
+    auto pre = [&request](proto::milvus::GetCompactionPlansRequest& rpc_request) {
+        rpc_request.set_db_name(request.DatabaseName());
+        rpc_request.set_collection_name(request.CollectionName());
+        return Status::OK();
+    };
+
+    auto post = [&response, &request](const proto::milvus::GetCompactionPlansResponse& rpc_response) {
+        response.SetCollectionName(request.CollectionName());
+        switch (rpc_response.state()) {
+            case proto::common::CompactionState::Completed:
+                response.SetState(CompactionStateCode::COMPLETED);
+                break;
+            case proto::common::CompactionState::Executing:
+                response.SetState(CompactionStateCode::EXECUTING);
+                break;
+            default:
+                response.SetState(CompactionStateCode::UNKNOWN);
+                break;
         }
+        CompactionPlans plans;
+        ConvertCompactionPlans(rpc_response, plans);
         response.SetPlans(std::move(plans));
         return Status::OK();
     };
@@ -4212,8 +4269,8 @@ MilvusClientV2Impl::createIndex(const std::string& db_name, const std::string& c
     if (timeout_ms > 0) {
         progress_monitor = ProgressMonitor{static_cast<uint32_t>(timeout_ms + 999) / 1000};
     }
-    auto wait_for_status = [&db_name, &collection_name, &field_name, &progress_monitor, this](
-                               const proto::common::Status&) {
+    auto wait_for_status = [&db_name, &collection_name, &field_name, &progress_monitor,
+                            this](const proto::common::Status&) {
         return ConnectionHandler::WaitForStatus(
             [&db_name, &collection_name, &field_name, this](Progress& progress) -> Status {
                 progress.total_ = 100;

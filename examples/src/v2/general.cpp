@@ -142,6 +142,9 @@ main(int argc, char* argv[]) {
     // for this collection and load the collection
     status = client->DropCollection(
         milvus::DropCollectionRequest().WithCollectionName(collection_name).WithDatabaseName(db_name));
+    // a leftover from an interrupted rename demo must also be dropped or the rename fails on rerun
+    client->DropCollection(
+        milvus::DropCollectionRequest().WithCollectionName(collection_name + "_renamed").WithDatabaseName(db_name));
     status = client->CreateCollection(
         milvus::CreateCollectionRequest()
             .WithDatabaseName(db_name)
@@ -387,6 +390,47 @@ main(int argc, char* argv[]) {
         }
     }
 
+    {
+        // delete a batch of rows by their primary keys
+        std::vector<int64_t> ids_to_delete(insert_ids.begin(), insert_ids.begin() + 100);
+        milvus::DeleteResponse resp_delete;
+        status = client->Delete(
+            milvus::DeleteRequest().WithCollectionName(collection_name).WithIDs(std::move(ids_to_delete)), resp_delete);
+        util::CheckStatus("delete rows by primary keys", status);
+    }
+
+    {
+        // delete rows by a filter expression
+        milvus::DeleteResponse resp_delete;
+        status = client->Delete(
+            milvus::DeleteRequest().WithCollectionName(collection_name).WithFilter(field_age + " > 90"), resp_delete);
+        util::CheckStatus("delete rows by filter: " + field_age + " > 90", status);
+    }
+
+    {
+        // truncate the collection, removing all rows but keeping the schema and partitions
+        status = client->TruncateCollection(milvus::TruncateCollectionRequest().WithCollectionName(collection_name));
+        util::CheckStatus("truncate collection: " + collection_name, status);
+    }
+
+    {
+        // rename the collection, then rename it back so the rest of the example keeps using the original name
+        const std::string new_name = collection_name + "_renamed";
+        status = client->RenameCollection(
+            milvus::RenameCollectionRequest().WithCollectionName(collection_name).WithNewCollectionName(new_name));
+        util::CheckStatus("rename collection: " + collection_name + " -> " + new_name, status);
+
+        milvus::DescribeCollectionResponse desc_response;
+        status =
+            client->DescribeCollection(milvus::DescribeCollectionRequest().WithCollectionName(new_name), desc_response);
+        util::CheckStatus("describe renamed collection: " + new_name, status);
+        std::cout << "Describe renamed collection: " << desc_response.Desc().CollectionName() << std::endl;
+
+        status = client->RenameCollection(
+            milvus::RenameCollectionRequest().WithCollectionName(new_name).WithNewCollectionName(collection_name));
+        util::CheckStatus("rename collection: " + new_name + " -> " + collection_name, status);
+    }
+
     // describe the collection, load state is LOADED
     DescribeCollection(client);
 
@@ -405,7 +449,7 @@ main(int argc, char* argv[]) {
     // create index again
     {
         milvus::IndexParam index_vector(field_face, "vector_index_name", milvus::IndexType::HNSW,
-                                       milvus::MetricType::L2);
+                                        milvus::MetricType::L2);
         index_vector.AddExtraParam("M", "32");
         index_vector.AddExtraParam("efConstruction", "100");
 

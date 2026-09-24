@@ -133,6 +133,14 @@ AppendSearchResult(const SingleResult& from, SingleResult& to);
 Status
 IsAmbiguousParam(const std::string& key);
 
+/**
+ * @brief Validate the stage, operations, and expressions of the given function chains.
+ * @param [in] function_chains the function chains.
+ * @return Status::OK when valid, otherwise an INVALID_ARGUMENT error.
+ */
+Status
+ValidateFunctionChains(const std::vector<FunctionChain>& function_chains);
+
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // explicitly instantiation of template methods to avoid link error
 // query

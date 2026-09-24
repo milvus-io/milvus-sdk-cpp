@@ -14,48 +14,40 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "milvus/response/utility/GetCompactionPlansResponse.h"
+#include "milvus/request/utility/ListCompactionTasksRequest.h"
 
 namespace milvus {
 
-const CompactionPlans&
-GetCompactionPlansResponse::Plans() const {
-    return plans_;
+const std::string&
+ListCompactionTasksRequest::DatabaseName() const {
+    return db_name_;
 }
 
 void
-GetCompactionPlansResponse::SetPlans(CompactionPlans&& plans) {
-    plans_ = std::move(plans);
+ListCompactionTasksRequest::SetDatabaseName(const std::string& db_name) {
+    db_name_ = db_name;
 }
 
-int64_t
-GetCompactionPlansResponse::CompactionID() const {
-    return compaction_id_;
-}
-
-void
-GetCompactionPlansResponse::SetCompactionID(int64_t compaction_id) {
-    compaction_id_ = compaction_id;
-}
-
-CompactionStateCode
-GetCompactionPlansResponse::State() const {
-    return state_;
-}
-
-void
-GetCompactionPlansResponse::SetState(CompactionStateCode state) {
-    state_ = state;
+ListCompactionTasksRequest&
+ListCompactionTasksRequest::WithDatabaseName(const std::string& db_name) {
+    db_name_ = db_name;
+    return *this;
 }
 
 const std::string&
-GetCompactionPlansResponse::CollectionName() const {
+ListCompactionTasksRequest::CollectionName() const {
     return collection_name_;
 }
 
 void
-GetCompactionPlansResponse::SetCollectionName(const std::string& collection_name) {
+ListCompactionTasksRequest::SetCollectionName(const std::string& collection_name) {
     collection_name_ = collection_name;
+}
+
+ListCompactionTasksRequest&
+ListCompactionTasksRequest::WithCollectionName(const std::string& collection_name) {
+    collection_name_ = collection_name;
+    return *this;
 }
 
 }  // namespace milvus

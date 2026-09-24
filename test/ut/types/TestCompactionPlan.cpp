@@ -40,3 +40,32 @@ TEST_F(CompactionPlanTest, DefaultConstructor) {
     EXPECT_TRUE(plan.SourceSegments().empty());
     EXPECT_EQ(0, plan.DestinySegemnt());
 }
+
+TEST_F(CompactionPlanTest, FullFields) {
+    milvus::CompactionPlan plan;
+    plan.SetSourceSegments({1, 2, 3});
+    plan.SetDestinySegemnt(100);
+    plan.SetPlanId(10);
+    plan.SetTriggerId(11);
+    plan.SetCollectionId(12);
+    plan.SetPartitionId(13);
+    plan.SetChannel("ch-0");
+    plan.SetType(milvus::CompactionType::MAJOR);
+    plan.SetState(milvus::CompactionTaskState::COMPLETED);
+    plan.SetFailureReason("boom");
+    std::vector<int64_t> targets{200, 201};
+    plan.SetTargets(targets);
+
+    EXPECT_EQ(plan.PlanId(), 10);
+    EXPECT_EQ(plan.TriggerId(), 11);
+    EXPECT_EQ(plan.CollectionId(), 12);
+    EXPECT_EQ(plan.PartitionId(), 13);
+    EXPECT_EQ(plan.Channel(), "ch-0");
+    EXPECT_EQ(plan.Type(), milvus::CompactionType::MAJOR);
+    EXPECT_EQ(plan.State(), milvus::CompactionTaskState::COMPLETED);
+    EXPECT_EQ(plan.FailureReason(), "boom");
+    EXPECT_EQ(plan.Targets(), targets);
+
+    plan.SetTargets({300});
+    EXPECT_EQ(plan.Targets(), (std::vector<int64_t>{300}));
+}

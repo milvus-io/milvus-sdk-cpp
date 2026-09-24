@@ -194,6 +194,15 @@ TEST_F(UnconnectMilvusMockedTest, GetCompactionPlansV2) {
                 info->add_sources(i);
             }
             info->set_target(target);
+            info->set_plan_id(11);
+            info->set_trigger_id(12);
+            info->set_collection_id(13);
+            info->set_partition_id(14);
+            info->set_channel("ch-0");
+            info->set_type(milvus::proto::common::CompactionType::CompactionTypeMajor);
+            info->set_state(milvus::proto::common::CompactionTaskState::CompactionTaskStateCompleted);
+            info->set_failure_reason("boom");
+            info->add_targets(target + 1);
             return ::grpc::Status{};
         });
 
@@ -206,6 +215,15 @@ TEST_F(UnconnectMilvusMockedTest, GetCompactionPlansV2) {
     ASSERT_EQ(response.Plans().size(), 1);
     EXPECT_THAT(response.Plans()[0].SourceSegments(), ElementsAreArray(sources));
     EXPECT_EQ(response.Plans()[0].DestinySegemnt(), target);
+    EXPECT_EQ(response.Plans()[0].PlanId(), 11);
+    EXPECT_EQ(response.Plans()[0].TriggerId(), 12);
+    EXPECT_EQ(response.Plans()[0].CollectionId(), 13);
+    EXPECT_EQ(response.Plans()[0].PartitionId(), 14);
+    EXPECT_EQ(response.Plans()[0].Channel(), "ch-0");
+    EXPECT_EQ(response.Plans()[0].Type(), milvus::CompactionType::MAJOR);
+    EXPECT_EQ(response.Plans()[0].State(), milvus::CompactionTaskState::COMPLETED);
+    EXPECT_EQ(response.Plans()[0].FailureReason(), "boom");
+    EXPECT_THAT(response.Plans()[0].Targets(), ElementsAreArray(std::vector<int64_t>{target + 1}));
 }
 
 TEST_F(UnconnectMilvusMockedTest, GetCompactionPlansV2ExecutingState) {
@@ -245,6 +263,55 @@ TEST_F(UnconnectMilvusMockedTest, GetCompactionPlansV2UnsetState) {
     EXPECT_TRUE(status.IsOk());
     EXPECT_EQ(response.CompactionID(), compaction_id);
     EXPECT_EQ(response.State(), milvus::CompactionStateCode::UNKNOWN);
+}
+
+TEST_F(UnconnectMilvusMockedTest, ListCompactionTasksV2) {
+    auto client = CreateConnectedV2Client(service_, server_.ListenPort());
+
+    const std::string db_name = "test_db";
+    const std::string collection_name = "test_collection";
+    const std::vector<int64_t> sources = {1, 2, 3};
+    const int64_t target = 100;
+
+    EXPECT_CALL(service_, GetCompactionStateWithPlans(
+                              _, Property(&GetCompactionPlansRequest::collection_name, collection_name), _))
+        .WillOnce([&](::grpc::ServerContext*, const GetCompactionPlansRequest*, GetCompactionPlansResponse* response) {
+            response->set_state(milvus::proto::common::CompactionState::Completed);
+            auto info = response->add_mergeinfos();
+            for (auto i : sources) {
+                info->add_sources(i);
+            }
+            info->set_target(target);
+            info->set_plan_id(11);
+            info->set_trigger_id(12);
+            info->set_collection_id(13);
+            info->set_partition_id(14);
+            info->set_channel("ch-0");
+            info->set_type(milvus::proto::common::CompactionType::CompactionTypeLevel0Delete);
+            info->set_state(milvus::proto::common::CompactionTaskState::CompactionTaskStateFailed);
+            info->set_failure_reason("boom");
+            info->add_targets(target + 1);
+            return ::grpc::Status{};
+        });
+
+    milvus::GetCompactionPlansResponse response;
+    auto status = client->ListCompactionTasks(
+        milvus::ListCompactionTasksRequest().WithDatabaseName(db_name).WithCollectionName(collection_name), response);
+    EXPECT_TRUE(status.IsOk());
+    EXPECT_EQ(response.CollectionName(), collection_name);
+    EXPECT_EQ(response.State(), milvus::CompactionStateCode::COMPLETED);
+    ASSERT_EQ(response.Plans().size(), 1);
+    EXPECT_THAT(response.Plans()[0].SourceSegments(), ElementsAreArray(sources));
+    EXPECT_EQ(response.Plans()[0].DestinySegemnt(), target);
+    EXPECT_EQ(response.Plans()[0].PlanId(), 11);
+    EXPECT_EQ(response.Plans()[0].TriggerId(), 12);
+    EXPECT_EQ(response.Plans()[0].CollectionId(), 13);
+    EXPECT_EQ(response.Plans()[0].PartitionId(), 14);
+    EXPECT_EQ(response.Plans()[0].Channel(), "ch-0");
+    EXPECT_EQ(response.Plans()[0].Type(), milvus::CompactionType::LEVEL0_DELETE);
+    EXPECT_EQ(response.Plans()[0].State(), milvus::CompactionTaskState::FAILED);
+    EXPECT_EQ(response.Plans()[0].FailureReason(), "boom");
+    EXPECT_THAT(response.Plans()[0].Targets(), ElementsAreArray(std::vector<int64_t>{target + 1}));
 }
 TEST_F(UnconnectMilvusMockedTest, FlushAll) {
     auto client = CreateConnectedV2Client(service_, server_.ListenPort());
