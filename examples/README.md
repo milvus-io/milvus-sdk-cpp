@@ -39,6 +39,7 @@ Legacy examples for MilvusClient (maintenance mode):
 - `./cmake_build/examples/v1/sdk_vector_sparse_v1`: example to show the usage of SparseVector field.
 
 Recommended examples for MilvusClientV2:
+- `./cmake_build/examples/v2/sdk_alias_v2`: example to show the usage of aliases, including createAlias(), listAliases(), describeAlias(), alterAlias() and dropAlias().
 - `./cmake_build/examples/v2/sdk_array_v2`: example to show the usage of Array field.
 - `./cmake_build/examples/v2/sdk_cdc_v2`: example to show the usage of CDC interfaces including DumpMessages().
 - `./cmake_build/examples/v2/sdk_db_v2`: example to show the usage of databases.
@@ -54,6 +55,7 @@ Recommended examples for MilvusClientV2:
 - `./cmake_build/examples/v2/sdk_geometry_field_v2`: a general example to show the usage of Geometry field.
 - `./cmake_build/examples/v2/sdk_group_by_v2`: a general example to show the usage of grouping search.
 - `./cmake_build/examples/v2/sdk_hybrid_search_v2`: example to show the usage of hybrid search interface.
+- `./cmake_build/examples/v2/sdk_index_v2`: example to show the usage of index interfaces, including createIndex(), listIndexes(), describeIndex(), alterIndexProperties(), dropIndexProperties() and dropIndex().
 - `./cmake_build/examples/v2/sdk_iterator_query_v2`: example to show the usage of query iterator.
 - `./cmake_build/examples/v2/sdk_iterator_search_v2`: example to show the usage of search iterator.
 - `./cmake_build/examples/v2/sdk_json_v2`: example to show the usage of JSON field.
@@ -64,6 +66,7 @@ Recommended examples for MilvusClientV2:
 - `./cmake_build/examples/v2/sdk_optimize_v2`: example to show the usage of Optimize().
 - `./cmake_build/examples/v2/sdk_order_by_v2`: example to show the usage of ORDER BY for search and query.
 - `./cmake_build/examples/v2/sdk_partition_key_v2`: example to show the usage of partition key.
+- `./cmake_build/examples/v2/sdk_partition_v2`: example to show the usage of partitions, including createPartition(), hasPartition(), loadPartitions(), getPartitionStats(), releasePartitions() and dropPartition().
 - `./cmake_build/examples/v2/sdk_rbac_v2`: example to show the usage of RBAC.
 - `./cmake_build/examples/v2/sdk_rerank_function_v2`: example to show the usage of rerank function.
 - `./cmake_build/examples/v2/sdk_run_analyzer_v2`: example to show the usage of run_analyzer().

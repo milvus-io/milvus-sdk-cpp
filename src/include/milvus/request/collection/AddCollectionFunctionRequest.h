@@ -24,6 +24,9 @@ namespace milvus {
 
 /**
  * @brief Used by MilvusClientV2::AddCollectionFunction()
+ * @deprecated Milvus 3.0 and later do not support adding a function separately. Use
+ *             AddFunctionField() instead, which adds the function together with its output
+ *             field and bound index.
  */
 class MILVUS_SDK_API AddCollectionFunctionRequest : public CollectionRequestBase<AddCollectionFunctionRequest> {
  public:

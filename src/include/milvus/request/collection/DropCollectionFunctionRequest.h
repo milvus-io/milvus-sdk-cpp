@@ -25,6 +25,9 @@ namespace milvus {
 
 /**
  * @brief Used by MilvusClientV2::DropCollectionFunction()
+ * @deprecated Milvus 3.0 and later do not support dropping a function separately. Use
+ *             DropFunctionField() instead, which also removes the function's output field and
+ *             its bound index.
  */
 class MILVUS_SDK_API DropCollectionFunctionRequest : public CollectionRequestBase<DropCollectionFunctionRequest> {
  public:
