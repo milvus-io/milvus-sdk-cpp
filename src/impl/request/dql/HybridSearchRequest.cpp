@@ -61,6 +61,28 @@ HybridSearchRequest::WithRerank(const FunctionPtr& rerank) {
     return *this;
 }
 
+const std::vector<FunctionChain>&
+HybridSearchRequest::FunctionChains() const {
+    return function_chains_;
+}
+
+void
+HybridSearchRequest::SetFunctionChains(std::vector<FunctionChain>&& function_chains) {
+    function_chains_ = std::move(function_chains);
+}
+
+HybridSearchRequest&
+HybridSearchRequest::WithFunctionChains(std::vector<FunctionChain>&& function_chains) {
+    SetFunctionChains(std::move(function_chains));
+    return *this;
+}
+
+HybridSearchRequest&
+HybridSearchRequest::AddFunctionChain(const FunctionChain& function_chain) {
+    function_chains_.push_back(function_chain);
+    return *this;
+}
+
 int64_t
 HybridSearchRequest::Limit() const {
     return limit_;
@@ -206,11 +228,47 @@ HybridSearchRequest::Validate() const {
             return status;
         }
     }
-    if (function_ == nullptr) {
-        return {StatusCode::INVALID_ARGUMENT, "Rerank function is undefined!"};
+    if (function_ != nullptr && !function_chains_.empty()) {
+        return {StatusCode::INVALID_ARGUMENT, "Function chains and rerank cannot be used together"};
     }
-    if (function_->GetFunctionType() != FunctionType::RERANK) {
-        return {StatusCode::INVALID_ARGUMENT, "Hybrid search only accepts RERANK function!"};
+    if (function_ == nullptr && function_chains_.empty()) {
+        return {StatusCode::INVALID_ARGUMENT, "Rerank function or function chains is undefined!"};
+    }
+    if (function_ != nullptr) {
+        if (function_->GetFunctionType() != FunctionType::RERANK) {
+            return {StatusCode::INVALID_ARGUMENT, "Hybrid search only accepts RERANK function!"};
+        }
+    }
+    for (const auto& chain : function_chains_) {
+        if (chain.Stage() == FunctionChainStage::UNSPECIFIED) {
+            return {StatusCode::INVALID_ARGUMENT, "UNSPECIFIED function chain stage is not supported for search"};
+        }
+        for (const auto& op : chain.Ops()) {
+            if (op.Op().empty()) {
+                return {StatusCode::INVALID_ARGUMENT, "Function chain op name cannot be empty"};
+            }
+            for (const auto& input : op.Inputs()) {
+                if (input.empty()) {
+                    return {StatusCode::INVALID_ARGUMENT, "Function chain op input column name cannot be empty"};
+                }
+            }
+            for (const auto& output : op.Outputs()) {
+                if (output.empty()) {
+                    return {StatusCode::INVALID_ARGUMENT, "Function chain op output column name cannot be empty"};
+                }
+            }
+            if (op.HasExpr()) {
+                const auto& expr = op.Expr();
+                if (expr.Name().empty()) {
+                    return {StatusCode::INVALID_ARGUMENT, "Function chain expression name cannot be empty"};
+                }
+                for (const auto& arg : expr.Args()) {
+                    if (arg.IsColumn() && arg.ColumnName().empty()) {
+                        return {StatusCode::INVALID_ARGUMENT, "Function chain expression column name cannot be empty"};
+                    }
+                }
+            }
+        }
     }
 
     return Status::OK();

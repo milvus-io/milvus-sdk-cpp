@@ -17,6 +17,7 @@
 #pragma once
 
 #include "../../types/Function.h"
+#include "../../types/FunctionChain.h"
 #include "../../types/SubSearchRequest.h"
 #include "./DQLRequestBase.h"
 #include "milvus/Export.h"
@@ -94,6 +95,34 @@ class MILVUS_SDK_API HybridSearchRequest : public DQLRequestBase<HybridSearchReq
      */
     HybridSearchRequest&
     WithRerank(const FunctionPtr& rerank);
+
+    /**
+     * @brief Get function chains.
+     * @return the function chains.
+     */
+    const std::vector<FunctionChain>&
+    FunctionChains() const;
+
+    /**
+     * @brief Set function chains. Function chains and rerank cannot be used together.
+     * @param [in] function_chains the function chains.
+     */
+    void
+    SetFunctionChains(std::vector<FunctionChain>&& function_chains);
+
+    /**
+     * @brief Set function chains. Function chains and rerank cannot be used together.
+     * @param [in] function_chains the function chains.
+     */
+    HybridSearchRequest&
+    WithFunctionChains(std::vector<FunctionChain>&& function_chains);
+
+    /**
+     * @brief Add a function chain. Function chains and rerank cannot be used together.
+     * @param [in] function_chain the function chain.
+     */
+    HybridSearchRequest&
+    AddFunctionChain(const FunctionChain& function_chain);
 
     /**
      * @brief Get search limit(topk)
@@ -269,6 +298,7 @@ class MILVUS_SDK_API HybridSearchRequest : public DQLRequestBase<HybridSearchReq
  private:
     std::vector<SubSearchRequestPtr> sub_requests_;
     FunctionPtr function_;
+    std::vector<FunctionChain> function_chains_;
 
     int64_t limit_{10};
     std::unordered_map<std::string, std::string> extra_params_;

@@ -780,6 +780,30 @@ TEST_F(HybridSearchRequestTest, GettersAndSetters) {
     EXPECT_FALSE(req.StrictGroupSize());
 }
 
+TEST_F(HybridSearchRequestTest, FunctionChainsGettersAndSetters) {
+    milvus::HybridSearchRequest req;
+
+    milvus::FunctionChain chain(milvus::FunctionChainStage::L2_RERANK, "chain");
+    chain.Limit(5);
+    req.AddFunctionChain(chain);
+    ASSERT_EQ(req.FunctionChains().size(), 1);
+    EXPECT_EQ(req.FunctionChains().at(0).Name(), "chain");
+    EXPECT_EQ(req.FunctionChains().at(0).Stage(), milvus::FunctionChainStage::L2_RERANK);
+
+    milvus::FunctionChain chain2(milvus::FunctionChainStage::L2_RERANK, "chain2");
+    std::vector<milvus::FunctionChain> chains{chain2};
+    auto& ref = req.WithFunctionChains(std::move(chains));
+    EXPECT_EQ(&ref, &req);
+    ASSERT_EQ(req.FunctionChains().size(), 1);
+    EXPECT_EQ(req.FunctionChains().at(0).Name(), "chain2");
+
+    milvus::FunctionChain chain3(milvus::FunctionChainStage::L2_RERANK, "chain3");
+    std::vector<milvus::FunctionChain> chains2{chain3};
+    req.SetFunctionChains(std::move(chains2));
+    ASSERT_EQ(req.FunctionChains().size(), 1);
+    EXPECT_EQ(req.FunctionChains().at(0).Name(), "chain3");
+}
+
 TEST_F(HybridSearchRequestTest, WithRoundDecimal) {
     milvus::HybridSearchRequest req;
     auto& ref = req.WithRoundDecimal(4);
@@ -867,6 +891,50 @@ TEST_F(HybridSearchRequestTest, ValidateAcceptsFullyValidRequest) {
 
     auto status = req.Validate();
     EXPECT_TRUE(status.IsOk());
+}
+
+TEST_F(HybridSearchRequestTest, ValidateAcceptsFunctionChains) {
+    milvus::HybridSearchRequest req;
+    auto sub = std::make_shared<milvus::SubSearchRequest>();
+    sub->WithAnnsField("vec").WithLimit(10);
+    sub->AddFloatVector(std::vector<float>{0.1f, 0.2f, 0.3f, 0.4f});
+    req.WithLimit(10).AddSubRequest(sub);
+
+    milvus::FunctionChain chain(milvus::FunctionChainStage::L2_RERANK, "chain");
+    chain.Limit(5);
+    req.AddFunctionChain(chain);
+
+    auto status = req.Validate();
+    EXPECT_TRUE(status.IsOk());
+}
+
+TEST_F(HybridSearchRequestTest, ValidateRejectsFunctionChainsAndRerankTogether) {
+    milvus::HybridSearchRequest req;
+    auto sub = std::make_shared<milvus::SubSearchRequest>();
+    sub->WithAnnsField("vec").WithLimit(10);
+    sub->AddFloatVector(std::vector<float>{0.1f, 0.2f, 0.3f, 0.4f});
+    req.WithLimit(10).AddSubRequest(sub);
+
+    milvus::FunctionChain chain(milvus::FunctionChainStage::L2_RERANK, "chain");
+    chain.Limit(5);
+    req.AddFunctionChain(chain);
+    req.WithRerank(std::make_shared<milvus::RRFRerank>(60));
+
+    auto status = req.Validate();
+    EXPECT_FALSE(status.IsOk());
+    EXPECT_EQ(status.Code(), milvus::StatusCode::INVALID_ARGUMENT);
+}
+
+TEST_F(HybridSearchRequestTest, ValidateRejectsUndefinedRerankAndChains) {
+    milvus::HybridSearchRequest req;
+    auto sub = std::make_shared<milvus::SubSearchRequest>();
+    sub->WithAnnsField("vec").WithLimit(10);
+    sub->AddFloatVector(std::vector<float>{0.1f, 0.2f, 0.3f, 0.4f});
+    req.WithLimit(10).AddSubRequest(sub);
+
+    auto status = req.Validate();
+    EXPECT_FALSE(status.IsOk());
+    EXPECT_EQ(status.Code(), milvus::StatusCode::INVALID_ARGUMENT);
 }
 
 TEST_F(HybridSearchRequestTest, ValidateRejectsNullSubRequest) {

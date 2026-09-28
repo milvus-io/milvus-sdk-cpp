@@ -756,6 +756,13 @@ MilvusConnection::GetCompactionPlans(const proto::milvus::GetCompactionPlansRequ
 }
 
 Status
+MilvusConnection::GetCompactionStateWithPlans(const proto::milvus::GetCompactionPlansRequest& request,
+                                              proto::milvus::GetCompactionPlansResponse& response,
+                                              const GrpcContextOptions& options) {
+    return grpcCall("GetCompactionStateWithPlans", &Stub::GetCompactionStateWithPlans, request, response, options);
+}
+
+Status
 MilvusConnection::CreateSnapshot(const proto::milvus::CreateSnapshotRequest& request, proto::common::Status& response,
                                  const GrpcContextOptions& options) {
     return grpcCall("CreateSnapshot", &Stub::CreateSnapshot, request, response, options);

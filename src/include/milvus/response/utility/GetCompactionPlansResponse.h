@@ -17,6 +17,7 @@
 #pragma once
 
 #include <cstdint>
+#include <string>
 
 #include "milvus/Export.h"
 #include "milvus/types/CompactionPlan.h"
@@ -76,10 +77,25 @@ class MILVUS_SDK_API GetCompactionPlansResponse {
     void
     SetState(CompactionStateCode state);
 
+    /**
+     * @brief Get the collection name the compaction tasks belong to.
+     * @return the collection name.
+     */
+    const std::string&
+    CollectionName() const;
+
+    /**
+     * @brief Set the collection name the compaction tasks belong to.
+     * @param [in] collection_name the collection name.
+     */
+    void
+    SetCollectionName(const std::string& collection_name);
+
  private:
     CompactionPlans plans_;
     int64_t compaction_id_{0};
     CompactionStateCode state_{CompactionStateCode::UNKNOWN};
+    std::string collection_name_;
 };
 
 }  // namespace milvus

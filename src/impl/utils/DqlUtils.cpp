@@ -2129,11 +2129,13 @@ ConvertHybridSearchRequest(const T& request, const std::string& current_db,
 
     // set rerank
     auto reranker = request.Rerank();
-    for (auto& pair : reranker->Params()) {
-        if (pair.first == CLUSTER_ID) {
-            continue;
+    if (reranker != nullptr) {
+        for (auto& pair : reranker->Params()) {
+            if (pair.first == CLUSTER_ID) {
+                continue;
+            }
+            setParamFunc(pair.first, pair.second);
         }
-        setParamFunc(pair.first, pair.second);
     }
     if (!cluster_id.empty()) {
         setParamFunc(CLUSTER_ID, cluster_id);

@@ -127,6 +127,7 @@
 #include "request/utility/GetFlushAllStateRequest.h"
 #include "request/utility/GetRefreshExternalCollectionProgressRequest.h"
 #include "request/utility/GetServerVersionRequest.h"
+#include "request/utility/ListCompactionTasksRequest.h"
 #include "request/utility/ListRefreshExternalCollectionJobsRequest.h"
 #include "request/utility/ListSegmentsRequest.h"
 #include "request/utility/OptimizeRequest.h"
@@ -1111,6 +1112,16 @@ class MILVUS_SDK_API MilvusClientV2 {
      */
     virtual Status
     GetCompactionPlans(const GetCompactionPlansRequest& request, GetCompactionPlansResponse& response) = 0;
+
+    /**
+     * @brief List all compaction tasks still retained for a collection.
+     *
+     * @param [in] request input parameters
+     * @param [out] response output results
+     * @return Status operation successfully or not
+     */
+    virtual Status
+    ListCompactionTasks(const ListCompactionTasksRequest& request, GetCompactionPlansResponse& response) = 0;
 
     /**
      * @brief Create a snapshot for a collection.
