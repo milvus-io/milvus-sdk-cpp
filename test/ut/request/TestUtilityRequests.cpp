@@ -238,6 +238,24 @@ TEST_F(GetCompactionPlansRequestTest, SetMethod) {
     EXPECT_EQ(req.CompactionID(), 88888);
 }
 
+class ListCompactionTasksRequestTest : public ::testing::Test {};
+
+TEST_F(ListCompactionTasksRequestTest, GettersAndSetters) {
+    milvus::ListCompactionTasksRequest req;
+
+    req.WithCollectionName("compact_coll");
+    EXPECT_EQ(req.CollectionName(), "compact_coll");
+
+    req.WithDatabaseName("compact_db");
+    EXPECT_EQ(req.DatabaseName(), "compact_db");
+
+    req.SetCollectionName("compact_coll_2");
+    EXPECT_EQ(req.CollectionName(), "compact_coll_2");
+
+    req.SetDatabaseName("compact_db_2");
+    EXPECT_EQ(req.DatabaseName(), "compact_db_2");
+}
+
 class ListPersistentSegmentsRequestTest : public ::testing::Test {};
 
 TEST_F(ListPersistentSegmentsRequestTest, GettersAndSetters) {

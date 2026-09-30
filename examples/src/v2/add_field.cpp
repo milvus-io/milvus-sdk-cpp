@@ -139,6 +139,17 @@ main(int argc, char* argv[]) {
     }
 
     {
+        // alter the max length of the added field
+        status = client->AlterCollectionFieldProperties(milvus::AlterCollectionFieldPropertiesRequest()
+                                                            .WithCollectionName(collection_name)
+                                                            .WithFieldName(field_text)
+                                                            .AddProperty("max_length", "200"));
+        util::CheckStatus("alter field 'text' max_length", status);
+        std::cout << "Field 'text' max_length altered to 200" << std::endl;
+        DescribeCollection(client);
+    }
+
+    {
         const std::string text_value = "this is a new row";
         InsertRow(client, 500, &text_value);
         QueryById(client, 500);

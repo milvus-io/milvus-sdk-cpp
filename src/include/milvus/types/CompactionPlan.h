@@ -17,6 +17,7 @@
 #pragma once
 
 #include <cstdint>
+#include <string>
 #include <vector>
 
 #include "milvus/Export.h"
@@ -24,7 +25,43 @@
 namespace milvus {
 
 /**
- * @brief Compaction plan information. Used by MilvusClient::GetCompactionPlans().
+ * @brief Type of one compaction task. Numeric values mirror common.proto CompactionType.
+ */
+enum class CompactionType {
+    UNDEFINED = 0,
+    MERGE = 2,
+    MIX = 3,
+    SINGLE = 4,
+    MINOR = 5,
+    MAJOR = 6,
+    LEVEL0_DELETE = 7,
+    CLUSTERING = 8,
+    SORT = 9,
+    PARTITION_KEY_SORT = 10,
+    CLUSTERING_PARTITION_KEY_SORT = 11,
+    BUMP_SCHEMA_VERSION = 12,
+};
+
+/**
+ * @brief State of one compaction task. Numeric values mirror common.proto CompactionTaskState.
+ */
+enum class CompactionTaskState {
+    UNKNOWN = 0,
+    EXECUTING = 1,
+    PIPELINING = 2,
+    COMPLETED = 3,
+    FAILED = 4,
+    TIMEOUT = 5,
+    ANALYZING = 6,
+    INDEXING = 7,
+    CLEANED = 8,
+    META_SAVED = 9,
+    STATISTIC = 10,
+};
+
+/**
+ * @brief Compaction plan information. Used by MilvusClient::GetCompactionPlans() and
+ * MilvusClientV2::ListCompactionTasks().
  */
 class MILVUS_SDK_API CompactionPlan {
  public:
@@ -82,9 +119,151 @@ class MILVUS_SDK_API CompactionPlan {
     void
     SetDestinySegemnt(int64_t id);
 
+    /**
+     * @brief The server-side compaction task identifier.
+     * @return the plan id.
+     */
+    int64_t
+    PlanId() const;
+
+    /**
+     * @brief Set the server-side compaction task identifier.
+     * @param [in] plan_id the plan id.
+     */
+    void
+    SetPlanId(int64_t plan_id);
+
+    /**
+     * @brief The compaction trigger id.
+     * @return the trigger id.
+     */
+    int64_t
+    TriggerId() const;
+
+    /**
+     * @brief Set the compaction trigger id.
+     * @param [in] trigger_id the trigger id.
+     */
+    void
+    SetTriggerId(int64_t trigger_id);
+
+    /**
+     * @brief The collection id of this compaction task.
+     * @return the collection id.
+     */
+    int64_t
+    CollectionId() const;
+
+    /**
+     * @brief Set the collection id of this compaction task.
+     * @param [in] collection_id the collection id.
+     */
+    void
+    SetCollectionId(int64_t collection_id);
+
+    /**
+     * @brief The partition id of this compaction task.
+     * @return the partition id.
+     */
+    int64_t
+    PartitionId() const;
+
+    /**
+     * @brief Set the partition id of this compaction task.
+     * @param [in] partition_id the partition id.
+     */
+    void
+    SetPartitionId(int64_t partition_id);
+
+    /**
+     * @brief The channel of this compaction task.
+     * @return the channel.
+     */
+    const std::string&
+    Channel() const;
+
+    /**
+     * @brief Set the channel of this compaction task.
+     * @param [in] channel the channel.
+     */
+    void
+    SetChannel(const std::string& channel);
+
+    /**
+     * @brief The type of this compaction task.
+     * @return the compaction type.
+     */
+    CompactionType
+    Type() const;
+
+    /**
+     * @brief Set the type of this compaction task.
+     * @param [in] type the compaction type.
+     */
+    void
+    SetType(CompactionType type);
+
+    /**
+     * @brief The state of this compaction task.
+     * @return the compaction task state.
+     */
+    CompactionTaskState
+    State() const;
+
+    /**
+     * @brief Set the state of this compaction task.
+     * @param [in] state the compaction task state.
+     */
+    void
+    SetState(CompactionTaskState state);
+
+    /**
+     * @brief The failure reason of this compaction task, empty when it succeeded.
+     * @return the failure reason.
+     */
+    const std::string&
+    FailureReason() const;
+
+    /**
+     * @brief Set the failure reason of this compaction task.
+     * @param [in] failure_reason the failure reason.
+     */
+    void
+    SetFailureReason(const std::string& failure_reason);
+
+    /**
+     * @brief The complete output segment set. Prefer over DestinySegemnt().
+     * @return the targets.
+     */
+    const std::vector<int64_t>&
+    Targets() const;
+
+    /**
+     * @brief Set the complete output segment set.
+     * @param [in] targets the targets.
+     */
+    void
+    SetTargets(const std::vector<int64_t>& targets);
+
+    /**
+     * @brief Set the complete output segment set.
+     * @param [in] targets the targets.
+     */
+    void
+    SetTargets(std::vector<int64_t>&& targets);
+
  private:
     std::vector<int64_t> src_segments_;
     int64_t dst_segment_ = 0;
+    int64_t plan_id_ = 0;
+    int64_t trigger_id_ = 0;
+    int64_t collection_id_ = 0;
+    int64_t partition_id_ = 0;
+    std::string channel_;
+    CompactionType type_{CompactionType::UNDEFINED};
+    CompactionTaskState state_{CompactionTaskState::UNKNOWN};
+    std::string failure_reason_;
+    std::vector<int64_t> targets_;
 };
 
 /**

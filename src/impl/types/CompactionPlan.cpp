@@ -53,4 +53,99 @@ CompactionPlan::SetDestinySegemnt(int64_t id) {
     dst_segment_ = id;
 }
 
+int64_t
+CompactionPlan::PlanId() const {
+    return plan_id_;
+}
+
+void
+CompactionPlan::SetPlanId(int64_t plan_id) {
+    plan_id_ = plan_id;
+}
+
+int64_t
+CompactionPlan::TriggerId() const {
+    return trigger_id_;
+}
+
+void
+CompactionPlan::SetTriggerId(int64_t trigger_id) {
+    trigger_id_ = trigger_id;
+}
+
+int64_t
+CompactionPlan::CollectionId() const {
+    return collection_id_;
+}
+
+void
+CompactionPlan::SetCollectionId(int64_t collection_id) {
+    collection_id_ = collection_id;
+}
+
+int64_t
+CompactionPlan::PartitionId() const {
+    return partition_id_;
+}
+
+void
+CompactionPlan::SetPartitionId(int64_t partition_id) {
+    partition_id_ = partition_id;
+}
+
+const std::string&
+CompactionPlan::Channel() const {
+    return channel_;
+}
+
+void
+CompactionPlan::SetChannel(const std::string& channel) {
+    channel_ = channel;
+}
+
+CompactionType
+CompactionPlan::Type() const {
+    return type_;
+}
+
+void
+CompactionPlan::SetType(CompactionType type) {
+    type_ = type;
+}
+
+CompactionTaskState
+CompactionPlan::State() const {
+    return state_;
+}
+
+void
+CompactionPlan::SetState(CompactionTaskState state) {
+    state_ = state;
+}
+
+const std::string&
+CompactionPlan::FailureReason() const {
+    return failure_reason_;
+}
+
+void
+CompactionPlan::SetFailureReason(const std::string& failure_reason) {
+    failure_reason_ = failure_reason;
+}
+
+const std::vector<int64_t>&
+CompactionPlan::Targets() const {
+    return targets_;
+}
+
+void
+CompactionPlan::SetTargets(const std::vector<int64_t>& targets) {
+    targets_ = targets;
+}
+
+void
+CompactionPlan::SetTargets(std::vector<int64_t>&& targets) {
+    targets_ = std::move(targets);
+}
+
 }  // namespace milvus

@@ -24,6 +24,7 @@
 
 using ::milvus::StatusCode;
 using ::testing::_;
+using ::testing::Property;
 
 namespace {
 
@@ -281,5 +282,40 @@ TEST_F(UnconnectMilvusMockedTest, HybridSearchResponseExtraInfoMetadata) {
     EXPECT_EQ(response.ScannedRemoteBytes(), 202);
     EXPECT_EQ(response.ScannedTotalBytes(), 203);
     EXPECT_FLOAT_EQ(response.CacheHitRatio(), 0.25f);
+    EXPECT_EQ(response.Results().Results().size(), 1);
+}
+
+TEST_F(UnconnectMilvusMockedTest, HybridSearchFunctionChainsOnWire) {
+    auto client = CreateConnectedV2Client(service_, server_.ListenPort());
+
+    const ::milvus::proto::schema::FunctionChainStage stage =
+        ::milvus::proto::schema::FunctionChainStage::FunctionChainStageL2Rerank;
+    EXPECT_CALL(service_,
+                HybridSearch(_, Property(&::milvus::proto::milvus::HybridSearchRequest::function_chains_size, 1), _))
+        .WillOnce([stage](::grpc::ServerContext*, const ::milvus::proto::milvus::HybridSearchRequest* request,
+                          ::milvus::proto::milvus::SearchResults* response) {
+            EXPECT_EQ(request->function_chains(0).stage(), stage);
+            EXPECT_EQ(request->function_chains(0).ops_size(), 1);
+            EXPECT_EQ(request->function_chains(0).ops(0).op(), "limit");
+            FillMinimalV2SearchResults(response);
+            return ::grpc::Status{};
+        });
+
+    auto sub_request = std::make_shared<milvus::SubSearchRequest>();
+    sub_request->WithAnnsField("anns_dummy").WithLimit(1);
+    sub_request->AddFloatVector(std::vector<float>{0.1f, 0.2f, 0.3f, 0.4f});
+
+    milvus::FunctionChain chain(milvus::FunctionChainStage::L2_RERANK, "chain");
+    chain.Limit(5);
+
+    milvus::HybridSearchRequest request;
+    request.WithCollectionName("foo");
+    request.AddSubRequest(sub_request);
+    request.WithLimit(1);
+    request.AddFunctionChain(chain);
+
+    milvus::HybridSearchResponse response;
+    auto status = client->HybridSearch(request, response);
+    EXPECT_TRUE(status.IsOk());
     EXPECT_EQ(response.Results().Results().size(), 1);
 }

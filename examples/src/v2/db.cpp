@@ -54,6 +54,16 @@ main(int argc, char* argv[]) {
     std::cout << "database.replica.number = " << resp_desc_db.Desc().Properties().at("database.replica.number")
               << std::endl;
 
+    status = client->AlterDatabaseProperties(milvus::AlterDatabasePropertiesRequest()
+                                                 .WithDatabaseName(my_db_name)
+                                                 .AddProperty("database.max.collections", "20"));
+    util::CheckStatus("alter database properties: " + my_db_name, status);
+
+    status = client->DropDatabaseProperties(milvus::DropDatabasePropertiesRequest()
+                                                .WithDatabaseName(my_db_name)
+                                                .AddPropertyKey("database.max.collections"));
+    util::CheckStatus("drop database properties: " + my_db_name, status);
+
     status = client->UseDatabase(my_db_name);
     util::CheckStatus("switch database:" + my_db_name, status);
     std::string current_db_name;

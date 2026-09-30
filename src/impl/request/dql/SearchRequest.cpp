@@ -19,6 +19,7 @@
 #include <memory>
 
 #include "../../utils/Constants.h"
+#include "../../utils/DqlUtils.h"
 #include "../../utils/ExtraParamUtils.h"
 
 namespace milvus {
@@ -331,51 +332,9 @@ SearchRequest::Validate() const {
     if (ranker_ != nullptr && !function_chains_.empty()) {
         return {StatusCode::INVALID_ARGUMENT, "Function chains and rerank cannot be used together"};
     }
-    for (const auto& chain : function_chains_) {
-        if (chain.Stage() == FunctionChainStage::UNSPECIFIED) {
-            return {StatusCode::INVALID_ARGUMENT, "UNSPECIFIED function chain stage is not supported for search"};
-        }
-        for (const auto& op : chain.Ops()) {
-            if (op.Op().empty()) {
-                return {StatusCode::INVALID_ARGUMENT, "Function chain op name cannot be empty"};
-            }
-            for (const auto& input : op.Inputs()) {
-                if (input.empty()) {
-                    return {StatusCode::INVALID_ARGUMENT, "Function chain op input column name cannot be empty"};
-                }
-            }
-            for (const auto& output : op.Outputs()) {
-                if (output.empty()) {
-                    return {StatusCode::INVALID_ARGUMENT, "Function chain op output column name cannot be empty"};
-                }
-            }
-            if (op.Op() == "limit") {
-                auto limit_param = op.Params().find("limit");
-                if (limit_param != op.Params().end() && limit_param->second.is_number_integer()) {
-                    if (limit_param->second.get<int64_t>() <= 0) {
-                        return {StatusCode::INVALID_ARGUMENT, "Function chain limit must be greater than 0"};
-                    }
-                }
-                auto offset_param = op.Params().find("offset");
-                if (offset_param != op.Params().end() && offset_param->second.is_number_integer()) {
-                    if (offset_param->second.get<int64_t>() < 0) {
-                        return {StatusCode::INVALID_ARGUMENT,
-                                "Function chain offset must be greater than or equal to 0"};
-                    }
-                }
-            }
-            if (op.HasExpr()) {
-                const auto& expr = op.Expr();
-                if (expr.Name().empty()) {
-                    return {StatusCode::INVALID_ARGUMENT, "Function chain expression name cannot be empty"};
-                }
-                for (const auto& arg : expr.Args()) {
-                    if (arg.IsColumn() && arg.ColumnName().empty()) {
-                        return {StatusCode::INVALID_ARGUMENT, "Function chain expression column name cannot be empty"};
-                    }
-                }
-            }
-        }
+    status = ValidateFunctionChains(function_chains_);
+    if (!status.IsOk()) {
+        return status;
     }
     if (search_aggregation_ == nullptr) {
         return Status::OK();
