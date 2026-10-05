@@ -16,6 +16,13 @@
 
 #include "SearchIteratorV2Impl.h"
 
+#include <algorithm>
+#include <cmath>
+#include <iomanip>
+#include <limits>
+#include <locale>
+#include <milvus/thirdparty/nlohmann/json.hpp>
+#include <sstream>
 #include <stdexcept>
 
 #include "../utils/CompareUtils.h"
@@ -29,11 +36,64 @@
 
 namespace milvus {
 
+namespace {
+const char* kCursorVersion = "search_iter_cursor_version";
+const char* kLastPkType = "search_iter_last_pk_type";
+const char* kLastPk = "search_iter_last_pk";
+
+void
+RemoveRpcParam(proto::milvus::SearchRequest& request, const std::string& key) {
+    auto* params = request.mutable_search_params();
+    for (int i = params->size() - 1; i >= 0; --i) {
+        if (params->Get(i).key() == key) {
+            params->DeleteSubrange(i, 1);
+        }
+    }
+}
+
+void
+SetRpcParam(proto::milvus::SearchRequest& request, const std::string& key, const std::string& value) {
+    RemoveRpcParam(request, key);
+    auto* pair = request.add_search_params();
+    pair->set_key(key);
+    pair->set_value(value);
+}
+
+std::string
+RpcParam(const proto::milvus::SearchRequest& request, const std::string& key) {
+    for (const auto& pair : request.search_params()) {
+        if (pair.key() == key) {
+            return pair.value();
+        }
+    }
+    return "";
+}
+
+std::string
+ExtraInfo(const proto::milvus::SearchResults& response, const std::string& key) {
+    const auto& extra = response.status().extra_info();
+    auto found = extra.find(key);
+    return found == extra.end() ? "" : found->second;
+}
+
+std::string
+BoundText(float value) {
+    std::ostringstream text;
+    text.imbue(std::locale::classic());
+    text << std::setprecision(std::numeric_limits<float>::max_digits10) << value;
+    return text.str();
+}
+}  // namespace
+
 template <typename T>
 SearchIteratorV2Impl<T>::SearchIteratorV2Impl(const MilvusConnectionPtr& connection, const T& args,
                                               const RetryParam& retry_param, std::string cluster_id) {
     connection_ = connection;
     args_ = args;
+    if (args_.DatabaseName().empty()) {
+        const auto& db = connection_->GetConnectParam().DbName();
+        args_.SetDatabaseName(db.empty() ? "default" : db);
+    }
     original_limit_ = args.Limit();
     retry_param_ = retry_param;
     cluster_id_ = std::move(cluster_id);
@@ -43,193 +103,278 @@ template <typename T>
 Status
 SearchIteratorV2Impl<T>::Next(SingleResult& results) {
     results.Clear();
-
-    // returned count already meet the limit value
-    if (original_limit_ == 0 || (original_limit_ > 0 && returned_count_ >= original_limit_)) {
-        return Status::OK();
-    }
-
-    auto target_len = static_cast<int64_t>(args_.BatchSize());
-    // the last batch might returns a few items since the limit value is almost meet
-    if (original_limit_ > 0) {
-        auto left_count = original_limit_ - returned_count_;
-        target_len = target_len > left_count ? left_count : target_len;
-    }
-
-    while (true) {
-        SingleResultPtr single_result;
-        auto status = next(single_result);
-        if (!status.IsOk()) {
-            return status;
+    try {
+        if (original_limit_ == 0 || (original_limit_ > 0 && returned_count_ >= original_limit_)) {
+            return Status::OK();
         }
-        auto result_count = single_result->GetRowCount();
-        if (result_count == 0) {
-            break;
+        auto target = static_cast<int64_t>(args_.BatchSize());
+        if (original_limit_ > 0) {
+            target = std::min(target, original_limit_ - returned_count_);
         }
-
-        // Apply the client-side page filter (pymilvus external_filter_func) if set.
-        // A filtered-out page does not grow the cache, so keep pulling until the
-        // target length is reached or the server has no more results.
-        if (args_.ExternalFilterFunc()) {
-            status = args_.ExternalFilterFunc()(*single_result);
+        while (!finished_ && SearchIteratorImpl<T>::CachedCount(cache_) < static_cast<uint64_t>(target)) {
+            SingleResultPtr raw_page;
+            auto status = loadPending(raw_page);
             if (!status.IsOk()) {
                 return status;
             }
-            if (single_result->GetRowCount() == 0) {
-                continue;
+            const bool exhausted = raw_page->GetRowCount() == 0;
+            auto filtered = raw_page;
+            if (raw_page->GetRowCount() > 0 && args_.ExternalFilterFunc()) {
+                status = args_.ExternalFilterFunc()(*filtered);
+                if (!status.IsOk()) {
+                    return status;
+                }
             }
+            // A failed page filter leaves the raw response and cursor pending.
+            // preparePending decodes a fresh copy on the next call.
+            std::unordered_set<std::string> added_pks;
+            if (pending_mode_ == CursorMode::PRIMARY_KEY && filtered->GetRowCount() > 0) {
+                const auto ids = filtered->Ids();
+                std::vector<uint64_t> keep;
+                keep.reserve(filtered->GetRowCount());
+                const auto& integer_ids = ids.IntIDArray();
+                const auto& string_ids = ids.StrIDArray();
+                for (uint64_t i = 0; i < filtered->GetRowCount(); ++i) {
+                    const auto key = integer_ids.empty() ? string_ids.at(i) : std::to_string(integer_ids.at(i));
+                    if (accepted_pks_.count(key) == 0 && added_pks.insert(key).second) {
+                        keep.emplace_back(i);
+                    }
+                }
+                status = filtered->FilterRows(keep);
+                if (!status.IsOk()) {
+                    return status;
+                }
+            }
+            auto next_cache = cache_;
+            if (filtered->GetRowCount() > 0) {
+                next_cache.emplace_back(std::move(filtered));
+            }
+            auto next_request = pending_request_;
+            try {
+                for (const auto& key : added_pks) {
+                    accepted_pks_.insert(key);
+                }
+            } catch (...) {
+                for (const auto& key : added_pks) {
+                    accepted_pks_.erase(key);
+                }
+                throw;
+            }
+            request_.Swap(&next_request);
+            mode_ = pending_mode_;
+            has_pending_ = false;
+            finished_ = exhausted;
+            cache_ = std::move(next_cache);
         }
-
-        cache_.emplace_back(std::move(single_result));
-        auto cache_count = SearchIteratorImpl<T>::CachedCount(cache_);
-        if (cache_count >= static_cast<uint64_t>(target_len)) {
-            break;
+        auto next_cache = cache_;
+        SingleResult page;
+        auto status = SearchIteratorImpl<T>::FetchPageFromCache(next_cache, args_.OutputFields(), target, page);
+        if (!status.IsOk()) {
+            return status;
         }
+        returned_count_ += static_cast<int64_t>(page.GetRowCount());
+        cache_ = std::move(next_cache);
+        results = page;
+        return Status::OK();
+    } catch (const std::exception& error) {
+        return {StatusCode::UNKNOWN_ERROR, std::string("search iterator page failed: ") + error.what()};
+    } catch (...) {
+        return {StatusCode::UNKNOWN_ERROR, "search iterator page filter threw an unknown exception"};
     }
-
-    // return batch from the cache if cache is big enough
-    auto status = SearchIteratorImpl<T>::FetchPageFromCache(cache_, args_.OutputFields(), target_len, results);
-    if (!status.IsOk()) {
-        return status;
-    }
-    returned_count_ += static_cast<int64_t>(results.GetRowCount());
-
-    return Status::OK();
 }
 
 template <typename T>
 Status
 SearchIteratorV2Impl<T>::Init() {
-    auto status = SearchIteratorImpl<T>::CheckInput(args_.TargetVectors(), args_.ExtraParams(), args_.BatchSize(),
-                                                    args_.MetricType());
-    if (!status.IsOk()) {
-        return status;
+    try {
+        auto status = SearchIteratorImpl<T>::CheckInput(args_.TargetVectors(), args_.ExtraParams(), args_.BatchSize(),
+                                                        args_.MetricType());
+        if (!status.IsOk()) {
+            return status;
+        }
+        if (original_limit_ == 0) {
+            finished_ = true;
+            return Status::OK();
+        }
+        args_.SetLimit(static_cast<int64_t>(args_.BatchSize()));
+        args_.AddExtraParam(COLLECTION_ID, std::to_string(args_.CollectionID()));
+        args_.AddExtraParam(ITERATOR_FIELD, "True");
+        args_.AddExtraParam(ITER_SEARCH_V2_KEY, "True");
+        args_.AddExtraParam(ITER_SEARCH_BATCH_SIZE_KEY, std::to_string(args_.BatchSize()));
+        status = ConvertSearchRequest<T>(args_, args_.DatabaseName(), request_, cluster_id_,
+                                         connection_->GetConnectParam().Uri());
+        if (!status.IsOk()) {
+            return status;
+        }
+        const auto requested_version = RpcParam(request_, kCursorVersion);
+        if (!requested_version.empty() && requested_version != "2") {
+            return {StatusCode::INVALID_ARGUMENT, "unsupported search iterator cursor version: " + requested_version};
+        }
+        if (requested_version == "2" && (!RpcParam(request_, ITER_SEARCH_ID_KEY).empty() ||
+                                         !RpcParam(request_, ITER_SEARCH_LAST_BOUND_KEY).empty())) {
+            return {StatusCode::INVALID_ARGUMENT,
+                    "PK cursor mode requires a complete typed cursor; legacy token/bound continuation must omit cursor "
+                    "version 2"};
+        }
+        // These negotiated controls are outer RPC parameters, never ANN index JSON.
+        for (auto& pair : *request_.mutable_search_params()) {
+            if (pair.key() == PARAMS) {
+                auto nested = nlohmann::json::parse(pair.value());
+                nested.erase(kCursorVersion);
+                nested.erase(kLastPkType);
+                nested.erase(kLastPk);
+                pair.set_value(nested.dump());
+            }
+        }
+        RemoveRpcParam(request_, kLastPkType);
+        RemoveRpcParam(request_, kLastPk);
+        if (requested_version != "2" || !RpcParam(request_, ITER_SEARCH_ID_KEY).empty() ||
+            !RpcParam(request_, ITER_SEARCH_LAST_BOUND_KEY).empty()) {
+            mode_ = CursorMode::DISTANCE;
+            RemoveRpcParam(request_, kCursorVersion);
+        } else {
+            SetRpcParam(request_, kCursorVersion, "2");
+        }
+        request_.set_guarantee_timestamp(0);
+        status = executeSearch(pending_response_);
+        if (!status.IsOk()) {
+            return status;
+        }
+        SingleResultPtr page;
+        status = preparePending(page);
+        if (!status.IsOk()) {
+            return status;
+        }
+        has_pending_ = true;
+        initialized_ = true;
+        return Status::OK();
+    } catch (const std::exception& error) {
+        return {StatusCode::UNKNOWN_ERROR, std::string("search iterator initialization failed: ") + error.what()};
     }
-
-    args_.SetLimit(static_cast<int64_t>(args_.BatchSize()));
-    args_.AddExtraParam(COLLECTION_ID, std::to_string(args_.CollectionID()));
-    args_.AddExtraParam(ITERATOR_FIELD, "True");
-    args_.AddExtraParam(ITER_SEARCH_V2_KEY, "True");
-    args_.AddExtraParam(ITER_SEARCH_BATCH_SIZE_KEY, std::to_string(args_.BatchSize()));
-
-    status = probeForCompability();
-    if (!status.IsOk()) {
-        return status;
-    }
-
-    return Status::OK();
 }
 
-///////////////////////////////////////////////////////////////////////////////////
-// internal methods
 template <typename T>
 Status
-SearchIteratorV2Impl<T>::probeForCompability() {
-    T temp_args = args_;
-    temp_args.SetLimit(1);
-    temp_args.AddExtraParam(ITER_SEARCH_BATCH_SIZE_KEY, "1");
-    proto::milvus::SearchResults rpc_response;
-    auto status = executeSearch(temp_args, rpc_response, true);
-    if (!status.IsOk()) {
-        return {status.Code(), "Fail to init search iterator, error: " + status.Message()};
-    }
-
-    return checkTokenExists(rpc_response);
+SearchIteratorV2Impl<T>::executeSearch(proto::milvus::SearchResults& response) {
+    auto timeout = connection_->GetConnectParam().RpcDeadlineMs();
+    auto caller = [&]() { return connection_->Search(request_, response, GrpcOpts{timeout}); };
+    return Retry(caller, retry_param_);
 }
 
 template <typename T>
 Status
-SearchIteratorV2Impl<T>::checkTokenExists(proto::milvus::SearchResults& rpc_response) {
-    proto::schema::SearchResultData data = rpc_response.results();
-    auto token = data.search_iterator_v2_results().token();
-    if (token.empty()) {
-        std::string msg =
-            "The server does not support Search Iterator V2. The search_iterator (v1) is used instead. Please upgrade "
-            "your Milvus server version to 2.5.2 and later, or use a pymilvus version before 2.5.3 (excluded) to avoid "
-            "this issue.";
-        return {StatusCode::NOT_SUPPORTED, msg};
+SearchIteratorV2Impl<T>::loadPending(SingleResultPtr& results) {
+    if (!has_pending_) {
+        pending_response_.Clear();
+        auto status = executeSearch(pending_response_);
+        if (!status.IsOk()) {
+            return status;
+        }
     }
-
-    return Status::OK();
+    auto status = preparePending(results);
+    has_pending_ = status.IsOk();
+    return status;
 }
 
 template <typename T>
 Status
-SearchIteratorV2Impl<T>::executeSearch(const T& args, proto::milvus::SearchResults& rpc_response, bool is_probe) {
-    uint64_t timeout = connection_->GetConnectParam().RpcDeadlineMs();
-    std::string current_db =
-        args.DatabaseName().empty() ? connection_->GetConnectParam().DbName() : args.DatabaseName();
-
-    proto::milvus::SearchRequest rpc_request;
-    auto status =
-        ConvertSearchRequest<T>(args, current_db, rpc_request, cluster_id_, connection_->GetConnectParam().Uri());
-    if (!status.IsOk()) {
-        return status;
+SearchIteratorV2Impl<T>::preparePending(SingleResultPtr& results) {
+    const auto& data = pending_response_.results();
+    const auto& info = data.search_iterator_v2_results();
+    const auto version = ExtraInfo(pending_response_, kCursorVersion);
+    if (!data.has_search_iterator_v2_results() || info.token().empty()) {
+        if (!initialized_ && version.empty()) {
+            return {StatusCode::NOT_SUPPORTED, "server does not support Search Iterator V2"};
+        }
+        return {StatusCode::UNKNOWN_ERROR, "search iterator cursor response has no V2 metadata"};
     }
-
-    if (is_probe) {
-        // The compatibility probe does not participate in the real iterator snapshot.
-        rpc_request.set_guarantee_timestamp(0);
+    if (!version.empty() && version != "2") {
+        return {StatusCode::UNKNOWN_ERROR, "unsupported search iterator cursor version: " + version};
+    }
+    if (version == "2" && RpcParam(request_, kCursorVersion) != "2") {
+        return {StatusCode::UNKNOWN_ERROR, "server activated PK cursor mode without client opt-in"};
+    }
+    const auto next_mode = version.empty() ? CursorMode::DISTANCE : CursorMode::PRIMARY_KEY;
+    if (mode_ != CursorMode::UNINITIALIZED && mode_ != next_mode) {
+        return {StatusCode::UNKNOWN_ERROR, "search iterator cursor mode changed between pages"};
+    }
+    const auto token = RpcParam(request_, ITER_SEARCH_ID_KEY);
+    if (!token.empty() && token != info.token()) {
+        return {StatusCode::UNKNOWN_ERROR, "search iterator token changed between pages"};
+    }
+    int64_t count = 0;
+    std::string pk_type;
+    std::string last_pk;
+    if (next_mode == CursorMode::PRIMARY_KEY) {
+        if (data.num_queries() != 1 || data.topks_size() != 1 || data.topks(0) < 0 ||
+            static_cast<uint64_t>(data.topks(0)) > args_.BatchSize() || data.scores_size() != data.topks(0) ||
+            !std::isfinite(info.last_bound())) {
+            return {StatusCode::UNKNOWN_ERROR, "invalid search iterator result shape or bound"};
+        }
+        for (const auto score : data.scores()) {
+            if (!std::isfinite(score)) {
+                return {StatusCode::UNKNOWN_ERROR, "non-finite search iterator score"};
+            }
+        }
+        count = data.topks(0);
+        if (args_.PkSchema().FieldDataType() == DataType::INT64) {
+            pk_type = "int64";
+            if (data.ids().int_id().data_size() != count || (count > 0 && !data.ids().has_int_id())) {
+                return {StatusCode::UNKNOWN_ERROR, "search iterator int64 IDs do not match result count"};
+            }
+            if (count > 0) {
+                last_pk = std::to_string(data.ids().int_id().data(static_cast<int>(count - 1)));
+            }
+        } else if (args_.PkSchema().FieldDataType() == DataType::VARCHAR) {
+            pk_type = "varchar";
+            if (data.ids().str_id().data_size() != count || (count > 0 && !data.ids().has_str_id())) {
+                return {StatusCode::UNKNOWN_ERROR, "search iterator varchar IDs do not match result count"};
+            }
+            if (count > 0) {
+                last_pk = data.ids().str_id().data(static_cast<int>(count - 1));
+            }
+        } else {
+            return {StatusCode::UNKNOWN_ERROR, "unsupported search iterator primary key schema"};
+        }
+    }
+    auto candidate = request_;
+    if (next_mode == CursorMode::PRIMARY_KEY) {
+        if (count > 0) {
+            const auto& extra = pending_response_.status().extra_info();
+            if (ExtraInfo(pending_response_, kLastPkType) != pk_type || extra.find(kLastPk) == extra.end() ||
+                ExtraInfo(pending_response_, kLastPk) != last_pk ||
+                info.last_bound() != data.scores(static_cast<int>(count - 1))) {
+                return {StatusCode::UNKNOWN_ERROR, "search iterator cursor does not match last result"};
+            }
+            SetRpcParam(candidate, kLastPkType, pk_type);
+            SetRpcParam(candidate, kLastPk, last_pk);
+        }
+        SetRpcParam(candidate, kCursorVersion, "2");
     } else {
-        // Real searches use the snapshot selected by the compatibility probe.
-        rpc_request.set_guarantee_timestamp(session_ts_);
+        RemoveRpcParam(candidate, kCursorVersion);
+        RemoveRpcParam(candidate, kLastPkType);
+        RemoveRpcParam(candidate, kLastPk);
     }
-
-    // query rpc call via retry process
-    auto caller = [&]() { return connection_->Search(rpc_request, rpc_response, GrpcOpts{timeout}); };
-    status = Retry(caller, retry_param_);
+    if (candidate.guarantee_timestamp() == 0) {
+        if (next_mode == CursorMode::PRIMARY_KEY && pending_response_.session_ts() == 0) {
+            return {StatusCode::UNKNOWN_ERROR, "search iterator PK cursor response has no snapshot timestamp"};
+        }
+        candidate.set_guarantee_timestamp(pending_response_.session_ts());
+    }
+    SetRpcParam(candidate, ITER_SEARCH_ID_KEY, info.token());
+    SetRpcParam(candidate, ITER_SEARCH_LAST_BOUND_KEY, BoundText(info.last_bound()));
+    SearchResults decoded;
+    auto status = ConvertSearchResults(pending_response_, args_.PkSchema().Name(), decoded);
     if (!status.IsOk()) {
         return status;
     }
-
-    if (session_ts_ == 0) {
-        // Pin the snapshot selected by the compatibility probe. This matches the Java SDK's
-        // SearchIteratorV2 behavior for every consistency level.
-        auto ts = rpc_response.session_ts();
-        session_ts_ = (ts == 0) ? static_cast<uint64_t>(MakeMktsFromNowMs()) : ts;
+    if (decoded.Results().size() != 1 ||
+        (next_mode == CursorMode::PRIMARY_KEY && decoded.Results().at(0).GetRowCount() != static_cast<size_t>(count))) {
+        return {StatusCode::UNKNOWN_ERROR, "search iterator decoded result count is invalid"};
     }
-
-    return Status::OK();
-}
-
-template <typename T>
-Status
-SearchIteratorV2Impl<T>::next(SingleResultPtr& results) {
-    proto::milvus::SearchResults rpc_response;
-    auto status = executeSearch(args_, rpc_response, false);
-    if (!status.IsOk()) {
-        return status;
-    }
-
-    status = checkTokenExists(rpc_response);
-    if (!status.IsOk()) {
-        return status;
-    }
-
-    // set the bound for the next search, the bound must be a string of double precise
-    // you will get bug if you treat it as float
-    auto rpc_results = rpc_response.results().search_iterator_v2_results();
-    auto bound = DoubleToString(static_cast<double>(rpc_results.last_bound()));
-    args_.AddExtraParam(ITER_SEARCH_LAST_BOUND_KEY, bound);
-
-    const auto& params = args_.ExtraParams();
-    if (params.find(ITER_SEARCH_ID_KEY) == params.end()) {
-        args_.AddExtraParam(ITER_SEARCH_ID_KEY, rpc_results.token());
-    }
-
-    SearchResults search_results;
-    status = ConvertSearchResults(rpc_response, args_.PkSchema().Name(), search_results);
-    if (!status.IsOk()) {
-        return status;
-    }
-
-    // nq = 1, the search_results must contains a SingleResult. Otherwise it is a server-side bug.
-    if (search_results.Results().size() != 1) {
-        return {StatusCode::UNKNOWN_ERROR, "the server returns an unexpected search result"};
-    }
-
-    auto& single_result = search_results.Results().at(0);
-    results = std::make_shared<SingleResult>(single_result);
+    results = std::make_shared<SingleResult>(decoded.Results().at(0));
+    pending_request_ = std::move(candidate);
+    pending_mode_ = next_mode;
     return Status::OK();
 }
 

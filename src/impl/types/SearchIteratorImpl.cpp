@@ -38,6 +38,10 @@ SearchIteratorImpl<T>::SearchIteratorImpl(const MilvusConnectionPtr& connection,
                                           const RetryParam& retry_param, std::string cluster_id) {
     connection_ = connection;
     args_ = args;
+    if (args_.DatabaseName().empty()) {
+        const auto& db = connection_->GetConnectParam().DbName();
+        args_.SetDatabaseName(db.empty() ? "default" : db);
+    }
     retry_param_ = retry_param;
     cluster_id_ = std::move(cluster_id);
 }
@@ -47,7 +51,7 @@ Status
 SearchIteratorImpl<T>::Next(SingleResult& results) {
     results.Clear();
 
-    if (reachedLimit()) {
+    if (finished_ || reachedLimit()) {
         return Status::OK();
     }
 
@@ -80,7 +84,7 @@ SearchIteratorImpl<T>::Next(SingleResult& results) {
         }
 
         if (results.GetRowCount() == 0) {
-            // no more rows from the server
+            finished_ = true;
             break;
         }
 
@@ -121,7 +125,7 @@ SearchIteratorImpl<T>::Next(SingleResult& results) {
 
 template <typename T>
 Status
-SearchIteratorImpl<T>::Init() {
+SearchIteratorImpl<T>::Init(const proto::milvus::SearchResults* initial_response) {
     original_limit_ = args_.Limit();
     original_params_ = args_.ExtraParams();
 
@@ -131,7 +135,7 @@ SearchIteratorImpl<T>::Init() {
         return status;
     }
 
-    status = initSearchIterator();
+    status = initSearchIterator(initial_response);
     if (!status.IsOk()) {
         return status;
     }
@@ -264,16 +268,38 @@ SearchIteratorImpl<T>::MetricsPositiveRelated(MetricType metric_type) {
 
 template <typename T>
 Status
-SearchIteratorImpl<T>::initSearchIterator() {
+SearchIteratorImpl<T>::initSearchIterator(const proto::milvus::SearchResults* initial_response) {
     SingleResultPtr single_result;
-    auto status = executeSearch(args_.Filter(), false, single_result);
-    if (!status.IsOk()) {
-        return {status.Code(), "Fail to init search iterator, error: " + status.Message()};
+    Status status;
+    // A real V2 compatibility request uses the same vector/filter/metric/radius
+    // and batch size as the legacy initializer. Reuse only a complete valid page;
+    // old servers returning a legacy empty response body need a normal initializer.
+    const bool reusable = initial_response != nullptr && initial_response->results().num_queries() == 1 &&
+                          initial_response->results().topks_size() == 1 && initial_response->results().topks(0) >= 0 &&
+                          initial_response->results().topks(0) <= extendLimit(false) &&
+                          initial_response->results().scores_size() == initial_response->results().topks(0);
+    if (reusable) {
+        SearchResults decoded;
+        status = ConvertSearchResults(*initial_response, args_.PkSchema().Name(), decoded);
+        if (!status.IsOk()) {
+            return status;
+        }
+        if (decoded.Results().size() != 1 ||
+            decoded.Results()[0].GetRowCount() != static_cast<size_t>(initial_response->results().topks(0))) {
+            return {StatusCode::UNKNOWN_ERROR, "invalid legacy search iterator initial page"};
+        }
+        single_result = std::make_shared<SingleResult>(decoded.Results()[0]);
+        auto ts = initial_response->session_ts();
+        session_ts_ = ts == 0 ? static_cast<uint64_t>(MakeMktsFromNowMs()) : ts;
+    } else {
+        status = executeSearch(args_.Filter(), false, single_result);
+        if (!status.IsOk()) {
+            return {status.Code(), "Fail to init search iterator, error: " + status.Message()};
+        }
     }
     if (single_result->GetRowCount() == 0) {
-        std::string msg = std::string("Cannot init search iterator because init page contains no matched rows, ") +
-                          " please check the radius and range_filter set up by searchParams";
-        return {StatusCode::UNKNOWN_ERROR, msg};
+        finished_ = true;
+        return Status::OK();
     }
 
     updateWidth(*single_result);
