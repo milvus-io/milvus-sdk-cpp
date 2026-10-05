@@ -41,7 +41,7 @@ class SearchIteratorImpl : public SearchIterator {
     Next(SingleResult& results) final;
 
     Status
-    Init();
+    Init(const proto::milvus::SearchResults* initial_response = nullptr);
 
     static Status
     CheckInput(const FieldDataPtr& vectors, const std::unordered_map<std::string, std::string>& params,
@@ -59,7 +59,7 @@ class SearchIteratorImpl : public SearchIterator {
     MetricsPositiveRelated(MetricType metric_type);
 
     Status
-    initSearchIterator();
+    initSearchIterator(const proto::milvus::SearchResults* initial_response);
 
     void
     updateTailDistance(const SingleResultPtr& results);
@@ -98,6 +98,7 @@ class SearchIteratorImpl : public SearchIterator {
 
     uint64_t session_ts_{0};
     uint64_t returned_count_{0};
+    bool finished_{false};
     double width_{0.0};
     double tail_distance_{0.0};
     std::vector<std::string> filtered_ids_;
