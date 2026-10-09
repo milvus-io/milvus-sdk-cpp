@@ -21,22 +21,99 @@
 namespace milvus {
 namespace {
 
-nlohmann::json
-PostImportRequest(const std::string& url, const std::string& request_path, const std::string& api_key,
-                  const nlohmann::json& request_payload) {
-    httplib::Client client(url);
-    httplib::Headers headers = {
-        {"Authorization", "Bearer " + api_key},
-    };
+Status
+PostImport(const std::string& url, const std::string& request_path, const std::string& api_key,
+           const nlohmann::json& request_payload, const std::string& db_name, const BulkImportConfig& config,
+           BulkImportResponse& response) {
+    response.SetRawJson(nlohmann::json::object());
+    try {
+        httplib::Client client(url);
+        client.enable_server_certificate_verification(config.VerifyServerCert());
+        if (!config.CaCertPath().empty()) {
+            client.set_ca_cert_path(config.CaCertPath());
+        }
+        if (config.Timeout() > 0) {
+            client.set_connection_timeout(config.Timeout());
+            client.set_read_timeout(config.Timeout(), 0);
+            client.set_write_timeout(config.Timeout(), 0);
+        }
+        httplib::Headers headers = {
+            {"Authorization", "Bearer " + api_key},
+        };
+        if (!db_name.empty()) {
+            headers.emplace("DB-Name", db_name);
+        }
 
-    auto response = client.Post(request_path, headers, request_payload.dump(), "application/json");
-    if (response && response->status == 200) {
-        return nlohmann::json::parse(response->body);
+        auto result = client.Post(request_path, headers, request_payload.dump(), "application/json");
+        if (!result) {
+            return {StatusCode::RPC_FAILED, "failed to post import request: " + httplib::to_string(result.error())};
+        }
+        if (result->status != 200) {
+            return {StatusCode::SERVER_FAILED,
+                    "import request failed with HTTP status " + std::to_string(result->status) + ": " + result->body};
+        }
+        try {
+            response.SetRawJson(nlohmann::json::parse(result->body));
+        } catch (const std::exception& e) {
+            return {StatusCode::JSON_PARSE_ERROR, std::string("failed to parse import response: ") + e.what()};
+        }
+    } catch (const std::exception& e) {
+        return {StatusCode::UNKNOWN_ERROR, std::string("failed to post import request: ") + e.what()};
     }
-    return nullptr;
+    return Status::OK();
+}
+
+Status
+CheckImportResponse(const BulkImportResponse& response) {
+    if (response.Code() != 0) {
+        return {StatusCode::SERVER_FAILED,
+                "import request failed with code " + std::to_string(response.Code()) + ": " + response.Message()};
+    }
+    return Status::OK();
 }
 
 }  // namespace
+
+Status
+BulkImport::CreateImportJobsImpl(const std::string& url, const std::string& api_key,
+                                 const nlohmann::json& request_payload, const BulkImportConfig& config,
+                                 BulkImportResponse& response) {
+    auto status = PostImport(url, "/v2/vectordb/jobs/import/create", api_key, request_payload, "", config, response);
+    return status.IsOk() ? CheckImportResponse(response) : status;
+}
+
+Status
+BulkImport::ListImportJobsImpl(const std::string& url, const std::string& api_key,
+                               const nlohmann::json& request_payload, const BulkImportConfig& config,
+                               BulkImportResponse& response) {
+    auto status = PostImport(url, "/v2/vectordb/jobs/import/list", api_key, request_payload, "", config, response);
+    return status.IsOk() ? CheckImportResponse(response) : status;
+}
+
+Status
+BulkImport::GetImportJobProgressImpl(const std::string& url, const std::string& api_key,
+                                     const nlohmann::json& request_payload, const std::string& db_name,
+                                     const BulkImportConfig& config, BulkImportResponse& response) {
+    auto status =
+        PostImport(url, "/v2/vectordb/jobs/import/describe", api_key, request_payload, db_name, config, response);
+    return status.IsOk() ? CheckImportResponse(response) : status;
+}
+
+Status
+BulkImport::CommitImportImpl(const std::string& url, const std::string& api_key, const nlohmann::json& request_payload,
+                             const std::string& db_name, const BulkImportConfig& config, BulkImportResponse& response) {
+    auto status =
+        PostImport(url, "/v2/vectordb/jobs/import/commit", api_key, request_payload, db_name, config, response);
+    return status.IsOk() ? CheckImportResponse(response) : status;
+}
+
+Status
+BulkImport::AbortImportImpl(const std::string& url, const std::string& api_key, const nlohmann::json& request_payload,
+                            const std::string& db_name, const BulkImportConfig& config, BulkImportResponse& response) {
+    auto status =
+        PostImport(url, "/v2/vectordb/jobs/import/abort", api_key, request_payload, db_name, config, response);
+    return status.IsOk() ? CheckImportResponse(response) : status;
+}
 
 nlohmann::json
 BulkImport::CreateImportJobs(const std::string& url, const std::string& collection_name,
@@ -56,7 +133,10 @@ BulkImport::CreateImportJobs(const std::string& url, const std::string& collecti
     if (!options.empty()) {
         request_payload["options"] = options;
     }
-    return PostImportRequest(url, "/v2/vectordb/jobs/import/create", api_key, request_payload);
+    BulkImportResponse response;
+    auto status =
+        PostImport(url, "/v2/vectordb/jobs/import/create", api_key, request_payload, "", BulkImportConfig{}, response);
+    return status.IsOk() ? response.RawJson() : nlohmann::json{};
 }
 
 nlohmann::json
@@ -66,28 +146,40 @@ BulkImport::ListImportJobs(const std::string& url, const std::string& collection
         {"collectionName", collection_name},
         {"dbName", db_name},
     };
-    return PostImportRequest(url, "/v2/vectordb/jobs/import/list", api_key, request_payload);
+    BulkImportResponse response;
+    auto status =
+        PostImport(url, "/v2/vectordb/jobs/import/list", api_key, request_payload, "", BulkImportConfig{}, response);
+    return status.IsOk() ? response.RawJson() : nlohmann::json{};
 }
 
 nlohmann::json
 BulkImport::GetImportJobProgress(const std::string& url, const std::string& job_id, const std::string& db_name,
                                  const std::string& api_key) {
-    nlohmann::json payload = {{"dbName", db_name}, {"jobID", job_id}};
-    return PostImportRequest(url, "/v2/vectordb/jobs/import/get_progress", api_key, payload);
+    nlohmann::json payload = {{"dbName", db_name}, {"jobId", job_id}};
+    BulkImportResponse response;
+    auto status = PostImport(url, "/v2/vectordb/jobs/import/get_progress", api_key, payload, db_name,
+                             BulkImportConfig{}, response);
+    return status.IsOk() ? response.RawJson() : nlohmann::json{};
 }
 
 nlohmann::json
 BulkImport::CommitImport(const std::string& url, const std::string& job_id, const std::string& db_name,
                          const std::string& api_key) {
     nlohmann::json payload = {{"dbName", db_name}, {"jobId", job_id}};
-    return PostImportRequest(url, "/v2/vectordb/jobs/import/commit", api_key, payload);
+    BulkImportResponse response;
+    auto status =
+        PostImport(url, "/v2/vectordb/jobs/import/commit", api_key, payload, db_name, BulkImportConfig{}, response);
+    return status.IsOk() ? response.RawJson() : nlohmann::json{};
 }
 
 nlohmann::json
 BulkImport::AbortImport(const std::string& url, const std::string& job_id, const std::string& db_name,
                         const std::string& api_key) {
     nlohmann::json payload = {{"dbName", db_name}, {"jobId", job_id}};
-    return PostImportRequest(url, "/v2/vectordb/jobs/import/abort", api_key, payload);
+    BulkImportResponse response;
+    auto status =
+        PostImport(url, "/v2/vectordb/jobs/import/abort", api_key, payload, db_name, BulkImportConfig{}, response);
+    return status.IsOk() ? response.RawJson() : nlohmann::json{};
 }
 
 }  // namespace milvus
