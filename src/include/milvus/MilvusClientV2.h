@@ -22,6 +22,7 @@
 #include "ClientTelemetry.h"
 #include "MilvusClientV2Session.h"
 #include "Status.h"
+#include "milvus/BulkImport.h"
 #include "milvus/Export.h"
 #include "request/alias/AlterAliasRequest.h"
 #include "request/alias/CreateAliasRequest.h"
