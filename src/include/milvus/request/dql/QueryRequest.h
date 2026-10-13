@@ -219,6 +219,34 @@ class MILVUS_SDK_API QueryRequest : public DQLRequestBase<QueryRequest> {
     WithIgnoreGrowing(bool ignore_growing);
 
     /**
+     * @brief Get the group-by fields.
+     *
+     * Query groups results by the given scalar fields, returning the representative
+     * rows of each group. Grouping is supported only for a subset of scalar field types.
+     * @return the group by fields.
+     */
+    std::vector<std::string>
+    GroupByFields() const;
+
+    /**
+     * @brief Set the group-by fields.
+     *
+     * Note: this value is stored in the ExtraParams and sent via the query params.
+     * @param [in] group_by_fields the group by fields.
+     */
+    void
+    SetGroupByFields(std::vector<std::string>&& group_by_fields);
+
+    /**
+     * @brief Set the group-by fields.
+     *
+     * Note: this value is stored in the ExtraParams and sent via the query params.
+     * @param [in] group_by_fields the group by fields.
+     */
+    QueryRequest&
+    WithGroupByFields(std::vector<std::string>&& group_by_fields);
+
+    /**
      * @brief Add extra param.
      * @param [in] key the key.
      * @param [in] value the value.

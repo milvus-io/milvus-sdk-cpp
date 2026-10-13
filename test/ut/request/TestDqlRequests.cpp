@@ -66,6 +66,21 @@ TEST_F(QueryRequestTest, GettersAndSetters) {
     req.AddExtraParam("hints", "segcore");
     EXPECT_EQ(req.ExtraParams().at("hints"), "segcore");
 
+    req.WithGroupByFields({"brand", "category"});
+    EXPECT_EQ(req.GroupByFields(), (std::vector<std::string>{"brand", "category"}));
+    EXPECT_EQ(req.ExtraParams().at("group_by_fields"), "brand,category");
+
+    req.WithGroupByFields({"brand", " category "});
+    EXPECT_EQ(req.GroupByFields(), (std::vector<std::string>{"brand", "category"}));
+
+    req.WithGroupByFields({});
+    EXPECT_TRUE(req.GroupByFields().empty());
+    EXPECT_TRUE(req.ExtraParams().find("group_by_fields") == req.ExtraParams().end());
+
+    milvus::QueryRequest raw_group_req;
+    raw_group_req.AddExtraParam("group_by_fields", "brand, category");
+    EXPECT_EQ(raw_group_req.GroupByFields(), (std::vector<std::string>{"brand", "category"}));
+
     req.AddOrderByField(milvus::OrderByField("price"));
     ASSERT_EQ(req.OrderByFields().size(), 1);
     EXPECT_EQ(req.OrderByFields().at(0).FieldName(), "price");

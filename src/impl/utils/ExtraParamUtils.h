@@ -16,8 +16,10 @@
 
 #pragma once
 
+#include <sstream>
 #include <string>
 #include <unordered_map>
+#include <vector>
 
 #include "./TypeUtils.h"
 
@@ -123,6 +125,34 @@ GetExtraStr(const ExtraParamsMap& params, const std::string& key, std::string de
         return it->second;
     }
     return default_val;
+}
+
+inline std::string
+JoinExtra(const std::vector<std::string>& values) {
+    std::string joined;
+    for (size_t i = 0; i < values.size(); ++i) {
+        if (i > 0) {
+            joined += ",";
+        }
+        joined += values[i];
+    }
+    return joined;
+}
+
+inline std::vector<std::string>
+SplitExtra(const std::string& value) {
+    std::vector<std::string> fields;
+    std::stringstream ss(value);
+    std::string field;
+    while (std::getline(ss, field, ',')) {
+        const auto start = field.find_first_not_of(" \t");
+        if (start == std::string::npos) {
+            continue;
+        }
+        const auto end = field.find_last_not_of(" \t");
+        fields.push_back(field.substr(start, end - start + 1));
+    }
+    return fields;
 }
 
 template <typename T>

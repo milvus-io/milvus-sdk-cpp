@@ -17,6 +17,7 @@
 #include "milvus/request/dql/QueryRequest.h"
 
 #include <memory>
+#include <utility>
 
 #include "../../utils/ExtraParamUtils.h"
 
@@ -134,6 +135,26 @@ QueryRequest::SetIgnoreGrowing(bool ignore_growing) {
 QueryRequest&
 QueryRequest::WithIgnoreGrowing(bool ignore_growing) {
     SetIgnoreGrowing(ignore_growing);
+    return *this;
+}
+
+std::vector<std::string>
+QueryRequest::GroupByFields() const {
+    return SplitExtra(GetExtraStr(extra_params_, "group_by_fields", ""));
+}
+
+void
+QueryRequest::SetGroupByFields(std::vector<std::string>&& group_by_fields) {
+    if (group_by_fields.empty()) {
+        extra_params_.erase("group_by_fields");
+        return;
+    }
+    SetExtraStr(extra_params_, "group_by_fields", JoinExtra(group_by_fields));
+}
+
+QueryRequest&
+QueryRequest::WithGroupByFields(std::vector<std::string>&& group_by_fields) {
+    SetGroupByFields(std::move(group_by_fields));
     return *this;
 }
 
