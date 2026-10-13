@@ -46,8 +46,13 @@ ResourceGroupConfig::TransferFromGroups() const {
 }
 
 void
-ResourceGroupConfig::AddTrnasferFromGroup(const std::string& group_name) {
+ResourceGroupConfig::AddTransferFromGroup(const std::string& group_name) {
     transfer_from_.insert(group_name);
+}
+
+void
+ResourceGroupConfig::AddTrnasferFromGroup(const std::string& group_name) {
+    AddTransferFromGroup(group_name);
 }
 
 const std::set<std::string>&
@@ -56,8 +61,13 @@ ResourceGroupConfig::TransferToGroups() const {
 }
 
 void
-ResourceGroupConfig::AddTrnasferToGroup(const std::string& group_name) {
+ResourceGroupConfig::AddTransferToGroup(const std::string& group_name) {
     transfer_to_.insert(group_name);
+}
+
+void
+ResourceGroupConfig::AddTrnasferToGroup(const std::string& group_name) {
+    AddTransferToGroup(group_name);
 }
 
 const std::unordered_map<std::string, std::string>&

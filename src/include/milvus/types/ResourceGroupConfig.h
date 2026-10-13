@@ -61,31 +61,47 @@ class MILVUS_SDK_API ResourceGroupConfig {
     SetLimits(uint32_t num);
 
     /**
-     * @brief Group names from which the nodes can be transfered.
+     * @brief Group names from which the nodes can be transferred.
      * @return the transfer from groups.
      */
     const std::set<std::string>&
     TransferFromGroups() const;
 
     /**
-     * @brief Add a group name from which the nodes can be transfered.
+     * @brief Add a group name from which the nodes can be transferred.
      * @param [in] group_name the group name.
      */
     void
+    AddTransferFromGroup(const std::string& group_name);
+
+    /**
+     * @brief Add a group name from which the nodes can be transferred.
+     * @deprecated Misspelled; use AddTransferFromGroup() instead.
+     * @param [in] group_name the group name.
+     */
+    [[deprecated("Use AddTransferFromGroup() instead")]] void
     AddTrnasferFromGroup(const std::string& group_name);
 
     /**
-     * @brief Group names to which the nodes can be transfered.
+     * @brief Group names to which the nodes can be transferred.
      * @return the transfer to groups.
      */
     const std::set<std::string>&
     TransferToGroups() const;
 
     /**
-     * @brief Add a group name to which the nodes can be transfered.
+     * @brief Add a group name to which the nodes can be transferred.
      * @param [in] group_name the group name.
      */
     void
+    AddTransferToGroup(const std::string& group_name);
+
+    /**
+     * @brief Add a group name to which the nodes can be transferred.
+     * @deprecated Misspelled; use AddTransferToGroup() instead.
+     * @param [in] group_name the group name.
+     */
+    [[deprecated("Use AddTransferToGroup() instead")]] void
     AddTrnasferToGroup(const std::string& group_name);
 
     /**

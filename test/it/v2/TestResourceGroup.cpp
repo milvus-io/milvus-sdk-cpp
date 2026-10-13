@@ -71,8 +71,8 @@ TEST_F(UnconnectMilvusMockedTest, CreateResourceGroupSendsNameAndConfig) {
     milvus::ResourceGroupConfig config;
     config.SetRequests(2);
     config.SetLimits(4);
-    config.AddTrnasferFromGroup("rg2");
-    config.AddTrnasferToGroup("rg3");
+    config.AddTransferFromGroup("rg2");
+    config.AddTransferToGroup("rg3");
     config.AddNodeFilter("CPU", "32");
     milvus::CreateResourceGroupRequest request;
     request.WithName("rg1").WithConfig(std::move(config));
