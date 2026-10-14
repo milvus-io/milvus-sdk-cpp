@@ -70,8 +70,8 @@ TEST_F(MilvusMockedTest, DescribeResourceGroup) {
     milvus::ResourceGroupConfig expected_config;
     expected_config.SetRequests(3);
     expected_config.SetLimits(5);
-    expected_config.AddTrnasferFromGroup("A");
-    expected_config.AddTrnasferToGroup("B");
+    expected_config.AddTransferFromGroup("A");
+    expected_config.AddTransferToGroup("B");
     expected_config.AddNodeFilter("cu", "32c");
 
     std::vector<milvus::NodeInfo> expected_nodes;

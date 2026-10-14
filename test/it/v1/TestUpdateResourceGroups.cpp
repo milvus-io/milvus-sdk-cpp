@@ -61,8 +61,8 @@ TEST_F(MilvusMockedTest, UpdateResourceGroups) {
         milvus::ResourceGroupConfig config;
         config.SetRequests(i);
         config.SetLimits(i);
-        config.AddTrnasferFromGroup("A" + std::to_string(i));
-        config.AddTrnasferToGroup("B" + std::to_string(i));
+        config.AddTransferFromGroup("A" + std::to_string(i));
+        config.AddTransferToGroup("B" + std::to_string(i));
         config.AddNodeFilter("CPU", "32c");
         config.AddNodeFilter("MEM", "16G");
         groups.insert(std::make_pair("Foo" + std::to_string(i), config));

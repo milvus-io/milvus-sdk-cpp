@@ -1083,10 +1083,10 @@ ConvertResourceGroupConfig(const proto::rg::ResourceGroupConfig& rpc_config, Res
     config.SetLimits(static_cast<uint32_t>(rpc_config.limits().node_num()));
 
     for (const auto& transfer : rpc_config.transfer_from()) {
-        config.AddTrnasferFromGroup(transfer.resource_group());
+        config.AddTransferFromGroup(transfer.resource_group());
     }
     for (const auto& transfer : rpc_config.transfer_to()) {
-        config.AddTrnasferToGroup(transfer.resource_group());
+        config.AddTransferToGroup(transfer.resource_group());
     }
     for (const auto& kv : rpc_config.node_filter().node_labels()) {
         config.AddNodeFilter(kv.key(), kv.value());
