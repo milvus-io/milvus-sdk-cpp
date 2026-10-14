@@ -16,6 +16,8 @@
 
 #pragma once
 
+// CI probe: no behavior change
+
 #include <string>
 
 #include "milvus/Export.h"
