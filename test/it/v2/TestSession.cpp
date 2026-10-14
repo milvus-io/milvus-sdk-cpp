@@ -353,25 +353,19 @@ TEST_F(UnconnectMilvusMockedTest, V2SessionIteratorsRouteEveryRequestWithoutMuta
     milvus::QueryResults query_results;
     EXPECT_TRUE(query_iterator->Next(query_results).IsOk());
 
-    int search_calls = 0;
     EXPECT_CALL(service_, Search(_, _, _))
-        .Times(2)
-        .WillRepeatedly([&](::grpc::ServerContext*, const milvus::proto::milvus::SearchRequest* request,
-                            milvus::proto::milvus::SearchResults* response) {
+        .Times(1)
+        .WillOnce([&](::grpc::ServerContext*, const milvus::proto::milvus::SearchRequest* request,
+                      milvus::proto::milvus::SearchResults* response) {
             EXPECT_EQ(CountParam(request->search_params(), "cluster_id", "cluster-a"), 1);
-            ++search_calls;
             response->mutable_status()->set_code(milvus::proto::common::ErrorCode::Success);
             auto* results = response->mutable_results();
             results->set_num_queries(1);
             results->set_primary_field_name("id");
             results->mutable_search_iterator_v2_results()->set_token("token");
-            if (search_calls == 1) {
-                results->mutable_topks()->Add(0);
-            } else {
-                results->mutable_topks()->Add(1);
-                results->mutable_ids()->mutable_int_id()->add_data(1);
-                results->mutable_scores()->Add(0.1f);
-            }
+            results->mutable_topks()->Add(1);
+            results->mutable_ids()->mutable_int_id()->add_data(1);
+            results->mutable_scores()->Add(0.1f);
             return ::grpc::Status{};
         });
 
@@ -383,6 +377,9 @@ TEST_F(UnconnectMilvusMockedTest, V2SessionIteratorsRouteEveryRequestWithoutMuta
     EXPECT_EQ(search_request.CollectionID(), 0);
     milvus::SingleResult search_results;
     EXPECT_TRUE(search_iterator->Next(search_results).IsOk());
+    EXPECT_EQ(search_results.GetRowCount(), 1);
+    EXPECT_TRUE(search_iterator->Next(search_results).IsOk());
+    EXPECT_EQ(search_results.GetRowCount(), 0);
 }
 
 TEST_F(UnconnectMilvusMockedTest, V2SessionSearchIteratorV1FallbackRoutesRequests) {
@@ -402,24 +399,18 @@ TEST_F(UnconnectMilvusMockedTest, V2SessionSearchIteratorV1FallbackRoutesRequest
             return ::grpc::Status{};
         });
 
-    int call_count = 0;
     EXPECT_CALL(service_, Search(_, _, _))
-        .Times(2)
+        .Times(1)
         .WillRepeatedly([&](::grpc::ServerContext*, const milvus::proto::milvus::SearchRequest* request,
                             milvus::proto::milvus::SearchResults* response) {
             EXPECT_EQ(CountParam(request->search_params(), "cluster_id", "cluster-a"), 1);
-            ++call_count;
             response->mutable_status()->set_code(milvus::proto::common::ErrorCode::Success);
             auto* results = response->mutable_results();
             results->set_num_queries(1);
             results->set_primary_field_name("id");
-            if (call_count == 1) {
-                results->mutable_topks()->Add(0);
-            } else {
-                results->mutable_topks()->Add(1);
-                results->mutable_ids()->mutable_int_id()->add_data(1);
-                results->mutable_scores()->Add(0.1f);
-            }
+            results->mutable_topks()->Add(1);
+            results->mutable_ids()->mutable_int_id()->add_data(1);
+            results->mutable_scores()->Add(0.1f);
             return ::grpc::Status{};
         });
 
@@ -429,6 +420,9 @@ TEST_F(UnconnectMilvusMockedTest, V2SessionSearchIteratorV1FallbackRoutesRequest
     milvus::SearchIteratorPtr iterator;
     EXPECT_TRUE(session->SearchIterator(request, iterator).IsOk());
     EXPECT_EQ(request.CollectionID(), 0);
+    milvus::SingleResult page;
+    EXPECT_TRUE(iterator->Next(page).IsOk());
+    EXPECT_EQ(page.GetRowCount(), 1);
 }
 
 TEST_F(UnconnectMilvusMockedTest, V2SessionGetRoutesTranslatedQuery) {

@@ -16,10 +16,13 @@
 
 #include <gtest/gtest.h>
 
+#include <limits>
 #include <memory>
+#include <stdexcept>
 
 #include "../mocks/MilvusMockedTest.h"
 #include "../mocks/Utils.h"
+#include "milvus/MilvusClientV2.h"
 #include "utils/CompareUtils.h"
 #include "utils/Constants.h"
 #include "utils/DmlUtils.h"
@@ -68,18 +71,19 @@ DoSearchIterator(testing::StrictMock<milvus::MilvusMockedService>& service, milv
     const uint64_t batch_size = 3000;
     const int64_t limit = row_count;
     uint64_t current_poz = 0;
-    bool probe_compability = true;
+    bool first_rpc = true;
     constexpr uint64_t probe_session_ts = 123456;
     EXPECT_CALL(service, Search(_, _, _))
         .WillRepeatedly([&](::grpc::ServerContext*, const SearchRequest* request, SearchResults* response) {
             auto token = v1 ? "" : "dummy";
             response->mutable_results()->mutable_search_iterator_v2_results()->set_token(token);
-            if (probe_compability) {
-                probe_compability = false;
-                if (!v1) {
-                    response->set_session_ts(probe_session_ts);
-                }
+            const bool first = first_rpc;
+            first_rpc = false;
+            if (first && v1) {
                 return ::grpc::Status{};
+            }
+            if (first) {
+                response->set_session_ts(probe_session_ts);
             }
 
             auto params = request->search_params();
@@ -101,7 +105,7 @@ DoSearchIterator(testing::StrictMock<milvus::MilvusMockedService>& service, milv
             EXPECT_EQ(request->collection_name(), collection_name);
             EXPECT_EQ(request->consistency_level(), milvus::ConsistencyLevelCast(level));
             if (!v1) {
-                EXPECT_EQ(request->guarantee_timestamp(), probe_session_ts);
+                EXPECT_EQ(request->guarantee_timestamp(), first ? 0 : probe_session_ts);
             }
             response->mutable_status()->set_code(milvus::proto::common::ErrorCode::Success);
             auto* results = response->mutable_results();
@@ -223,7 +227,7 @@ TEST_F(MilvusMockedTest, SearchIteratorV2BoundedFirstPageUsesServerSelectedSnaps
     DoSearchIterator(service_, client_, false, milvus::ConsistencyLevel::BOUNDED);
 }
 
-TEST_F(MilvusMockedTest, SearchIteratorV2PinsProbeTimestampForSessionConsistency) {
+TEST_F(MilvusMockedTest, SearchIteratorV2PinsFirstBatchTimestampForSessionConsistency) {
     const std::string collection_name = "Foo";
     milvus::CollectionSchema collection_schema(collection_name);
     milvus::BuildCollectionSchema(collection_schema);
@@ -246,11 +250,6 @@ TEST_F(MilvusMockedTest, SearchIteratorV2PinsProbeTimestampForSessionConsistency
         .WillOnce([iterator_session_ts](::grpc::ServerContext*, const SearchRequest* request, SearchResults* response) {
             EXPECT_EQ(request->guarantee_timestamp(), 0);
             response->set_session_ts(iterator_session_ts);
-            response->mutable_results()->mutable_search_iterator_v2_results()->set_token("dummy");
-            return ::grpc::Status{};
-        })
-        .WillOnce([iterator_session_ts](::grpc::ServerContext*, const SearchRequest* request, SearchResults* response) {
-            EXPECT_EQ(request->guarantee_timestamp(), iterator_session_ts);
             auto* results = response->mutable_results();
             results->set_num_queries(1);
             results->set_top_k(1);
@@ -337,17 +336,18 @@ DoSearchIteratorWithExternalFilter(testing::StrictMock<milvus::MilvusMockedServi
 
     const uint64_t batch_size = 100;
     uint64_t current_poz = 0;
-    bool probe_compability = true;
+    bool first_rpc = true;
     EXPECT_CALL(service, Search(_, _, _))
         .WillRepeatedly([&](::grpc::ServerContext*, const SearchRequest* request, SearchResults* response) {
             auto token = use_v1 ? "" : "dummy";
             response->mutable_results()->mutable_search_iterator_v2_results()->set_token(token);
-            if (probe_compability) {
-                probe_compability = false;
-                if (!use_v1) {
-                    response->set_session_ts(123456);
-                }
+            const bool first = first_rpc;
+            first_rpc = false;
+            if (first && use_v1) {
                 return ::grpc::Status{};
+            }
+            if (first) {
+                response->set_session_ts(123456);
             }
 
             response->mutable_status()->set_code(milvus::proto::common::ErrorCode::Success);
@@ -466,4 +466,524 @@ TEST_F(MilvusMockedTest, SearchIteratorV1AppliesExternalFilterPerPage) {
     EXPECT_TRUE(status.IsOk());
 
     DoSearchIteratorWithExternalFilter(service_, client_, true);
+}
+
+namespace {
+const std::string kCursorCollection = "CursorCollection";
+const std::string kCursorToken = "4ea6247d-4b47-4e95-a65c-3bca62bbf7c1";
+
+std::string
+CursorParam(const SearchRequest& request, const std::string& key) {
+    for (const auto& pair : request.search_params()) {
+        if (pair.key() == key) {
+            return pair.value();
+        }
+    }
+    return "";
+}
+
+void
+ExpectCursorSchema(testing::StrictMock<milvus::MilvusMockedService>& service,
+                   milvus::DataType pk_type = milvus::DataType::INT64) {
+    EXPECT_CALL(service, DescribeCollection(_, _, _))
+        .WillOnce(
+            [pk_type](::grpc::ServerContext*, const DescribeCollectionRequest*, DescribeCollectionResponse* response) {
+                milvus::CollectionSchema schema(kCursorCollection);
+                schema.AddField(milvus::FieldSchema("id", pk_type, "", true, false));
+                schema.AddField(milvus::FieldSchema("vector", milvus::DataType::FLOAT_VECTOR).WithDimension(2));
+                response->set_collectionid(100);
+                milvus::ConvertCollectionSchema(schema, *response->mutable_schema());
+                return ::grpc::Status{};
+            });
+}
+
+milvus::SearchIteratorArguments
+CursorArgs(uint64_t batch, int64_t limit, bool opt_in) {
+    milvus::SearchIteratorArguments args;
+    args.SetCollectionName(kCursorCollection);
+    args.SetMetricType(milvus::MetricType::COSINE);
+    args.SetBatchSize(batch);
+    args.SetLimit(limit);
+    args.AddFloatVector("vector", {0.1f, 0.2f});
+    if (opt_in) {
+        args.AddExtraParam("search_iter_cursor_version", "2");
+    }
+    return args;
+}
+
+void
+FillCursorReply(SearchResults* response, const std::vector<int64_t>& ids, const std::vector<float>& scores, uint64_t ts,
+                const std::string& version = "", bool supports_v2 = true) {
+    response->set_session_ts(ts);
+    auto* data = response->mutable_results();
+    data->set_num_queries(1);
+    data->set_top_k(static_cast<int64_t>(ids.size()));
+    data->add_topks(static_cast<int64_t>(ids.size()));
+    data->set_primary_field_name("id");
+    for (auto id : ids) {
+        data->mutable_ids()->mutable_int_id()->add_data(id);
+    }
+    for (auto score : scores) {
+        data->add_scores(score);
+    }
+    if (supports_v2) {
+        auto* info = data->mutable_search_iterator_v2_results();
+        info->set_token(kCursorToken);
+        info->set_last_bound(scores.empty() ? 0.0f : scores.back());
+    }
+    if (!version.empty()) {
+        auto* extra = response->mutable_status()->mutable_extra_info();
+        (*extra)["search_iter_cursor_version"] = version;
+        if (!ids.empty()) {
+            (*extra)["search_iter_last_pk_type"] = "int64";
+            (*extra)["search_iter_last_pk"] = std::to_string(ids.back());
+        }
+    }
+}
+}  // namespace
+
+TEST_F(MilvusMockedTest, SearchIteratorDefaultUsesRealBatchWithoutPkOptIn) {
+    ASSERT_TRUE(client_->Connect(milvus::ConnectParam{"127.0.0.1", server_.ListenPort()}).IsOk());
+    ExpectCursorSchema(service_);
+    EXPECT_CALL(service_, Search(_, _, _))
+        .WillOnce([](::grpc::ServerContext*, const SearchRequest* request, SearchResults* response) {
+            EXPECT_EQ(CursorParam(*request, milvus::TOPK), "2");
+            EXPECT_TRUE(CursorParam(*request, "search_iter_cursor_version").empty());
+            FillCursorReply(response, {1, 2}, {0.9f, 0.8f}, 301);
+            return ::grpc::Status{};
+        });
+    auto args = CursorArgs(2, 2, false);
+    milvus::SearchIteratorPtr iterator;
+    ASSERT_TRUE(client_->SearchIterator(args, iterator).IsOk());
+    EXPECT_EQ(args.CollectionID(), 0);
+    milvus::SingleResult page;
+    ASSERT_TRUE(iterator->Next(page).IsOk());
+    EXPECT_EQ(page.GetRowCount(), 2);
+    ASSERT_TRUE(iterator->Next(page).IsOk());
+    EXPECT_EQ(page.GetRowCount(), 0);
+}
+
+TEST_F(MilvusMockedTest, SearchIteratorPkCursorCachesFirstPageAndPinsSnapshot) {
+    ASSERT_TRUE(client_->Connect(milvus::ConnectParam{"127.0.0.1", server_.ListenPort()}).IsOk());
+    ExpectCursorSchema(service_);
+    EXPECT_CALL(service_, Search(_, _, _))
+        .WillOnce([](::grpc::ServerContext*, const SearchRequest* request, SearchResults* response) {
+            EXPECT_EQ(CursorParam(*request, "search_iter_cursor_version"), "2");
+            EXPECT_EQ(CursorParam(*request, milvus::TOPK), "2");
+            auto nested = nlohmann::json::parse(CursorParam(*request, milvus::PARAMS));
+            EXPECT_FALSE(nested.contains("search_iter_cursor_version"));
+            EXPECT_EQ(request->guarantee_timestamp(), 0);
+            FillCursorReply(response, {std::numeric_limits<int64_t>::min(), std::numeric_limits<int64_t>::max()},
+                            {0.9f, 0.8f}, 301, "2");
+            return ::grpc::Status{};
+        })
+        .WillOnce([](::grpc::ServerContext*, const SearchRequest* request, SearchResults* response) {
+            EXPECT_EQ(request->guarantee_timestamp(), 301);
+            EXPECT_EQ(request->db_name(), "default");
+            EXPECT_EQ(CursorParam(*request, "search_iter_last_pk_type"), "int64");
+            EXPECT_EQ(CursorParam(*request, "search_iter_last_pk"), "9223372036854775807");
+            EXPECT_EQ(CursorParam(*request, milvus::ITER_SEARCH_ID_KEY), kCursorToken);
+            FillCursorReply(response, {3, 4}, {0.7f, 0.6f}, 0, "2");
+            return ::grpc::Status{};
+        });
+    auto args = CursorArgs(2, 3, true);
+    milvus::SearchIteratorPtr iterator;
+    ASSERT_TRUE(client_->SearchIterator(args, iterator).IsOk());
+    args.SetBatchSize(99);
+    args.SetFilter("id < 0");
+    EXPECT_CALL(service_, Connect(_, _, _))
+        .WillOnce([](::grpc::ServerContext*, const milvus::proto::milvus::ConnectRequest*,
+                     milvus::proto::milvus::ConnectResponse*) { return ::grpc::Status{}; });
+    ASSERT_TRUE(client_->UseDatabase("other").IsOk());
+    milvus::SingleResult first, last;
+    ASSERT_TRUE(iterator->Next(first).IsOk());
+    EXPECT_EQ(first.Ids().IntIDArray(),
+              (std::vector<int64_t>{std::numeric_limits<int64_t>::min(), std::numeric_limits<int64_t>::max()}));
+    ASSERT_TRUE(iterator->Next(last).IsOk());
+    EXPECT_EQ(last.GetRowCount(), 1);
+    ASSERT_TRUE(iterator->Next(last).IsOk());
+    EXPECT_EQ(last.GetRowCount(), 0);
+}
+
+TEST_F(MilvusMockedTest, SearchIteratorPkCursorRetainsRawPageOnFilterErrorOrThrow) {
+    ASSERT_TRUE(client_->Connect(milvus::ConnectParam{"127.0.0.1", server_.ListenPort()}).IsOk());
+    ExpectCursorSchema(service_);
+    EXPECT_CALL(service_, Search(_, _, _))
+        .WillOnce([](::grpc::ServerContext*, const SearchRequest*, SearchResults* response) {
+            FillCursorReply(response, {1}, {0.9f}, 301, "2");
+            return ::grpc::Status{};
+        });
+    auto args = CursorArgs(1, 1, true);
+    int calls = 0;
+    args.SetExternalFilterFunc([&calls](milvus::SingleResult& result) {
+        ++calls;
+        if (calls == 1) {
+            result.Clear();
+            return milvus::Status{milvus::StatusCode::UNKNOWN_ERROR, "filter failed"};
+        }
+        if (calls == 2) {
+            result.Clear();
+            throw std::runtime_error("filter threw");
+        }
+        return milvus::Status::OK();
+    });
+    milvus::SearchIteratorPtr iterator;
+    ASSERT_TRUE(client_->SearchIterator(args, iterator).IsOk());
+    milvus::SingleResult page;
+    EXPECT_FALSE(iterator->Next(page).IsOk());
+    EXPECT_FALSE(iterator->Next(page).IsOk());
+    ASSERT_TRUE(iterator->Next(page).IsOk());
+    EXPECT_EQ(page.GetRowCount(), 1);
+    EXPECT_EQ(page.Ids().IntIDArray(), (std::vector<int64_t>{1}));
+}
+
+TEST_F(MilvusMockedTest, SearchIteratorPkCursorDuplicatesDoNotConsumeLimitAndFilterRetryRetainsPage) {
+    ASSERT_TRUE(client_->Connect(milvus::ConnectParam{"127.0.0.1", server_.ListenPort()}).IsOk());
+    ExpectCursorSchema(service_);
+    EXPECT_CALL(service_, Search(_, _, _))
+        .WillOnce([](::grpc::ServerContext*, const SearchRequest*, SearchResults* response) {
+            FillCursorReply(response, {1}, {0.9f}, 301, "2");
+            return ::grpc::Status{};
+        })
+        .WillOnce([](::grpc::ServerContext*, const SearchRequest* request, SearchResults* response) {
+            EXPECT_EQ(CursorParam(*request, "search_iter_last_pk"), "1");
+            EXPECT_FLOAT_EQ(std::stof(CursorParam(*request, milvus::ITER_SEARCH_LAST_BOUND_KEY)), 0.9f);
+            FillCursorReply(response, {1}, {0.8f}, 0, "2");
+            return ::grpc::Status{};
+        })
+        .WillOnce([](::grpc::ServerContext*, const SearchRequest* request, SearchResults* response) {
+            EXPECT_EQ(CursorParam(*request, "search_iter_last_pk"), "1");
+            EXPECT_FLOAT_EQ(std::stof(CursorParam(*request, milvus::ITER_SEARCH_LAST_BOUND_KEY)), 0.8f);
+            FillCursorReply(response, {2}, {0.7f}, 0, "2");
+            return ::grpc::Status{};
+        });
+    auto args = CursorArgs(1, 2, true);
+    bool failed = false;
+    args.SetExternalFilterFunc([&failed](milvus::SingleResult& page) {
+        if (page.Ids().IntIDArray().front() == 2 && !failed) {
+            failed = true;
+            page.Clear();
+            return milvus::Status{milvus::StatusCode::UNKNOWN_ERROR, "retry this raw page"};
+        }
+        return milvus::Status::OK();
+    });
+    milvus::SearchIteratorPtr iterator;
+    ASSERT_TRUE(client_->SearchIterator(args, iterator).IsOk());
+    milvus::SingleResult page;
+    ASSERT_TRUE(iterator->Next(page).IsOk());
+    EXPECT_EQ(page.Ids().IntIDArray(), (std::vector<int64_t>{1}));
+    EXPECT_FALSE(iterator->Next(page).IsOk());
+    ASSERT_TRUE(iterator->Next(page).IsOk());
+    EXPECT_EQ(page.Ids().IntIDArray(), (std::vector<int64_t>{2}));
+    EXPECT_EQ(page.Scores(), (std::vector<float>{0.7f}));
+    ASSERT_TRUE(iterator->Next(page).IsOk());
+    EXPECT_EQ(page.GetRowCount(), 0);
+}
+
+TEST_F(MilvusMockedTest, SearchIteratorDistanceModePreservesRepeatedPrimaryKeys) {
+    ASSERT_TRUE(client_->Connect(milvus::ConnectParam{"127.0.0.1", server_.ListenPort()}).IsOk());
+    ExpectCursorSchema(service_);
+    EXPECT_CALL(service_, Search(_, _, _))
+        .WillOnce([](::grpc::ServerContext*, const SearchRequest*, SearchResults* response) {
+            FillCursorReply(response, {1}, {0.9f}, 301);
+            return ::grpc::Status{};
+        })
+        .WillOnce([](::grpc::ServerContext*, const SearchRequest*, SearchResults* response) {
+            FillCursorReply(response, {1}, {0.8f}, 0);
+            return ::grpc::Status{};
+        });
+    auto args = CursorArgs(1, 2, false);
+    milvus::SearchIteratorPtr iterator;
+    ASSERT_TRUE(client_->SearchIterator(args, iterator).IsOk());
+    milvus::SingleResult page;
+    ASSERT_TRUE(iterator->Next(page).IsOk());
+    ASSERT_TRUE(iterator->Next(page).IsOk());
+    EXPECT_EQ(page.Ids().IntIDArray(), (std::vector<int64_t>{1}));
+    EXPECT_EQ(page.Scores(), (std::vector<float>{0.8f}));
+}
+
+TEST_F(MilvusMockedTest, SearchIteratorPkCursorDeduplicatesExactVarcharKeys) {
+    ASSERT_TRUE(client_->Connect(milvus::ConnectParam{"127.0.0.1", server_.ListenPort()}).IsOk());
+    ExpectCursorSchema(service_, milvus::DataType::VARCHAR);
+    const std::string quoted = "quoted\"\\中文";
+    const auto fill = [&quoted](SearchResults* response, bool first) {
+        FillCursorReply(response, {1, 2}, first ? std::vector<float>{0.9f, 0.8f} : std::vector<float>{0.7f, 0.6f},
+                        first ? 301 : 0, "2");
+        auto* ids = response->mutable_results()->mutable_ids()->mutable_str_id();
+        ids->add_data(first ? "" : quoted);
+        ids->add_data(first ? quoted : "last");
+        auto* extra = response->mutable_status()->mutable_extra_info();
+        (*extra)["search_iter_last_pk_type"] = "varchar";
+        (*extra)["search_iter_last_pk"] = ids->data(1);
+    };
+    EXPECT_CALL(service_, Search(_, _, _))
+        .WillOnce([&fill](::grpc::ServerContext*, const SearchRequest*, SearchResults* response) {
+            fill(response, true);
+            return ::grpc::Status{};
+        })
+        .WillOnce([&fill, &quoted](::grpc::ServerContext*, const SearchRequest* request, SearchResults* response) {
+            EXPECT_EQ(CursorParam(*request, "search_iter_last_pk"), quoted);
+            fill(response, false);
+            return ::grpc::Status{};
+        });
+    auto args = CursorArgs(2, 3, true);
+    milvus::SearchIteratorPtr iterator;
+    ASSERT_TRUE(client_->SearchIterator(args, iterator).IsOk());
+    milvus::SingleResult page;
+    ASSERT_TRUE(iterator->Next(page).IsOk());
+    EXPECT_EQ(page.Ids().StrIDArray(), (std::vector<std::string>{"", quoted}));
+    ASSERT_TRUE(iterator->Next(page).IsOk());
+    EXPECT_EQ(page.Ids().StrIDArray(), (std::vector<std::string>{"last"}));
+    ASSERT_TRUE(iterator->Next(page).IsOk());
+    EXPECT_EQ(page.GetRowCount(), 0);
+}
+
+TEST_F(MilvusMockedTest, SearchIteratorPkCursorRejectsChangedModeAndBadRawShapeTransactionally) {
+    ASSERT_TRUE(client_->Connect(milvus::ConnectParam{"127.0.0.1", server_.ListenPort()}).IsOk());
+    ExpectCursorSchema(service_);
+    std::string retry_request;
+    int calls = 0;
+    EXPECT_CALL(service_, Search(_, _, _))
+        .Times(6)
+        .WillRepeatedly([&](::grpc::ServerContext*, const SearchRequest* request, SearchResults* response) {
+            ++calls;
+            if (calls == 1) {
+                FillCursorReply(response, {1}, {0.9f}, 301, "2");
+                return ::grpc::Status{};
+            }
+            if (calls == 2) {
+                retry_request = request->SerializeAsString();
+            }
+            EXPECT_EQ(request->SerializeAsString(), retry_request);
+            EXPECT_EQ(request->guarantee_timestamp(), 301);
+            FillCursorReply(response, {2}, {0.8f}, 0, calls == 2 ? "" : "2");
+            if (calls == 3) {
+                (*response->mutable_status()->mutable_extra_info())["search_iter_last_pk"] = "3";
+            }
+            if (calls == 4) {
+                response->mutable_results()->mutable_search_iterator_v2_results()->set_last_bound(0.7f);
+            }
+            if (calls == 5) {
+                response->mutable_results()->clear_scores();
+            }
+            return ::grpc::Status{};
+        });
+    auto args = CursorArgs(1, 2, true);
+    milvus::SearchIteratorPtr iterator;
+    ASSERT_TRUE(client_->SearchIterator(args, iterator).IsOk());
+    milvus::SingleResult page;
+    ASSERT_TRUE(iterator->Next(page).IsOk());
+    for (int i = 0; i < 4; ++i) {
+        EXPECT_FALSE(iterator->Next(page).IsOk());
+    }
+    ASSERT_TRUE(iterator->Next(page).IsOk());
+    EXPECT_EQ(page.Ids().IntIDArray(), (std::vector<int64_t>{2}));
+}
+
+TEST_F(MilvusMockedTest, SearchIteratorPkCursorSupportsEmptyAndQuotedVarcharKeys) {
+    ASSERT_TRUE(client_->Connect(milvus::ConnectParam{"127.0.0.1", server_.ListenPort()}).IsOk());
+    ExpectCursorSchema(service_, milvus::DataType::VARCHAR);
+    const std::string quoted = "a\"b\\c\n中文";
+    EXPECT_CALL(service_, Search(_, _, _))
+        .WillOnce([](::grpc::ServerContext*, const SearchRequest*, SearchResults* response) {
+            FillCursorReply(response, {1}, {0.9f}, 301, "2");
+            response->mutable_results()->mutable_ids()->mutable_str_id()->add_data("");
+            (*response->mutable_status()->mutable_extra_info())["search_iter_last_pk_type"] = "varchar";
+            (*response->mutable_status()->mutable_extra_info())["search_iter_last_pk"] = "";
+            return ::grpc::Status{};
+        })
+        .WillOnce([quoted](::grpc::ServerContext*, const SearchRequest* request, SearchResults* response) {
+            EXPECT_EQ(CursorParam(*request, "search_iter_last_pk_type"), "varchar");
+            EXPECT_EQ(CursorParam(*request, "search_iter_last_pk"), "");
+            FillCursorReply(response, {1}, {0.8f}, 0, "2");
+            response->mutable_results()->mutable_ids()->mutable_str_id()->add_data(quoted);
+            (*response->mutable_status()->mutable_extra_info())["search_iter_last_pk_type"] = "varchar";
+            (*response->mutable_status()->mutable_extra_info())["search_iter_last_pk"] = quoted;
+            return ::grpc::Status{};
+        })
+        .WillOnce([quoted](::grpc::ServerContext*, const SearchRequest* request, SearchResults* response) {
+            EXPECT_EQ(CursorParam(*request, "search_iter_last_pk"), quoted);
+            FillCursorReply(response, {}, {}, 0, "2");
+            return ::grpc::Status{};
+        });
+    auto args = CursorArgs(1, 3, true);
+    milvus::SearchIteratorPtr iterator;
+    ASSERT_TRUE(client_->SearchIterator(args, iterator).IsOk());
+    milvus::SingleResult page;
+    ASSERT_TRUE(iterator->Next(page).IsOk());
+    EXPECT_EQ(page.Ids().StrIDArray(), (std::vector<std::string>{""}));
+    ASSERT_TRUE(iterator->Next(page).IsOk());
+    EXPECT_EQ(page.Ids().StrIDArray(), (std::vector<std::string>{quoted}));
+    ASSERT_TRUE(iterator->Next(page).IsOk());
+    EXPECT_EQ(page.GetRowCount(), 0);
+    ASSERT_TRUE(iterator->Next(page).IsOk());
+    EXPECT_EQ(page.GetRowCount(), 0);
+}
+
+TEST_F(MilvusMockedTest, SearchIteratorLegacyFallbackReusesEquivalentRealFirstPage) {
+    ASSERT_TRUE(client_->Connect(milvus::ConnectParam{"127.0.0.1", server_.ListenPort()}).IsOk());
+    ExpectCursorSchema(service_);
+    auto args = CursorArgs(2, 2, false);
+    args.SetFilter("id >= 0");
+    args.AddExtraParam(milvus::RADIUS, "0.5");
+    args.AddExtraParam(milvus::RANGE_FILTER, "1.0");
+    EXPECT_CALL(service_, Search(_, _, _))
+        .WillOnce([&](::grpc::ServerContext*, const SearchRequest* request, SearchResults* response) {
+            SearchRequest expected;
+            auto equivalent = args;
+            equivalent.SetLimit(2);
+            EXPECT_TRUE(milvus::ConvertSearchRequest(equivalent, "default", expected, "", "127.0.0.1").IsOk());
+            EXPECT_EQ(request->dsl(), expected.dsl());
+            EXPECT_EQ(request->placeholder_group(), expected.placeholder_group());
+            for (const auto& key : {milvus::TOPK, milvus::METRIC_TYPE, milvus::RADIUS, milvus::RANGE_FILTER}) {
+                EXPECT_EQ(CursorParam(*request, key), CursorParam(expected, key));
+            }
+            FillCursorReply(response, {1, 2}, {0.9f, 0.8f}, 301, "", false);
+            return ::grpc::Status{};
+        });
+    milvus::SearchIteratorPtr iterator;
+    ASSERT_TRUE(client_->SearchIterator(args, iterator).IsOk());
+    milvus::SingleResult page;
+    ASSERT_TRUE(iterator->Next(page).IsOk());
+    EXPECT_EQ(page.GetRowCount(), 2);
+    ASSERT_TRUE(iterator->Next(page).IsOk());
+    EXPECT_EQ(page.GetRowCount(), 0);
+}
+
+TEST_F(MilvusMockedTest, SearchIteratorLegacyFallbackEmptyFirstPageFinishes) {
+    ASSERT_TRUE(client_->Connect(milvus::ConnectParam{"127.0.0.1", server_.ListenPort()}).IsOk());
+    ExpectCursorSchema(service_);
+    EXPECT_CALL(service_, Search(_, _, _))
+        .WillOnce([](::grpc::ServerContext*, const SearchRequest*, SearchResults* response) {
+            FillCursorReply(response, {}, {}, 301, "", false);
+            return ::grpc::Status{};
+        });
+    auto args = CursorArgs(2, 10, false);
+    milvus::SearchIteratorPtr iterator;
+    ASSERT_TRUE(client_->SearchIterator(args, iterator).IsOk());
+    milvus::SingleResult page;
+    ASSERT_TRUE(iterator->Next(page).IsOk());
+    EXPECT_EQ(page.GetRowCount(), 0);
+    ASSERT_TRUE(iterator->Next(page).IsOk());
+    EXPECT_EQ(page.GetRowCount(), 0);
+}
+
+TEST_F(MilvusMockedTest, SearchIteratorManualDistanceContinuationPreservesLegacyMode) {
+    ASSERT_TRUE(client_->Connect(milvus::ConnectParam{"127.0.0.1", server_.ListenPort()}).IsOk());
+    ExpectCursorSchema(service_);
+    EXPECT_CALL(service_, Search(_, _, _))
+        .WillOnce([](::grpc::ServerContext*, const SearchRequest* request, SearchResults* response) {
+            EXPECT_EQ(CursorParam(*request, milvus::ITER_SEARCH_ID_KEY), kCursorToken);
+            EXPECT_EQ(CursorParam(*request, milvus::ITER_SEARCH_LAST_BOUND_KEY), "0.7");
+            EXPECT_TRUE(CursorParam(*request, "search_iter_cursor_version").empty());
+            FillCursorReply(response, {2}, {0.6f}, 301);
+            return ::grpc::Status{};
+        });
+    auto args = CursorArgs(1, 1, false);
+    args.AddExtraParam(milvus::ITER_SEARCH_ID_KEY, kCursorToken);
+    args.AddExtraParam(milvus::ITER_SEARCH_LAST_BOUND_KEY, "0.7");
+    milvus::SearchIteratorPtr iterator;
+    ASSERT_TRUE(client_->SearchIterator(args, iterator).IsOk());
+    milvus::SingleResult page;
+    ASSERT_TRUE(iterator->Next(page).IsOk());
+    EXPECT_EQ(page.GetRowCount(), 1);
+}
+
+TEST_F(MilvusMockedTest, SearchIteratorPkCursorRejectsPartialLegacyResumeBeforeSearch) {
+    ASSERT_TRUE(client_->Connect(milvus::ConnectParam{"127.0.0.1", server_.ListenPort()}).IsOk());
+    ExpectCursorSchema(service_);
+    auto args = CursorArgs(1, 1, true);
+    args.AddExtraParam(milvus::ITER_SEARCH_ID_KEY, kCursorToken);
+    args.AddExtraParam(milvus::ITER_SEARCH_LAST_BOUND_KEY, "0.7");
+    milvus::SearchIteratorPtr iterator;
+    EXPECT_EQ(client_->SearchIterator(args, iterator).Code(), milvus::StatusCode::INVALID_ARGUMENT);
+}
+
+TEST_F(MilvusMockedTest, SearchIteratorRejectsUnknownRequestedCursorVersionBeforeSearch) {
+    ASSERT_TRUE(client_->Connect(milvus::ConnectParam{"127.0.0.1", server_.ListenPort()}).IsOk());
+    ExpectCursorSchema(service_);
+    auto args = CursorArgs(1, 1, false);
+    args.AddExtraParam("search_iter_cursor_version", "3");
+    milvus::SearchIteratorPtr iterator;
+    EXPECT_EQ(client_->SearchIterator(args, iterator).Code(), milvus::StatusCode::INVALID_ARGUMENT);
+}
+
+TEST_F(MilvusMockedTest, SearchIteratorRejectsUnrequestedPkResponseWithoutLegacyFallback) {
+    ASSERT_TRUE(client_->Connect(milvus::ConnectParam{"127.0.0.1", server_.ListenPort()}).IsOk());
+    ExpectCursorSchema(service_);
+    EXPECT_CALL(service_, Search(_, _, _))
+        .WillOnce([](::grpc::ServerContext*, const SearchRequest*, SearchResults* response) {
+            FillCursorReply(response, {1}, {0.9f}, 301, "2");
+            return ::grpc::Status{};
+        });
+    auto args = CursorArgs(1, 1, false);
+    milvus::SearchIteratorPtr iterator;
+    EXPECT_EQ(client_->SearchIterator(args, iterator).Code(), milvus::StatusCode::UNKNOWN_ERROR);
+}
+
+TEST_F(MilvusMockedTest, SearchIteratorPkResponseNeedsInitialSnapshotAndToken) {
+    ASSERT_TRUE(client_->Connect(milvus::ConnectParam{"127.0.0.1", server_.ListenPort()}).IsOk());
+    ExpectCursorSchema(service_);
+    EXPECT_CALL(service_, Search(_, _, _))
+        .WillOnce([](::grpc::ServerContext*, const SearchRequest*, SearchResults* response) {
+            FillCursorReply(response, {1}, {0.9f}, 0, "2");
+            return ::grpc::Status{};
+        });
+    auto args = CursorArgs(1, 1, true);
+    milvus::SearchIteratorPtr iterator;
+    EXPECT_EQ(client_->SearchIterator(args, iterator).Code(), milvus::StatusCode::UNKNOWN_ERROR);
+}
+
+TEST_F(MilvusMockedTest, SearchIteratorPkShortPagesContinueAndSurplusCacheAvoidsRpc) {
+    ASSERT_TRUE(client_->Connect(milvus::ConnectParam{"127.0.0.1", server_.ListenPort()}).IsOk());
+    ExpectCursorSchema(service_);
+    int calls = 0;
+    EXPECT_CALL(service_, Search(_, _, _))
+        .Times(3)
+        .WillRepeatedly([&](::grpc::ServerContext*, const SearchRequest* request, SearchResults* response) {
+            ++calls;
+            EXPECT_EQ(CursorParam(*request, milvus::TOPK), "2");
+            FillCursorReply(response, {calls}, {1.0f - 0.1f * static_cast<float>(calls)}, calls == 1 ? 301 : 0, "2");
+            return ::grpc::Status{};
+        });
+    auto args = CursorArgs(2, 3, true);
+    milvus::SearchIteratorPtr iterator;
+    ASSERT_TRUE(client_->SearchIterator(args, iterator).IsOk());
+    milvus::SingleResult page;
+    ASSERT_TRUE(iterator->Next(page).IsOk());
+    EXPECT_EQ(page.GetRowCount(), 2);
+    ASSERT_TRUE(iterator->Next(page).IsOk());
+    EXPECT_EQ(page.GetRowCount(), 1);
+    ASSERT_TRUE(iterator->Next(page).IsOk());
+    EXPECT_EQ(page.GetRowCount(), 0);
+}
+
+TEST_F(UnconnectMilvusMockedTest, SearchIteratorV2FacadeSupportsExplicitPkCursorWithoutMutatingRequest) {
+    EXPECT_CALL(service_, Connect(_, _, _))
+        .WillOnce([](::grpc::ServerContext*, const milvus::proto::milvus::ConnectRequest*,
+                     milvus::proto::milvus::ConnectResponse*) { return ::grpc::Status{}; });
+    auto client = milvus::MilvusClientV2::Create();
+    ASSERT_TRUE(client->Connect(milvus::ConnectParam{"127.0.0.1", server_.ListenPort()}).IsOk());
+    ExpectCursorSchema(service_);
+    EXPECT_CALL(service_, Search(_, _, _))
+        .WillOnce([](::grpc::ServerContext*, const SearchRequest* request, SearchResults* response) {
+            EXPECT_EQ(CursorParam(*request, "search_iter_cursor_version"), "2");
+            FillCursorReply(response, {1}, {0.9f}, 301, "2");
+            return ::grpc::Status{};
+        });
+    milvus::SearchIteratorRequest request;
+    request.SetCollectionName(kCursorCollection);
+    request.SetAnnsField("vector");
+    request.SetMetricType(milvus::MetricType::COSINE);
+    request.SetBatchSize(1);
+    request.SetLimit(1);
+    request.AddFloatVector({0.1f, 0.2f});
+    request.AddExtraParam("search_iter_cursor_version", "2");
+    milvus::SearchIteratorPtr iterator;
+    ASSERT_TRUE(client->SearchIterator(request, iterator).IsOk());
+    EXPECT_EQ(request.CollectionID(), 0);
+    EXPECT_TRUE(request.DatabaseName().empty());
+    milvus::SingleResult page;
+    ASSERT_TRUE(iterator->Next(page).IsOk());
+    EXPECT_EQ(page.GetRowCount(), 1);
 }

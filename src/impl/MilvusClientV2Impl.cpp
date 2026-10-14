@@ -2226,10 +2226,12 @@ MilvusClientV2Impl::SearchIterator(SearchIteratorRequest& request, SearchIterato
 }
 
 Status
-MilvusClientV2Impl::searchIterator(SearchIteratorRequest& request, SearchIteratorPtr& iterator,
+MilvusClientV2Impl::searchIterator(SearchIteratorRequest& input, SearchIteratorPtr& iterator,
                                    const std::string& cluster_id) {
+    auto request = input;
     const auto endpoint = connection_.CurrentEndpoint();
     const auto database_name = connection_.CurrentDbName(request.DatabaseName());
+    request.SetDatabaseName(database_name);
     if (request.IDs().GetRowCount() != 0) {
         return {StatusCode::INVALID_ARGUMENT, "Search iterator does not support IDs as search targets"};
     }
@@ -2294,7 +2296,7 @@ MilvusClientV2Impl::searchIterator(SearchIteratorRequest& request, SearchIterato
     if (!status.IsOk() && status.Code() == StatusCode::NOT_SUPPORTED) {
         auto ptrV1 =
             std::make_shared<SearchIteratorImpl<SearchIteratorRequest>>(connection, request, retry_param, cluster_id);
-        status = ptrV1->Init();
+        status = ptrV1->Init(&ptrV2->InitialResponse());
         if (!status.IsOk()) {
             return {status.Code(), "Unable to create search iterator, error: " + status.Message()};
         }
