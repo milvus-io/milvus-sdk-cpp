@@ -32,8 +32,8 @@ TEST_F(MilvusMockedTest, CreateResourceGroup) {
     milvus::ResourceGroupConfig config;
     config.SetRequests(3);
     config.SetLimits(5);
-    config.AddTrnasferFromGroup("A");
-    config.AddTrnasferToGroup("B");
+    config.AddTransferFromGroup("A");
+    config.AddTransferToGroup("B");
     config.AddNodeFilter("cu", "32c");
 
     EXPECT_CALL(service_, CreateResourceGroup(_, Property(&CreateResourceGroupRequest::resource_group, group_name), _))

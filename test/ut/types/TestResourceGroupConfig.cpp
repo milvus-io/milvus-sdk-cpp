@@ -43,8 +43,8 @@ TEST_F(ResourceGroupConfigTest, LimitsGetterSetter) {
 
 TEST_F(ResourceGroupConfigTest, TransferFromGroups) {
     milvus::ResourceGroupConfig config;
-    config.AddTrnasferFromGroup("group_a");
-    config.AddTrnasferFromGroup("group_b");
+    config.AddTransferFromGroup("group_a");
+    config.AddTransferFromGroup("group_b");
     EXPECT_EQ(config.TransferFromGroups().size(), 2);
     EXPECT_TRUE(config.TransferFromGroups().count("group_a"));
     EXPECT_TRUE(config.TransferFromGroups().count("group_b"));
@@ -52,11 +52,21 @@ TEST_F(ResourceGroupConfigTest, TransferFromGroups) {
 
 TEST_F(ResourceGroupConfigTest, TransferToGroups) {
     milvus::ResourceGroupConfig config;
-    config.AddTrnasferToGroup("group_x");
-    config.AddTrnasferToGroup("group_y");
+    config.AddTransferToGroup("group_x");
+    config.AddTransferToGroup("group_y");
     EXPECT_EQ(config.TransferToGroups().size(), 2);
     EXPECT_TRUE(config.TransferToGroups().count("group_x"));
     EXPECT_TRUE(config.TransferToGroups().count("group_y"));
+}
+
+TEST_F(ResourceGroupConfigTest, DeprecatedMisspelledAliasesForward) {
+    milvus::ResourceGroupConfig config;
+    config.AddTrnasferFromGroup("group_a");
+    config.AddTrnasferToGroup("group_x");
+    EXPECT_EQ(config.TransferFromGroups().size(), 1);
+    EXPECT_TRUE(config.TransferFromGroups().count("group_a"));
+    EXPECT_EQ(config.TransferToGroups().size(), 1);
+    EXPECT_TRUE(config.TransferToGroups().count("group_x"));
 }
 
 TEST_F(ResourceGroupConfigTest, NodeFilters) {
