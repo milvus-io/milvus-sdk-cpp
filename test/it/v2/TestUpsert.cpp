@@ -469,3 +469,100 @@ TEST_F(UnconnectMilvusMockedTest, UpsertRetriesSchemaMismatchOnlyOnce) {
                                  response);
     EXPECT_EQ(status.LegacyServerCode(), static_cast<int32_t>(milvus::proto::common::ErrorCode::SchemaMismatch));
 }
+
+TEST_F(UnconnectMilvusMockedTest, InsertRlsContext) {
+    auto client = CreateConnectedV2Client(service_, server_.ListenPort());
+
+    EXPECT_CALL(service_, DescribeCollection(_, _, _))
+        .WillOnce([](::grpc::ServerContext*, const milvus::proto::milvus::DescribeCollectionRequest*,
+                     milvus::proto::milvus::DescribeCollectionResponse* response) {
+            FillPartialUpdateSchema(response);
+            return ::grpc::Status{};
+        });
+
+    EXPECT_CALL(service_, Insert(_, _, _))
+        .WillOnce([](::grpc::ServerContext*, const milvus::proto::milvus::InsertRequest* request,
+                     milvus::proto::milvus::MutationResult* response) {
+            EXPECT_EQ(request->collection_name(), "insert_coll");
+            EXPECT_EQ(request->rls_principal(), "alice");
+            EXPECT_TRUE(request->skip_rls());
+            response->mutable_status()->set_code(0);
+            response->set_insert_cnt(1);
+            return ::grpc::Status{};
+        });
+
+    milvus::EntityRow row;
+    row["id"] = 1;
+    row["tags"] = nlohmann::json::array({"new_tag"});
+    row["vector"] = std::vector<float>{0.1f, 0.2f};
+
+    milvus::InsertResponse response;
+    auto status = client->Insert(milvus::InsertRequest()
+                                     .WithCollectionName("insert_coll")
+                                     .AddRowData(std::move(row))
+                                     .WithRLSPrincipal("alice")
+                                     .WithSkipRLS(true),
+                                 response);
+    EXPECT_TRUE(status.IsOk()) << status.Message();
+    EXPECT_EQ(response.Results().InsertCount(), 1);
+}
+
+TEST_F(UnconnectMilvusMockedTest, UpsertRlsContext) {
+    auto client = CreateConnectedV2Client(service_, server_.ListenPort());
+
+    EXPECT_CALL(service_, DescribeCollection(_, _, _))
+        .WillOnce([](::grpc::ServerContext*, const milvus::proto::milvus::DescribeCollectionRequest*,
+                     milvus::proto::milvus::DescribeCollectionResponse* response) {
+            FillPartialUpdateSchema(response);
+            return ::grpc::Status{};
+        });
+
+    EXPECT_CALL(service_, Upsert(_, _, _))
+        .WillOnce([](::grpc::ServerContext*, const milvus::proto::milvus::UpsertRequest* request,
+                     milvus::proto::milvus::MutationResult* response) {
+            EXPECT_EQ(request->collection_name(), "upsert_coll");
+            EXPECT_EQ(request->rls_principal(), "bob");
+            EXPECT_FALSE(request->skip_rls());
+            response->mutable_status()->set_code(0);
+            response->set_upsert_cnt(1);
+            return ::grpc::Status{};
+        });
+
+    milvus::EntityRow row;
+    row["id"] = 1;
+    row["tags"] = nlohmann::json::array({"new_tag"});
+    row["vector"] = std::vector<float>{0.1f, 0.2f};
+
+    milvus::UpsertResponse response;
+    auto status = client->Upsert(
+        milvus::UpsertRequest().WithCollectionName("upsert_coll").AddRowData(std::move(row)).WithRLSPrincipal("bob"),
+        response);
+    EXPECT_TRUE(status.IsOk()) << status.Message();
+    EXPECT_EQ(response.Results().UpsertCount(), 1);
+}
+
+TEST_F(UnconnectMilvusMockedTest, DeleteRlsContext) {
+    auto client = CreateConnectedV2Client(service_, server_.ListenPort());
+
+    EXPECT_CALL(service_, Delete(_, _, _))
+        .WillOnce([](::grpc::ServerContext*, const milvus::proto::milvus::DeleteRequest* request,
+                     milvus::proto::milvus::MutationResult* response) {
+            EXPECT_EQ(request->collection_name(), "delete_coll");
+            EXPECT_EQ(request->rls_principal(), "alice");
+            EXPECT_TRUE(request->skip_rls());
+            EXPECT_EQ(request->expr(), "id > 0");
+            response->mutable_status()->set_code(0);
+            response->set_delete_cnt(2);
+            return ::grpc::Status{};
+        });
+
+    milvus::DeleteResponse response;
+    auto status = client->Delete(milvus::DeleteRequest()
+                                     .WithCollectionName("delete_coll")
+                                     .WithFilter("id > 0")
+                                     .WithRLSPrincipal("alice")
+                                     .WithSkipRLS(true),
+                                 response);
+    EXPECT_TRUE(status.IsOk()) << status.Message();
+    EXPECT_EQ(response.Results().DeleteCount(), 2);
+}
