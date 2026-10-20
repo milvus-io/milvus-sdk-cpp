@@ -110,6 +110,13 @@
 #include "request/resourcegroup/TransferNodeRequest.h"
 #include "request/resourcegroup/TransferReplicaRequest.h"
 #include "request/resourcegroup/UpdateResourceGroupsRequest.h"
+#include "request/rls/DeleteRLSPrincipalTagsRequest.h"
+#include "request/rls/DropRowPolicyRequest.h"
+#include "request/rls/GetRLSPrincipalTagsRequest.h"
+#include "request/rls/ListRLSPrincipalsRequest.h"
+#include "request/rls/ListRowPoliciesRequest.h"
+#include "request/rls/RowPolicyRequest.h"
+#include "request/rls/SetRLSPrincipalTagsRequest.h"
 #include "request/snapshot/CreateSnapshotRequest.h"
 #include "request/snapshot/DescribeSnapshotRequest.h"
 #include "request/snapshot/DropSnapshotRequest.h"
@@ -163,6 +170,9 @@
 #include "response/rbac/ListUsersResponse.h"
 #include "response/resourcegroup/DescribeResourceGroupResponse.h"
 #include "response/resourcegroup/ListResourceGroupsResponse.h"
+#include "response/rls/GetRLSPrincipalTagsResponse.h"
+#include "response/rls/ListRLSPrincipalsResponse.h"
+#include "response/rls/ListRowPoliciesResponse.h"
 #include "response/snapshot/DescribeSnapshotResponse.h"
 #include "response/snapshot/GetRestoreSnapshotStateResponse.h"
 #include "response/snapshot/ListRestoreSnapshotJobsResponse.h"
@@ -189,6 +199,9 @@
 #include "types/OptimizeTask.h"
 #include "types/RetryParam.h"
 #include "types/RoaringBitmap.h"
+#include "types/RowPolicy.h"
+#include "types/RowPolicyAction.h"
+#include "types/RowPolicyType.h"
 
 /**
  *  @brief namespace milvus
@@ -1534,6 +1547,82 @@ class MILVUS_SDK_API MilvusClientV2 {
      */
     virtual Status
     RemovePrivilegesFromGroup(const RemovePrivilegesFromGroupRequest& request) = 0;
+
+    /**
+     * @brief Create a row policy for a collection. Creating an existing policy name is an error.
+     *
+     * @param [in] request input parameters
+     * @return Status operation successfully or not
+     */
+    virtual Status
+    CreateRowPolicy(const CreateRowPolicyRequest& request) = 0;
+
+    /**
+     * @brief Replace the named row policy definition, preserving its server-side identity.
+     *
+     * @param [in] request input parameters
+     * @return Status operation successfully or not
+     */
+    virtual Status
+    UpdateRowPolicy(const UpdateRowPolicyRequest& request) = 0;
+
+    /**
+     * @brief Drop a row policy by name. Dropping a missing policy succeeds.
+     *
+     * @param [in] request input parameters
+     * @return Status operation successfully or not
+     */
+    virtual Status
+    DropRowPolicy(const DropRowPolicyRequest& request) = 0;
+
+    /**
+     * @brief List the row policies of a collection.
+     *
+     * @param [in] request input parameters
+     * @param [out] response output results
+     * @return Status operation successfully or not
+     */
+    virtual Status
+    ListRowPolicies(const ListRowPoliciesRequest& request, ListRowPoliciesResponse& response) = 0;
+
+    /**
+     * @brief Incrementally upsert a non-empty mapping of principal tags for one collection.
+     * Keys omitted from this call retain their values.
+     *
+     * @param [in] request input parameters
+     * @return Status operation successfully or not
+     */
+    virtual Status
+    SetRLSPrincipalTags(const SetRLSPrincipalTagsRequest& request) = 0;
+
+    /**
+     * @brief Get the stored tags of one principal for a collection.
+     *
+     * @param [in] request input parameters
+     * @param [out] response output results
+     * @return Status operation successfully or not
+     */
+    virtual Status
+    GetRLSPrincipalTags(const GetRLSPrincipalTagsRequest& request, GetRLSPrincipalTagsResponse& response) = 0;
+
+    /**
+     * @brief List principal names that have stored tags in the collection.
+     *
+     * @param [in] request input parameters
+     * @param [out] response output results
+     * @return Status operation successfully or not
+     */
+    virtual Status
+    ListRLSPrincipals(const ListRLSPrincipalsRequest& request, ListRLSPrincipalsResponse& response) = 0;
+
+    /**
+     * @brief Delete selected tag keys of a principal, or all tags when no tag key is given.
+     *
+     * @param [in] request input parameters
+     * @return Status operation successfully or not
+     */
+    virtual Status
+    DeleteRLSPrincipalTags(const DeleteRLSPrincipalTagsRequest& request) = 0;
 
     /**
      * @brief Create a cluster-scoped session exposing DQL interfaces only.

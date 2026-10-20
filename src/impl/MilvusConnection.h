@@ -531,6 +531,38 @@ class MilvusConnection {
     OperatePrivilegeGroup(const proto::milvus::OperatePrivilegeGroupRequest& request, proto::common::Status& response,
                           const GrpcContextOptions& options);
 
+    Status
+    CreateRowPolicy(const proto::milvus::CreateRowPolicyRequest& request, proto::common::Status& response,
+                    const GrpcContextOptions& options);
+
+    Status
+    UpdateRowPolicy(const proto::milvus::UpdateRowPolicyRequest& request, proto::common::Status& response,
+                    const GrpcContextOptions& options);
+
+    Status
+    DropRowPolicy(const proto::milvus::DropRowPolicyRequest& request, proto::common::Status& response,
+                  const GrpcContextOptions& options);
+
+    Status
+    ListRowPolicies(const proto::milvus::ListRowPoliciesRequest& request,
+                    proto::milvus::ListRowPoliciesResponse& response, const GrpcContextOptions& options);
+
+    Status
+    SetRLSPrincipalTags(const proto::milvus::SetRLSPrincipalTagsRequest& request, proto::common::Status& response,
+                        const GrpcContextOptions& options);
+
+    Status
+    GetRLSPrincipalTags(const proto::milvus::GetRLSPrincipalTagsRequest& request,
+                        proto::milvus::GetRLSPrincipalTagsResponse& response, const GrpcContextOptions& options);
+
+    Status
+    ListRLSPrincipals(const proto::milvus::ListRLSPrincipalsRequest& request,
+                      proto::milvus::ListRLSPrincipalsResponse& response, const GrpcContextOptions& options);
+
+    Status
+    DeleteRLSPrincipalTags(const proto::milvus::DeleteRLSPrincipalTagsRequest& request, proto::common::Status& response,
+                           const GrpcContextOptions& options);
+
  private:
     mutable std::mutex stub_mtx_;
     std::shared_ptr<proto::milvus::MilvusService::Stub> stub_;

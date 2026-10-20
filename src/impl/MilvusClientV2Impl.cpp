@@ -18,6 +18,7 @@
 
 #include <algorithm>
 #include <chrono>
+#include <cmath>
 #include <milvus/thirdparty/nlohmann/json.hpp>
 #include <set>
 #include <type_traits>
@@ -1889,6 +1890,8 @@ MilvusClientV2Impl::insert(const InsertRequest& request, InsertResponse& respons
         rpc_request.set_partition_name(request.PartitionName());
         rpc_request.set_num_rows(static_cast<uint32_t>(row_count));
         rpc_request.set_schema_timestamp(collection_desc->UpdateTime());
+        rpc_request.set_rls_principal(request.RLSPrincipal());
+        rpc_request.set_skip_rls(request.SkipRLS());
         for (auto& field : rpc_fields) {
             mutable_fields->Add(std::move(field));
         }
@@ -2029,6 +2032,8 @@ MilvusClientV2Impl::upsert(const UpsertRequest& request, UpsertResponse& respons
         rpc_request.set_num_rows(static_cast<uint32_t>(row_count));
         rpc_request.set_schema_timestamp(collection_desc->UpdateTime());
         rpc_request.set_partial_update(request.PartialUpdate());
+        rpc_request.set_rls_principal(request.RLSPrincipal());
+        rpc_request.set_skip_rls(request.SkipRLS());
         for (const auto& field_op : request.FieldOps()) {
             auto* rpc_field_op = rpc_request.add_field_ops();
             rpc_field_op->set_field_name(field_op.FieldName());
@@ -2081,6 +2086,8 @@ MilvusClientV2Impl::Delete(const DeleteRequest& request, DeleteResponse& respons
         rpc_request.set_db_name(request.DatabaseName());
         rpc_request.set_collection_name(request.CollectionName());
         rpc_request.set_partition_name(request.PartitionName());
+        rpc_request.set_rls_principal(request.RLSPrincipal());
+        rpc_request.set_skip_rls(request.SkipRLS());
 
         if (request.Filter().empty() && request.IDs().GetRowCount() == 0) {
             return Status{StatusCode::INVALID_ARGUMENT,
@@ -2475,7 +2482,9 @@ MilvusClientV2Impl::getWithoutTelemetry(const GetRequest& request, GetResponse& 
                               .WithConsistencyLevel(request.GetConsistencyLevel())
                               .WithFilter(filter)
                               .AddFilterTemplate(ids_key, filter_template)
-                              .WithOutputFields(std::move(output_fields));
+                              .WithOutputFields(std::move(output_fields))
+                              .WithRLSPrincipal(request.RLSPrincipal())
+                              .WithSkipRLS(request.SkipRLS());
 
     return query(endpoint, database_name, actual_request, response, cluster_id, false);
 }
@@ -4043,6 +4052,282 @@ MilvusClientV2Impl::ListRoles(const ListRolesRequest& request, ListRolesResponse
 
     return connection_.Invoke<proto::milvus::SelectRoleRequest, proto::milvus::SelectRoleResponse>(
         pre, &MilvusConnection::SelectRole, post);
+}
+
+namespace {
+// Validate the shared row policy definition fields used by CreateRowPolicy() and
+// UpdateRowPolicy().
+Status
+CheckRowPolicyRequest(const RowPolicyRequest& request) {
+    if (request.CollectionName().empty()) {
+        return {StatusCode::INVALID_ARGUMENT, "Collection name cannot be empty"};
+    }
+    if (request.PolicyName().empty()) {
+        return {StatusCode::INVALID_ARGUMENT, "Policy name cannot be empty"};
+    }
+    if (request.Actions().empty()) {
+        return {StatusCode::INVALID_ARGUMENT, "Row policy actions cannot be empty"};
+    }
+    for (auto action : request.Actions()) {
+        if (action < RowPolicyAction::QUERY || action > RowPolicyAction::HYBRID_SEARCH) {
+            return {StatusCode::INVALID_ARGUMENT, "Invalid row policy action value"};
+        }
+    }
+    if (request.PolicyType() != RowPolicyType::PERMISSIVE && request.PolicyType() != RowPolicyType::RESTRICTIVE) {
+        return {StatusCode::INVALID_ARGUMENT, "Policy type must be PERMISSIVE or RESTRICTIVE"};
+    }
+    return Status::OK();
+}
+
+Status
+CheckRLSCollectionRequest(const std::string& collection_name) {
+    if (collection_name.empty()) {
+        return {StatusCode::INVALID_ARGUMENT, "Collection name cannot be empty"};
+    }
+    return Status::OK();
+}
+
+Status
+CheckRLSPrincipalRequest(const std::string& collection_name, const std::string& principal_name) {
+    if (collection_name.empty()) {
+        return {StatusCode::INVALID_ARGUMENT, "Collection name cannot be empty"};
+    }
+    if (principal_name.empty()) {
+        return {StatusCode::INVALID_ARGUMENT, "Principal name cannot be empty"};
+    }
+    return Status::OK();
+}
+}  // namespace
+
+Status
+MilvusClientV2Impl::CreateRowPolicy(const CreateRowPolicyRequest& request) {
+    auto pre = [&request](proto::milvus::CreateRowPolicyRequest& rpc_request) {
+        auto status = CheckRowPolicyRequest(request);
+        if (!status.IsOk()) {
+            return status;
+        }
+        rpc_request.set_db_name(request.DatabaseName());
+        rpc_request.set_collection_name(request.CollectionName());
+        rpc_request.set_policy_name(request.PolicyName());
+        for (auto action : request.Actions()) {
+            rpc_request.add_actions(static_cast<proto::milvus::RowPolicyAction>(action));
+        }
+        rpc_request.set_using_expr(request.UsingExpr());
+        rpc_request.set_check_expr(request.CheckExpr());
+        rpc_request.set_description(request.Description());
+        rpc_request.set_policy_type(static_cast<proto::milvus::RowPolicyType>(request.PolicyType()));
+        return Status::OK();
+    };
+
+    return connection_.Invoke<proto::milvus::CreateRowPolicyRequest, proto::common::Status>(
+        pre, &MilvusConnection::CreateRowPolicy, nullptr);
+}
+
+Status
+MilvusClientV2Impl::UpdateRowPolicy(const UpdateRowPolicyRequest& request) {
+    auto pre = [&request](proto::milvus::UpdateRowPolicyRequest& rpc_request) {
+        auto status = CheckRowPolicyRequest(request);
+        if (!status.IsOk()) {
+            return status;
+        }
+        rpc_request.set_db_name(request.DatabaseName());
+        rpc_request.set_collection_name(request.CollectionName());
+        rpc_request.set_policy_name(request.PolicyName());
+        for (auto action : request.Actions()) {
+            rpc_request.add_actions(static_cast<proto::milvus::RowPolicyAction>(action));
+        }
+        rpc_request.set_using_expr(request.UsingExpr());
+        rpc_request.set_check_expr(request.CheckExpr());
+        rpc_request.set_description(request.Description());
+        rpc_request.set_policy_type(static_cast<proto::milvus::RowPolicyType>(request.PolicyType()));
+        return Status::OK();
+    };
+
+    return connection_.Invoke<proto::milvus::UpdateRowPolicyRequest, proto::common::Status>(
+        pre, &MilvusConnection::UpdateRowPolicy, nullptr);
+}
+
+Status
+MilvusClientV2Impl::DropRowPolicy(const DropRowPolicyRequest& request) {
+    auto pre = [&request](proto::milvus::DropRowPolicyRequest& rpc_request) {
+        auto status = CheckRLSCollectionRequest(request.CollectionName());
+        if (!status.IsOk()) {
+            return status;
+        }
+        if (request.PolicyName().empty()) {
+            return Status{StatusCode::INVALID_ARGUMENT, "Policy name cannot be empty"};
+        }
+        rpc_request.set_db_name(request.DatabaseName());
+        rpc_request.set_collection_name(request.CollectionName());
+        rpc_request.set_policy_name(request.PolicyName());
+        return Status::OK();
+    };
+
+    return connection_.Invoke<proto::milvus::DropRowPolicyRequest, proto::common::Status>(
+        pre, &MilvusConnection::DropRowPolicy, nullptr);
+}
+
+Status
+MilvusClientV2Impl::ListRowPolicies(const ListRowPoliciesRequest& request, ListRowPoliciesResponse& response) {
+    auto pre = [&request](proto::milvus::ListRowPoliciesRequest& rpc_request) {
+        auto status = CheckRLSCollectionRequest(request.CollectionName());
+        if (!status.IsOk()) {
+            return status;
+        }
+        rpc_request.set_db_name(request.DatabaseName());
+        rpc_request.set_collection_name(request.CollectionName());
+        return Status::OK();
+    };
+
+    auto post = [&response](const proto::milvus::ListRowPoliciesResponse& rpc_response) {
+        std::vector<RowPolicy> policies;
+        policies.reserve(rpc_response.policies_size());
+        for (const auto& rpc_policy : rpc_response.policies()) {
+            RowPolicy policy;
+            policy.SetPolicyName(rpc_policy.policy_name());
+            policy.SetPolicyType(static_cast<RowPolicyType>(rpc_policy.policy_type()));
+            std::vector<RowPolicyAction> actions;
+            actions.reserve(rpc_policy.actions_size());
+            for (auto action : rpc_policy.actions()) {
+                actions.push_back(static_cast<RowPolicyAction>(action));
+            }
+            policy.SetActions(std::move(actions));
+            policy.SetUsingExpr(rpc_policy.using_expr());
+            policy.SetCheckExpr(rpc_policy.check_expr());
+            policy.SetDescription(rpc_policy.description());
+            policy.SetCreatedAt(rpc_policy.created_at());
+            policies.push_back(std::move(policy));
+        }
+        response.SetPolicies(std::move(policies));
+        return Status::OK();
+    };
+
+    return connection_.Invoke<proto::milvus::ListRowPoliciesRequest, proto::milvus::ListRowPoliciesResponse>(
+        pre, &MilvusConnection::ListRowPolicies, post);
+}
+
+Status
+MilvusClientV2Impl::SetRLSPrincipalTags(const SetRLSPrincipalTagsRequest& request) {
+    auto pre = [&request](proto::milvus::SetRLSPrincipalTagsRequest& rpc_request) {
+        auto status = CheckRLSPrincipalRequest(request.CollectionName(), request.PrincipalName());
+        if (!status.IsOk()) {
+            return status;
+        }
+        const auto& tags = request.Tags();
+        if (!tags.is_object() || tags.empty()) {
+            return Status{StatusCode::INVALID_ARGUMENT, "Tags must be a non-empty JSON object"};
+        }
+        for (const auto& item : tags.items()) {
+            if (!item.value().is_string() && !item.value().is_number() && !item.value().is_array()) {
+                return Status{StatusCode::INVALID_ARGUMENT, "Tag values must be strings, numbers, or arrays of them"};
+            }
+            if (item.value().is_number()) {
+                if (!std::isfinite(item.value().get<double>())) {
+                    return Status{StatusCode::INVALID_ARGUMENT, "Tag numbers must be finite"};
+                }
+            } else if (item.value().is_array()) {
+                for (const auto& element : item.value()) {
+                    if (!element.is_string() && !element.is_number()) {
+                        return Status{StatusCode::INVALID_ARGUMENT,
+                                      "Tag values must be strings, numbers, or arrays of them"};
+                    }
+                    if (element.is_number() && !std::isfinite(element.get<double>())) {
+                        return Status{StatusCode::INVALID_ARGUMENT, "Tag numbers must be finite"};
+                    }
+                }
+            }
+        }
+        std::string tags_json;
+        try {
+            tags_json = tags.dump();
+        } catch (const std::exception& e) {
+            return Status{StatusCode::INVALID_ARGUMENT, "Invalid tags: " + std::string(e.what())};
+        }
+        rpc_request.set_db_name(request.DatabaseName());
+        rpc_request.set_collection_name(request.CollectionName());
+        rpc_request.set_principal_name(request.PrincipalName());
+        rpc_request.set_tags(tags_json);
+        return Status::OK();
+    };
+
+    return connection_.Invoke<proto::milvus::SetRLSPrincipalTagsRequest, proto::common::Status>(
+        pre, &MilvusConnection::SetRLSPrincipalTags, nullptr);
+}
+
+Status
+MilvusClientV2Impl::GetRLSPrincipalTags(const GetRLSPrincipalTagsRequest& request,
+                                        GetRLSPrincipalTagsResponse& response) {
+    auto pre = [&request](proto::milvus::GetRLSPrincipalTagsRequest& rpc_request) {
+        auto status = CheckRLSPrincipalRequest(request.CollectionName(), request.PrincipalName());
+        if (!status.IsOk()) {
+            return status;
+        }
+        rpc_request.set_db_name(request.DatabaseName());
+        rpc_request.set_collection_name(request.CollectionName());
+        rpc_request.set_principal_name(request.PrincipalName());
+        return Status::OK();
+    };
+
+    auto post = [&request, &response](const proto::milvus::GetRLSPrincipalTagsResponse& rpc_response) {
+        nlohmann::json tags;
+        try {
+            tags = nlohmann::json::parse(rpc_response.tags());
+        } catch (const std::exception& e) {
+            return Status{StatusCode::JSON_PARSE_ERROR, "Failed to parse principal tags: " + std::string(e.what())};
+        }
+        response.SetTags(std::move(tags));
+        response.SetPrincipalName(request.PrincipalName());
+        return Status::OK();
+    };
+
+    return connection_.Invoke<proto::milvus::GetRLSPrincipalTagsRequest, proto::milvus::GetRLSPrincipalTagsResponse>(
+        pre, &MilvusConnection::GetRLSPrincipalTags, post);
+}
+
+Status
+MilvusClientV2Impl::ListRLSPrincipals(const ListRLSPrincipalsRequest& request, ListRLSPrincipalsResponse& response) {
+    auto pre = [&request](proto::milvus::ListRLSPrincipalsRequest& rpc_request) {
+        auto status = CheckRLSCollectionRequest(request.CollectionName());
+        if (!status.IsOk()) {
+            return status;
+        }
+        rpc_request.set_db_name(request.DatabaseName());
+        rpc_request.set_collection_name(request.CollectionName());
+        return Status::OK();
+    };
+
+    auto post = [&response](const proto::milvus::ListRLSPrincipalsResponse& rpc_response) {
+        std::vector<std::string> principal_names;
+        principal_names.reserve(rpc_response.principal_names_size());
+        for (const auto& name : rpc_response.principal_names()) {
+            principal_names.push_back(name);
+        }
+        response.SetPrincipalNames(std::move(principal_names));
+        return Status::OK();
+    };
+
+    return connection_.Invoke<proto::milvus::ListRLSPrincipalsRequest, proto::milvus::ListRLSPrincipalsResponse>(
+        pre, &MilvusConnection::ListRLSPrincipals, post);
+}
+
+Status
+MilvusClientV2Impl::DeleteRLSPrincipalTags(const DeleteRLSPrincipalTagsRequest& request) {
+    auto pre = [&request](proto::milvus::DeleteRLSPrincipalTagsRequest& rpc_request) {
+        auto status = CheckRLSPrincipalRequest(request.CollectionName(), request.PrincipalName());
+        if (!status.IsOk()) {
+            return status;
+        }
+        rpc_request.set_db_name(request.DatabaseName());
+        rpc_request.set_collection_name(request.CollectionName());
+        rpc_request.set_principal_name(request.PrincipalName());
+        for (const auto& tag_key : request.TagKeys()) {
+            rpc_request.add_tag_keys(tag_key);
+        }
+        return Status::OK();
+    };
+
+    return connection_.Invoke<proto::milvus::DeleteRLSPrincipalTagsRequest, proto::common::Status>(
+        pre, &MilvusConnection::DeleteRLSPrincipalTags, nullptr);
 }
 
 Status

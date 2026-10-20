@@ -160,6 +160,23 @@ AppendOrderByFields(const std::vector<OrderByField>& order_by_fields,
     return Status::OK();
 }
 
+template <typename T>
+struct SupportsRlsContext : std::integral_constant<bool, (std::is_base_of<QueryRequest, T>::value ||
+                                                          std::is_base_of<SearchRequest, T>::value ||
+                                                          std::is_base_of<HybridSearchRequest, T>::value)> {};
+
+template <typename T, typename Proto>
+typename std::enable_if<SupportsRlsContext<T>::value>::type
+SetRlsContext(const T& request, Proto& rpc_request) {
+    rpc_request.set_rls_principal(request.RLSPrincipal());
+    rpc_request.set_skip_rls(request.SkipRLS());
+}
+
+template <typename T, typename Proto>
+typename std::enable_if<!SupportsRlsContext<T>::value>::type
+SetRlsContext(const T&, Proto&) {
+}
+
 }  // namespace
 
 template <typename T>
@@ -1635,6 +1652,7 @@ ConvertQueryRequest(const T& request, const std::string& current_db, proto::milv
     } else {
         rpc_request.set_consistency_level(ConsistencyLevelCast(level));
     }
+    SetRlsContext(request, rpc_request);
     return Status::OK();
 }
 
@@ -1755,6 +1773,7 @@ ConvertSearchRequest(const T& request, const std::string& current_db, proto::mil
     } else {
         rpc_request.set_consistency_level(ConsistencyLevelCast(level));
     }
+    SetRlsContext(request, rpc_request);
     return Status::OK();
 }
 
@@ -2203,6 +2222,7 @@ ConvertHybridSearchRequest(const T& request, const std::string& current_db,
     } else {
         rpc_request.set_consistency_level(ConsistencyLevelCast(level));
     }
+    SetRlsContext(request, rpc_request);
     return Status::OK();
 }
 

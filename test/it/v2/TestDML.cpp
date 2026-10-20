@@ -526,6 +526,8 @@ TEST_F(UnconnectMilvusMockedTest, InsertStringBackedColumns) {
         .WillOnce([](::grpc::ServerContext*, const milvus::proto::milvus::InsertRequest* request,
                      milvus::proto::milvus::MutationResult* response) {
             EXPECT_EQ(request->collection_name(), "string_backed_coll");
+            EXPECT_EQ(request->rls_principal(), "alice");
+            EXPECT_TRUE(request->skip_rls());
             if (request->fields_data_size() != 5) {
                 ADD_FAILURE() << "Expected 5 field data columns, got " << request->fields_data_size();
                 return ::grpc::Status{};
@@ -581,7 +583,9 @@ TEST_F(UnconnectMilvusMockedTest, InsertStringBackedColumns) {
     milvus::InsertResponse response;
     auto status = client->Insert(milvus::InsertRequest()
                                      .WithCollectionName("string_backed_coll")
-                                     .WithColumnsData({body, geo, tsz, arr_text, vector}),
+                                     .WithColumnsData({body, geo, tsz, arr_text, vector})
+                                     .WithRLSPrincipal("alice")
+                                     .WithSkipRLS(true),
                                  response);
     EXPECT_TRUE(status.IsOk()) << status.Message();
     EXPECT_EQ(response.Results().InsertCount(), 2);
@@ -602,6 +606,8 @@ TEST_F(UnconnectMilvusMockedTest, UpsertStringBackedColumns) {
         .WillOnce([](::grpc::ServerContext*, const milvus::proto::milvus::UpsertRequest* request,
                      milvus::proto::milvus::MutationResult* response) {
             EXPECT_EQ(request->collection_name(), "string_backed_coll");
+            EXPECT_EQ(request->rls_principal(), "bob");
+            EXPECT_FALSE(request->skip_rls());
             if (request->fields_data_size() != 6) {
                 ADD_FAILURE() << "Expected 6 field data columns, got " << request->fields_data_size();
                 return ::grpc::Status{};
@@ -630,7 +636,8 @@ TEST_F(UnconnectMilvusMockedTest, UpsertStringBackedColumns) {
     milvus::UpsertResponse response;
     auto status = client->Upsert(milvus::UpsertRequest()
                                      .WithCollectionName("string_backed_coll")
-                                     .WithColumnsData({id, body, geo, tsz, arr_text, vector}),
+                                     .WithColumnsData({id, body, geo, tsz, arr_text, vector})
+                                     .WithRLSPrincipal("bob"),
                                  response);
     EXPECT_TRUE(status.IsOk()) << status.Message();
     EXPECT_EQ(response.Results().UpsertCount(), 1);
@@ -707,4 +714,30 @@ TEST_F(UnconnectMilvusMockedTest, GetEmptyIdsShortCircuitsNoRpc) {
     EXPECT_EQ(response.ScannedRemoteBytes(), -1);
     EXPECT_EQ(response.ScannedTotalBytes(), -1);
     EXPECT_FLOAT_EQ(response.CacheHitRatio(), -1.0f);
+}
+
+TEST_F(UnconnectMilvusMockedTest, DeleteRlsContext) {
+    auto client = CreateConnectedV2Client(service_, server_.ListenPort());
+
+    EXPECT_CALL(service_, Delete(_, _, _))
+        .WillOnce([](::grpc::ServerContext*, const milvus::proto::milvus::DeleteRequest* request,
+                     milvus::proto::milvus::MutationResult* response) {
+            EXPECT_EQ(request->collection_name(), "delete_coll");
+            EXPECT_EQ(request->rls_principal(), "alice");
+            EXPECT_TRUE(request->skip_rls());
+            EXPECT_EQ(request->expr(), "id > 0");
+            response->mutable_status()->set_code(0);
+            response->set_delete_cnt(2);
+            return ::grpc::Status{};
+        });
+
+    milvus::DeleteResponse response;
+    auto status = client->Delete(milvus::DeleteRequest()
+                                     .WithCollectionName("delete_coll")
+                                     .WithFilter("id > 0")
+                                     .WithRLSPrincipal("alice")
+                                     .WithSkipRLS(true),
+                                 response);
+    EXPECT_TRUE(status.IsOk()) << status.Message();
+    EXPECT_EQ(response.Results().DeleteCount(), 2);
 }

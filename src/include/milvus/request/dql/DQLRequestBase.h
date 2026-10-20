@@ -198,12 +198,74 @@ class DQLRequestBase {
         return static_cast<T&>(*this);
     }
 
+    /**
+     * @brief Get the application-level RLS principal name.
+     * @return the principal name.
+     */
+    const std::string&
+    RLSPrincipal() const {
+        return rls_principal_;
+    }
+
+    /**
+     * @brief Set the application-level RLS principal name.
+     * On an RLS-enabled collection every row-bearing request must supply a
+     * non-blank principal or set SkipRLS(true).
+     * @param [in] principal the principal name.
+     */
+    void
+    SetRLSPrincipal(const std::string& principal) {
+        rls_principal_ = principal;
+    }
+
+    /**
+     * @brief Set the application-level RLS principal name.
+     * @param [in] principal the principal name.
+     */
+    T&
+    WithRLSPrincipal(const std::string& principal) {
+        SetRLSPrincipal(principal);
+        return static_cast<T&>(*this);
+    }
+
+    /**
+     * @brief Get the flag to bypass RLS enforcement for this request.
+     * @return the skip flag.
+     */
+    bool
+    SkipRLS() const {
+        return skip_rls_;
+    }
+
+    /**
+     * @brief Set the flag to bypass RLS enforcement for this request.
+     * Only allowed when the authenticated user holds the SkipRLS privilege on
+     * the collection; `rls.force=true` rejects it.
+     * @param [in] skip_rls the skip flag.
+     */
+    void
+    SetSkipRLS(bool skip_rls) {
+        skip_rls_ = skip_rls;
+    }
+
+    /**
+     * @brief Set the flag to bypass RLS enforcement for this request.
+     * @param [in] skip_rls the skip flag.
+     */
+    T&
+    WithSkipRLS(bool skip_rls) {
+        SetSkipRLS(skip_rls);
+        return static_cast<T&>(*this);
+    }
+
  private:
     std::string db_name_;
     std::string collection_name_;
     std::set<std::string> partition_names_;
     std::set<std::string> output_field_names_;
     ::milvus::ConsistencyLevel consistency_level_{ConsistencyLevel::NONE};
+    std::string rls_principal_;
+    bool skip_rls_{false};
 };
 
 }  // namespace milvus

@@ -182,14 +182,82 @@ class BaseImportRequest {
     }
 
     /**
+     * @brief Get the application-level RLS principal name.
+     * @return the principal name.
+     */
+    const std::string&
+    RLSPrincipal() const {
+        return rls_principal_;
+    }
+
+    /**
+     * @brief Set the application-level RLS principal name.
+     * On an RLS-enabled collection the import must supply a non-blank principal
+     * or set SkipRLS(true); the value is carried in the import options.
+     * @param [in] principal the principal name.
+     */
+    void
+    SetRLSPrincipal(const std::string& principal) {
+        rls_principal_ = principal;
+    }
+
+    /**
+     * @brief Set the application-level RLS principal name.
+     * @param [in] principal the principal name.
+     */
+    T&
+    WithRLSPrincipal(const std::string& principal) {
+        SetRLSPrincipal(principal);
+        return static_cast<T&>(*this);
+    }
+
+    /**
+     * @brief Get the flag to bypass RLS enforcement for this import.
+     * @return the skip flag.
+     */
+    bool
+    SkipRLS() const {
+        return skip_rls_;
+    }
+
+    /**
+     * @brief Set the flag to bypass RLS enforcement for this import.
+     * Only allowed when the authenticated user holds the SkipRLS privilege on
+     * the collection; `rls.force=true` rejects it.
+     * @param [in] skip_rls the skip flag.
+     */
+    void
+    SetSkipRLS(bool skip_rls) {
+        skip_rls_ = skip_rls;
+        skip_rls_set_ = true;
+    }
+
+    /**
+     * @brief Set the flag to bypass RLS enforcement for this import.
+     * @param [in] skip_rls the skip flag.
+     */
+    T&
+    WithSkipRLS(bool skip_rls) {
+        SetSkipRLS(skip_rls);
+        return static_cast<T&>(*this);
+    }
+
+    /**
      * @brief Serialize the request into the REST import job payload.
      * @return the payload.
      */
     virtual nlohmann::json
     ToJson() const {
         nlohmann::json payload = nlohmann::json::object();
-        if (!options_.empty()) {
-            payload["options"] = options_;
+        nlohmann::json options = options_;
+        if (!rls_principal_.empty()) {
+            options["rls_principal"] = rls_principal_;
+        }
+        if (skip_rls_set_) {
+            options["skip_rls"] = skip_rls_ ? "true" : "false";
+        }
+        if (!options.empty()) {
+            payload["options"] = options;
         }
         return payload;
     }
@@ -200,6 +268,9 @@ class BaseImportRequest {
     std::string collection_name_;
     std::string partition_name_;
     nlohmann::json options_;
+    std::string rls_principal_;
+    bool skip_rls_{false};
+    bool skip_rls_set_{false};
 };
 
 }  // namespace milvus

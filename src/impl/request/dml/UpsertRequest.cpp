@@ -39,6 +39,18 @@ UpsertRequest::WithPartitionName(const std::string& partition_name) {
 }
 
 UpsertRequest&
+UpsertRequest::WithRLSPrincipal(const std::string& principal) {
+    SetRLSPrincipal(principal);
+    return *this;
+}
+
+UpsertRequest&
+UpsertRequest::WithSkipRLS(bool skip_rls) {
+    SetSkipRLS(skip_rls);
+    return *this;
+}
+
+UpsertRequest&
 UpsertRequest::WithColumnsData(std::vector<FieldDataPtr>&& columns_data) {
     SetColumnsData(std::move(columns_data));
     return *this;

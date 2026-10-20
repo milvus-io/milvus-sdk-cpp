@@ -410,3 +410,48 @@ TEST(BulkImportTest, DtoCreateImportWithConfig) {
     ASSERT_TRUE(milvus::BulkImport::CreateImportJobs(server.Url(), request, response, config).IsOk());
     EXPECT_EQ(response.JobId(), "job-1");
 }
+
+TEST(BulkImportTest, DtoMilvusImportRequestRlsContext) {
+    milvus::MilvusImportRequest request;
+    EXPECT_TRUE(request.RLSPrincipal().empty());
+    EXPECT_FALSE(request.SkipRLS());
+
+    auto& ref = request.WithRLSPrincipal("alice").WithSkipRLS(true);
+    EXPECT_EQ(&ref, &request);
+    EXPECT_EQ(request.RLSPrincipal(), "alice");
+    EXPECT_TRUE(request.SkipRLS());
+
+    request.SetRLSPrincipal("bob");
+    request.SetSkipRLS(false);
+    EXPECT_EQ(request.RLSPrincipal(), "bob");
+    EXPECT_FALSE(request.SkipRLS());
+}
+
+TEST(BulkImportTest, DtoMilvusImportRequestRlsPayload) {
+    milvus::MilvusImportRequest request;
+    request.WithApiKey("token")
+        .WithDatabaseName("dto-db")
+        .WithCollectionName("collection")
+        .WithPartitionName("part")
+        .WithFiles({{"a.parquet", "b.parquet"}})
+        .WithOptions(nlohmann::json{{"auto_commit", "false"}})
+        .WithRLSPrincipal("alice")
+        .WithSkipRLS(true);
+
+    const auto payload = request.ToJson();
+    EXPECT_EQ(payload.at("collectionName"), "collection");
+    EXPECT_EQ(payload.at("dbName"), "dto-db");
+    EXPECT_EQ(payload.at("partitionName"), "part");
+    EXPECT_EQ(payload.at("files"), nlohmann::json::array({{"a.parquet", "b.parquet"}}));
+    const auto& options = payload.at("options");
+    EXPECT_EQ(options.at("auto_commit"), "false");
+    EXPECT_EQ(options.at("rls_principal"), "alice");
+    EXPECT_EQ(options.at("skip_rls"), "true");
+
+    milvus::MilvusImportRequest req2;
+    req2.WithCollectionName("collection").WithRLSPrincipal("bob").WithSkipRLS(false);
+    const auto payload2 = req2.ToJson();
+    const auto& options2 = payload2.at("options");
+    EXPECT_EQ(options2.at("rls_principal"), "bob");
+    EXPECT_EQ(options2.at("skip_rls"), "false");
+}
