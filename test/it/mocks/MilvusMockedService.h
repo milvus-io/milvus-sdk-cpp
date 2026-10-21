@@ -402,6 +402,38 @@ class MilvusMockedService : public ::milvus::proto::milvus::MilvusService::Servi
                  ::grpc::Status(::grpc::ServerContext*, const ::milvus::proto::milvus::OperatePrivilegeGroupRequest*,
                                 ::milvus::proto::common::Status*));
 
+    MOCK_METHOD3(CreateRowPolicy,
+                 ::grpc::Status(::grpc::ServerContext*, const ::milvus::proto::milvus::CreateRowPolicyRequest*,
+                                ::milvus::proto::common::Status*));
+
+    MOCK_METHOD3(UpdateRowPolicy,
+                 ::grpc::Status(::grpc::ServerContext*, const ::milvus::proto::milvus::UpdateRowPolicyRequest*,
+                                ::milvus::proto::common::Status*));
+
+    MOCK_METHOD3(DropRowPolicy,
+                 ::grpc::Status(::grpc::ServerContext*, const ::milvus::proto::milvus::DropRowPolicyRequest*,
+                                ::milvus::proto::common::Status*));
+
+    MOCK_METHOD3(ListRowPolicies,
+                 ::grpc::Status(::grpc::ServerContext*, const ::milvus::proto::milvus::ListRowPoliciesRequest*,
+                                ::milvus::proto::milvus::ListRowPoliciesResponse*));
+
+    MOCK_METHOD3(SetRLSPrincipalTags,
+                 ::grpc::Status(::grpc::ServerContext*, const ::milvus::proto::milvus::SetRLSPrincipalTagsRequest*,
+                                ::milvus::proto::common::Status*));
+
+    MOCK_METHOD3(GetRLSPrincipalTags,
+                 ::grpc::Status(::grpc::ServerContext*, const ::milvus::proto::milvus::GetRLSPrincipalTagsRequest*,
+                                ::milvus::proto::milvus::GetRLSPrincipalTagsResponse*));
+
+    MOCK_METHOD3(ListRLSPrincipals,
+                 ::grpc::Status(::grpc::ServerContext*, const ::milvus::proto::milvus::ListRLSPrincipalsRequest*,
+                                ::milvus::proto::milvus::ListRLSPrincipalsResponse*));
+
+    MOCK_METHOD3(DeleteRLSPrincipalTags,
+                 ::grpc::Status(::grpc::ServerContext*, const ::milvus::proto::milvus::DeleteRLSPrincipalTagsRequest*,
+                                ::milvus::proto::common::Status*));
+
     MOCK_METHOD3(RefreshExternalCollection,
                  ::grpc::Status(::grpc::ServerContext*,
                                 const ::milvus::proto::milvus::RefreshExternalCollectionRequest*,

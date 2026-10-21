@@ -319,3 +319,61 @@ TEST_F(UnconnectMilvusMockedTest, HybridSearchFunctionChainsOnWire) {
     EXPECT_TRUE(status.IsOk());
     EXPECT_EQ(response.Results().Results().size(), 1);
 }
+
+TEST_F(UnconnectMilvusMockedTest, SearchRlsContext) {
+    auto client = CreateConnectedV2Client(service_, server_.ListenPort());
+
+    EXPECT_CALL(service_, Search(_, _, _))
+        .WillOnce([](::grpc::ServerContext*, const ::milvus::proto::milvus::SearchRequest* request,
+                     ::milvus::proto::milvus::SearchResults* response) {
+            EXPECT_EQ(request->rls_principal(), "alice");
+            EXPECT_TRUE(request->skip_rls());
+            FillMinimalV2SearchResults(response);
+            return ::grpc::Status{};
+        });
+
+    auto request = CreateV2SearchRequest();
+    request.WithRLSPrincipal("alice").WithSkipRLS(true);
+    milvus::SearchResponse response;
+    auto status = client->Search(request, response);
+    EXPECT_TRUE(status.IsOk());
+}
+
+TEST_F(UnconnectMilvusMockedTest, QueryRlsContext) {
+    auto client = CreateConnectedV2Client(service_, server_.ListenPort());
+
+    EXPECT_CALL(service_, Query(_, _, _))
+        .WillOnce([](::grpc::ServerContext*, const ::milvus::proto::milvus::QueryRequest* request,
+                     ::milvus::proto::milvus::QueryResults* response) {
+            EXPECT_EQ(request->collection_name(), "foo");
+            EXPECT_EQ(request->rls_principal(), "bob");
+            EXPECT_FALSE(request->skip_rls());
+            response->mutable_status()->set_code(milvus::proto::common::ErrorCode::Success);
+            return ::grpc::Status{};
+        });
+
+    milvus::QueryRequest request;
+    request.WithCollectionName("foo").WithFilter("id > 0").WithRLSPrincipal("bob");
+    milvus::QueryResponse response;
+    auto status = client->Query(request, response);
+    EXPECT_TRUE(status.IsOk());
+}
+
+TEST_F(UnconnectMilvusMockedTest, HybridSearchRlsContext) {
+    auto client = CreateConnectedV2Client(service_, server_.ListenPort());
+
+    EXPECT_CALL(service_, HybridSearch(_, _, _))
+        .WillOnce([](::grpc::ServerContext*, const ::milvus::proto::milvus::HybridSearchRequest* request,
+                     ::milvus::proto::milvus::SearchResults* response) {
+            EXPECT_EQ(request->rls_principal(), "alice");
+            EXPECT_TRUE(request->skip_rls());
+            FillMinimalV2SearchResults(response);
+            return ::grpc::Status{};
+        });
+
+    auto request = CreateV2HybridSearchRequest();
+    request.WithRLSPrincipal("alice").WithSkipRLS(true);
+    milvus::HybridSearchResponse response;
+    auto status = client->HybridSearch(request, response);
+    EXPECT_TRUE(status.IsOk());
+}

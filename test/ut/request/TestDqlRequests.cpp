@@ -152,6 +152,24 @@ TEST_F(QueryRequestTest, DQLRequestBaseMethods) {
     EXPECT_EQ(req.CollectionName(), "another_coll");
 }
 
+TEST_F(QueryRequestTest, RlsContext) {
+    milvus::QueryRequest req;
+
+    EXPECT_TRUE(req.RLSPrincipal().empty());
+    EXPECT_FALSE(req.SkipRLS());
+
+    req.WithRLSPrincipal("alice");
+    EXPECT_EQ(req.RLSPrincipal(), "alice");
+
+    req.WithSkipRLS(true);
+    EXPECT_TRUE(req.SkipRLS());
+
+    req.SetRLSPrincipal("bob");
+    req.SetSkipRLS(false);
+    EXPECT_EQ(req.RLSPrincipal(), "bob");
+    EXPECT_FALSE(req.SkipRLS());
+}
+
 class GetRequestTest : public ::testing::Test {};
 
 TEST_F(GetRequestTest, GettersAndSetters) {
@@ -200,6 +218,22 @@ TEST_F(GetRequestTest, DQLRequestBaseMethods) {
     std::set<std::string> fields2{"a"};
     req.WithOutputFields(std::move(fields2));
     EXPECT_EQ(req.OutputFields().size(), 1);
+}
+
+TEST_F(GetRequestTest, RlsContext) {
+    milvus::GetRequest req;
+
+    EXPECT_TRUE(req.RLSPrincipal().empty());
+    EXPECT_FALSE(req.SkipRLS());
+
+    req.WithRLSPrincipal("alice").WithSkipRLS(true);
+    EXPECT_EQ(req.RLSPrincipal(), "alice");
+    EXPECT_TRUE(req.SkipRLS());
+
+    req.SetRLSPrincipal("bob");
+    req.SetSkipRLS(false);
+    EXPECT_EQ(req.RLSPrincipal(), "bob");
+    EXPECT_FALSE(req.SkipRLS());
 }
 
 class SearchRequestTest : public ::testing::Test {};
@@ -1080,4 +1114,52 @@ TEST_F(SearchRequestTest, BulkVectorSetters) {
     auto& ref = req.WithEmbeddingLists(std::move(emb_lists));
     EXPECT_EQ(&ref, &req);
     ASSERT_EQ(req.EmbeddingLists().size(), 1);
+}
+
+TEST_F(SearchRequestTest, RlsContext) {
+    milvus::SearchRequest req;
+
+    EXPECT_TRUE(req.RLSPrincipal().empty());
+    EXPECT_FALSE(req.SkipRLS());
+
+    req.WithRLSPrincipal("alice").WithSkipRLS(true);
+    EXPECT_EQ(req.RLSPrincipal(), "alice");
+    EXPECT_TRUE(req.SkipRLS());
+
+    req.SetRLSPrincipal("bob");
+    req.SetSkipRLS(false);
+    EXPECT_EQ(req.RLSPrincipal(), "bob");
+    EXPECT_FALSE(req.SkipRLS());
+}
+
+TEST_F(HybridSearchRequestTest, RlsContext) {
+    milvus::HybridSearchRequest req;
+
+    EXPECT_TRUE(req.RLSPrincipal().empty());
+    EXPECT_FALSE(req.SkipRLS());
+
+    req.WithRLSPrincipal("alice").WithSkipRLS(true);
+    EXPECT_EQ(req.RLSPrincipal(), "alice");
+    EXPECT_TRUE(req.SkipRLS());
+
+    req.SetRLSPrincipal("bob");
+    req.SetSkipRLS(false);
+    EXPECT_EQ(req.RLSPrincipal(), "bob");
+    EXPECT_FALSE(req.SkipRLS());
+}
+
+TEST_F(QueryIteratorRequestTest, RlsContext) {
+    milvus::QueryIteratorRequest req;
+
+    EXPECT_TRUE(req.RLSPrincipal().empty());
+    EXPECT_FALSE(req.SkipRLS());
+
+    req.WithRLSPrincipal("alice").WithSkipRLS(true);
+    EXPECT_EQ(req.RLSPrincipal(), "alice");
+    EXPECT_TRUE(req.SkipRLS());
+
+    req.SetRLSPrincipal("bob");
+    req.SetSkipRLS(false);
+    EXPECT_EQ(req.RLSPrincipal(), "bob");
+    EXPECT_FALSE(req.SkipRLS());
 }

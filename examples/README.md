@@ -69,6 +69,7 @@ Recommended examples for MilvusClientV2:
 - `./cmake_build/examples/v2/sdk_partition_v2`: example to show the usage of partitions, including createPartition(), hasPartition(), loadPartitions(), GetPartitionStatistics(), releasePartitions() and dropPartition().
 - `./cmake_build/examples/v2/sdk_rbac_v2`: example to show the usage of RBAC.
 - `./cmake_build/examples/v2/sdk_rerank_function_v2`: example to show the usage of rerank function.
+- `./cmake_build/examples/v2/sdk_rls_v2`: example to show the usage of row-level security (RLS), including row policies and principal tags.
 - `./cmake_build/examples/v2/sdk_run_analyzer_v2`: example to show the usage of run_analyzer().
 - `./cmake_build/examples/v2/sdk_search_aggregation_v2`: example to show the usage of search aggregation.
 - `./cmake_build/examples/v2/sdk_simple_v2`: example to quickly create a simple collection.

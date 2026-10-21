@@ -266,3 +266,53 @@ TEST_F(InsertRequestTest, DMLRequestBaseMethods) {
     req2.SetRowsData(std::move(rows));
     EXPECT_EQ(req2.RowsData().size(), 1);
 }
+
+TEST_F(InsertRequestTest, RlsContext) {
+    milvus::InsertRequest req;
+
+    EXPECT_TRUE(req.RLSPrincipal().empty());
+    EXPECT_FALSE(req.SkipRLS());
+
+    req.WithRLSPrincipal("alice");
+    EXPECT_EQ(req.RLSPrincipal(), "alice");
+
+    req.WithSkipRLS(true);
+    EXPECT_TRUE(req.SkipRLS());
+
+    req.SetRLSPrincipal("bob");
+    req.SetSkipRLS(false);
+    EXPECT_EQ(req.RLSPrincipal(), "bob");
+    EXPECT_FALSE(req.SkipRLS());
+}
+
+TEST_F(UpsertRequestTest, RlsContext) {
+    milvus::UpsertRequest req;
+
+    EXPECT_TRUE(req.RLSPrincipal().empty());
+    EXPECT_FALSE(req.SkipRLS());
+
+    req.WithRLSPrincipal("alice").WithSkipRLS(true);
+    EXPECT_EQ(req.RLSPrincipal(), "alice");
+    EXPECT_TRUE(req.SkipRLS());
+
+    req.SetRLSPrincipal("bob");
+    req.SetSkipRLS(false);
+    EXPECT_EQ(req.RLSPrincipal(), "bob");
+    EXPECT_FALSE(req.SkipRLS());
+}
+
+TEST_F(DeleteRequestTest, RlsContext) {
+    milvus::DeleteRequest req;
+
+    EXPECT_TRUE(req.RLSPrincipal().empty());
+    EXPECT_FALSE(req.SkipRLS());
+
+    req.WithRLSPrincipal("alice").WithSkipRLS(true);
+    EXPECT_EQ(req.RLSPrincipal(), "alice");
+    EXPECT_TRUE(req.SkipRLS());
+
+    req.SetRLSPrincipal("bob");
+    req.SetSkipRLS(false);
+    EXPECT_EQ(req.RLSPrincipal(), "bob");
+    EXPECT_FALSE(req.SkipRLS());
+}

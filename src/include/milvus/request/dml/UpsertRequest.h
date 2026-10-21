@@ -62,12 +62,26 @@ class MILVUS_SDK_API UpsertRequest : public InsertRequest {
     WithCollectionName(const std::string& collection_name);
 
     /**
-     * @brief Set new name of the partition.
+     * @brief Set name of the partition.
      * If partition name is empty, it will insert data into the default partition.
      * @param [in] partition_name the partition name.
      */
     UpsertRequest&
     WithPartitionName(const std::string& partition_name);
+
+    /**
+     * @brief Set the application-level RLS principal name.
+     * @param [in] principal the principal name.
+     */
+    UpsertRequest&
+    WithRLSPrincipal(const std::string& principal);
+
+    /**
+     * @brief Set the flag to bypass RLS enforcement for this request.
+     * @param [in] skip_rls the skip flag.
+     */
+    UpsertRequest&
+    WithSkipRLS(bool skip_rls);
 
     /**
      * @brief Set fields data with fluent interface.

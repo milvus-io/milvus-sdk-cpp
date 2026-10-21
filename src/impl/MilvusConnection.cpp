@@ -1033,4 +1033,54 @@ MilvusConnection::OperatePrivilegeGroup(const proto::milvus::OperatePrivilegeGro
     return grpcCall("OperatePrivilegeGroup", &Stub::OperatePrivilegeGroup, request, response, options);
 }
 
+Status
+MilvusConnection::CreateRowPolicy(const proto::milvus::CreateRowPolicyRequest& request, proto::common::Status& response,
+                                  const GrpcContextOptions& options) {
+    return grpcCall("CreateRowPolicy", &Stub::CreateRowPolicy, request, response, options);
+}
+
+Status
+MilvusConnection::UpdateRowPolicy(const proto::milvus::UpdateRowPolicyRequest& request, proto::common::Status& response,
+                                  const GrpcContextOptions& options) {
+    return grpcCall("UpdateRowPolicy", &Stub::UpdateRowPolicy, request, response, options);
+}
+
+Status
+MilvusConnection::DropRowPolicy(const proto::milvus::DropRowPolicyRequest& request, proto::common::Status& response,
+                                const GrpcContextOptions& options) {
+    return grpcCall("DropRowPolicy", &Stub::DropRowPolicy, request, response, options);
+}
+
+Status
+MilvusConnection::ListRowPolicies(const proto::milvus::ListRowPoliciesRequest& request,
+                                  proto::milvus::ListRowPoliciesResponse& response, const GrpcContextOptions& options) {
+    return grpcCall("ListRowPolicies", &Stub::ListRowPolicies, request, response, options);
+}
+
+Status
+MilvusConnection::SetRLSPrincipalTags(const proto::milvus::SetRLSPrincipalTagsRequest& request,
+                                      proto::common::Status& response, const GrpcContextOptions& options) {
+    return grpcCall("SetRLSPrincipalTags", &Stub::SetRLSPrincipalTags, request, response, options);
+}
+
+Status
+MilvusConnection::GetRLSPrincipalTags(const proto::milvus::GetRLSPrincipalTagsRequest& request,
+                                      proto::milvus::GetRLSPrincipalTagsResponse& response,
+                                      const GrpcContextOptions& options) {
+    return grpcCall("GetRLSPrincipalTags", &Stub::GetRLSPrincipalTags, request, response, options);
+}
+
+Status
+MilvusConnection::ListRLSPrincipals(const proto::milvus::ListRLSPrincipalsRequest& request,
+                                    proto::milvus::ListRLSPrincipalsResponse& response,
+                                    const GrpcContextOptions& options) {
+    return grpcCall("ListRLSPrincipals", &Stub::ListRLSPrincipals, request, response, options);
+}
+
+Status
+MilvusConnection::DeleteRLSPrincipalTags(const proto::milvus::DeleteRLSPrincipalTagsRequest& request,
+                                         proto::common::Status& response, const GrpcContextOptions& options) {
+    return grpcCall("DeleteRLSPrincipalTags", &Stub::DeleteRLSPrincipalTags, request, response, options);
+}
+
 }  // namespace milvus
