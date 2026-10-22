@@ -383,6 +383,13 @@ ConvertStructFieldSchema(const proto::schema::StructArrayFieldSchema& proto_sche
     field_schema.SetName(proto_schema.name());
     field_schema.SetDescription(proto_schema.description());
 
+    std::map<std::string, std::string> params;
+    for (int k = 0; k < proto_schema.type_params_size(); ++k) {
+        auto& kv = proto_schema.type_params(k);
+        params.emplace(kv.key(), kv.value());
+    }
+    field_schema.SetTypeParams(std::move(params));
+
     for (auto i = 0; i < proto_schema.fields_size(); i++) {
         const auto& proto_field = proto_schema.fields(i);
 
@@ -591,6 +598,12 @@ void
 ConvertStructFieldSchema(const StructFieldSchema& schema, proto::schema::StructArrayFieldSchema& proto_schema) {
     proto_schema.set_name(schema.Name());
     proto_schema.set_description(schema.Description());
+
+    for (const auto& pair : schema.TypeParams()) {
+        auto kv = proto_schema.add_type_params();
+        kv->set_key(pair.first);
+        kv->set_value(pair.second);
+    }
 
     for (auto& field : schema.Fields()) {
         auto proto_field = proto_schema.add_fields();

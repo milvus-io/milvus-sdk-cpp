@@ -90,15 +90,43 @@ TEST_F(StructFieldSchemaTest, AddFieldRvalue) {
     EXPECT_EQ(&ref, &schema);
 }
 
+TEST_F(StructFieldSchemaTest, TypeParams) {
+    milvus::StructFieldSchema schema;
+    EXPECT_TRUE(schema.TypeParams().empty());
+
+    schema.SetTypeParams({{"mmap.enabled", "true"}});
+    schema.AddTypeParam("warmup", "{\"policy\":\"async\"}");
+    EXPECT_EQ(schema.TypeParams().at("mmap.enabled"), "true");
+    EXPECT_EQ(schema.TypeParams().at("warmup"), "{\"policy\":\"async\"}");
+}
+
+TEST_F(StructFieldSchemaTest, SetTypeParamsRvalue) {
+    milvus::StructFieldSchema schema;
+    schema.SetTypeParams(std::map<std::string, std::string>{{"mmap.enabled", "true"}});
+    schema.SetTypeParams(std::map<std::string, std::string>{{"warmup", "sync"}});
+    EXPECT_EQ(schema.TypeParams().size(), 2);
+    EXPECT_EQ(schema.TypeParams().at("mmap.enabled"), "true");
+    EXPECT_EQ(schema.TypeParams().at("warmup"), "sync");
+}
+
+TEST_F(StructFieldSchemaTest, AddTypeParamFluent) {
+    milvus::StructFieldSchema schema;
+    auto& ref = schema.AddTypeParam("mmap.enabled", "false");
+    EXPECT_EQ(schema.TypeParams().at("mmap.enabled"), "false");
+    EXPECT_EQ(&ref, &schema);
+}
+
 TEST_F(StructFieldSchemaTest, ChainingMethods) {
     milvus::StructFieldSchema schema;
     schema.WithName("s1")
         .WithDescription("desc")
         .WithMaxCapacity(50)
+        .AddTypeParam("mmap.enabled", "true")
         .AddField(milvus::FieldSchema("f1", milvus::DataType::VARCHAR))
         .AddField(milvus::FieldSchema("f2", milvus::DataType::INT32));
     EXPECT_EQ(schema.Name(), "s1");
     EXPECT_EQ(schema.Description(), "desc");
     EXPECT_EQ(schema.MaxCapacity(), 50);
+    EXPECT_EQ(schema.TypeParams().at("mmap.enabled"), "true");
     EXPECT_EQ(schema.Fields().size(), 2);
 }
