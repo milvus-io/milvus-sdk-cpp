@@ -75,6 +75,33 @@ StructFieldSchema::WithMaxCapacity(int64_t capacity) {
     return *this;
 }
 
+const std::map<std::string, std::string>&
+StructFieldSchema::TypeParams() const {
+    return type_params_;
+}
+
+void
+StructFieldSchema::SetTypeParams(const std::map<std::string, std::string>& params) {
+    // it is a merge operation, keep old pairs
+    type_params_.insert(params.begin(), params.end());
+}
+
+void
+StructFieldSchema::SetTypeParams(std::map<std::string, std::string>&& params) {
+    if (type_params_.empty()) {
+        type_params_ = std::move(params);
+    } else {
+        // it is a merge operation, keep old pairs
+        type_params_.insert(params.begin(), params.end());
+    }
+}
+
+StructFieldSchema&
+StructFieldSchema::AddTypeParam(const std::string& key, const std::string& val) {
+    type_params_.insert(std::make_pair(key, val));
+    return *this;
+}
+
 const std::vector<FieldSchema>&
 StructFieldSchema::Fields() const {
     return fields_;

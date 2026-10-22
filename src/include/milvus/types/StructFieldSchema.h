@@ -16,6 +16,7 @@
 
 #pragma once
 
+#include <map>
 #include <vector>
 
 #include "FieldSchema.h"
@@ -93,6 +94,38 @@ class MILVUS_SDK_API StructFieldSchema {
     WithMaxCapacity(int64_t capacity);
 
     /**
+     * @brief Extra key-value pair setting for this struct field.
+     * @return the type params.
+     */
+    const std::map<std::string, std::string>&
+    TypeParams() const;
+
+    /**
+     * @brief Set extra key-value pair setting for this struct field.
+     * Note: this is a merge operation, existing keys are kept and not overwritten.
+     * @param [in] params the params.
+     */
+    void
+    SetTypeParams(const std::map<std::string, std::string>& params);
+
+    /**
+     * @brief Set extra key-value pair setting for this struct field.
+     * Note: this is a merge operation, existing keys are kept and not overwritten.
+     * @param [in] params the params.
+     */
+    void
+    SetTypeParams(std::map<std::string, std::string>&& params);
+
+    /**
+     * @brief Add an extra key-value pair setting for this struct field.
+     * Note: if the key already exists, the new value is ignored.
+     * @param [in] key the key.
+     * @param [in] val the val.
+     */
+    StructFieldSchema&
+    AddTypeParam(const std::string& key, const std::string& val);
+
+    /**
      * @brief Get sub fields of the struct field.
      */
     const std::vector<FieldSchema>&
@@ -114,6 +147,8 @@ class MILVUS_SDK_API StructFieldSchema {
     std::string name_;
     std::string description_;
     int64_t capacity_{0};
+
+    std::map<std::string, std::string> type_params_;
 
     std::vector<FieldSchema> fields_;
 };
