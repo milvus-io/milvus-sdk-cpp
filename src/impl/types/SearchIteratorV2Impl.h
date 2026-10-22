@@ -20,6 +20,7 @@
 #include <memory>
 #include <string>
 #include <unordered_map>
+#include <unordered_set>
 
 #include "../MilvusConnection.h"
 #include "milvus.pb.h"
@@ -42,18 +43,22 @@ class SearchIteratorV2Impl : public SearchIterator {
     Status
     Init();
 
+    const proto::milvus::SearchResults&
+    InitialResponse() const {
+        return pending_response_;
+    }
+
  private:
-    Status
-    probeForCompability();
+    enum class CursorMode { UNINITIALIZED, DISTANCE, PRIMARY_KEY };
 
     Status
-    checkTokenExists(proto::milvus::SearchResults& rpc_response);
+    executeSearch(proto::milvus::SearchResults& rpc_response);
 
     Status
-    executeSearch(const T& args, proto::milvus::SearchResults& rpc_response, bool is_probe);
+    preparePending(SingleResultPtr& results);
 
     Status
-    next(SingleResultPtr& results);
+    loadPending(SingleResultPtr& results);
 
  private:
     MilvusConnectionPtr connection_;
@@ -63,8 +68,16 @@ class SearchIteratorV2Impl : public SearchIterator {
 
     int64_t original_limit_{0};
     int64_t returned_count_{0};
-    uint64_t session_ts_{0};
+    proto::milvus::SearchRequest request_;
+    proto::milvus::SearchRequest pending_request_;
+    proto::milvus::SearchResults pending_response_;
+    CursorMode mode_{CursorMode::UNINITIALIZED};
+    CursorMode pending_mode_{CursorMode::UNINITIALIZED};
+    bool has_pending_{false};
+    bool initialized_{false};
+    bool finished_{false};
     std::list<SingleResultPtr> cache_;
+    std::unordered_set<std::string> accepted_pks_;
 };
 
 // explicitly instantiation of template methods to avoid link error

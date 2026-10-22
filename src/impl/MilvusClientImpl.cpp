@@ -1383,9 +1383,11 @@ MilvusClientImpl::Search(const SearchArguments& arguments, SearchResults& result
 }
 
 Status
-MilvusClientImpl::SearchIterator(SearchIteratorArguments& arguments, SearchIteratorPtr& iterator) {
+MilvusClientImpl::SearchIterator(SearchIteratorArguments& input, SearchIteratorPtr& iterator) {
+    auto arguments = input;
     const auto endpoint = connection_.CurrentEndpoint();
     const auto database_name = connection_.CurrentDbName(arguments.DatabaseName());
+    arguments.SetDatabaseName(database_name);
     auto status = iteratorPrepare(endpoint, database_name, arguments);
     if (!status.IsOk()) {
         return status;
@@ -1440,7 +1442,7 @@ MilvusClientImpl::SearchIterator(SearchIteratorArguments& arguments, SearchItera
     iterator = ptrV2;
     if (!status.IsOk() && status.Code() == StatusCode::NOT_SUPPORTED) {
         auto ptrV1 = std::make_shared<SearchIteratorImpl<SearchIteratorArguments>>(connection, arguments, retry_param);
-        status = ptrV1->Init();
+        status = ptrV1->Init(&ptrV2->InitialResponse());
         if (!status.IsOk()) {
             return {status.Code(), "Unable to create search iterator, error: " + status.Message()};
         }
