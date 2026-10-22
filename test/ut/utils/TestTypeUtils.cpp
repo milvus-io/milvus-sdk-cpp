@@ -919,6 +919,12 @@ TEST_F(TypeUtilsTest, ConvertStructFieldSchemaFromProto) {
     milvus::proto::schema::StructArrayFieldSchema proto_schema;
     proto_schema.set_name("my_struct");
     proto_schema.set_description("test struct");
+    auto* kv1 = proto_schema.add_type_params();
+    kv1->set_key("mmap.enabled");
+    kv1->set_value("true");
+    auto* kv2 = proto_schema.add_type_params();
+    kv2->set_key("warmup");
+    kv2->set_value("{\"policy\":\"async\"}");
     auto* f1 = proto_schema.add_fields();
     f1->set_name("sub_int32");
     f1->set_data_type(milvus::proto::schema::DataType::Int32);
@@ -930,6 +936,8 @@ TEST_F(TypeUtilsTest, ConvertStructFieldSchemaFromProto) {
     milvus::StructFieldSchema sdk_schema;
     milvus::ConvertStructFieldSchema(proto_schema, sdk_schema);
     EXPECT_EQ(sdk_schema.Name(), "my_struct");
+    EXPECT_EQ(sdk_schema.TypeParams().at("mmap.enabled"), "true");
+    EXPECT_EQ(sdk_schema.TypeParams().at("warmup"), "{\"policy\":\"async\"}");
     EXPECT_EQ(sdk_schema.Fields().size(), 2);
 }
 
@@ -940,7 +948,7 @@ TEST_F(TypeUtilsTest, ConvertStructFieldSchemaViaCollectionSchema) {
     schema.AddField(milvus::FieldSchema("vec", milvus::DataType::FLOAT_VECTOR).WithDimension(4));
 
     milvus::StructFieldSchema struct_schema;
-    struct_schema.WithName("my_struct").WithMaxCapacity(5);
+    struct_schema.WithName("my_struct").WithMaxCapacity(5).AddTypeParam("mmap.enabled", "true");
     struct_schema.AddField(milvus::FieldSchema("sub_int", milvus::DataType::INT32));
     schema.AddStructField(std::move(struct_schema));
 
@@ -948,6 +956,9 @@ TEST_F(TypeUtilsTest, ConvertStructFieldSchemaViaCollectionSchema) {
     milvus::ConvertCollectionSchema(schema, proto_schema);
     EXPECT_EQ(proto_schema.struct_array_fields_size(), 1);
     EXPECT_EQ(proto_schema.struct_array_fields(0).name(), "my_struct");
+    EXPECT_EQ(proto_schema.struct_array_fields(0).type_params_size(), 1);
+    EXPECT_EQ(proto_schema.struct_array_fields(0).type_params(0).key(), "mmap.enabled");
+    EXPECT_EQ(proto_schema.struct_array_fields(0).type_params(0).value(), "true");
 }
 
 TEST_F(TypeUtilsTest, ConvertResourceGroupConfigRoundtrip) {
