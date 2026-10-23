@@ -229,3 +229,89 @@ TEST_F(MilvusMockedTest, QueryIteratorUsesExplicitDatabaseForSchemaAndQuery) {
     EXPECT_TRUE(milvus::SchemaCache::GetInstance().Get(endpoint, database_name, collection_name, desc));
     EXPECT_FALSE(milvus::SchemaCache::GetInstance().Get(endpoint, "default", collection_name, desc));
 }
+
+TEST_F(MilvusMockedTest, QueryIteratorEscapesVarcharPkInPagingExpression) {
+    milvus::ConnectParam connect_param{"127.0.0.1", server_.ListenPort()};
+    client_->Connect(connect_param);
+
+    const std::string collection_name = "varchar_pk_col";
+    milvus::CollectionSchema collection_schema(collection_name);
+    collection_schema.AddField(milvus::FieldSchema("pk", milvus::DataType::VARCHAR, "pk", true, false));
+    collection_schema.AddField(milvus::FieldSchema("age", milvus::DataType::INT64));
+
+    // attack payload planted as a VARCHAR primary key value
+    const std::string injection_pk = "x\" or 1==1 or \"a\"==\"a";
+
+    size_t page_query_count = 0;
+
+    EXPECT_CALL(service_, DescribeCollection(
+                               _, Property(&DescribeCollectionRequest::collection_name, collection_name), _))
+        .WillOnce([&](::grpc::ServerContext*, const DescribeCollectionRequest*, DescribeCollectionResponse* response) {
+            response->set_collectionid(100);
+            milvus::ConvertCollectionSchema(collection_schema, *response->mutable_schema());
+            return ::grpc::Status{};
+        });
+
+    EXPECT_CALL(service_, Query(_, _, _))
+        .WillRepeatedly([&](::grpc::ServerContext*, const QueryRequest* request, QueryResults* response) {
+            // the session-setup query uses limit=1
+            for (const auto& pair : request->query_params()) {
+                if (pair.key() == milvus::LIMIT && pair.value() == "1") {
+                    response->set_session_ts(999999);
+                    return ::grpc::Status{};
+                }
+            }
+
+            // the first paging page uses the plain user filter; every later page must
+            // keep the crafted pk inside the string literal: the quote after 'x' is
+            // escaped (`x\"`), so the raw `x" or` breakout never occurs
+            ++page_query_count;
+            if (page_query_count == 1) {
+                EXPECT_EQ(request->expr(), "age >= 0");
+            } else {
+                EXPECT_EQ(request->expr(), " ( age >= 0 )  and pk > \"x\\\" or 1==1 or \\\"a\\\"==\\\"a\"");
+                EXPECT_NE(request->expr().find("x\\\" or"), std::string::npos);
+                EXPECT_EQ(request->expr().find("x\" or"), std::string::npos);
+            }
+
+            // return one page with the crafted pk as the trailing value
+            auto pk_data = std::make_shared<milvus::VarCharFieldData>(
+                "pk", std::vector<std::string>{"alpha", injection_pk});
+            milvus::FieldDataSchema pk_bridge(pk_data, nullptr);
+            milvus::proto::schema::FieldData proto_pk;
+            auto status = milvus::CreateProtoFieldData(pk_bridge, proto_pk);
+            EXPECT_TRUE(status.IsOk());
+            response->mutable_fields_data()->Add(std::move(proto_pk));
+
+            auto age_data = std::make_shared<milvus::Int64FieldData>("age", std::vector<int64_t>{1, 2});
+            milvus::FieldDataSchema age_bridge(age_data, nullptr);
+            milvus::proto::schema::FieldData proto_age;
+            status = milvus::CreateProtoFieldData(age_bridge, proto_age);
+            EXPECT_TRUE(status.IsOk());
+            response->mutable_fields_data()->Add(std::move(proto_age));
+
+            return ::grpc::Status{};
+        });
+
+    milvus::QueryIteratorArguments arguments;
+    arguments.SetBatchSize(2);
+    arguments.SetLimit(4);
+    arguments.SetCollectionName(collection_name);
+    arguments.SetFilter("age >= 0");
+    arguments.SetConsistencyLevel(milvus::ConsistencyLevel::BOUNDED);
+    arguments.AddOutputField("pk");
+    arguments.AddOutputField("age");
+
+    milvus::QueryIteratorPtr iterator;
+    auto status = client_->QueryIterator(arguments, iterator);
+    EXPECT_TRUE(status.IsOk());
+
+    // first page returns the crafted pk, second page re-queries with the escaped expression
+    milvus::QueryResults batch_results;
+    status = iterator->Next(batch_results);
+    EXPECT_TRUE(status.IsOk());
+    EXPECT_EQ(batch_results.GetRowCount(), 2);
+
+    status = iterator->Next(batch_results);
+    EXPECT_TRUE(status.IsOk());
+}

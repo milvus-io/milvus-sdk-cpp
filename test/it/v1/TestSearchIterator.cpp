@@ -467,3 +467,91 @@ TEST_F(MilvusMockedTest, SearchIteratorV1AppliesExternalFilterPerPage) {
 
     DoSearchIteratorWithExternalFilter(service_, client_, true);
 }
+
+TEST_F(MilvusMockedTest, SearchIteratorEscapesVarcharIdsInNotInFilter) {
+    milvus::ConnectParam connect_param{"127.0.0.1", server_.ListenPort()};
+    client_->Connect(connect_param);
+
+    const std::string collection_name = "varchar_pk_search_col";
+    milvus::CollectionSchema collection_schema(collection_name);
+    collection_schema.AddField(milvus::FieldSchema("pk", milvus::DataType::VARCHAR, "pk", true, false));
+    collection_schema.AddField(milvus::FieldSchema("f16_vector", milvus::DataType::FLOAT16_VECTOR).WithDimension(16));
+
+    // attack payload planted as a VARCHAR primary key value
+    const std::string injection_id = "a' or '1'=='1";
+
+    EXPECT_CALL(service_,
+                DescribeCollection(_, Property(&DescribeCollectionRequest::collection_name, collection_name), _))
+        .WillOnce([&](::grpc::ServerContext*, const DescribeCollectionRequest*, DescribeCollectionResponse* response) {
+            response->set_collectionid(100);
+            milvus::ConvertCollectionSchema(collection_schema, *response->mutable_schema());
+            return ::grpc::Status{};
+        });
+
+    auto build_page = [&](SearchResults* response, const std::string& pk_value, float score) {
+        response->mutable_status()->set_code(milvus::proto::common::ErrorCode::Success);
+        auto* results = response->mutable_results();
+        results->set_top_k(1);
+        results->set_num_queries(1);
+        results->set_primary_field_name("pk");
+        auto pk_data = std::make_shared<milvus::VarCharFieldData>("pk", std::vector<std::string>{pk_value});
+        milvus::FieldDataSchema bridge(pk_data, nullptr);
+        milvus::proto::schema::FieldData proto_field;
+        auto status = milvus::CreateProtoFieldData(bridge, proto_field);
+        EXPECT_TRUE(status.IsOk());
+        results->mutable_fields_data()->Add(std::move(proto_field));
+        results->mutable_ids()->mutable_str_id()->add_data(pk_value);
+        results->mutable_topks()->Add(1);
+        results->mutable_scores()->Add(score);
+    };
+
+    size_t search_call_count = 0;
+    EXPECT_CALL(service_, Search(_, _, _))
+        .WillRepeatedly([&](::grpc::ServerContext*, const SearchRequest* request, SearchResults* response) {
+            ++search_call_count;
+            if (search_call_count == 1) {
+                // V2 compatibility probe: empty token makes the SDK fall back to the V1 iterator
+                response->mutable_results()->mutable_search_iterator_v2_results()->set_token("");
+                return ::grpc::Status{};
+            }
+            if (search_call_count == 2) {
+                // the init page uses the plain user filter and returns the crafted id at the tail
+                EXPECT_EQ(request->dsl(), "age >= 0");
+                build_page(response, injection_id, 0.5f);
+                return ::grpc::Status{};
+            }
+            // the fill search must keep the crafted id inside the single-quoted literal:
+            // `a' or '1'=='1` becomes `a\' or \'1\'==\'1`, so no raw breakout occurs
+            EXPECT_EQ(request->dsl(), "age >= 0 and pk not in ['a\\' or \\'1\\'==\\'1']");
+            EXPECT_NE(request->dsl().find("a\\' or"), std::string::npos);
+            EXPECT_EQ(request->dsl().find("a' or"), std::string::npos);
+            build_page(response, "beta", 0.6f);
+            return ::grpc::Status{};
+        });
+
+    milvus::SearchIteratorArguments arguments;
+    arguments.SetBatchSize(1);
+    arguments.SetLimit(2);
+    arguments.SetCollectionName(collection_name);
+    arguments.SetFilter("age >= 0");
+    arguments.SetConsistencyLevel(milvus::ConsistencyLevel::STRONG);
+    arguments.SetMetricType(milvus::MetricType::COSINE);
+    arguments.AddOutputField("pk");
+    std::vector<float> vector(milvus::T_DIMENSION, 1.0f);
+    auto status = arguments.AddFloat16Vector("f16_vector", vector);
+    EXPECT_TRUE(status.IsOk());
+
+    milvus::SearchIteratorPtr iterator;
+    status = client_->SearchIterator(arguments, iterator);
+    EXPECT_TRUE(status.IsOk());
+
+    milvus::SingleResult first_page;
+    status = iterator->Next(first_page);
+    EXPECT_TRUE(status.IsOk());
+    EXPECT_EQ(first_page.GetRowCount(), 1);
+
+    milvus::SingleResult second_page;
+    status = iterator->Next(second_page);
+    EXPECT_TRUE(status.IsOk());
+    EXPECT_EQ(second_page.GetRowCount(), 1);
+}
