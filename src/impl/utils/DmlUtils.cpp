@@ -269,7 +269,6 @@ EncodeSparseFloatVector(const SparseFloatVecFieldData::ElementT& sparse) {
 Status
 ParseSparseFloatVector(const nlohmann::json& obj, const std::string& field_name, std::map<uint32_t, float>& pairs) {
     if (!obj.is_object()) {
-        std::cout << obj << std::endl;
         std::string err_msg = "Value type should be a dict for field: " + field_name;
         return {StatusCode::INVALID_ARGUMENT, err_msg};
     }

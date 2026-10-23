@@ -473,7 +473,7 @@ SearchIteratorImpl<T>::filteredDuplicatedResultFilter() {
         if (args_.PkSchema().FieldDataType() == DataType::INT64) {
             filtered_ids_str << id;
         } else {
-            filtered_ids_str << "'" << id << "'";
+            filtered_ids_str << "'" << EscapeExprStringValue(id) << "'";
         }
     }
 

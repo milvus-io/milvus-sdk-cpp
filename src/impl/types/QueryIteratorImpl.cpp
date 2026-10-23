@@ -187,7 +187,7 @@ QueryIteratorImpl<T>::setupNextFilter() {
     std::string pk_name = args_.PkSchema().Name();
     std::string iter_filter;
     if (args_.PkSchema().FieldDataType() == DataType::VARCHAR) {
-        iter_filter = pk_name + " > " + "\"" + next_id_ + "\"";
+        iter_filter = pk_name + " > " + "\"" + EscapeExprStringValue(next_id_) + "\"";
     } else {
         iter_filter = pk_name + " > " + next_id_;
     }
