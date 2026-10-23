@@ -37,6 +37,44 @@ namespace milvus {
 class SearchResponse;
 class QueryResponse;
 
+/**
+ * @brief Escape a server-returned value for safe interpolation into a Milvus filter-expression
+ * string literal (single- or double-quoted). Milvus expression literals terminate on an unescaped
+ * quote/backslash and cannot contain raw line breaks, so values such as VARCHAR primary keys must
+ * be escaped before being embedded, otherwise a crafted value could inject expression clauses.
+ */
+inline std::string
+EscapeExprStringValue(const std::string& value) {
+    std::string escaped;
+    escaped.reserve(value.size());
+    for (const char c : value) {
+        switch (c) {
+            case '\\':
+                escaped += "\\\\";
+                break;
+            case '"':
+                escaped += "\\\"";
+                break;
+            case '\'':
+                escaped += "\\'";
+                break;
+            case '\r':
+                escaped += "\\r";
+                break;
+            case '\n':
+                escaped += "\\n";
+                break;
+            case '\t':
+                escaped += "\\t";
+                break;
+            default:
+                escaped += c;
+                break;
+        }
+    }
+    return escaped;
+}
+
 Status
 CreateMilvusFieldData(const proto::schema::FieldData& proto_data, size_t offset, size_t count,
                       FieldDataPtr& field_data);

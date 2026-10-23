@@ -131,6 +131,32 @@ TEST_F(DqlUtilsTest, FillResponseExtraInfoQueryResponseTest) {
     EXPECT_FLOAT_EQ(response.CacheHitRatio(), 0.75f);
 }
 
+TEST_F(DqlUtilsTest, EscapeExprStringValueTest) {
+    // benign values pass through unchanged
+    EXPECT_EQ(milvus::EscapeExprStringValue(""), "");
+    EXPECT_EQ(milvus::EscapeExprStringValue("hello"), "hello");
+    EXPECT_EQ(milvus::EscapeExprStringValue("hello world"), "hello world");
+
+    // quotes and backslashes are escaped so a crafted value cannot break out of
+    // a Milvus expression string literal (single- or double-quoted)
+    EXPECT_EQ(milvus::EscapeExprStringValue("a\"b"), "a\\\"b");
+    EXPECT_EQ(milvus::EscapeExprStringValue("a'b"), "a\\'b");
+    EXPECT_EQ(milvus::EscapeExprStringValue("a\\b"), "a\\\\b");
+    EXPECT_EQ(milvus::EscapeExprStringValue("a\\\"b"), "a\\\\\\\"b");
+
+    // control characters are escaped per the expression grammar
+    EXPECT_EQ(milvus::EscapeExprStringValue("a\tb"), "a\\tb");
+    EXPECT_EQ(milvus::EscapeExprStringValue("a\nb"), "a\\nb");
+    EXPECT_EQ(milvus::EscapeExprStringValue("a\rb"), "a\\rb");
+
+    // an injection payload is fully contained: no raw quote remains to close the
+    // literal early and no standalone `or 1==1` clause is formed
+    EXPECT_EQ(milvus::EscapeExprStringValue("x\" or 1==1 or \"a\"==\"a"),
+              "x\\\" or 1==1 or \\\"a\\\"==\\\"a");
+    EXPECT_EQ(milvus::EscapeExprStringValue("a' or '1'=='1"),
+              "a\\' or \\'1\\'==\\'1");
+}
+
 TEST_F(DqlUtilsTest, DeduceGuaranteeTimestampTest) {
     auto& cache = milvus::CollectionTsCache::GetInstance();
     cache.Clear();
