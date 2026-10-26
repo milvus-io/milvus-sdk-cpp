@@ -1,5 +1,19 @@
 # Changelog
 
+## milvus-sdk-cpp 3.0.4 (2026-10-26)
+### Feature
+- Support struct-level type parameters on StructFieldSchema
+- Add row-level security (RLS) APIs to MilvusClientV2
+- Add group-by fields support to QueryRequest
+- Add bulk import DTO request/response and Status-returning BulkImport overloads
+- Add IndexParam for index creation and deprecate IndexDesc-based request input
+- Add V2 alias/partition/index examples, hybrid search function chains, and ListCompactionTasks
+
+### Bug
+- Fix iterator paging expression injection by escaping VARCHAR primary-key and ID values
+- Stop printing raw sparse-vector data to stdout when parsing fails
+- Correct misspelled AddTransferFromGroup/AddTransferToGroup methods, keeping the old spellings as deprecated aliases
+
 ## milvus-sdk-cpp 3.0.3 (2026-09-16)
 ### Feature
 - Support client telemetry
