@@ -1,5 +1,14 @@
 # Changelog
 
+## milvus-sdk-cpp 2.6.8 (2026-10-26)
+### Feature
+- Support struct-level type parameters on StructFieldSchema
+
+### Bug
+- Fix iterator paging expression injection by escaping VARCHAR primary-key and ID values
+- Stop printing raw sparse-vector data to stdout when parsing fails
+- Correct misspelled AddTransferFromGroup/AddTransferToGroup methods, keeping the old spellings as deprecated aliases
+
 ## milvus-sdk-cpp 2.6.7 (2026-09-03)
 ### Feature
 - Support GetServerVersionV2() with build-time, git-commit, go-version, and deploy-mode detail
