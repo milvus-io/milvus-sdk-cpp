@@ -883,6 +883,24 @@ TEST_F(QueryIteratorRequestTest, SetReduceStopForBest) {
     EXPECT_EQ(&ref, &req);
 }
 
+TEST_F(QueryIteratorRequestTest, SetCursor) {
+    milvus::QueryIteratorRequest req;
+    EXPECT_EQ(req.Cursor(), nullptr);
+
+    milvus::QueryIteratorCursor cursor;
+    cursor.WithSessionTs(12345).WithIntPk(7).WithLastElementOffset(3);
+    req.SetCursor(cursor);
+    ASSERT_NE(req.Cursor(), nullptr);
+    EXPECT_EQ(req.Cursor()->SessionTs(), 12345);
+    EXPECT_EQ(req.Cursor()->IntPk(), 7);
+    EXPECT_EQ(req.Cursor()->LastElementOffset(), 3);
+
+    auto& ref = req.WithCursor(cursor);
+    EXPECT_EQ(&ref, &req);
+    ASSERT_NE(req.Cursor(), nullptr);
+    EXPECT_EQ(req.Cursor()->IntPk(), 7);
+}
+
 TEST_F(SearchRequestTest, ValidateRejectsInvalidRoundDecimal) {
     milvus::SearchRequest req;
     req.WithLimit(10).WithRoundDecimal(7);

@@ -264,12 +264,13 @@ TEST_F(MilvusMockedTest, QueryIteratorEscapesVarcharPkInPagingExpression) {
 
             // the first paging page uses the plain user filter; every later page must
             // keep the crafted pk inside the string literal: the quote after 'x' is
-            // escaped (`x\"`), so the raw `x" or` breakout never occurs
+            // escaped (`x\"`), so the raw `x" or` breakout never occurs; the pk cursor is
+            // the left operand of the AND, matching the Java/pymilvus/Rust/C# SDKs
             ++page_query_count;
             if (page_query_count == 1) {
                 EXPECT_EQ(request->expr(), "age >= 0");
             } else {
-                EXPECT_EQ(request->expr(), " ( age >= 0 )  and pk > \"x\\\" or 1==1 or \\\"a\\\"==\\\"a\"");
+                EXPECT_EQ(request->expr(), "pk > \"x\\\" or 1==1 or \\\"a\\\"==\\\"a\" and ( age >= 0 ) ");
                 EXPECT_NE(request->expr().find("x\\\" or"), std::string::npos);
                 EXPECT_EQ(request->expr().find("x\" or"), std::string::npos);
             }

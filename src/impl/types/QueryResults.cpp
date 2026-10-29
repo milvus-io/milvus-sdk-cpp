@@ -61,6 +61,16 @@ QueryResults::OutputFieldNames() const {
     return output_names_;
 }
 
+const std::vector<std::vector<int64_t>>&
+QueryResults::ElementIndices() const {
+    return element_indices_;
+}
+
+void
+QueryResults::SetElementIndices(std::vector<std::vector<int64_t>>&& element_indices) {
+    element_indices_ = std::move(element_indices);
+}
+
 Status
 QueryResults::OutputRows(EntityRows& rows) const {
     return GetRowsFromFieldsData(output_fields_, output_names_, rows);
@@ -90,6 +100,7 @@ void
 QueryResults::Clear() {
     output_fields_.clear();
     output_names_.clear();
+    element_indices_.clear();
 }
 
 }  // namespace milvus
