@@ -24,6 +24,19 @@
 #include "../utils/TimeUtils.h"
 
 namespace milvus {
+
+namespace {
+const QueryIteratorCursor*
+CursorFromRequest(const QueryIteratorArguments&) {
+    return nullptr;
+}
+
+const QueryIteratorCursor*
+CursorFromRequest(const QueryIteratorRequest& args) {
+    return args.Cursor();
+}
+}  // namespace
+
 template class MILVUS_SDK_API Iterator<QueryResults>;
 
 template <typename T>
@@ -64,7 +77,7 @@ QueryIteratorImpl<T>::Next(QueryResults& results) {
         // note that the is_seek flag is set to false, means the REDUCE_STOP_FOR_BEST flag could be true.
         // when REDUCE_STOP_FOR_BEST is true, the milvus server might so some optimize in reduce process
         // and returns results more than batch_size.
-        auto filter = setupNextFilter();
+        auto filter = setupNextFilter(false);
         QueryResults query_results;
         auto status = executeQuery(filter, args_.BatchSize(), false, query_results);
         if (!status.IsOk()) {
@@ -102,7 +115,9 @@ QueryIteratorImpl<T>::Next(QueryResults& results) {
             // not enough, continue to fetch
             results = temp_results;
         } else if (left_count > 0) {
-            // the last batch
+            // the last batch: only the first left_count rows are delivered, so the cursor must
+            // be advanced from the trimmed page, not the full batch, otherwise a cursor captured
+            // after this page resumes past the last actually-delivered row
             auto status = copyResults(temp_results, 0, left_count, results);
             if (!status.IsOk()) {
                 return status;
@@ -110,8 +125,43 @@ QueryIteratorImpl<T>::Next(QueryResults& results) {
         }
     }
 
-    updateCursor(temp_results);
-    returned_count_ += temp_results.GetRowCount();
+    // update the cursor from the delivered rows: when a finite Limit truncates the batch, the
+    // last delivered row (and its element offset) is what a resumed iterator must continue from
+    updateCursor(results);
+    returned_count_ += results.GetRowCount();
+    return Status::OK();
+}
+
+template <typename T>
+Status
+QueryIteratorImpl<T>::Cursor(QueryIteratorCursor& cursor) const {
+    cursor = QueryIteratorCursor();
+    auto status = cursor.SetSessionTs(session_ts_);
+    if (!status.IsOk()) {
+        return status;
+    }
+    if (next_id_.empty()) {
+        // no page has been delivered yet, so there is no primary-key position to resume from;
+        // reject the capture rather than emit a pk-less cursor that later fails with a
+        // misleading "cursor type does not match the primary key" error
+        return {StatusCode::INVALID_ARGUMENT,
+                "Query iterator cursor has no primary key; iterate at least one page first"};
+    }
+    if (args_.PkSchema().FieldDataType() == DataType::VARCHAR) {
+        status = cursor.SetStrPk(next_id_);
+    } else {
+        try {
+            status = cursor.SetIntPk(std::stoll(next_id_));
+        } catch (const std::exception& e) {
+            return {StatusCode::UNKNOWN_ERROR, "Unable to parse iterator primary key, error: " + std::string(e.what())};
+        }
+    }
+    if (!status.IsOk()) {
+        return status;
+    }
+    if (is_element_filter_ && next_element_offset_ >= 0) {
+        return cursor.SetLastElementOffset(next_element_offset_);
+    }
     return Status::OK();
 }
 
@@ -124,6 +174,42 @@ QueryIteratorImpl<T>::Init() {
 
     // reset args_.offset to 0 since the filter expression will be reset to the correct position
     args_.SetOffset(0);
+
+    // detect element_filter iteration: the server caps pages by element count, so exhaustion
+    // and resume must be judged by element position rather than entity count
+    is_element_filter_ = IsElementFilterExpr(args_.Filter());
+
+    const QueryIteratorCursor* cursor = CursorFromRequest(args_);
+    if (cursor != nullptr) {
+        // resume from a previously captured cursor: reuse its pk/element position, and skip the
+        // offset seek (the cursor already positions past the previously consumed rows).
+        if (args_.PkSchema().FieldDataType() == DataType::VARCHAR) {
+            if (!cursor->HasStrPk()) {
+                return {StatusCode::INVALID_ARGUMENT, "Query iterator cursor type does not match the primary key"};
+            }
+            next_id_ = cursor->StrPk();
+        } else {
+            if (!cursor->HasIntPk()) {
+                return {StatusCode::INVALID_ARGUMENT, "Query iterator cursor type does not match the primary key"};
+            }
+            next_id_ = std::to_string(cursor->IntPk());
+        }
+        if (cursor->HasLastElementOffset()) {
+            next_element_offset_ = cursor->LastElementOffset();
+        }
+        if (cursor->SessionTs() > 0) {
+            // pin the new iterator to the same MVCC snapshot and skip the server-side probe.
+            session_ts_ = cursor->SessionTs();
+            return Status::OK();
+        }
+        // no captured snapshot timestamp: run the probe to derive the guarantee timestamp.
+        QueryResults results;
+        auto status = executeQuery(args_.Filter(), 1, false, results);
+        if (!status.IsOk()) {
+            return status;
+        }
+        return Status::OK();
+    }
 
     // run query to setup the session ts
     QueryResults results;
@@ -152,7 +238,7 @@ QueryIteratorImpl<T>::seek() {
     auto offset = offset_;
     while (offset > 0) {
         auto batch_size = std::min(MAX_BATCH_SIZE, offset);
-        auto filter = setupNextFilter();
+        auto filter = setupNextFilter(true);
         QueryResults results;
         auto status = executeQuery(filter, batch_size, true, results);
         if (!status.IsOk()) {
@@ -164,7 +250,11 @@ QueryIteratorImpl<T>::seek() {
             return {status.Code(), "Iterator fails to seek, error: " + status.Message()};
         }
 
-        auto seeked_count = static_cast<int64_t>(results.GetRowCount());
+        // The server interprets the offset of an element-filter query in matched-element
+        // terms, so a seek page must be counted by elements (sum of element_indices lengths)
+        // rather than entity rows; otherwise multi-element entities are under-counted and the
+        // seek over-skips, silently dropping rows.
+        auto seeked_count = static_cast<int64_t>(is_element_filter_ ? elementCount(results) : results.GetRowCount());
         if (seeked_count == 0) {
             // seek offset has drained all matched results for query iterator, break
             break;
@@ -178,23 +268,37 @@ QueryIteratorImpl<T>::seek() {
 // two cases:
 //   user inputs expression, "(name != 'xxx') and pk > xx"
 //   user doesn't input expression, "pk > xx"
+// An element-filter cursor resumes at the cursor value from the recorded element offset
+// (`pk >= value`); ordinary iterators resume strictly after the value (`pk > value`).
+// The strict-exclusive form is used by the offset seek, where Milvus rejects the
+// query_iter_last_* element-resume params (they are only accepted when iterator=true).
 template <typename T>
 std::string
-QueryIteratorImpl<T>::setupNextFilter() {
+QueryIteratorImpl<T>::setupNextFilter(bool exclusive) {
     if (next_id_.empty()) {
         return args_.Filter();
     }
 
     std::string pk_name = args_.PkSchema().Name();
     std::string iter_filter;
+    const bool inclusive = !exclusive && hasElementCursor();
     if (args_.PkSchema().FieldDataType() == DataType::VARCHAR) {
-        iter_filter = pk_name + " > " + "\"" + EscapeExprStringValue(next_id_) + "\"";
+        iter_filter = pk_name + (inclusive ? " >= " : " > ") + "\"" + EscapeExprStringValue(next_id_) + "\"";
     } else {
-        iter_filter = pk_name + " > " + next_id_;
+        iter_filter = pk_name + (inclusive ? " >= " : " > ") + next_id_;
     }
 
     std::string user_filter = args_.Filter();
-    return user_filter.empty() ? iter_filter : " ( " + user_filter + " ) " + " and " + iter_filter;
+    if (user_filter.empty()) {
+        return iter_filter;
+    }
+    if (is_element_filter_) {
+        // Put the PK cursor on the LEFT of AND so that operators with strict position constraints
+        // (e.g. element_filter() on struct array, which must be the right-most operand of a logical
+        // AND) keep their position across paginated calls.
+        return iter_filter + " and ( " + user_filter + " ) ";
+    }
+    return " ( " + user_filter + " ) " + " and " + iter_filter;
 }
 
 template <typename T>
@@ -221,6 +325,12 @@ QueryIteratorImpl<T>::executeQuery(const std::string& filter, int64_t limit, boo
     } else {
         setParamFunc(ITERATOR_FIELD, "True");
         setParamFunc(REDUCE_STOP_FOR_BEST, args_.ReduceStopForBest() ? "True" : "False");
+        // resume an element-filter page at the element position within the last primary key.
+        // the server rejects these params when iterator=false (the offset seek path).
+        if (hasElementCursor()) {
+            setParamFunc(QUERY_ITER_LAST_PK, next_id_);
+            setParamFunc(QUERY_ITER_LAST_ELEMENT_OFFSET, std::to_string(next_element_offset_));
+        }
     }
 
     // reset the limit value since the iterator fetches data batch by batch
@@ -273,6 +383,7 @@ QueryIteratorImpl<T>::copyResults(const QueryResults& src, uint64_t from, uint64
     if ((from == 0 && to == src.GetRowCount()) || src.GetRowCount() == 0) {
         // from begin to end, or the src is empty, no need to copy, return the src
         target = QueryResults(src_fields, args_.OutputFields());
+        target.SetElementIndices(std::vector<std::vector<int64_t>>(src.ElementIndices()));
         return Status::OK();
     }
 
@@ -286,12 +397,29 @@ QueryIteratorImpl<T>::copyResults(const QueryResults& src, uint64_t from, uint64
         return status;
     }
 
+    std::vector<std::vector<int64_t>> result_indices;
+    const auto& src_indices = src.ElementIndices();
+    if (!src_indices.empty()) {
+        // guard against a mismatched element_indices count (e.g. a server returning fewer
+        // index lists than rows), mirroring Java's count-vs-row validation
+        auto idx_from = from < src_indices.size() ? from : src_indices.size();
+        auto idx_to = to < src_indices.size() ? to : src_indices.size();
+        if (idx_from < idx_to) {
+            result_indices.assign(src_indices.begin() + static_cast<int64_t>(idx_from),
+                                  src_indices.begin() + static_cast<int64_t>(idx_to));
+        }
+    }
+
     target = QueryResults(std::move(result_fields), args_.OutputFields());
+    target.SetElementIndices(std::move(result_indices));
     return Status::OK();
 }
 
 // This method update the next_id_ to the last rows of the query result.
 // the next_id_ will be used to update the filter expression for the next query.
+// For element-filter iterators the server caps pages by element count, so the last entity may
+// still have matched elements that were not yet returned; track the element position within the
+// last primary key so the resume re-enters the entity (`pk >= value` + query_iter_last_* params).
 template <typename T>
 Status
 QueryIteratorImpl<T>::updateCursor(const QueryResults& results) {
@@ -315,7 +443,34 @@ QueryIteratorImpl<T>::updateCursor(const QueryResults& results) {
         auto id = pkFieldData->Value(pkFieldData->Count() - 1);
         next_id_ = std::to_string(id);
     }
+
+    if (is_element_filter_) {
+        const auto& element_indices = results.ElementIndices();
+        if (!element_indices.empty()) {
+            const auto& last_indices = element_indices.back();
+            if (!last_indices.empty()) {
+                next_element_offset_ = last_indices.back();
+            }
+        }
+    }
     return Status::OK();
+}
+
+template <typename T>
+bool
+QueryIteratorImpl<T>::hasElementCursor() const {
+    return is_element_filter_ && next_element_offset_ >= 0;
+}
+
+template <typename T>
+uint64_t
+QueryIteratorImpl<T>::elementCount(const QueryResults& results) const {
+    uint64_t count = 0;
+    for (const auto& indices : results.ElementIndices()) {
+        count += indices.size();
+    }
+    // element-level pages always carry element_indices; fall back to entity rows defensively
+    return count > 0 ? count : results.GetRowCount();
 }
 
 // explicitly instantiation of template methods to avoid link error

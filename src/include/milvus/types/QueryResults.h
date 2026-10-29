@@ -16,6 +16,7 @@
 
 #pragma once
 
+#include <cstdint>
 #include <set>
 #include <string>
 #include <vector>
@@ -108,6 +109,23 @@ class MILVUS_SDK_API QueryResults {
     GetRowCount() const;
 
     /**
+     * @brief Get the per-row element indices.
+     *
+     * Each inner list holds the element offsets within an entity that matched an
+     * element_filter query; ordinary queries leave this empty.
+     * @return the element indices, one list per entity row.
+     */
+    const std::vector<std::vector<int64_t>>&
+    ElementIndices() const;
+
+    /**
+     * @brief Set the per-row element indices.
+     * @param [in] element_indices the element indices, one list per entity row.
+     */
+    void
+    SetElementIndices(std::vector<std::vector<int64_t>>&& element_indices);
+
+    /**
      * @brief Clear the result data.
      */
     void
@@ -116,6 +134,7 @@ class MILVUS_SDK_API QueryResults {
  private:
     std::vector<FieldDataPtr> output_fields_;
     std::set<std::string> output_names_;  // output_fields list specified by query()
+    std::vector<std::vector<int64_t>> element_indices_;
 };
 
 }  // namespace milvus

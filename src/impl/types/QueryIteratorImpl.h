@@ -16,6 +16,7 @@
 
 #pragma once
 
+#include <cstdint>
 #include <string>
 
 #include "../MilvusConnection.h"
@@ -37,6 +38,9 @@ class QueryIteratorImpl : public QueryIterator {
     Next(QueryResults& results) final;
 
     Status
+    Cursor(QueryIteratorCursor& cursor) const final;
+
+    Status
     Init();
 
  private:
@@ -44,7 +48,7 @@ class QueryIteratorImpl : public QueryIterator {
     seek();
 
     std::string
-    setupNextFilter();
+    setupNextFilter(bool exclusive);
 
     Status
     executeQuery(const std::string& filter, int64_t limit, bool is_seek, QueryResults& results);
@@ -54,6 +58,12 @@ class QueryIteratorImpl : public QueryIterator {
 
     Status
     updateCursor(const QueryResults& results);
+
+    uint64_t
+    elementCount(const QueryResults& results) const;
+
+    bool
+    hasElementCursor() const;
 
  private:
     MilvusConnectionPtr connection_;
@@ -66,6 +76,8 @@ class QueryIteratorImpl : public QueryIterator {
 
     uint64_t session_ts_{0};
     std::string next_id_;
+    int64_t next_element_offset_{-1};
+    bool is_element_filter_{false};
     uint64_t returned_count_{0};
 
     QueryResults cache_;

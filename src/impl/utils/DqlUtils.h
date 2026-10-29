@@ -82,6 +82,20 @@ CreateMilvusFieldData(const proto::schema::FieldData& proto_data, size_t offset,
 Status
 CreateMilvusFieldData(const proto::schema::FieldData& proto_data, FieldDataPtr& field_data);
 
+/**
+ * @brief Detect whether a query expression invokes the Milvus `element_filter()` function.
+ *
+ * Element-filter queries are served with pages capped by element count and resume via the
+ * `query_iter_last_pk` / `query_iter_last_element_offset` params, so the query iterator must
+ * know in advance whether an expression is element-level. The detector matches the
+ * `element_filter` identifier (case-insensitive, optional whitespace before `(`) while rejecting
+ * longer identifiers such as `element_filtered_value` or `myelement_filter(`. String-literal
+ * contents are not parsed, so `field == "element_filter(x)"` is conservatively reported as
+ * element-level; this is harmless because non-element queries return no element_indices.
+ */
+bool
+IsElementFilterExpr(const std::string& expr);
+
 Status
 ConvertStructFieldData(const proto::schema::FieldData& proto_data, size_t offset, size_t count,
                        FieldDataPtr& field_data);
