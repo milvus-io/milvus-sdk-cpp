@@ -16,6 +16,7 @@
 
 #include <gtest/gtest.h>
 
+#include "milvus/types/Iterator.h"
 #include "milvus/types/QueryResults.h"
 
 class QueryResultsTest : public ::testing::Test {};
@@ -79,4 +80,55 @@ TEST_F(QueryResultsTest, Clear) {
 
     results.Clear();
     EXPECT_EQ(results.OutputFields().size(), 0);
+}
+
+TEST_F(QueryResultsTest, ElementIndices) {
+    std::vector<milvus::FieldDataPtr> fields;
+    std::set<std::string> output_names;
+    milvus::QueryResults results(std::move(fields), output_names);
+    EXPECT_TRUE(results.ElementIndices().empty());
+
+    std::vector<std::vector<int64_t>> element_indices{{2, 5}, {9}};
+    results.SetElementIndices(std::move(element_indices));
+    ASSERT_EQ(results.ElementIndices().size(), 2);
+    EXPECT_EQ(results.ElementIndices()[0], (std::vector<int64_t>{2, 5}));
+    EXPECT_EQ(results.ElementIndices()[1], (std::vector<int64_t>{9}));
+
+    results.Clear();
+    EXPECT_TRUE(results.ElementIndices().empty());
+}
+
+TEST_F(QueryResultsTest, QueryIteratorCursor) {
+    milvus::QueryIteratorCursor cursor;
+    EXPECT_FALSE(cursor.HasIntPk());
+    EXPECT_FALSE(cursor.HasStrPk());
+    EXPECT_FALSE(cursor.HasLastElementOffset());
+
+    EXPECT_TRUE(cursor.SetSessionTs(12345).IsOk());
+    EXPECT_EQ(cursor.SessionTs(), 12345);
+    cursor.WithSessionTs(54321);
+    EXPECT_EQ(cursor.SessionTs(), 54321);
+
+    EXPECT_TRUE(cursor.SetIntPk(99).IsOk());
+    EXPECT_TRUE(cursor.HasIntPk());
+    EXPECT_FALSE(cursor.HasStrPk());
+    EXPECT_EQ(cursor.IntPk(), 99);
+
+    EXPECT_TRUE(cursor.SetStrPk("row-7").IsOk());
+    EXPECT_TRUE(cursor.HasStrPk());
+    EXPECT_FALSE(cursor.HasIntPk());
+    EXPECT_EQ(cursor.StrPk(), "row-7");
+    cursor.WithStrPk("row-8");
+    EXPECT_EQ(cursor.StrPk(), "row-8");
+
+    EXPECT_TRUE(cursor.SetLastElementOffset(3).IsOk());
+    EXPECT_TRUE(cursor.HasLastElementOffset());
+    EXPECT_EQ(cursor.LastElementOffset(), 3);
+    cursor.WithLastElementOffset(4);
+    EXPECT_EQ(cursor.LastElementOffset(), 4);
+
+    auto negative = cursor.SetLastElementOffset(-1);
+    EXPECT_FALSE(negative.IsOk());
+    EXPECT_EQ(negative.Code(), milvus::StatusCode::INVALID_ARGUMENT);
+    EXPECT_TRUE(cursor.HasLastElementOffset());
 }

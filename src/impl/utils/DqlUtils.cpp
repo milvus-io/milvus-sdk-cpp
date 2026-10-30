@@ -17,6 +17,7 @@
 #include "DqlUtils.h"
 
 #include <algorithm>
+#include <cctype>
 #include <set>
 #include <string>
 #include <type_traits>
@@ -32,6 +33,54 @@
 #include "milvus/utils/FP16.h"
 
 namespace milvus {
+
+bool
+IsElementFilterExpr(const std::string& expr) {
+    // Milvus's parser skips whitespace between tokens, so both `element_filter(...)` and
+    // `element_filter (...)` are valid calls. Match the function token loosely (optional
+    // whitespace before `(`). The token must be a standalone identifier: a preceding
+    // identifier character (e.g. `myelement_filter(`) or a following identifier character
+    // (e.g. `element_filtered(`) is rejected. String-literal contents are not inspected, so
+    // `field == "element_filter(x)"` is conservatively classified as an element-filter expr;
+    // this is harmless because the server only returns element_indices for genuine
+    // element-level queries, so no resume params are sent for non-element-filter iterations.
+    if (expr.empty()) {
+        return false;
+    }
+    auto is_ident_char = [](char c) {
+        return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9') || c == '_';
+    };
+    std::string lower = expr;
+    std::transform(lower.begin(), lower.end(), lower.begin(),
+                   [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
+    const std::string needle = "element_filter";
+    auto search_from = lower.begin();
+    while (true) {
+        auto found = std::search(search_from, lower.end(), needle.begin(), needle.end());
+        if (found == lower.end()) {
+            return false;
+        }
+        auto after = found + needle.size();
+        if (after != lower.end() && is_ident_char(*after)) {
+            // `element_filtered_value` etc. are not the element_filter function
+            search_from = after;
+            continue;
+        }
+        if (found != lower.begin() && is_ident_char(*(found - 1))) {
+            // `myelement_filter(...)` etc. are not the element_filter function
+            search_from = after;
+            continue;
+        }
+        auto probe = after;
+        while (probe != lower.end() && (*probe == ' ' || *probe == '\t')) {
+            ++probe;
+        }
+        if (probe != lower.end() && *probe == '(') {
+            return true;
+        }
+        search_from = after;
+    }
+}
 
 Status
 ValidateFunctionChains(const std::vector<FunctionChain>& function_chains) {
@@ -1675,6 +1724,27 @@ ConvertQueryResults(const proto::milvus::QueryResults& rpc_results, QueryResults
     }
 
     results = QueryResults(std::move(return_fields), output_names);
+
+    std::vector<std::vector<int64_t>> element_indices;
+    element_indices.reserve(rpc_results.element_indices_size());
+    for (const auto& rpc_element_indices : rpc_results.element_indices()) {
+        std::vector<int64_t> indices;
+        indices.reserve(rpc_element_indices.indices().data_size());
+        for (auto index : rpc_element_indices.indices().data()) {
+            indices.emplace_back(index);
+        }
+        element_indices.emplace_back(std::move(indices));
+    }
+    if (!element_indices.empty()) {
+        // element-level responses must carry one index list per entity row; a mismatch would
+        // silently misalign cursor tracking (the last row's element offset), so reject it
+        if (element_indices.size() != results.GetRowCount()) {
+            return {StatusCode::UNKNOWN_ERROR, "element_indices count (" + std::to_string(element_indices.size()) +
+                                                   ") does not match the row count (" +
+                                                   std::to_string(results.GetRowCount()) + ")"};
+        }
+        results.SetElementIndices(std::move(element_indices));
+    }
     return Status::OK();
 }
 

@@ -16,6 +16,7 @@
 
 #pragma once
 
+#include "../../types/Iterator.h"
 #include "../../types/IteratorArguments.h"
 #include "./QueryRequest.h"
 #include "milvus/Export.h"
@@ -77,8 +78,30 @@ class MILVUS_SDK_API QueryIteratorRequest : public IteratorArguments, public Que
     QueryIteratorRequest&
     WithReduceStopForBest(bool reduce_stop_for_best);
 
+    /**
+     * @brief Get a previously captured cursor used to resume pagination from its position.
+     * @return the cursor, or nullptr when none was set.
+     */
+    const QueryIteratorCursor*
+    Cursor() const;
+
+    /**
+     * @brief Set a previously captured cursor to resume pagination from its position.
+     * @param [in] cursor the cursor.
+     */
+    void
+    SetCursor(const QueryIteratorCursor& cursor);
+
+    /**
+     * @brief Set a previously captured cursor to resume pagination from its position.
+     * @param [in] cursor the cursor.
+     */
+    QueryIteratorRequest&
+    WithCursor(const QueryIteratorCursor& cursor);
+
  private:
     bool reduce_stop_for_best_{true};
+    std::shared_ptr<QueryIteratorCursor> cursor_;
 };
 
 }  // namespace milvus

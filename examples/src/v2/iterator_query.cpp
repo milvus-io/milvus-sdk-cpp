@@ -21,6 +21,66 @@
 #include "ExampleUtils.h"
 #include "milvus/MilvusClientV2.h"
 
+// iterate rows whose user_tags array contains a "news" element with element_filter.
+// the server caps element-filter pages by element count, and each page carries the
+// matched element positions (element_indices) alongside the entity rows.
+void
+iterateElementFilter(milvus::MilvusClientV2Ptr& client, const std::string& collection_name, const std::string& field_id,
+                     const std::string& field_tags) {
+    std::cout << "=====================================================" << std::endl;
+    std::cout << "Iterate element_filter(user_tags, tag == \"news\")" << std::endl;
+    milvus::QueryIteratorRequest request;
+    request.SetCollectionName(collection_name);
+    request.SetBatchSize(100);
+    request.SetFilter("element_filter(user_tags, tag == \"news\")");
+    request.AddOutputField(field_id);
+    request.AddOutputField(field_tags);
+
+    milvus::QueryIteratorPtr iterator;
+    auto status = client->QueryIterator(request, iterator);
+    util::CheckStatus("get element-filter query iterator", status);
+
+    int pages = 0;
+    uint64_t total_entities = 0;
+    while (true) {
+        milvus::QueryResults batch_results;
+        status = iterator->Next(batch_results);
+        util::CheckStatus("iterator next batch", status);
+        auto batch_count = batch_results.GetRowCount();
+        if (batch_count == 0) {
+            std::cout << "element-filter iteration finished" << std::endl;
+            break;
+        }
+        pages++;
+        total_entities += batch_count;
+
+        milvus::EntityRows rows;
+        status = batch_results.OutputRows(rows);
+        util::CheckStatus("get output rows", status);
+        std::cout << "No." << std::to_string(pages) << " page " << std::to_string(rows.size()) << " entities, "
+                  << "matched elements: ";
+        const auto& element_indices = batch_results.ElementIndices();
+        for (auto i = 0; i < rows.size(); ++i) {
+            auto tags = rows[i][field_tags];
+            auto id = rows[i][field_id].get<int64_t>();
+            std::cout << "[id=" << id << " tags=" << tags.dump() << " element_indices=[";
+            if (i < element_indices.size()) {
+                for (size_t k = 0; k < element_indices[i].size(); ++k) {
+                    if (k > 0) {
+                        std::cout << ", ";
+                    }
+                    std::cout << element_indices[i][k];
+                }
+            }
+            std::cout << "]] ";
+        }
+        std::cout << std::endl;
+    }
+
+    std::cout << "Total fetched entities: " << std::to_string(total_entities) << std::endl;
+    std::cout << "=====================================================" << std::endl;
+}
+
 int
 main(int argc, char* argv[]) {
     printf("Example start...\n");
@@ -36,6 +96,7 @@ main(int argc, char* argv[]) {
     const std::string field_name = "user_name";
     const std::string field_age = "user_age";
     const std::string field_face = "user_face";
+    const std::string field_tags = "user_tags";
     const uint32_t dimension = 128;
 
     // collection schema, drop and create collection
@@ -44,6 +105,10 @@ main(int argc, char* argv[]) {
     collection_schema->AddField({field_id, milvus::DataType::INT64, "user id", true, false});
     collection_schema->AddField(milvus::FieldSchema(field_name, milvus::DataType::VARCHAR).WithMaxLength(100));
     collection_schema->AddField({field_age, milvus::DataType::INT8});
+    collection_schema->AddField(milvus::FieldSchema(field_tags, milvus::DataType::ARRAY, "user tags")
+                                    .WithElementType(milvus::DataType::VARCHAR)
+                                    .WithMaxCapacity(10)
+                                    .WithMaxLength(100));
     collection_schema->AddField(
         milvus::FieldSchema(field_face, milvus::DataType::FLOAT_VECTOR).WithDimension(dimension));
 
@@ -73,6 +138,16 @@ main(int argc, char* argv[]) {
             row[field_id] = id;
             row[field_name] = "my name is " + std::to_string(id);
             row[field_age] = k % 100;
+            // some rows carry a "news" tag (some even twice) so the element_filter
+            // demo below has matching elements to iterate over
+            std::vector<std::string> tags{"sports"};
+            if (k % 3 == 0) {
+                tags.emplace_back("news");
+            }
+            if (k % 7 == 0) {
+                tags.emplace_back("news");
+            }
+            row[field_tags] = tags;
             row[field_face] = util::GenerateFloatVector(dimension);
             row["a"] = id;                            // dynamic field "a"
             row["b"] = "b is " + std::to_string(id);  // dynamic field "b"
@@ -175,6 +250,47 @@ main(int argc, char* argv[]) {
     iterationFunc(1000, 15000, 2500, field_age + " > 30");
     // batch 1000, offset 15000, limit 100000, filter "user_age in [30, 40, 50]"
     iterationFunc(1000, 0, 100000, field_age + " in [30, 40, 50]");
+
+    // capture a cursor after the first page and resume a brand-new iterator from it
+    {
+        milvus::QueryIteratorRequest request;
+        request.SetCollectionName(collection_name);
+        request.SetBatchSize(100);
+        request.SetLimit(50);
+        request.AddOutputField(field_name);
+
+        milvus::QueryIteratorPtr iterator;
+        auto status = client->QueryIterator(request, iterator);
+        util::CheckStatus("get query iterator", status);
+
+        milvus::QueryResults first_page;
+        status = iterator->Next(first_page);
+        util::CheckStatus("iterator next batch", status);
+        std::cout << "First page fetched " << std::to_string(first_page.GetRowCount()) << " rows." << std::endl;
+
+        milvus::QueryIteratorCursor cursor;
+        status = iterator->Cursor(cursor);
+        util::CheckStatus("capture query iterator cursor", status);
+
+        milvus::QueryIteratorRequest resume_request;
+        resume_request.SetCollectionName(collection_name);
+        resume_request.SetBatchSize(100);
+        resume_request.SetLimit(50);
+        resume_request.AddOutputField(field_name);
+        resume_request.SetCursor(cursor);
+
+        milvus::QueryIteratorPtr resumed;
+        status = client->QueryIterator(resume_request, resumed);
+        util::CheckStatus("resume query iterator from cursor", status);
+
+        milvus::QueryResults resumed_page;
+        status = resumed->Next(resumed_page);
+        util::CheckStatus("resumed iterator next batch", status);
+        std::cout << "Resumed iterator fetched " << std::to_string(resumed_page.GetRowCount()) << " rows." << std::endl;
+    }
+
+    // iterate rows whose user_tags array contains a "news" element with element_filter
+    iterateElementFilter(client, collection_name, field_id, field_tags);
 
     client->Disconnect();
     return 0;

@@ -38,4 +38,20 @@ QueryIteratorRequest::WithReduceStopForBest(bool reduce_stop_for_best) {
     return *this;
 }
 
+const QueryIteratorCursor*
+QueryIteratorRequest::Cursor() const {
+    return cursor_.get();
+}
+
+void
+QueryIteratorRequest::SetCursor(const QueryIteratorCursor& cursor) {
+    cursor_ = std::make_shared<QueryIteratorCursor>(cursor);
+}
+
+QueryIteratorRequest&
+QueryIteratorRequest::WithCursor(const QueryIteratorCursor& cursor) {
+    SetCursor(cursor);
+    return *this;
+}
+
 }  // namespace milvus
