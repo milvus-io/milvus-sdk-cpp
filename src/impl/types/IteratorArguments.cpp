@@ -17,8 +17,107 @@
 #include "milvus/types/IteratorArguments.h"
 
 #include "../utils/Constants.h"
+#include "milvus/types/Iterator.h"
 
 namespace milvus {
+
+/////////////////////////////////////////////////////////////////////////////////////
+// QueryIteratorCursor
+QueryIteratorCursor::QueryIteratorCursor() = default;
+
+uint64_t
+QueryIteratorCursor::SessionTs() const {
+    return session_ts_;
+}
+
+Status
+QueryIteratorCursor::SetSessionTs(uint64_t session_ts) {
+    session_ts_ = session_ts;
+    return Status::OK();
+}
+
+QueryIteratorCursor&
+QueryIteratorCursor::WithSessionTs(uint64_t session_ts) {
+    session_ts_ = session_ts;
+    return *this;
+}
+
+bool
+QueryIteratorCursor::HasIntPk() const {
+    return has_int_pk_;
+}
+
+int64_t
+QueryIteratorCursor::IntPk() const {
+    return int_pk_;
+}
+
+Status
+QueryIteratorCursor::SetIntPk(int64_t pk) {
+    int_pk_ = pk;
+    has_int_pk_ = true;
+    has_str_pk_ = false;
+    str_pk_.clear();
+    return Status::OK();
+}
+
+QueryIteratorCursor&
+QueryIteratorCursor::WithIntPk(int64_t pk) {
+    SetIntPk(pk);
+    return *this;
+}
+
+bool
+QueryIteratorCursor::HasStrPk() const {
+    return has_str_pk_;
+}
+
+const std::string&
+QueryIteratorCursor::StrPk() const {
+    return str_pk_;
+}
+
+Status
+QueryIteratorCursor::SetStrPk(const std::string& pk) {
+    str_pk_ = pk;
+    has_str_pk_ = true;
+    has_int_pk_ = false;
+    int_pk_ = 0;
+    return Status::OK();
+}
+
+QueryIteratorCursor&
+QueryIteratorCursor::WithStrPk(const std::string& pk) {
+    SetStrPk(pk);
+    return *this;
+}
+
+bool
+QueryIteratorCursor::HasLastElementOffset() const {
+    return has_last_element_offset_;
+}
+
+int64_t
+QueryIteratorCursor::LastElementOffset() const {
+    return last_element_offset_;
+}
+
+Status
+QueryIteratorCursor::SetLastElementOffset(int64_t offset) {
+    if (offset < 0) {
+        return {StatusCode::INVALID_ARGUMENT, "last element offset must not be negative"};
+    }
+    last_element_offset_ = offset;
+    has_last_element_offset_ = true;
+    return Status::OK();
+}
+
+QueryIteratorCursor&
+QueryIteratorCursor::WithLastElementOffset(int64_t offset) {
+    SetLastElementOffset(offset);
+    return *this;
+}
+
 int64_t
 IteratorArguments::BatchSize() const {
     return batch_size_;

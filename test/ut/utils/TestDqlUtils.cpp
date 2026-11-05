@@ -151,10 +151,8 @@ TEST_F(DqlUtilsTest, EscapeExprStringValueTest) {
 
     // an injection payload is fully contained: no raw quote remains to close the
     // literal early and no standalone `or 1==1` clause is formed
-    EXPECT_EQ(milvus::EscapeExprStringValue("x\" or 1==1 or \"a\"==\"a"),
-              "x\\\" or 1==1 or \\\"a\\\"==\\\"a");
-    EXPECT_EQ(milvus::EscapeExprStringValue("a' or '1'=='1"),
-              "a\\' or \\'1\\'==\\'1");
+    EXPECT_EQ(milvus::EscapeExprStringValue("x\" or 1==1 or \"a\"==\"a"), "x\\\" or 1==1 or \\\"a\\\"==\\\"a");
+    EXPECT_EQ(milvus::EscapeExprStringValue("a' or '1'=='1"), "a\\' or \\'1\\'==\\'1");
 }
 
 TEST_F(DqlUtilsTest, DeduceGuaranteeTimestampTest) {
@@ -1067,8 +1065,24 @@ TEST_F(DqlUtilsTest, ConvertSearchOrderByFieldWithJsonPathColon) {
     EXPECT_EQ(order_by->value(), "metadata[\"a:b\"]:asc");
 }
 
+TEST_F(DqlUtilsTest, IsElementFilterExpr) {
+    // genuine element_filter calls, with case and whitespace variants
+    EXPECT_TRUE(milvus::IsElementFilterExpr("element_filter(tags, tag == \"x\")"));
+    EXPECT_TRUE(milvus::IsElementFilterExpr("Element_Filter( tags, tag == \"x\" )"));
+    EXPECT_TRUE(milvus::IsElementFilterExpr("a > 1 and element_filter(tags, tag == \"x\")"));
+    // any whitespace (including newlines) may separate the token from '(' -- Milvus's parser
+    // treats all whitespace as token separators
+    EXPECT_TRUE(milvus::IsElementFilterExpr("element_filter(\n  tags,\n  tag == \"x\"\n)"));
+    EXPECT_FALSE(milvus::IsElementFilterExpr(""));
+    EXPECT_FALSE(milvus::IsElementFilterExpr("a > 1 and b < 2"));
+    // longer identifiers are not the element_filter function
+    EXPECT_FALSE(milvus::IsElementFilterExpr("element_filtered_value > 0"));
+    EXPECT_FALSE(milvus::IsElementFilterExpr("myelement_filter(a, b)"));
+    // string-literal contents are conservatively reported as element-level (documented behavior)
+    EXPECT_TRUE(milvus::IsElementFilterExpr("name == \"element_filter(x)\""));
+}
+
 TEST_F(DqlUtilsTest, ConvertQueryIteratorRequest) {
-    // test ConvertQueryRequest<QueryIteratorRequest> template instantiation
     milvus::QueryIteratorRequest req;
     req.WithCollectionName("test_coll");
     req.WithFilter("id >= 0");
@@ -1083,6 +1097,150 @@ TEST_F(DqlUtilsTest, ConvertQueryIteratorRequest) {
     auto order_by = std::find_if(rpc_request.query_params().begin(), rpc_request.query_params().end(),
                                  [](const auto& pair) { return pair.key() == milvus::ORDER_BY_FIELDS; });
     EXPECT_EQ(order_by, rpc_request.query_params().end());
+}
+
+TEST_F(DqlUtilsTest, ConvertQueryResultsElementIndices) {
+    milvus::proto::milvus::QueryResults rpc_results;
+    auto* field = rpc_results.add_fields_data();
+    field->set_field_name("id");
+    field->set_type(milvus::proto::schema::DataType::Int64);
+    field->mutable_scalars()->mutable_long_data()->add_data(1);
+    field->mutable_scalars()->mutable_long_data()->add_data(2);
+    rpc_results.add_output_fields("id");
+
+    auto* indices_0 = rpc_results.add_element_indices();
+    indices_0->mutable_indices()->add_data(2);
+    indices_0->mutable_indices()->add_data(5);
+    auto* indices_1 = rpc_results.add_element_indices();
+    indices_1->mutable_indices()->add_data(9);
+
+    milvus::QueryResults results;
+    auto status = milvus::ConvertQueryResults(rpc_results, results);
+    EXPECT_TRUE(status.IsOk());
+    EXPECT_EQ(results.GetRowCount(), 2);
+    ASSERT_EQ(results.ElementIndices().size(), 2);
+    EXPECT_EQ(results.ElementIndices()[0], (std::vector<int64_t>{2, 5}));
+    EXPECT_EQ(results.ElementIndices()[1], (std::vector<int64_t>{9}));
+}
+
+TEST_F(DqlUtilsTest, ConvertQueryResultsNoElementIndices) {
+    milvus::proto::milvus::QueryResults rpc_results;
+    auto* field = rpc_results.add_fields_data();
+    field->set_field_name("id");
+    field->set_type(milvus::proto::schema::DataType::Int64);
+    field->mutable_scalars()->mutable_long_data()->add_data(1);
+    rpc_results.add_output_fields("id");
+
+    milvus::QueryResults results;
+    auto status = milvus::ConvertQueryResults(rpc_results, results);
+    EXPECT_TRUE(status.IsOk());
+    EXPECT_EQ(results.GetRowCount(), 1);
+    EXPECT_TRUE(results.ElementIndices().empty());
+}
+
+TEST_F(DqlUtilsTest, ExpandElementRowsExpandsEntitiesToElements) {
+    milvus::proto::milvus::QueryResults rpc_results;
+    auto* id_field = rpc_results.add_fields_data();
+    id_field->set_field_name("id");
+    id_field->set_type(milvus::proto::schema::DataType::Int64);
+    id_field->mutable_scalars()->mutable_long_data()->add_data(1);
+    id_field->mutable_scalars()->mutable_long_data()->add_data(2);
+    rpc_results.add_output_fields("id");
+
+    auto* name_field = rpc_results.add_fields_data();
+    name_field->set_field_name("name");
+    name_field->set_type(milvus::proto::schema::DataType::VarChar);
+    name_field->mutable_scalars()->mutable_string_data()->add_data("a");
+    name_field->mutable_scalars()->mutable_string_data()->add_data("b");
+    rpc_results.add_output_fields("name");
+
+    auto* indices_0 = rpc_results.add_element_indices();
+    indices_0->mutable_indices()->add_data(2);
+    indices_0->mutable_indices()->add_data(5);
+    auto* indices_1 = rpc_results.add_element_indices();
+    indices_1->mutable_indices()->add_data(9);
+
+    milvus::QueryResults src;
+    auto status = milvus::ConvertQueryResults(rpc_results, src);
+    EXPECT_TRUE(status.IsOk());
+    EXPECT_EQ(src.GetRowCount(), 2);
+
+    milvus::QueryResults expanded;
+    status = milvus::ExpandElementRows(src, "offset", expanded);
+    EXPECT_TRUE(status.IsOk());
+    // three matched elements -> one expanded row per element
+    EXPECT_EQ(expanded.GetRowCount(), 3);
+
+    auto offset_field = expanded.OutputField<milvus::Int64FieldData>("offset");
+    ASSERT_NE(offset_field, nullptr);
+    EXPECT_EQ(offset_field->Value(0), 2);
+    EXPECT_EQ(offset_field->Value(1), 5);
+    EXPECT_EQ(offset_field->Value(2), 9);
+
+    auto expanded_id = expanded.OutputField<milvus::Int64FieldData>("id");
+    ASSERT_NE(expanded_id, nullptr);
+    EXPECT_EQ(expanded_id->Value(0), 1);
+    EXPECT_EQ(expanded_id->Value(1), 1);
+    EXPECT_EQ(expanded_id->Value(2), 2);
+
+    auto expanded_name = expanded.OutputField<milvus::VarCharFieldData>("name");
+    ASSERT_NE(expanded_name, nullptr);
+    EXPECT_EQ(expanded_name->Value(0), "a");
+    EXPECT_EQ(expanded_name->Value(1), "a");
+    EXPECT_EQ(expanded_name->Value(2), "b");
+
+    milvus::EntityRows rows;
+    status = expanded.OutputRows(rows);
+    ASSERT_TRUE(status.IsOk());
+    ASSERT_EQ(rows.size(), 3);
+    EXPECT_EQ(rows[0]["offset"].get<int64_t>(), 2);
+    EXPECT_EQ(rows[0]["id"].get<int64_t>(), 1);
+    EXPECT_EQ(rows[2]["offset"].get<int64_t>(), 9);
+    EXPECT_EQ(rows[2]["id"].get<int64_t>(), 2);
+
+    // the expanded view's name set includes the appended offset column, so OutputFieldNames()
+    // and OutputRows() agree on the delivered columns
+    EXPECT_NE(expanded.OutputFieldNames().find("offset"), expanded.OutputFieldNames().end());
+}
+
+TEST_F(DqlUtilsTest, ExpandElementRowsPassesThroughWithoutIndices) {
+    milvus::proto::milvus::QueryResults rpc_results;
+    auto* field = rpc_results.add_fields_data();
+    field->set_field_name("id");
+    field->set_type(milvus::proto::schema::DataType::Int64);
+    field->mutable_scalars()->mutable_long_data()->add_data(1);
+    rpc_results.add_output_fields("id");
+
+    milvus::QueryResults src;
+    auto status = milvus::ConvertQueryResults(rpc_results, src);
+    EXPECT_TRUE(status.IsOk());
+
+    milvus::QueryResults expanded;
+    status = milvus::ExpandElementRows(src, "offset", expanded);
+    EXPECT_TRUE(status.IsOk());
+    EXPECT_EQ(expanded.GetRowCount(), 1);
+    EXPECT_TRUE(expanded.OutputField<milvus::Int64FieldData>("offset") == nullptr);
+}
+
+TEST_F(DqlUtilsTest, ConvertQueryResultsRejectsMismatchedElementIndices) {
+    milvus::proto::milvus::QueryResults rpc_results;
+    auto* field = rpc_results.add_fields_data();
+    field->set_field_name("id");
+    field->set_type(milvus::proto::schema::DataType::Int64);
+    field->mutable_scalars()->mutable_long_data()->add_data(1);
+    field->mutable_scalars()->mutable_long_data()->add_data(2);
+    rpc_results.add_output_fields("id");
+
+    // only one index list for two rows: the conversion must reject the mismatch so cursor
+    // tracking cannot silently misalign
+    auto* indices_0 = rpc_results.add_element_indices();
+    indices_0->mutable_indices()->add_data(5);
+
+    milvus::QueryResults results;
+    auto status = milvus::ConvertQueryResults(rpc_results, results);
+    EXPECT_FALSE(status.IsOk());
+    EXPECT_EQ(status.Code(), milvus::StatusCode::UNKNOWN_ERROR);
+    EXPECT_NE(status.Message().find("element_indices count"), std::string::npos);
 }
 
 TEST_F(DqlUtilsTest, ConvertSearchIteratorRequest) {

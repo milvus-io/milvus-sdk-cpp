@@ -82,6 +82,39 @@ CreateMilvusFieldData(const proto::schema::FieldData& proto_data, size_t offset,
 Status
 CreateMilvusFieldData(const proto::schema::FieldData& proto_data, FieldDataPtr& field_data);
 
+/**
+ * @brief Detect whether a query expression invokes the Milvus `element_filter()` function.
+ *
+ * Element-filter queries are served with pages capped by element count and resume via the
+ * `query_iter_last_pk` / `query_iter_last_element_offset` params, so the query iterator must
+ * know in advance whether an expression is element-level. The detector matches the
+ * `element_filter` identifier (case-insensitive, optional whitespace before `(`) while rejecting
+ * longer identifiers such as `element_filtered_value` or `myelement_filter(`. String-literal
+ * contents are not parsed, so `field == "element_filter(x)"` is conservatively reported as
+ * element-level; this is harmless because non-element queries return no element_indices.
+ */
+bool
+IsElementFilterExpr(const std::string& expr);
+
+/**
+ * @brief Expand an element-filter result into one row per matched element with an offset column.
+ *
+ * The server returns element-filter pages as entity rows plus one `element_indices` list per
+ * entity (the positions of the matched elements inside the entity's array field). This expands
+ * each entity row into `len(element_indices[i])` rows -- one per matched element -- by gathering
+ * every column through the entity index repeated per element, then appends an Int64 `offset`
+ * column holding the matched element positions. Ordinary results without element_indices pass
+ * through unchanged.
+ * @param [in] src the element-filter query result (entity rows + element_indices).
+ * @param [in] offset_name the preferred name of the appended element-offset column.
+ * @param [out] target the expanded result, one row per matched element.
+ * @param [out] effective_offset_name the column name actually used for the element offset
+ * ("_offset" instead of offset_name when the server also returned a real field of that name).
+ */
+Status
+ExpandElementRows(const QueryResults& src, const std::string& offset_name, QueryResults& target,
+                  std::string* effective_offset_name = nullptr);
+
 Status
 ConvertStructFieldData(const proto::schema::FieldData& proto_data, size_t offset, size_t count,
                        FieldDataPtr& field_data);
