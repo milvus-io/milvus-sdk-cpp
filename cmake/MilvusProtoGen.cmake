@@ -16,7 +16,7 @@
 
 include_guard(GLOBAL)
 
-set(PROTO_COMMIT ae7fea6ab2f4e958f2feef0f0edb9a0d23fa7e0c)
+set(PROTO_COMMIT 3c2afcbf9ce6d5c24757d951e530974eabdc5711)
 
 include(FetchContent)
 
