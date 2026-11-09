@@ -62,6 +62,45 @@ ConvertCompactionPlans(const proto::milvus::GetCompactionPlansResponse& rpc_resp
         plans.emplace_back(std::move(plan));
     }
 }
+
+// Shared conversion for ListRunningRequests() and CancelRequests(): map every
+// RunningRequestInfo field into the SDK type.
+void
+ConvertRunningRequestInfo(const proto::milvus::RunningRequestInfo& info, RunningRequestInfo& result) {
+    result.SetRequestId(info.request_id());
+    result.SetProxyId(info.proxy_id());
+    result.SetType(info.type());
+    result.SetDatabaseName(info.db_name());
+    result.SetCollectionName(info.collection_name());
+    result.SetUser(info.user());
+    result.SetClientAddr(info.client_addr());
+    result.SetNq(info.nq());
+    result.SetTopK(info.topk());
+    result.SetExpr(info.expr());
+    result.SetStartTimeMs(info.start_time_ms());
+    result.SetQueuedMs(info.queued_ms());
+    result.SetElapsedMs(info.elapsed_ms());
+    result.SetState(info.state());
+    result.SetTaskIds(std::vector<int64_t>(info.task_ids().begin(), info.task_ids().end()));
+    result.SetTraceId(info.trace_id());
+    result.SetCancellable(info.cancellable());
+}
+
+// Shared conversion for ListRunningRequests() and CancelRequests(): map one
+// RunningRequestNodeResult. The error code falls back to the deprecated legacy error
+// code when the new code is 0 but the legacy code says otherwise.
+void
+ConvertRunningRequestNodeResult(const proto::milvus::RunningRequestNodeResult& node_result,
+                                RunningRequestNodeResult& result) {
+    result.SetNodeId(node_result.node_id());
+    int64_t code = node_result.status().code();
+    if (code == 0 && node_result.status().error_code() != proto::common::ErrorCode::Success) {
+        code = static_cast<int64_t>(node_result.status().error_code());
+    }
+    result.SetErrorCode(code);
+    result.SetReason(node_result.status().reason());
+    result.SetUnimplemented(node_result.unimplemented());
+}
 }  // namespace
 
 std::shared_ptr<MilvusClientV2>
@@ -3241,6 +3280,102 @@ MilvusClientV2Impl::ListCompactionTasks(const ListCompactionTasksRequest& reques
 
     return connection_.Invoke<proto::milvus::GetCompactionPlansRequest, proto::milvus::GetCompactionPlansResponse>(
         pre, &MilvusConnection::GetCompactionPlans, post);
+}
+
+Status
+MilvusClientV2Impl::ListRunningRequests(const ListRunningRequestsRequest& request,
+                                        ListRunningRequestsResponse& response) {
+    auto pre = [&request](proto::milvus::ListRunningRequestsRequest& rpc_request) {
+        if (!request.DatabaseName().empty()) {
+            rpc_request.set_db_name(request.DatabaseName());
+        }
+        if (!request.CollectionName().empty()) {
+            rpc_request.set_collection_name(request.CollectionName());
+        }
+        if (!request.User().empty()) {
+            rpc_request.set_user(request.User());
+        }
+        if (request.MinElapsedMs() > 0) {
+            rpc_request.set_min_elapsed_ms(request.MinElapsedMs());
+        }
+        return Status::OK();
+    };
+
+    auto post = [&response](const proto::milvus::ListRunningRequestsResponse& rpc_response) {
+        RunningRequestInfos requests;
+        requests.reserve(rpc_response.requests_size());
+        for (int i = 0; i < rpc_response.requests_size(); ++i) {
+            RunningRequestInfo info;
+            ConvertRunningRequestInfo(rpc_response.requests(i), info);
+            requests.emplace_back(std::move(info));
+        }
+        response.SetRequests(std::move(requests));
+
+        RunningRequestNodeResults node_results;
+        node_results.reserve(rpc_response.node_results_size());
+        for (int i = 0; i < rpc_response.node_results_size(); ++i) {
+            RunningRequestNodeResult node_result;
+            ConvertRunningRequestNodeResult(rpc_response.node_results(i), node_result);
+            node_results.emplace_back(std::move(node_result));
+        }
+        response.SetNodeResults(std::move(node_results));
+        return Status::OK();
+    };
+
+    return connection_.Invoke<proto::milvus::ListRunningRequestsRequest, proto::milvus::ListRunningRequestsResponse>(
+        pre, &MilvusConnection::ListRunningRequests, post);
+}
+
+Status
+MilvusClientV2Impl::CancelRequests(const CancelRequestsRequest& request, CancelRequestsResponse& response) {
+    auto validate = [&request]() {
+        if (request.RequestIds().empty()) {
+            return Status{StatusCode::INVALID_ARGUMENT, "Request ID list can not be null or empty"};
+        }
+        return Status::OK();
+    };
+
+    auto pre = [&request](proto::milvus::CancelRequestsRequest& rpc_request) {
+        for (const auto& id : request.RequestIds()) {
+            rpc_request.add_request_ids(id);
+        }
+        if (!request.Reason().empty()) {
+            rpc_request.set_reason(request.Reason());
+        }
+        if (!request.User().empty()) {
+            rpc_request.set_user(request.User());
+        }
+        return Status::OK();
+    };
+
+    auto post = [&response](const proto::milvus::CancelRequestsResponse& rpc_response) {
+        RunningRequestInfos canceled;
+        canceled.reserve(rpc_response.canceled_size());
+        for (int i = 0; i < rpc_response.canceled_size(); ++i) {
+            RunningRequestInfo info;
+            ConvertRunningRequestInfo(rpc_response.canceled(i), info);
+            canceled.emplace_back(std::move(info));
+        }
+        response.SetCanceled(std::move(canceled));
+
+        response.SetNotFound(
+            std::vector<std::string>(rpc_response.not_found().begin(), rpc_response.not_found().end()));
+        response.SetUndetermined(
+            std::vector<std::string>(rpc_response.undetermined().begin(), rpc_response.undetermined().end()));
+
+        RunningRequestNodeResults node_results;
+        node_results.reserve(rpc_response.node_results_size());
+        for (int i = 0; i < rpc_response.node_results_size(); ++i) {
+            RunningRequestNodeResult node_result;
+            ConvertRunningRequestNodeResult(rpc_response.node_results(i), node_result);
+            node_results.emplace_back(std::move(node_result));
+        }
+        response.SetNodeResults(std::move(node_results));
+        return Status::OK();
+    };
+
+    return connection_.Invoke<proto::milvus::CancelRequestsRequest, proto::milvus::CancelRequestsResponse>(
+        validate, pre, &MilvusConnection::CancelRequests, post);
 }
 
 Status

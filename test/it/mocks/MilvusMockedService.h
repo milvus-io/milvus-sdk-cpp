@@ -460,6 +460,14 @@ class MilvusMockedService : public ::milvus::proto::milvus::MilvusService::Servi
     MOCK_METHOD3(ListFileResources,
                  ::grpc::Status(::grpc::ServerContext*, const ::milvus::proto::milvus::ListFileResourcesRequest*,
                                 ::milvus::proto::milvus::ListFileResourcesResponse*));
+
+    MOCK_METHOD3(ListRunningRequests,
+                 ::grpc::Status(::grpc::ServerContext*, const ::milvus::proto::milvus::ListRunningRequestsRequest*,
+                                ::milvus::proto::milvus::ListRunningRequestsResponse*));
+
+    MOCK_METHOD3(CancelRequests,
+                 ::grpc::Status(::grpc::ServerContext*, const ::milvus::proto::milvus::CancelRequestsRequest*,
+                                ::milvus::proto::milvus::CancelRequestsResponse*));
 };
 
 }  // namespace milvus

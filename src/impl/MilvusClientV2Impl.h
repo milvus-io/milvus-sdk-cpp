@@ -301,6 +301,12 @@ class MilvusClientV2Impl : public MilvusClientV2, public std::enable_shared_from
     ListCompactionTasks(const ListCompactionTasksRequest& request, GetCompactionPlansResponse& response) final;
 
     Status
+    ListRunningRequests(const ListRunningRequestsRequest& request, ListRunningRequestsResponse& response) final;
+
+    Status
+    CancelRequests(const CancelRequestsRequest& request, CancelRequestsResponse& response) final;
+
+    Status
     CreateSnapshot(const CreateSnapshotRequest& request) final;
 
     Status

@@ -756,6 +756,19 @@ MilvusConnection::GetCompactionPlans(const proto::milvus::GetCompactionPlansRequ
 }
 
 Status
+MilvusConnection::ListRunningRequests(const proto::milvus::ListRunningRequestsRequest& request,
+                                      proto::milvus::ListRunningRequestsResponse& response,
+                                      const GrpcContextOptions& options) {
+    return grpcCall("ListRunningRequests", &Stub::ListRunningRequests, request, response, options);
+}
+
+Status
+MilvusConnection::CancelRequests(const proto::milvus::CancelRequestsRequest& request,
+                                 proto::milvus::CancelRequestsResponse& response, const GrpcContextOptions& options) {
+    return grpcCall("CancelRequests", &Stub::CancelRequests, request, response, options);
+}
+
+Status
 MilvusConnection::CreateSnapshot(const proto::milvus::CreateSnapshotRequest& request, proto::common::Status& response,
                                  const GrpcContextOptions& options) {
     return grpcCall("CreateSnapshot", &Stub::CreateSnapshot, request, response, options);

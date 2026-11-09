@@ -527,3 +527,83 @@ TEST_F(CompactRequestTest, ClusteringCompaction) {
     req.WithClusteringCompaction(false);
     EXPECT_FALSE(req.ClusteringCompaction());
 }
+
+class ListRunningRequestsRequestTest : public ::testing::Test {};
+
+TEST_F(ListRunningRequestsRequestTest, DefaultConstruction) {
+    milvus::ListRunningRequestsRequest req;
+
+    EXPECT_TRUE(req.DatabaseName().empty());
+    EXPECT_TRUE(req.CollectionName().empty());
+    EXPECT_TRUE(req.User().empty());
+    EXPECT_EQ(req.MinElapsedMs(), 0);
+}
+
+TEST_F(ListRunningRequestsRequestTest, GettersAndSetters) {
+    milvus::ListRunningRequestsRequest req;
+
+    req.SetDatabaseName("db");
+    EXPECT_EQ(req.DatabaseName(), "db");
+    auto& db_ref = req.WithDatabaseName("db2");
+    EXPECT_EQ(&db_ref, &req);
+    EXPECT_EQ(req.DatabaseName(), "db2");
+
+    req.SetCollectionName("coll");
+    EXPECT_EQ(req.CollectionName(), "coll");
+    auto& coll_ref = req.WithCollectionName("coll2");
+    EXPECT_EQ(&coll_ref, &req);
+    EXPECT_EQ(req.CollectionName(), "coll2");
+
+    req.SetUser("alice");
+    EXPECT_EQ(req.User(), "alice");
+    auto& user_ref = req.WithUser("bob");
+    EXPECT_EQ(&user_ref, &req);
+    EXPECT_EQ(req.User(), "bob");
+
+    req.SetMinElapsedMs(5000);
+    EXPECT_EQ(req.MinElapsedMs(), 5000);
+    auto& ms_ref = req.WithMinElapsedMs(6000);
+    EXPECT_EQ(&ms_ref, &req);
+    EXPECT_EQ(req.MinElapsedMs(), 6000);
+}
+
+class CancelRequestsRequestTest : public ::testing::Test {};
+
+TEST_F(CancelRequestsRequestTest, DefaultConstruction) {
+    milvus::CancelRequestsRequest req;
+
+    EXPECT_TRUE(req.RequestIds().empty());
+    EXPECT_TRUE(req.Reason().empty());
+    EXPECT_TRUE(req.User().empty());
+}
+
+TEST_F(CancelRequestsRequestTest, GettersAndSetters) {
+    milvus::CancelRequestsRequest req;
+
+    req.AddRequestId("1-to03zu-1");
+    req.AddRequestId("1-to03zu-2");
+    EXPECT_EQ(req.RequestIds().size(), 2);
+    EXPECT_EQ(req.RequestIds()[0], "1-to03zu-1");
+    EXPECT_EQ(req.RequestIds()[1], "1-to03zu-2");
+
+    std::vector<std::string> ids{"2-to03zu-1"};
+    req.SetRequestIds(std::move(ids));
+    EXPECT_EQ(req.RequestIds().size(), 1);
+    EXPECT_EQ(req.RequestIds()[0], "2-to03zu-1");
+
+    auto& ref = req.WithRequestIds(std::vector<std::string>{"3-to03zu-1", "3-to03zu-2"});
+    EXPECT_EQ(&ref, &req);
+    EXPECT_EQ(req.RequestIds().size(), 2);
+
+    req.SetReason("too heavy");
+    EXPECT_EQ(req.Reason(), "too heavy");
+    auto& reason_ref = req.WithReason("canceled");
+    EXPECT_EQ(&reason_ref, &req);
+    EXPECT_EQ(req.Reason(), "canceled");
+
+    req.SetUser("alice");
+    EXPECT_EQ(req.User(), "alice");
+    auto& user_ref = req.WithUser("bob");
+    EXPECT_EQ(&user_ref, &req);
+    EXPECT_EQ(req.User(), "bob");
+}

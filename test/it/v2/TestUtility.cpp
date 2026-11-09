@@ -26,6 +26,8 @@
 
 using ::milvus::StatusCode;
 using ::milvus::proto::milvus::AddFileResourceRequest;
+using ::milvus::proto::milvus::CancelRequestsRequest;
+using ::milvus::proto::milvus::CancelRequestsResponse;
 using ::milvus::proto::milvus::CheckHealthRequest;
 using ::milvus::proto::milvus::CheckHealthResponse;
 using ::milvus::proto::milvus::ConnectRequest;
@@ -47,6 +49,8 @@ using ::milvus::proto::milvus::ListFileResourcesRequest;
 using ::milvus::proto::milvus::ListFileResourcesResponse;
 using ::milvus::proto::milvus::ListRefreshExternalCollectionJobsRequest;
 using ::milvus::proto::milvus::ListRefreshExternalCollectionJobsResponse;
+using ::milvus::proto::milvus::ListRunningRequestsRequest;
+using ::milvus::proto::milvus::ListRunningRequestsResponse;
 using ::milvus::proto::milvus::ManualCompactionRequest;
 using ::milvus::proto::milvus::ManualCompactionResponse;
 using ::milvus::proto::milvus::RefreshExternalCollectionJobInfo;
@@ -54,6 +58,8 @@ using ::milvus::proto::milvus::RefreshExternalCollectionRequest;
 using ::milvus::proto::milvus::RefreshExternalCollectionResponse;
 using ::milvus::proto::milvus::RefreshExternalCollectionState;
 using ::milvus::proto::milvus::RemoveFileResourceRequest;
+using ::milvus::proto::milvus::RunningRequestInfo;
+using ::milvus::proto::milvus::RunningRequestNodeResult;
 using ::testing::_;
 using ::testing::ElementsAreArray;
 using ::testing::Property;
@@ -661,4 +667,206 @@ TEST_F(UnconnectMilvusMockedTest, ListFileResources) {
     ASSERT_EQ(response.Resources().size(), 1);
     EXPECT_EQ(response.Resources()[0].Name(), "res1");
     EXPECT_EQ(response.Resources()[0].Path(), "/tmp/data.parquet");
+}
+
+namespace {
+void
+FillGrpcRunningRequest(RunningRequestInfo* info, const std::string& id, const std::string& state) {
+    info->set_request_id(id);
+    info->set_proxy_id(7);
+    info->set_type("Search");
+    info->set_db_name("db");
+    info->set_collection_name("coll");
+    info->set_user("alice");
+    info->set_client_addr("10.0.0.1:5000");
+    info->set_nq(4000);
+    info->set_topk(100);
+    info->set_expr("id > 0");
+    info->set_start_time_ms(1700000000000);
+    info->set_queued_ms(3);
+    info->set_elapsed_ms(1500);
+    info->set_state(state);
+    info->add_task_ids(11);
+    info->add_task_ids(12);
+    info->set_trace_id("trace-1");
+    info->set_cancellable(true);
+}
+}  // namespace
+
+TEST_F(UnconnectMilvusMockedTest, ListRunningRequestsV2) {
+    auto client = CreateConnectedV2Client(service_, server_.ListenPort());
+
+    EXPECT_CALL(service_, ListRunningRequests(_, _, _))
+        .WillOnce([&](::grpc::ServerContext*, const ListRunningRequestsRequest* request,
+                      ListRunningRequestsResponse* response) {
+            EXPECT_EQ(request->db_name(), "db");
+            EXPECT_EQ(request->collection_name(), "coll");
+            EXPECT_EQ(request->user(), "alice");
+            EXPECT_EQ(request->min_elapsed_ms(), 1000);
+
+            FillGrpcRunningRequest(response->add_requests(), "7-to03zu-1", "Running");
+            auto* answered = response->add_node_results();
+            answered->set_node_id(7);
+            auto* unimplemented = response->add_node_results();
+            unimplemented->set_node_id(9);
+            unimplemented->mutable_status()->set_reason("unimplemented");
+            unimplemented->mutable_status()->set_error_code(::milvus::proto::common::ErrorCode::UnexpectedError);
+            unimplemented->set_unimplemented(true);
+            return ::grpc::Status{};
+        });
+
+    milvus::ListRunningRequestsResponse response;
+    auto status = client->ListRunningRequests(milvus::ListRunningRequestsRequest()
+                                                  .WithDatabaseName("db")
+                                                  .WithCollectionName("coll")
+                                                  .WithUser("alice")
+                                                  .WithMinElapsedMs(1000),
+                                              response);
+
+    EXPECT_TRUE(status.IsOk());
+    ASSERT_EQ(response.Requests().size(), 1);
+    const auto& info = response.Requests()[0];
+    EXPECT_EQ(info.RequestId(), "7-to03zu-1");
+    EXPECT_EQ(info.ProxyId(), 7);
+    EXPECT_EQ(info.Type(), "Search");
+    EXPECT_EQ(info.DatabaseName(), "db");
+    EXPECT_EQ(info.CollectionName(), "coll");
+    EXPECT_EQ(info.User(), "alice");
+    EXPECT_EQ(info.ClientAddr(), "10.0.0.1:5000");
+    EXPECT_EQ(info.Nq(), 4000);
+    EXPECT_EQ(info.TopK(), 100);
+    EXPECT_EQ(info.Expr(), "id > 0");
+    EXPECT_EQ(info.StartTimeMs(), 1700000000000);
+    EXPECT_EQ(info.QueuedMs(), 3);
+    EXPECT_EQ(info.ElapsedMs(), 1500);
+    EXPECT_EQ(info.State(), "Running");
+    EXPECT_EQ(info.TaskIds().size(), 2);
+    EXPECT_EQ(info.TaskIds()[0], 11);
+    EXPECT_EQ(info.TaskIds()[1], 12);
+    EXPECT_EQ(info.TraceId(), "trace-1");
+    EXPECT_TRUE(info.Cancellable());
+
+    ASSERT_EQ(response.NodeResults().size(), 2);
+    EXPECT_EQ(response.NodeResults()[0].NodeId(), 7);
+    EXPECT_TRUE(response.NodeResults()[0].IsSuccess());
+    EXPECT_FALSE(response.NodeResults()[0].Unimplemented());
+    EXPECT_EQ(response.NodeResults()[1].NodeId(), 9);
+    EXPECT_FALSE(response.NodeResults()[1].IsSuccess());
+    EXPECT_EQ(response.NodeResults()[1].ErrorCode(), ::milvus::proto::common::ErrorCode::UnexpectedError);
+    EXPECT_EQ(response.NodeResults()[1].Reason(), "unimplemented");
+    EXPECT_TRUE(response.NodeResults()[1].Unimplemented());
+}
+
+TEST_F(UnconnectMilvusMockedTest, ListRunningRequestsWithoutFiltersV2) {
+    auto client = CreateConnectedV2Client(service_, server_.ListenPort());
+
+    EXPECT_CALL(service_, ListRunningRequests(_, _, _))
+        .WillOnce([&](::grpc::ServerContext*, const ListRunningRequestsRequest* request,
+                      ListRunningRequestsResponse* response) {
+            EXPECT_TRUE(request->db_name().empty());
+            EXPECT_TRUE(request->collection_name().empty());
+            EXPECT_TRUE(request->user().empty());
+            EXPECT_EQ(request->min_elapsed_ms(), 0);
+            return ::grpc::Status{};
+        });
+
+    milvus::ListRunningRequestsResponse response;
+    auto status = client->ListRunningRequests(milvus::ListRunningRequestsRequest{}, response);
+
+    EXPECT_TRUE(status.IsOk());
+    EXPECT_TRUE(response.Requests().empty());
+    EXPECT_TRUE(response.NodeResults().empty());
+}
+
+TEST_F(UnconnectMilvusMockedTest, ListRunningRequestsServerFailedV2) {
+    auto client = CreateConnectedV2Client(service_, server_.ListenPort());
+
+    EXPECT_CALL(service_, ListRunningRequests(_, _, _))
+        .WillOnce([](::grpc::ServerContext*, const ListRunningRequestsRequest*, ListRunningRequestsResponse* response) {
+            response->mutable_status()->set_code(1100);
+            response->mutable_status()->set_reason("permission denied");
+            return ::grpc::Status{};
+        });
+
+    milvus::ListRunningRequestsResponse response;
+    auto status = client->ListRunningRequests(milvus::ListRunningRequestsRequest{}, response);
+
+    EXPECT_FALSE(status.IsOk());
+    EXPECT_EQ(status.Code(), StatusCode::SERVER_FAILED);
+}
+
+TEST_F(UnconnectMilvusMockedTest, CancelRequestsV2) {
+    auto client = CreateConnectedV2Client(service_, server_.ListenPort());
+
+    EXPECT_CALL(service_, CancelRequests(_, _, _))
+        .WillOnce([&](::grpc::ServerContext*, const CancelRequestsRequest* request, CancelRequestsResponse* response) {
+            EXPECT_EQ(request->request_ids_size(), 3);
+            EXPECT_EQ(request->request_ids(0), "7-to03zu-1");
+            EXPECT_EQ(request->request_ids(1), "7-to03zu-2");
+            EXPECT_EQ(request->request_ids(2), "8-to03zv-3");
+            EXPECT_EQ(request->reason(), "too heavy");
+            EXPECT_EQ(request->user(), "alice");
+
+            FillGrpcRunningRequest(response->add_canceled(), "7-to03zu-1", "Running");
+            response->add_not_found("7-to03zu-2");
+            response->add_undetermined("8-to03zv-3");
+            auto* answered = response->add_node_results();
+            answered->set_node_id(7);
+            auto* silent = response->add_node_results();
+            silent->set_node_id(8);
+            silent->mutable_status()->set_code(65535);
+            silent->mutable_status()->set_reason("node unreachable");
+            return ::grpc::Status{};
+        });
+
+    milvus::CancelRequestsResponse response;
+    auto status =
+        client->CancelRequests(milvus::CancelRequestsRequest()
+                                   .WithRequestIds(std::vector<std::string>{"7-to03zu-1", "7-to03zu-2", "8-to03zv-3"})
+                                   .WithReason("too heavy")
+                                   .WithUser("alice"),
+                               response);
+
+    EXPECT_TRUE(status.IsOk());
+    ASSERT_EQ(response.Canceled().size(), 1);
+    EXPECT_EQ(response.Canceled()[0].RequestId(), "7-to03zu-1");
+    EXPECT_EQ(response.Canceled()[0].State(), "Running");
+    EXPECT_EQ(response.NotFound().size(), 1);
+    EXPECT_EQ(response.NotFound()[0], "7-to03zu-2");
+    EXPECT_EQ(response.Undetermined().size(), 1);
+    EXPECT_EQ(response.Undetermined()[0], "8-to03zv-3");
+
+    ASSERT_EQ(response.NodeResults().size(), 2);
+    EXPECT_TRUE(response.NodeResults()[0].IsSuccess());
+    EXPECT_FALSE(response.NodeResults()[1].IsSuccess());
+    EXPECT_EQ(response.NodeResults()[1].ErrorCode(), 65535);
+    EXPECT_EQ(response.NodeResults()[1].Reason(), "node unreachable");
+}
+
+TEST_F(UnconnectMilvusMockedTest, CancelRequestsRejectsEmptyIds) {
+    auto client = CreateConnectedV2Client(service_, server_.ListenPort());
+
+    milvus::CancelRequestsResponse response;
+    auto status = client->CancelRequests(milvus::CancelRequestsRequest{}, response);
+
+    EXPECT_FALSE(status.IsOk());
+    EXPECT_EQ(status.Code(), StatusCode::INVALID_ARGUMENT);
+}
+
+TEST_F(UnconnectMilvusMockedTest, CancelRequestsServerFailedV2) {
+    auto client = CreateConnectedV2Client(service_, server_.ListenPort());
+
+    EXPECT_CALL(service_, CancelRequests(_, _, _))
+        .WillOnce([](::grpc::ServerContext*, const CancelRequestsRequest*, CancelRequestsResponse* response) {
+            response->mutable_status()->set_code(1100);
+            response->mutable_status()->set_reason("permission denied");
+            return ::grpc::Status{};
+        });
+
+    milvus::CancelRequestsResponse response;
+    auto status = client->CancelRequests(
+        milvus::CancelRequestsRequest().WithRequestIds(std::vector<std::string>{"7-to03zu-1"}), response);
+
+    EXPECT_FALSE(status.IsOk());
+    EXPECT_EQ(status.Code(), StatusCode::SERVER_FAILED);
 }
