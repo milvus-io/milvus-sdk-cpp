@@ -354,6 +354,30 @@ class MilvusClientV2Impl : public MilvusClientV2, public std::enable_shared_from
     Status
     RemovePrivilegesFromGroup(const RemovePrivilegesFromGroupRequest& request) final;
 
+    Status
+    CreateRowPolicy(const CreateRowPolicyRequest& request) final;
+
+    Status
+    UpdateRowPolicy(const UpdateRowPolicyRequest& request) final;
+
+    Status
+    DropRowPolicy(const DropRowPolicyRequest& request) final;
+
+    Status
+    ListRowPolicies(const ListRowPoliciesRequest& request, ListRowPoliciesResponse& response) final;
+
+    Status
+    SetRLSPrincipalTags(const SetRLSPrincipalTagsRequest& request) final;
+
+    Status
+    GetRLSPrincipalTags(const GetRLSPrincipalTagsRequest& request, GetRLSPrincipalTagsResponse& response) final;
+
+    Status
+    ListRLSPrincipals(const ListRLSPrincipalsRequest& request, ListRLSPrincipalsResponse& response) final;
+
+    Status
+    DeleteRLSPrincipalTags(const DeleteRLSPrincipalTagsRequest& request) final;
+
  private:
     Status
     insert(const InsertRequest& request, InsertResponse& response, bool allow_retry);

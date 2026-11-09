@@ -94,3 +94,22 @@ TEST_F(UnconnectMilvusMockedTest, HybridSearchResponseExtraInfoMetadata) {
     EXPECT_FLOAT_EQ(response.CacheHitRatio(), 0.25f);
     EXPECT_EQ(response.Results().Results().size(), 1);
 }
+
+TEST_F(UnconnectMilvusMockedTest, HybridSearchRlsContext) {
+    auto client = CreateConnectedV2Client(service_, server_.ListenPort());
+
+    EXPECT_CALL(service_, HybridSearch(_, _, _))
+        .WillOnce([](::grpc::ServerContext*, const ::milvus::proto::milvus::HybridSearchRequest* request,
+                     ::milvus::proto::milvus::SearchResults* response) {
+            EXPECT_EQ(request->rls_principal(), "alice");
+            EXPECT_TRUE(request->skip_rls());
+            FillMinimalV2HybridSearchResults(response);
+            return ::grpc::Status{};
+        });
+
+    auto request = CreateV2HybridSearchRequest();
+    request.WithRLSPrincipal("alice").WithSkipRLS(true);
+    milvus::HybridSearchResponse response;
+    auto status = client->HybridSearch(request, response);
+    EXPECT_TRUE(status.IsOk());
+}

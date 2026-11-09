@@ -18,6 +18,8 @@
 
 #include <ostream>
 
+#include "utils/cache/SchemaCache.h"
+
 using ::milvus::StatusCode;
 using ::milvus::proto::milvus::ConnectRequest;
 using ::milvus::proto::milvus::ConnectResponse;
@@ -51,6 +53,13 @@ milvus::UnconnectMilvusMockedTest::SetUp() {
 
 void
 milvus::UnconnectMilvusMockedTest::TearDown() {
+    // Each mocked test is an isolated process-level world, but SchemaCache is a
+    // process-wide singleton keyed by (endpoint, db, collection). Mocked servers
+    // bind to OS-assigned random ports that can be reused across tests, so a warm
+    // cache entry can leak between cases that happen to share a collection name.
+    // Clear it here so every test starts from a cold cache and a case that expects
+    // exactly one DescribeCollection RPC is never satisfied by cached schema.
+    milvus::SchemaCache::GetInstance().Clear();
 }
 
 void
