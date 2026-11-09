@@ -126,6 +126,7 @@
 #include "request/snapshot/PinSnapshotDataRequest.h"
 #include "request/snapshot/RestoreSnapshotRequest.h"
 #include "request/snapshot/UnpinSnapshotDataRequest.h"
+#include "request/utility/CancelRequestsRequest.h"
 #include "request/utility/CheckHealthRequest.h"
 #include "request/utility/CompactRequest.h"
 #include "request/utility/FileResourceRequest.h"
@@ -137,6 +138,7 @@
 #include "request/utility/GetServerVersionRequest.h"
 #include "request/utility/ListCompactionTasksRequest.h"
 #include "request/utility/ListRefreshExternalCollectionJobsRequest.h"
+#include "request/utility/ListRunningRequestsRequest.h"
 #include "request/utility/ListSegmentsRequest.h"
 #include "request/utility/OptimizeRequest.h"
 #include "request/utility/RefreshExternalCollectionRequest.h"
@@ -179,6 +181,7 @@
 #include "response/snapshot/ListSnapshotsResponse.h"
 #include "response/snapshot/PinSnapshotDataResponse.h"
 #include "response/snapshot/RestoreSnapshotResponse.h"
+#include "response/utility/CancelRequestsResponse.h"
 #include "response/utility/CheckHealthResponse.h"
 #include "response/utility/CompactResponse.h"
 #include "response/utility/FlushAllResponse.h"
@@ -189,6 +192,7 @@
 #include "response/utility/GetServerVersionResponse.h"
 #include "response/utility/ListFileResourcesResponse.h"
 #include "response/utility/ListRefreshExternalCollectionJobsResponse.h"
+#include "response/utility/ListRunningRequestsResponse.h"
 #include "response/utility/ListSegmentsResponse.h"
 #include "response/utility/OptimizeResponse.h"
 #include "response/utility/RefreshExternalCollectionResponse.h"
@@ -202,6 +206,8 @@
 #include "types/RowPolicy.h"
 #include "types/RowPolicyAction.h"
 #include "types/RowPolicyType.h"
+#include "types/RunningRequestInfo.h"
+#include "types/RunningRequestNodeResult.h"
 
 /**
  *  @brief namespace milvus
@@ -1136,6 +1142,33 @@ class MILVUS_SDK_API MilvusClientV2 {
      */
     virtual Status
     ListCompactionTasks(const ListCompactionTasksRequest& request, GetCompactionPlansResponse& response) = 0;
+
+    /**
+     * @brief List the Search, HybridSearch and Query requests running on every proxy.
+     *
+     * The filters are combined with AND; an unset filter does not constrain the result.
+     * The call succeeds as long as at least one proxy answered; check
+     * response.NodeResults() to tell a complete answer from a partial one.
+     *
+     * @param [in] request input parameters
+     * @param [out] response output results
+     * @return Status operation successfully or not
+     */
+    virtual Status
+    ListRunningRequests(const ListRunningRequestsRequest& request, ListRunningRequestsResponse& response) = 0;
+
+    /**
+     * @brief Cancel running requests by the ids returned by ListRunningRequests().
+     *
+     * An empty request id list is rejected with an invalid-argument status. Every requested
+     * id is in exactly one of Canceled(), NotFound() and Undetermined() in the response.
+     *
+     * @param [in] request input parameters
+     * @param [out] response output results
+     * @return Status operation successfully or not
+     */
+    virtual Status
+    CancelRequests(const CancelRequestsRequest& request, CancelRequestsResponse& response) = 0;
 
     /**
      * @brief Create a snapshot for a collection.

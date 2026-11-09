@@ -382,6 +382,14 @@ class MilvusConnection {
                        proto::milvus::GetCompactionPlansResponse& response, const GrpcContextOptions& options);
 
     Status
+    ListRunningRequests(const proto::milvus::ListRunningRequestsRequest& request,
+                        proto::milvus::ListRunningRequestsResponse& response, const GrpcContextOptions& options);
+
+    Status
+    CancelRequests(const proto::milvus::CancelRequestsRequest& request, proto::milvus::CancelRequestsResponse& response,
+                   const GrpcContextOptions& options);
+
+    Status
     CreateSnapshot(const proto::milvus::CreateSnapshotRequest& request, proto::common::Status& response,
                    const GrpcContextOptions& options);
 

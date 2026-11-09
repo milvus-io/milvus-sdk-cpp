@@ -71,6 +71,7 @@ Recommended examples for MilvusClientV2:
 - `./cmake_build/examples/v2/sdk_rerank_function_v2`: example to show the usage of rerank function.
 - `./cmake_build/examples/v2/sdk_rls_v2`: example to show the usage of row-level security (RLS), including row policies and principal tags.
 - `./cmake_build/examples/v2/sdk_run_analyzer_v2`: example to show the usage of run_analyzer().
+- `./cmake_build/examples/v2/sdk_running_requests_v2`: example to list the running requests with ListRunningRequests() and cancel them with CancelRequests().
 - `./cmake_build/examples/v2/sdk_search_aggregation_v2`: example to show the usage of search aggregation.
 - `./cmake_build/examples/v2/sdk_simple_v2`: example to quickly create a simple collection.
 - `./cmake_build/examples/v2/sdk_snapshot_v2`: example to show the usage of snapshot interfaces.
