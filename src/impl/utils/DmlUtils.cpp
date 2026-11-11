@@ -18,6 +18,7 @@
 
 #include <algorithm>
 #include <limits>
+#include <regex>
 #include <set>
 
 #include "./Constants.h"
@@ -795,23 +796,74 @@ ProcessNormalFieldValues(const EntityRow& row, const std::vector<FieldSchema>& n
 Status
 ProcessStructFieldValues(const EntityRow& row, const std::vector<StructFieldSchema>& struct_fields,
                          const std::set<std::string>& output_fields, bool partial_upsert,
-                         std::map<std::string, proto::schema::FieldData>& proto_fields) {
+                         std::map<std::string, proto::schema::FieldData>& proto_fields,
+                         const std::map<std::string, std::set<std::string>>* sub_field_whitelist) {
     for (const auto& struct_schema : struct_fields) {
         const std::string& name = struct_schema.Name();
+        const bool is_path_replace =
+            sub_field_whitelist != nullptr && sub_field_whitelist->find(name) != sub_field_whitelist->end();
         if (!row.contains(name)) {
+            // PATH_REPLACE requires an operand in every row; a missing parent would
+            // silently degrade into a no-op, so reject it.
+            if (is_path_replace) {
+                return {StatusCode::INVALID_ARGUMENT, "PATH_REPLACE requires an operand for struct field '" + name +
+                                                          "' in every row, got a null or missing value"};
+            }
             if (partial_upsert) {
                 continue;
             }
-            return {StatusCode::INVALID_ARGUMENT, "The struct field: " + name + " is not provided."};
+            if (!struct_schema.IsNullable()) {
+                return {StatusCode::INVALID_ARGUMENT, "The struct field: " + name + " is not provided."};
+            }
+            // a nullable struct with a missing key writes a whole null struct row
+            auto status = AppendStructNullRow(struct_schema, output_fields, proto_fields);
+            if (!status.IsOk()) {
+                return status;
+            }
+            continue;
         }
 
         const auto& field_value = row[name];
+        if (field_value.is_null()) {
+            // PATH_REPLACE operands must be single-element arrays; a null parent is rejected
+            // so the operation does not silently degrade into a null struct row.
+            if (is_path_replace) {
+                return {StatusCode::INVALID_ARGUMENT, "PATH_REPLACE requires an operand for struct field '" + name +
+                                                          "' in every row, got a null or missing value"};
+            }
+            if (!struct_schema.IsNullable()) {
+                return {StatusCode::INVALID_ARGUMENT, "The value of struct field: " + name + " cannot be null."};
+            }
+            // an explicit null writes a whole null struct row (like a nullable scalar field)
+            auto status = AppendStructNullRow(struct_schema, output_fields, proto_fields);
+            if (!status.IsOk()) {
+                return status;
+            }
+            continue;
+        }
         if (!field_value.is_array()) {
             return {StatusCode::INVALID_ARGUMENT, "The value of struct field: " + name + " is not a JSON array."};
         }
 
         auto dict_list = field_value.get<std::vector<nlohmann::json>>();
-        auto status = FillStructProtoFields(dict_list, struct_schema, output_fields, proto_fields);
+        const std::set<std::string>* whitelist = nullptr;
+        if (is_path_replace) {
+            auto it = sub_field_whitelist->find(name);
+            // PATH_REPLACE operand: exactly one struct element per row, and a child
+            // path operand must explicitly carry every selected child key.
+            if (dict_list.size() != 1) {
+                return {StatusCode::INVALID_ARGUMENT,
+                        "PATH_REPLACE requires exactly one element for struct field '" + name + "' in every row"};
+            }
+            for (const auto& child : it->second) {
+                if (!dict_list.front().is_object() || !dict_list.front().contains(child)) {
+                    return {StatusCode::INVALID_ARGUMENT, "PATH_REPLACE operand for struct field '" + name +
+                                                              "' must explicitly contain child '" + child + "'"};
+                }
+            }
+            whitelist = &it->second;
+        }
+        auto status = FillStructProtoFields(dict_list, struct_schema, output_fields, proto_fields, whitelist);
         if (!status.IsOk()) {
             return status;
         }
@@ -1006,20 +1058,244 @@ CreateProtoFieldData(const FieldDataSchema& data_schema, proto::schema::FieldDat
 //     }
 //   }
 // }
-Status
-FillStructProtoFields(const std::vector<nlohmann::json>& dict_list, const StructFieldSchema& struct_schema,
-                      const std::set<std::string>& output_fields,
-                      std::map<std::string, proto::schema::FieldData>& proto_sub_fields) {
-    if (dict_list.size() > static_cast<std::size_t>(struct_schema.MaxCapacity())) {
-        std::string error_msg = "Array length " + std::to_string(dict_list.size()) + " exceeds max capacity " +
-                                std::to_string(struct_schema.MaxCapacity()) +
-                                " of struct field: " + struct_schema.Name();
-        return {StatusCode::INVALID_ARGUMENT, error_msg};
-    }
+namespace {
 
-    // Assume a struct field is named "st", sub fields are "name" and "vector", the vector field could be BM25 output.
-    // The output_fields contains "st[vector]" means this vector field is no need to be inputed by insert().
-    // proto_sub_fields contains a key "st[vector]", value is proto::schema::FieldData
+// Ensure a nested-Array sub-field's inner-leaf cell carries a typed payload (defined below
+// and used by CheckAndSetStructScalarValue).
+void
+EnsureStructScalarLeafPayload(const FieldSchema& sub_schema, proto::schema::ScalarField* leaf);
+
+// Append one vector value (or nothing for null) into the target vector field, dispatching
+// by the sub-field vector type.
+Status
+CheckAndSetVectorValue(const nlohmann::json& obj, const FieldSchema& fs, proto::schema::VectorField* vf) {
+    switch (fs.FieldDataType()) {
+        case DataType::BINARY_VECTOR:
+            return CheckAndSetBinaryVector(obj, fs, vf);
+        case DataType::FLOAT_VECTOR:
+            return CheckAndSetFloatVector(obj, fs, vf);
+        case DataType::SPARSE_FLOAT_VECTOR:
+            return CheckAndSetSparseFloatVector(obj, fs, vf);
+        case DataType::FLOAT16_VECTOR:
+        case DataType::BFLOAT16_VECTOR:
+            return CheckAndSetFloat16Vector(obj, fs, vf);
+        case DataType::INT8_VECTOR:
+            return CheckAndSetInt8Vector(obj, fs, vf);
+        default:
+            return {StatusCode::NOT_SUPPORTED, "Unsupported vector type: " + std::to_string(fs.FieldDataType())};
+    }
+}
+
+// Append one scalar value (or nothing for null) into the target scalar field. Nulls are
+// accepted only where the schema permits them: array_nullable for a whole inner Array
+// value, leaf_nullable for a scalar leaf. When the value is null the corresponding
+// valid_data bit is false and nothing is appended; otherwise valid_data is true and the
+// value is serialized. A nested Array sub-field is encoded recursively.
+Status
+CheckAndSetStructScalarValue(const nlohmann::json& obj, const FieldSchema& fs, proto::schema::ScalarField* sf,
+                             bool array_nullable, bool leaf_nullable) {
+    if (obj.is_null()) {
+        if (!array_nullable) {
+            return {StatusCode::INVALID_ARGUMENT,
+                    "Field '" + fs.Name() + "' is not element-nullable but the input value is null"};
+        }
+        sf->mutable_valid_data()->Add(false);
+        return Status::OK();
+    }
+    if (array_nullable) {
+        sf->mutable_valid_data()->Add(true);
+    }
+    if (fs.FieldDataType() == DataType::ARRAY) {
+        // Nested Array sub-field: the value is a list whose elements follow fs.ElementType().
+        if (!obj.is_array()) {
+            return {StatusCode::INVALID_ARGUMENT, "Value type should be array for field: " + fs.Name()};
+        }
+        if (obj.size() > static_cast<std::size_t>(fs.MaxCapacity())) {
+            return {StatusCode::INVALID_ARGUMENT,
+                    "Array length " + std::to_string(obj.size()) + " exceeds max capacity of field: " + fs.Name()};
+        }
+        auto aa = sf->mutable_array_data();
+        if (aa->element_type() == proto::schema::DataType::None) {
+            aa->set_element_type(DataTypeCast(fs.ElementType()));
+        }
+        // Each inner value is one leaf; null leaves are permitted when leaf_nullable.
+        auto leaf = aa->add_data();
+        for (const auto& ele : obj) {
+            if (ele.is_null()) {
+                if (!leaf_nullable) {
+                    return {StatusCode::INVALID_ARGUMENT,
+                            "Field '" + fs.Name() + "' is not element-nullable but the input value is null"};
+                }
+                leaf->mutable_valid_data()->Add(false);
+                continue;
+            }
+            if (leaf_nullable) {
+                leaf->mutable_valid_data()->Add(true);
+            }
+            auto status = CheckAndSetScalar(ele, fs, leaf, true);
+            if (!status.IsOk()) {
+                return status;
+            }
+        }
+        // an all-null or empty inner array must still carry a typed leaf payload
+        EnsureStructScalarLeafPayload(fs, leaf);
+        return Status::OK();
+    }
+    return CheckAndSetScalar(obj, fs, sf, false);
+}
+
+// Append one vector value (or nothing for null) into the target vector field. Element-null
+// vectors are compacted with valid_data only when the sub-field is element-nullable;
+// otherwise nulls are rejected and valid_data is not written.
+Status
+CheckAndSetStructVectorValue(const nlohmann::json& obj, const FieldSchema& fs, proto::schema::VectorField* vf,
+                             bool element_nullable) {
+    if (obj.is_null()) {
+        if (!element_nullable) {
+            return {StatusCode::INVALID_ARGUMENT,
+                    "Field '" + fs.Name() + "' is not element-nullable but the input value is null"};
+        }
+        vf->mutable_valid_data()->Add(false);
+        return Status::OK();
+    }
+    if (element_nullable) {
+        vf->mutable_valid_data()->Add(true);
+    }
+    return CheckAndSetVectorValue(obj, fs, vf);
+}
+
+// Initialize the sub-field proto FieldData skeleton (name, Array/ArrayOfVector type,
+// element type and dimension). Idempotent across rows of the same sub-field.
+void
+InitStructSubFieldProto(const FieldSchema& sub_schema, proto::schema::FieldData& proto_field) {
+    proto_field.set_field_name(sub_schema.Name());
+    if (IsVectorType(sub_schema.FieldDataType())) {
+        proto_field.set_type(proto::schema::DataType::ArrayOfVector);
+        auto* vectors = proto_field.mutable_vectors();
+        vectors->set_dim(static_cast<int64_t>(sub_schema.Dimension()));
+        auto* vector_array = vectors->mutable_vector_array();
+        vector_array->set_element_type(DataTypeCast(sub_schema.FieldDataType()));
+        vector_array->set_dim(sub_schema.Dimension());
+    } else {
+        proto_field.set_type(proto::schema::DataType::Array);
+        proto_field.mutable_scalars()->mutable_array_data()->set_element_type(DataTypeCast(sub_schema.FieldDataType()));
+    }
+}
+
+// Append one bit of the shared struct row mask to the sub-field FieldData and to the
+// payload, matching the pymilvus/Java dual-write row-validity layout.
+void
+AppendStructSubFieldRowMask(bool valid, bool is_vector_type, proto::schema::FieldData& proto_field) {
+    proto_field.mutable_valid_data()->Add(valid);
+    if (is_vector_type) {
+        proto_field.mutable_vectors()->mutable_valid_data()->Add(valid);
+    } else {
+        proto_field.mutable_scalars()->mutable_valid_data()->Add(valid);
+    }
+}
+
+// Ensure the row cell's typed payload message exists. The server rejects a cell whose
+// oneof payload is nil ("nil array data"), even when the cell is empty (an empty struct
+// array row, or a row whose element-nullable sub-field value is null everywhere), so the
+// typed payload must be created regardless of the element count.
+void
+EnsureStructScalarCellPayload(const FieldSchema& sub_schema, proto::schema::ScalarField* sf) {
+    switch (sub_schema.FieldDataType()) {
+        case DataType::BOOL:
+            sf->mutable_bool_data();
+            break;
+        case DataType::INT8:
+        case DataType::INT16:
+        case DataType::INT32:
+            sf->mutable_int_data();
+            break;
+        case DataType::INT64:
+            sf->mutable_long_data();
+            break;
+        case DataType::FLOAT:
+            sf->mutable_float_data();
+            break;
+        case DataType::DOUBLE:
+            sf->mutable_double_data();
+            break;
+        case DataType::VARCHAR:
+        case DataType::TEXT:
+            sf->mutable_string_data();
+            break;
+        case DataType::ARRAY: {
+            auto* aa = sf->mutable_array_data();
+            aa->set_element_type(DataTypeCast(sub_schema.ElementType()));
+            break;
+        }
+        default:
+            break;
+    }
+}
+
+// Ensure a nested-Array sub-field's inner-leaf cell carries a typed payload. The server
+// rejects a validity-carrying leaf whose oneof payload is nil ("Array validity has no
+// typed payload"), so an all-null or empty inner array must still materialize the typed
+// message, matching pymilvus payload.SetInParent().
+void
+EnsureStructScalarLeafPayload(const FieldSchema& sub_schema, proto::schema::ScalarField* leaf) {
+    switch (sub_schema.ElementType()) {
+        case DataType::BOOL:
+            leaf->mutable_bool_data();
+            break;
+        case DataType::INT8:
+        case DataType::INT16:
+        case DataType::INT32:
+            leaf->mutable_int_data();
+            break;
+        case DataType::INT64:
+            leaf->mutable_long_data();
+            break;
+        case DataType::FLOAT:
+            leaf->mutable_float_data();
+            break;
+        case DataType::DOUBLE:
+            leaf->mutable_double_data();
+            break;
+        case DataType::VARCHAR:
+        case DataType::TEXT:
+            leaf->mutable_string_data();
+            break;
+        default:
+            break;
+    }
+}
+
+void
+EnsureStructVectorCellPayload(const FieldSchema& sub_schema, proto::schema::VectorField* vf) {
+    switch (sub_schema.FieldDataType()) {
+        case DataType::FLOAT_VECTOR:
+            vf->mutable_float_vector();
+            break;
+        case DataType::BINARY_VECTOR:
+            vf->mutable_binary_vector();
+            break;
+        case DataType::FLOAT16_VECTOR:
+            vf->mutable_float16_vector();
+            break;
+        case DataType::BFLOAT16_VECTOR:
+            vf->mutable_bfloat16_vector();
+            break;
+        case DataType::INT8_VECTOR:
+            vf->mutable_int8_vector();
+            break;
+        case DataType::SPARSE_FLOAT_VECTOR:
+            vf->mutable_sparse_float_vector();
+            break;
+        default:
+            break;
+    }
+}
+
+}  // namespace
+
+Status
+AppendStructNullRow(const StructFieldSchema& struct_schema, const std::set<std::string>& output_fields,
+                    std::map<std::string, proto::schema::FieldData>& proto_sub_fields) {
     for (const auto& sub_schema : struct_schema.Fields()) {
         const auto& sub_name = sub_schema.Name();
         std::string combine_name = CombineStructFieldName(struct_schema.Name(), sub_name);
@@ -1039,38 +1315,171 @@ FillStructProtoFields(const std::vector<nlohmann::json>& dict_list, const Struct
                 break;
         }
 
+        auto& proto_field = proto_sub_fields[combine_name];
+        InitStructSubFieldProto(sub_schema, proto_field);
+        AppendStructSubFieldRowMask(false, IsVectorType(sub_schema.FieldDataType()), proto_field);
+    }
+    return Status::OK();
+}
+
+Status
+BuildStructSubFieldWhitelist(const std::vector<FieldPartialUpdateOp>* field_ops,
+                             const std::set<std::string>* struct_field_names,
+                             std::map<std::string, std::set<std::string>>& whitelist) {
+    if (field_ops == nullptr) {
+        return Status::OK();
+    }
+    // A whole-element path ([index]) keeps every sub-field; record it per struct so the
+    // final whitelist stays empty ("keep all") regardless of op order.
+    std::map<std::string, bool> has_whole_element;
+    for (const auto& op : *field_ops) {
+        if (op.GetOpType() != FieldPartialUpdateOp::OpType::PATH_REPLACE) {
+            continue;
+        }
+        const auto& struct_name = op.FieldName();
+        // PATH_REPLACE replaces struct elements/children; reject an op targeting a
+        // non-struct field so the path is not silently forwarded with the full value.
+        if (struct_field_names != nullptr && struct_field_names->find(struct_name) == struct_field_names->end()) {
+            return {StatusCode::INVALID_ARGUMENT, "PATH_REPLACE only supports struct fields: " + struct_name};
+        }
+        // Parse [index] or [index][child]; the child group is optional. The index itself
+        // is validated by the server; here we only select the operand columns.
+        static const std::regex kPathRegex(R"(\[(?:0|[1-9][0-9]*)\](?:\[([^\[\]\s]+)\])?)");
+        std::smatch match;
+        if (!std::regex_match(op.Path(), match, kPathRegex)) {
+            return {StatusCode::INVALID_ARGUMENT,
+                    "PATH_REPLACE on struct '" + struct_name + "' requires [index] or [index][child]"};
+        }
+        auto& child_list = whitelist[struct_name];
+        if (match[1].matched) {
+            // a child path selects that child column; keep it so multiple child paths on
+            // the same struct union into one whitelist
+            child_list.insert(match[1].str());
+        } else {
+            has_whole_element[struct_name] = true;
+        }
+    }
+    for (const auto& entry : has_whole_element) {
+        if (entry.second) {
+            whitelist[entry.first].clear();
+        }
+    }
+    return Status::OK();
+}
+
+Status
+ValidateStructSubFieldWhitelist(const std::vector<StructFieldSchema>& struct_fields,
+                                const std::map<std::string, std::set<std::string>>& whitelist) {
+    for (const auto& entry : whitelist) {
+        if (entry.second.empty()) {
+            continue;  // a whole-element [index] path needs no child validation
+        }
+        auto it = std::find_if(struct_fields.begin(), struct_fields.end(),
+                               [&entry](const StructFieldSchema& s) { return s.Name() == entry.first; });
+        if (it == struct_fields.end()) {
+            continue;  // BuildStructSubFieldWhitelist already rejected a non-struct field
+        }
+        for (const auto& child : entry.second) {
+            if (std::none_of(it->Fields().begin(), it->Fields().end(),
+                             [&child](const FieldSchema& f) { return f.Name() == child; })) {
+                return {StatusCode::INVALID_ARGUMENT,
+                        "PATH_REPLACE child '" + child + "' not found in '" + entry.first + "'"};
+            }
+        }
+    }
+    return Status::OK();
+}
+
+Status
+FillStructProtoFields(const std::vector<nlohmann::json>& dict_list, const StructFieldSchema& struct_schema,
+                      const std::set<std::string>& output_fields,
+                      std::map<std::string, proto::schema::FieldData>& proto_sub_fields,
+                      const std::set<std::string>* sub_field_whitelist) {
+    if (dict_list.size() > static_cast<std::size_t>(struct_schema.MaxCapacity())) {
+        std::string error_msg = "Array length " + std::to_string(dict_list.size()) + " exceeds max capacity " +
+                                std::to_string(struct_schema.MaxCapacity()) +
+                                " of struct field: " + struct_schema.Name();
+        return {StatusCode::INVALID_ARGUMENT, error_msg};
+    }
+
+    // Assume a struct field is named "st", sub fields are "name" and "vector", the vector field could be BM25 output.
+    // The output_fields contains "st[vector]" means this vector field is no need to be inputed by insert().
+    // proto_sub_fields contains a key "st[vector]", value is proto::schema::FieldData
+    for (const auto& sub_schema : struct_schema.Fields()) {
+        const auto& sub_name = sub_schema.Name();
+        // PATH_REPLACE child operands only carry the selected child column; an empty
+        // whitelist means a whole-element path ([index]) that keeps every sub-field.
+        if (sub_field_whitelist != nullptr && !sub_field_whitelist->empty() &&
+            sub_field_whitelist->find(sub_name) == sub_field_whitelist->end()) {
+            continue;
+        }
+        std::string combine_name = CombineStructFieldName(struct_schema.Name(), sub_name);
+        if (output_fields.find(combine_name) != output_fields.end()) {
+            continue;
+        }
+
+        // Struct sub-fields are serialized as ARRAY elements; JSON/GEOMETRY/TIMESTAMPTZ are not
+        // supported array element types (matching pymilvus and the server), so reject them here.
+        switch (sub_schema.FieldDataType()) {
+            case DataType::JSON:
+            case DataType::GEOMETRY:
+            case DataType::TIMESTAMPTZ:
+                return {StatusCode::NOT_SUPPORTED,
+                        "Unsupported struct sub-field type: " + std::to_string(sub_schema.FieldDataType())};
+            default:
+                break;
+        }
+
         bool isVectorType = IsVectorType(sub_schema.FieldDataType());
+        bool element_nullable = sub_schema.IsElementNullable() || sub_schema.IsNullable();
 
         proto::schema::FieldData fd;
-        for (const auto& dict : dict_list) {
-            nlohmann::json field_value;
-            if (dict.contains(sub_name)) {
-                field_value = dict[sub_name];
+        if (isVectorType) {
+            auto* vf = fd.mutable_vectors();
+            vf->set_dim(static_cast<int64_t>(sub_schema.Dimension()));
+            for (const auto& dict : dict_list) {
+                nlohmann::json field_value;
+                if (dict.contains(sub_name)) {
+                    field_value = dict[sub_name];
+                }
+                auto status = CheckAndSetStructVectorValue(field_value, sub_schema, vf, element_nullable);
+                if (!status.IsOk()) {
+                    return status;
+                }
             }
-
-            auto status = CheckAndSetFieldValue(field_value, sub_schema, fd);
-            if (!status.IsOk()) {
-                return status;
+            EnsureStructVectorCellPayload(sub_schema, vf);
+        } else {
+            auto* sf = fd.mutable_scalars();
+            const bool is_array_subfield = sub_schema.FieldDataType() == DataType::ARRAY;
+            // For a nested Array sub-field the value itself may be null (array_nullable) and its
+            // leaves may be null (leaf_nullable). For plain scalar sub-fields element nullability
+            // is the sub-field's nullable flag.
+            const bool array_nullable = is_array_subfield ? sub_schema.IsNullable() : element_nullable;
+            const bool leaf_nullable = is_array_subfield ? sub_schema.IsElementNullable() : element_nullable;
+            for (const auto& dict : dict_list) {
+                nlohmann::json field_value;
+                if (dict.contains(sub_name)) {
+                    field_value = dict[sub_name];
+                }
+                auto status = CheckAndSetStructScalarValue(field_value, sub_schema, sf, array_nullable, leaf_nullable);
+                if (!status.IsOk()) {
+                    return status;
+                }
             }
+            EnsureStructScalarCellPayload(sub_schema, sf);
         }
 
         proto::schema::FieldData& proto_field = proto_sub_fields[combine_name];
-        proto_field.set_field_name(sub_name);
+        InitStructSubFieldProto(sub_schema, proto_field);
+        if (struct_schema.IsNullable()) {
+            // nullable struct: every sub-field carries the shared row mask, even when no
+            // row is null, matching the pymilvus/Java write layout
+            AppendStructSubFieldRowMask(true, isVectorType, proto_field);
+        }
         if (isVectorType) {
-            proto_field.set_type(proto::schema::DataType::ArrayOfVector);
-            auto proto_vector_field = proto_field.mutable_vectors();
-            proto_vector_field->set_dim(static_cast<int64_t>(sub_schema.Dimension()));
-
-            auto proto_vector_array = proto_field.mutable_vectors()->mutable_vector_array();
-            proto_vector_array->set_element_type(DataTypeCast(sub_schema.FieldDataType()));
-            proto_vector_array->set_dim(sub_schema.Dimension());
-
-            proto_vector_array->add_data()->CopyFrom(fd.vectors());
+            proto_field.mutable_vectors()->mutable_vector_array()->add_data()->CopyFrom(fd.vectors());
         } else {
-            proto_field.set_type(proto::schema::DataType::Array);
-
-            auto proto_array = proto_field.mutable_scalars()->mutable_array_data();
-            proto_array->add_data()->CopyFrom(fd.scalars());
+            proto_field.mutable_scalars()->mutable_array_data()->add_data()->CopyFrom(fd.scalars());
         }
     }
 
@@ -1079,16 +1488,59 @@ FillStructProtoFields(const std::vector<nlohmann::json>& dict_list, const Struct
 
 Status
 CreateProtoStructData(const FieldDataPtr& column, const StructFieldSchema& struct_schema,
-                      const std::set<std::string>& output_fields, proto::schema::FieldData& field_data) {
+                      const std::set<std::string>& output_fields, proto::schema::FieldData& field_data,
+                      const std::map<std::string, std::set<std::string>>* sub_field_whitelist) {
     auto actual_data = std::dynamic_pointer_cast<StructFieldData>(column);
     if (actual_data == nullptr) {
         return {StatusCode::INVALID_ARGUMENT, "Illegal null pointer for field: " + struct_schema.Name()};
     }
 
     const auto& rows = actual_data->Data();
+    const std::set<std::string>* whitelist = nullptr;
+    if (sub_field_whitelist != nullptr) {
+        auto it = sub_field_whitelist->find(struct_schema.Name());
+        if (it != sub_field_whitelist->end()) {
+            // a PATH_REPLACE op targets this struct: reject null/missing operand rows so the
+            // operation does not silently degrade into a null struct row
+            whitelist = &it->second;
+        }
+    }
     std::map<std::string, proto::schema::FieldData> proto_fields;
-    for (const auto& dict_list : rows) {
-        auto status = FillStructProtoFields(dict_list, struct_schema, output_fields, proto_fields);
+    for (size_t i = 0; i < rows.size(); ++i) {
+        if (actual_data->IsNull(i)) {
+            if (whitelist != nullptr) {
+                return {StatusCode::INVALID_ARGUMENT, "PATH_REPLACE requires an operand for struct field '" +
+                                                          struct_schema.Name() + "' in every row, got a null value"};
+            }
+            if (!struct_schema.IsNullable()) {
+                return {StatusCode::INVALID_ARGUMENT,
+                        "The value of struct field: " + struct_schema.Name() + " cannot be null."};
+            }
+            // a whole null struct row: mark the shared row mask and add no data cell
+            auto status = AppendStructNullRow(struct_schema, output_fields, proto_fields);
+            if (!status.IsOk()) {
+                return status;
+            }
+            continue;
+        }
+        if (whitelist != nullptr) {
+            // a PATH_REPLACE operand is a single-element array (both [index] and
+            // [index][child]); a child path must also explicitly carry every selected child
+            // key, mirroring the row-based upsert path
+            const auto& operand = rows[i];
+            if (operand.size() != 1) {
+                return {StatusCode::INVALID_ARGUMENT, "PATH_REPLACE requires exactly one element for struct field '" +
+                                                          struct_schema.Name() + "' in every row"};
+            }
+            for (const auto& child : *whitelist) {
+                if (!operand.front().is_object() || !operand.front().contains(child)) {
+                    return {StatusCode::INVALID_ARGUMENT, "PATH_REPLACE operand for struct field '" +
+                                                              struct_schema.Name() +
+                                                              "' must explicitly contain child '" + child + "'"};
+                }
+            }
+        }
+        auto status = FillStructProtoFields(rows[i], struct_schema, output_fields, proto_fields, whitelist);
         if (!status.IsOk()) {
             return status;
         }
@@ -1110,7 +1562,8 @@ CreateProtoStructData(const FieldDataPtr& column, const StructFieldSchema& struc
 
 Status
 CreateProtoFieldDatas(const CollectionSchema& collection_schema, const std::vector<FieldDataPtr>& columns,
-                      std::vector<proto::schema::FieldData>& rpc_fields) {
+                      std::vector<proto::schema::FieldData>& rpc_fields,
+                      const std::vector<FieldPartialUpdateOp>* field_ops) {
     std::map<std::string, FieldSchema> normal_fields;
     for (const auto& schema : collection_schema.Fields()) {
         normal_fields.insert(std::make_pair(schema.Name(), schema));
@@ -1123,6 +1576,27 @@ CreateProtoFieldDatas(const CollectionSchema& collection_schema, const std::vect
     std::set<std::string> output_fields;
     GetOutputFields(collection_schema, output_fields);
 
+    // a PATH_REPLACE child path selects only the targeted child column; the whitelist is
+    // shared with the row-based upsert path
+    std::set<std::string> struct_field_names;
+    for (const auto& pair : struct_fields) {
+        struct_field_names.insert(pair.first);
+    }
+    std::map<std::string, std::set<std::string>> sub_field_whitelist;
+    auto status = BuildStructSubFieldWhitelist(field_ops, &struct_field_names, sub_field_whitelist);
+    if (!status.IsOk()) {
+        return status;
+    }
+    std::vector<StructFieldSchema> struct_field_list;
+    struct_field_list.reserve(struct_fields.size());
+    for (const auto& pair : struct_fields) {
+        struct_field_list.push_back(pair.second);
+    }
+    status = ValidateStructSubFieldWhitelist(struct_field_list, sub_field_whitelist);
+    if (!status.IsOk()) {
+        return status;
+    }
+
     auto enable_dynamic_field = collection_schema.EnableDynamicField();
     for (const auto& column : columns) {
         if (output_fields.find(column->Name()) != output_fields.end()) {
@@ -1134,7 +1608,7 @@ CreateProtoFieldDatas(const CollectionSchema& collection_schema, const std::vect
             FieldSchemaPtr schema_ptr = std::make_shared<FieldSchema>(it_normal->second);  // this is a schema copy
             FieldDataSchema bridge(column, schema_ptr);
             proto::schema::FieldData proto_data;
-            auto status = CreateProtoFieldData(bridge, proto_data);
+            status = CreateProtoFieldData(bridge, proto_data);
             if (!status.IsOk()) {
                 return status;
             }
@@ -1148,7 +1622,7 @@ CreateProtoFieldDatas(const CollectionSchema& collection_schema, const std::vect
         auto it_struct = struct_fields.find(column->Name());
         if (it_struct != struct_fields.end()) {
             proto::schema::FieldData proto_data;
-            auto status = CreateProtoStructData(column, it_struct->second, output_fields, proto_data);
+            status = CreateProtoStructData(column, it_struct->second, output_fields, proto_data, &sub_field_whitelist);
             if (!status.IsOk()) {
                 return status;
             }
@@ -1575,12 +2049,32 @@ CheckAndSetFieldValue(const nlohmann::json& obj, const FieldSchema& fs, proto::s
 
 Status
 CheckAndSetRowData(const EntityRows& rows, const CollectionSchema& schema, bool is_upsert, bool partial_upsert,
-                   std::vector<proto::schema::FieldData>& rpc_fields) {
+                   std::vector<proto::schema::FieldData>& rpc_fields,
+                   const std::vector<FieldPartialUpdateOp>* field_ops) {
     std::set<std::string> output_fields;
     GetOutputFields(schema, output_fields);
 
-    const std::vector<FieldSchema>& normal_fields = schema.Fields();
     const std::vector<StructFieldSchema>& struct_fields = schema.StructFields();
+    std::set<std::string> struct_field_names;
+    for (const auto& field_schema : struct_fields) {
+        struct_field_names.insert(field_schema.Name());
+    }
+
+    // Build a per-struct sub-field whitelist from PATH_REPLACE ops: a child path
+    // ([index][child]) sends only the selected child column, while a whole-element
+    // path ([index]) keeps every sub-field. The index itself is validated by the
+    // server; here we only select the operand columns and validate the operand shape.
+    std::map<std::string, std::set<std::string>> path_replace_whitelist;
+    auto status = BuildStructSubFieldWhitelist(field_ops, &struct_field_names, path_replace_whitelist);
+    if (!status.IsOk()) {
+        return status;
+    }
+    status = ValidateStructSubFieldWhitelist(struct_fields, path_replace_whitelist);
+    if (!status.IsOk()) {
+        return status;
+    }
+
+    const std::vector<FieldSchema>& normal_fields = schema.Fields();
     std::set<std::string> field_names;
     for (const auto& field_schema : normal_fields) {
         field_names.insert(field_schema.Name());
@@ -1642,7 +2136,8 @@ CheckAndSetRowData(const EntityRows& rows, const CollectionSchema& schema, bool 
         }
 
         // process values for struct fields
-        status = ProcessStructFieldValues(row, struct_fields, output_fields, partial_upsert, proto_fields);
+        status = ProcessStructFieldValues(row, struct_fields, output_fields, partial_upsert, proto_fields,
+                                          &path_replace_whitelist);
         if (!status.IsOk()) {
             return status;
         }
@@ -1690,7 +2185,20 @@ CheckAndSetRowData(const EntityRows& rows, const CollectionSchema& schema, bool 
         }
     }
     for (const auto& struct_schema : struct_fields) {
-        if (field_counts.find(struct_schema.Name()) == field_counts.end()) {
+        // a nullable struct whose key is missing in every row still writes null rows, so
+        // emit the struct field when any sub-field accumulated data even if the name was
+        // never present in the input rows
+        bool emitted = field_counts.find(struct_schema.Name()) != field_counts.end();
+        if (!emitted) {
+            for (const auto& sub_schema : struct_schema.Fields()) {
+                if (proto_fields.find(CombineStructFieldName(struct_schema.Name(), sub_schema.Name())) !=
+                    proto_fields.end()) {
+                    emitted = true;
+                    break;
+                }
+            }
+        }
+        if (!emitted) {
             continue;
         }
         proto::schema::FieldData field_data;

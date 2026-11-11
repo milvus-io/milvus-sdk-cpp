@@ -754,22 +754,31 @@ TEST_F(DmlUtilsTest, CheckAndSetRowDataRejectsUnsupportedStructSubFieldTypes) {
     EXPECT_EQ(status.Message(), "Unsupported struct sub-field type: GEOMETRY");
 }
 
-TEST_F(DmlUtilsTest, CheckAndSetRowDataRejectsOmittedNullableStruct) {
+TEST_F(DmlUtilsTest, CheckAndSetRowDataNullableStructOmittedWritesNullRow) {
+    // A nullable struct whose key is omitted still writes a whole null struct row,
+    // matching pymilvus/Java insert behavior.
     milvus::CollectionSchema schema("test_coll");
     schema.AddField(milvus::FieldSchema("pk", milvus::DataType::INT64, "pk", true, false));
     schema.AddStructField(milvus::StructFieldSchema("structs").WithMaxCapacity(10).WithNullable(true).AddField(
-        milvus::FieldSchema("value", milvus::DataType::INT32)));
+        milvus::FieldSchema("value", milvus::DataType::INT32).WithNullable(true)));
 
     milvus::EntityRows rows{nlohmann::json{{"pk", 1}}};
     std::vector<milvus::proto::schema::FieldData> rpc_fields;
     auto status = milvus::CheckAndSetRowData(rows, schema, false, false, rpc_fields);
-    EXPECT_EQ(status.Code(), milvus::StatusCode::INVALID_ARGUMENT);
-    EXPECT_EQ(status.Message(), "The struct field: structs is not provided.");
+    ASSERT_TRUE(status.IsOk()) << status.Message();
+    const auto& struct_data =
+        *std::find_if(rpc_fields.begin(), rpc_fields.end(), [](const auto& f) { return f.field_name() == "structs"; });
+    ASSERT_EQ(struct_data.struct_arrays().fields_size(), 1);
+    EXPECT_THAT(std::vector<bool>(struct_data.struct_arrays().fields(0).valid_data().begin(),
+                                  struct_data.struct_arrays().fields(0).valid_data().end()),
+                ::testing::ElementsAre(false));
 
+    // the same applies to a full upsert (is_upsert without partial_update)
     rpc_fields.clear();
     status = milvus::CheckAndSetRowData(rows, schema, true, false, rpc_fields);
-    EXPECT_EQ(status.Code(), milvus::StatusCode::INVALID_ARGUMENT);
+    ASSERT_TRUE(status.IsOk()) << status.Message();
 
+    // the column-based path still requires the struct column to be provided explicitly
     auto desc = std::make_shared<milvus::CollectionDesc>();
     desc->SetSchema(std::move(schema));
     std::vector<milvus::FieldDataPtr> columns{
@@ -1494,4 +1503,502 @@ TEST_F(DmlUtilsTest, FillDmlCost) {
         milvus::FillDmlCost(status, results);
         EXPECT_EQ(results.Cost(), -1);
     }
+}
+
+TEST_F(DmlUtilsTest, CheckAndSetRowDataStructElementNullable) {
+    // A struct with element-nullable scalar/vector sub-fields and a nested Array sub-field.
+    milvus::CollectionSchema schema("test_coll");
+    schema.AddField(milvus::FieldSchema("pk", milvus::DataType::INT64, "pk", true, false));
+    milvus::StructFieldSchema struct_field("structs");
+    struct_field.SetMaxCapacity(10);
+    struct_field.SetNullable(true);
+    struct_field.AddField(
+        milvus::FieldSchema("lang", milvus::DataType::VARCHAR).WithMaxLength(16).WithElementNullable(true));
+    struct_field.AddField(
+        milvus::FieldSchema("emb", milvus::DataType::FLOAT_VECTOR).WithDimension(2).WithElementNullable(true));
+    struct_field.AddField(milvus::FieldSchema("tags", milvus::DataType::ARRAY)
+                              .WithElementType(milvus::DataType::VARCHAR)
+                              .WithMaxCapacity(8)
+                              .WithMaxLength(16)
+                              .WithNullable(true)
+                              .WithElementNullable(true));
+    schema.AddStructField(std::move(struct_field));
+
+    milvus::EntityRows rows{nlohmann::json{
+        {"pk", 1},
+        {"structs",
+         nlohmann::json::array({nlohmann::json{{"lang", "en"}, {"emb", {0.1f, 0.2f}}, {"tags", {"a"}}},
+                                nlohmann::json{{"lang", nullptr}}, nlohmann::json{{"emb", nullptr}},
+                                nlohmann::json{{"tags", nullptr}}, nlohmann::json{{"emb", {0.3f, 0.4f}}}})}}};
+    std::vector<milvus::proto::schema::FieldData> rpc_fields;
+    auto status = milvus::CheckAndSetRowData(rows, schema, false, false, rpc_fields);
+    EXPECT_TRUE(status.IsOk()) << status.Message();
+
+    const auto& struct_data =
+        *std::find_if(rpc_fields.begin(), rpc_fields.end(), [](const auto& f) { return f.field_name() == "structs"; });
+    ASSERT_EQ(struct_data.struct_arrays().fields_size(), 3);
+
+    // scalar sub-field: valid_data marks null elements, payload only carries non-null values
+    const auto& lang = struct_data.struct_arrays().fields(0);
+    ASSERT_EQ(lang.scalars().array_data().data_size(), 1);
+    const auto& lang_row = lang.scalars().array_data().data(0);
+    EXPECT_THAT(std::vector<bool>(lang_row.valid_data().begin(), lang_row.valid_data().end()),
+                ::testing::ElementsAre(true, false, false, false, false));
+    EXPECT_THAT(std::vector<std::string>(lang_row.string_data().data().begin(), lang_row.string_data().data().end()),
+                ::testing::ElementsAre("en"));
+
+    // vector sub-field: compact flattened vectors with element validity
+    const auto& emb = struct_data.struct_arrays().fields(1);
+    ASSERT_EQ(emb.vectors().vector_array().data_size(), 1);
+    const auto& emb_row = emb.vectors().vector_array().data(0);
+    EXPECT_THAT(std::vector<bool>(emb_row.valid_data().begin(), emb_row.valid_data().end()),
+                ::testing::ElementsAre(true, false, false, false, true));
+    EXPECT_THAT(std::vector<float>(emb_row.float_vector().data().begin(), emb_row.float_vector().data().end()),
+                ::testing::ElementsAre(0.1f, 0.2f, 0.3f, 0.4f));
+
+    // nested Array sub-field: one leaf per non-null element, leaf valid_data records null leaves
+    const auto& tags = struct_data.struct_arrays().fields(2);
+    ASSERT_EQ(tags.scalars().array_data().data_size(), 1);
+    const auto& tags_row = tags.scalars().array_data().data(0);
+    EXPECT_THAT(std::vector<bool>(tags_row.valid_data().begin(), tags_row.valid_data().end()),
+                ::testing::ElementsAre(true, false, false, false, false));
+    ASSERT_EQ(tags_row.array_data().data_size(), 1);
+    const auto& leaf0 = tags_row.array_data().data(0);
+    EXPECT_THAT(std::vector<std::string>(leaf0.string_data().data().begin(), leaf0.string_data().data().end()),
+                ::testing::ElementsAre("a"));
+}
+
+TEST_F(DmlUtilsTest, CheckAndSetRowDataRejectsNonElementNullableStructValue) {
+    milvus::CollectionSchema schema("test_coll");
+    schema.AddField(milvus::FieldSchema("pk", milvus::DataType::INT64, "pk", true, false));
+    milvus::StructFieldSchema struct_field("structs");
+    struct_field.SetMaxCapacity(10);
+    struct_field.AddField(milvus::FieldSchema("lang", milvus::DataType::VARCHAR).WithMaxLength(16));
+    schema.AddStructField(std::move(struct_field));
+
+    milvus::EntityRows rows{nlohmann::json{{"pk", 1}, {"structs", {{{"lang", nullptr}}}}}};
+    std::vector<milvus::proto::schema::FieldData> rpc_fields;
+    auto status = milvus::CheckAndSetRowData(rows, schema, false, false, rpc_fields);
+    EXPECT_EQ(status.Code(), milvus::StatusCode::INVALID_ARGUMENT);
+    EXPECT_EQ(status.Message(), "Field 'lang' is not element-nullable but the input value is null");
+}
+
+TEST_F(DmlUtilsTest, CheckAndSetRowDataNonElementNullableStructWritesNoValidData) {
+    // Struct sub-fields without element nullability must not carry any valid_data on the
+    // wire (matching pymilvus and the server requirement for legacy struct collections).
+    milvus::CollectionSchema schema("test_coll");
+    schema.AddField(milvus::FieldSchema("pk", milvus::DataType::INT64, "pk", true, false));
+    milvus::StructFieldSchema struct_field("structs");
+    struct_field.SetMaxCapacity(10);
+    struct_field.AddField(milvus::FieldSchema("st_int32", milvus::DataType::INT32));
+    struct_field.AddField(milvus::FieldSchema("st_varchar", milvus::DataType::VARCHAR).WithMaxLength(64));
+    struct_field.AddField(milvus::FieldSchema("st_vec", milvus::DataType::FLOAT_VECTOR).WithDimension(2));
+    schema.AddStructField(std::move(struct_field));
+
+    milvus::EntityRows rows{nlohmann::json{
+        {"pk", 1},
+        {"structs",
+         nlohmann::json::array({nlohmann::json{{"st_int32", 10}, {"st_varchar", "a"}, {"st_vec", {0.1f, 0.2f}}},
+                                nlohmann::json{{"st_int32", 20}, {"st_varchar", "b"}, {"st_vec", {0.3f, 0.4f}}}})}}};
+    std::vector<milvus::proto::schema::FieldData> rpc_fields;
+    auto status = milvus::CheckAndSetRowData(rows, schema, false, false, rpc_fields);
+    ASSERT_TRUE(status.IsOk()) << status.Message();
+
+    const auto& struct_data =
+        *std::find_if(rpc_fields.begin(), rpc_fields.end(), [](const auto& f) { return f.field_name() == "structs"; });
+    ASSERT_EQ(struct_data.struct_arrays().fields_size(), 3);
+
+    // scalar sub-field: no valid_data, payload carries every element value
+    const auto& int32 = struct_data.struct_arrays().fields(0);
+    EXPECT_TRUE(int32.scalars().array_data().data(0).valid_data().empty());
+    EXPECT_THAT(std::vector<int32_t>(int32.scalars().array_data().data(0).int_data().data().begin(),
+                                     int32.scalars().array_data().data(0).int_data().data().end()),
+                ::testing::ElementsAre(10, 20));
+
+    // vector sub-field: no valid_data, flattened vectors
+    const auto& vec = struct_data.struct_arrays().fields(2);
+    const auto& vec_row = vec.vectors().vector_array().data(0);
+    EXPECT_TRUE(vec_row.valid_data().empty());
+    EXPECT_THAT(std::vector<float>(vec_row.float_vector().data().begin(), vec_row.float_vector().data().end()),
+                ::testing::ElementsAre(0.1f, 0.2f, 0.3f, 0.4f));
+}
+
+TEST_F(DmlUtilsTest, CheckAndSetRowDataStructNullRows) {
+    // A nullable struct writes the shared row mask on every sub-field (FieldData and
+    // payload) for null struct rows: an explicit null, a missing key, and a partial-update
+    // null each produce a false mask bit and no data cell.
+    milvus::CollectionSchema schema("test_coll");
+    schema.AddField(milvus::FieldSchema("pk", milvus::DataType::INT64, "pk", true, false));
+    milvus::StructFieldSchema struct_field("structs");
+    struct_field.SetMaxCapacity(10);
+    struct_field.SetNullable(true);
+    struct_field.AddField(milvus::FieldSchema("lang", milvus::DataType::VARCHAR).WithMaxLength(16).WithNullable(true));
+    struct_field.AddField(milvus::FieldSchema("score", milvus::DataType::INT64).WithNullable(true));
+    schema.AddStructField(std::move(struct_field));
+
+    milvus::EntityRows rows{
+        nlohmann::json{{"pk", 1}, {"structs", nullptr}}, nlohmann::json{{"pk", 2}},
+        nlohmann::json{{"pk", 3},
+                       {"structs", nlohmann::json::array({nlohmann::json{{"lang", "en"}, {"score", 7}},
+                                                          nlohmann::json{{"lang", nullptr}, {"score", 8}}})}}};
+    std::vector<milvus::proto::schema::FieldData> rpc_fields;
+    auto status = milvus::CheckAndSetRowData(rows, schema, false, false, rpc_fields);
+    ASSERT_TRUE(status.IsOk()) << status.Message();
+
+    const auto& struct_data =
+        *std::find_if(rpc_fields.begin(), rpc_fields.end(), [](const auto& f) { return f.field_name() == "structs"; });
+    ASSERT_EQ(struct_data.struct_arrays().fields_size(), 2);
+
+    // shared row mask: rows 0 and 1 are null struct rows
+    const auto& lang = struct_data.struct_arrays().fields(0);
+    EXPECT_THAT(std::vector<bool>(lang.valid_data().begin(), lang.valid_data().end()),
+                ::testing::ElementsAre(false, false, true));
+    EXPECT_THAT(std::vector<bool>(lang.scalars().valid_data().begin(), lang.scalars().valid_data().end()),
+                ::testing::ElementsAre(false, false, true));
+    // only row 2 carries a data cell; the cell element mask records the null element
+    ASSERT_EQ(lang.scalars().array_data().data_size(), 1);
+    EXPECT_THAT(std::vector<bool>(lang.scalars().array_data().data(0).valid_data().begin(),
+                                  lang.scalars().array_data().data(0).valid_data().end()),
+                ::testing::ElementsAre(true, false));
+    EXPECT_THAT(std::vector<std::string>(lang.scalars().array_data().data(0).string_data().data().begin(),
+                                         lang.scalars().array_data().data(0).string_data().data().end()),
+                ::testing::ElementsAre("en"));
+
+    const auto& score = struct_data.struct_arrays().fields(1);
+    EXPECT_THAT(std::vector<bool>(score.valid_data().begin(), score.valid_data().end()),
+                ::testing::ElementsAre(false, false, true));
+    EXPECT_THAT(std::vector<bool>(score.scalars().valid_data().begin(), score.scalars().valid_data().end()),
+                ::testing::ElementsAre(false, false, true));
+    ASSERT_EQ(score.scalars().array_data().data_size(), 1);
+    EXPECT_THAT(std::vector<int64_t>(score.scalars().array_data().data(0).long_data().data().begin(),
+                                     score.scalars().array_data().data(0).long_data().data().end()),
+                ::testing::ElementsAre(7, 8));
+}
+
+TEST_F(DmlUtilsTest, CheckAndSetRowDataStructNullRowsAllMissing) {
+    // When every row omits the nullable struct key, the struct field is still emitted with
+    // an all-null row mask (matching pymilvus insert of null struct rows).
+    milvus::CollectionSchema schema("test_coll");
+    schema.AddField(milvus::FieldSchema("pk", milvus::DataType::INT64, "pk", true, false));
+    milvus::StructFieldSchema struct_field("structs");
+    struct_field.SetMaxCapacity(10);
+    struct_field.SetNullable(true);
+    struct_field.AddField(milvus::FieldSchema("lang", milvus::DataType::VARCHAR).WithMaxLength(16).WithNullable(true));
+    schema.AddStructField(std::move(struct_field));
+
+    milvus::EntityRows rows{nlohmann::json{{"pk", 1}}, nlohmann::json{{"pk", 2}}};
+    std::vector<milvus::proto::schema::FieldData> rpc_fields;
+    auto status = milvus::CheckAndSetRowData(rows, schema, false, false, rpc_fields);
+    ASSERT_TRUE(status.IsOk()) << status.Message();
+
+    const auto& struct_data =
+        *std::find_if(rpc_fields.begin(), rpc_fields.end(), [](const auto& f) { return f.field_name() == "structs"; });
+    ASSERT_EQ(struct_data.struct_arrays().fields_size(), 1);
+    const auto& lang = struct_data.struct_arrays().fields(0);
+    EXPECT_THAT(std::vector<bool>(lang.valid_data().begin(), lang.valid_data().end()),
+                ::testing::ElementsAre(false, false));
+    EXPECT_EQ(lang.scalars().array_data().data_size(), 0);
+}
+
+TEST_F(DmlUtilsTest, CheckAndSetRowDataRejectsNullOnNonNullableStruct) {
+    milvus::CollectionSchema schema("test_coll");
+    schema.AddField(milvus::FieldSchema("pk", milvus::DataType::INT64, "pk", true, false));
+    milvus::StructFieldSchema struct_field("structs");
+    struct_field.SetMaxCapacity(10);
+    struct_field.AddField(milvus::FieldSchema("lang", milvus::DataType::VARCHAR).WithMaxLength(16).WithNullable(true));
+    schema.AddStructField(std::move(struct_field));
+
+    milvus::EntityRows rows{nlohmann::json{{"pk", 1}, {"structs", nullptr}}};
+    std::vector<milvus::proto::schema::FieldData> rpc_fields;
+    auto status = milvus::CheckAndSetRowData(rows, schema, false, false, rpc_fields);
+    EXPECT_EQ(status.Code(), milvus::StatusCode::INVALID_ARGUMENT);
+    EXPECT_EQ(status.Message(), "The value of struct field: structs cannot be null.");
+
+    milvus::EntityRows missing{nlohmann::json{{"pk", 1}}};
+    status = milvus::CheckAndSetRowData(missing, schema, false, false, rpc_fields);
+    EXPECT_EQ(status.Code(), milvus::StatusCode::INVALID_ARGUMENT);
+    EXPECT_EQ(status.Message(), "The struct field: structs is not provided.");
+}
+
+TEST_F(DmlUtilsTest, CheckAndSetRowDataPartialUpsertNullStruct) {
+    // A partial update with an explicit null struct value nulls out the struct (row mask
+    // false), while a missing struct key leaves the field untouched.
+    milvus::CollectionSchema schema("test_coll");
+    schema.AddField(milvus::FieldSchema("pk", milvus::DataType::INT64, "pk", true, false));
+    milvus::StructFieldSchema struct_field("structs");
+    struct_field.SetMaxCapacity(10);
+    struct_field.SetNullable(true);
+    struct_field.AddField(milvus::FieldSchema("lang", milvus::DataType::VARCHAR).WithMaxLength(16).WithNullable(true));
+    schema.AddStructField(std::move(struct_field));
+
+    // row with an explicit null struct value: written as a null struct row
+    milvus::EntityRows null_row{nlohmann::json{{"pk", 1}, {"structs", nullptr}}};
+    std::vector<milvus::proto::schema::FieldData> rpc_fields;
+    auto status = milvus::CheckAndSetRowData(null_row, schema, true, true, rpc_fields);
+    ASSERT_TRUE(status.IsOk()) << status.Message();
+    const auto& struct_data =
+        *std::find_if(rpc_fields.begin(), rpc_fields.end(), [](const auto& f) { return f.field_name() == "structs"; });
+    ASSERT_EQ(struct_data.struct_arrays().fields_size(), 1);
+    EXPECT_THAT(std::vector<bool>(struct_data.struct_arrays().fields(0).valid_data().begin(),
+                                  struct_data.struct_arrays().fields(0).valid_data().end()),
+                ::testing::ElementsAre(false));
+
+    // row with a missing struct key in a partial update: field untouched, not emitted
+    milvus::EntityRows missing_row{nlohmann::json{{"pk", 2}}};
+    rpc_fields.clear();
+    status = milvus::CheckAndSetRowData(missing_row, schema, true, true, rpc_fields);
+    ASSERT_TRUE(status.IsOk()) << status.Message();
+    EXPECT_TRUE(
+        std::none_of(rpc_fields.begin(), rpc_fields.end(), [](const auto& f) { return f.field_name() == "structs"; }));
+}
+
+TEST_F(DmlUtilsTest, BuildStructSubFieldWhitelistWholeElementOverridesChildPaths) {
+    // any whole-element [index] path keeps every sub-field, independent of op order; a
+    // PATH_REPLACE op targeting a non-struct field is rejected
+    const std::set<std::string> struct_names{"clips", "st"};
+    std::vector<milvus::FieldPartialUpdateOp> ops;
+    milvus::FieldPartialUpdateOp whole_element("clips");
+    whole_element.SetOpType(milvus::FieldPartialUpdateOp::OpType::PATH_REPLACE);
+    whole_element.SetPath("[0]");
+    milvus::FieldPartialUpdateOp child("clips");
+    child.SetOpType(milvus::FieldPartialUpdateOp::OpType::PATH_REPLACE);
+    child.SetPath("[1][note]");
+
+    // child after whole-element: the whole-element op must still keep every sub-field
+    std::vector<milvus::FieldPartialUpdateOp> child_first{whole_element, child};
+    std::vector<milvus::FieldPartialUpdateOp> whole_first{child, whole_element};
+    std::map<std::string, std::set<std::string>> whitelist;
+    auto status = milvus::BuildStructSubFieldWhitelist(&child_first, &struct_names, whitelist);
+    ASSERT_TRUE(status.IsOk()) << status.Message();
+    ASSERT_TRUE(whitelist.find("clips") != whitelist.end());
+    EXPECT_TRUE(whitelist["clips"].empty());  // empty = keep all
+
+    // whole-element after child: same result
+    whitelist.clear();
+    status = milvus::BuildStructSubFieldWhitelist(&whole_first, &struct_names, whitelist);
+    ASSERT_TRUE(status.IsOk()) << status.Message();
+    EXPECT_TRUE(whitelist["clips"].empty());
+
+    // child-only ops union into one whitelist
+    milvus::FieldPartialUpdateOp child_lang("clips");
+    child_lang.SetOpType(milvus::FieldPartialUpdateOp::OpType::PATH_REPLACE);
+    child_lang.SetPath("[0][lang]");
+    std::vector<milvus::FieldPartialUpdateOp> two_children{child, child_lang};
+    whitelist.clear();
+    status = milvus::BuildStructSubFieldWhitelist(&two_children, &struct_names, whitelist);
+    ASSERT_TRUE(status.IsOk()) << status.Message();
+    EXPECT_EQ(whitelist["clips"], (std::set<std::string>{"note", "lang"}));
+
+    // a PATH_REPLACE op on a non-struct field is rejected
+    milvus::FieldPartialUpdateOp scalar_op("film_name");
+    scalar_op.SetOpType(milvus::FieldPartialUpdateOp::OpType::PATH_REPLACE);
+    scalar_op.SetPath("[0]");
+    std::vector<milvus::FieldPartialUpdateOp> scalar_ops{scalar_op};
+    whitelist.clear();
+    status = milvus::BuildStructSubFieldWhitelist(&scalar_ops, &struct_names, whitelist);
+    EXPECT_EQ(status.Code(), milvus::StatusCode::INVALID_ARGUMENT);
+    EXPECT_EQ(status.Message(), "PATH_REPLACE only supports struct fields: film_name");
+}
+
+TEST_F(DmlUtilsTest, CreateProtoStructDataRejectsNullRowOnNonNullableStruct) {
+    milvus::CollectionSchema schema("test_coll");
+    schema.AddField(milvus::FieldSchema("pk", milvus::DataType::INT64, "pk", true, false));
+    milvus::StructFieldSchema struct_field("structs");
+    struct_field.SetMaxCapacity(10);
+    struct_field.AddField(milvus::FieldSchema("lang", milvus::DataType::VARCHAR).WithMaxLength(16).WithNullable(true));
+    schema.AddStructField(std::move(struct_field));
+
+    // a StructFieldData column with a null row must be rejected for a non-nullable struct
+    auto struct_column = std::make_shared<milvus::StructFieldData>(
+        "structs",
+        std::vector<std::vector<nlohmann::json>>{nlohmann::json::array({nlohmann::json{{"lang", "en"}}}), {}},
+        std::vector<bool>{true, false});
+    std::vector<milvus::FieldDataPtr> columns{
+        std::make_shared<milvus::Int64FieldData>("pk", std::vector<int64_t>{1, 2}), struct_column};
+    std::vector<milvus::proto::schema::FieldData> rpc_fields;
+    auto status = milvus::CreateProtoFieldDatas(schema, columns, rpc_fields);
+    EXPECT_EQ(status.Code(), milvus::StatusCode::INVALID_ARGUMENT);
+    EXPECT_EQ(status.Message(), "The value of struct field: structs cannot be null.");
+}
+
+TEST_F(DmlUtilsTest, CheckAndSetRowDataEmptyStructArrayWritesTypedCells) {
+    // an empty struct array row writes one typed (but empty) cell per sub-field; the
+    // server rejects a cell whose oneof payload is nil ("nil array data")
+    milvus::CollectionSchema schema("test_coll");
+    schema.AddField(milvus::FieldSchema("pk", milvus::DataType::INT64, "pk", true, false));
+    milvus::StructFieldSchema struct_field("structs");
+    struct_field.SetMaxCapacity(10);
+    struct_field.SetNullable(true);
+    struct_field.AddField(milvus::FieldSchema("st_int32", milvus::DataType::INT32));
+    struct_field.AddField(milvus::FieldSchema("st_varchar", milvus::DataType::VARCHAR).WithMaxLength(64));
+    struct_field.AddField(milvus::FieldSchema("st_vec", milvus::DataType::FLOAT_VECTOR).WithDimension(2));
+    schema.AddStructField(std::move(struct_field));
+
+    milvus::EntityRows rows{nlohmann::json{{"pk", 1}, {"structs", nlohmann::json::array()}}};
+    std::vector<milvus::proto::schema::FieldData> rpc_fields;
+    auto status = milvus::CheckAndSetRowData(rows, schema, false, false, rpc_fields);
+    ASSERT_TRUE(status.IsOk()) << status.Message();
+
+    const auto& struct_data =
+        *std::find_if(rpc_fields.begin(), rpc_fields.end(), [](const auto& f) { return f.field_name() == "structs"; });
+    ASSERT_EQ(struct_data.struct_arrays().fields_size(), 3);
+    const auto& int32_cell = struct_data.struct_arrays().fields(0).scalars().array_data().data(0);
+    EXPECT_TRUE(int32_cell.has_int_data());
+    EXPECT_EQ(int32_cell.int_data().data_size(), 0);
+    const auto& varchar_cell = struct_data.struct_arrays().fields(1).scalars().array_data().data(0);
+    EXPECT_TRUE(varchar_cell.has_string_data());
+    EXPECT_EQ(varchar_cell.string_data().data_size(), 0);
+    const auto& vec_cell = struct_data.struct_arrays().fields(2).vectors().vector_array().data(0);
+    EXPECT_TRUE(vec_cell.has_float_vector());
+    EXPECT_EQ(vec_cell.float_vector().data_size(), 0);
+}
+
+TEST_F(DmlUtilsTest, CreateProtoStructDataRejectsMissingPathReplaceChild) {
+    // the column-based upsert path must validate a PATH_REPLACE [index][child] operand the
+    // same way as the row-based path: the single-element operand must explicitly carry the
+    // selected child key
+    milvus::CollectionSchema schema("test_coll");
+    schema.AddField(milvus::FieldSchema("pk", milvus::DataType::INT64, "pk", true, false));
+    milvus::StructFieldSchema struct_field("clips");
+    struct_field.SetMaxCapacity(10);
+    struct_field.SetNullable(true);
+    struct_field.AddField(milvus::FieldSchema("note", milvus::DataType::VARCHAR).WithMaxLength(64).WithNullable(true));
+    struct_field.AddField(milvus::FieldSchema("score", milvus::DataType::INT64).WithNullable(true));
+    schema.AddStructField(std::move(struct_field));
+
+    auto struct_column = std::make_shared<milvus::StructFieldData>(
+        "clips", std::vector<std::vector<nlohmann::json>>{{nlohmann::json{{"score", 7}}}});
+    std::vector<milvus::FieldDataPtr> columns{std::make_shared<milvus::Int64FieldData>("pk", std::vector<int64_t>{1}),
+                                              struct_column};
+
+    milvus::FieldPartialUpdateOp op("clips", milvus::FieldPartialUpdateOp::OpType::PATH_REPLACE);
+    op.WithPath("[0][note]");
+    std::vector<milvus::FieldPartialUpdateOp> field_ops{op};
+
+    std::vector<milvus::proto::schema::FieldData> rpc_fields;
+    auto status = milvus::CreateProtoFieldDatas(schema, columns, rpc_fields, &field_ops);
+    EXPECT_EQ(status.Code(), milvus::StatusCode::INVALID_ARGUMENT);
+    EXPECT_EQ(status.Message(), "PATH_REPLACE operand for struct field 'clips' must explicitly contain child 'note'");
+}
+
+TEST_F(DmlUtilsTest, CheckAndSetRowDataRejectsUnknownPathReplaceChild) {
+    // a PATH_REPLACE [index][child] whose child does not exist in the struct schema must
+    // fail fast instead of reaching the server with an empty struct payload (pymilvus
+    // rejects it client-side with "PATH_REPLACE child 'bogus' not found in 'clips'")
+    milvus::CollectionSchema schema("test_coll");
+    schema.AddField(milvus::FieldSchema("pk", milvus::DataType::INT64, "pk", true, false));
+    milvus::StructFieldSchema struct_field("clips");
+    struct_field.SetMaxCapacity(10);
+    struct_field.SetNullable(true);
+    struct_field.AddField(milvus::FieldSchema("note", milvus::DataType::VARCHAR).WithMaxLength(64).WithNullable(true));
+    schema.AddStructField(std::move(struct_field));
+
+    milvus::EntityRows rows{
+        nlohmann::json{{"pk", 1}, {"clips", nlohmann::json::array({nlohmann::json{{"bogus", "x"}}})}}};
+    milvus::FieldPartialUpdateOp op("clips", milvus::FieldPartialUpdateOp::OpType::PATH_REPLACE);
+    op.WithPath("[0][bogus]");
+    std::vector<milvus::FieldPartialUpdateOp> field_ops{op};
+
+    std::vector<milvus::proto::schema::FieldData> rpc_fields;
+    auto status = milvus::CheckAndSetRowData(rows, schema, true, true, rpc_fields, &field_ops);
+    EXPECT_EQ(status.Code(), milvus::StatusCode::INVALID_ARGUMENT);
+    EXPECT_EQ(status.Message(), "PATH_REPLACE child 'bogus' not found in 'clips'");
+}
+
+TEST_F(DmlUtilsTest, CreateProtoStructDataRejectsMultiElementPathReplaceOperand) {
+    // a whole-element [index] PATH_REPLACE operand must also be a single-element array on
+    // the column path (parity with the row-based path)
+    milvus::CollectionSchema schema("test_coll");
+    schema.AddField(milvus::FieldSchema("pk", milvus::DataType::INT64, "pk", true, false));
+    milvus::StructFieldSchema struct_field("clips");
+    struct_field.SetMaxCapacity(10);
+    struct_field.SetNullable(true);
+    struct_field.AddField(milvus::FieldSchema("note", milvus::DataType::VARCHAR).WithMaxLength(64).WithNullable(true));
+    schema.AddStructField(std::move(struct_field));
+
+    // the column operand holds two struct elements
+    auto struct_column = std::make_shared<milvus::StructFieldData>(
+        "clips",
+        std::vector<std::vector<nlohmann::json>>{{nlohmann::json{{"note", "a"}}, nlohmann::json{{"note", "b"}}}});
+    std::vector<milvus::FieldDataPtr> columns{std::make_shared<milvus::Int64FieldData>("pk", std::vector<int64_t>{1}),
+                                              struct_column};
+
+    milvus::FieldPartialUpdateOp op("clips", milvus::FieldPartialUpdateOp::OpType::PATH_REPLACE);
+    op.WithPath("[0]");
+    std::vector<milvus::FieldPartialUpdateOp> field_ops{op};
+
+    std::vector<milvus::proto::schema::FieldData> rpc_fields;
+    auto status = milvus::CreateProtoFieldDatas(schema, columns, rpc_fields, &field_ops);
+    EXPECT_EQ(status.Code(), milvus::StatusCode::INVALID_ARGUMENT);
+    EXPECT_EQ(status.Message(), "PATH_REPLACE requires exactly one element for struct field 'clips' in every row");
+}
+
+TEST_F(DmlUtilsTest, CheckAndSetRowDataNestedArrayAllNullLeafHasTypedPayload) {
+    // an all-null or empty inner array must still carry a typed leaf payload, otherwise the
+    // server rejects the cell ("Array validity has no typed payload"), matching pymilvus
+    milvus::CollectionSchema schema("test_coll");
+    schema.AddField(milvus::FieldSchema("pk", milvus::DataType::INT64, "pk", true, false));
+    milvus::StructFieldSchema struct_field("structs");
+    struct_field.SetMaxCapacity(10);
+    struct_field.SetNullable(true);
+    struct_field.AddField(milvus::FieldSchema("tags", milvus::DataType::ARRAY)
+                              .WithElementType(milvus::DataType::INT64)
+                              .WithMaxCapacity(8)
+                              .WithNullable(true)
+                              .WithElementNullable(true));
+    schema.AddStructField(std::move(struct_field));
+
+    milvus::EntityRow row;
+    row["pk"] = 1;
+    row["structs"] = nlohmann::json::array();
+    nlohmann::json st0;
+    st0["tags"] = nlohmann::json::array({nullptr, nullptr});
+    nlohmann::json st1;
+    st1["tags"] = nlohmann::json::array();
+    nlohmann::json st2;
+    st2["tags"] = nlohmann::json::array({1, nullptr, 3});
+    row["structs"].push_back(st0);
+    row["structs"].push_back(st1);
+    row["structs"].push_back(st2);
+    milvus::EntityRows rows;
+    rows.emplace_back(std::move(row));
+    std::vector<milvus::proto::schema::FieldData> rpc_fields;
+    auto status = milvus::CheckAndSetRowData(rows, schema, false, false, rpc_fields);
+    ASSERT_TRUE(status.IsOk()) << status.Message();
+
+    const auto& struct_data =
+        *std::find_if(rpc_fields.begin(), rpc_fields.end(), [](const auto& f) { return f.field_name() == "structs"; });
+    ASSERT_EQ(struct_data.struct_arrays().fields_size(), 1);
+    const auto& tags = struct_data.struct_arrays().fields(0);
+    ASSERT_EQ(tags.scalars().array_data().data_size(), 1);
+    const auto& cell = tags.scalars().array_data().data(0);
+    ASSERT_EQ(cell.array_data().data_size(), 3);
+    EXPECT_TRUE(cell.array_data().data(0).has_long_data());
+    EXPECT_TRUE(cell.array_data().data(1).has_long_data());
+    ASSERT_TRUE(cell.array_data().data(2).has_long_data());
+    EXPECT_EQ(cell.array_data().data(2).long_data().data_size(), 2);
+}
+
+TEST_F(DmlUtilsTest, CheckAndSetRowDataRejectsNestedArrayOverCapacity) {
+    // a nested-Array sub-field enforces its inner max_capacity client-side like a top-level
+    // array field
+    milvus::CollectionSchema schema("test_coll");
+    schema.AddField(milvus::FieldSchema("pk", milvus::DataType::INT64, "pk", true, false));
+    milvus::StructFieldSchema struct_field("structs");
+    struct_field.SetMaxCapacity(10);
+    struct_field.SetNullable(true);
+    struct_field.AddField(milvus::FieldSchema("tags", milvus::DataType::ARRAY)
+                              .WithElementType(milvus::DataType::INT64)
+                              .WithMaxCapacity(4)
+                              .WithNullable(true)
+                              .WithElementNullable(true));
+    schema.AddStructField(std::move(struct_field));
+
+    milvus::EntityRows rows{nlohmann::json{
+        {"pk", 1},
+        {"structs", nlohmann::json::array({nlohmann::json{{"tags", nlohmann::json::array({1, 2, 3, 4, 5})}}})}}};
+    std::vector<milvus::proto::schema::FieldData> rpc_fields;
+    auto status = milvus::CheckAndSetRowData(rows, schema, false, false, rpc_fields);
+    EXPECT_EQ(status.Code(), milvus::StatusCode::INVALID_ARGUMENT);
+    EXPECT_EQ(status.Message(), "Array length 5 exceeds max capacity of field: tags");
 }

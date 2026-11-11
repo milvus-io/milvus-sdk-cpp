@@ -71,11 +71,101 @@ FillPartialUpdateSchema(milvus::proto::milvus::DescribeCollectionResponse* respo
 }
 
 void
+FillPartialUpdateStructSchema(milvus::proto::milvus::DescribeCollectionResponse* response) {
+    auto* schema = response->mutable_schema();
+    schema->set_name("struct_path_replace_coll");
+    response->set_collectionid(300);
+
+    auto* id = schema->add_fields();
+    id->set_name("id");
+    id->set_data_type(milvus::proto::schema::DataType::Int64);
+    id->set_is_primary_key(true);
+
+    // struct field "clips" with a nullable scalar sub-field "note"
+    auto* clips = schema->add_struct_array_fields();
+    clips->set_name("clips");
+    clips->set_nullable(true);
+    auto* score = clips->add_fields();
+    score->set_name("score");
+    score->set_data_type(milvus::proto::schema::DataType::Array);
+    score->set_element_type(milvus::proto::schema::DataType::Int64);
+    auto* score_capacity = score->add_type_params();
+    score_capacity->set_key("max_capacity");
+    score_capacity->set_value("16");
+    auto* note = clips->add_fields();
+    note->set_name("note");
+    note->set_data_type(milvus::proto::schema::DataType::Array);
+    note->set_element_type(milvus::proto::schema::DataType::VarChar);
+    note->set_element_nullable(true);
+    auto* note_capacity = note->add_type_params();
+    note_capacity->set_key("max_capacity");
+    note_capacity->set_value("16");
+    auto* note_max_length = note->add_type_params();
+    note_max_length->set_key("max_length");
+    note_max_length->set_value("64");
+}
+
+void
+FillNullableStructSchema(milvus::proto::milvus::DescribeCollectionResponse* response) {
+    auto* schema = response->mutable_schema();
+    schema->set_name("struct_null_coll");
+    response->set_collectionid(400);
+
+    auto* id = schema->add_fields();
+    id->set_name("id");
+    id->set_data_type(milvus::proto::schema::DataType::Int64);
+    id->set_is_primary_key(true);
+
+    auto* clips = schema->add_struct_array_fields();
+    clips->set_name("clips");
+    clips->set_nullable(true);
+    auto* lang = clips->add_fields();
+    lang->set_name("lang");
+    lang->set_data_type(milvus::proto::schema::DataType::Array);
+    lang->set_element_type(milvus::proto::schema::DataType::VarChar);
+    lang->set_element_nullable(true);
+    auto* lang_capacity = lang->add_type_params();
+    lang_capacity->set_key("max_capacity");
+    lang_capacity->set_value("16");
+    auto* lang_max_length = lang->add_type_params();
+    lang_max_length->set_key("max_length");
+    lang_max_length->set_value("64");
+}
+
+// Describe response where a sub-field was added later: the server keeps the bracketed
+// name "clips[note]" for it (create-time sub-fields are plain).
+void
+FillStructSchemaWithAddedSubField(milvus::proto::milvus::DescribeCollectionResponse* response) {
+    auto* schema = response->mutable_schema();
+    schema->set_name("struct_add_subfield_coll");
+    response->set_collectionid(500);
+
+    auto* id = schema->add_fields();
+    id->set_name("id");
+    id->set_data_type(milvus::proto::schema::DataType::Int64);
+    id->set_is_primary_key(true);
+
+    auto* clips = schema->add_struct_array_fields();
+    clips->set_name("clips");
+    clips->set_nullable(true);
+    auto* note = clips->add_fields();
+    note->set_name("clips[note]");
+    note->set_data_type(milvus::proto::schema::DataType::Array);
+    note->set_element_type(milvus::proto::schema::DataType::VarChar);
+    note->set_element_nullable(true);
+    auto* note_capacity = note->add_type_params();
+    note_capacity->set_key("max_capacity");
+    note_capacity->set_value("16");
+    auto* note_max_length = note->add_type_params();
+    note_max_length->set_key("max_length");
+    note_max_length->set_value("64");
+}
+
+void
 SetSchemaMismatch(milvus::proto::milvus::MutationResult* response) {
     response->mutable_status()->set_error_code(milvus::proto::common::ErrorCode::SchemaMismatch);
     response->mutable_status()->set_reason("schema mismatch");
 }
-
 void
 FillStringBackedSchema(milvus::proto::milvus::DescribeCollectionResponse* response) {
     auto* schema = response->mutable_schema();
@@ -161,6 +251,113 @@ TEST_F(UnconnectMilvusMockedTest, UpsertFieldPartialUpdateOps) {
     auto status = client->Upsert(request, response);
     EXPECT_TRUE(status.IsOk()) << status.Message();
     EXPECT_EQ(response.Results().UpsertCount(), 1);
+}
+
+TEST_F(UnconnectMilvusMockedTest, UpsertStructPathReplaceSendsOnlySelectedChild) {
+    auto client = CreateConnectedV2Client(service_, server_.ListenPort());
+
+    EXPECT_CALL(service_, DescribeCollection(_, _, _))
+        .WillOnce([](::grpc::ServerContext*, const milvus::proto::milvus::DescribeCollectionRequest*,
+                     milvus::proto::milvus::DescribeCollectionResponse* response) {
+            FillPartialUpdateStructSchema(response);
+            return ::grpc::Status{};
+        });
+
+    EXPECT_CALL(service_, Upsert(_, _, _))
+        .WillOnce([](::grpc::ServerContext*, const milvus::proto::milvus::UpsertRequest* request,
+                     milvus::proto::milvus::MutationResult* response) {
+            EXPECT_EQ(request->collection_name(), "struct_path_replace_coll");
+            EXPECT_TRUE(request->partial_update());
+            if (request->field_ops_size() != 2) {
+                ADD_FAILURE() << "Expected two field operations, got " << request->field_ops_size();
+                return ::grpc::Status{};
+            }
+            EXPECT_EQ(request->field_ops(0).field_name(), "id");
+            EXPECT_EQ(request->field_ops(0).op(), milvus::proto::schema::FieldPartialUpdateOp::REPLACE);
+            EXPECT_EQ(request->field_ops(1).field_name(), "clips");
+            EXPECT_EQ(request->field_ops(1).op(), milvus::proto::schema::FieldPartialUpdateOp::PATH_REPLACE);
+            EXPECT_EQ(request->field_ops(1).path(), "[0][note]");
+
+            // the child path operand must serialize only the selected "note" sub-field
+            const auto& clips = *std::find_if(request->fields_data().begin(), request->fields_data().end(),
+                                              [](const auto& f) { return f.field_name() == "clips"; });
+            EXPECT_EQ(clips.struct_arrays().fields_size(), 1);
+            EXPECT_EQ(clips.struct_arrays().fields(0).field_name(), "note");
+
+            response->mutable_status()->set_code(0);
+            response->set_upsert_cnt(1);
+            return ::grpc::Status{};
+        });
+
+    milvus::EntityRow row;
+    row["id"] = 1;
+    row["clips"] = nlohmann::json::array({nlohmann::json{{"note", "updated"}}});
+
+    milvus::UpsertRequest request;
+    request.WithCollectionName("struct_path_replace_coll")
+        .AddRowData(std::move(row))
+        .AddFieldOp(milvus::FieldPartialUpdateOp("id"))
+        .AddFieldOp(milvus::FieldPartialUpdateOp("clips", milvus::FieldPartialUpdateOp::OpType::PATH_REPLACE)
+                        .WithPath("[0][note]"));
+
+    milvus::UpsertResponse response;
+    auto status = client->Upsert(request, response);
+    EXPECT_TRUE(status.IsOk()) << status.Message();
+    EXPECT_EQ(response.Results().UpsertCount(), 1);
+}
+
+TEST_F(UnconnectMilvusMockedTest, UpsertStructPathReplaceRejectsMissingChild) {
+    auto client = CreateConnectedV2Client(service_, server_.ListenPort());
+
+    EXPECT_CALL(service_, DescribeCollection(_, _, _))
+        .WillOnce([](::grpc::ServerContext*, const milvus::proto::milvus::DescribeCollectionRequest*,
+                     milvus::proto::milvus::DescribeCollectionResponse* response) {
+            FillPartialUpdateStructSchema(response);
+            return ::grpc::Status{};
+        });
+
+    milvus::EntityRow row;
+    row["id"] = 1;
+    row["clips"] = nlohmann::json::array({nlohmann::json{{"score", 10}}});
+
+    milvus::UpsertRequest request;
+    request.WithCollectionName("struct_path_replace_coll")
+        .AddRowData(std::move(row))
+        .AddFieldOp(milvus::FieldPartialUpdateOp("id"))
+        .AddFieldOp(milvus::FieldPartialUpdateOp("clips", milvus::FieldPartialUpdateOp::OpType::PATH_REPLACE)
+                        .WithPath("[0][note]"));
+
+    milvus::UpsertResponse response;
+    auto status = client->Upsert(request, response);
+    EXPECT_EQ(status.Code(), milvus::StatusCode::INVALID_ARGUMENT);
+    EXPECT_EQ(status.Message(), "PATH_REPLACE operand for struct field 'clips' must explicitly contain child 'note'");
+}
+
+TEST_F(UnconnectMilvusMockedTest, UpsertStructPathReplaceRejectsInvalidPath) {
+    auto client = CreateConnectedV2Client(service_, server_.ListenPort());
+
+    EXPECT_CALL(service_, DescribeCollection(_, _, _))
+        .WillOnce([](::grpc::ServerContext*, const milvus::proto::milvus::DescribeCollectionRequest*,
+                     milvus::proto::milvus::DescribeCollectionResponse* response) {
+            FillPartialUpdateStructSchema(response);
+            return ::grpc::Status{};
+        });
+
+    milvus::EntityRow row;
+    row["id"] = 1;
+    row["clips"] = nlohmann::json::array({nlohmann::json{{"note", "updated"}}});
+
+    milvus::UpsertRequest request;
+    request.WithCollectionName("struct_path_replace_coll")
+        .AddRowData(std::move(row))
+        .AddFieldOp(milvus::FieldPartialUpdateOp("id"))
+        .AddFieldOp(milvus::FieldPartialUpdateOp("clips", milvus::FieldPartialUpdateOp::OpType::PATH_REPLACE)
+                        .WithPath("[0][note][extra]"));
+
+    milvus::UpsertResponse response;
+    auto status = client->Upsert(request, response);
+    EXPECT_EQ(status.Code(), milvus::StatusCode::INVALID_ARGUMENT);
+    EXPECT_EQ(status.Message(), "PATH_REPLACE on struct 'clips' requires [index] or [index][child]");
 }
 
 TEST_F(UnconnectMilvusMockedTest, UpsertPreservesEmptyRpcDatabaseAndNormalizesCacheKey) {
@@ -740,4 +937,260 @@ TEST_F(UnconnectMilvusMockedTest, DeleteRlsContext) {
                                  response);
     EXPECT_TRUE(status.IsOk()) << status.Message();
     EXPECT_EQ(response.Results().DeleteCount(), 2);
+}
+
+TEST_F(UnconnectMilvusMockedTest, InsertStructNullRowsWritesRowMask) {
+    auto client = CreateConnectedV2Client(service_, server_.ListenPort());
+
+    EXPECT_CALL(service_, DescribeCollection(_, _, _))
+        .WillOnce([](::grpc::ServerContext*, const milvus::proto::milvus::DescribeCollectionRequest*,
+                     milvus::proto::milvus::DescribeCollectionResponse* response) {
+            FillNullableStructSchema(response);
+            return ::grpc::Status{};
+        });
+
+    EXPECT_CALL(service_, Insert(_, _, _))
+        .WillOnce([](::grpc::ServerContext*, const milvus::proto::milvus::InsertRequest* request,
+                     milvus::proto::milvus::MutationResult* response) {
+            EXPECT_EQ(request->collection_name(), "struct_null_coll");
+            const auto& clips = *std::find_if(request->fields_data().begin(), request->fields_data().end(),
+                                              [](const auto& f) { return f.field_name() == "clips"; });
+            EXPECT_EQ(clips.struct_arrays().fields_size(), 1);
+            const auto& lang = clips.struct_arrays().fields(0);
+            // shared row mask on the sub-field FieldData and the payload: rows 0 and 1 are
+            // null struct rows, row 2 is valid; only the valid row carries a data cell
+            EXPECT_EQ(lang.valid_data_size(), 3);
+            EXPECT_FALSE(lang.valid_data(0));
+            EXPECT_FALSE(lang.valid_data(1));
+            EXPECT_TRUE(lang.valid_data(2));
+            EXPECT_EQ(lang.scalars().valid_data_size(), 3);
+            EXPECT_FALSE(lang.scalars().valid_data(0));
+            EXPECT_FALSE(lang.scalars().valid_data(1));
+            EXPECT_TRUE(lang.scalars().valid_data(2));
+            EXPECT_EQ(lang.scalars().array_data().data_size(), 1);
+            // the row's element mask records the null element inside the struct array
+            EXPECT_EQ(lang.scalars().array_data().data(0).valid_data_size(), 2);
+            EXPECT_TRUE(lang.scalars().array_data().data(0).valid_data(0));
+            EXPECT_FALSE(lang.scalars().array_data().data(0).valid_data(1));
+            EXPECT_EQ(lang.scalars().array_data().data(0).string_data().data_size(), 1);
+            EXPECT_EQ(lang.scalars().array_data().data(0).string_data().data(0), "en");
+
+            response->mutable_status()->set_code(0);
+            response->set_insert_cnt(3);
+            response->set_timestamp(100);
+            return ::grpc::Status{};
+        });
+
+    milvus::EntityRows rows;
+    for (int i = 0; i < 3; ++i) {
+        milvus::EntityRow row;
+        row["id"] = i;
+        if (i == 2) {
+            row["clips"] = nlohmann::json::array({nlohmann::json{{"lang", "en"}}, nlohmann::json{{"lang", nullptr}}});
+        } else {
+            row["clips"] = nullptr;
+        }
+        rows.emplace_back(std::move(row));
+    }
+
+    milvus::InsertResponse response;
+    auto status = client->Insert(
+        milvus::InsertRequest().WithCollectionName("struct_null_coll").WithRowsData(std::move(rows)), response);
+    EXPECT_TRUE(status.IsOk()) << status.Message();
+    EXPECT_EQ(response.Results().InsertCount(), 3);
+}
+
+TEST_F(UnconnectMilvusMockedTest, UpsertStructPathReplaceColumnDataSendsOnlySelectedChild) {
+    auto client = CreateConnectedV2Client(service_, server_.ListenPort());
+
+    EXPECT_CALL(service_, DescribeCollection(_, _, _))
+        .WillOnce([](::grpc::ServerContext*, const milvus::proto::milvus::DescribeCollectionRequest*,
+                     milvus::proto::milvus::DescribeCollectionResponse* response) {
+            FillPartialUpdateStructSchema(response);
+            return ::grpc::Status{};
+        });
+
+    EXPECT_CALL(service_, Upsert(_, _, _))
+        .WillOnce([](::grpc::ServerContext*, const milvus::proto::milvus::UpsertRequest* request,
+                     milvus::proto::milvus::MutationResult* response) {
+            EXPECT_EQ(request->collection_name(), "struct_path_replace_coll");
+            EXPECT_TRUE(request->partial_update());
+            if (request->field_ops_size() != 2) {
+                ADD_FAILURE() << "Expected two field operations, got " << request->field_ops_size();
+                return ::grpc::Status{};
+            }
+            EXPECT_EQ(request->field_ops(1).field_name(), "clips");
+            EXPECT_EQ(request->field_ops(1).op(), milvus::proto::schema::FieldPartialUpdateOp::PATH_REPLACE);
+            EXPECT_EQ(request->field_ops(1).path(), "[0][note]");
+            // the column path must serialize only the selected "note" sub-field
+            const auto& clips = *std::find_if(request->fields_data().begin(), request->fields_data().end(),
+                                              [](const auto& f) { return f.field_name() == "clips"; });
+            EXPECT_EQ(clips.struct_arrays().fields_size(), 1);
+            EXPECT_EQ(clips.struct_arrays().fields(0).field_name(), "note");
+
+            response->mutable_status()->set_code(0);
+            response->set_upsert_cnt(1);
+            return ::grpc::Status{};
+        });
+
+    milvus::UpsertRequest request;
+    request.WithCollectionName("struct_path_replace_coll");
+    request.AddColumnData(std::make_shared<milvus::Int64FieldData>("id", std::vector<int64_t>{1}));
+    request.AddColumnData(std::make_shared<milvus::StructFieldData>(
+        "clips", std::vector<std::vector<nlohmann::json>>{{nlohmann::json{{"note", "updated"}}}}));
+    request.AddFieldOp(milvus::FieldPartialUpdateOp("id"));
+    request.AddFieldOp(milvus::FieldPartialUpdateOp("clips", milvus::FieldPartialUpdateOp::OpType::PATH_REPLACE)
+                           .WithPath("[0][note]"));
+
+    milvus::UpsertResponse response;
+    auto status = client->Upsert(request, response);
+    EXPECT_TRUE(status.IsOk()) << status.Message();
+    EXPECT_EQ(response.Results().UpsertCount(), 1);
+}
+
+TEST_F(UnconnectMilvusMockedTest, UpsertStructPathReplaceWholeElementKeepsAllSubFields) {
+    auto client = CreateConnectedV2Client(service_, server_.ListenPort());
+
+    EXPECT_CALL(service_, DescribeCollection(_, _, _))
+        .WillOnce([](::grpc::ServerContext*, const milvus::proto::milvus::DescribeCollectionRequest*,
+                     milvus::proto::milvus::DescribeCollectionResponse* response) {
+            FillPartialUpdateStructSchema(response);
+            return ::grpc::Status{};
+        });
+
+    EXPECT_CALL(service_, Upsert(_, _, _))
+        .WillOnce([](::grpc::ServerContext*, const milvus::proto::milvus::UpsertRequest* request,
+                     milvus::proto::milvus::MutationResult* response) {
+            EXPECT_EQ(request->collection_name(), "struct_path_replace_coll");
+            EXPECT_TRUE(request->partial_update());
+            if (request->field_ops_size() != 2) {
+                ADD_FAILURE() << "Expected two field operations, got " << request->field_ops_size();
+                return ::grpc::Status{};
+            }
+            EXPECT_EQ(request->field_ops(1).field_name(), "clips");
+            EXPECT_EQ(request->field_ops(1).op(), milvus::proto::schema::FieldPartialUpdateOp::PATH_REPLACE);
+            EXPECT_EQ(request->field_ops(1).path(), "[0]");
+            // a whole-element path replaces one complete element: every sub-field is kept
+            const auto& clips = *std::find_if(request->fields_data().begin(), request->fields_data().end(),
+                                              [](const auto& f) { return f.field_name() == "clips"; });
+            EXPECT_EQ(clips.struct_arrays().fields_size(), 2);
+            EXPECT_EQ(clips.struct_arrays().fields(0).field_name(), "score");
+            EXPECT_EQ(clips.struct_arrays().fields(1).field_name(), "note");
+
+            response->mutable_status()->set_code(0);
+            response->set_upsert_cnt(1);
+            return ::grpc::Status{};
+        });
+
+    milvus::EntityRow row;
+    row["id"] = 1;
+    // the operand is one complete element: the non-nullable "score" child is present and the
+    // nullable "note" child is omitted (null)
+    row["clips"] = nlohmann::json::array({nlohmann::json{{"score", 10}}});
+
+    milvus::UpsertRequest request;
+    request.WithCollectionName("struct_path_replace_coll")
+        .AddRowData(std::move(row))
+        .AddFieldOp(milvus::FieldPartialUpdateOp("id"))
+        .AddFieldOp(
+            milvus::FieldPartialUpdateOp("clips", milvus::FieldPartialUpdateOp::OpType::PATH_REPLACE).WithPath("[0]"));
+
+    milvus::UpsertResponse response;
+    auto status = client->Upsert(request, response);
+    EXPECT_TRUE(status.IsOk()) << status.Message();
+    EXPECT_EQ(response.Results().UpsertCount(), 1);
+}
+
+TEST_F(UnconnectMilvusMockedTest, InsertStructAddedSubFieldUsesPlainKey) {
+    auto client = CreateConnectedV2Client(service_, server_.ListenPort());
+
+    EXPECT_CALL(service_, DescribeCollection(_, _, _))
+        .WillOnce([](::grpc::ServerContext*, const milvus::proto::milvus::DescribeCollectionRequest*,
+                     milvus::proto::milvus::DescribeCollectionResponse* response) {
+            FillStructSchemaWithAddedSubField(response);
+            return ::grpc::Status{};
+        });
+
+    EXPECT_CALL(service_, Insert(_, _, _))
+        .WillOnce([](::grpc::ServerContext*, const milvus::proto::milvus::InsertRequest* request,
+                     milvus::proto::milvus::MutationResult* response) {
+            EXPECT_EQ(request->collection_name(), "struct_add_subfield_coll");
+            // the added sub-field is serialized with its plain name (bracket prefix stripped
+            // on describe) and carries the user-provided value
+            const auto& clips = *std::find_if(request->fields_data().begin(), request->fields_data().end(),
+                                              [](const auto& f) { return f.field_name() == "clips"; });
+            EXPECT_EQ(clips.struct_arrays().fields_size(), 1);
+            const auto& note = clips.struct_arrays().fields(0);
+            EXPECT_EQ(note.field_name(), "note");
+            EXPECT_EQ(note.scalars().array_data().data_size(), 1);
+            const auto& cell = note.scalars().array_data().data(0);
+            EXPECT_EQ(cell.string_data().data_size(), 1);
+            EXPECT_EQ(cell.string_data().data(0), "hello");
+            EXPECT_TRUE(cell.valid_data(0));
+
+            response->mutable_status()->set_code(0);
+            response->set_insert_cnt(1);
+            response->set_timestamp(100);
+            return ::grpc::Status{};
+        });
+
+    milvus::EntityRow row;
+    row["id"] = 1;
+    // a plain "note" key inside the struct element matches the stripped sub-field name
+    row["clips"] = nlohmann::json::array({nlohmann::json{{"note", "hello"}}});
+
+    milvus::InsertResponse response;
+    auto status = client->Insert(
+        milvus::InsertRequest().WithCollectionName("struct_add_subfield_coll").AddRowData(std::move(row)), response);
+    EXPECT_TRUE(status.IsOk()) << status.Message();
+    EXPECT_EQ(response.Results().InsertCount(), 1);
+}
+
+TEST_F(UnconnectMilvusMockedTest, UpsertStructPathReplaceWholeElementColumnDataKeepsAllSubFields) {
+    auto client = CreateConnectedV2Client(service_, server_.ListenPort());
+
+    EXPECT_CALL(service_, DescribeCollection(_, _, _))
+        .WillOnce([](::grpc::ServerContext*, const milvus::proto::milvus::DescribeCollectionRequest*,
+                     milvus::proto::milvus::DescribeCollectionResponse* response) {
+            FillPartialUpdateStructSchema(response);
+            return ::grpc::Status{};
+        });
+
+    EXPECT_CALL(service_, Upsert(_, _, _))
+        .WillOnce([](::grpc::ServerContext*, const milvus::proto::milvus::UpsertRequest* request,
+                     milvus::proto::milvus::MutationResult* response) {
+            EXPECT_EQ(request->collection_name(), "struct_path_replace_coll");
+            EXPECT_TRUE(request->partial_update());
+            if (request->field_ops_size() != 2) {
+                ADD_FAILURE() << "Expected two field operations, got " << request->field_ops_size();
+                return ::grpc::Status{};
+            }
+            EXPECT_EQ(request->field_ops(1).field_name(), "clips");
+            EXPECT_EQ(request->field_ops(1).op(), milvus::proto::schema::FieldPartialUpdateOp::PATH_REPLACE);
+            EXPECT_EQ(request->field_ops(1).path(), "[0]");
+            // a whole-element column operand keeps every sub-field
+            const auto& clips = *std::find_if(request->fields_data().begin(), request->fields_data().end(),
+                                              [](const auto& f) { return f.field_name() == "clips"; });
+            EXPECT_EQ(clips.struct_arrays().fields_size(), 2);
+            EXPECT_EQ(clips.struct_arrays().fields(0).field_name(), "score");
+            EXPECT_EQ(clips.struct_arrays().fields(1).field_name(), "note");
+
+            response->mutable_status()->set_code(0);
+            response->set_upsert_cnt(1);
+            return ::grpc::Status{};
+        });
+
+    milvus::UpsertRequest request;
+    request.WithCollectionName("struct_path_replace_coll");
+    request.AddColumnData(std::make_shared<milvus::Int64FieldData>("id", std::vector<int64_t>{1}));
+    request.AddColumnData(std::make_shared<milvus::StructFieldData>(
+        "clips", std::vector<std::vector<nlohmann::json>>{{nlohmann::json{{"score", 10}}}}));
+    request.AddFieldOp(milvus::FieldPartialUpdateOp("id"));
+    request.AddFieldOp(
+        milvus::FieldPartialUpdateOp("clips", milvus::FieldPartialUpdateOp::OpType::PATH_REPLACE).WithPath("[0]"));
+
+    milvus::UpsertResponse response;
+    auto status = client->Upsert(request, response);
+    EXPECT_TRUE(status.IsOk()) << status.Message();
+    EXPECT_EQ(response.Results().UpsertCount(), 1);
 }

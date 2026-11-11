@@ -122,6 +122,39 @@ ConvertStructFieldSchema(const StructFieldSchema& schema, proto::schema::StructA
 void
 ConvertFunctionSchema(const FunctionPtr& function_schema, proto::schema::FunctionSchema& proto_function);
 
+/**
+ * @brief Strip the `struct[` / `]` bracket prefix from a struct sub-field name.
+ *
+ * Sub-fields added later via add_collection_field keep the bracketed name ("clips[note]")
+ * on the wire and in the stored schema, while create-time sub-fields are already plain. The
+ * strip returns the plain name when field_name is "struct[sub]"; any other name is returned
+ * unchanged, matching pymilvus.
+ * @param [in] struct_name the parent struct field name.
+ * @param [in] field_name the sub-field name (plain or bracketed).
+ * @return the plain sub-field name.
+ */
+std::string
+StripStructSubFieldName(const std::string& struct_name, const std::string& field_name);
+
+/**
+ * @brief Detect whether a field name is a struct sub-field path (e.g. "clips[lang]").
+ * @param [in] field_name the field name.
+ * @return true if the name follows the struct[subfield] bracket pattern.
+ */
+bool
+IsStructSubFieldPath(const std::string& field_name);
+
+/**
+ * @brief Serialize a struct sub-field for an add-collection-field request.
+ *
+ * The parent struct is resolved by the server from the bracket name; row nullability
+ * and outer capacity are inherited, so they are not serialized here.
+ * @param [in] field the SDK sub-field schema.
+ * @param [out] proto_field the proto sub-field schema.
+ */
+void
+ConvertAddStructSubFieldSchema(const FieldSchema& field, proto::schema::FieldSchema& proto_field);
+
 void
 ConvertFunctionScore(const FunctionScorePtr& function_score, proto::schema::FunctionScore& proto_score);
 

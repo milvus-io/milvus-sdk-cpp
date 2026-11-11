@@ -101,6 +101,42 @@ ConvertRunningRequestNodeResult(const proto::milvus::RunningRequestNodeResult& n
     result.SetReason(node_result.status().reason());
     result.SetUnimplemented(node_result.unimplemented());
 }
+
+// Validate a struct sub-field's element-nullability rules: element_nullable requires a
+// nested Array sub-field, and a nested Array sub-field requires an inner max_capacity and
+// a scalar leaf element type (aligned with pymilvus StructFieldSchema._check_fields).
+Status
+ValidateStructSubFieldSchema(const FieldSchema& sub_field) {
+    if (sub_field.IsElementNullable() && sub_field.FieldDataType() != DataType::ARRAY) {
+        return {StatusCode::INVALID_ARGUMENT, "element_nullable requires an Array sub-field: " + sub_field.Name()};
+    }
+    // Sparse vectors are not supported as struct sub-fields (pymilvus rejects them at
+    // encode time, and the SDK cannot decode them), so reject at schema validation to avoid
+    // creating a collection whose struct field cannot be read back.
+    if (sub_field.FieldDataType() == DataType::SPARSE_FLOAT_VECTOR) {
+        return {StatusCode::INVALID_ARGUMENT, "Struct sub field does not support sparse vector: " + sub_field.Name()};
+    }
+    if (sub_field.FieldDataType() == DataType::ARRAY) {
+        if (sub_field.MaxCapacity() <= 0) {
+            return {StatusCode::INVALID_ARGUMENT, "Struct Array sub field requires max_capacity: " + sub_field.Name()};
+        }
+        switch (sub_field.ElementType()) {
+            case DataType::BOOL:
+            case DataType::INT8:
+            case DataType::INT16:
+            case DataType::INT32:
+            case DataType::INT64:
+            case DataType::FLOAT:
+            case DataType::DOUBLE:
+            case DataType::VARCHAR:
+                break;
+            default:
+                return {StatusCode::INVALID_ARGUMENT,
+                        "Struct Array sub field requires a scalar element type: " + sub_field.Name()};
+        }
+    }
+    return Status::OK();
+}
 }  // namespace
 
 std::shared_ptr<MilvusClientV2>
@@ -253,6 +289,17 @@ MilvusClientV2Impl::CreateCollection(const CreateCollectionRequest& request) {
             auto status = CheckDefaultValue(field);
             if (!status.IsOk()) {
                 return status;
+            }
+        }
+        // struct sub-fields follow the same element-nullability rules on the create path
+        // (element_nullable requires an Array sub-field; a nested Array sub-field requires
+        // max_capacity and a scalar leaf element type)
+        for (const auto& struct_field : schema.StructFields()) {
+            for (const auto& sub_field : struct_field.Fields()) {
+                auto status = ValidateStructSubFieldSchema(sub_field);
+                if (!status.IsOk()) {
+                    return status;
+                }
             }
         }
         return Status::OK();
@@ -875,12 +922,45 @@ Status
 MilvusClientV2Impl::AddCollectionField(const AddCollectionFieldRequest& request) {
     const auto endpoint = connection_.CurrentEndpoint();
     const auto database_name = connection_.CurrentDbName(request.DatabaseName());
-    auto alter_pre = [&request](proto::milvus::AlterCollectionSchemaRequest& rpc_request) {
+    const bool is_sub_field = IsStructSubFieldPath(request.Field().Name());
+    auto validate = [&request, is_sub_field]() {
+        if (request.CollectionName().empty()) {
+            return Status{StatusCode::INVALID_ARGUMENT, "Collection name is empty"};
+        }
+        if (request.Field().Name().empty()) {
+            return Status{StatusCode::INVALID_ARGUMENT, "Field name is empty"};
+        }
+        // A bracket-containing name that is not a valid struct sub-field path is almost
+        // certainly a sub-field typo (Milvus field names cannot contain brackets); reject it
+        // locally so the error is actionable, like pymilvus "Invalid struct sub-field path".
+        const std::string& field_name = request.Field().Name();
+        const bool contains_bracket =
+            field_name.find('[') != std::string::npos || field_name.find(']') != std::string::npos;
+        if (contains_bracket && !is_sub_field) {
+            return Status{StatusCode::INVALID_ARGUMENT, "Invalid struct sub-field path: " + field_name};
+        }
+        // A struct sub-field add carries only one element's type and must be element-nullable;
+        // row nullability and the outer capacity are inherited from the parent struct.
+        if (is_sub_field && !request.Field().IsNullable()) {
+            return Status{StatusCode::INVALID_ARGUMENT, "Adding a struct sub-field requires nullable=True"};
+        }
+        // A nested Array sub-field add must describe its inner capacity; without it the
+        // wire type_schema would be missing and the server rejects the request obscurely.
+        if (is_sub_field) {
+            return ValidateStructSubFieldSchema(request.Field());
+        }
+        return Status::OK();
+    };
+    auto alter_pre = [&request, is_sub_field](proto::milvus::AlterCollectionSchemaRequest& rpc_request) {
         rpc_request.set_db_name(request.DatabaseName());
         rpc_request.set_collection_name(request.CollectionName());
 
         auto* field_info = rpc_request.mutable_action()->mutable_add_request()->add_field_infos();
-        ConvertFieldSchema(request.Field(), *field_info->mutable_field_schema());
+        if (is_sub_field) {
+            ConvertAddStructSubFieldSchema(request.Field(), *field_info->mutable_field_schema());
+        } else {
+            ConvertFieldSchema(request.Field(), *field_info->mutable_field_schema());
+        }
         return Status::OK();
     };
 
@@ -891,9 +971,11 @@ MilvusClientV2Impl::AddCollectionField(const AddCollectionFieldRequest& request)
 
     auto status =
         connection_.Invoke<proto::milvus::AlterCollectionSchemaRequest, proto::milvus::AlterCollectionSchemaResponse>(
-            alter_pre, &MilvusConnection::AlterCollectionSchema, post);
+            validate, alter_pre, &MilvusConnection::AlterCollectionSchema, post);
     // An older coordinator reports an internal gRPC UNIMPLEMENTED as Milvus ErrServiceUnimplemented (code 10).
-    if (status.RpcErrCode() != static_cast<int32_t>(::grpc::StatusCode::UNIMPLEMENTED) && status.ServerCode() != 10) {
+    // Sub-field adds require the new AlterCollectionSchema path; never fall back to the legacy RPC.
+    if (is_sub_field ||
+        (status.RpcErrCode() != static_cast<int32_t>(::grpc::StatusCode::UNIMPLEMENTED) && status.ServerCode() != 10)) {
         return status;
     }
 
@@ -999,12 +1081,15 @@ MilvusClientV2Impl::AddCollectionStructField(const AddCollectionStructFieldReque
                 return Status{StatusCode::INVALID_ARGUMENT,
                               "Struct sub field cannot enable auto id: " + sub_field.Name()};
             }
-            if (sub_field.IsNullable()) {
-                return Status{StatusCode::INVALID_ARGUMENT, "Struct sub field cannot be nullable: " + sub_field.Name()};
-            }
             if (!sub_field.DefaultValue().is_null()) {
                 return Status{StatusCode::INVALID_ARGUMENT,
                               "Struct sub field cannot have default value: " + sub_field.Name()};
+            }
+            // element_nullable requires a nested Array sub-field; a nested Array sub-field
+            // requires an inner max_capacity and a scalar element type
+            auto sub_status = ValidateStructSubFieldSchema(sub_field);
+            if (!sub_status.IsOk()) {
+                return sub_status;
             }
         }
         return Status::OK();
@@ -2016,7 +2101,8 @@ MilvusClientV2Impl::upsert(const UpsertRequest& request, UpsertResponse& respons
 
         if (!rows.empty()) {
             // verify and convert row-based data to rpc fields
-            status = CheckAndSetRowData(rows, collection_desc->Schema(), true, request.PartialUpdate(), rpc_fields);
+            status = CheckAndSetRowData(rows, collection_desc->Schema(), true, request.PartialUpdate(), rpc_fields,
+                                        &request.FieldOps());
             if (status.Code() == milvus::StatusCode::DATA_UNMATCH_SCHEMA) {
                 status = getCollectionDesc(endpoint, database_name, request.CollectionName(), true, collection_desc);
                 if (!status.IsOk()) {
@@ -2024,7 +2110,8 @@ MilvusClientV2Impl::upsert(const UpsertRequest& request, UpsertResponse& respons
                 }
 
                 rpc_fields.clear();
-                status = CheckAndSetRowData(rows, collection_desc->Schema(), true, request.PartialUpdate(), rpc_fields);
+                status = CheckAndSetRowData(rows, collection_desc->Schema(), true, request.PartialUpdate(), rpc_fields,
+                                            &request.FieldOps());
             }
             if (!status.IsOk()) {
                 return status;
@@ -2047,7 +2134,7 @@ MilvusClientV2Impl::upsert(const UpsertRequest& request, UpsertResponse& respons
             }
 
             // convert column-based data to rpc fields
-            status = CreateProtoFieldDatas(collection_desc->Schema(), fields, rpc_fields);
+            status = CreateProtoFieldDatas(collection_desc->Schema(), fields, rpc_fields, &request.FieldOps());
             if (!status.IsOk()) {
                 return status;
             }
@@ -2077,6 +2164,7 @@ MilvusClientV2Impl::upsert(const UpsertRequest& request, UpsertResponse& respons
             auto* rpc_field_op = rpc_request.add_field_ops();
             rpc_field_op->set_field_name(field_op.FieldName());
             rpc_field_op->set_op(FieldPartialUpdateOpTypeCast(field_op.GetOpType()));
+            rpc_field_op->set_path(field_op.Path());
         }
         for (auto& field : rpc_fields) {
             mutable_fields->Add(std::move(field));
