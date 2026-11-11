@@ -342,6 +342,22 @@ FieldSchema::WithNullable(bool nullable) {
     return *this;
 }
 
+bool
+FieldSchema::IsElementNullable() const {
+    return is_element_nullable_;
+}
+
+void
+FieldSchema::SetElementNullable(bool element_nullable) {
+    is_element_nullable_ = element_nullable;
+}
+
+FieldSchema&
+FieldSchema::WithElementNullable(bool element_nullable) {
+    SetElementNullable(element_nullable);
+    return *this;
+}
+
 void
 FieldSchema::SetDefaultValue(const nlohmann::json& val) {
     default_value_ = val;

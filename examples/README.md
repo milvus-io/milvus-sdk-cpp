@@ -75,7 +75,7 @@ Recommended examples for MilvusClientV2:
 - `./cmake_build/examples/v2/sdk_search_aggregation_v2`: example to show the usage of search aggregation.
 - `./cmake_build/examples/v2/sdk_simple_v2`: example to quickly create a simple collection.
 - `./cmake_build/examples/v2/sdk_snapshot_v2`: example to show the usage of snapshot interfaces.
-- `./cmake_build/examples/v2/sdk_struct_field_v2`: example to show the usage of struct field, element-level search, and addCollectionStructField().
+- `./cmake_build/examples/v2/sdk_struct_field_v2`: example to show the usage of struct field: multi-vector sub-fields, embedding-list and element-level search, element-level null (nullable sub-fields, nested Array sub-fields, whole null struct rows), addCollectionStructField(), and struct sub-field add/drop. Requires the element-null server stack.
 - `./cmake_build/examples/v2/sdk_text_field_v2`: example to show the usage of Text field with row/column-based insert and query decoding. Requires the server to enable `common.storage.useLoonFFI` (Storage V3); excluded from `run_examples.sh`.
 - `./cmake_build/examples/v2/sdk_text_match_v2`: example to show the usage of TEXT_MATCH.
 - `./cmake_build/examples/v2/sdk_timestamptz_field_v2`: example to show the usage of Timestamptz field.
