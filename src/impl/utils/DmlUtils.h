@@ -21,6 +21,7 @@
 #include "milvus.pb.h"
 #include "milvus/types/CollectionDesc.h"
 #include "milvus/types/ConsistencyLevel.h"
+#include "milvus/types/FieldPartialUpdateOp.h"
 #include "milvus/types/IDArray.h"
 #include "schema.pb.h"
 
@@ -49,14 +50,62 @@ ParseSparseFloatVector(const nlohmann::json& obj, const std::string& field_name,
 Status
 FillStructProtoFields(const std::vector<nlohmann::json>& dict_list, const StructFieldSchema& struct_schema,
                       const std::set<std::string>& output_fields,
-                      std::map<std::string, proto::schema::FieldData>& proto_sub_fields);
+                      std::map<std::string, proto::schema::FieldData>& proto_sub_fields,
+                      const std::set<std::string>* sub_field_whitelist = nullptr);
+
+/**
+ * @brief Build the per-struct sub-field whitelist from PATH_REPLACE field ops.
+ *
+ * A child path ([index][child]) selects only the targeted child column, while a whole
+ * element path ([index]) keeps every sub-field. When any whole-element path targets a
+ * struct, the whitelist stays empty ("keep all") independent of op order. A PATH_REPLACE
+ * op targeting a non-struct field is rejected. The path index itself is validated by the
+ * server.
+ * @param [in] field_ops the upsert field ops (nullable).
+ * @param [in] struct_field_names the collection's struct field names (nullable).
+ * @param [out] whitelist the per-struct sub-field whitelist.
+ * @return the validation status.
+ */
+Status
+BuildStructSubFieldWhitelist(const std::vector<FieldPartialUpdateOp>* field_ops,
+                             const std::set<std::string>* struct_field_names,
+                             std::map<std::string, std::set<std::string>>& whitelist);
+
+/**
+ * @brief Append one null struct row to every processed sub-field of a nullable struct.
+ *
+ * Writes the shared row mask (false) on each sub-field's FieldData and payload, without
+ * appending a data cell, matching the pymilvus/Java wire layout for a whole null struct row.
+ * @param [in] struct_schema the struct field schema.
+ * @param [in] output_fields the output field names to skip.
+ * @param [in,out] proto_sub_fields the accumulated sub-field proto data.
+ * @return the validation status.
+ */
+Status
+AppendStructNullRow(const StructFieldSchema& struct_schema, const std::set<std::string>& output_fields,
+                    std::map<std::string, proto::schema::FieldData>& proto_sub_fields);
+
+/**
+ * @brief Validate that every PATH_REPLACE child in the whitelist exists as a sub-field.
+ *
+ * A typo like [0][bogus] would otherwise pass the operand key check and reach the server
+ * with an empty struct payload; pymilvus rejects it client-side ("PATH_REPLACE child
+ * 'bogus' not found in 'clips'").
+ * @param [in] struct_fields the collection's struct field schemas.
+ * @param [in] whitelist the per-struct sub-field whitelist built from PATH_REPLACE ops.
+ * @return the validation status.
+ */
+Status
+ValidateStructSubFieldWhitelist(const std::vector<StructFieldSchema>& struct_fields,
+                                const std::map<std::string, std::set<std::string>>& whitelist);
 
 Status
 CreateProtoFieldData(const FieldDataSchema& data_schema, proto::schema::FieldData& field_data);
 
 Status
 CreateProtoFieldDatas(const CollectionSchema& collection_schema, const std::vector<FieldDataPtr>& fields,
-                      std::vector<proto::schema::FieldData>& rpc_fields);
+                      std::vector<proto::schema::FieldData>& rpc_fields,
+                      const std::vector<FieldPartialUpdateOp>* field_ops = nullptr);
 
 IDArray
 CreateIDArray(const proto::schema::IDs& ids);
@@ -74,6 +123,9 @@ Status
 CheckAndSetFloat16Vector(const nlohmann::json& obj, const FieldSchema& fs, proto::schema::VectorField* vf);
 
 Status
+CheckAndSetInt8Vector(const nlohmann::json& obj, const FieldSchema& fs, proto::schema::VectorField* vf);
+
+Status
 CheckAndSetArray(const nlohmann::json& obj, const FieldSchema& fs, proto::schema::ArrayArray* aa);
 
 Status
@@ -87,6 +139,7 @@ CheckAndSetFieldValue(const nlohmann::json& obj, const FieldSchema& fs, proto::s
 
 Status
 CheckAndSetRowData(const EntityRows& rows, const CollectionSchema& schema, bool is_upsert, bool partial_upsert,
-                   std::vector<proto::schema::FieldData>& rpc_fields);
+                   std::vector<proto::schema::FieldData>& rpc_fields,
+                   const std::vector<FieldPartialUpdateOp>* field_ops = nullptr);
 
 }  // namespace milvus

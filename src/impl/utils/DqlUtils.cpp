@@ -799,6 +799,16 @@ GetFieldDataRowCount(const proto::schema::FieldData& proto_data, size_t& row_cou
             if (struct_arrays.fields_size() == 0) {
                 return {StatusCode::UNKNOWN_ERROR, "The returned search result contains an empty StructArrayField"};
             }
+            // prefer a sub-field carrying the shared row mask (its length is the logical row
+            // count); fall back to the first sub-field with cells, so a leading function-output
+            // sub-field (which carries no row mask) does not skew the count
+            for (int i = 0; i < struct_arrays.fields_size(); ++i) {
+                const auto& f = struct_arrays.fields(i);
+                if (!f.valid_data().empty()) {
+                    row_count = static_cast<size_t>(f.valid_data_size());
+                    return Status::OK();
+                }
+            }
             return GetFieldDataRowCount(struct_arrays.fields(0), row_count);
             break;
         }
@@ -824,22 +834,243 @@ CreateMilvusFieldData(const proto::schema::FieldData& proto_data, FieldDataPtr& 
     }
 }
 
-template <typename T>
-void
-FillStructValue(const FieldDataPtr& array_data, std::vector<std::vector<nlohmann::json>>& structs) {
-    std::shared_ptr<T> actual_ptr = std::static_pointer_cast<T>(array_data);
-    auto actual_count = array_data->Count();
-    for (auto k = 0; k < actual_count; k++) {
-        const auto& arr = actual_ptr->Value(k);
-        if (structs.size() <= k) {
-            structs.emplace_back();
-            structs[k].resize(arr.size());
-        }
-        for (auto j = 0; j < arr.size(); j++) {
-            structs[k][j][array_data->Name()] = arr[j];
-        }
+namespace {
+
+// Expand a compact scalar payload into a dense JSON array, inserting null for every
+// invalid element recorded in valid_data. The payload holds only non-null values while
+// valid_data (when present) defines the logical length; when it is absent the payload is
+// dense and used directly. Returns empty on success; the caller sets it to null when the
+// whole row is invalid.
+Status
+DecodeStructScalarRow(const proto::schema::ScalarField& row, DataType element_type, std::vector<nlohmann::json>& out) {
+    const auto& validity = row.valid_data();
+    const bool has_validity = !validity.empty();
+
+    // The server outputs element-nullable scalars DENSE (one value per element, a
+    // zero/empty placeholder at each null position) with matching-length valid_data, while
+    // older/compacted payloads store only valid values. Distinguish by length: dense when
+    // payload length == validity length, compact when payload length == count(valid).
+    size_t payload_len = 0;
+    switch (element_type) {
+        case DataType::BOOL:
+            payload_len = row.bool_data().data().size();
+            break;
+        case DataType::INT8:
+        case DataType::INT16:
+        case DataType::INT32:
+            payload_len = row.int_data().data().size();
+            break;
+        case DataType::INT64:
+            payload_len = row.long_data().data().size();
+            break;
+        case DataType::FLOAT:
+            payload_len = row.float_data().data().size();
+            break;
+        case DataType::DOUBLE:
+            payload_len = row.double_data().data().size();
+            break;
+        case DataType::VARCHAR:
+        case DataType::TEXT:
+            payload_len = row.string_data().data().size();
+            break;
+        case DataType::ARRAY:
+            payload_len = row.array_data().data().size();
+            break;
+        default:
+            return {StatusCode::NOT_SUPPORTED, "Unsupported struct sub-field type: " + std::to_string(element_type)};
     }
+    const bool dense = has_validity && payload_len == validity.size();
+    const size_t logical_size = has_validity ? validity.size() : payload_len;
+
+    out.clear();
+    out.reserve(logical_size);
+    size_t payload_index = 0;
+    for (size_t logical_index = 0; logical_index < logical_size; ++logical_index) {
+        if (has_validity && !validity.Get(logical_index)) {
+            out.emplace_back(nullptr);
+            continue;
+        }
+        // dense payloads index by logical position; compact payloads consume only valid values
+        const size_t src_index = dense ? logical_index : payload_index;
+        switch (element_type) {
+            case DataType::BOOL: {
+                if (src_index >= static_cast<size_t>(row.bool_data().data().size())) {
+                    return {StatusCode::UNKNOWN_ERROR, "Struct scalar payload is shorter than valid_data"};
+                }
+                out.emplace_back(row.bool_data().data().Get(src_index));
+                break;
+            }
+            case DataType::INT8:
+            case DataType::INT16:
+            case DataType::INT32: {
+                if (src_index >= static_cast<size_t>(row.int_data().data().size())) {
+                    return {StatusCode::UNKNOWN_ERROR, "Struct scalar payload is shorter than valid_data"};
+                }
+                out.emplace_back(row.int_data().data().Get(src_index));
+                break;
+            }
+            case DataType::INT64: {
+                if (src_index >= static_cast<size_t>(row.long_data().data().size())) {
+                    return {StatusCode::UNKNOWN_ERROR, "Struct scalar payload is shorter than valid_data"};
+                }
+                out.emplace_back(row.long_data().data().Get(src_index));
+                break;
+            }
+            case DataType::FLOAT: {
+                if (src_index >= static_cast<size_t>(row.float_data().data().size())) {
+                    return {StatusCode::UNKNOWN_ERROR, "Struct scalar payload is shorter than valid_data"};
+                }
+                out.emplace_back(row.float_data().data().Get(src_index));
+                break;
+            }
+            case DataType::DOUBLE: {
+                if (src_index >= static_cast<size_t>(row.double_data().data().size())) {
+                    return {StatusCode::UNKNOWN_ERROR, "Struct scalar payload is shorter than valid_data"};
+                }
+                out.emplace_back(row.double_data().data().Get(src_index));
+                break;
+            }
+            case DataType::VARCHAR:
+            case DataType::TEXT: {
+                if (src_index >= static_cast<size_t>(row.string_data().data().size())) {
+                    return {StatusCode::UNKNOWN_ERROR, "Struct scalar payload is shorter than valid_data"};
+                }
+                out.emplace_back(row.string_data().data().Get(src_index));
+                break;
+            }
+            case DataType::ARRAY: {
+                // Nested Array sub-field: each logical element is one inner Array leaf.
+                const auto& aa = row.array_data();
+                DataType leaf_type = DataTypeCast(aa.element_type());
+                if (src_index >= static_cast<size_t>(aa.data().size())) {
+                    return {StatusCode::UNKNOWN_ERROR, "Struct Array payload is shorter than valid_data"};
+                }
+                std::vector<nlohmann::json> inner;
+                auto status = DecodeStructScalarRow(aa.data().Get(src_index), leaf_type, inner);
+                if (!status.IsOk()) {
+                    return status;
+                }
+                out.emplace_back(std::move(inner));
+                break;
+            }
+            default:
+                return {StatusCode::NOT_SUPPORTED,
+                        "Unsupported struct sub-field type: " + std::to_string(element_type)};
+        }
+        ++payload_index;
+    }
+    return Status::OK();
 }
+
+// Expand a compact vector payload into a dense JSON vector array, inserting null for every
+// invalid element recorded in valid_data.
+Status
+DecodeStructVectorRow(const proto::schema::VectorField& row, proto::schema::DataType element_type,
+                      std::vector<nlohmann::json>& out) {
+    const auto& validity = row.valid_data();
+    const bool has_validity = !validity.empty();
+
+    std::vector<nlohmann::json> vectors;
+    switch (element_type) {
+        case proto::schema::DataType::FloatVector: {
+            std::vector<std::vector<float>> vals = BuildFieldDataVectors<float, float>(
+                row.dim() * sizeof(float), row.float_vector().data().data(), row.float_vector().data().size(), 0,
+                row.float_vector().data().size());
+            vectors.reserve(vals.size());
+            for (auto& v : vals) {
+                nlohmann::json json_vec = nlohmann::json::array();
+                for (auto val : v) {
+                    json_vec.emplace_back(val);
+                }
+                vectors.emplace_back(std::move(json_vec));
+            }
+            break;
+        }
+        case proto::schema::DataType::BinaryVector: {
+            std::vector<std::vector<uint8_t>> vals = BuildFieldDataVectors<uint8_t, char>(
+                row.dim() / 8, row.binary_vector().data(), row.binary_vector().size(), 0, row.binary_vector().size());
+            vectors.reserve(vals.size());
+            for (auto& v : vals) {
+                nlohmann::json json_vec = nlohmann::json::array();
+                for (auto val : v) {
+                    json_vec.emplace_back(val);
+                }
+                vectors.emplace_back(std::move(json_vec));
+            }
+            break;
+        }
+        case proto::schema::DataType::Float16Vector: {
+            std::vector<std::vector<uint16_t>> vals =
+                BuildFieldDataVectors<uint16_t, char>(row.dim() * sizeof(uint16_t), row.float16_vector().data(),
+                                                      row.float16_vector().size(), 0, row.float16_vector().size());
+            vectors.reserve(vals.size());
+            for (auto& v : vals) {
+                nlohmann::json json_vec = nlohmann::json::array();
+                for (auto val : v) {
+                    json_vec.emplace_back(F16toF32(val));
+                }
+                vectors.emplace_back(std::move(json_vec));
+            }
+            break;
+        }
+        case proto::schema::DataType::BFloat16Vector: {
+            std::vector<std::vector<uint16_t>> vals =
+                BuildFieldDataVectors<uint16_t, char>(row.dim() * sizeof(uint16_t), row.bfloat16_vector().data(),
+                                                      row.bfloat16_vector().size(), 0, row.bfloat16_vector().size());
+            vectors.reserve(vals.size());
+            for (auto& v : vals) {
+                nlohmann::json json_vec = nlohmann::json::array();
+                for (auto val : v) {
+                    json_vec.emplace_back(BF16toF32(val));
+                }
+                vectors.emplace_back(std::move(json_vec));
+            }
+            break;
+        }
+        case proto::schema::DataType::Int8Vector: {
+            std::vector<std::vector<int8_t>> vals = BuildFieldDataVectors<int8_t, char>(
+                row.dim(), row.int8_vector().data(), row.int8_vector().size(), 0, row.int8_vector().size());
+            vectors.reserve(vals.size());
+            for (auto& v : vals) {
+                nlohmann::json json_vec = nlohmann::json::array();
+                for (auto val : v) {
+                    json_vec.emplace_back(val);
+                }
+                vectors.emplace_back(std::move(json_vec));
+            }
+            break;
+        }
+        default:
+            return {StatusCode::NOT_SUPPORTED,
+                    "Unsupported struct vector sub-field type: " + std::to_string(element_type)};
+    }
+
+    // Logical length is valid_data length when present; the payload holds only valid vectors
+    // (compact, per the server output contract). Guard against a dense layout change: the
+    // payload must contain exactly count(valid) vectors, otherwise a placeholder would be
+    // decoded at the wrong logical position (pymilvus raises the same kind of error).
+    size_t logical_size = has_validity ? validity.size() : vectors.size();
+    if (has_validity && static_cast<size_t>(std::count(validity.begin(), validity.end(), true)) != vectors.size()) {
+        return {StatusCode::UNKNOWN_ERROR, "Struct vector payload and valid_data differ in length"};
+    }
+    out.clear();
+    out.reserve(logical_size);
+    size_t payload_index = 0;
+    for (size_t logical_index = 0; logical_index < logical_size; ++logical_index) {
+        if (has_validity && !validity.Get(logical_index)) {
+            out.emplace_back(nullptr);
+            continue;
+        }
+        if (payload_index >= vectors.size()) {
+            return {StatusCode::UNKNOWN_ERROR, "Struct vector payload is shorter than valid_data"};
+        }
+        out.emplace_back(std::move(vectors[payload_index]));
+        ++payload_index;
+    }
+    return Status::OK();
+}
+
+}  // namespace
 
 Status
 ConvertStructFieldData(const proto::schema::FieldData& proto_data, size_t offset, size_t count,
@@ -848,155 +1079,96 @@ ConvertStructFieldData(const proto::schema::FieldData& proto_data, size_t offset
     std::vector<std::vector<nlohmann::json>> structs;
     structs.reserve(count);
     const auto& struct_array = proto_data.struct_arrays();
+
+    // Whole-struct row nullability is dual-written by the server into every sub-field:
+    // each sub-field's FieldData.valid_data and its scalars/vectors payload carry the
+    // shared row mask. The struct-level FieldData.valid_data is cleared for struct
+    // fields, so consult the first sub-field instead (matching pymilvus row_validity).
+    // The server keeps a placeholder payload cell per row (dense layout), so logical rows
+    // stay aligned; null rows are detected through the shared row mask.
+    std::vector<bool> row_validity;
+    const bool has_row_validity = [&]() {
+        // the row mask is dual-written into every sub-field, but the write path skips
+        // function-output sub-fields, so scan until the first sub-field that carries a mask
+        for (int i = 0; i < struct_array.fields_size(); ++i) {
+            const auto& f = struct_array.fields(i);
+            if (!f.valid_data().empty()) {
+                GetValidData(f.valid_data(), offset, count, row_validity);
+            } else if (f.type() == proto::schema::DataType::Array) {
+                GetValidData(f.scalars().valid_data(), offset, count, row_validity);
+            } else if (f.type() == proto::schema::DataType::ArrayOfVector) {
+                GetValidData(f.vectors().valid_data(), offset, count, row_validity);
+            }
+            if (!row_validity.empty()) {
+                break;
+            }
+        }
+        return !row_validity.empty();
+    }();
+
+    // dense logical rows: one entry per row, empty for null struct rows (the row mask marks
+    // them null so output renders `null` instead of an empty struct list)
+    structs.resize(count);
+    if (has_row_validity && row_validity.size() < count) {
+        row_validity.resize(count, true);
+    }
+
     for (auto i = 0; i < struct_array.fields_size(); i++) {
         const auto& field_data = struct_array.fields(i);
-        auto sub_field_name = field_data.field_name();
+        // expose the plain sub-field name as the struct element key: sub-fields added later
+        // via add_collection_field keep the bracketed wire name "clips[note]", matching the
+        // name the user writes on insert after describe strips it (create-time sub-fields
+        // are already plain and pass through unchanged)
+        auto sub_field_name = StripStructSubFieldName(sturct_name, field_data.field_name());
         auto field_type = field_data.type();
         switch (field_type) {
             case proto::schema::DataType::Array: {
                 const auto& proto_scalars = field_data.scalars();
-                const auto& proto_valid = field_data.valid_data();
-                std::vector<bool> valid_data;
-                GetValidData(proto_valid, offset, count, valid_data);
+                const auto& proto_array = proto_scalars.array_data();
+                DataType element_type = DataTypeCast(proto_array.element_type());
 
-                FieldDataPtr array_data;
-                auto status = BuildMilvusArrayFieldData(sub_field_name, proto_scalars.array_data(),
-                                                        std::move(valid_data), offset, count, array_data);
-                if (!status.IsOk()) {
-                    return status;
-                }
-
-                switch (array_data->ElementType()) {
-                    case DataType::BOOL: {
-                        FillStructValue<ArrayBoolFieldData>(array_data, structs);
-                        break;
+                for (size_t k = offset; k < proto_array.data_size() && (k - offset) < count; k++) {
+                    size_t row = k - offset;
+                    if (has_row_validity && row < row_validity.size() && !row_validity[row]) {
+                        // whole struct row is null; structs[row] stays empty
+                        continue;
                     }
-                    case DataType::INT8: {
-                        FillStructValue<ArrayInt8FieldData>(array_data, structs);
-                        break;
+                    const auto& row_payload = proto_array.data(k);
+                    std::vector<nlohmann::json> values;
+                    auto status = DecodeStructScalarRow(row_payload, element_type, values);
+                    if (!status.IsOk()) {
+                        return status;
                     }
-                    case DataType::INT16: {
-                        FillStructValue<ArrayInt16FieldData>(array_data, structs);
-                        break;
+                    if (structs[row].size() < values.size()) {
+                        structs[row].resize(values.size());
                     }
-                    case DataType::INT32: {
-                        FillStructValue<ArrayInt32FieldData>(array_data, structs);
-                        break;
+                    for (auto j = 0; j < values.size(); j++) {
+                        structs[row][j][sub_field_name] = std::move(values[j]);
                     }
-                    case DataType::INT64: {
-                        FillStructValue<ArrayInt64FieldData>(array_data, structs);
-                        break;
-                    }
-                    case DataType::FLOAT: {
-                        FillStructValue<ArrayFloatFieldData>(array_data, structs);
-                        break;
-                    }
-                    case DataType::DOUBLE: {
-                        FillStructValue<ArrayDoubleFieldData>(array_data, structs);
-                        break;
-                    }
-                    case DataType::VARCHAR:
-                    case DataType::TEXT: {
-                        FillStructValue<ArrayVarCharFieldData>(array_data, structs);
-                        break;
-                    }
-                    default:
-                        return {StatusCode::NOT_SUPPORTED,
-                                "Unsupported sub field type: " + std::to_string(array_data->ElementType()) +
-                                    " for struct field: " + sturct_name};
                 }
                 break;
             }
             case proto::schema::DataType::ArrayOfVector: {
                 const auto& vector_array = field_data.vectors().vector_array();
+                auto element_type = vector_array.element_type();
 
-                if (offset >= vector_array.data_size() || count == 0) {
-                    break;
-                }
-                if (offset + count > vector_array.data_size()) {
-                    count = vector_array.data_size() - offset;
-                }
-                for (size_t k = offset; k < offset + count; k++) {
-                    const auto& vector_field = vector_array.data(k);
-                    auto num = k - offset;
-                    switch (vector_array.element_type()) {
-                        case proto::schema::DataType::FloatVector: {
-                            const auto& floats = vector_field.float_vector().data();
-                            std::vector<std::vector<float>> vectors = BuildFieldDataVectors<float, float>(
-                                vector_field.dim() * sizeof(float), floats.data(), floats.size(), 0, floats.size());
-                            if (structs.size() <= num) {
-                                structs.emplace_back();
-                                structs[num].resize(vectors.size());
-                            }
-                            for (size_t j = 0; j < vectors.size(); j++) {
-                                structs[num][j][sub_field_name] = vectors[j];
-                            }
-                            break;
-                        }
-                        case proto::schema::DataType::BinaryVector: {
-                            const auto& bytes = vector_field.binary_vector();
-                            std::vector<std::vector<uint8_t>> vectors = BuildFieldDataVectors<uint8_t, char>(
-                                vector_field.dim() / 8, bytes.data(), bytes.size(), 0, bytes.size());
-                            if (structs.size() <= num) {
-                                structs.emplace_back();
-                                structs[num].resize(vectors.size());
-                            }
-                            for (size_t j = 0; j < vectors.size(); j++) {
-                                structs[num][j][sub_field_name] = vectors[j];
-                            }
-                            break;
-                        }
-                        case proto::schema::DataType::Float16Vector: {
-                            const auto& bytes = vector_field.float16_vector();
-                            std::vector<std::vector<uint16_t>> vectors = BuildFieldDataVectors<uint16_t, char>(
-                                vector_field.dim() * sizeof(uint16_t), bytes.data(), bytes.size(), 0, bytes.size());
-                            if (structs.size() <= num) {
-                                structs.emplace_back();
-                                structs[num].resize(vectors.size());
-                            }
-                            for (size_t j = 0; j < vectors.size(); j++) {
-                                std::vector<float> decoded;
-                                decoded.reserve(vectors[j].size());
-                                std::transform(vectors[j].begin(), vectors[j].end(), std::back_inserter(decoded),
-                                               [](uint16_t val) { return F16toF32(val); });
-                                structs[num][j][sub_field_name] = decoded;
-                            }
-                            break;
-                        }
-                        case proto::schema::DataType::BFloat16Vector: {
-                            const auto& bytes = vector_field.bfloat16_vector();
-                            std::vector<std::vector<uint16_t>> vectors = BuildFieldDataVectors<uint16_t, char>(
-                                vector_field.dim() * sizeof(uint16_t), bytes.data(), bytes.size(), 0, bytes.size());
-                            if (structs.size() <= num) {
-                                structs.emplace_back();
-                                structs[num].resize(vectors.size());
-                            }
-                            for (size_t j = 0; j < vectors.size(); j++) {
-                                std::vector<float> decoded;
-                                decoded.reserve(vectors[j].size());
-                                std::transform(vectors[j].begin(), vectors[j].end(), std::back_inserter(decoded),
-                                               [](uint16_t val) { return BF16toF32(val); });
-                                structs[num][j][sub_field_name] = decoded;
-                            }
-                            break;
-                        }
-                        case proto::schema::DataType::Int8Vector: {
-                            const auto& bytes = vector_field.int8_vector();
-                            std::vector<std::vector<int8_t>> vectors = BuildFieldDataVectors<int8_t, char>(
-                                vector_field.dim(), bytes.data(), bytes.size(), 0, bytes.size());
-                            if (structs.size() <= num) {
-                                structs.emplace_back();
-                                structs[num].resize(vectors.size());
-                            }
-                            for (size_t j = 0; j < vectors.size(); j++) {
-                                structs[num][j][sub_field_name] = vectors[j];
-                            }
-                            break;
-                        }
-                        default:
-                            return {StatusCode::NOT_SUPPORTED,
-                                    "Unsupported vector field type: " + std::to_string(vector_array.element_type()) +
-                                        " for struct field: " + sturct_name};
+                for (size_t k = offset; k < vector_array.data_size() && (k - offset) < count; k++) {
+                    size_t row = k - offset;
+                    if (has_row_validity && row < row_validity.size() && !row_validity[row]) {
+                        // whole struct row is null; structs[row] stays empty
+                        continue;
+                    }
+                    const auto& row_payload = vector_array.data(k);
+                    std::vector<nlohmann::json> values;
+                    auto status = DecodeStructVectorRow(row_payload, element_type, values);
+                    if (!status.IsOk()) {
+                        return status;
+                    }
+                    if (structs[row].size() < values.size()) {
+                        structs[row].resize(values.size());
+                    }
+                    for (auto j = 0; j < values.size(); j++) {
+                        structs[row][j][sub_field_name] = std::move(values[j]);
                     }
                 }
                 break;
@@ -1006,7 +1178,12 @@ ConvertStructFieldData(const proto::schema::FieldData& proto_data, size_t offset
         }
     }
 
-    field_data = std::make_shared<StructFieldData>(proto_data.field_name(), std::move(structs));
+    if (has_row_validity) {
+        field_data =
+            std::make_shared<StructFieldData>(proto_data.field_name(), std::move(structs), std::move(row_validity));
+    } else {
+        field_data = std::make_shared<StructFieldData>(proto_data.field_name(), std::move(structs));
+    }
     return Status::OK();
 }
 

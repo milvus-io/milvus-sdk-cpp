@@ -18,6 +18,7 @@
 
 #include <cstdint>
 #include <limits>
+#include <regex>
 
 #include "./Constants.h"
 #include "milvus/types/CompactionState.h"
@@ -166,6 +167,8 @@ FieldPartialUpdateOpTypeCast(FieldPartialUpdateOp::OpType type) {
             return proto::schema::FieldPartialUpdateOp::ARRAY_APPEND;
         case FieldPartialUpdateOp::OpType::ARRAY_REMOVE:
             return proto::schema::FieldPartialUpdateOp::ARRAY_REMOVE;
+        case FieldPartialUpdateOp::OpType::PATH_REPLACE:
+            return proto::schema::FieldPartialUpdateOp::PATH_REPLACE;
         default:
             return static_cast<proto::schema::FieldPartialUpdateOp::OpType>(static_cast<int>(type));
     }
@@ -460,6 +463,7 @@ ConvertFieldSchema(const proto::schema::FieldSchema& proto_schema, FieldSchema& 
     field_schema.SetDataType(type);
     field_schema.SetElementType(DataTypeCast(proto_schema.element_type()));
     field_schema.SetNullable(proto_schema.nullable());
+    field_schema.SetElementNullable(proto_schema.element_nullable());
 
     nlohmann::json default_value;
     ConvertValueFieldSchema(proto_schema.default_value(), type, default_value);
@@ -476,6 +480,84 @@ ConvertFieldSchema(const proto::schema::FieldSchema& proto_schema, FieldSchema& 
     field_schema.SetExternalField(proto_schema.external_field());
 }
 
+std::string
+StripStructSubFieldName(const std::string& struct_name, const std::string& field_name) {
+    const std::string prefix = struct_name + "[";
+    if (field_name.size() > prefix.size() && field_name.compare(0, prefix.size(), prefix) == 0 &&
+        field_name.back() == ']') {
+        return field_name.substr(prefix.size(), field_name.size() - prefix.size() - 1);
+    }
+    return field_name;
+}
+
+namespace {
+
+// Deserialize a struct sub-field. On the wire every sub-field is an Array (scalar) or
+// ArrayOfVector (vector); a nested Array sub-field also carries a recursive type_schema.
+void
+ConvertStructSubFieldSchema(const proto::schema::FieldSchema& proto_field, const std::string& struct_name,
+                            FieldSchema& sub_field, int64_t& struct_max_capacity) {
+    sub_field.SetName(StripStructSubFieldName(struct_name, proto_field.name()));
+    sub_field.SetDescription(proto_field.description());
+
+    DataType element_type = DataTypeCast(proto_field.element_type());
+    if (element_type == DataType::ARRAY && proto_field.has_type_schema()) {
+        // Nested Array sub-field: the SDK field is ARRAY with leaf type, inner capacity,
+        // inner-array nullability and leaf nullability recovered from type_schema.
+        const auto& root = proto_field.type_schema();
+        if (!root.has_array_element()) {
+            sub_field.SetDataType(DataType::UNKNOWN);
+            return;
+        }
+        const auto& inner = root.array_element();
+        if (!inner.has_array_element()) {
+            sub_field.SetDataType(DataType::UNKNOWN);
+            return;
+        }
+        const auto& leaf = inner.array_element();
+        sub_field.SetDataType(DataType::ARRAY);
+        sub_field.SetElementType(DataTypeCast(leaf.leaf_type()));
+        // wire element_nullable is the inner Array's nullability; leaf.nullable is the leaves'
+        sub_field.SetNullable(proto_field.element_nullable());
+        sub_field.SetElementNullable(leaf.nullable());
+        std::map<std::string, std::string> params;
+        for (int k = 0; k < leaf.type_params_size(); ++k) {
+            params.emplace(leaf.type_params(k).key(), leaf.type_params(k).value());
+        }
+        for (int k = 0; k < inner.type_params_size(); ++k) {
+            params.emplace(inner.type_params(k).key(), inner.type_params(k).value());
+        }
+        if (params.find(MAX_CAPACITY) != params.end()) {
+            sub_field.SetMaxCapacity(static_cast<uint32_t>(std::strtol(params.at(MAX_CAPACITY).c_str(), nullptr, 10)));
+            params.erase(MAX_CAPACITY);
+        }
+        sub_field.SetTypeParams(std::move(params));
+        // the struct's row-level capacity is carried on the type_schema root
+        for (int k = 0; k < root.type_params_size(); ++k) {
+            if (root.type_params(k).key() == MAX_CAPACITY) {
+                struct_max_capacity = std::strtol(root.type_params(k).value().c_str(), nullptr, 10);
+                break;
+            }
+        }
+    } else {
+        // Plain scalar or vector sub-field.
+        sub_field.SetDataType(element_type);
+        sub_field.SetNullable(proto_field.element_nullable());
+        std::map<std::string, std::string> params;
+        for (int k = 0; k < proto_field.type_params_size(); ++k) {
+            auto& kv = proto_field.type_params(k);
+            if (kv.key() == MAX_CAPACITY) {
+                struct_max_capacity = std::strtol(kv.value().c_str(), nullptr, 10);
+                continue;
+            }
+            params.emplace(kv.key(), kv.value());
+        }
+        sub_field.SetTypeParams(std::move(params));
+    }
+}
+
+}  // namespace
+
 void
 ConvertStructFieldSchema(const proto::schema::StructArrayFieldSchema& proto_schema, StructFieldSchema& field_schema) {
     field_schema.SetName(proto_schema.name());
@@ -489,19 +571,16 @@ ConvertStructFieldSchema(const proto::schema::StructArrayFieldSchema& proto_sche
     }
     field_schema.SetTypeParams(std::move(params));
 
+    int64_t struct_max_capacity = 0;
     for (auto i = 0; i < proto_schema.fields_size(); i++) {
         const auto& proto_field = proto_schema.fields(i);
 
         FieldSchema sub_field;
-        ConvertFieldSchema(proto_field, sub_field);
-        field_schema.SetMaxCapacity(sub_field.MaxCapacity());
-
-        // reset data type of sub fields, convert from array field to normal field
-        sub_field.SetDataType(sub_field.ElementType());
-        sub_field.SetElementType(DataType::UNKNOWN);
-        sub_field.SetMaxCapacity(0);
-
+        ConvertStructSubFieldSchema(proto_field, proto_schema.name(), sub_field, struct_max_capacity);
         field_schema.AddField(sub_field);
+    }
+    if (struct_max_capacity > 0) {
+        field_schema.SetMaxCapacity(struct_max_capacity);
     }
 }
 
@@ -699,6 +778,7 @@ ConvertFieldSchema(const FieldSchema& schema, proto::schema::FieldSchema& proto_
     proto_schema.set_autoid(schema.AutoID());
     proto_schema.set_data_type(DataTypeCast(schema.FieldDataType()));
     proto_schema.set_nullable(schema.IsNullable());
+    proto_schema.set_element_nullable(schema.IsElementNullable());
 
     if (!schema.DefaultValue().is_null()) {
         ConvertValueFieldSchema(schema.DefaultValue(), schema.FieldDataType(), *proto_schema.mutable_default_value());
@@ -716,6 +796,81 @@ ConvertFieldSchema(const FieldSchema& schema, proto::schema::FieldSchema& proto_
     proto_schema.set_external_field(schema.ExternalField());
 }
 
+namespace {
+
+// Serialize one struct sub-field. On the wire every sub-field is an Array (scalar) or
+// ArrayOfVector (vector); a nested Array sub-field also carries a recursive type_schema.
+// row_nullable is the parent struct's row nullability and max_capacity its element cap.
+void
+ConvertStructSubFieldSchema(const FieldSchema& field, bool row_nullable, int64_t max_capacity,
+                            proto::schema::FieldSchema& proto_field) {
+    proto_field.set_name(field.Name());
+    proto_field.set_description(field.Description());
+    proto_field.set_nullable(row_nullable);
+    proto_field.set_element_type(DataTypeCast(field.FieldDataType()));
+
+    std::map<std::string, std::string> params = field.TypeParams();
+    proto_field.set_data_type(IsVectorType(field.FieldDataType()) ? proto::schema::DataType::ArrayOfVector
+                                                                  : proto::schema::DataType::Array);
+
+    if (field.FieldDataType() == DataType::ARRAY) {
+        // Nested Array sub-field: leaf describes the inner value, inner the array itself.
+        // Wire element_nullable is the inner Array's nullability; the leaves use type_schema.
+        proto_field.set_element_nullable(field.IsNullable());
+        auto it_capacity = params.find(MAX_CAPACITY);
+        if (it_capacity == params.end()) {
+            return;  // the SDK validation rejects a nested Array sub-field without max_capacity
+        }
+        auto inner_capacity = std::strtol(it_capacity->second.c_str(), nullptr, 10);
+        params.erase(it_capacity);
+
+        proto::schema::TypeSchema leaf;
+        leaf.set_leaf_type(DataTypeCast(field.ElementType()));
+        leaf.set_nullable(field.IsElementNullable());
+        auto it_max_length = params.find(MAX_LENGTH);
+        if (it_max_length != params.end()) {
+            auto kv = leaf.add_type_params();
+            kv->set_key(it_max_length->first);
+            kv->set_value(it_max_length->second);
+            params.erase(it_max_length);
+        }
+
+        proto::schema::TypeSchema inner;
+        inner.set_nullable(field.IsNullable());
+        *inner.mutable_array_element() = std::move(leaf);
+        auto kv = inner.add_type_params();
+        kv->set_key(MAX_CAPACITY);
+        kv->set_value(std::to_string(inner_capacity));
+
+        auto* root = proto_field.mutable_type_schema();
+        root->set_nullable(row_nullable);
+        *root->mutable_array_element() = std::move(inner);
+        if (max_capacity > 0) {
+            auto kv2 = root->add_type_params();
+            kv2->set_key(MAX_CAPACITY);
+            kv2->set_value(std::to_string(max_capacity));
+        }
+    } else {
+        // Plain scalar/vector sub-field: wire element_nullable is the element nullability.
+        // The public create/add paths reject element_nullable on a non-Array sub-field, so
+        // this is effectively IsNullable(); the OR with IsElementNullable() is a defensive
+        // fallback for directly constructed schemas, keeping the encoder consistent with the
+        // DML gate.
+        proto_field.set_element_nullable(field.IsNullable() || field.IsElementNullable());
+    }
+
+    if (max_capacity > 0) {
+        params[MAX_CAPACITY] = std::to_string(max_capacity);
+    }
+    for (const auto& pair : params) {
+        auto kv = proto_field.add_type_params();
+        kv->set_key(pair.first);
+        kv->set_value(pair.second);
+    }
+}
+
+}  // namespace
+
 void
 ConvertStructFieldSchema(const StructFieldSchema& schema, proto::schema::StructArrayFieldSchema& proto_schema) {
     proto_schema.set_name(schema.Name());
@@ -730,19 +885,20 @@ ConvertStructFieldSchema(const StructFieldSchema& schema, proto::schema::StructA
 
     for (auto& field : schema.Fields()) {
         auto proto_field = proto_schema.add_fields();
-        ConvertFieldSchema(field, *proto_field);
-
-        // reset the type to array, each sub field is an array field
-        auto actual_type = proto::schema::DataType::Array;
-        if (IsVectorType(field.FieldDataType())) {
-            actual_type = proto::schema::DataType::ArrayOfVector;
-        }
-        proto_field->set_data_type(actual_type);
-        proto_field->set_element_type(DataTypeCast(field.FieldDataType()));
-        auto pair = proto_field->add_type_params();
-        pair->set_key(MAX_CAPACITY);
-        pair->set_value(std::to_string(schema.MaxCapacity()));
+        ConvertStructSubFieldSchema(field, schema.IsNullable(), schema.MaxCapacity(), *proto_field);
     }
+}
+
+bool
+IsStructSubFieldPath(const std::string& field_name) {
+    // matches "struct[subfield]" with no nesting
+    static const std::regex kSubFieldRegex(R"(^[A-Za-z_][A-Za-z_0-9]*\[[A-Za-z_][A-Za-z_0-9]*\]$)");
+    return std::regex_match(field_name, kSubFieldRegex);
+}
+
+void
+ConvertAddStructSubFieldSchema(const FieldSchema& field, proto::schema::FieldSchema& proto_field) {
+    ConvertStructSubFieldSchema(field, false, 0, proto_field);
 }
 
 void

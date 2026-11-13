@@ -348,6 +348,233 @@ TEST_F(UnconnectMilvusMockedTest, DropCollectionFieldRejectsNegativeId) {
     EXPECT_EQ(status.Code(), StatusCode::INVALID_ARGUMENT);
 }
 
+TEST_F(UnconnectMilvusMockedTest, AddCollectionStructSubFieldUsesAlterCollectionSchema) {
+    const auto endpoint = Endpoint(server_.ListenPort());
+    milvus::SchemaCache::GetInstance().Set(endpoint, "db", "coll", MakeCollectionDesc());
+    auto client = CreateConnectedV2Client(service_, server_.ListenPort());
+
+    milvus::FieldSchema field("clips[lang]", milvus::DataType::VARCHAR);
+    field.SetMaxLength(16);
+    field.SetNullable(true);
+
+    EXPECT_CALL(service_, AlterCollectionSchema(_, _, _))
+        .WillOnce([](::grpc::ServerContext*, const AlterCollectionSchemaRequest* request,
+                     AlterCollectionSchemaResponse* response) {
+            EXPECT_EQ(request->db_name(), "db");
+            EXPECT_EQ(request->collection_name(), "coll");
+            EXPECT_TRUE(request->action().has_add_request());
+            EXPECT_EQ(request->action().add_request().field_infos_size(), 1);
+            const auto& field_schema = request->action().add_request().field_infos(0).field_schema();
+            EXPECT_EQ(field_schema.name(), "clips[lang]");
+            EXPECT_EQ(field_schema.data_type(), ::milvus::proto::schema::DataType::Array);
+            EXPECT_EQ(field_schema.element_type(), ::milvus::proto::schema::DataType::VarChar);
+            EXPECT_TRUE(field_schema.element_nullable());
+            EXPECT_FALSE(field_schema.nullable());
+            response->mutable_alter_status()->set_code(0);
+            return ::grpc::Status{};
+        });
+
+    auto status = client->AddCollectionField(
+        milvus::AddCollectionFieldRequest().WithDatabaseName("db").WithCollectionName("coll").WithField(
+            std::move(field)));
+    EXPECT_TRUE(status.IsOk());
+    ExpectSchemaCached(endpoint, "db", "coll", false);
+}
+
+TEST_F(UnconnectMilvusMockedTest, AddCollectionStructSubFieldRejectsNonNullable) {
+    auto client = CreateConnectedV2Client(service_, server_.ListenPort());
+    milvus::FieldSchema field("clips[lang]", milvus::DataType::VARCHAR);
+    field.SetMaxLength(16);
+
+    auto status = client->AddCollectionField(
+        milvus::AddCollectionFieldRequest().WithCollectionName("coll").WithField(std::move(field)));
+    EXPECT_EQ(status.Code(), StatusCode::INVALID_ARGUMENT);
+    EXPECT_EQ(status.Message(), "Adding a struct sub-field requires nullable=True");
+}
+
+TEST_F(UnconnectMilvusMockedTest, AddCollectionStructSubFieldNestedArray) {
+    const auto endpoint = Endpoint(server_.ListenPort());
+    milvus::SchemaCache::GetInstance().Set(endpoint, "db", "coll", MakeCollectionDesc());
+    auto client = CreateConnectedV2Client(service_, server_.ListenPort());
+
+    milvus::FieldSchema field("clips[marks]", milvus::DataType::ARRAY);
+    field.SetElementType(milvus::DataType::INT32);
+    field.SetMaxCapacity(4);
+    field.SetNullable(true);
+    field.SetElementNullable(true);
+
+    EXPECT_CALL(service_, AlterCollectionSchema(_, _, _))
+        .WillOnce([](::grpc::ServerContext*, const AlterCollectionSchemaRequest* request,
+                     AlterCollectionSchemaResponse* response) {
+            EXPECT_EQ(request->action().add_request().field_infos_size(), 1);
+            const auto& field_schema = request->action().add_request().field_infos(0).field_schema();
+            EXPECT_EQ(field_schema.name(), "clips[marks]");
+            EXPECT_EQ(field_schema.data_type(), ::milvus::proto::schema::DataType::Array);
+            EXPECT_TRUE(field_schema.element_nullable());
+            EXPECT_TRUE(field_schema.has_type_schema());
+            const auto& inner = field_schema.type_schema().array_element();
+            EXPECT_TRUE(inner.nullable());
+            EXPECT_EQ(inner.type_params_size(), 1);
+            EXPECT_EQ(inner.type_params(0).key(), "max_capacity");
+            EXPECT_EQ(inner.type_params(0).value(), "4");
+            response->mutable_alter_status()->set_code(0);
+            return ::grpc::Status{};
+        });
+
+    auto status = client->AddCollectionField(
+        milvus::AddCollectionFieldRequest().WithDatabaseName("db").WithCollectionName("coll").WithField(
+            std::move(field)));
+    EXPECT_TRUE(status.IsOk());
+    ExpectSchemaCached(endpoint, "db", "coll", false);
+}
+
+TEST_F(UnconnectMilvusMockedTest, AddCollectionStructSubFieldRejectsElementNullableOnScalar) {
+    // element_nullable only applies to nested Array sub-fields (aligned with pymilvus)
+    auto client = CreateConnectedV2Client(service_, server_.ListenPort());
+    milvus::FieldSchema field("clips[lang]", milvus::DataType::VARCHAR);
+    field.WithMaxLength(16).WithNullable(true).WithElementNullable(true);
+
+    auto status = client->AddCollectionField(
+        milvus::AddCollectionFieldRequest().WithCollectionName("coll").WithField(std::move(field)));
+    EXPECT_EQ(status.Code(), StatusCode::INVALID_ARGUMENT);
+    EXPECT_EQ(status.Message(), "element_nullable requires an Array sub-field: clips[lang]");
+}
+
+TEST_F(UnconnectMilvusMockedTest, AddCollectionStructSubFieldNestedArrayRejectsNonScalarLeaf) {
+    // a nested Array sub-field add requires a scalar leaf element type
+    auto client = CreateConnectedV2Client(service_, server_.ListenPort());
+    milvus::FieldSchema field("clips[marks]", milvus::DataType::ARRAY);
+    field.WithElementType(milvus::DataType::ARRAY).WithMaxCapacity(4).WithNullable(true);
+
+    auto status = client->AddCollectionField(
+        milvus::AddCollectionFieldRequest().WithCollectionName("coll").WithField(std::move(field)));
+    EXPECT_EQ(status.Code(), StatusCode::INVALID_ARGUMENT);
+    EXPECT_EQ(status.Message(), "Struct Array sub field requires a scalar element type: clips[marks]");
+}
+
+TEST_F(UnconnectMilvusMockedTest, AddCollectionStructFieldRejectsElementNullableOnScalarSubField) {
+    // a plain scalar sub-field cannot carry element_nullable in a struct field schema
+    auto client = CreateConnectedV2Client(service_, server_.ListenPort());
+    milvus::StructFieldSchema struct_field;
+    struct_field.WithName("meta").WithMaxCapacity(10).WithNullable(true);
+    struct_field.AddField(milvus::FieldSchema("lang", milvus::DataType::VARCHAR)
+                              .WithMaxLength(16)
+                              .WithNullable(true)
+                              .WithElementNullable(true));
+
+    auto status = client->AddCollectionStructField(
+        milvus::AddCollectionStructFieldRequest().WithCollectionName("coll").WithStructField(std::move(struct_field)));
+    EXPECT_EQ(status.Code(), StatusCode::INVALID_ARGUMENT);
+    EXPECT_EQ(status.Message(), "element_nullable requires an Array sub-field: lang");
+}
+
+TEST_F(UnconnectMilvusMockedTest, CreateCollectionRejectsStructSubFieldWithoutMaxCapacity) {
+    // struct sub-fields follow the same element-nullability rules on the create path: a
+    // nested Array sub-field without max_capacity is rejected client-side
+    auto client = CreateConnectedV2Client(service_, server_.ListenPort());
+    milvus::CollectionSchemaPtr schema = std::make_shared<milvus::CollectionSchema>();
+    schema->AddField(milvus::FieldSchema("pk", milvus::DataType::INT64, "pk", true, false));
+    milvus::StructFieldSchema struct_field;
+    struct_field.WithName("clips").WithMaxCapacity(100);
+    struct_field.AddField(
+        milvus::FieldSchema("marks", milvus::DataType::ARRAY).WithElementType(milvus::DataType::INT32));
+    schema->AddStructField(std::move(struct_field));
+
+    auto status = client->CreateCollection(
+        milvus::CreateCollectionRequest().WithCollectionName("coll").WithCollectionSchema(schema));
+    EXPECT_EQ(status.Code(), StatusCode::INVALID_ARGUMENT);
+    EXPECT_EQ(status.Message(), "Struct Array sub field requires max_capacity: marks");
+}
+
+TEST_F(UnconnectMilvusMockedTest, AddCollectionFieldRejectsMalformedSubFieldPath) {
+    // a bracket-containing name that is not a valid struct sub-field path is rejected
+    // client-side instead of being serialized as a plain field (parity with pymilvus)
+    auto client = CreateConnectedV2Client(service_, server_.ListenPort());
+    for (const std::string& malformed : {"clips[1]", "clips[a][b]", "[note]"}) {
+        milvus::FieldSchema field(malformed, milvus::DataType::VARCHAR);
+        field.WithMaxLength(64).WithNullable(true);
+        auto status = client->AddCollectionField(
+            milvus::AddCollectionFieldRequest().WithCollectionName("coll").WithField(std::move(field)));
+        EXPECT_EQ(status.Code(), StatusCode::INVALID_ARGUMENT) << malformed;
+        EXPECT_EQ(status.Message(), "Invalid struct sub-field path: " + malformed) << malformed;
+    }
+}
+
+TEST_F(UnconnectMilvusMockedTest, AddCollectionStructFieldRejectsSparseVectorSubField) {
+    // sparse vectors are not supported as struct sub-fields (the SDK cannot decode them on
+    // query/search), so they are rejected at schema validation like pymilvus
+    auto client = CreateConnectedV2Client(service_, server_.ListenPort());
+    milvus::StructFieldSchema struct_field;
+    struct_field.WithName("clips").WithMaxCapacity(100).WithNullable(true);
+    struct_field.AddField(milvus::FieldSchema("sparse_emb", milvus::DataType::SPARSE_FLOAT_VECTOR));
+
+    auto status = client->AddCollectionStructField(
+        milvus::AddCollectionStructFieldRequest().WithCollectionName("coll").WithStructField(std::move(struct_field)));
+    EXPECT_EQ(status.Code(), StatusCode::INVALID_ARGUMENT);
+    EXPECT_EQ(status.Message(), "Struct sub field does not support sparse vector: sparse_emb");
+}
+
+TEST_F(UnconnectMilvusMockedTest, DropCollectionStructSubField) {
+    const auto endpoint = Endpoint(server_.ListenPort());
+    milvus::SchemaCache::GetInstance().Set(endpoint, "db", "coll", MakeCollectionDesc());
+    auto client = CreateConnectedV2Client(service_, server_.ListenPort());
+
+    EXPECT_CALL(service_, AlterCollectionSchema(_, _, _))
+        .WillOnce([](::grpc::ServerContext*, const AlterCollectionSchemaRequest* request,
+                     AlterCollectionSchemaResponse* response) {
+            EXPECT_EQ(request->db_name(), "db");
+            EXPECT_EQ(request->collection_name(), "coll");
+            EXPECT_TRUE(request->action().has_drop_request());
+            EXPECT_EQ(request->action().drop_request().field_name(), "clips[note]");
+            response->mutable_alter_status()->set_code(0);
+            return ::grpc::Status{};
+        });
+
+    auto status = client->DropCollectionField(
+        milvus::DropCollectionFieldRequest().WithDatabaseName("db").WithCollectionName("coll").WithFieldName(
+            "clips[note]"));
+    EXPECT_TRUE(status.IsOk());
+    ExpectSchemaCached(endpoint, "db", "coll", false);
+}
+
+TEST_F(UnconnectMilvusMockedTest, AddCollectionStructFieldNullableSubField) {
+    const auto endpoint = Endpoint(server_.ListenPort());
+    milvus::SchemaCache::GetInstance().Set(endpoint, "db", "coll", MakeCollectionDesc());
+    auto client = CreateConnectedV2Client(service_, server_.ListenPort());
+
+    milvus::StructFieldSchema struct_field;
+    struct_field.WithName("meta").WithMaxCapacity(10).WithNullable(true);
+    struct_field.AddField(milvus::FieldSchema("lang", milvus::DataType::VARCHAR).WithMaxLength(16).WithNullable(true));
+    struct_field.AddField(milvus::FieldSchema("tags", milvus::DataType::ARRAY)
+                              .WithElementType(milvus::DataType::INT32)
+                              .WithMaxCapacity(8)
+                              .WithNullable(true)
+                              .WithElementNullable(true));
+
+    EXPECT_CALL(service_, AddCollectionStructField(_, _, _))
+        .WillOnce([](::grpc::ServerContext*, const ::milvus::proto::milvus::AddCollectionStructFieldRequest* request,
+                     ::milvus::proto::common::Status* response) {
+            EXPECT_EQ(request->db_name(), "db");
+            EXPECT_EQ(request->collection_name(), "coll");
+            const auto& proto_struct = request->struct_array_field_schema();
+            EXPECT_EQ(proto_struct.name(), "meta");
+            EXPECT_TRUE(proto_struct.nullable());
+            EXPECT_EQ(proto_struct.fields_size(), 2);
+            EXPECT_TRUE(proto_struct.fields(0).element_nullable());
+            EXPECT_EQ(proto_struct.fields(1).element_type(), ::milvus::proto::schema::DataType::Array);
+            EXPECT_TRUE(proto_struct.fields(1).element_nullable());
+            EXPECT_TRUE(proto_struct.fields(1).has_type_schema());
+            response->set_code(0);
+            return ::grpc::Status{};
+        });
+
+    auto status = client->AddCollectionStructField(
+        milvus::AddCollectionStructFieldRequest().WithDatabaseName("db").WithCollectionName("coll").WithStructField(
+            std::move(struct_field)));
+    EXPECT_TRUE(status.IsOk());
+    ExpectSchemaCached(endpoint, "db", "coll", false);
+}
+
 TEST_F(UnconnectMilvusMockedTest, AddFunctionFieldNotConnected) {
     auto client = milvus::MilvusClientV2::Create();
     milvus::FieldSchema field;

@@ -58,6 +58,15 @@ class MILVUS_SDK_API FieldPartialUpdateOp {
          * supplied element matches.
          */
         ARRAY_REMOVE,
+
+        /**
+         * @brief Replace an existing value selected by a path relative to the parent field.
+         *
+         * Supported for struct fields. Use `[index]` to replace one complete element or `[index][child]` to replace
+         * one struct child. Each operand row contains one struct element; a child path sends only the selected child
+         * and every operand must explicitly include its key.
+         */
+        PATH_REPLACE,
     };
 
     /**
@@ -112,9 +121,33 @@ class MILVUS_SDK_API FieldPartialUpdateOp {
     FieldPartialUpdateOp&
     WithOpType(OpType op_type);
 
+    /**
+     * @brief Get the path of a PATH_REPLACE operation.
+     * @return the path.
+     */
+    const std::string&
+    Path() const;
+
+    /**
+     * @brief Set the path of a PATH_REPLACE operation.
+     *
+     * @param [in] path
+     */
+    void
+    SetPath(std::string path);
+
+    /**
+     * @brief Set the path of a PATH_REPLACE operation.
+     *
+     * @param [in] path
+     */
+    FieldPartialUpdateOp&
+    WithPath(std::string path);
+
  private:
     std::string field_name_;
     OpType op_type_{OpType::REPLACE};
+    std::string path_;
 };
 
 }  // namespace milvus
