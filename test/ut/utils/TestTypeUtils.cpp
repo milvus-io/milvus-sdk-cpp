@@ -941,6 +941,37 @@ TEST_F(TypeUtilsTest, ConvertStructFieldSchemaFromProto) {
     EXPECT_EQ(sdk_schema.Fields().size(), 2);
 }
 
+TEST_F(TypeUtilsTest, ConvertStructFieldSchemaStripsAddedSubFieldName) {
+    // The server keeps the bracketed name ("clips[note]") for sub-fields added later via
+    // add_collection_field, while create-time sub-fields are already plain. The SDK strips
+    // the bracket prefix on describe so users write added sub-fields with a plain key
+    // (matching pymilvus _strip_struct_sub_field_name).
+    milvus::proto::schema::StructArrayFieldSchema proto_schema;
+    proto_schema.set_name("clips");
+    auto* created = proto_schema.add_fields();
+    created->set_name("frame_number");
+    created->set_data_type(milvus::proto::schema::DataType::Int32);
+    auto* added = proto_schema.add_fields();
+    added->set_name("clips[note]");
+    added->set_data_type(milvus::proto::schema::DataType::Array);
+    added->set_element_type(milvus::proto::schema::DataType::VarChar);
+    added->set_element_nullable(true);
+    auto* capacity = added->add_type_params();
+    capacity->set_key("max_capacity");
+    capacity->set_value("16");
+    auto* max_length = added->add_type_params();
+    max_length->set_key("max_length");
+    max_length->set_value("64");
+
+    milvus::StructFieldSchema sdk_schema;
+    milvus::ConvertStructFieldSchema(proto_schema, sdk_schema);
+    ASSERT_EQ(sdk_schema.Fields().size(), 2);
+    EXPECT_EQ(sdk_schema.Fields().at(0).Name(), "frame_number");
+    EXPECT_EQ(sdk_schema.Fields().at(1).Name(), "note");
+    EXPECT_TRUE(sdk_schema.Fields().at(1).IsNullable());
+    EXPECT_EQ(sdk_schema.MaxCapacity(), 16);
+}
+
 TEST_F(TypeUtilsTest, ConvertStructFieldSchemaViaCollectionSchema) {
     // SDK -> proto via ConvertCollectionSchema which calls ConvertStructFieldSchema internally
     milvus::CollectionSchema schema("test_coll");
@@ -959,6 +990,181 @@ TEST_F(TypeUtilsTest, ConvertStructFieldSchemaViaCollectionSchema) {
     EXPECT_EQ(proto_schema.struct_array_fields(0).type_params_size(), 1);
     EXPECT_EQ(proto_schema.struct_array_fields(0).type_params(0).key(), "mmap.enabled");
     EXPECT_EQ(proto_schema.struct_array_fields(0).type_params(0).value(), "true");
+}
+
+TEST_F(TypeUtilsTest, ConvertStructFieldSchemaElementNullableRoundTrip) {
+    // A struct with a nullable scalar sub-field and a nested Array sub-field.
+    milvus::CollectionSchema schema("test_coll");
+    schema.AddField(milvus::FieldSchema("pk", milvus::DataType::INT64, "pk", true, false));
+    schema.AddField(milvus::FieldSchema("vec", milvus::DataType::FLOAT_VECTOR).WithDimension(4));
+
+    milvus::StructFieldSchema struct_schema;
+    struct_schema.WithName("clips").WithMaxCapacity(100).WithNullable(true);
+    struct_schema.AddField(milvus::FieldSchema("score", milvus::DataType::INT64).WithNullable(true));
+    struct_schema.AddField(milvus::FieldSchema("lang", milvus::DataType::VARCHAR).WithMaxLength(16).WithNullable(true));
+    struct_schema.AddField(
+        milvus::FieldSchema("emb", milvus::DataType::FLOAT_VECTOR).WithDimension(4).WithNullable(true));
+    struct_schema.AddField(milvus::FieldSchema("tags", milvus::DataType::ARRAY)
+                               .WithElementType(milvus::DataType::VARCHAR)
+                               .WithMaxCapacity(8)
+                               .WithMaxLength(16)
+                               .WithNullable(true)
+                               .WithElementNullable(true));
+    schema.AddStructField(std::move(struct_schema));
+
+    // SDK -> proto
+    milvus::proto::schema::CollectionSchema proto_schema;
+    milvus::ConvertCollectionSchema(schema, proto_schema);
+    ASSERT_EQ(proto_schema.struct_array_fields_size(), 1);
+    const auto& proto_struct = proto_schema.struct_array_fields(0);
+    EXPECT_TRUE(proto_struct.nullable());
+    ASSERT_EQ(proto_struct.fields_size(), 4);
+
+    const auto& score = proto_struct.fields(0);
+    EXPECT_EQ(score.name(), "score");
+    EXPECT_EQ(score.data_type(), milvus::proto::schema::DataType::Array);
+    EXPECT_EQ(score.element_type(), milvus::proto::schema::DataType::Int64);
+    EXPECT_TRUE(score.element_nullable());
+    EXPECT_TRUE(score.nullable());
+    EXPECT_FALSE(score.has_type_schema());
+    // struct max_capacity is serialized on every sub-field
+    EXPECT_EQ(score.type_params_size(), 1);
+    EXPECT_EQ(score.type_params(0).key(), "max_capacity");
+    EXPECT_EQ(score.type_params(0).value(), "100");
+
+    const auto& emb = proto_struct.fields(2);
+    EXPECT_EQ(emb.name(), "emb");
+    EXPECT_EQ(emb.data_type(), milvus::proto::schema::DataType::ArrayOfVector);
+    EXPECT_EQ(emb.element_type(), milvus::proto::schema::DataType::FloatVector);
+    EXPECT_TRUE(emb.element_nullable());
+
+    // nested Array sub-field carries a recursive type_schema
+    const auto& tags = proto_struct.fields(3);
+    EXPECT_EQ(tags.name(), "tags");
+    EXPECT_EQ(tags.data_type(), milvus::proto::schema::DataType::Array);
+    EXPECT_EQ(tags.element_type(), milvus::proto::schema::DataType::Array);
+    EXPECT_TRUE(tags.element_nullable());
+    ASSERT_TRUE(tags.has_type_schema());
+    const auto& root = tags.type_schema();
+    EXPECT_TRUE(root.nullable());
+    ASSERT_TRUE(root.has_array_element());
+    const auto& inner = root.array_element();
+    EXPECT_TRUE(inner.nullable());
+    ASSERT_TRUE(inner.has_array_element());
+    const auto& leaf = inner.array_element();
+    EXPECT_TRUE(leaf.nullable());
+    EXPECT_EQ(leaf.leaf_type(), milvus::proto::schema::DataType::VarChar);
+    // inner max_capacity on the inner level, struct max_capacity on the root
+    EXPECT_EQ(root.type_params_size(), 1);
+    EXPECT_EQ(root.type_params(0).key(), "max_capacity");
+    EXPECT_EQ(root.type_params(0).value(), "100");
+    EXPECT_EQ(inner.type_params_size(), 1);
+    EXPECT_EQ(inner.type_params(0).key(), "max_capacity");
+    EXPECT_EQ(inner.type_params(0).value(), "8");
+
+    // proto -> SDK restores element nullability and the nested Array sub-field
+    milvus::CollectionSchema restored;
+    milvus::ConvertCollectionSchema(proto_schema, restored);
+    ASSERT_EQ(restored.StructFields().size(), 1);
+    const auto& restored_struct = restored.StructFields().at(0);
+    EXPECT_TRUE(restored_struct.IsNullable());
+    EXPECT_EQ(restored_struct.MaxCapacity(), 100);
+    ASSERT_EQ(restored_struct.Fields().size(), 4);
+    // plain scalar/vector sub-fields keep element_nullable=false (it only applies to the
+    // inner Array leaves of a nested Array sub-field, matching pymilvus/Java)
+    EXPECT_TRUE(restored_struct.Fields().at(0).IsNullable());
+    EXPECT_FALSE(restored_struct.Fields().at(0).IsElementNullable());
+    EXPECT_TRUE(restored_struct.Fields().at(1).IsNullable());
+    EXPECT_FALSE(restored_struct.Fields().at(1).IsElementNullable());
+    EXPECT_TRUE(restored_struct.Fields().at(2).IsNullable());
+    EXPECT_FALSE(restored_struct.Fields().at(2).IsElementNullable());
+    EXPECT_EQ(restored_struct.Fields().at(2).FieldDataType(), milvus::DataType::FLOAT_VECTOR);
+    const auto& restored_tags = restored_struct.Fields().at(3);
+    EXPECT_EQ(restored_tags.FieldDataType(), milvus::DataType::ARRAY);
+    EXPECT_EQ(restored_tags.ElementType(), milvus::DataType::VARCHAR);
+    EXPECT_TRUE(restored_tags.IsNullable());
+    EXPECT_TRUE(restored_tags.IsElementNullable());
+    EXPECT_EQ(restored_tags.MaxCapacity(), 8);
+    EXPECT_EQ(restored_tags.MaxLength(), 16);
+}
+
+TEST_F(TypeUtilsTest, ConvertStructFieldSchemaElementNullableAddSubField) {
+    // add_collection_field with a bracket path serializes a single sub-field, keeps the
+    // bracket name, and inherits row nullability/capacity from the server (not serialized).
+    milvus::FieldSchema field("clips[lang]", milvus::DataType::VARCHAR);
+    field.WithMaxLength(16).WithNullable(true);
+
+    milvus::proto::schema::FieldSchema proto_field;
+    milvus::ConvertAddStructSubFieldSchema(field, proto_field);
+    EXPECT_EQ(proto_field.name(), "clips[lang]");
+    EXPECT_EQ(proto_field.data_type(), milvus::proto::schema::DataType::Array);
+    EXPECT_EQ(proto_field.element_type(), milvus::proto::schema::DataType::VarChar);
+    EXPECT_TRUE(proto_field.element_nullable());
+    EXPECT_FALSE(proto_field.nullable());
+    EXPECT_FALSE(proto_field.has_type_schema());
+    ASSERT_EQ(proto_field.type_params_size(), 1);
+    EXPECT_EQ(proto_field.type_params(0).key(), "max_length");
+
+    // a nested Array sub-field add serializes its inner capacity in type_schema
+    milvus::FieldSchema marks("clips[marks]", milvus::DataType::ARRAY);
+    marks.WithElementType(milvus::DataType::INT32).WithMaxCapacity(4).WithNullable(true).WithElementNullable(true);
+    milvus::proto::schema::FieldSchema proto_marks;
+    milvus::ConvertAddStructSubFieldSchema(marks, proto_marks);
+    EXPECT_EQ(proto_marks.name(), "clips[marks]");
+    EXPECT_EQ(proto_marks.data_type(), milvus::proto::schema::DataType::Array);
+    EXPECT_EQ(proto_marks.element_type(), milvus::proto::schema::DataType::Array);
+    EXPECT_TRUE(proto_marks.element_nullable());
+    ASSERT_TRUE(proto_marks.has_type_schema());
+    const auto& inner = proto_marks.type_schema().array_element();
+    EXPECT_TRUE(inner.nullable());
+    EXPECT_EQ(inner.type_params_size(), 1);
+    EXPECT_EQ(inner.type_params(0).key(), "max_capacity");
+    EXPECT_EQ(inner.type_params(0).value(), "4");
+}
+
+TEST_F(TypeUtilsTest, ConvertStructSubFieldSchemaPlainElementNullableUsesOrGate) {
+    // For a plain scalar/vector sub-field the wire element_nullable is IsNullable() ||
+    // IsElementNullable(). The public create/add paths reject element_nullable on a non-Array
+    // sub-field, so the IsElementNullable() branch is a defensive fallback for directly
+    // constructed schemas, keeping the encoder consistent with the DML gate.
+    milvus::FieldSchema via_element("clips[lang]", milvus::DataType::VARCHAR);
+    via_element.WithMaxLength(16).WithElementNullable(true);
+    milvus::proto::schema::FieldSchema proto_element;
+    milvus::ConvertAddStructSubFieldSchema(via_element, proto_element);
+    EXPECT_TRUE(proto_element.element_nullable());
+
+    milvus::FieldSchema via_nullable("clips[lang]", milvus::DataType::VARCHAR);
+    via_nullable.WithMaxLength(16).WithNullable(true);
+    milvus::proto::schema::FieldSchema proto_nullable;
+    milvus::ConvertAddStructSubFieldSchema(via_nullable, proto_nullable);
+    EXPECT_TRUE(proto_nullable.element_nullable());
+
+    milvus::FieldSchema non_nullable("clips[lang]", milvus::DataType::VARCHAR);
+    non_nullable.WithMaxLength(16);
+    milvus::proto::schema::FieldSchema proto_plain;
+    milvus::ConvertAddStructSubFieldSchema(non_nullable, proto_plain);
+    EXPECT_FALSE(proto_plain.element_nullable());
+}
+
+TEST_F(TypeUtilsTest, IsStructSubFieldPath) {
+    EXPECT_TRUE(milvus::IsStructSubFieldPath("clips[lang]"));
+    EXPECT_TRUE(milvus::IsStructSubFieldPath("clips[marks]"));
+    EXPECT_TRUE(milvus::IsStructSubFieldPath("st[st_vec]"));
+    EXPECT_FALSE(milvus::IsStructSubFieldPath("lang"));
+    EXPECT_FALSE(milvus::IsStructSubFieldPath("clips"));
+    EXPECT_FALSE(milvus::IsStructSubFieldPath("clips[a][b]"));
+    EXPECT_FALSE(milvus::IsStructSubFieldPath("clips[]"));
+    EXPECT_FALSE(milvus::IsStructSubFieldPath("clips[  ]"));
+    EXPECT_FALSE(milvus::IsStructSubFieldPath("[lang]"));
+    EXPECT_FALSE(milvus::IsStructSubFieldPath(""));
+}
+
+TEST_F(TypeUtilsTest, FieldPartialUpdateOpPathReplaceCast) {
+    milvus::FieldPartialUpdateOp op("clips", milvus::FieldPartialUpdateOp::OpType::PATH_REPLACE);
+    op.WithPath("[1][tags]");
+    EXPECT_EQ(milvus::FieldPartialUpdateOpTypeCast(op.GetOpType()),
+              milvus::proto::schema::FieldPartialUpdateOp::PATH_REPLACE);
+    EXPECT_EQ(op.Path(), "[1][tags]");
 }
 
 TEST_F(TypeUtilsTest, ConvertResourceGroupConfigRoundtrip) {

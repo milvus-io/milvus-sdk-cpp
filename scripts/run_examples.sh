@@ -63,6 +63,9 @@ for example in "${all_examples[@]}"; do
         sdk_text_field_v2)
             echo "Skipping ${example_name} because it requires the Milvus server to enable common.storage.useLoonFFI (Storage V3)."
             ;;
+        sdk_struct_field_v2)
+            echo "Skipping ${example_name} because it requires the Milvus element-null server stack (nullable struct sub-fields, nested Arrays, sub-field add/drop)."
+            ;;
         *)
             examples+=("${example}")
             ;;

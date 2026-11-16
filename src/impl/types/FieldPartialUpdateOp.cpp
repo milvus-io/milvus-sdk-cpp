@@ -56,4 +56,20 @@ FieldPartialUpdateOp::WithOpType(OpType op_type) {
     return *this;
 }
 
+const std::string&
+FieldPartialUpdateOp::Path() const {
+    return path_;
+}
+
+void
+FieldPartialUpdateOp::SetPath(std::string path) {
+    path_ = std::move(path);
+}
+
+FieldPartialUpdateOp&
+FieldPartialUpdateOp::WithPath(std::string path) {
+    SetPath(std::move(path));
+    return *this;
+}
+
 }  // namespace milvus

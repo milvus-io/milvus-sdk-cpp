@@ -424,6 +424,43 @@ class MILVUS_SDK_API FieldSchema {
     WithNullable(bool nullable);
 
     /**
+     * @brief Get whether a nested Array sub-field's inner values (leaves) can be null.
+     *
+     * Applies only to a nested Array sub-field used as a struct sub-field: true means each
+     * value inside the inner Array can be null, while the inner Array itself being null is
+     * controlled by the sub-field's nullable flag. Plain scalar/vector sub-fields express
+     * element-level null with WithNullable (mapped to wire element_nullable); setting this
+     * flag on a non-Array sub-field is rejected on create/add.
+     * @return true if the inner Array leaves are nullable.
+     */
+    bool
+    IsElementNullable() const;
+
+    /**
+     * @brief Set whether a nested Array sub-field's inner values (leaves) can be null.
+     *
+     * Applies only to a nested Array sub-field used as a struct sub-field: true permits null
+     * values inside the inner Array, while the inner Array itself being null is controlled by
+     * the sub-field's nullable flag. Plain scalar/vector sub-fields express element-level null
+     * with WithNullable; setting this flag on a non-Array sub-field is rejected on create/add.
+     * @param [in] element_nullable the element nullable.
+     */
+    void
+    SetElementNullable(bool element_nullable);
+
+    /**
+     * @brief Set whether a nested Array sub-field's inner values (leaves) can be null.
+     *
+     * Applies only to a nested Array sub-field used as a struct sub-field: true permits null
+     * values inside the inner Array, while the inner Array itself being null is controlled by
+     * the sub-field's nullable flag. Plain scalar/vector sub-fields express element-level null
+     * with WithNullable; setting this flag on a non-Array sub-field is rejected on create/add.
+     * @param [in] element_nullable the element nullable.
+     */
+    FieldSchema&
+    WithElementNullable(bool element_nullable);
+
+    /**
      * @brief Set default value of this field.
      *
      * Note: JSON and Array fields do not support default values.
@@ -481,7 +518,8 @@ class MILVUS_SDK_API FieldSchema {
     std::map<std::string, std::string> type_params_;
 
     bool is_nullable_ = false;
-    nlohmann::json default_value_;  // only accept primitive types
+    bool is_element_nullable_ = false;  // only for struct sub-fields
+    nlohmann::json default_value_;      // only accept primitive types
     std::string external_field_;
 };
 }  // namespace milvus

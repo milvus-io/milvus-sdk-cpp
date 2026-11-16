@@ -396,7 +396,6 @@ TEST_F(DqlUtilsTest, DecodeArrayOfTextFieldData) {
     EXPECT_EQ(typed->Value(0), (std::vector<std::string>{"first", "second"}));
     EXPECT_EQ(typed->Value(1), (std::vector<std::string>{"third"}));
 }
-
 TEST_F(DqlUtilsTest, GetRowsFromStructBinaryVectorFieldData) {
     std::vector<std::vector<nlohmann::json>> structs = {
         {nlohmann::json{{"st_bin", std::vector<uint8_t>{0x01, 0x02}}}},
@@ -411,6 +410,289 @@ TEST_F(DqlUtilsTest, GetRowsFromStructBinaryVectorFieldData) {
     ASSERT_EQ(rows.size(), 2u);
     EXPECT_EQ(rows[0]["st"][0]["st_bin"], nlohmann::json(std::vector<uint8_t>{0x01, 0x02}));
     EXPECT_EQ(rows[1]["st"][0]["st_bin"], nlohmann::json(std::vector<uint8_t>{0x03, 0x04}));
+}
+
+TEST_F(DqlUtilsTest, DecodeStructFieldDataElementNullable) {
+    // proto -> SDK struct decode reconstructs null elements from compact payloads.
+    milvus::proto::schema::FieldData proto;
+    proto.set_field_name("structs");
+    proto.set_type(milvus::proto::schema::DataType::ArrayOfStruct);
+    auto* struct_array = proto.mutable_struct_arrays();
+
+    // scalar sub-field "lang": one row with valid_data [true, false, true] and payload ["en", "fr"]
+    auto* lang = struct_array->add_fields();
+    lang->set_field_name("lang");
+    lang->set_type(milvus::proto::schema::DataType::Array);
+    lang->mutable_scalars()->mutable_array_data()->set_element_type(milvus::proto::schema::DataType::VarChar);
+    auto* lang_row = lang->mutable_scalars()->mutable_array_data()->add_data();
+    lang_row->mutable_valid_data()->Add(true);
+    lang_row->mutable_valid_data()->Add(false);
+    lang_row->mutable_valid_data()->Add(true);
+    lang_row->mutable_string_data()->add_data("en");
+    lang_row->mutable_string_data()->add_data("fr");
+
+    // vector sub-field "emb": one row with valid_data [true, false] and one compact vector
+    auto* emb = struct_array->add_fields();
+    emb->set_field_name("emb");
+    emb->set_type(milvus::proto::schema::DataType::ArrayOfVector);
+    emb->mutable_vectors()->set_dim(2);
+    emb->mutable_vectors()->mutable_vector_array()->set_element_type(milvus::proto::schema::DataType::FloatVector);
+    emb->mutable_vectors()->mutable_vector_array()->set_dim(2);
+    auto* emb_row = emb->mutable_vectors()->mutable_vector_array()->add_data();
+    emb_row->mutable_valid_data()->Add(true);
+    emb_row->mutable_valid_data()->Add(false);
+    emb_row->set_dim(2);
+    emb_row->mutable_float_vector()->add_data(1.0f);
+    emb_row->mutable_float_vector()->add_data(2.0f);
+
+    milvus::FieldDataPtr field_data;
+    auto status = milvus::CreateMilvusFieldData(proto, field_data);
+    ASSERT_TRUE(status.IsOk()) << status.Message();
+
+    auto struct_ptr = std::dynamic_pointer_cast<milvus::StructFieldData>(field_data);
+    ASSERT_NE(struct_ptr, nullptr);
+    const auto& rows = struct_ptr->Data();
+    ASSERT_EQ(rows.size(), 1u);
+    ASSERT_EQ(rows[0].size(), 3u);
+    EXPECT_EQ(rows[0][0]["lang"].get<std::string>(), "en");
+    EXPECT_TRUE(rows[0][1]["lang"].is_null());
+    EXPECT_EQ(rows[0][2]["lang"].get<std::string>(), "fr");
+    EXPECT_EQ(rows[0][0]["emb"].size(), 2u);
+    EXPECT_EQ(rows[0][0]["emb"][0].get<float>(), 1.0f);
+    EXPECT_EQ(rows[0][0]["emb"][1].get<float>(), 2.0f);
+    EXPECT_TRUE(rows[0][1]["emb"].is_null());
+}
+
+TEST_F(DqlUtilsTest, DecodeStructFieldDataNestedArray) {
+    // proto -> SDK struct decode reconstructs a nested Array sub-field.
+    milvus::proto::schema::FieldData proto;
+    proto.set_field_name("structs");
+    proto.set_type(milvus::proto::schema::DataType::ArrayOfStruct);
+    auto* struct_array = proto.mutable_struct_arrays();
+
+    auto* tags = struct_array->add_fields();
+    tags->set_field_name("tags");
+    tags->set_type(milvus::proto::schema::DataType::Array);
+    auto* outer = tags->mutable_scalars()->mutable_array_data();
+    outer->set_element_type(milvus::proto::schema::DataType::Array);
+    auto* row = outer->add_data();
+    row->mutable_valid_data()->Add(true);
+    row->mutable_valid_data()->Add(false);
+    auto* leaf0 = row->mutable_array_data()->add_data();
+    leaf0->mutable_string_data()->add_data("a");
+    leaf0->mutable_valid_data()->Add(true);
+    // each nested leaf records the leaf element type
+    row->mutable_array_data()->set_element_type(milvus::proto::schema::DataType::VarChar);
+
+    milvus::FieldDataPtr field_data;
+    auto status = milvus::CreateMilvusFieldData(proto, field_data);
+    ASSERT_TRUE(status.IsOk()) << status.Message();
+
+    auto struct_ptr = std::dynamic_pointer_cast<milvus::StructFieldData>(field_data);
+    ASSERT_NE(struct_ptr, nullptr);
+    const auto& rows = struct_ptr->Data();
+    ASSERT_EQ(rows.size(), 1u);
+    ASSERT_EQ(rows[0].size(), 2u);
+    ASSERT_TRUE(rows[0][0]["tags"].is_array());
+    EXPECT_EQ(rows[0][0]["tags"][0].get<std::string>(), "a");
+    EXPECT_TRUE(rows[0][1]["tags"].is_null());
+}
+
+TEST_F(DqlUtilsTest, DecodeStructFieldDataStripsAddedSubFieldName) {
+    // a sub-field added later via add_collection_field keeps the bracketed wire name
+    // "clips[note]"; the decoded struct element key must be the plain name so insert keys
+    // (note) and read keys match, like pymilvus/Java
+    milvus::proto::schema::FieldData proto;
+    proto.set_field_name("clips");
+    proto.set_type(milvus::proto::schema::DataType::ArrayOfStruct);
+    auto* struct_array = proto.mutable_struct_arrays();
+
+    auto* note = struct_array->add_fields();
+    note->set_field_name("clips[note]");
+    note->set_type(milvus::proto::schema::DataType::Array);
+    note->mutable_scalars()->mutable_array_data()->set_element_type(milvus::proto::schema::DataType::VarChar);
+    auto* row = note->mutable_scalars()->mutable_array_data()->add_data();
+    row->mutable_valid_data()->Add(true);
+    row->mutable_string_data()->add_data("hello");
+
+    milvus::FieldDataPtr field_data;
+    auto status = milvus::CreateMilvusFieldData(proto, field_data);
+    ASSERT_TRUE(status.IsOk()) << status.Message();
+    auto struct_ptr = std::dynamic_pointer_cast<milvus::StructFieldData>(field_data);
+    ASSERT_NE(struct_ptr, nullptr);
+    const auto& rows = struct_ptr->Data();
+    ASSERT_EQ(rows.size(), 1u);
+    ASSERT_EQ(rows[0].size(), 1u);
+    ASSERT_TRUE(rows[0][0].contains("note"));
+    EXPECT_EQ(rows[0][0]["note"].get<std::string>(), "hello");
+    EXPECT_FALSE(rows[0][0].contains("clips[note]"));
+}
+
+TEST_F(DqlUtilsTest, DecodeStructFieldDataWholeRowNull) {
+    // A null struct row is marked on every sub-field's shared row mask (the server clears
+    // the struct-level FieldData.valid_data and dual-writes the mask into each sub-field).
+    // The server output keeps a placeholder payload entry per row (dense layout), so rows
+    // stay aligned.
+    milvus::proto::schema::FieldData proto;
+    proto.set_field_name("structs");
+    proto.set_type(milvus::proto::schema::DataType::ArrayOfStruct);
+    auto* struct_array = proto.mutable_struct_arrays();
+
+    // sub-field "lang": rows [null, "en"]; the shared row mask is [false, true]
+    auto* lang = struct_array->add_fields();
+    lang->set_field_name("lang");
+    lang->set_type(milvus::proto::schema::DataType::Array);
+    lang->mutable_scalars()->mutable_array_data()->set_element_type(milvus::proto::schema::DataType::VarChar);
+    lang->mutable_valid_data()->Add(false);
+    lang->mutable_valid_data()->Add(true);
+    auto* null_row = lang->mutable_scalars()->mutable_array_data()->add_data();
+    (void)null_row;
+    auto* lang_row = lang->mutable_scalars()->mutable_array_data()->add_data();
+    lang_row->mutable_string_data()->add_data("en");
+
+    // sub-field "score": rows [null, 7]; the shared row mask is duplicated on the payload
+    auto* score = struct_array->add_fields();
+    score->set_field_name("score");
+    score->set_type(milvus::proto::schema::DataType::Array);
+    score->mutable_scalars()->mutable_array_data()->set_element_type(milvus::proto::schema::DataType::Int64);
+    score->mutable_valid_data()->Add(false);
+    score->mutable_valid_data()->Add(true);
+    auto* null_score = score->mutable_scalars()->mutable_array_data()->add_data();
+    (void)null_score;
+    auto* score_row = score->mutable_scalars()->mutable_array_data()->add_data();
+    score_row->mutable_long_data()->add_data(7);
+
+    milvus::FieldDataPtr field_data;
+    auto status = milvus::CreateMilvusFieldData(proto, field_data);
+    ASSERT_TRUE(status.IsOk()) << status.Message();
+
+    auto struct_ptr = std::dynamic_pointer_cast<milvus::StructFieldData>(field_data);
+    ASSERT_NE(struct_ptr, nullptr);
+    const auto& rows = struct_ptr->Data();
+    ASSERT_EQ(rows.size(), 2u);
+    // the null struct row decodes as an empty struct list, marked null by the shared row mask
+    EXPECT_TRUE(rows[0].empty());
+    EXPECT_TRUE(struct_ptr->IsNull(0));
+    EXPECT_FALSE(struct_ptr->IsNull(1));
+    ASSERT_EQ(rows[1].size(), 1u);
+    EXPECT_EQ(rows[1][0]["lang"].get<std::string>(), "en");
+    EXPECT_EQ(rows[1][0]["score"].get<int64_t>(), 7);
+
+    // output rows render the null struct row as JSON null, not an empty array
+    std::vector<milvus::FieldDataPtr> fields{field_data};
+    std::set<std::string> output_names{"structs"};
+    milvus::EntityRows out_rows;
+    status = milvus::GetRowsFromFieldsData(fields, output_names, out_rows);
+    ASSERT_TRUE(status.IsOk()) << status.Message();
+    ASSERT_EQ(out_rows.size(), 2u);
+    EXPECT_TRUE(out_rows[0]["structs"].is_null());
+    ASSERT_TRUE(out_rows[1]["structs"].is_array());
+    EXPECT_EQ(out_rows[1]["structs"][0]["lang"].get<std::string>(), "en");
+}
+
+TEST_F(DqlUtilsTest, DecodeStructFieldDataDenseScalarPayload) {
+    // The server outputs element-nullable scalars DENSE: one value per element with a
+    // zero/empty placeholder at each null position and matching-length valid_data. Values
+    // that follow a null element must decode from the dense position, not the compact one.
+    milvus::proto::schema::FieldData proto;
+    proto.set_field_name("structs");
+    proto.set_type(milvus::proto::schema::DataType::ArrayOfStruct);
+    auto* struct_array = proto.mutable_struct_arrays();
+
+    auto* lang = struct_array->add_fields();
+    lang->set_field_name("lang");
+    lang->set_type(milvus::proto::schema::DataType::Array);
+    lang->mutable_scalars()->mutable_array_data()->set_element_type(milvus::proto::schema::DataType::VarChar);
+    auto* lang_row = lang->mutable_scalars()->mutable_array_data()->add_data();
+    lang_row->mutable_valid_data()->Add(true);
+    lang_row->mutable_valid_data()->Add(false);
+    lang_row->mutable_valid_data()->Add(true);
+    lang_row->mutable_string_data()->add_data("en");
+    lang_row->mutable_string_data()->add_data("");
+    lang_row->mutable_string_data()->add_data("fr");
+
+    auto* score = struct_array->add_fields();
+    score->set_field_name("score");
+    score->set_type(milvus::proto::schema::DataType::Array);
+    score->mutable_scalars()->mutable_array_data()->set_element_type(milvus::proto::schema::DataType::Int64);
+    auto* score_row = score->mutable_scalars()->mutable_array_data()->add_data();
+    score_row->mutable_valid_data()->Add(true);
+    score_row->mutable_valid_data()->Add(false);
+    score_row->mutable_valid_data()->Add(true);
+    score_row->mutable_long_data()->add_data(11);
+    score_row->mutable_long_data()->add_data(0);
+    score_row->mutable_long_data()->add_data(33);
+
+    milvus::FieldDataPtr field_data;
+    auto status = milvus::CreateMilvusFieldData(proto, field_data);
+    ASSERT_TRUE(status.IsOk()) << status.Message();
+    auto struct_ptr = std::dynamic_pointer_cast<milvus::StructFieldData>(field_data);
+    ASSERT_NE(struct_ptr, nullptr);
+    const auto& rows = struct_ptr->Data();
+    ASSERT_EQ(rows.size(), 1u);
+    ASSERT_EQ(rows[0].size(), 3u);
+    // the value after the null element must be the real value, not the placeholder
+    EXPECT_EQ(rows[0][0]["lang"].get<std::string>(), "en");
+    EXPECT_TRUE(rows[0][1]["lang"].is_null());
+    EXPECT_EQ(rows[0][2]["lang"].get<std::string>(), "fr");
+    EXPECT_EQ(rows[0][0]["score"].get<int64_t>(), 11);
+    EXPECT_TRUE(rows[0][1]["score"].is_null());
+    EXPECT_EQ(rows[0][2]["score"].get<int64_t>(), 33);
+}
+
+TEST_F(DqlUtilsTest, DecodeStructFieldDataDenseNestedArrayPayload) {
+    // Nested-Array sub-fields are DENSE at both the inner-array level and the leaf level:
+    // each element holds one leaf-typed cell, a null inner array is an empty cell, and null
+    // leaves sit in place as zero values.
+    milvus::proto::schema::FieldData proto;
+    proto.set_field_name("structs");
+    proto.set_type(milvus::proto::schema::DataType::ArrayOfStruct);
+    auto* struct_array = proto.mutable_struct_arrays();
+
+    auto* tags = struct_array->add_fields();
+    tags->set_field_name("tags");
+    tags->set_type(milvus::proto::schema::DataType::Array);
+    auto* outer = tags->mutable_scalars()->mutable_array_data();
+    outer->set_element_type(milvus::proto::schema::DataType::Array);
+    auto* row = outer->add_data();
+    row->mutable_valid_data()->Add(true);
+    row->mutable_valid_data()->Add(false);
+    row->mutable_valid_data()->Add(true);
+    // leaf 0: [21, null, 23] dense
+    auto* leaf0 = row->mutable_array_data()->add_data();
+    leaf0->mutable_valid_data()->Add(true);
+    leaf0->mutable_valid_data()->Add(false);
+    leaf0->mutable_valid_data()->Add(true);
+    leaf0->mutable_long_data()->add_data(21);
+    leaf0->mutable_long_data()->add_data(0);
+    leaf0->mutable_long_data()->add_data(23);
+    row->mutable_array_data()->set_element_type(milvus::proto::schema::DataType::Int64);
+    // leaf 1: a null inner array is an empty cell
+    auto* leaf1 = row->mutable_array_data()->add_data();
+    (void)leaf1;
+    // leaf 2: [30]
+    auto* leaf2 = row->mutable_array_data()->add_data();
+    leaf2->mutable_valid_data()->Add(true);
+    leaf2->mutable_long_data()->add_data(30);
+
+    milvus::FieldDataPtr field_data;
+    auto status = milvus::CreateMilvusFieldData(proto, field_data);
+    ASSERT_TRUE(status.IsOk()) << status.Message();
+    auto struct_ptr = std::dynamic_pointer_cast<milvus::StructFieldData>(field_data);
+    ASSERT_NE(struct_ptr, nullptr);
+    const auto& rows = struct_ptr->Data();
+    ASSERT_EQ(rows.size(), 1u);
+    // the three leaf cells are the tags value of three struct elements
+    ASSERT_EQ(rows[0].size(), 3u);
+    ASSERT_TRUE(rows[0][0]["tags"].is_array());
+    ASSERT_EQ(rows[0][0]["tags"].size(), 3u);
+    EXPECT_EQ(rows[0][0]["tags"][0].get<int64_t>(), 21);
+    EXPECT_TRUE(rows[0][0]["tags"][1].is_null());
+    EXPECT_EQ(rows[0][0]["tags"][2].get<int64_t>(), 23);
+    EXPECT_TRUE(rows[0][1]["tags"].is_null());
+    ASSERT_TRUE(rows[0][2]["tags"].is_array());
+    ASSERT_EQ(rows[0][2]["tags"].size(), 1u);
+    EXPECT_EQ(rows[0][2]["tags"][0].get<int64_t>(), 30);
 }
 
 TEST_F(DqlUtilsTest, GetRowsFromStructFloat16VectorFieldData) {
@@ -1707,4 +1989,72 @@ TEST_F(DqlUtilsTest, AggregationBucketsRejectUnaccountedBuckets) {
 
     EXPECT_FALSE(status.IsOk());
     EXPECT_EQ(status.Code(), milvus::StatusCode::INVALID_ARGUMENT);
+}
+
+TEST_F(DqlUtilsTest, DecodeStructVectorRejectsDensePayload) {
+    // the server outputs struct vector sub-fields compact (only valid vectors); a dense
+    // payload (placeholder at null positions) must be caught loudly instead of decoding the
+    // placeholder at the wrong logical position
+    milvus::proto::schema::FieldData proto;
+    proto.set_field_name("structs");
+    proto.set_type(milvus::proto::schema::DataType::ArrayOfStruct);
+    auto* struct_array = proto.mutable_struct_arrays();
+    auto* emb = struct_array->add_fields();
+    emb->set_field_name("emb");
+    emb->set_type(milvus::proto::schema::DataType::ArrayOfVector);
+    emb->mutable_vectors()->set_dim(1);
+    emb->mutable_vectors()->mutable_vector_array()->set_element_type(milvus::proto::schema::DataType::FloatVector);
+    emb->mutable_vectors()->mutable_vector_array()->set_dim(1);
+    auto* row = emb->mutable_vectors()->mutable_vector_array()->add_data();
+    row->mutable_valid_data()->Add(true);
+    row->mutable_valid_data()->Add(false);
+    row->set_dim(1);
+    // dense: two vectors stored while only one element is valid
+    row->mutable_float_vector()->add_data(1.0f);
+    row->mutable_float_vector()->add_data(2.0f);
+
+    milvus::FieldDataPtr field_data;
+    auto status = milvus::CreateMilvusFieldData(proto, field_data);
+    EXPECT_EQ(status.Code(), milvus::StatusCode::UNKNOWN_ERROR);
+    EXPECT_EQ(status.Message(), "Struct vector payload and valid_data differ in length");
+}
+
+TEST_F(DqlUtilsTest, DecodeStructRowValidityScansAllSubFields) {
+    // a function-output sub-field (no row mask) must not hide the row mask carried by later
+    // sub-fields when detecting whole null struct rows
+    milvus::proto::schema::FieldData proto;
+    proto.set_field_name("structs");
+    proto.set_type(milvus::proto::schema::DataType::ArrayOfStruct);
+    auto* struct_array = proto.mutable_struct_arrays();
+
+    // fields(0): function-output sub-field with a dense cell and no row mask
+    auto* func = struct_array->add_fields();
+    func->set_field_name("func_out");
+    func->set_type(milvus::proto::schema::DataType::Array);
+    func->mutable_scalars()->mutable_array_data()->set_element_type(milvus::proto::schema::DataType::Int64);
+    auto* func_cell = func->mutable_scalars()->mutable_array_data()->add_data();
+    func_cell->mutable_long_data()->add_data(0);
+
+    // fields(1): a regular sub-field carrying the shared row mask [false, true]
+    auto* lang = struct_array->add_fields();
+    lang->set_field_name("lang");
+    lang->set_type(milvus::proto::schema::DataType::Array);
+    lang->mutable_scalars()->mutable_array_data()->set_element_type(milvus::proto::schema::DataType::VarChar);
+    lang->mutable_valid_data()->Add(false);
+    lang->mutable_valid_data()->Add(true);
+    auto* null_cell = lang->mutable_scalars()->mutable_array_data()->add_data();
+    (void)null_cell;
+    auto* lang_row = lang->mutable_scalars()->mutable_array_data()->add_data();
+    lang_row->mutable_string_data()->add_data("en");
+
+    milvus::FieldDataPtr field_data;
+    auto status = milvus::CreateMilvusFieldData(proto, field_data);
+    ASSERT_TRUE(status.IsOk()) << status.Message();
+    auto struct_ptr = std::dynamic_pointer_cast<milvus::StructFieldData>(field_data);
+    ASSERT_NE(struct_ptr, nullptr);
+    EXPECT_TRUE(struct_ptr->IsNull(0));
+    EXPECT_FALSE(struct_ptr->IsNull(1));
+    const auto& rows = struct_ptr->Data();
+    ASSERT_EQ(rows.size(), 2u);
+    EXPECT_EQ(rows[1][0]["lang"].get<std::string>(), "en");
 }
