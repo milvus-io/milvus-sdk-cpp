@@ -33,8 +33,9 @@ make
 make run
 ```
 
-`make` installs `milvus-sdk-cpp` as a Conan dependency (default `3.0.4@milvus/dev`), configures
-CMake, and builds `cmake_build/tutorial_quickstart`. Set `MILVUS_SDK_VERSION`,
+`make` installs `milvus-sdk-cpp` as a Conan dependency (the package reference is pinned in
+`conanfile.py`, defaulting to `@milvus/dev`), configures CMake, and builds
+`cmake_build/tutorial_quickstart`. Set `MILVUS_SDK_VERSION`,
 `MILVUS_SDK_USER`, or `MILVUS_SDK_CHANNEL` to consume another package reference.
 
 The program cleans up its tutorial collection on normal completion. `make clean` removes the local

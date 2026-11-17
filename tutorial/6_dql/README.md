@@ -22,9 +22,9 @@ make
 make run
 ```
 
-Set `MILVUS_URI` and `MILVUS_TOKEN` for another server. The tutorial uses
-`milvus-sdk-cpp/3.0.4@milvus/dev` unless the `MILVUS_SDK_*` variables override it, and drops its
-temporary collection before exiting.
+Set `MILVUS_URI` and `MILVUS_TOKEN` for another server. The tutorial uses the `milvus-sdk-cpp`
+package reference pinned in `conanfile.py` (default `@milvus/dev`) unless the `MILVUS_SDK_*`
+variables override it, and drops its temporary collection before exiting.
 
 ## Expected output
 

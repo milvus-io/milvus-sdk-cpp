@@ -28,9 +28,9 @@ make
 make run
 ```
 
-The default Conan package is `milvus-sdk-cpp/3.0.4@milvus/dev`. Set `MILVUS_SDK_VERSION`,
-`MILVUS_SDK_USER`, or `MILVUS_SDK_CHANNEL` to select another package. Each temporary collection
-is described and then dropped. `make clean` removes local build output.
+The default Conan package reference is pinned in `conanfile.py` (default `@milvus/dev`). Set
+`MILVUS_SDK_VERSION`, `MILVUS_SDK_USER`, or `MILVUS_SDK_CHANNEL` to select another package. Each
+temporary collection is described and then dropped. `make clean` removes local build output.
 
 ## Expected output
 

@@ -31,9 +31,10 @@ make
 make run
 ```
 
-The project consumes `milvus-sdk-cpp/3.0.4@milvus/dev` by default. Override the package with
-`MILVUS_SDK_VERSION`, `MILVUS_SDK_USER`, and `MILVUS_SDK_CHANNEL`. The tutorial removes its
-temporary collection; use `make clean` to remove build outputs.
+The project consumes `milvus-sdk-cpp`, whose package reference is pinned in `conanfile.py`
+(default `@milvus/dev`). Override the package with `MILVUS_SDK_VERSION`, `MILVUS_SDK_USER`, and
+`MILVUS_SDK_CHANNEL`. The tutorial removes its temporary collection; use `make clean` to remove
+build outputs.
 
 ## Expected output
 
