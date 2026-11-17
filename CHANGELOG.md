@@ -1,5 +1,9 @@
 # Changelog
 
+## milvus-sdk-cpp 2.6.9 (2026-11-17)
+### Feature
+- Add row-level security (RLS) APIs to MilvusClientV2
+
 ## milvus-sdk-cpp 2.6.8 (2026-10-26)
 ### Feature
 - Support struct-level type parameters on StructFieldSchema
