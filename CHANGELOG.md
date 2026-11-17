@@ -1,5 +1,14 @@
 # Changelog
 
+## milvus-sdk-cpp 3.0.5 (2026-11-17)
+### Feature
+- Support element-level null, nested Array sub-fields, and struct sub-field add/drop
+- Add listRunningRequests and cancelRequests to MilvusClientV2
+- Support element-filter in QueryIterator
+
+### Bug
+- Fix the element-filter query example to read the whole struct-array field output
+
 ## milvus-sdk-cpp 3.0.4 (2026-10-26)
 ### Feature
 - Support struct-level type parameters on StructFieldSchema

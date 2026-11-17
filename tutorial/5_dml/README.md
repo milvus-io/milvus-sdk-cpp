@@ -22,8 +22,9 @@ make
 make run
 ```
 
-The default package is `milvus-sdk-cpp/3.0.4@milvus/dev`; override it with `MILVUS_SDK_VERSION`,
-`MILVUS_SDK_USER`, and `MILVUS_SDK_CHANNEL`. `make clean` removes build output.
+The default package reference is pinned in `conanfile.py` (default `@milvus/dev`); override it
+with `MILVUS_SDK_VERSION`, `MILVUS_SDK_USER`, and `MILVUS_SDK_CHANNEL`. `make clean` removes
+build output.
 
 ## Expected output
 
