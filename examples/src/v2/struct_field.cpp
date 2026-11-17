@@ -633,8 +633,11 @@ elementLevelSearch(milvus::MilvusClientV2Ptr& client) {
     }
 }
 
-// Element-level query: the iterator expands each matched element into one row carrying an
-// "offset" column (the matched element's index within the struct-array field).
+// Element-level query: the server returns the whole struct-array field per entity (even when a
+// sub-field path is requested) together with an element_indices list, and the iterator expands
+// each matched element into one row carrying an "offset" column (the matched element's index
+// within the struct-array field). The whole struct field is requested directly and the matched
+// element's sub-fields are read from it at that offset position.
 void
 elementLevelQuery(milvus::MilvusClientV2Ptr& client) {
     std::cout << "\n===================================================" << std::endl;
@@ -647,8 +650,7 @@ elementLevelQuery(milvus::MilvusClientV2Ptr& client) {
     request.SetFilter(filter);
     request.AddOutputField(field_id);
     request.AddOutputField(field_name);
-    request.AddOutputField(combineStructName(field_struct, field_struct_int32));
-    request.AddOutputField(combineStructName(field_struct, field_struct_varchar));
+    request.AddOutputField(field_struct);
 
     milvus::QueryIteratorPtr iterator;
     auto status = client->QueryIterator(request, iterator);
@@ -669,8 +671,13 @@ elementLevelQuery(milvus::MilvusClientV2Ptr& client) {
         util::CheckStatus("get output rows", status);
         for (const auto& row : rows) {
             auto id = row[field_id].get<int64_t>();
-            auto frame = row[combineStructName(field_struct, field_struct_int32)].get<int32_t>();
             auto offset = row.value("offset", int64_t{0});
+            int64_t frame = 0;
+            auto clips_it = row.find(field_struct);
+            if (clips_it != row.end() && clips_it->is_array() &&
+                offset >= 0 && static_cast<size_t>(offset) < clips_it->size()) {
+                frame = clips_it->at(static_cast<size_t>(offset)).value(field_struct_int32, int64_t{0});
+            }
             std::cout << "  id=" << id << ", frame_number=" << frame << ", elementOffset=" << offset << std::endl;
         }
     }
