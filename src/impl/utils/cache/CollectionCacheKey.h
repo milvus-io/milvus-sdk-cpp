@@ -16,6 +16,7 @@
 
 #pragma once
 
+#include <cstddef>
 #include <exception>
 #include <functional>
 #include <string>
@@ -23,6 +24,9 @@
 #include "../Uri.h"
 
 namespace milvus {
+
+// Default LRU entry bound shared by the schema and collection-timestamp caches.
+constexpr size_t kCollectionCacheDefaultCapacity = 4096;
 
 struct CollectionCacheKey {
     std::string endpoint_;

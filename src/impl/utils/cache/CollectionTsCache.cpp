@@ -17,13 +17,32 @@
 #include "./CollectionTsCache.h"
 
 #include <algorithm>
+#include <mutex>
 
 namespace milvus {
+
+CollectionTsCache::CollectionTsCache(size_t capacity) : capacity_(capacity) {
+}
 
 CollectionTsCache&
 CollectionTsCache::GetInstance() {
     static CollectionTsCache instance;
     return instance;
+}
+
+void
+CollectionTsCache::SetCapacity(size_t capacity) {
+    std::unique_lock<std::shared_timed_mutex> lock(mutex_);
+    capacity_ = capacity;
+    while (cache_.size() > capacity_) {
+        evictIfNeededLocked();
+    }
+}
+
+size_t
+CollectionTsCache::Capacity() const {
+    std::shared_lock<std::shared_timed_mutex> lock(mutex_);
+    return capacity_;
 }
 
 uint64_t
@@ -34,7 +53,8 @@ CollectionTsCache::Get(const std::string& endpoint, const std::string& db_name, 
     if (it == cache_.end()) {
         return 0;
     }
-    return it->second;
+    touch(it->second);
+    return it->second->ts_;
 }
 
 void
@@ -48,13 +68,15 @@ CollectionTsCache::Set(const std::string& endpoint, const std::string& db_name, 
     std::unique_lock<std::shared_timed_mutex> lock(mutex_);
     auto it = cache_.find(key);
     if (it != cache_.end()) {
-        if (ts > it->second) {
-            it->second = ts;
+        if (ts > it->second->ts_) {
+            it->second->ts_ = ts;
         }
+        touch(it->second);
         return;
     }
 
-    cache_.emplace(key, ts);
+    cache_.emplace(key, std::make_shared<Entry>(ts, nextAccess()));
+    evictIfNeededLocked();
 }
 
 void
@@ -106,11 +128,11 @@ CollectionTsCache::transfer(const CollectionCacheKey& source_key, const Collecti
     uint64_t latest_ts = 0;
     auto source_it = cache_.find(source_key);
     if (source_it != cache_.end()) {
-        latest_ts = source_it->second;
+        latest_ts = source_it->second->ts_;
     }
     auto target_it = cache_.find(target_key);
     if (target_it != cache_.end()) {
-        latest_ts = std::max(latest_ts, target_it->second);
+        latest_ts = std::max(latest_ts, target_it->second->ts_);
     }
 
     if (drop_source) {
@@ -118,7 +140,8 @@ CollectionTsCache::transfer(const CollectionCacheKey& source_key, const Collecti
     }
     cache_.erase(target_key);
     if (latest_ts != 0) {
-        cache_.emplace(target_key, latest_ts);
+        cache_.emplace(target_key, std::make_shared<Entry>(latest_ts, nextAccess()));
+        evictIfNeededLocked();
     }
 }
 
@@ -132,6 +155,35 @@ size_t
 CollectionTsCache::Size() const {
     std::shared_lock<std::shared_timed_mutex> lock(mutex_);
     return cache_.size();
+}
+
+uint64_t
+CollectionTsCache::nextAccess() {
+    return access_sequence_.fetch_add(1, std::memory_order_relaxed) + 1;
+}
+
+void
+CollectionTsCache::touch(const EntryPtr& entry) {
+    const auto access = nextAccess();
+    auto previous = entry->last_access_.load(std::memory_order_relaxed);
+    while (previous < access && !entry->last_access_.compare_exchange_weak(previous, access, std::memory_order_relaxed,
+                                                                           std::memory_order_relaxed)) {
+    }
+}
+
+void
+CollectionTsCache::evictIfNeededLocked() {
+    if (cache_.size() <= capacity_) {
+        return;
+    }
+
+    const auto oldest = std::min_element(cache_.begin(), cache_.end(), [](const auto& left, const auto& right) {
+        return left.second->last_access_.load(std::memory_order_relaxed) <
+               right.second->last_access_.load(std::memory_order_relaxed);
+    });
+    if (oldest != cache_.end()) {
+        cache_.erase(oldest);
+    }
 }
 
 }  // namespace milvus

@@ -16,9 +16,10 @@
 
 #pragma once
 
+#include <atomic>
 #include <cstddef>
 #include <cstdint>
-#include <mutex>
+#include <memory>
 #include <shared_mutex>
 #include <string>
 #include <unordered_map>
@@ -29,8 +30,16 @@ namespace milvus {
 
 class CollectionTsCache {
  public:
+    explicit CollectionTsCache(size_t capacity = kCollectionCacheDefaultCapacity);
+
     static CollectionTsCache&
     GetInstance();
+
+    void
+    SetCapacity(size_t capacity);
+
+    size_t
+    Capacity() const;
 
     uint64_t
     Get(const std::string& endpoint, const std::string& db_name, const std::string& collection_name);
@@ -62,11 +71,32 @@ class CollectionTsCache {
     Size() const;
 
  private:
+    struct Entry {
+        Entry(uint64_t ts, uint64_t last_access) : ts_(ts), last_access_(last_access) {
+        }
+
+        uint64_t ts_;
+        std::atomic<uint64_t> last_access_;
+    };
+
+    using EntryPtr = std::shared_ptr<Entry>;
+
     void
     transfer(const CollectionCacheKey& source_key, const CollectionCacheKey& target_key, bool drop_source);
 
+    uint64_t
+    nextAccess();
+
+    void
+    touch(const EntryPtr& entry);
+
+    void
+    evictIfNeededLocked();
+
+    size_t capacity_;
     mutable std::shared_timed_mutex mutex_;
-    std::unordered_map<CollectionCacheKey, uint64_t, CollectionCacheKeyHash> cache_;
+    std::atomic<uint64_t> access_sequence_{0};
+    std::unordered_map<CollectionCacheKey, EntryPtr, CollectionCacheKeyHash> cache_;
 };
 
 }  // namespace milvus
