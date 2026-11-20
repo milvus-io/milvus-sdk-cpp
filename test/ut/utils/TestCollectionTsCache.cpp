@@ -88,18 +88,44 @@ TEST(CollectionTsCacheTest, InvalidatesEntries) {
     EXPECT_EQ(cache.Size(), 0);
 }
 
-TEST(CollectionTsCacheTest, DoesNotEvictSessionTimestamps) {
-    milvus::CollectionTsCache cache;
-    constexpr int kCollectionCount = 5000;
+TEST(CollectionTsCacheTest, EvictsLeastRecentlyUsedEntriesAtCapacity) {
+    milvus::CollectionTsCache cache(16);
+    constexpr int kCollectionCount = 64;
 
     for (int i = 0; i < kCollectionCount; ++i) {
         cache.Set("endpoint", "db", "collection-" + std::to_string(i), static_cast<uint64_t>(i + 1));
     }
 
-    EXPECT_EQ(cache.Size(), kCollectionCount);
-    EXPECT_EQ(cache.Get("endpoint", "db", "collection-0"), 1);
-    EXPECT_EQ(cache.Get("endpoint", "db", "collection-4096"), 4097);
-    EXPECT_EQ(cache.Get("endpoint", "db", "collection-4999"), 5000);
+    EXPECT_EQ(cache.Size(), 16);
+    // Entries written before the capacity was reached are the least recently
+    // used once the cache fills, so the earliest keys are evicted.
+    EXPECT_EQ(cache.Get("endpoint", "db", "collection-0"), 0);
+    EXPECT_EQ(cache.Get("endpoint", "db", "collection-47"), 0);
+
+    // Reading an entry refreshes its recency so it survives a later eviction.
+    EXPECT_EQ(cache.Get("endpoint", "db", "collection-48"), 49);
+    cache.Set("endpoint", "db", "collection-64", 65);
+    EXPECT_EQ(cache.Get("endpoint", "db", "collection-48"), 49);
+    EXPECT_EQ(cache.Size(), 16);
+}
+
+TEST(CollectionTsCacheTest, SetCapacityShrinksImmediately) {
+    milvus::CollectionTsCache cache(32);
+    for (int i = 0; i < 32; ++i) {
+        cache.Set("endpoint", "db", "collection-" + std::to_string(i), static_cast<uint64_t>(i + 1));
+    }
+    EXPECT_EQ(cache.Size(), 32);
+
+    cache.SetCapacity(8);
+    EXPECT_EQ(cache.Size(), 8);
+    EXPECT_EQ(cache.Capacity(), 8);
+
+    cache.SetCapacity(64);
+    EXPECT_EQ(cache.Capacity(), 64);
+    for (int i = 0; i < 32; ++i) {
+        cache.Set("endpoint", "db", "collection-" + std::to_string(i), static_cast<uint64_t>(i + 1));
+    }
+    EXPECT_EQ(cache.Size(), 32);
 }
 
 TEST(CollectionTsCacheTest, InvalidatesDatabase) {
@@ -168,6 +194,32 @@ TEST(CollectionTsCacheTest, CopiesCollectionWithoutRemovingSource) {
     EXPECT_EQ(cache.Get("endpoint", "db", "alias"), 200);
 }
 
+TEST(CollectionTsCacheTest, TransferAtCapacityEvictsAndKeepsNewTarget) {
+    milvus::CollectionTsCache cache(8);
+
+    for (int i = 0; i < 8; ++i) {
+        cache.Set("endpoint", "db", "collection-" + std::to_string(i), static_cast<uint64_t>(i + 1));
+    }
+    EXPECT_EQ(cache.Size(), 8);
+
+    // Move drops the source and inserts the target under a fresh recency, so
+    // the newly inserted target must never be the eviction victim even though
+    // the cache is at capacity; an older entry is evicted instead.
+    cache.Move("endpoint", "db", "collection-0", "db", "moved");
+    EXPECT_EQ(cache.Size(), 8);
+    EXPECT_EQ(cache.Get("endpoint", "db", "collection-0"), 0);
+    EXPECT_EQ(cache.Get("endpoint", "db", "moved"), 1);
+
+    // Copy keeps the source, so the fresh target insertion also triggers an
+    // eviction while the cache is at capacity. Touch the source first so it is
+    // not the LRU victim; the newly inserted target must survive.
+    cache.Get("endpoint", "db", "collection-1");
+    cache.Copy("endpoint", "db", "collection-1", "db", "copied");
+    EXPECT_EQ(cache.Size(), 8);
+    EXPECT_EQ(cache.Get("endpoint", "db", "collection-1"), 2);
+    EXPECT_EQ(cache.Get("endpoint", "db", "copied"), 2);
+}
+
 TEST(CollectionTsCacheTest, ConcurrentNewNameWriteBeforeMovePreservesTimestamp) {
     milvus::CollectionTsCache cache;
     cache.Set("endpoint", "db", "old", 100);
@@ -230,4 +282,43 @@ TEST(CollectionTsCacheTest, ConcurrentReadsAndMonotonicWrites) {
     }
 
     EXPECT_EQ(cache.Get("endpoint", "db", "collection"), kThreadCount * kWritesPerThread);
+}
+
+TEST(CollectionTsCacheTest, ConcurrentSetsAndGetsAtCapacity) {
+    milvus::CollectionTsCache cache(32);
+    constexpr int kThreadCount = 8;
+    constexpr int kKeysPerThread = 64;
+    constexpr int kTotalKeys = kThreadCount * kKeysPerThread;
+
+    std::vector<std::thread> threads;
+    threads.reserve(kThreadCount);
+    for (int thread_id = 0; thread_id < kThreadCount; ++thread_id) {
+        threads.emplace_back([&cache, thread_id, kKeysPerThread]() {
+            for (int i = 0; i < kKeysPerThread; ++i) {
+                const auto key = "collection-" + std::to_string(thread_id * kKeysPerThread + i);
+                cache.Set("endpoint", "db", key, static_cast<uint64_t>(thread_id * kKeysPerThread + i + 1));
+                cache.Get("endpoint", "db", key);
+                // Re-write each key with a strictly larger ts so a surviving
+                // entry must hold the last written value, not the first one.
+                cache.Set("endpoint", "db", key,
+                          static_cast<uint64_t>(thread_id * kKeysPerThread + i + 1 + kTotalKeys));
+                cache.Get("endpoint", "db", key);
+            }
+        });
+    }
+
+    for (auto& thread : threads) {
+        thread.join();
+    }
+
+    // The cache stays bounded at capacity under concurrent eviction.
+    EXPECT_EQ(cache.Size(), 32);
+    // A key that survives eviction must carry its last written (larger) ts; a
+    // key that was evicted and never re-written reads back 0.
+    for (int i = 0; i < kTotalKeys; ++i) {
+        const auto key = "collection-" + std::to_string(i);
+        const auto ts = cache.Get("endpoint", "db", key);
+        const auto last_written = static_cast<uint64_t>(i + 1 + kTotalKeys);
+        EXPECT_TRUE(ts == 0 || ts == last_written) << "key=" << key << " ts=" << ts;
+    }
 }
