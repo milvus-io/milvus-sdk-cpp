@@ -29,18 +29,24 @@
 #include "./CollectionCacheKey.h"
 #include "milvus/Status.h"
 #include "milvus/types/CollectionDesc.h"
+#include "milvus/utils/CacheConfig.h"
 
 namespace milvus {
 
 class SchemaCache {
  public:
-    static constexpr size_t default_capacity = 4096;
     using Loader = std::function<Status(CollectionDescPtr&)>;
 
-    explicit SchemaCache(size_t capacity = default_capacity);
+    explicit SchemaCache(size_t capacity = DEFAULT_CAPACITY);
 
     static SchemaCache&
     GetInstance();
+
+    void
+    SetCapacity(size_t capacity);
+
+    size_t
+    Capacity() const;
 
     // Completed schemas are shared by collection key. Concurrent loads are coalesced only when
     // load_scope is the same stable per-client identity, so one client's RPC deadline, credentials,

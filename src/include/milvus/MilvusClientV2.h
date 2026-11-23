@@ -24,6 +24,8 @@
 #include "Status.h"
 #include "milvus/BulkImport.h"
 #include "milvus/Export.h"
+#include "milvus/utils/CacheConfig.h"
+#include "milvus/utils/FP16.h"
 #include "request/alias/AlterAliasRequest.h"
 #include "request/alias/CreateAliasRequest.h"
 #include "request/alias/DescribeAliasRequest.h"

@@ -32,6 +32,21 @@ SchemaCache::GetInstance() {
     return instance;
 }
 
+void
+SchemaCache::SetCapacity(size_t capacity) {
+    std::unique_lock<std::shared_timed_mutex> lock(mutex_);
+    capacity_ = capacity;
+    while (cache_.size() > capacity_) {
+        evictIfNeededLocked();
+    }
+}
+
+size_t
+SchemaCache::Capacity() const {
+    std::shared_lock<std::shared_timed_mutex> lock(mutex_);
+    return capacity_;
+}
+
 Status
 SchemaCache::GetOrLoad(const std::string& endpoint, const std::string& db_name, const std::string& collection_name,
                        bool force_update, const void* load_scope, const Loader& loader, CollectionDescPtr& desc) {

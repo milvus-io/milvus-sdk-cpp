@@ -495,3 +495,24 @@ TEST(SchemaCacheTest, UnrelatedInvalidationDoesNotSuppressLoad) {
     ASSERT_TRUE(cache.Get("endpoint", "db", "first", cached));
     EXPECT_EQ(cached->ID(), 100);
 }
+
+// Mirror of CollectionTsCacheTest.SetCapacityShrinksImmediately; keep the
+// shrink/evict assertions in sync between the two cache tests.
+TEST(SchemaCacheTest, SetCapacityShrinksImmediately) {
+    milvus::SchemaCache cache(32);
+    for (int i = 0; i < 32; ++i) {
+        cache.Set("endpoint", "db", "collection-" + std::to_string(i), MakeCollectionDesc(i + 1));
+    }
+    EXPECT_EQ(cache.Size(), 32);
+
+    cache.SetCapacity(8);
+    EXPECT_EQ(cache.Size(), 8);
+    EXPECT_EQ(cache.Capacity(), 8);
+
+    cache.SetCapacity(64);
+    EXPECT_EQ(cache.Capacity(), 64);
+    for (int i = 0; i < 32; ++i) {
+        cache.Set("endpoint", "db", "collection-" + std::to_string(i), MakeCollectionDesc(i + 1));
+    }
+    EXPECT_EQ(cache.Size(), 32);
+}
