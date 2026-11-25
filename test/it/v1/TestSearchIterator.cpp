@@ -69,11 +69,16 @@ DoSearchIterator(testing::StrictMock<milvus::MilvusMockedService>& service, milv
     const int64_t limit = row_count;
     uint64_t current_poz = 0;
     bool probe_compability = true;
+    int page_idx = 0;
     constexpr uint64_t probe_session_ts = 123456;
     EXPECT_CALL(service, Search(_, _, _))
         .WillRepeatedly([&](::grpc::ServerContext*, const SearchRequest* request, SearchResults* response) {
             auto token = v1 ? "" : "dummy";
             response->mutable_results()->mutable_search_iterator_v2_results()->set_token(token);
+            if (!v1) {
+                response->mutable_results()->mutable_search_iterator_v2_results()->set_cursor(
+                    "cursor-" + std::to_string(page_idx));
+            }
             if (probe_compability) {
                 probe_compability = false;
                 if (!v1) {
@@ -83,6 +88,8 @@ DoSearchIterator(testing::StrictMock<milvus::MilvusMockedService>& service, milv
             }
 
             auto params = request->search_params();
+            std::string expected_cursor = (!v1 && page_idx > 0) ? ("cursor-" + std::to_string(page_idx)) : "";
+            std::string actual_cursor;
             for (const auto& pair : params) {
                 if (pair.key() == milvus::TOPK) {
                     EXPECT_GE(std::stoul(pair.value()), batch_size);
@@ -96,7 +103,12 @@ DoSearchIterator(testing::StrictMock<milvus::MilvusMockedService>& service, milv
                 if (pair.key() == milvus::ITER_SEARCH_BATCH_SIZE_KEY) {
                     EXPECT_EQ(pair.value(), std::to_string(batch_size));
                 }
+                if (pair.key() == milvus::ITER_SEARCH_CURSOR_KEY) {
+                    actual_cursor = pair.value();
+                }
             }
+            EXPECT_EQ(actual_cursor, expected_cursor);
+            page_idx++;
             EXPECT_THAT(request->output_fields(), UnorderedElementsAreArray(field_names));
             EXPECT_EQ(request->collection_name(), collection_name);
             EXPECT_EQ(request->consistency_level(), milvus::ConsistencyLevelCast(level));
