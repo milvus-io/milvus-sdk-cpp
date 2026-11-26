@@ -20,6 +20,27 @@
 
 class ConnectParamTest : public ::testing::Test {};
 
+TEST_F(ConnectParamTest, GrpcCompression) {
+    using milvus::GrpcCompression;
+    milvus::ConnectParam param;
+    EXPECT_EQ(param.Compression(), GrpcCompression::NONE);
+    EXPECT_EQ(&param, &param.WithCompression(GrpcCompression::GZIP));
+    param.WithTls();
+    const auto copied = param;
+    EXPECT_EQ(copied.Compression(), GrpcCompression::GZIP);
+    EXPECT_TRUE(copied.TlsEnabled());
+    milvus::ConnectParam reconnect;
+    reconnect = param;
+    EXPECT_EQ(reconnect.Compression(), GrpcCompression::GZIP);
+    EXPECT_TRUE(reconnect.TlsEnabled());
+    reconnect.DisableTls();
+    EXPECT_EQ(reconnect.Compression(), GrpcCompression::GZIP);
+    param.SetCompression(GrpcCompression::NONE);
+    EXPECT_TRUE(param.TlsEnabled());
+    reconnect = param;
+    EXPECT_EQ(reconnect.Compression(), GrpcCompression::NONE);
+}
+
 TEST_F(ConnectParamTest, GeneralTesting) {
     milvus::ConnectParam param{"localhost", 10000};
     EXPECT_EQ(param.Host(), "localhost");

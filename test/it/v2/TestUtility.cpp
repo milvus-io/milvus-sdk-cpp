@@ -14,6 +14,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include <grpcpp/server_builder.h>
 #include <gtest/gtest.h>
 
 #include <memory>
@@ -108,6 +109,30 @@ FillRefreshJobInfo(RefreshExternalCollectionJobInfo* info) {
 }
 
 }  // namespace
+
+TEST(GrpcCompressionTest, UsesGzipOnlyWhenEnabled) {
+    testing::StrictMock<milvus::MilvusMockedService> service;
+    ::grpc::ServerBuilder builder;
+    int port = 0;
+    builder.AddListeningPort("127.0.0.1:0", ::grpc::InsecureServerCredentials(), &port);
+    builder.SetCompressionAlgorithmSupportStatus(GRPC_COMPRESS_GZIP, false);
+    builder.RegisterService(&service);
+    auto server = builder.BuildAndStart();
+    ASSERT_NE(server, nullptr);
+
+    EXPECT_CALL(service, Connect(_, _, _))
+        .Times(testing::AtLeast(1))
+        .WillRepeatedly(testing::Return(::grpc::Status::OK));
+    milvus::ConnectParam param{"127.0.0.1", static_cast<uint16_t>(port)};
+    milvus::TelemetryConfig telemetry;
+    telemetry.enabled = false;
+    param.SetTelemetryConfig(telemetry);
+    auto client = milvus::MilvusClientV2::Create();
+    EXPECT_TRUE(client->Connect(param).IsOk());
+    auto status = client->Connect(param.WithCompression(milvus::GrpcCompression::GZIP));
+    EXPECT_EQ(status.RpcErrCode(), ::grpc::StatusCode::UNIMPLEMENTED) << status.Message();
+    EXPECT_THAT(status.Message(), testing::HasSubstr("gzip"));
+}
 
 TEST_F(UnconnectMilvusMockedTest, CompactWithIsL0AndTargetSizeUnit) {
     auto client = CreateConnectedV2Client(service_, server_.ListenPort());

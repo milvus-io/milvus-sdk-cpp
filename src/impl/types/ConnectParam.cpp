@@ -50,30 +50,7 @@ ConnectParam::ConnectParam(std::string host, uint16_t port, std::string username
 }
 
 ConnectParam&
-ConnectParam::operator=(const ConnectParam& other) {
-    if (this != &other) {
-        uri_ = other.uri_;
-
-        connect_timeout_ms_ = other.connect_timeout_ms_;
-        keepalive_time_ms_ = other.keepalive_time_ms_;
-        keepalive_timeout_ms_ = other.keepalive_timeout_ms_;
-        keepalive_without_calls_ = other.keepalive_without_calls_;
-        rpc_deadline_ms_ = other.rpc_deadline_ms_;
-
-        tls_ = other.tls_;
-        server_name_ = other.server_name_;
-        cert_ = other.cert_;
-        key_ = other.key_;
-        ca_cert_ = other.ca_cert_;
-
-        authorizations_ = other.authorizations_;
-        username_ = other.username_;
-        token_ = other.token_;
-        db_name_ = other.db_name_;
-        telemetry_config_ = other.telemetry_config_;
-    }
-    return *this;
-}
+ConnectParam::operator=(const ConnectParam& other) = default;
 
 std::string
 ConnectParam::Host() const {
@@ -201,6 +178,22 @@ ConnectParam::WithKeepaliveWithoutCalls(bool keepalive_without_calls) {
     return *this;
 }
 
+GrpcCompression
+ConnectParam::Compression() const {
+    return static_cast<GrpcCompression>(transport_flags_ >> 1);
+}
+
+void
+ConnectParam::SetCompression(GrpcCompression compression) {
+    transport_flags_ = (transport_flags_ & tls_enabled) | (static_cast<uint8_t>(compression) << 1);
+}
+
+ConnectParam&
+ConnectParam::WithCompression(GrpcCompression compression) {
+    SetCompression(compression);
+    return *this;
+}
+
 uint64_t
 ConnectParam::RpcDeadlineMs() const {
     return rpc_deadline_ms_;
@@ -249,7 +242,7 @@ ConnectParam::WithTls(const std::string& server_name, const std::string& cert, c
 void
 ConnectParam::EnableTls(const std::string& server_name, const std::string& cert, const std::string& key,
                         const std::string& ca_cert) {
-    tls_ = true;
+    transport_flags_ |= tls_enabled;
     server_name_ = server_name;
     cert_ = cert;
     key_ = key;
@@ -258,7 +251,7 @@ ConnectParam::EnableTls(const std::string& server_name, const std::string& cert,
 
 void
 ConnectParam::DisableTls() {
-    tls_ = false;
+    transport_flags_ &= ~tls_enabled;
     server_name_.clear();
     cert_.clear();
     key_.clear();
@@ -267,7 +260,7 @@ ConnectParam::DisableTls() {
 
 bool
 ConnectParam::TlsEnabled() const {
-    return tls_;
+    return (transport_flags_ & tls_enabled) != 0;
 }
 
 const std::string&

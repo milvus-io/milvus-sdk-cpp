@@ -16,6 +16,8 @@
 
 #include "MilvusConnection.h"
 
+#include <grpc/compression.h>
+
 #include <ctime>
 #include <fstream>
 #include <iomanip>
@@ -114,6 +116,9 @@ MilvusConnection::Connect(const ConnectParam& param, const std::string& runtime_
         telemetry_endpoint = uri.host + ":" + std::to_string(uri.port);
 
         ::grpc::ChannelArguments args;
+        if (param.Compression() == GrpcCompression::GZIP) {
+            args.SetCompressionAlgorithm(GRPC_COMPRESS_GZIP);
+        }
         args.SetMaxSendMessageSize(-1);     // max send message size: 2GB
         args.SetMaxReceiveMessageSize(-1);  // max receive message size: 2GB
         args.SetInt(GRPC_ARG_KEEPALIVE_TIME_MS, param.KeepaliveTimeMs());
