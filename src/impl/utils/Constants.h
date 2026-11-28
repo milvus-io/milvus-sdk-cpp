@@ -63,6 +63,7 @@ extern MILVUS_SDK_API const char* ITER_SEARCH_V2_KEY;
 extern MILVUS_SDK_API const char* ITER_SEARCH_BATCH_SIZE_KEY;
 extern MILVUS_SDK_API const char* ITER_SEARCH_LAST_BOUND_KEY;
 extern MILVUS_SDK_API const char* ITER_SEARCH_ID_KEY;
+extern MILVUS_SDK_API const char* ITER_SEARCH_CURSOR_KEY;
 extern MILVUS_SDK_API const char* RERANKER;
 extern MILVUS_SDK_API const char* RANDOM_SCORE;
 

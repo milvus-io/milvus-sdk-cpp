@@ -216,6 +216,9 @@ SearchIteratorV2Impl<T>::next(SingleResultPtr& results) {
     if (params.find(ITER_SEARCH_ID_KEY) == params.end()) {
         args_.AddExtraParam(ITER_SEARCH_ID_KEY, rpc_results.token());
     }
+    if (!rpc_results.cursor().empty()) {
+        args_.AddExtraParam(ITER_SEARCH_CURSOR_KEY, rpc_results.cursor());
+    }
 
     SearchResults search_results;
     status = ConvertSearchResults(rpc_response, args_.PkSchema().Name(), search_results);
