@@ -62,6 +62,23 @@ Or specify a custom install prefix:
 make install CMAKE_INSTALL_PREFIX=/path/to/install
 ```
 
+### gRPC message compression
+
+Connections send uncompressed messages by default. Enable gzip for outgoing
+messages on a connection to a server that supports gzip. The SDK does not
+support selecting DEFLATE. Milvus v3.0.6 standalone rejects that encoding with
+gRPC `UNIMPLEMENTED`.
+
+```cpp
+milvus::ConnectParam connection{"http://localhost:19530"};
+connection.WithCompression(milvus::GrpcCompression::GZIP);
+auto client = milvus::MilvusClientV2::Create();
+auto status = client->Connect(connection);
+```
+
+gRPC may send individual messages uncompressed when compression does not reduce
+their size. The server chooses the encoding for its responses.
+
 ### Build with Conan
 
 The project uses [Conan 2](https://conan.io/) to manage dependencies. `scripts/build.sh` handles

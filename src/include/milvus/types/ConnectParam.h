@@ -24,6 +24,9 @@
 
 namespace milvus {
 
+/** @brief Default compression for outgoing gRPC messages on a connection. */
+enum class GrpcCompression : uint8_t { NONE, GZIP };
+
 /**
  * @brief Connection parameters. Used by MilvusClient::Connect()
  * @par Example
@@ -265,6 +268,17 @@ class MILVUS_SDK_API ConnectParam {
     ConnectParam&
     WithKeepaliveWithoutCalls(bool keepalive_without_calls);
 
+    /// Get the outgoing gRPC message compression. Defaults to NONE.
+    GrpcCompression
+    Compression() const;
+
+    void
+    SetCompression(GrpcCompression compression);
+
+    /// Select the outgoing gRPC message compression for this connection.
+    ConnectParam&
+    WithCompression(GrpcCompression compression);
+
     /**
      * @brief Get deadline value of rpc call in milliseconds.
      *
@@ -433,7 +447,10 @@ class MILVUS_SDK_API ConnectParam {
     bool keepalive_without_calls_ = true;   // Allow keepalive pings when there are no gRPC calls
     uint64_t rpc_deadline_ms_ = 0;          // the same with java sdk
 
-    bool tls_{false};
+    // Older client binaries initialize this TLS byte to 0 or 1. Keep TLS in
+    // bit 0 so both values retain the default message compression.
+    static constexpr uint8_t tls_enabled = 1;
+    uint8_t transport_flags_{0};
     std::string server_name_;
     std::string cert_;
     std::string key_;
